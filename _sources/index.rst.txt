@@ -43,7 +43,7 @@ Install arlib from source
 
 ::
 
-  git clone https://github.com/ZJU-Automated-Reasoning-Group/arlib
+  git clone https://github.com/ZJU-PL/arlib
   virtualenv --python=python3 venv
   source venv/bin/activate
   cd arlib
