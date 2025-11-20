@@ -54,16 +54,6 @@ if __name__ == "__main__":
         help="Generate random examples."
     )
     parser.add_argument(
-        "--cbmc",
-        action="store_true",
-        help="Use CBMC to generate the examples from C programs."
-    )
-    parser.add_argument(
-        "--kint",
-        action="store_true",
-        help="Use KINT to generate the examples from C programs."
-    )
-    parser.add_argument(
         "--c-dir",
         type=str,
         help="Directory to load C programs.",
@@ -76,12 +66,6 @@ if __name__ == "__main__":
     try:
         if args.gen:
             gen_examples(cnt, output_dir)
-        if args.cbmc:
-            # cbmc_gen_examples(cnt, output_dir, args.c_dir)
-            pass
-        if args.kint:
-            # kint_gen_examples(cnt, output_dir, args.kint_dir)
-            pass
         if args.run:
             run_examples(output_dir)
         if not args.gen and not args.run:

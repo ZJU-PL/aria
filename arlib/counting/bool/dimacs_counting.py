@@ -8,6 +8,7 @@ from typing import List
 from threading import Timer
 import logging
 import uuid
+import time
 from pyapproxmc import Counter
 
 import multiprocessing
@@ -60,7 +61,7 @@ def write_dimacs_to_file(header: List[str], clauses: List[str], output_file: str
             file.write(cls + " 0\n")
 
 
-def call_approxmc(clauses, timeout=300):
+def call_approxmc(clauses, timeout=600):
     """
     Run the ApproxMC solver on a given DIMACS CNF file and return the number of solutions.
 
@@ -100,16 +101,20 @@ def call_approxmc(clauses, timeout=300):
 
 def call_sharp_sat(cnf_filename: str):
     """
-    Call the sharpSAT solver on a given DIMACS CNF file and return the number of solutions.
+    Call the sharpSAT solver on a given DIMACS CNF file and return the number of solutions and solving time.
 
     Args:
         cnf_filename (str): The path to the DIMACS CNF file.
 
     Returns:
-        int: The number of solutions for the given DIMACS CNF formula.
+        tuple: (solutions, solving_time) where solutions is the number of solutions and solving_time is the time taken.
     """
 
     solutions = -1
+    start_time = time.time()
+    if not global_config.is_solver_available("sharp_sat"):
+        logger.error("sharpSAT is not available")
+        return -1, -1
     cmd = [global_config.get_solver_path("sharp_sat"), cnf_filename]
     print("Calling sharpSAT")
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -151,7 +156,8 @@ def call_sharp_sat(cnf_filename: str):
     if is_timeout[0]:
         logging.debug("sharpSAT timeout")
 
-    return solutions
+    solving_time = time.time() - start_time
+    return solutions, solving_time
 
 
 def count_dimacs_solutions(header: List, str_clauses: List):
@@ -239,16 +245,25 @@ def count_dimacs_solutions_parallel(header: List[str], clauses: List[str]) -> in
             results.append(result)
 
         raw_solutions: List[int] = []
+        sharp_sat_times: List[float] = [] 
         for i in range(len(cnf_tasks)):
             result = results[i].get()
-            raw_solutions.append(int(result))
+            raw_solutions.append(int(result[0]))
+            sharp_sat_times.append(result[1])
 
         print("results: ", raw_solutions)
-        if -1 in raw_solutions:
-            print("sharpSAT failed, calling approxmc")
-            result = call_approxmc(clauses)
-            print("approxmc result: ", result)
-            return result
+        print("sharpSAT times: ", sharp_sat_times)
+        # if -1 in raw_solutions:
+        #     print("sharpSAT failed, calling approxmc")
+        #     start_time = time.time()
+        #     result = call_approxmc(clauses)
+        #     approxmc_time = time.time() - start_time
+        #     print("approxmc result: ", result)
+        #     with open('temp.log', 'a') as f:
+        #         f.write(f"{cnf.nv} {len(clauses)} {[-1 if x > 60 else x for x in sharp_sat_times]} {approxmc_time if result != -1 else -1}\n")
+        #     return result
+        with open('temp.log', 'a') as f:
+            f.write(f"{cnf.nv} {len(clauses)} {sharp_sat_times} 0\n")
         return sum(raw_solutions)
     finally:
         # Ensure the pool is properly closed

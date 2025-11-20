@@ -45,12 +45,23 @@ class AbstractionResults:
     """Store results from different abstraction domains"""
     interval_fp_rate: float = 0.0
     interval_time: float = 0.0
+    interval_abs_count: int = 0
+    interval_fp_count: int = 0
     zone_fp_rate: float = 0.0
     zone_time: float = 0.0
+    zone_abs_count: int = 0
+    zone_fp_count: int = 0
     octagon_fp_rate: float = 0.0
     octagon_time: float = 0.0
+    octagon_abs_count: int = 0
+    octagon_fp_count: int = 0
     bitwise_fp_rate: float = 0.0
     bitwise_time: float = 0.0
+    bitwise_abs_count: int = 0
+    bitwise_fp_count: int = 0
+    i_z_count: int = 0
+    i_o_count: int = 0
+    i_b_count: int = 0
 
     def __add__(self, other: Optional['AbstractionResults']) -> 'AbstractionResults':
         if other is None:
@@ -119,7 +130,7 @@ class AbstractionAnalyzer:
         self.sa.init_from_fml(formula)
         self.sa.do_simplification()
         self.formula = self.sa.formula
-        logger.info("simplified formula: ", self.sa.formula)
+
         counter = ModelCounter()
         if not counter.is_sat(self.formula):
             logger.info(f"Formula is unsatisfiable")
@@ -136,26 +147,26 @@ class AbstractionAnalyzer:
         solver = z3.Solver()
         solver.add(abs_formula)
         if solver.check() == z3.unsat:
-            return True, -1.0, -1.0
+            return True, -1.0, -1.0, 0, 0
         solver = z3.Solver()
         solver.add(z3.And(abs_formula, z3.Not(self.formula)))
 
         has_false_positives = solver.check() != z3.unsat
         if not has_false_positives:
-            return False, 0.0, 0.0
+            return False, 0.0, 0.0, 0, 0
 
         # Count models for abstraction and false positives
         mc = BVModelCounter()
         mc.init_from_fml(abs_formula)
-        abs_count, _ = mc.count_models_by_sharp_sat()
+        abs_count, abs_time = mc.count_models_by_sharp_sat()
 
         mc_fp = BVModelCounter()
         mc_fp.init_from_fml(z3.And(abs_formula, z3.Not(self.formula)))
-        fp_count, time_fp = mc_fp.count_models_by_sharp_sat()
+        fp_count, fp_time = mc_fp.count_models_by_sharp_sat()
         if abs_count < 0 or fp_count < 0:
-            return True, -1.0, -1.0
+            return True, -1.0, -1.0, 0, 0
         logger.info(f"fp_count={fp_count}, abs_count={abs_count}")
-        return True, fp_count / abs_count, time_fp
+        return True, fp_count / abs_count, abs_time + fp_time, abs_count, fp_count
 
     def analyze_abstractions(self) -> Optional[AbstractionResults]:
         """Analyze all abstraction domains"""
@@ -198,22 +209,47 @@ class AbstractionAnalyzer:
                 if formula == z3.BoolVal(False):
                     logger.warning(f"Skipping {domain} domain")
                     continue
-                has_fp, fp_rate, time_fp = self.compute_false_positives(formula)
+                has_fp, fp_rate, time_fp, abs_count, fp_count = self.compute_false_positives(formula)
                 if fp_rate >= 0:
                     logger.info(f"{domain} domain: {'has FP rate %.4f' % fp_rate if has_fp else 'no false positives'}")
 
                 if domain == "Interval":
                     results.interval_fp_rate = fp_rate
                     results.interval_time = time_fp
+                    results.interval_abs_count = abs_count
+                    results.interval_fp_count = fp_count
                 elif domain == "Zone":
                     results.zone_fp_rate = fp_rate
                     results.zone_time = time_fp
+                    results.zone_abs_count = abs_count
+                    results.zone_fp_count = fp_count
                 elif domain == "Octagon":
                     results.octagon_fp_rate = fp_rate
                     results.octagon_time = time_fp
+                    results.octagon_abs_count = abs_count
+                    results.octagon_fp_count = fp_count
                 elif domain == "Bitwise":
                     results.bitwise_fp_rate = fp_rate
                     results.bitwise_time = time_fp
+                    results.bitwise_abs_count = abs_count
+                    results.bitwise_fp_count = fp_count
+
+            for d1, f1, d2, f2 in [
+                ("Interval", self.sa.interval_abs_as_fml, "Zone", self.sa.zone_abs_as_fml),
+                ("Interval", self.sa.interval_abs_as_fml, "Octagon", self.sa.octagon_abs_as_fml),
+                ("Interval", self.sa.interval_abs_as_fml, "Bitwise", self.sa.bitwise_abs_as_fml)
+            ]:
+                mc = BVModelCounter()
+                mc.init_from_fml(z3.And(f1, f2))
+                count, _ = mc.count_models_by_sharp_sat()
+                if d2 == "Zone":
+                    results.i_z_count = count
+                elif d2 == "Octagon":
+                    results.i_o_count = count
+                elif d2 == "Bitwise":
+                    results.i_b_count = count
+                else:
+                    logger.info(f"{d1} & {d2} : {count}")                
 
             return results
 
@@ -257,20 +293,31 @@ def process_smt_file(file_path: str, args) -> Optional[AbstractionResults]:
         if not variables:
             logger.warning(f"No bit-vector variables found in {file_path}")
             return None
+        counter = ModelCounter()
+        if not counter.is_sat(formula):
+            logger.info(f"{file_path}: Formula is unsatisfiable")
+            return None
+
+        if not counter.is_sat(z3.Not(formula)):
+            logger.info(f"{file_path}: Formula is always satisfiable")
+            return None
+
+        # Count models
+        model_count = counter.count_models(formula)
+        logger.info(f"{file_path}: SharpSAT model count: {model_count}")
 
         # Analyze abstractions
         analyzer = AbstractionAnalyzer(formula, variables)
         results = analyzer.analyze_abstractions()
 
-        # TODO: also save the results in the log file (or some csv file)
         if results:
             logger.info(f"{file_path}: Analysis completed successfully")
             if args.file:
                 if not os.path.exists(args.csv):
                     with open(args.csv, "w") as f:
-                        f.write(f"filename,interval_fp_rate,zone_fp_rate,octagon_fp_rate,bitwise_fp_rate,interval_time,zone_time,octagon_time,bitwise_time\n")
+                        f.write(f"filename,interval_fp_rate,zone_fp_rate,octagon_fp_rate,bitwise_fp_rate,interval_time,zone_time,octagon_time,bitwise_time,interval_abs_time,zone_abs_time,octagon_abs_time,bitwise_abs_time,model_count,i_z_count,i_o_count,i_b_count\n")
                 with open(args.csv, "a") as csv:
-                    csv.write(f"{file_path},{results.interval_fp_rate},{results.zone_fp_rate},{results.octagon_fp_rate},{results.bitwise_fp_rate},{results.interval_time},{results.zone_time},{results.octagon_time},{results.bitwise_time}\n")
+                    csv.write(f"{file_path},{results.interval_fp_rate},{results.zone_fp_rate},{results.octagon_fp_rate},{results.bitwise_fp_rate},{results.interval_time},{results.zone_time},{results.octagon_time},{results.bitwise_time},{analyzer.sa.interval_abs_time},{analyzer.sa.zone_abs_time},{analyzer.sa.octagon_abs_time},{analyzer.sa.bitwise_abs_time},{model_count[0]},{results.i_z_count},{results.i_o_count},{results.i_b_count}\n")
             return results
 
         logger.debug(f"Analysis failed: {file_path}")
@@ -307,9 +354,8 @@ def process_directory(dir_path: str, num_processes: int, args) -> None:
     logger.info(f"Final results: {final_results}")
     parent_dir = os.path.dirname(dir_path)
     if not os.path.exists(f"{parent_dir}/results.csv"):
-        with open(f"{parent_dir}/results.csv", "w") as f:
-            f.write(
-                "filename,interval_fp_rate,zone_fp_rate,octagon_fp_rate,bitwise_fp_rate,interval_time,zone_time,octagon_time,bitwise_time\n")
+        with open(args.csv, "w") as f:
+            f.write(f"filename,interval_fp_rate,zone_fp_rate,octagon_fp_rate,bitwise_fp_rate,interval_time,zone_time,octagon_time,bitwise_time,interval_abs_time,zone_abs_time,octagon_abs_time,bitwise_abs_time,model_count,i_z_count,i_o_count,i_b_count\n")
     with open(f"{parent_dir}/results.csv", "a") as csv:
         for f, r in results:
             if r is not None:

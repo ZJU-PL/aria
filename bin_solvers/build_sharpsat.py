@@ -43,14 +43,18 @@ def build_sharpsat():
         ], cwd=sharp_sat_dir / "build", check=True)
         
         # Copy binary to bin_solvers directory
-        shutil.copy2(
-            sharp_sat_dir / "build" / "sharp_sat",
-            current_dir / "sharpSAT"
-        )
-        
-        print("Successfully built sharpSAT")
-        return True
-        
+        for sharp_sat_bin in ["sharpSAT", "sharp_sat"]:
+            if os.path.exists(sharp_sat_dir / "build" / sharp_sat_bin):
+                shutil.copy2(
+                    sharp_sat_dir / "build" / sharp_sat_bin,
+                    current_dir / "sharpSAT"
+                )
+                print(f"Successfully built sharpSAT: {sharp_sat_bin}")
+                return True
+
+        print("Failed to move sharpSAT binary to bin_solvers directory")
+        return False
+
     except subprocess.CalledProcessError as e:
         print(f"Error building sharpSAT: {e}")
         return False

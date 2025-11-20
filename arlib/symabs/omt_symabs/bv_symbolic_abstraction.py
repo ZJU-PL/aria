@@ -35,6 +35,11 @@ class BVSymbolicAbstraction:
         self.octagon_abs_as_fml: z3.ExprRef = z3.BoolVal(True)
         self.bitwise_abs_as_fml: z3.ExprRef = z3.BoolVal(True)
 
+        self.interval_abs_time: float = 0
+        self.zone_abs_time: float = 0
+        self.octagon_abs_time: float = 0
+        self.bitwise_abs_time: float = 0
+
         self.single_query_timeout: int = 5000
         self.multi_query_tiemout: int = 0
         # self.poly_abs_as_fml = BoolVal(True)
@@ -150,6 +155,7 @@ class BVSymbolicAbstraction:
         Compute the minimum and maximum values for each variable in the formula.
         Store the result in self.interval_abs_as_fml.
         """
+        start_time = symabs_timer()
         if self.compact_opt:
             # Use multi-query optimization for better performance
             multi_queries = [var for var in self.vars]
@@ -171,6 +177,7 @@ class BVSymbolicAbstraction:
         self.interval_abs_as_fml = z3.And(self.interval_abs_as_fml,
                                           z3.And([bool_var == bool_var for bool_var in self.bool_vars]))
         print("\ninterval abs:", self.interval_abs_as_fml, sep="\n")
+        self.interval_abs_time = symabs_timer() - start_time
 
     def zone_abs(self):
         """
@@ -178,6 +185,7 @@ class BVSymbolicAbstraction:
         Compute the minimum and maximum values for each pair of variables in the formula.
         Store the result in self.zone_abs_as_fml.
         """
+        start_time = symabs_timer()
         zones = list(itertools.combinations(self.vars, 2))
         tmp = self.formula
         if self.compact_opt:
@@ -232,6 +240,7 @@ class BVSymbolicAbstraction:
                                       z3.And([bool_var == bool_var for bool_var in self.bool_vars]))
         self.formula = tmp
         print("\nzone abs:", self.zone_abs_as_fml, sep="\n")
+        self.zone_abs_time = symabs_timer() - start_time
 
     def octagon_abs(self):
         """
@@ -239,6 +248,7 @@ class BVSymbolicAbstraction:
         Compute the minimum and maximum values for each pair of variables in the formula,
         Store the result in self.octagon_abs_as_fml.
         """
+        start_time = symabs_timer()
         octagons = list(itertools.combinations(self.vars, 2))
         tmp = self.formula
         if self.compact_opt:
@@ -300,6 +310,7 @@ class BVSymbolicAbstraction:
                                          z3.And([bool_var == bool_var for bool_var in self.bool_vars]))
         self.formula = tmp
         print("\noctagon abs:", self.octagon_abs_as_fml, sep="\n")
+        self.octagon_abs_time = symabs_timer() - start_time
 
     def bitwise_abs(self):
         """
@@ -307,6 +318,7 @@ class BVSymbolicAbstraction:
         extract every bit of the variables and compute if the bit must be 0 or 1.
         Store the result in self.bitwise_abs_as_fml.
         """
+        start_time = symabs_timer()
         cnts = []
         for var in self.vars:
             for i in range(var.size()):
@@ -327,7 +339,7 @@ class BVSymbolicAbstraction:
         self.bitwise_abs_as_fml = z3.And(self.bitwise_abs_as_fml,
                                          z3.And([bool_var == bool_var for bool_var in self.bool_vars]))
         print("\nbitwise abs:", self.bitwise_abs_as_fml)
-
+        self.bitwise_abs_time = symabs_timer() - start_time
 
 def feat_test():
     x = z3.BitVec("x", 8)
