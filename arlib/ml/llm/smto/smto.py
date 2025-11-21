@@ -5,11 +5,11 @@ import os
 import tempfile
 from typing import Dict, List, Optional, Any
 
-from arlib.llm.smto.oracles import OracleInfo, WhiteboxOracleInfo, OracleType
-from arlib.llm.llmtool.LLM_utils import LLM
-from arlib.llm.llmtool.logger import Logger
-from arlib.llm.smto.whitebox import WhiteboxAnalyzer, ModelEvaluator
-from arlib.llm.smto.utils import (
+from arlib.ml.llm.smto.oracles import OracleInfo, WhiteboxOracleInfo, OracleType
+from arlib.ml.llm.llmtool.LLM_utils import LLM
+from arlib.ml.llm.llmtool.logger import Logger
+from arlib.ml.llm.smto.whitebox import WhiteboxAnalyzer, ModelEvaluator
+from arlib.ml.llm.smto.utils import (
     OracleCache,
     ExplanationLogger,
     z3_value_to_python,

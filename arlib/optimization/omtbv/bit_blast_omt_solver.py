@@ -153,22 +153,33 @@ class BitBlastOMTBVSolver:
             logger.error("the hard formula with objective is trivially unsat")
             return None
 
-        obj_str = str(objname)
+        # For minimization of unsigned BVs, maximize ~obj instead
+        # since maximizing ~x minimizes x (for unsigned interpretation)
+        if minimize and not is_signed:
+            not_obj = z3.BitVec(f"not_{str(objname)}", objname.size())
+            self.fml = z3.And(self.fml, not_obj == ~objname)
+            self.vars.append(not_obj)
+            opt_obj = not_obj
+            opt_obj_str = str(not_obj)
+            do_minimize = False  # Now we're maximizing ~obj
+        else:
+            opt_obj = objname
+            opt_obj_str = str(objname)
+            do_minimize = minimize
 
         logger.debug("Start solving OMT(BV) by reducing to weighted Max-SAT...")
         clauses_numeric = self.bit_blast()
         wcnf = WCNF()
         wcnf.extend(clauses_numeric)
         total_score = 0
-        bool_vars = self.bv2bool[obj_str]
+        bool_vars = self.bv2bool[opt_obj_str]
         num_bits = len(bool_vars)
-
-        weight_sign = -1 if minimize else 1
 
         logger.debug("Start solving weighted Max-SAT via pySAT...")
 
         if is_signed:
             # Signed interpretation: MSB is sign bit
+            weight_sign = -1 if do_minimize else 1
             for i in range(num_bits - 1):
                 weight = weight_sign * (2 ** i)
                 wcnf.append([self.bool2id[bool_vars[i]]], weight=weight)
@@ -180,14 +191,14 @@ class BitBlastOMTBVSolver:
         else:
             # Unsigned interpretation
             for i in range(num_bits):
-                weight = weight_sign * (2 ** i)
+                weight = 2 ** i
                 wcnf.append([self.bool2id[bool_vars[i]]], weight=weight)
                 total_score += weight
 
         maxsat_sol = MaxSATSolver(wcnf)
         maxsat_sol.set_maxsat_engine(self.engine)
 
-        return self._solve_with_engine(maxsat_sol, obj_str, total_score, bool_vars, is_signed)
+        return self._solve_with_engine(maxsat_sol, opt_obj_str, total_score, bool_vars, is_signed)
 
     def _solve_with_engine(
         self,
@@ -222,9 +233,16 @@ class BitBlastOMTBVSolver:
     def _solve_weighted(self, maxsat_sol: MaxSATSolver, obj_str: str, total_score: int) -> int:
         """Solve using weighted MaxSAT (FM or RC2)."""
         start = time.time()
-        cost = maxsat_sol.solve().cost
+        maxsat_result = maxsat_sol.solve()
+        cost = maxsat_result.cost
         result = total_score - cost
-        logger.debug("maximum of %s: %d", obj_str, result)
+        # If we maximized ~obj for minimization, result is ~min_value, so compute ~result
+        if obj_str.startswith("not_"):
+            bv_width = len(self.bv2bool[obj_str[4:]])  # Remove "not_" prefix
+            mask = (1 << bv_width) - 1
+            result = mask ^ result
+        logger.debug("MaxSAT cost: %d, total_score: %d", cost, total_score)
+        logger.debug("optimal value of %s: %d", obj_str, result)
         logger.debug("%s MaxSAT time: %.3f", self.engine, time.time() - start)
         return result
 

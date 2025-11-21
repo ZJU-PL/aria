@@ -1,7 +1,7 @@
 """Feedback-based LLM abductor implementation."""
 
 import time
-from arlib.llm.llmtool.LLM_utils import LLM
+from arlib.ml.llm.llmtool.LLM_utils import LLM
 from .data_structures import AbductionProblem, AbductionIterationResult, FeedbackAbductionResult
 from .base_abductor import LLMAbductor
 from .validation import validate_hypothesis, generate_counterexample

@@ -1,7 +1,8 @@
-from arlib.llm.llmtool.LLM_utils import *
+
 from abc import ABC, abstractmethod
 from typing import Dict
-from arlib.llm.llmtool.logger import Logger
+from arlib.ml.llm.llmtool.LLM_utils import *
+from arlib.ml.llm.llmtool.logger import Logger
 
 
 class LLMToolInput(ABC):

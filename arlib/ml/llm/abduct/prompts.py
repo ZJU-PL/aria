@@ -6,7 +6,7 @@
 """
 
 from typing import List, Dict, Any
-from arlib.llm.abduct.data_structures import AbductionProblem, AbductionIterationResult
+from arlib.ml.llm.abduct.data_structures import AbductionProblem, AbductionIterationResult
 
 
 def create_basic_prompt(problem: AbductionProblem) -> str:

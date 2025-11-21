@@ -1,6 +1,6 @@
 # SMTO: Satisfiability Modulo Theories and Oracles
 
-The `arlib/llm/smto` module implements SMTO that leverages large language models as oracle handlers for SMT solving of programs with unspecified components.
+The `arlib/ml/llm/smto` module implements SMTO that leverages large language models as oracle handlers for SMT solving of programs with unspecified components.
 
 ## Key Features
 

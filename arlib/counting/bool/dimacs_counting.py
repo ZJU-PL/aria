@@ -173,7 +173,8 @@ def count_dimacs_solutions(header: List, str_clauses: List):
     """
     output_file = '/tmp/{}.cnf'.format(str(uuid.uuid1()))
     write_dimacs_to_file(header, str_clauses, output_file)
-    return call_sharp_sat(output_file)
+    solutions, _ = call_sharp_sat(output_file)
+    return solutions
 
 
 def check_sat(clauses, assumptions):
@@ -245,7 +246,7 @@ def count_dimacs_solutions_parallel(header: List[str], clauses: List[str]) -> in
             results.append(result)
 
         raw_solutions: List[int] = []
-        sharp_sat_times: List[float] = [] 
+        sharp_sat_times: List[float] = []
         for i in range(len(cnf_tasks)):
             result = results[i].get()
             raw_solutions.append(int(result[0]))

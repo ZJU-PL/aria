@@ -1,7 +1,7 @@
 """Basic LLM-based abductor implementation."""
 
 import time
-from arlib.llm.llmtool.LLM_utils import LLM
+from arlib.ml.llm.llmtool.LLM_utils import LLM
 from .data_structures import AbductionProblem, AbductionResult
 from .validation import validate_hypothesis
 from .prompts import create_basic_prompt

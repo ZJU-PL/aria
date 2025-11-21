@@ -3,7 +3,7 @@ Validate the unsat core returned by the cvc5_minimizer.
 """
 import cvc5
 
-from arlib.unsat_core.cvc5_minimizer import (
+from arlib.ml.llm.unsat_core.cvc5_minimizer import (
     build_smt2_formula_from_string_constraints,
     parse_input_formula,
     set_cvc5_options_for_unsat,

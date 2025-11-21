@@ -22,9 +22,9 @@ import os
 import z3
 from z3.z3util import get_vars
 
-from arlib.llm.llmtool.LLM_tool import LLMTool, LLMToolInput, LLMToolOutput
-from arlib.llm.llmtool.logger import Logger
-from arlib.llm.interpolant.prompts import mk_interpolant_prompt, mk_interpolant_prompt_with_type
+from arlib.ml.llm.llmtool.LLM_tool import LLMTool, LLMToolInput, LLMToolOutput
+from arlib.ml.llm.llmtool.logger import Logger
+from arlib.ml.llm.interpolant.prompts import mk_interpolant_prompt, mk_interpolant_prompt_with_type
 
 
 SMTText = str

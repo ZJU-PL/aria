@@ -3,12 +3,12 @@ import os
 import time
 import concurrent.futures
 from typing import Tuple
-from arlib.llm.llmtool.logger import Logger
 import importlib
 from typing import Optional, Any
 from openai import OpenAI
 from zhipuai import ZhipuAI
 import tiktoken
+from arlib.ml.llm.llmtool.logger import Logger
 
 
 def _optional_import(module_name: str, from_name: str = None) -> Optional[Any]:
