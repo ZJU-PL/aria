@@ -1,0 +1,10 @@
+; https://www.sfu.ca/math-coursenotes/Math%20157%20Course%20Notes/sec_Optimization.html -> 5.8.3
+(declare-fun x () Real)
+(declare-fun y () Real)
+(assert (>= x 0))
+(assert (<= x 365))
+(assert (= (+ (* 100 x x) 9000000 (* 800 x) (- (* x x y)) (- (* 90000 y))) 0))
+(maximize y)
+(check-sat)
+(get-objectives)
+(exit)

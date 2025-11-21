@@ -1,95 +1,130 @@
 """
-This module provides an implementation of the Minimal Satisfying Assignment (MSA) algorithm,
-adapted from the algorithm by Alessandro Previti and Alexey S. Ignatiev. It contains the MSASolver
-class which is used to find the minimal satisfying assignment for a given formula.
+Minimal Satisfying Assignment (MSA) algorithm implementation.
 
-NOTE:
-    - MSA finding is a special case of optimization modulo theory
+This module provides an implementation of the Minimal Satisfying Assignment algorithm,
+adapted from the algorithm by Alessandro Previti and Alexey S. Ignatiev. It contains
+the MSASolver class which is used to find the minimal satisfying assignment for a given formula.
+
+Note:
+    MSA finding is a special case of optimization modulo theory.
 """
-from typing import FrozenSet
+import logging
+from typing import FrozenSet, Optional
 
 import z3
+
 from arlib.utils.z3_expr_utils import get_expr_vars
+
+logger = logging.getLogger(__name__)
 
 
 class MSASolver:
-    """
-    Mistral solver class.
-    """
+    """Mistral solver for finding Minimal Satisfying Assignments."""
 
-    def __init__(self, verbose=1):
+    def __init__(self, verbose: int = 1) -> None:
+        """Initialize the MSA solver.
+
+        Args:
+            verbose: Verbosity level (0=silent, 1=normal, 2+=debug)
         """
-        Constructor.
-        """
-        self.formula = None
-        # self.formula = simplify(self.formula)
-        self.fvars = None
+        self.formula: Optional[z3.BoolRef] = None
+        self.fvars: Optional[FrozenSet[z3.ExprRef]] = None
         self.verb = verbose
 
     def init_from_file(self, filename: str) -> None:
+        """Initialize solver from an SMT2 file.
+
+        Args:
+            filename: Path to the SMT2 file containing the formula
+        """
         self.formula = z3.And(z3.parse_smt2_file(filename))
-        # self.formula = simplify(self.formula)
-        # self.fvars = frozenset(get_vars(self.formula))
         self.fvars = frozenset(get_expr_vars(self.formula))
 
         if self.verb > 2:
-            print('c formula: \'{0}\''.format(self.formula))
+            logger.debug("Formula: %s", self.formula)
 
     def init_from_formula(self, formula: z3.BoolRef) -> None:
+        """Initialize solver from a Z3 formula.
+
+        Args:
+            formula: Z3 boolean formula to solve
+        """
         self.formula = formula
-        # self.formula = simplify(self.formula)
-        # self.fvars = frozenset(get_vars(self.formula))
         self.fvars = frozenset(get_expr_vars(self.formula))
 
         if self.verb > 2:
-            print('c formula: \'{0}\''.format(self.formula))
+            logger.debug("Formula: %s", self.formula)
 
     def validate_small_model(self, model: z3.ModelRef) -> bool:
-        """Check whether a small model is a 'sufficient condition'"""
+        """Check whether a small model is a sufficient condition.
+
+        Validates that the model constraints entail the formula.
+
+        Args:
+            model: Z3 model to validate
+
+        Returns:
+            True if the model is a sufficient condition, False otherwise
+        """
         decls = model.decls()
-        model_cnts = []
+        model_constraints = []
         for var in get_expr_vars(self.formula):
             if var.decl() in decls:
-                model_cnts.append(var == model[var])
-        # print(model_cnts)
-        # check entailment
-        s = z3.Solver()
-        s.add(z3.Not(z3.Implies(z3.And(model_cnts), self.formula)))
-        if s.check() == z3.sat:
-            return False
-        return True
+                model_constraints.append(var == model[var])
 
-    def find_small_model(self):
+        # Check entailment: model_constraints => formula
+        solver = z3.Solver()
+        solver.add(z3.Not(z3.Implies(z3.And(model_constraints), self.formula)))
+        return solver.check() != z3.sat
+
+    def find_small_model(self) -> Optional[z3.ModelRef]:
+        """Find a minimal satisfying assignment.
+
+        Implements the find_msa() procedure from Fig. 2 of the dillig-cav12 paper.
+
+        Returns:
+            Z3 model if satisfiable, False if unsatisfiable, None on error
         """
-        This method implements find_msa() procedure from Fig. 2
-        of the dillig-cav12 paper.
-        """
-        # testing if formula is satisfiable
-        s = z3.Solver()
-        s.add(self.formula)
-        if s.check() == z3.unsat:
-            return False
+        # Test if formula is satisfiable
+        solver = z3.Solver()
+        solver.add(self.formula)
+        if solver.check() == z3.unsat:
+            return None
 
         mus = self.compute_mus(frozenset([]), self.fvars, 0)
-
         model = self.get_model_forall(mus)
         return model
-        # return ['{0}={1}'.format(v, model[v]) for v in frozenset(self.fvars) - mus]
 
-    def compute_mus(self, X: FrozenSet, fvars: FrozenSet, lb: int):
-        """
-        Algorithm implements find_mus() procedure from Fig. 1
-        of the dillig-cav12 paper.
-        """
+    def compute_mus(
+        self,
+        X: FrozenSet[z3.ExprRef],
+        fvars: FrozenSet[z3.ExprRef],
+        lb: int,
+    ) -> FrozenSet[z3.ExprRef]:
+        """Compute Minimal Unsatisfiable Subset (MUS).
 
+        Implements the find_mus() procedure from Fig. 1 of the dillig-cav12 paper.
+
+        Args:
+            X: Current set of universally quantified variables
+            fvars: Remaining free variables to consider
+            lb: Lower bound on the size of the MUS
+
+        Returns:
+            FrozenSet of variables in the MUS
+
+        Note:
+            Variable selection (x) could be improved with a smarter heuristic.
+        """
         if not fvars or len(fvars) <= lb:
             return frozenset()
 
-        best = set()
-        x = frozenset([next(iter(fvars))])  # should choose x in a more clever way
+        best: FrozenSet[z3.ExprRef] = frozenset()
+        # TODO: Choose x in a more clever way (e.g., based on variable importance)
+        x = frozenset([next(iter(fvars))])
 
         if self.verb > 1:
-            print('c state:', 'X = {0} + {1},'.format(list(X), list(x)), 'lb =', lb)
+            logger.debug("State: X = %s + %s, lb = %d", list(X), list(x), lb)
 
         if self.get_model_forall(X.union(x)):
             Y = self.compute_mus(X.union(x), fvars - x, lb - 1)
@@ -105,26 +140,37 @@ class MSASolver:
 
         return best
 
-    def get_model_forall(self, x_univl):
-        s = z3.Solver()
-        if len(x_univl) >= 1:
+    def get_model_forall(
+        self, x_univl: FrozenSet[z3.ExprRef]
+    ) -> Optional[z3.ModelRef]:
+        """Get a model for a universally quantified formula.
+
+        Args:
+            x_univl: Set of variables to universally quantify
+
+        Returns:
+            Z3 model if satisfiable, None otherwise
+        """
+        solver = z3.Solver()
+        if x_univl:
             qfml = z3.ForAll(list(x_univl), self.formula)
         else:
-            qfml = self.formula  # TODO: is this OK?
-        s.add(qfml)
-        if s.check() == z3.sat:
-            return s.model()
-        return False
+            # No universal quantification needed
+            qfml = self.formula
+        solver.add(qfml)
+        if solver.check() == z3.sat:
+            return solver.model()
+        return None
 
 
 if __name__ == "__main__":
+    """Demo: Find minimal satisfying assignment."""
     a, b, c, d = z3.Ints('a b c d')
-    fml = z3.Or(z3.And(a == 3, b == 3), z3.And(a == 1, b == 1, c == 1, d == 1))
+    fml = z3.Or(
+        z3.And(a == 3, b == 3),
+        z3.And(a == 1, b == 1, c == 1, d == 1)
+    )
     ms = MSASolver()
     ms.init_from_formula(fml)
-    print(ms.find_small_model())  # a = 3, b = 3
-    # qfml = ForAll([c, d], fml)
-    # s = Solver()
-    # s.add(qfml)
-    # s.check()
-    # print(s.model())  # [a = 3, b = 3]
+    result = ms.find_small_model()
+    logger.info("Result: %s", result)  # Expected: a = 3, b = 3

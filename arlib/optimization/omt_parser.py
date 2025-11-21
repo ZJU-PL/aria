@@ -15,10 +15,24 @@ class OMTParser:
         For multi-objective optimization,
         """
         self.assertions: Optional[List[z3.ExprRef]] = None
+        # the (possibly transformed) objectives after normalisation (see to_max_obj/to_min_obj)
         self.objectives: List[z3.ExprRef] = []
-        self.to_max_obj: bool = True  # convert all objectives to max
-        self.to_min_obj: bool = False  # convert all objectives to min
-        self.debug: bool = True
+
+        # keep legacy flags – callers (e.g. omt_solver.py) currently expect all goals
+        # to be converted to "maximise" form.  Setting `to_max_obj=True` preserves
+        # that behaviour while still allowing mixed-direction inputs.
+        self.to_max_obj: bool = True   # convert every objective to maximise form
+        self.to_min_obj: bool = False  # convert every objective to minimise form
+
+        # original_directions[i] is either "max" or "min" indicating the *source*
+        # sense of objectives[i] before any normalisation.
+        self.original_directions: List[str] = []
+
+        # for convenience in single-objective instances
+        self.objective: Optional[z3.ExprRef] = None
+
+        # default off; use logging instead of prints for production use
+        self.debug: bool = False
 
     def parse_with_pysmt(self) -> None:
         """Parse OMT instance using PySMT (not implemented)."""
@@ -42,28 +56,62 @@ class OMTParser:
         else:
             s.from_string(fml)
         self.assertions = s.assertions()
-        # We cannot set both self.to_min_obj and self.to_max_obj to True
-        assert not (self.to_min_obj and self.to_max_obj)
-        if self.to_min_obj:
-            # It sees that Z3 will convert each goal of the form "max f"  to "-f".
-            # So, we just assign s.objectives() to self.objectives
-            self.objectives = s.objectives()
-        elif self.to_max_obj:
-            # https://smtlib.cs.uiowa.edu/theories-FixedSizeBitVectors.shtml
-            # TODO: the semantics of bvneg: [[(bvneg s)]] := nat2bv[m](2^m - bv2nat([[s]]))
-            # Z3 will convert each goal of the form "max f"  to "-f".
-            # So, we need to "convert them back"?
-            for obj in s.objectives():
-                # if calling z3.simplify(-obj), the obj may look a bit strange
-                if obj.decl().kind() == Z3_OP_BNEG:
-                    # self.objectives.append(-obj)
-                    # If the obj is of the form "-expr", we can just add "expr" instead of "--expr"?
-                    self.objectives.append(obj.children()[0])
-                else:
-                    self.objectives.append(-obj)
+        # sanity check for mutually-exclusive normalisation options
+        if self.to_min_obj and self.to_max_obj:
+            raise ValueError("Cannot set both 'to_min_obj' and 'to_max_obj' to True")
+
+        def _is_bv(expr: z3.ExprRef) -> bool:
+            return expr.sort_kind() == z3.Z3_BV_SORT
+
+        def _bvneg(e: z3.ExprRef) -> z3.ExprRef:
+            # wrapper to handle BV negation uniformly across bit-widths
+            return z3.BVSub(z3.BitVecVal(0, e.size()), e)
+
+        # First collect original expressions and their optimisation sense
+        raw_objectives = []
+        directions = []  # parallel list of "max" / "min"
+        for obj in s.objectives():
+            if obj.decl().kind() in (Z3_OP_UMINUS, Z3_OP_BNEG):
+                # Z3 converted a (maximize t) into (minimize (- t)) → original was MAX
+                directions.append("max")
+                raw_objectives.append(obj.children()[0])
+            else:
+                directions.append("min")
+                raw_objectives.append(obj)
+
+        if not raw_objectives:
+            raise ValueError("No objectives found in the supplied formula/file")
+
+        # Now perform optional normalisation so that all objectives share the same
+        # direction (max or min) expected by downstream code.
+        self.objectives = []
+        if self.to_max_obj:
+            for expr, dirn in zip(raw_objectives, directions):
+                if dirn == "max":
+                    self.objectives.append(expr)
+                else:  # original was MIN – negate appropriately
+                    self.objectives.append(_bvneg(expr) if _is_bv(expr) else -expr)
+        elif self.to_min_obj:
+            for expr, dirn in zip(raw_objectives, directions):
+                if dirn == "min":
+                    self.objectives.append(expr)
+                else:  # original was MAX – negate appropriately
+                    self.objectives.append(_bvneg(expr) if _is_bv(expr) else -expr)
+        else:
+            # keep original direction (no sign flipping)
+            self.objectives = list(raw_objectives)
+
+        self.original_directions = directions
+
+        # single-objective convenience handle
+        if len(self.objectives) == 1:
+            self.objective = self.objectives[0]
+
         if self.debug:
-            for obj in self.objectives:
-                print("obj: ", obj)
+            import logging
+            logger = logging.getLogger(__name__)
+            for expr, dirn in zip(self.objectives, self.original_directions):
+                logger.debug("objective (%s): %s", dirn, expr)
 
 
 

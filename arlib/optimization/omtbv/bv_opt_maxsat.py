@@ -44,16 +44,7 @@ def bv_opt_with_maxsat(
     bv_width = z3_obj.size()
     max_bv = (1 << bv_width) - 1
 
-    if minimize:
-        # Convert minimization to maximization by maximizing the negation
-        tmp = omt.maximize_with_maxsat(-z3_obj, is_signed=False)
-        if tmp is None:
-            return None
-        # Convert result back: if we maximize -x and get value v,
-        # then the minimum of x is max_bv + 1 - v
-        return max_bv + 1 - tmp
-    else:
-        return omt.maximize_with_maxsat(z3_obj, is_signed=False)
+    return omt.maximize_with_maxsat(z3_obj, is_signed=False, minimize=minimize)
 
 
 def demo_maxsat() -> None:
