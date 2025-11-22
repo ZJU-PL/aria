@@ -13,11 +13,17 @@ import arlib.itp.solvers as solvers
 import arlib.itp.smt as smt
 import arlib.itp.theories.real as real
 import shutil
-from arlib.itp.solvers.egglog import EgglogSolver
 import arlib.itp.solvers.gappa as gappa
 import arlib.itp.solvers.aprove
 import arlib.itp.solvers.kb as kb
 import arlib.itp.rewrite as rw
+
+# Check availability of optional dependencies
+EGGSOLVER_AVAILABLE = True
+try:
+    from arlib.itp.solvers.egglog import EgglogSolver
+except ImportError:
+    EGGSOLVER_AVAILABLE = False
 
 @pytest.mark.slow
 def test_vampirethf():
@@ -217,6 +223,7 @@ def test_tao():
     assert check(solvers.VampireSolver()) == smt.unsat
 
 
+@pytest.mark.skipif(not EGGSOLVER_AVAILABLE, reason="EgglogSolver is not available")
 def test_egglog():
     e = EgglogSolver(debug=True)
     x, y, z = smt.Consts("x y z", smt.IntSort())

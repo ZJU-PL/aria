@@ -33,6 +33,11 @@ text = "MIT"
 [project.optional-dependencies]
 dev = []
 
+[project.scripts]
+arlib-smt-server = "arlib.cli.smt_server:main"
+arlib-pyomt = "arlib.cli.pyomt:main"
+arlib-mc = "arlib.cli.mc:main"
+
 [tool.black]
 line-length = 88
 

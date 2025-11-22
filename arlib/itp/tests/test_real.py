@@ -1,10 +1,26 @@
+import pytest
 import arlib.itp as kd
 from arlib.itp.theories.real import *
 import arlib.itp.smt as smt
 import arlib.itp.solvers as solvers
 import arlib.itp.theories.real as real
-import arlib.itp.theories.real.sympy
-import arlib.itp.theories.real.arb
+
+# Check availability of optional dependencies
+SYMPY_AVAILABLE = False
+try:
+    import sympy
+    import arlib.itp.theories.real.sympy
+    SYMPY_AVAILABLE = True
+except ImportError:
+    pass
+
+ARB_AVAILABLE = False
+try:
+    import flint
+    import arlib.itp.theories.real.arb
+    ARB_AVAILABLE = True
+except ImportError:
+    pass
 
 
 def test_abstract():
@@ -73,10 +89,9 @@ def lim():
     # l.
 
 
-import flint
-
-
+@pytest.mark.skipif(not ARB_AVAILABLE, reason="FLINT/ARB is not available")
 def test_flint():
+    import flint
     real.arb.flint_bnd(real.pi, {})
     x = smt.Real("x")
     real.arb.flint_bnd(real.sin(x), {x: flint.arb.pi()})
@@ -99,10 +114,9 @@ def test_flint():
     )
 
 
-import sympy
-
-"""
+@pytest.mark.skipif(not SYMPY_AVAILABLE, reason="SymPy is not available")
 def test_sympy():
+    import sympy
     assert real.sympy.z3_of_sympy(real.sympy.interp_sympy(real.pi)).eq(real.pi)
     x, y, z = smt.Reals("x y z")
     sx, sy, sz = sympy.symbols("x y z")
@@ -125,9 +139,9 @@ def test_sympy():
     # round_trip(real.sqrt(x))
     # assert real.sin == real.sin(x).decl()
     round_trip(real.sin(real.cos(real.exp(x))))
-"""
 
-"""
+
+@pytest.mark.skipif(not SYMPY_AVAILABLE, reason="SymPy is not available")
 def test_sympy_manip():
     x, y, z = smt.Reals("x y z")
     assert real.sympy.factor([x], x**2 + 2 * x + 1).eq((1 + x) ** 2)
@@ -144,7 +158,6 @@ def test_sympy_manip():
     assert real.sympy.expand([x], (1 + x) ** 2).eq(add(1, x**2, 2 * x))
     assert real.sympy.expand([x, y], x * (x + 2 * y)).eq(x**2 + mul(2, x, y))
     kd.kernel.prove(real.sympy.expand([x], (1 + x) ** 2) == 1 + 2 * x + x**2)
-"""
 
 def test_vampire():
     pass
