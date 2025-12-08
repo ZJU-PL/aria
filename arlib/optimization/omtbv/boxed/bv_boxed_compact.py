@@ -1,18 +1,27 @@
 """
-OOPSLA'21
+This module implements a compact boxed optimization algorithm for bit-vector
+optimization problems, parsing SMT-LIB2 files with maximize/minimize commands.
+
+Be caraful: we use pysmt in this file...
 """
 import os
 import subprocess
 import time
+from typing import List, Tuple
 
 from arlib.optimization.omtbv.bv_opt_utils import cnt, res_z3_trans
+from arlib.optimization.omtbv.boxed.bv_boxed_z3 import solve_boxed_z3
 from pysmt.shortcuts import *
 from pysmt.smtlib.parser import SmtLibParser
 from pysmt.smtlib.script import SmtLibCommand
 
 
-# 新建一个parser，以过滤掉maximize、minimize和get-objectives指令
 class TSSmtLibParser(SmtLibParser):
+    """Extended SMT-LIB parser that supports maximize/minimize commands.
+
+    This parser adds support for maximize, minimize, and get-objectives
+    commands while removing incompatible commands like get-value.
+    """
     def __init__(self, env=None, interactive=False):
         SmtLibParser.__init__(self, env, interactive)
 
@@ -34,29 +43,35 @@ class TSSmtLibParser(SmtLibParser):
         del self.commands["get-value"]
 
     def _cmd_maximize(self, current, tokens):
-        # This cmd performs the parsing of:
-        #   <expr> )
-        # and returns a new SmtLibCommand
+        """Parse a maximize command: (maximize <expr>)."""
         expr = self.get_expression(tokens)
         self.consume_closing(tokens, current)
         return SmtLibCommand(name="maximize", args=(expr,))
 
     def _cmd_minimize(self, current, tokens):
-        # This performs the same parsing as _cmd_init, but returns a
-        # different object. The parser is not restricted to return
-        # SmtLibCommand, but using them makes handling them
-        # afterwards easier.
+        """Parse a minimize command: (minimize <expr>)."""
         expr = self.get_expression(tokens)
         self.consume_closing(tokens, current)
         return SmtLibCommand(name="minimize", args=(expr,))
 
     def _cmd_get_objs(self, current, tokens):
+        """Parse a get-objectives command: (get-objectives)."""
         self.consume_closing(tokens, current)
         return SmtLibCommand(name="get-objectives", args=())
 
 
-# 从文件中获取约束子句和最优化目标
-def get_input(file):
+def get_input(file: str) -> Tuple:
+    """Parse SMT-LIB2 file and extract constraints and objectives.
+
+    Args:
+        file: Path to SMT-LIB2 file with maximize/minimize commands
+
+    Returns:
+        Tuple of (formula, objectives) where:
+        - formula: Combined formula from all assert commands
+        - objectives: List of [expression, direction] pairs where
+          direction is 1 for maximize, 0 for minimize
+    """
     ts_parser = TSSmtLibParser()
     script = ts_parser.get_script_fname(file)
     stack = []
@@ -74,20 +89,34 @@ def get_input(file):
     return ori_formula, objs
 
 
-def map_bitvector(input_vars):  # 将所有位向量目标的每一位都创建对应布尔变量
-    bv2bool = {}  # for tracking what Bools corresponding to a bv
+def map_bitvector(input_vars: List) -> List[List]:
+    """Convert bit-vector objectives to boolean variable lists.
+
+    For each bit-vector objective, creates boolean variables representing
+    each bit position. For maximize objectives, checks if bits equal 1.
+    For minimize objectives, checks if bits equal 0.
+
+    Args:
+        input_vars: List of [variable, direction] pairs where direction
+                    is 1 for maximize, 0 for minimize
+
+    Returns:
+        List of lists, where each inner list contains boolean expressions
+        representing bit conditions for one objective (MSB to LSB order)
+    """
+    bv2bool = {}  # Track boolean variables corresponding to each BV
     for var in input_vars:
         if var[0].get_type() != BOOL:
             name = var[0]
             size = var[0].symbol_type().width
             bool_vars = []
-            if var[1] == 1:
+            if var[1] == 1:  # Maximize: check if bits equal 1
                 for i in range(size):
-                    x = size - 1 - i  # 位向量最低位为0，最高位为size-1，这样从高位到低位储存
+                    x = size - 1 - i  # MSB to LSB order
                     v = Equals(BVExtract(var[0], x, x), BV(1, 1))
                     bool_vars.append(v)
                 bv2bool[str(name)] = bool_vars
-            else:
+            else:  # Minimize: check if bits equal 0
                 for i in range(size):
                     x = size - 1 - i
                     v = Equals(BVExtract(var[0], x, x), BV(0, 1))
@@ -96,11 +125,22 @@ def map_bitvector(input_vars):  # 将所有位向量目标的每一位都创建�
     objectives = []
     for key, value in bv2bool.items():
         objectives.append(value)
-    # print(clauses)
     return objectives
 
 
-def check_assum(model, assums_obj, unsol, objectives):
+def check_assum(model, assums_obj: List[List[int]], unsol: List[int],
+                objectives: List[List]) -> List[int]:
+    """Check which assumptions are satisfied by the model.
+
+    Args:
+        model: Model from solver
+        assums_obj: List of assumption lists for each objective
+        unsol: List of indices of unsolved objectives
+        objectives: List of objective boolean variable lists
+
+    Returns:
+        List of indices of objectives whose assumptions are satisfied
+    """
     ass_index = []
     for i in unsol:
         sat = True
@@ -114,17 +154,39 @@ def check_assum(model, assums_obj, unsol, objectives):
     return ass_index
 
 
-def solve(formula, objectives):
+def solve(formula, objectives: List[List]) -> List[List[int]]:
+    """Compact boxed optimization using incremental SAT over bit slices.
+
+    Strategy (pysmt-based):
+    - Each bit-vector objective is mapped to a list of boolean literals
+      (MSB→LSB). For maximize, the literal is “bit==1”; for minimize, “bit==0”.
+    - We iteratively decide the next bit for every still-unsolved objective:
+      * Build assumptions that require the currently known prefix plus the
+        next bit == 1 for each objective.
+      * Solve a disjunction of these assumptions; inspect the model to see
+        which assumptions are simultaneously satisfiable.
+      * For satisfiable objectives, commit the bit to 1 and extend their
+        accumulated clause; otherwise commit the bit to 0.
+    - Loop until all bits of all objectives are decided. This mimics Z3’s boxed
+      priority: maximize the most significant bit first, then proceed downward.
+
+    Args:
+        formula: pysmt BoolRef of the hard constraints.
+        objectives: List of per-objective boolean literals (one per bit, MSB→LSB).
+
+    Returns:
+        Per-objective bit lists (0/1) representing the optimal value for each
+        objective in the same order as ``objectives``.
+    """
     s = Solver()
     s.add_assertion(formula)
-    unsol = list(range(len(objs)))
-    result = list([list() for _ in range(len(objs))])
-    res_clause = list([list() for _ in range(len(objs))])  # 存储已判定目标的结果
-    while len(unsol):  # 还有未解决的目标时
-        # print('unsol: ', unsol)
-        assumption = {}  # 将未解决的目标和下一位作为assumption保存
+    unsol = list(range(len(objectives)))
+    result = list([list() for _ in range(len(objectives))])
+    res_clause = list([list() for _ in range(len(objectives))])  # Store results for each objective
+    while len(unsol):  # While there are unsolved objectives
+        assumption = {}  # Store assumptions for unsolved objectives and next bit
         for i in unsol:
-            obj = objectives[i][len(result[i])]  # 获取目标待求下一位
+            obj = objectives[i][len(result[i])]  # Get next bit to check
             if not res_clause[i]:
                 assum = obj
             else:
@@ -141,9 +203,10 @@ def solve(formula, objectives):
             s.add_assertion(a)
             if s.solve():
                 m = s.get_model()
-                assum_index = check_assum(m, result, unsol, objectives)  # 检查哪些assum是可满足的，返回可满足assum的下标
+                # Check which assumptions are satisfiable
+                assum_index = check_assum(m, result, unsol, objectives)
                 s.pop()
-                for i in assum_index:  # 可满足的下标里结果更新true， 并选下一位
+                for i in assum_index:  # Update satisfied assumptions: set bit to 1, move to next
                     obj = objectives[i][len(result[i])]
                     result[i].append(1)
                     if not res_clause[i]:
@@ -170,13 +233,23 @@ def solve(formula, objectives):
     return result
 
 
-def res_2int(result, objectives):
+def res_2int(result: List[List[int]], objectives: List[List]) -> List[int]:
+    """Convert binary result lists to integer values.
+
+    Args:
+        result: List of binary result lists (0/1 values)
+        objectives: Original objectives list with [expression, direction] pairs
+                    where direction is 1 for maximize, 0 for minimize
+
+    Returns:
+        List of integer values, converted based on objective direction
+    """
     res_int = []
     for i in range(len(objectives)):
         score = cnt(result[i])
-        if objectives[i][1] == 1:
+        if objectives[i][1] == 1:  # Maximize
             res_int.append(score)
-        else:
+        else:  # Minimize: invert the score
             l = len(result[i])
             score = 2 ** l - 1 - score
             res_int.append(score)
@@ -184,13 +257,15 @@ def res_2int(result, objectives):
 
 
 if __name__ == '__main__':
-    path = os.getcwd()
-    path = os.path.dirname(path)
-    path = os.path.dirname(path)
-    path = os.path.dirname(path)
+    # Get the project root directory (4 levels up from this file)
+    # File is at: arlib/optimization/omtbv/boxed/bv_boxed_compact.py
+    # Project root is: arlib/
+    current_file_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(current_file_dir))))
 
-    file_1 = r'benchmarks/omt/clearblue/case30515550.smt2'
-    filename = os.path.join(path, file_1)
+    # Construct the benchmark file path
+    benchmark_file = os.path.join(project_root, 'benchmarks', 'smtlib2', 'omt', 'bv', 'box1.smt2')
+    filename = os.path.normpath(benchmark_file)
 
     formu, objec = get_input(filename)
     objs = map_bitvector(objec)
@@ -201,12 +276,12 @@ if __name__ == '__main__':
     # solve(formula, objs, res, res_cla, unsolved)
     print('t:', time.time() - t)
 
+    obj_names = [str(obj[0]) for obj in objec]
+
+    # Direct Z3 Optimize call to obtain objective values.
     t = time.time()
-    res_z3 = subprocess.run(['z3', 'opt.priority=box', filename],
-                            capture_output=True,
-                            text=True,
-                            check=True).stdout
+    z3_res = solve_boxed_z3(filename, objective_order=obj_names)
     t = time.time() - t
     print('t_z3:', t)
-    print(res_z3)
-    print(res_z3_trans(res_z3) == r)
+    print(z3_res)
+    print(z3_res == r)

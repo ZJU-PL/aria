@@ -6,8 +6,9 @@ representations used in bit-vector optimization problems.
 """
 import logging
 import os
+import re
 import subprocess
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -178,28 +179,100 @@ def read_cnf(data: str) -> Optional[Tuple[List[List[int]], List[List[int]], List
     return clauses, soft, obj_type
 
 
-def res_z3_trans(r_z3: str) -> List[int]:
-    """Extract results from Z3 output.
+def res_z3_trans(r_z3: str, objective_order: Optional[List[str]] = None) -> List[int]:
+    """Extract objective values from Z3 optimize output or models.
 
-    Args:
-        r_z3: String containing Z3 output
-
-    Returns:
-        List of integer results extracted from Z3 output
+    Handles both:
+    - Optimize objectives block: (objectives (x 10) (y 5) ...)
+    - Model definitions: (define-fun x () (_ BitVec 8) #xff)
     """
-    lines = r_z3.splitlines()
-    results: List[int] = []
-    # Skip first two lines (header)
-    for line in lines[2:]:
-        parts = line.split()
-        if len(parts) > 1:
-            # Remove trailing character (usually ':')
-            value_str = parts[1][:-1]
+    objective_values: Dict[str, int] = {}
+
+    model_re = re.compile(
+        r"\(define-fun\s+(?P<name>\S+)\s+\(\)\s+\(_\s*BitVec\s+\d+\)\s+#x(?P<value>[0-9A-Fa-f]+)\)"
+    )
+    objective_re = re.compile(r"\(\s*(?P<name>[^\s\)]+)\s+(?P<value>\d+)\s*\)")
+
+    pending_define: Optional[str] = None
+    in_objectives = False
+
+    for line in r_z3.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+
+        # Detect start/end of objectives block
+        if line.startswith("(objectives"):
+            in_objectives = True
+            continue
+        if in_objectives and line.startswith(")"):
+            in_objectives = False
+            continue
+
+        # Parse objectives block entries first
+        if in_objectives:
+            objective_match = objective_re.search(line)
+            if objective_match:
+                name = objective_match.group("name")
+                try:
+                    objective_values[name] = int(objective_match.group("value"))
+                except ValueError:
+                    logger.warning("Could not parse objective value from line: %s", line)
+            continue
+
+        model_match = model_re.search(line)
+        if model_match:
+            name = model_match.group("name")
+            if name not in objective_values:
+                value_hex = model_match.group("value")
+                objective_values[name] = int(value_hex, 16)
+            continue
+
+        # Multi-line (define-fun ...) blocks: capture the name first, then parse the value line.
+        if line.startswith("(define-fun"):
+            pending_match = re.match(r"\(define-fun\s+(?P<name>\S+)\s+\(\)\s+\(_\s*BitVec\s+\d+\)", line)
+            if pending_match:
+                pending_define = pending_match.group("name")
+            continue
+
+        if pending_define:
+            hex_match = re.search(r"#x([0-9A-Fa-f]+)", line)
+            bin_match = re.search(r"#b([01]+)", line)
+            if hex_match:
+                if pending_define not in objective_values:
+                    objective_values[pending_define] = int(hex_match.group(1), 16)
+                pending_define = None
+                continue
+            if bin_match:
+                if pending_define not in objective_values:
+                    objective_values[pending_define] = int(bin_match.group(1), 2)
+                pending_define = None
+                continue
+            # If we reach a closing parenthesis before finding a value, reset.
+            if line.startswith(")"):
+                pending_define = None
+            continue
+
+        objective_match = objective_re.search(line)
+        if objective_match and line.startswith("("):
+            name = objective_match.group("name")
+            value_dec = objective_match.group("value")
             try:
-                results.append(int(value_str))
+                objective_values[name] = int(value_dec)
             except ValueError:
-                logger.warning("Could not parse value from line: %s", line)
-    return results
+                logger.warning("Could not parse objective value from line: %s", line)
+
+    # Order results deterministically
+    if objective_order:
+        ordered = [objective_values[name] for name in objective_order if name in objective_values]
+    else:
+        def _sort_key(var_name: str):
+            match = re.search(r"(\d+)", var_name)
+            return int(match.group(1)) if match else var_name
+
+        ordered = [objective_values[name] for name in sorted(objective_values.keys(), key=_sort_key)]
+
+    return ordered
 
 
 if __name__ == '__main__':

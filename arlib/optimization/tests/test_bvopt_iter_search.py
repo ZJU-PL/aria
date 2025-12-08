@@ -10,6 +10,7 @@ def test_linear_search_maximize_simple_range():
     y = z3.BitVec('y', 4)
     fml = z3.And(z3.UGT(y, 3), z3.ULT(y, 10))
     res = bv_opt_with_linear_search(fml, y, minimize=False, solver_name="z3")
+    print("res: ", res)
     # Result is an integer (optimal value) or "unsatisfiable" string
     assert res is not None
     if isinstance(res, int):
