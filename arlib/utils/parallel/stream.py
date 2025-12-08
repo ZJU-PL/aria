@@ -24,7 +24,7 @@ class Stream(Iterable[T]):
     def map(self, fn: Callable[[T], R], *, kind: str = "threads", max_workers: Optional[int] = None) -> "Stream[R]":
         def gen() -> Iterator[R]:
             with ParallelExecutor(kind=kind, max_workers=max_workers) as ex:
-                for res in ex.run(fn, list(self.source)):
+                for res in ex.run(fn, self.source):
                     yield res
         return Stream(gen())
 

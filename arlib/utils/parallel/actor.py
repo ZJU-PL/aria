@@ -25,11 +25,14 @@ class ActorRef:
         """Fire-and-forget send."""
         self._mailbox.put((message, None))
 
-    def ask(self, message: Any, timeout: Optional[float] = None) -> Any:
+    def ask(self, message: Any, timeout: Optional[float] = None, *, raise_on_error: bool = True) -> Any:
         """Send and wait for a reply, raising on timeout."""
         reply_q: "queue.Queue[Any]" = queue.Queue(maxsize=1)
         self._mailbox.put((message, reply_q))
-        return reply_q.get(timeout=timeout)
+        res = reply_q.get(timeout=timeout)
+        if raise_on_error and isinstance(res, Exception):
+            raise res
+        return res
 
 
 @dataclass
@@ -46,12 +49,17 @@ class ActorHandle:
         self.ref._mailbox.put((None, None))
         self.thread.join(timeout=timeout)
 
+    @property
+    def is_alive(self) -> bool:
+        return self.thread.is_alive()
+
 
 def spawn(
     handler: Callable[[Any], Any],
     *,
     name: Optional[str] = None,
     mailbox_size: int = 1024,
+    on_error: Optional[Callable[[Exception], None]] = None,
 ) -> ActorHandle:
     """Spawn a thread-based actor with the given message handler.
 
@@ -80,6 +88,11 @@ def spawn(
                         reply_q.put(exc)
             except Exception as exc:
                 logger.exception("actor.loop error name=%s err=%s", actor_name, exc)
+                if on_error:
+                    try:
+                        on_error(exc)
+                    except Exception:
+                        logger.exception("actor.on_error failed name=%s", actor_name)
 
     t = threading.Thread(target=loop, name=actor_name, daemon=True)
     t.start()
@@ -101,5 +114,3 @@ class ActorSystem:
         for h in self._actors:
             h.stop(timeout=timeout)
         self._actors.clear()
-
-

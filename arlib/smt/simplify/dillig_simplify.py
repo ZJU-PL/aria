@@ -1,7 +1,7 @@
 """
 Implementation of the Dillig algorithm for online constraint simplification.
 
-Based on: "Small Formulas for Large Programs: On-line Constraint Simplification 
+Based on: "Small Formulas for Large Programs: On-line Constraint Simplification
 in Scalable Static Analysis" by Isil Dillig, Thomas Dillig, Alex Aiken (SAS 2010).
 
 FIXME: by LLM. Very likely buggy (to debug..)
@@ -70,13 +70,13 @@ class SimplificationCache:
 
 def basic_simplify(expr: ExprRef) -> ExprRef:
     """Apply basic simplification patterns before main algorithm.
-    
+
     Args:
         expr: Z3 expression to simplify
-        
+
     Returns:
         Simplified expression
-        
+
     Raises:
         InvalidInputError: If expression is invalid
     """
@@ -215,10 +215,16 @@ def dillig_simplify(
             others = unique_children[:i] + unique_children[i + 1:]
 
             # Compute context formula
+            # Build the context in the same Z3 context to avoid cast errors
             if is_or(expr):
-                context = And(*[Not(c) for c in others])
+                context_children = [Not(c) for c in others]
             else:
-                context = And(*others)
+                context_children = list(others)
+
+            # And() with no args produces a BoolVal(True) in the default
+            # global context, which can mismatch the solver context. Make the
+            # identity element explicit with the correct ctx.
+            context = And(*context_children) if context_children else BoolVal(True, ctx)
 
             # Use a fresh solver for each child
             child_solver = Solver(ctx=ctx)

@@ -5,6 +5,7 @@ Execution pushes data along edges; nodes run with per-node parallelism.
 """
 from __future__ import annotations
 
+import logging
 import queue
 import threading
 from dataclasses import dataclass, field
@@ -27,6 +28,8 @@ class Dataflow:
         self.nodes: Dict[str, Node] = {}
         self.queues: Dict[str, queue.Queue] = {}
         self.threads: List[threading.Thread] = []
+        self._logger = logging.getLogger("arlib.parallel.dataflow")
+        self._sentinel = object()
 
     def add_queue(self, name: str, maxsize: int = 1024) -> None:
         self.queues[name] = queue.Queue(maxsize=maxsize)
@@ -42,14 +45,14 @@ class Dataflow:
         q = self.queues[queue_name]
         for it in items:
             q.put(it)
-        q.put(StopIteration)
+        q.put(self._sentinel)
 
     def connect_sink(self, queue_name: str, collector: List[Any]) -> None:
         def sink() -> None:
             q = self.queues[queue_name]
             while True:
                 item = q.get()
-                if item is StopIteration:
+                if item is self._sentinel:
                     break
                 collector.append(item)
         t = threading.Thread(target=sink, daemon=True)
@@ -70,15 +73,19 @@ class Dataflow:
                         q = in_qs[idx % len(in_qs)]
                         idx += 1
                         item = q.get()
-                        if item is StopIteration:
+                        if item is self._sentinel:
                             active -= 1
                             continue
-                        res = ex.run(n.func, [item])[0]
+                        try:
+                            res = ex.run(n.func, [item])[0]
+                        except Exception as exc:
+                            self._logger.exception("dataflow node failed name=%s err=%s", n.name, exc)
+                            continue
                         for oq in out_qs:
                             oq.put(res)
                     # propagate termination
                     for oq in out_qs:
-                        oq.put(StopIteration)
+                        oq.put(self._sentinel)
 
             t = threading.Thread(target=node_loop, daemon=True)
             self.threads.append(t)
@@ -86,4 +93,4 @@ class Dataflow:
 
         # Wait for all threads to finish briefly (non-blocking design)
         for t in self.threads:
-            t.join(timeout=0.1)
+            t.join()

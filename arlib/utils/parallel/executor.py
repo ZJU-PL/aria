@@ -8,7 +8,12 @@ Features:
 """
 from __future__ import annotations
 
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
+from concurrent.futures import (
+    ThreadPoolExecutor,
+    ProcessPoolExecutor,
+    FIRST_COMPLETED,
+    wait,
+)
 import logging
 import time
 from dataclasses import dataclass
@@ -71,7 +76,13 @@ class ParallelExecutor:
         timeout: Optional[float] = None,
         *,
         return_exceptions: bool = False,
+        preserve_order: bool = True,
     ) -> List[R]:
+        """Run fn over items and gather results.
+
+        preserve_order controls whether the returned list matches the submission
+        order even when tasks finish out of order.
+        """
         futures = [self.submit(fn, item) for item in items]
         return _gather_results(
             futures,
@@ -80,6 +91,7 @@ class ParallelExecutor:
             cancel_on_error=self.cancel_on_error,
             kill_pool_on_timeout=self.kill_pool_on_timeout,
             return_exceptions=return_exceptions,
+            preserve_order=preserve_order,
         )
 
     # Optional context manager convenience
@@ -132,10 +144,15 @@ def run_tasks(
     )
     try:
         futures = [ex.submit(fn, *args, **kwargs) for fn, args, kwargs in tasks]
-        return _gather_results(futures, timeout=timeout, logger=ex.logger,
-                               cancel_on_error=ex.cancel_on_error,
-                               kill_pool_on_timeout=ex.kill_pool_on_timeout,
-                               return_exceptions=False)
+        return _gather_results(
+            futures,
+            timeout=timeout,
+            logger=ex.logger,
+            cancel_on_error=ex.cancel_on_error,
+            kill_pool_on_timeout=ex.kill_pool_on_timeout,
+            return_exceptions=False,
+            preserve_order=True,
+        )
     finally:
         ex.shutdown()
 
@@ -167,6 +184,7 @@ def _gather_results(
     cancel_on_error: bool,
     kill_pool_on_timeout: bool,
     return_exceptions: bool,
+    preserve_order: bool,
 ) -> List:
     """Collect results with robust handling for exceptions and timeouts.
 
@@ -174,36 +192,51 @@ def _gather_results(
     - On exception: optionally cancels remaining futures and re-raises (or returns exceptions)
     - On timeout: cancels remaining futures; optionally signals to kill pool by raising TimeoutError
     """
-    results: List[Any] = []
-    try:
-        for f in futures:
+    results: Dict[int, Any] = {}
+    pending: Dict[Any, int] = {f: idx for idx, f in enumerate(futures)}
+    deadline = None if timeout is None else time.time() + timeout
+
+    def _remaining_time() -> Optional[float]:
+        if deadline is None:
+            return None
+        return max(0.0, deadline - time.time())
+
+    def _cancel_all() -> None:
+        for rem in pending:
+            if not rem.done():
+                rem.cancel()
+
+    while pending:
+        remaining = _remaining_time()
+        done, _ = wait(pending.keys(), timeout=remaining, return_when=FIRST_COMPLETED)
+        if not done:
+            # timeout expired
+            _cancel_all()
+            if kill_pool_on_timeout:
+                raise TimeoutError("parallel execution timed out")
+            if return_exceptions:
+                for idx in pending.values():
+                    results[idx] = TimeoutError("parallel execution timed out")
+                break
+            raise TimeoutError("parallel execution timed out")
+
+        for fut in done:
+            idx = pending.pop(fut)
             try:
-                results.append(f.result(timeout=timeout))
+                results[idx] = fut.result(timeout=0)
             except Exception as exc:  # includes TimeoutError
                 if logger:
                     logger.error("task.error type=%s msg=%s", type(exc).__name__, exc)
-                if isinstance(exc, TimeoutError):
-                    # best-effort cancel remaining
-                    for rem in futures:
-                        if not rem.done():
-                            rem.cancel()
-                    if kill_pool_on_timeout:
-                        # Let caller decide to recreate pool; propagate timeout
-                        raise
-                    if return_exceptions:
-                        results.append(exc)
-                        continue
-                    raise
-                # Non-timeout exceptions
                 if return_exceptions:
-                    results.append(exc)
+                    results[idx] = exc
                     continue
                 if cancel_on_error:
-                    for rem in futures:
-                        if not rem.done():
-                            rem.cancel()
+                    _cancel_all()
+                if isinstance(exc, TimeoutError) and kill_pool_on_timeout:
+                    _cancel_all()
+                    raise TimeoutError("parallel execution timed out") from exc
                 raise
-        return results
-    finally:
-        # nothing to close here; shutdown is handled by caller/owner of the pool
-        pass
+
+    if preserve_order:
+        return [results[i] for i in sorted(results)]
+    return list(results.values())
