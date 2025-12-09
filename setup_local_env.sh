@@ -64,8 +64,8 @@ pip install --upgrade pip
 pip install -r "${SCRIPT_DIR}/requirements.txt"
 
 # 3. Download solver binaries
-echo "Downloading solver binaries..."
-(cd "${SCRIPT_DIR}/bin_solvers" && python "download.py")
+# echo "Downloading solver binaries..."
+# (cd "${SCRIPT_DIR}/bin_solvers" && python "download.py")
 # cvc5, mathsat, z3.
 
 # 4. Run tests
