@@ -3,7 +3,7 @@ requires = [ "hatchling",]
 build-backend = "hatchling.build"
 
 [project]
-name = "arlib"
+name = "aria"
 version = "0.1.0"
 description = "A Python library"
 readme = "README.md"
@@ -34,9 +34,9 @@ text = "MIT"
 dev = []
 
 [project.scripts]
-arlib-smt-server = "arlib.cli.smt_server:main"
-arlib-pyomt = "arlib.cli.pyomt:main"
-arlib-mc = "arlib.cli.mc:main"
+aria-smt-server = "aria.cli.smt_server:main"
+aria-pyomt = "aria.cli.pyomt:main"
+aria-mc = "aria.cli.mc:main"
 
 [tool.black]
 line-length = 88

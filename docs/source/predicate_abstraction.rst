@@ -22,10 +22,10 @@ Depending on the nature of the problem domain, one may either want to generate:
 Here, the notions of weakness, strength and implication are with respect
 to entailment in the given theory T.
 
-Implementation in arlib
+Implementation in aria
 ----------------------
 
-arlib implements predicate abstraction in `arlib/symabs/predicate_abstraction/predicate_abstraction.py`. 
+aria implements predicate abstraction in `aria/symabs/predicate_abstraction/predicate_abstraction.py`. 
 The implementation focuses on computing the strongest necessary condition of a formula that is 
 a Boolean combination of the given predicates.
 
@@ -91,11 +91,11 @@ P1: i < 10
 P2: i >= 10
 ```
 
-To apply predicate abstraction using arlib:
+To apply predicate abstraction using aria:
 
 ```python
 import z3
-from arlib.symabs.predicate_abstraction.predicate_abstraction import predicate_abstraction
+from aria.symabs.predicate_abstraction.predicate_abstraction import predicate_abstraction
 
 # Define variables
 i = z3.Int('i')

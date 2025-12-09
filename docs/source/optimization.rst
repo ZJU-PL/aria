@@ -13,7 +13,7 @@ functions.
 
 
 =============
-OMT in Arlib
+OMT in Aria
 =============
 
 Currently, we rely on the ``pyomt`` library for solving OMT problems. (TBD: need

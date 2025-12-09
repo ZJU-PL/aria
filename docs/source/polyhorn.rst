@@ -78,7 +78,7 @@ Main Interface
    
    .. code-block:: python
    
-      from arlib.quant.polyhorn.main import execute
+      from aria.quant.polyhorn.main import execute
       
       config = {
           "theorem_name": "farkas",
@@ -135,7 +135,7 @@ Basic Usage with PySMT
    from pysmt.shortcuts import (GE, GT, LE, And, Equals, ForAll, Implies, 
                                 Minus, Real, Solver, Symbol)
    from pysmt.typing import REAL
-   from arlib.quant.polyhorn.main import execute
+   from aria.quant.polyhorn.main import execute
 
    # Create symbols
    x = Symbol("x", REAL)
@@ -174,7 +174,7 @@ SMT-LIB2 File Input
 
 .. code-block:: python
 
-   from arlib.quant.polyhorn.main import execute
+   from aria.quant.polyhorn.main import execute
 
    # Load from SMT2 file
    config = {

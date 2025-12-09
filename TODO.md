@@ -4,8 +4,8 @@
 
 There are many interesting research topics. You are welcome to contribute to the following research topics:
 
-- Parallel CDCL(T): See `arlib/smt/pcdclt`. Here we have a new algorithm for parallelizing lazy SMT solving
-- LLM-driven constraint solving: See `arlib/llm`
+- Parallel CDCL(T): See `aria/smt/pcdclt`. Here we have a new algorithm for parallelizing lazy SMT solving
+- LLM-driven constraint solving: See `aria/llm`
 
 ## Features
 
@@ -50,7 +50,7 @@ There are many interesting research topics. You are welcome to contribute to the
 
 ## Documentation
 
-See `arlib/docs`
+See `aria/docs`
 
 - Interactive tutorials and examples
 - API reference with complete examples

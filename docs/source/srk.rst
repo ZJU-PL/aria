@@ -1,10 +1,10 @@
 SRK Symbolic Reasoning Kit
 ==========================
 
-The package ``arlib.srk`` is arlib's Symbolic Reasoning Kit: a Python port of the
+The package ``aria.srk`` is aria's Symbolic Reasoning Kit: a Python port of the
 SRK framework for symbolic manipulation, verification, and automated reasoning.
 It bundles expression syntax, algebraic domains, SMT backends, and termination
-analyses under a single interface that interoperates with the rest of arlib.
+analyses under a single interface that interoperates with the rest of aria.
 
 Overview
 --------
@@ -50,7 +50,7 @@ Getting Started
 
 .. code-block:: python
 
-   from arlib.srk import (
+   from aria.srk import (
        Context, Type,
        mk_symbol, mk_const, mk_add, mk_eq,
        simplify_expression, Z3Solver, SMTResult
@@ -85,5 +85,5 @@ Further Reading
 ---------------
 
 Explore the module docstrings and the extensive regression suite in
-``arlib/srk/tests`` for concrete usage patterns covering algebraic manipulation,
+``aria/srk/tests`` for concrete usage patterns covering algebraic manipulation,
 quantifier handling, and program analysis workflows.

@@ -5,7 +5,7 @@ UNSAT Core Extraction
 Introduction to UNSAT Core Extraction
 ===============
 
-An unsatisfiable core (UNSAT core) is a subset of constraints in an unsatisfiable formula that is still unsatisfiable. 
+An unsatisfiable core (UNSAT core) is a subset of constraints in an unsatisfiable formula that is still unsatisfiable.
 A minimal unsatisfiable subset (MUS) is an UNSAT core that becomes satisfiable if any constraint is removed.
 
 UNSAT core extraction is crucial in many applications:
@@ -16,10 +16,10 @@ UNSAT core extraction is crucial in many applications:
 - **Explanation**: Providing human-readable explanations for why a system has no solution
 
 ===============
-UNSAT Core Extraction in Arlib
+UNSAT Core Extraction in Aria
 ===============
 
-Arlib provides a comprehensive suite of algorithms for UNSAT core extraction:
+Aria provides a comprehensive suite of algorithms for UNSAT core extraction:
 
 1. **MARCO** (`marco.py`): A highly efficient algorithm for MUS enumeration that can find multiple MUSes quickly.
 
@@ -37,7 +37,7 @@ Usage Example
 
 ```python
 import z3
-from arlib.unsat_core.unsat_core import get_unsat_core, Algorithm
+from aria.unsat_core.unsat_core import get_unsat_core, Algorithm
 
 # Define an unsatisfiable formula
 x, y = z3.Ints('x y')
@@ -67,7 +67,7 @@ for core in result.cores:
         print(f"  {constraints[idx]}")
 
 # Enumerate all MUSes
-from arlib.unsat_core.unsat_core import enumerate_all_mus
+from aria.unsat_core.unsat_core import enumerate_all_mus
 
 all_muses = enumerate_all_mus(
     constraints=constraints,
@@ -107,4 +107,4 @@ References
 
 - M. H. Liffiton and K. A. Sakallah. "Algorithms for computing minimal unsatisfiable subsets of constraints." Journal of Automated Reasoning, 2008.
 - J. Marques-Silva, F. Heras, M. Janota, A. Previti, and A. Belov. "On computing minimal correction subsets." IJCAI, 2013.
-- A. Belov and J. Marques-Silva. "MUSer2: An efficient MUS extractor." Journal on Satisfiability, Boolean Modeling and Computation, 2012. 
+- A. Belov and J. Marques-Silva. "MUSer2: An efficient MUS extractor." Journal on Satisfiability, Boolean Modeling and Computation, 2012.

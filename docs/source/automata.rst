@@ -4,7 +4,7 @@ Automata
 Introduction
 =====================
 
-The automata module (``arlib/automata``) provides implementations of finite automata and related algorithms for formal language processing and constraint solving. It includes both classical finite automata (DFA/NFA) and symbolic automata for string constraint solving.
+The automata module (``aria/automata``) provides implementations of finite automata and related algorithms for formal language processing and constraint solving. It includes both classical finite automata (DFA/NFA) and symbolic automata for string constraint solving.
 
 Key Features
 -------------
@@ -17,14 +17,14 @@ Key Features
 Components
 =====================
 
-Finite Automata (``arlib/automata/fa.py``)
+Finite Automata (``aria/automata/fa.py``)
 --------------------------------------------
 
 Basic finite automata operations:
 
 .. code-block:: python
 
-   from arlib.automata.fa import DFA, NFA
+   from aria.automata.fa import DFA, NFA
 
    # Create a DFA
    dfa = DFA(
@@ -38,19 +38,19 @@ Basic finite automata operations:
    # Accept strings
    result = dfa.accepts("ab")  # True
 
-Symbolic Automata (``arlib/automata/symautomata``)
+Symbolic Automata (``aria/automata/symautomata``)
 ---------------------------------------------------
 
 Symbolic finite automata framework supporting predicates over infinite alphabets. This module is adapted from the `symautomata <https://github.com/spencerwuwu/symautomata>`_ project.
 
-Automata Learning (``arlib/automata/fa_learning.py``)
+Automata Learning (``aria/automata/fa_learning.py``)
 ------------------------------------------------------
 
 Active learning algorithms for inferring automata from examples:
 
 .. code-block:: python
 
-   from arlib.automata.fa_learning import learn_automaton
+   from aria.automata.fa_learning import learn_automaton
 
    # Learn DFA from membership queries
    automaton = learn_automaton(examples, membership_oracle)

@@ -1,5 +1,5 @@
 # Build artifacts and temporary files
-.arlib_logs
+.arla_logs
 smt_query_logs
 fully_existentially_constraints.txt
 .cursor

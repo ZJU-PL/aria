@@ -11,9 +11,9 @@ from shutil import rmtree
 from setuptools import find_packages, setup, Command
 
 # Package meta-data.
-NAME = 'py-arlib'
+NAME = 'py-aria'
 DESCRIPTION = 'A library for various automated reasoning tasks.'
-URL = ' https://github.com/ZJU-PL/arlib'
+URL = ' https://github.com/ZJU-PL/aria'
 EMAIL = 'rainoftime@gmail.com'
 AUTHOR = 'rainoftime'
 REQUIRES_PYTHON = '>=3.6.0'
@@ -118,8 +118,8 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'arlib-smt-server=arlib.cli.smt_server:main',
-            'arlib-pyomt=arlib.cli.pyomt:main'
+            'aria-smt-server=aria.cli.smt_server:main',
+            'aria-pyomt=aria.cli.pyomt:main'
         ],
     },
 

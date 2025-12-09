@@ -54,17 +54,17 @@ Algebraic methods can also be used to generate more general abducts.
 
 
 ======================
-Abduction in Arlib
+Abduction in ARIA
 ======================
 
 Code Example
 --------------
 
-Here is an example of how to use Arlib to perform abductive reasoning:
+Here is an example of how to use ARIA to perform abductive reasoning:
 
 .. code-block:: python
 
-   from arlib import abduction (TO FIX)
+   from aria import abduction (TO FIX)
 
    # Define the theory and goal
    theory = ["p(X) :- q(X)", "q(a)"]

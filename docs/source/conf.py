@@ -2,9 +2,9 @@
 
 # -- Project information -----------------------------------------------------
 
-project = "Arlib"
-copyright = "2024-2025, ZJU Automated Reasoning Group"
-author = "ZJU Automated Reasoning Group"
+project = "ARIA"
+copyright = "2024-2025, ZJU Programming Languages and Automated Reasoning Group"
+author = "ZJU Programming Languages and Automated Reasoning Group"
 
 # The full version, including alpha/beta/rc tags
 release = "v0.3"
@@ -34,7 +34,7 @@ exclude_patterns = []
 # HTML output options
 html_theme = 'sphinx_rtd_theme'  # ReadTheDocs theme
 # html_static_path = ['_static']
-html_title = 'Arlib Documentation'
+html_title = 'ARIA Documentation'
 
 # LaTeX output options
 latex_elements = {

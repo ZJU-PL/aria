@@ -9,7 +9,7 @@ VENV_DIR="${SCRIPT_DIR}/venv"
 # Use the same name as the venv directory for conda environment
 CONDA_ENV_NAME="$(basename "${VENV_DIR}")"
 
-echo "Setting up arlib environment..."
+echo "Setting up aria environment..."
 
 # Ask user to choose between venv and conda
 echo "Please choose your preferred environment manager:"
@@ -29,18 +29,18 @@ if [ "$env_choice" = "1" ]; then
     else
         echo "Virtual environment already exists."
     fi
-    
+
     # Activate virtual environment
     echo "Activating venv virtual environment..."
     source "${VENV_DIR}/bin/activate"
-    
+
 elif [ "$env_choice" = "2" ]; then
     # Check if conda is installed
     if ! command -v conda &> /dev/null; then
         echo "Conda is not installed or not in PATH. Please install conda first."
         exit 1
     fi
-    
+
     # Check if the conda environment exists
     if ! conda info --envs | grep -q "${CONDA_ENV_NAME}"; then
         echo "Creating conda environment '${CONDA_ENV_NAME}'..."
@@ -48,7 +48,7 @@ elif [ "$env_choice" = "2" ]; then
     else
         echo "Conda environment '${CONDA_ENV_NAME}' already exists."
     fi
-    
+
     # Activate conda environment
     echo "Activating conda environment..."
     eval "$(conda shell.bash hook)"

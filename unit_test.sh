@@ -5,7 +5,7 @@ SKIP_SLOW=true
 EXIT_ON_FAIL=true
 SHOW_OUTPUT=false
 VERBOSE=false
-SPECIFIC_PATH="arlib/tests"
+SPECIFIC_PATH="aria/tests"
 SPECIFIC_TEST=""
 COVERAGE=false
 PARALLEL=false
@@ -105,7 +105,7 @@ PYTEST_CMD="$PYTHON_CMD -m pytest -W ignore::RuntimeWarning:unittest.case"
 [[ "$SHOW_OUTPUT" = true ]] && PYTEST_CMD+=" -rP"
 [[ "$VERBOSE" = true ]] && PYTEST_CMD+=" -v"
 [[ -n "$SPECIFIC_TEST" ]] && PYTEST_CMD+=" -k $SPECIFIC_TEST"
-[[ "$COVERAGE" = true ]] && PYTEST_CMD+=" --cov=arlib --cov-report=term-missing"
+[[ "$COVERAGE" = true ]] && PYTEST_CMD+=" --cov=aria --cov-report=term-missing"
 [[ "$PARALLEL" = true ]] && PYTEST_CMD+=" -n auto"
 
 # Add the test path
@@ -137,4 +137,3 @@ if [ $TEST_EXIT_CODE -eq 0 ]; then
 else
     echo -e "${RED}Tests failed with exit code $TEST_EXIT_CODE${NC}"
 fi
-

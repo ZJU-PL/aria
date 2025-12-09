@@ -1,10 +1,10 @@
-# Arlib Examples
+# Aria Examples
 
-This directory contains examples demonstrating various applications and functionalities of the arlib library across different domains.
+This directory contains examples demonstrating various applications and functionalities of the aria library across different domains.
 
-## Core API Examples (`arlib-api/`)
+## Core API Examples (`aria-api/`)
 
-Comprehensive examples showcasing arlib's core capabilities using Z3 expressions:
+Comprehensive examples showcasing aria's core capabilities using Z3 expressions:
 - **AllSMT**: Enumerate all satisfying models of SMT formulas
 - **Model Sampling**: Advanced sampling techniques for solution space exploration
 - **Unsat Cores**: Compute unsatisfiable cores and minimal unsatisfiable subsets (MUS)

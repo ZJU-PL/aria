@@ -31,7 +31,7 @@ RUN apt-get install -y \
     zip
 
 # Create working directory
-WORKDIR /arlib
+WORKDIR /aria
 
 # Copy project files
 COPY . .
@@ -46,4 +46,4 @@ RUN pip install -e .
 RUN python bin_solvers/download.py
 
 # Set working directory
-WORKDIR /arlib
+WORKDIR /aria

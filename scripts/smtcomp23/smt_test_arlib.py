@@ -29,7 +29,7 @@ if __name__ == "__main__":
     Solved_Sat = 0  # 记录求解结果为sat的Smt Query
     Solved_UnSat = 0  # 记录求解结果为Unsat的Smt Query
     Solving_Time = 0  # 记录Solving time，包含超时任务
-    log_file = open(project_root + "/log_arlib_1200.txt", "a")
+    log_file = open(project_root + "/log_aria_1200.txt", "a")
     for dir in dataset_to_build:
         dir_path = os.path.join(project_root, "benchmarks_mine", dir)
         files = os.listdir(dir_path)

@@ -7,14 +7,14 @@ Introduction to Model Counting
 ==========
 
 Model counting is the problem of determining the number of possible solutions
-(models) to a given formula. It is a fundamental problem in computer 
+(models) to a given formula. It is a fundamental problem in computer
 science and has applications in various fields such as artificial intelligence, cryptography, and verification.
 The complexity of model counting varies depending on the logic and constraints involved.
 For Boolean satisfiability (SAT), model counting is #P-complete.
 
 
 ==========
-Model Counting in Arlib
+Model Counting in Aria
 ==========
 
 Model Counting for SAT Formulas
@@ -30,8 +30,8 @@ Example usage: (to implement)
 
     # FIXME: to make it more conveinent for the users
     # we should allow for counting the models of a z3 exper or pysmt expr
-    from arlib.bool.counting import count_models  # TBD
-    from arlib.logic import # TBD
+    from aria.bool.counting import count_models  # TBD
+    from aria.logic import # TBD
     from pysat import ...
     import z3
     import pysmt
@@ -52,16 +52,16 @@ QF_BV stands for the quantifier-free bit-vector logic. It is a subset of the SMT
 of computer hardware and software systems.
 
 To count the models of a QF_BV formula, refer to
-- ``arlib\bv\qfbv_counting.py``.
-- ``arlib\tests\test_bv_counting.py``
+- ``aria\bv\qfbv_counting.py``.
+- ``aria\tests\test_bv_counting.py``
 
 
 Example usage: (to implement)
 
 .. code-block:: python
 
-    from arlib.bv import
-    from arlib.bv.qfbv_counting import count_bv_models
+    from aria.bv import
+    from aria.bv.qfbv_counting import count_bv_models
     # Create bit-vector variables
 
     # Create a formula: x + y < 10
@@ -70,7 +70,7 @@ Example usage: (to implement)
     count = count_bv_models(formula)
     print(f"Number of solutions: {count}")
 
-Note that we rely on sharpSAT for the implementation. Currently, you need to either copy a 
+Note that we rely on sharpSAT for the implementation. Currently, you need to either copy a
 binary version of sharpSAT to ``bin_solvers`` or install a sharpSAT globally.
 
 

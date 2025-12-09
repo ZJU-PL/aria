@@ -1,4 +1,4 @@
-{% set name = "py-arlib" %}
+{% set name = "py-aria" %}
 {% set version = "0.0.1" %}
 
 package:
@@ -13,9 +13,9 @@ build:
   noarch: python
   script: {{ PYTHON }} -m pip install . -vv
   entry_points:
-    - arlib-smt-server=arlib.cli.smt_server:main
-    - arlib-fmldoc=arlib.cli.fmldoc:main
-    - arlib-chcpp=arlib.tools.chctools.chcpp:main
+    - aria-smt-server=aria.cli.smt_server:main
+    - aria-fmldoc=aria.cli.fmldoc:main
+    - aria-chcpp=aria.tools.chctools.chcpp:main
 
 requirements:
   host:
@@ -42,19 +42,19 @@ requirements:
 
 test:
   imports:
-    - arlib
+    - aria
   commands:
     - pip check
   requires:
     - pip
 
 about:
-  home: https://github.com/ZJU-PL/arlib
+  home: https://github.com/ZJU-PL/aria
   license: MIT
   license_family: MIT
   summary: A library for various automated reasoning tasks.
-  doc_url: https://github.com/ZJU-PL/arlib
-  dev_url: https://github.com/ZJU-PL/arlib
+  doc_url: https://github.com/ZJU-PL/aria
+  dev_url: https://github.com/ZJU-PL/aria
 
 extra:
   recipe-maintainers:

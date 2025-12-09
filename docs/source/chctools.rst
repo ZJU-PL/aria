@@ -5,7 +5,7 @@ Constrained Horn Clauses (CHC) Tools
 Introduction
 ================
 
-Constrained Horn Clauses (CHCs) are a fragment of first-order logic that has become increasingly important in program verification and automated reasoning. The ``arlib/quant/chctools`` module provides a comprehensive toolkit for working with CHCs, including parsing, solving, model validation, and pretty-printing.
+Constrained Horn Clauses (CHCs) are a fragment of first-order logic that has become increasingly important in program verification and automated reasoning. The ``aria/quant/chctools`` module provides a comprehensive toolkit for working with CHCs, including parsing, solving, model validation, and pretty-printing.
 
 A Constrained Horn Clause has the form:
 
@@ -75,7 +75,7 @@ The ``ChcRulesSmtLibParser`` class extends the standard SMT-LIB parser to handle
 
 .. code-block:: python
 
-   from arlib.quant.chctools.parser import ChcRulesSmtLibParser
+   from aria.quant.chctools.parser import ChcRulesSmtLibParser
    
    parser = ChcRulesSmtLibParser()
    with open('problem.smt2', 'r') as f:
@@ -102,7 +102,7 @@ The ``HornClauseDb`` class manages collections of Horn clauses and provides vari
 
 .. code-block:: python
 
-   from arlib.quant.chctools.horndb import load_horn_db_from_file
+   from aria.quant.chctools.horndb import load_horn_db_from_file
    
    # Load CHC problem from file
    db = load_horn_db_from_file('problem.smt2')
@@ -139,17 +139,17 @@ The ``ChcSolveCmd`` class provides a command-line interface for solving CHC prob
 .. code-block:: bash
 
    # Solve CHC problem with preprocessing
-   python -m arlib.quant.chctools.chcsolve --pp --st problem.smt2
+   python -m aria.quant.chctools.chcsolve --pp --st problem.smt2
    
    # Use custom Z3 options
-   python -m arlib.quant.chctools.chcsolve problem.smt2 spacer.mbqi=false
+   python -m aria.quant.chctools.chcsolve problem.smt2 spacer.mbqi=false
 
 **Programmatic Usage:**
 
 .. code-block:: python
 
-   from arlib.quant.chctools.chcsolve import chc_solve_with_fp
-   from arlib.quant.chctools.horndb import load_horn_db_from_file
+   from aria.quant.chctools.chcsolve import chc_solve_with_fp
+   from aria.quant.chctools.horndb import load_horn_db_from_file
    
    db = load_horn_db_from_file('problem.smt2')
    opts = {'spacer.mbqi': False}
@@ -171,8 +171,8 @@ The ``ModelValidator`` class verifies that a given model satisfies all Horn clau
 
 .. code-block:: python
 
-   from arlib.quant.chctools.chcmodel import ModelValidator, load_model_from_file
-   from arlib.quant.chctools.horndb import load_horn_db_from_file
+   from aria.quant.chctools.chcmodel import ModelValidator, load_model_from_file
+   from aria.quant.chctools.horndb import load_horn_db_from_file
    
    # Load problem and model
    db = load_horn_db_from_file('problem.smt2')
@@ -187,7 +187,7 @@ The ``ModelValidator`` class verifies that a given model satisfies all Horn clau
 
 .. code-block:: bash
 
-   python -m arlib.quant.chctools.chcmodel -m model.smt2 problem.smt2
+   python -m aria.quant.chctools.chcmodel -m model.smt2 problem.smt2
 
 =======================
 Pretty Printer
@@ -204,17 +204,17 @@ The ``ChcPpCmd`` class formats CHC problems for output:
 .. code-block:: bash
 
    # Pretty-print as CHC rules
-   python -m arlib.quant.chctools.chcpp --format rules -o output.smt2 input.smt2
+   python -m aria.quant.chctools.chcpp --format rules -o output.smt2 input.smt2
    
    # Convert to SMT format
-   python -m arlib.quant.chctools.chcpp --format chc -o output.smt2 input.smt2
+   python -m aria.quant.chctools.chcpp --format chc -o output.smt2 input.smt2
 
 **Programmatic Usage:**
 
 .. code-block:: python
 
-   from arlib.quant.chctools.chcpp import pp_chc
-   from arlib.quant.chctools.horndb import load_horn_db_from_file
+   from aria.quant.chctools.chcpp import pp_chc
+   from aria.quant.chctools.horndb import load_horn_db_from_file
    
    db = load_horn_db_from_file('input.smt2')
    with open('output.smt2', 'w') as f:
@@ -238,7 +238,7 @@ The ``pushed_solver`` utility provides safe solver state management:
 
 .. code-block:: python
 
-   from arlib.quant.chctools.solver_utils import pushed_solver
+   from aria.quant.chctools.solver_utils import pushed_solver
    import z3
    
    solver = z3.Solver()
@@ -267,8 +267,8 @@ Integration Examples
 
 .. code-block:: python
 
-   from arlib.quant.chctools.horndb import load_horn_db_from_file
-   from arlib.quant.chctools.chcsolve import chc_solve_with_fp
+   from aria.quant.chctools.horndb import load_horn_db_from_file
+   from aria.quant.chctools.chcsolve import chc_solve_with_fp
    import z3
    
    # Load CHC problem
@@ -295,7 +295,7 @@ Integration Examples
 .. code-block:: python
 
    import z3
-   from arlib.quant.chctools.horndb import load_horn_db_from_file
+   from aria.quant.chctools.horndb import load_horn_db_from_file
    
    # Load and solve CHC problem
    db = load_horn_db_from_file('problem.smt2')
@@ -321,25 +321,25 @@ The CHC tools can be used directly from the command line:
 .. code-block:: bash
 
    # Basic solving
-   python -m arlib.quant.chctools.chcsolve problem.smt2
+   python -m aria.quant.chctools.chcsolve problem.smt2
    
    # With preprocessing and statistics
-   python -m arlib.quant.chctools.chcsolve --pp --st problem.smt2
+   python -m aria.quant.chctools.chcsolve --pp --st problem.smt2
    
    # Custom solver options
-   python -m arlib.quant.chctools.chcsolve problem.smt2 spacer.mbqi=false spacer.reach_dnf=true
+   python -m aria.quant.chctools.chcsolve problem.smt2 spacer.mbqi=false spacer.reach_dnf=true
 
 **Model Validation:**
 
 .. code-block:: bash
 
-   python -m arlib.quant.chctools.chcmodel -m model.smt2 problem.smt2
+   python -m aria.quant.chctools.chcmodel -m model.smt2 problem.smt2
 
 **Pretty Printing:**
 
 .. code-block:: bash
 
-   python -m arlib.quant.chctools.chcpp -o formatted.smt2 problem.smt2
+   python -m aria.quant.chctools.chcpp -o formatted.smt2 problem.smt2
 
 =======================
 Related Work and References

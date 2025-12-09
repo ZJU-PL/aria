@@ -1,4 +1,4 @@
-name: Arlib CI
+name: Aria CI
 
 on:
   push:

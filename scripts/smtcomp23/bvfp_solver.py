@@ -7,12 +7,12 @@ import os
 import signal
 import logging
 import psutil
-from arlib.smt.bv import QFBVSolver
-from arlib.smt.bv.qfufbv_solver import QFUFBVSolver
-from arlib.smt.bv import QFAUFBVSolver
-from arlib.smt.fp import QFFPSolver
-from arlib.smt.fp import QFAUFBVFPSolver
-from arlib.utils import SolverResult
+from aria.smt.bv import QFBVSolver
+from aria.smt.bv.qfufbv_solver import QFUFBVSolver
+from aria.smt.bv import QFAUFBVSolver
+from aria.smt.fp import QFFPSolver
+from aria.smt.fp import QFAUFBVFPSolver
+from aria.utils import SolverResult
 
 G_ARGS = None
 

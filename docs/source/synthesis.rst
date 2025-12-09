@@ -4,7 +4,7 @@ Program Synthesis
 Introduction
 =====================
 
-The synthesis module (``arlib/synthesis``) provides program synthesis capabilities using constraint solving and inductive techniques. It supports syntax-guided synthesis (SyGuS), programming by example (PBE), and version space algebra.
+The synthesis module (``aria/synthesis``) provides program synthesis capabilities using constraint solving and inductive techniques. It supports syntax-guided synthesis (SyGuS), programming by example (PBE), and version space algebra.
 
 Key Features
 -------------
@@ -25,7 +25,7 @@ Syntax-Guided Synthesis for invariants and PBE:
 
 .. code-block:: python
 
-   from arlib.synthesis import SyGuSInvariantSolver, SyGuSPBESolver
+   from aria.synthesis import SyGuSInvariantSolver, SyGuSPBESolver
 
    # Invariant synthesis
    inv_solver = SyGuSInvariantSolver()
@@ -39,14 +39,14 @@ Syntax-Guided Synthesis for invariants and PBE:
        sygus_file="benchmarks/sygus-pbe/phone.sl"
    )
 
-Programming by Example (``arlib/synthesis/pbe``)
+Programming by Example (``aria/synthesis/pbe``)
 -------------------------------------------------
 
 Synthesize programs from input-output examples:
 
 .. code-block:: python
 
-   from arlib.synthesis.pbe import PBESolver
+   from aria.synthesis.pbe import PBESolver
 
    # Create solver
    solver = PBESolver(max_expression_depth=3, timeout=30.0)
@@ -62,15 +62,15 @@ Synthesize programs from input-output examples:
    result = solver.synthesize(examples)
    print(f"Synthesized: {result.expression}")
 
-Version Space Algebra (``arlib/synthesis/vsa``)
+Version Space Algebra (``aria/synthesis/vsa``)
 ------------------------------------------------
 
 Algebraic manipulation of program spaces:
 
 .. code-block:: python
 
-   from arlib.synthesis.pbe.vsa import VersionSpace, VSAlgebra
-   from arlib.synthesis.pbe.expressions import var, const, add
+   from aria.synthesis.pbe.vsa import VersionSpace, VSAlgebra
+   from aria.synthesis.pbe.expressions import var, const, add
 
    # Create expressions
    x = var("x", Theory.LIA)
@@ -84,14 +84,14 @@ Algebraic manipulation of program spaces:
    algebra = VSAlgebra()
    filtered = algebra.filter_consistent(vs, examples)
 
-Spyro: Property Synthesis (``arlib/synthesis/spyro``)
+Spyro: Property Synthesis (``aria/synthesis/spyro``)
 ------------------------------------------------------
 
 Synthesize algebraic properties for functional programs:
 
 .. code-block:: python
 
-   from arlib.synthesis.spyro import Spyro
+   from aria.synthesis.spyro import Spyro
 
    # Define program specification
    spec_file = "examples/spec/list/append.sp"
@@ -100,7 +100,7 @@ Synthesize algebraic properties for functional programs:
    spyro = Spyro()
    properties = spyro.synthesize(spec_file)
 
-SMT-Based PBE (``arlib/synthesis/pbe/``)
+SMT-Based PBE (``aria/synthesis/pbe/``)
 ----------------------------------------------------
 
 Integration with SMT solvers for synthesis:

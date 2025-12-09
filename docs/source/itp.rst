@@ -4,7 +4,7 @@ Interactive Theorem Proving (ITP)
 Overview
 --------
 
-The ``arlib.itp`` module provides a framework for interactive theorem proving with SMT solvers. It offers a Python interface for writing formal proofs, defining axioms, and verifying mathematical properties.
+The ``aria.itp`` module provides a framework for interactive theorem proving with SMT solvers. It offers a Python interface for writing formal proofs, defining axioms, and verifying mathematical properties.
 
 This module serves as a bridge between Python and various SMT (Satisfiability Modulo Theories) solvers like Z3, CVC5, and Vampire, providing:
 
@@ -34,8 +34,8 @@ You can select the solver by setting the ``KNUCKLE_SOLVER`` environment variable
    import os
    os.environ["KNUCKLE_SOLVER"] = "cvc5"  # or "vampire"
    
-   from arlib.itp import *
-   import arlib.itp.smt as smt
+   from aria.itp import *
+   import aria.itp.smt as smt
 
 Kernel
 ~~~~~~
@@ -118,7 +118,7 @@ Mathematical theories implemented in the ``theories`` directory:
 .. code-block:: python
 
    # Import a theory
-   from arlib.itp.theories import set
+   from aria.itp.theories import set
    
    # Use the theory
    A = smt.Const('A', set.SetSort(smt.IntSort()))
@@ -221,7 +221,7 @@ Global configuration options in ``config.py``:
 Installation
 -----------
 
-The module is part of the arlib package. External solvers may need separate installation.
+The module is part of the aria package. External solvers may need separate installation.
 See ``solvers/install.sh`` for installing supported external solvers.
 
 API Reference

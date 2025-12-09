@@ -8,8 +8,8 @@ import signal
 import psutil
 import logging
 
-from arlib.smt.pcdclt.cdclt_solver import ParallelCDCLTSolver
-from arlib.utils import SolverResult
+from aria.smt.pcdclt.cdclt_solver import ParallelCDCLTSolver
+from aria.utils import SolverResult
 
 G_ARGS = None
 
