@@ -1,4 +1,4 @@
-Welcome to arlib's Documentation!
+Welcome to aria's Documentation!
 =================================
 
 
@@ -6,47 +6,47 @@ Welcome to arlib's Documentation!
 Introduction
 =============
 
-Arlib is a comprehensive toolkit for automated reasoning and constraint solving. It provides implementations of various algorithms and tools for:
+Aria is a comprehensive toolkit for automated reasoning and constraint solving. It provides implementations of various algorithms and tools for:
 
-* **Abductive Inference** (``arlib/abduction``) - Generate explanations for observations
-* **AllSMT** (``arlib/allsmt``) - Enumerate all satisfying models
-* **Backbone Computation** (``arlib/backbone``) - Extract forced assignments
-* **UNSAT Core Extraction** (``arlib/unsat_core``) - Identify minimal unsatisfiable subsets
-* **Quantifier Reasoning** (``arlib/quant``) - Handle exists-forall and quantified formulas
-* **Quantifier Elimination** (``arlib/quant/qe``) - Eliminate quantifiers from formulas
-* **Solution Sampling** (``arlib/sampling``) - Generate diverse solutions
-* **Model Counting** (``arlib/counting``) - Count satisfying assignments
-* **Optimization Modulo Theory** (``arlib/optimization``) - Solve optimization problems
-* **Interpolant Generation** (``arlib/interpolant``) - Generate Craig interpolants
-* **Symbolic Abstraction** (``arlib/symabs``) - Abstract state spaces
-* **Predicate Abstraction** (``arlib/symabs/predicate_abstraction``) - Abstract with predicates
-* **Monadic Abstraction** (``arlib/monabs``) - Monadic predicate abstraction
-* **Knowledge Compilation** (``arlib/bool/knowledge_compiler``) - Compile to tractable forms
-* **MaxSAT Solving** (``arlib/bool/maxsat``) - Solve maximum satisfiability problems
+* **Abductive Inference** (``aria/abduction``) - Generate explanations for observations
+* **AllSMT** (``aria/allsmt``) - Enumerate all satisfying models
+* **Backbone Computation** (``aria/backbone``) - Extract forced assignments
+* **UNSAT Core Extraction** (``aria/unsat_core``) - Identify minimal unsatisfiable subsets
+* **Quantifier Reasoning** (``aria/quant``) - Handle exists-forall and quantified formulas
+* **Quantifier Elimination** (``aria/quant/qe``) - Eliminate quantifiers from formulas
+* **Solution Sampling** (``aria/sampling``) - Generate diverse solutions
+* **Model Counting** (``aria/counting``) - Count satisfying assignments
+* **Optimization Modulo Theory** (``aria/optimization``) - Solve optimization problems
+* **Interpolant Generation** (``aria/interpolant``) - Generate Craig interpolants
+* **Symbolic Abstraction** (``aria/symabs``) - Abstract state spaces
+* **Predicate Abstraction** (``aria/symabs/predicate_abstraction``) - Abstract with predicates
+* **Monadic Abstraction** (``aria/monabs``) - Monadic predicate abstraction
+* **Knowledge Compilation** (``aria/bool/knowledge_compiler``) - Compile to tractable forms
+* **MaxSAT Solving** (``aria/bool/maxsat``) - Solve maximum satisfiability problems
 * **QBF Solving** - Quantified Boolean formula solving
-* **Finite Field Solving** (``arlib/smt/ff``) - SMT for Galois field constraints
-* **Interactive Theorem Proving** (``arlib/itp``) - Proof assistant framework
-* **LLM Integration** (``arlib/llm``) - Language model enhanced reasoning
-* **Automata Operations** (``arlib/automata``) - Finite automata algorithms
-* **Program Synthesis** (``arlib/synthesis``) - Synthesize programs from specifications
-* **Context-Free Language Reachability** (``arlib/cfl``) - CFL solving algorithms
-* **Unification** (``arlib/unification``) - Term unification algorithms
+* **Finite Field Solving** (``aria/smt/ff``) - SMT for Galois field constraints
+* **Interactive Theorem Proving** (``aria/itp``) - Proof assistant framework
+* **LLM Integration** (``aria/llm``) - Language model enhanced reasoning
+* **Automata Operations** (``aria/automata``) - Finite automata algorithms
+* **Program Synthesis** (``aria/synthesis``) - Synthesize programs from specifications
+* **Context-Free Language Reachability** (``aria/cfl``) - CFL solving algorithms
+* **Unification** (``aria/unification``) - Term unification algorithms
 
 We welcome any feedback, issues, or suggestions for improvement. Please feel free to open an issue in our repository.
 
 ==========================
-Installing and Using Arlib
+Installing and Using Aria
 ==========================
 
-Install arlib from source
+Install aria from source
 ---------------------------------------
 
 ::
 
-  git clone https://github.com/ZJU-PL/arlib
+  git clone https://github.com/ZJU-PL/aria
   virtualenv --python=python3 venv
   source venv/bin/activate
-  cd arlib
+  cd aria
   bash setup_local_env.sh
   pip install -e .
 
@@ -61,7 +61,7 @@ Quick Start
 
 ::
 
-  from arlib import *
+  from aria import *
 
   # Example: Check satisfiability
   formula = Bool(True)  # Simple tautology

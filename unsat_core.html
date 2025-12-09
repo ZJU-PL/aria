@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>UNSAT Core Extraction &mdash; Arlib Documentation</title>
+  <title>UNSAT Core Extraction &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -31,7 +31,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            Arlib
+            ARIA
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -73,7 +73,7 @@
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pcdclt.html">Parallel SMT CDCL(T) Solving</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (arlib/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (aria/prob)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
@@ -92,7 +92,7 @@
 <li class="toctree-l1"><a class="reference internal" href="unification.html#references">References</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">UNSAT Core Extraction</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#introduction-to-unsat-core-extraction">Introduction to UNSAT Core Extraction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#unsat-core-extraction-in-arlib">UNSAT Core Extraction in Arlib</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#unsat-core-extraction-in-aria">UNSAT Core Extraction in Aria</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#usage-example">Usage Example</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#algorithm-selection">Algorithm Selection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#advanced-features">Advanced Features</a></li>
@@ -107,7 +107,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Arlib</a>
+          <a href="index.html">ARIA</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -139,9 +139,9 @@ A minimal unsatisfiable subset (MUS) is an UNSAT core that becomes satisfiable i
 <li><p><strong>Explanation</strong>: Providing human-readable explanations for why a system has no solution</p></li>
 </ul>
 </section>
-<section id="unsat-core-extraction-in-arlib">
-<h2>UNSAT Core Extraction in Arlib<a class="headerlink" href="#unsat-core-extraction-in-arlib" title="Link to this heading"></a></h2>
-<p>Arlib provides a comprehensive suite of algorithms for UNSAT core extraction:</p>
+<section id="unsat-core-extraction-in-aria">
+<h2>UNSAT Core Extraction in Aria<a class="headerlink" href="#unsat-core-extraction-in-aria" title="Link to this heading"></a></h2>
+<p>Aria provides a comprehensive suite of algorithms for UNSAT core extraction:</p>
 <ol class="arabic simple">
 <li><p><strong>MARCO</strong> (<cite>marco.py</cite>): A highly efficient algorithm for MUS enumeration that can find multiple MUSes quickly.</p></li>
 <li><p><strong>MUSX</strong> (<cite>musx.py</cite>): An algorithm focused on finding a single MUS with good performance characteristics.</p></li>
@@ -154,7 +154,7 @@ A minimal unsatisfiable subset (MUS) is an UNSAT core that becomes satisfiable i
 <h2>Usage Example<a class="headerlink" href="#usage-example" title="Link to this heading"></a></h2>
 <p><a href="#id1"><span class="problematic" id="id2">``</span></a><a href="#id3"><span class="problematic" id="id4">`</span></a>python
 import z3
-from arlib.unsat_core.unsat_core import get_unsat_core, Algorithm</p>
+from aria.unsat_core.unsat_core import get_unsat_core, Algorithm</p>
 <p># Define an unsatisfiable formula
 x, y = z3.Ints(‘x y’)
 constraints = [</p>
@@ -189,7 +189,7 @@ for core in result.cores:</p>
 </dl>
 </div></blockquote>
 <p># Enumerate all MUSes
-from arlib.unsat_core.unsat_core import enumerate_all_mus</p>
+from aria.unsat_core.unsat_core import enumerate_all_mus</p>
 <dl class="simple">
 <dt>all_muses = enumerate_all_mus(</dt><dd><p>constraints=constraints,
 solver_factory=solver_factory,
@@ -252,7 +252,7 @@ timeout=10000</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024-2025, ZJU Automated Reasoning Group.</p>
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

@@ -1,57 +1,57 @@
 Applications
 ============
 
-Arlib supports various applications across testing, verification, synthesis, and optimization.
+Aria supports various applications across testing, verification, synthesis, and optimization.
 
 ==========
 Testing
 ==========
 
 **Constrained Random Testing**
-  Generate test cases satisfying logical constraints using ``arlib/sampling`` and ``arlib/allsmt``.
+  Generate test cases satisfying logical constraints using ``aria/sampling`` and ``aria/allsmt``.
 
 **Combinatorial Testing**
-  Generate diverse test suites with ``arlib/bool/features`` for covering parameter interactions.
+  Generate diverse test suites with ``aria/bool/features`` for covering parameter interactions.
 
 ==========
 Verification
 ==========
 
 **Predicate Abstraction**
-  Abstract program states using ``arlib/symabs/predicate_abstraction`` for verification.
+  Abstract program states using ``aria/symabs/predicate_abstraction`` for verification.
 
 **Symbolic Abstraction**
-  Abstract infinite state spaces with ``arlib/symabs`` for model checking.
+  Abstract infinite state spaces with ``aria/symabs`` for model checking.
 
 **Interactive Theorem Proving**
-  Formal verification with ``arlib/itp`` framework supporting multiple theories.
+  Formal verification with ``aria/itp`` framework supporting multiple theories.
 
 ==========
 Synthesis
 ==========
 
 **Program Synthesis**
-  Synthesize programs from specifications using ``arlib/synthesis`` (SyGuS, PBE).
+  Synthesize programs from specifications using ``aria/synthesis`` (SyGuS, PBE).
 
 **Syntax-Guided Synthesis**
-  Generate programs matching given grammars with ``arlib/synthesis/sygus_*``.
+  Generate programs matching given grammars with ``aria/synthesis/sygus_*``.
 
 ==========
 Optimization
 ==========
 
 **Optimization Modulo Theory**
-  Solve optimization problems over logical theories using ``arlib/optimization``.
+  Solve optimization problems over logical theories using ``aria/optimization``.
 
 **MaxSAT Solving**
-  Solve maximum satisfiability problems with ``arlib/bool/maxsat``.
+  Solve maximum satisfiability problems with ``aria/bool/maxsat``.
 
 ==========
 Learning & AI
 ==========
 
 **LLM-Enhanced Reasoning**
-  Integrate large language models with ``arlib/llm`` for constraint solving.
+  Integrate large language models with ``aria/llm`` for constraint solving.
 
 **Machine Learning Features**
-  Extract features for ML-based solver selection with ``arlib/ml``.
+  Extract features for ML-based solver selection with ``aria/ml``.

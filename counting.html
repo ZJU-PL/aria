@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Model Counting &mdash; Arlib Documentation</title>
+  <title>Model Counting &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -32,7 +32,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            Arlib
+            ARIA
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -62,7 +62,7 @@
 <li class="toctree-l1"><a class="reference internal" href="chctools.html">Constrained Horn Clauses (CHC) Tools</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Model Counting</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#introduction-to-model-counting">Introduction to Model Counting</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#model-counting-in-arlib">Model Counting in Arlib</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#model-counting-in-aria">Model Counting in Aria</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#model-counting-for-sat-formulas">Model Counting for SAT Formulas</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#model-counting-for-qf-bv-formulas">Model Counting for QF_BV Formulas</a></li>
 </ul>
@@ -88,7 +88,7 @@
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pcdclt.html">Parallel SMT CDCL(T) Solving</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (arlib/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (aria/prob)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
@@ -114,7 +114,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Arlib</a>
+          <a href="index.html">ARIA</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -142,8 +142,8 @@ science and has applications in various fields such as artificial intelligence, 
 The complexity of model counting varies depending on the logic and constraints involved.
 For Boolean satisfiability (SAT), model counting is #P-complete.</p>
 </section>
-<section id="model-counting-in-arlib">
-<h2>Model Counting in Arlib<a class="headerlink" href="#model-counting-in-arlib" title="Link to this heading"></a></h2>
+<section id="model-counting-in-aria">
+<h2>Model Counting in Aria<a class="headerlink" href="#model-counting-in-aria" title="Link to this heading"></a></h2>
 <section id="model-counting-for-sat-formulas">
 <h3>Model Counting for SAT Formulas<a class="headerlink" href="#model-counting-for-sat-formulas" title="Link to this heading"></a></h3>
 <p>To count models for SAT formulas, please use <code class="docutils literal notranslate"><span class="pre">sharpSAT</span></code> or other third-party tools.
@@ -151,8 +151,8 @@ SharpSAT is an efficient model counter for Boolean formulas in CNF format.</p>
 <p>Example usage: (to implement)</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># FIXME: to make it more conveinent for the users</span>
 <span class="c1"># we should allow for counting the models of a z3 exper or pysmt expr</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">arlib.bool.counting</span><span class="w"> </span><span class="kn">import</span> <span class="n">count_models</span>  <span class="c1"># TBD</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">arlib.logic</span><span class="w"> </span><span class="kn">import</span> <span class="c1"># TBD</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.bool.counting</span><span class="w"> </span><span class="kn">import</span> <span class="n">count_models</span>  <span class="c1"># TBD</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.logic</span><span class="w"> </span><span class="kn">import</span> <span class="c1"># TBD</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pysat</span><span class="w"> </span><span class="kn">import</span> <span class="o">...</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pysmt</span>
@@ -173,11 +173,11 @@ SharpSAT is an efficient model counter for Boolean formulas in CNF format.</p>
 <p>QF_BV stands for the quantifier-free bit-vector logic. It is a subset of the SMT-LIB standard and is commonly used in the analysis and verification
 of computer hardware and software systems.</p>
 <p>To count the models of a QF_BV formula, refer to
-- <code class="docutils literal notranslate"><span class="pre">arlib\bv\qfbv_counting.py</span></code>.
-- <code class="docutils literal notranslate"><span class="pre">arlib\tests\test_bv_counting.py</span></code></p>
+- <code class="docutils literal notranslate"><span class="pre">aria\bv\qfbv_counting.py</span></code>.
+- <code class="docutils literal notranslate"><span class="pre">aria\tests\test_bv_counting.py</span></code></p>
 <p>Example usage: (to implement)</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.bv</span><span class="w"> </span><span class="kn">import</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">arlib.bv.qfbv_counting</span><span class="w"> </span><span class="kn">import</span> <span class="n">count_bv_models</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.bv</span><span class="w"> </span><span class="kn">import</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.bv.qfbv_counting</span><span class="w"> </span><span class="kn">import</span> <span class="n">count_bv_models</span>
 <span class="c1"># Create bit-vector variables</span>
 
 <span class="c1"># Create a formula: x + y &lt; 10</span>
@@ -219,7 +219,7 @@ This is useful when you’re only interested in specific variables’ solutions.
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024-2025, ZJU Automated Reasoning Group.</p>
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LLM Integration &mdash; Arlib Documentation</title>
+  <title>LLM Integration &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -32,7 +32,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            Arlib
+            ARIA
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -71,11 +71,11 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="#components">Components</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#natural-language-translation-arlib-llm-nl2smt-py-arlib-llm-smt2nl-py">Natural Language Translation (<code class="docutils literal notranslate"><span class="pre">arlib/llm/nl2smt.py</span></code>, <code class="docutils literal notranslate"><span class="pre">arlib/llm/smt2nl.py</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#smto-smt-with-oracles-arlib-llm-smto">SMTO: SMT with Oracles (<code class="docutils literal notranslate"><span class="pre">arlib/llm/smto</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#llm-guided-abduction-arlib-llm-abduct">LLM-Guided Abduction (<code class="docutils literal notranslate"><span class="pre">arlib/llm/abduct</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#llm-interpolant-generation-arlib-llm-interpolant">LLM Interpolant Generation (<code class="docutils literal notranslate"><span class="pre">arlib/llm/interpolant</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#llm-tools-arlib-llm-llmtool">LLM Tools (<code class="docutils literal notranslate"><span class="pre">arlib/llm/llmtool</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#natural-language-translation-aria-llm-nl2smt-py-aria-llm-smt2nl-py">Natural Language Translation (<code class="docutils literal notranslate"><span class="pre">aria/llm/nl2smt.py</span></code>, <code class="docutils literal notranslate"><span class="pre">aria/llm/smt2nl.py</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#smto-smt-with-oracles-aria-llm-smto">SMTO: SMT with Oracles (<code class="docutils literal notranslate"><span class="pre">aria/llm/smto</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#llm-guided-abduction-aria-llm-abduct">LLM-Guided Abduction (<code class="docutils literal notranslate"><span class="pre">aria/llm/abduct</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#llm-interpolant-generation-aria-llm-interpolant">LLM Interpolant Generation (<code class="docutils literal notranslate"><span class="pre">aria/llm/interpolant</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#llm-tools-aria-llm-llmtool">LLM Tools (<code class="docutils literal notranslate"><span class="pre">aria/llm/llmtool</span></code>)</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="#applications">Applications</a></li>
@@ -84,7 +84,7 @@
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pcdclt.html">Parallel SMT CDCL(T) Solving</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (arlib/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (aria/prob)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
@@ -110,7 +110,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Arlib</a>
+          <a href="index.html">ARIA</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -133,7 +133,7 @@
 </section>
 <section id="introduction">
 <h1>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h1>
-<p>The LLM module (<code class="docutils literal notranslate"><span class="pre">arlib/llm</span></code>) integrates large language models into automated reasoning workflows, enabling natural language interfaces, LLM-guided solving strategies, and reasoning about programs with unspecified components.</p>
+<p>The LLM module (<code class="docutils literal notranslate"><span class="pre">aria/llm</span></code>) integrates large language models into automated reasoning workflows, enabling natural language interfaces, LLM-guided solving strategies, and reasoning about programs with unspecified components.</p>
 <section id="key-features">
 <h2>Key Features<a class="headerlink" href="#key-features" title="Link to this heading"></a></h2>
 <ul class="simple">
@@ -147,10 +147,10 @@
 </section>
 <section id="components">
 <h1>Components<a class="headerlink" href="#components" title="Link to this heading"></a></h1>
-<section id="natural-language-translation-arlib-llm-nl2smt-py-arlib-llm-smt2nl-py">
-<h2>Natural Language Translation (<code class="docutils literal notranslate"><span class="pre">arlib/llm/nl2smt.py</span></code>, <code class="docutils literal notranslate"><span class="pre">arlib/llm/smt2nl.py</span></code>)<a class="headerlink" href="#natural-language-translation-arlib-llm-nl2smt-py-arlib-llm-smt2nl-py" title="Link to this heading"></a></h2>
+<section id="natural-language-translation-aria-llm-nl2smt-py-aria-llm-smt2nl-py">
+<h2>Natural Language Translation (<code class="docutils literal notranslate"><span class="pre">aria/llm/nl2smt.py</span></code>, <code class="docutils literal notranslate"><span class="pre">aria/llm/smt2nl.py</span></code>)<a class="headerlink" href="#natural-language-translation-aria-llm-nl2smt-py-aria-llm-smt2nl-py" title="Link to this heading"></a></h2>
 <p>Bidirectional translation between natural language and SMT-LIB:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.llm</span><span class="w"> </span><span class="kn">import</span> <span class="n">nl_to_smt</span><span class="p">,</span> <span class="n">smt_to_nl</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.llm</span><span class="w"> </span><span class="kn">import</span> <span class="n">nl_to_smt</span><span class="p">,</span> <span class="n">smt_to_nl</span>
 
 <span class="c1"># Convert natural language to SMT</span>
 <span class="n">formula</span> <span class="o">=</span> <span class="n">nl_to_smt</span><span class="p">(</span><span class="s2">&quot;x is greater than 5 and less than 10&quot;</span><span class="p">)</span>
@@ -160,10 +160,10 @@
 </pre></div>
 </div>
 </section>
-<section id="smto-smt-with-oracles-arlib-llm-smto">
-<h2>SMTO: SMT with Oracles (<code class="docutils literal notranslate"><span class="pre">arlib/llm/smto</span></code>)<a class="headerlink" href="#smto-smt-with-oracles-arlib-llm-smto" title="Link to this heading"></a></h2>
+<section id="smto-smt-with-oracles-aria-llm-smto">
+<h2>SMTO: SMT with Oracles (<code class="docutils literal notranslate"><span class="pre">aria/llm/smto</span></code>)<a class="headerlink" href="#smto-smt-with-oracles-aria-llm-smto" title="Link to this heading"></a></h2>
 <p>Satisfiability Modulo Theories and Oracles for reasoning about programs with unspecified components:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.llm.smto</span><span class="w"> </span><span class="kn">import</span> <span class="n">OraxSolver</span><span class="p">,</span> <span class="n">OracleInfo</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.llm.smto</span><span class="w"> </span><span class="kn">import</span> <span class="n">OraxSolver</span><span class="p">,</span> <span class="n">OracleInfo</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
 
 <span class="c1"># Initialize solver</span>
@@ -190,7 +190,7 @@
 </pre></div>
 </div>
 <p><strong>Whitebox Mode</strong>: Enhanced analysis with source code or documentation:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.llm.smto</span><span class="w"> </span><span class="kn">import</span> <span class="n">WhiteboxOracleInfo</span><span class="p">,</span> <span class="n">OracleAnalysisMode</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.llm.smto</span><span class="w"> </span><span class="kn">import</span> <span class="n">WhiteboxOracleInfo</span><span class="p">,</span> <span class="n">OracleAnalysisMode</span>
 
 <span class="n">oracle</span> <span class="o">=</span> <span class="n">WhiteboxOracleInfo</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">&quot;oracle_func&quot;</span><span class="p">,</span>
@@ -200,10 +200,10 @@
 </pre></div>
 </div>
 </section>
-<section id="llm-guided-abduction-arlib-llm-abduct">
-<h2>LLM-Guided Abduction (<code class="docutils literal notranslate"><span class="pre">arlib/llm/abduct</span></code>)<a class="headerlink" href="#llm-guided-abduction-arlib-llm-abduct" title="Link to this heading"></a></h2>
+<section id="llm-guided-abduction-aria-llm-abduct">
+<h2>LLM-Guided Abduction (<code class="docutils literal notranslate"><span class="pre">aria/llm/abduct</span></code>)<a class="headerlink" href="#llm-guided-abduction-aria-llm-abduct" title="Link to this heading"></a></h2>
 <p>Generate explanatory hypotheses for observations:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.llm.abduct</span><span class="w"> </span><span class="kn">import</span> <span class="n">LLMAbductor</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.llm.abduct</span><span class="w"> </span><span class="kn">import</span> <span class="n">LLMAbductor</span>
 
 <span class="n">abductor</span> <span class="o">=</span> <span class="n">LLMAbductor</span><span class="p">()</span>
 <span class="n">explanation</span> <span class="o">=</span> <span class="n">abductor</span><span class="o">.</span><span class="n">abduce</span><span class="p">(</span>
@@ -213,17 +213,17 @@
 </pre></div>
 </div>
 </section>
-<section id="llm-interpolant-generation-arlib-llm-interpolant">
-<h2>LLM Interpolant Generation (<code class="docutils literal notranslate"><span class="pre">arlib/llm/interpolant</span></code>)<a class="headerlink" href="#llm-interpolant-generation-arlib-llm-interpolant" title="Link to this heading"></a></h2>
+<section id="llm-interpolant-generation-aria-llm-interpolant">
+<h2>LLM Interpolant Generation (<code class="docutils literal notranslate"><span class="pre">aria/llm/interpolant</span></code>)<a class="headerlink" href="#llm-interpolant-generation-aria-llm-interpolant" title="Link to this heading"></a></h2>
 <p>Synthesize Craig interpolants using language models:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.llm.interpolant</span><span class="w"> </span><span class="kn">import</span> <span class="n">LLMInterpolant</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.llm.interpolant</span><span class="w"> </span><span class="kn">import</span> <span class="n">LLMInterpolant</span>
 
 <span class="n">interpolant</span> <span class="o">=</span> <span class="n">LLMInterpolant</span><span class="p">()</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">formula_a</span><span class="p">,</span> <span class="n">formula_b</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
-<section id="llm-tools-arlib-llm-llmtool">
-<h2>LLM Tools (<code class="docutils literal notranslate"><span class="pre">arlib/llm/llmtool</span></code>)<a class="headerlink" href="#llm-tools-arlib-llm-llmtool" title="Link to this heading"></a></h2>
+<section id="llm-tools-aria-llm-llmtool">
+<h2>LLM Tools (<code class="docutils literal notranslate"><span class="pre">aria/llm/llmtool</span></code>)<a class="headerlink" href="#llm-tools-aria-llm-llmtool" title="Link to this heading"></a></h2>
 <p>Utilities for LLM integration:</p>
 <ul class="simple">
 <li><p>Multi-provider support (OpenAI, Anthropic, local models)</p></li>
@@ -258,7 +258,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024-2025, ZJU Automated Reasoning Group.</p>
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Applications &mdash; Arlib Documentation</title>
+  <title>Applications &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -32,7 +32,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            Arlib
+            ARIA
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -81,7 +81,7 @@
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pcdclt.html">Parallel SMT CDCL(T) Solving</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (arlib/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (aria/prob)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
@@ -107,7 +107,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Arlib</a>
+          <a href="index.html">ARIA</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -127,51 +127,51 @@
              
   <section id="applications">
 <h1>Applications<a class="headerlink" href="#applications" title="Link to this heading"></a></h1>
-<p>Arlib supports various applications across testing, verification, synthesis, and optimization.</p>
+<p>Aria supports various applications across testing, verification, synthesis, and optimization.</p>
 <section id="testing">
 <h2>Testing<a class="headerlink" href="#testing" title="Link to this heading"></a></h2>
 <dl class="simple">
-<dt><strong>Constrained Random Testing</strong></dt><dd><p>Generate test cases satisfying logical constraints using <code class="docutils literal notranslate"><span class="pre">arlib/sampling</span></code> and <code class="docutils literal notranslate"><span class="pre">arlib/allsmt</span></code>.</p>
+<dt><strong>Constrained Random Testing</strong></dt><dd><p>Generate test cases satisfying logical constraints using <code class="docutils literal notranslate"><span class="pre">aria/sampling</span></code> and <code class="docutils literal notranslate"><span class="pre">aria/allsmt</span></code>.</p>
 </dd>
-<dt><strong>Combinatorial Testing</strong></dt><dd><p>Generate diverse test suites with <code class="docutils literal notranslate"><span class="pre">arlib/bool/features</span></code> for covering parameter interactions.</p>
+<dt><strong>Combinatorial Testing</strong></dt><dd><p>Generate diverse test suites with <code class="docutils literal notranslate"><span class="pre">aria/bool/features</span></code> for covering parameter interactions.</p>
 </dd>
 </dl>
 </section>
 <section id="verification">
 <h2>Verification<a class="headerlink" href="#verification" title="Link to this heading"></a></h2>
 <dl class="simple">
-<dt><strong>Predicate Abstraction</strong></dt><dd><p>Abstract program states using <code class="docutils literal notranslate"><span class="pre">arlib/symabs/predicate_abstraction</span></code> for verification.</p>
+<dt><strong>Predicate Abstraction</strong></dt><dd><p>Abstract program states using <code class="docutils literal notranslate"><span class="pre">aria/symabs/predicate_abstraction</span></code> for verification.</p>
 </dd>
-<dt><strong>Symbolic Abstraction</strong></dt><dd><p>Abstract infinite state spaces with <code class="docutils literal notranslate"><span class="pre">arlib/symabs</span></code> for model checking.</p>
+<dt><strong>Symbolic Abstraction</strong></dt><dd><p>Abstract infinite state spaces with <code class="docutils literal notranslate"><span class="pre">aria/symabs</span></code> for model checking.</p>
 </dd>
-<dt><strong>Interactive Theorem Proving</strong></dt><dd><p>Formal verification with <code class="docutils literal notranslate"><span class="pre">arlib/itp</span></code> framework supporting multiple theories.</p>
+<dt><strong>Interactive Theorem Proving</strong></dt><dd><p>Formal verification with <code class="docutils literal notranslate"><span class="pre">aria/itp</span></code> framework supporting multiple theories.</p>
 </dd>
 </dl>
 </section>
 <section id="synthesis">
 <h2>Synthesis<a class="headerlink" href="#synthesis" title="Link to this heading"></a></h2>
 <dl class="simple">
-<dt><strong>Program Synthesis</strong></dt><dd><p>Synthesize programs from specifications using <code class="docutils literal notranslate"><span class="pre">arlib/synthesis</span></code> (SyGuS, PBE).</p>
+<dt><strong>Program Synthesis</strong></dt><dd><p>Synthesize programs from specifications using <code class="docutils literal notranslate"><span class="pre">aria/synthesis</span></code> (SyGuS, PBE).</p>
 </dd>
-<dt><strong>Syntax-Guided Synthesis</strong></dt><dd><p>Generate programs matching given grammars with <code class="docutils literal notranslate"><span class="pre">arlib/synthesis/sygus_*</span></code>.</p>
+<dt><strong>Syntax-Guided Synthesis</strong></dt><dd><p>Generate programs matching given grammars with <code class="docutils literal notranslate"><span class="pre">aria/synthesis/sygus_*</span></code>.</p>
 </dd>
 </dl>
 </section>
 <section id="optimization">
 <h2>Optimization<a class="headerlink" href="#optimization" title="Link to this heading"></a></h2>
 <dl class="simple">
-<dt><strong>Optimization Modulo Theory</strong></dt><dd><p>Solve optimization problems over logical theories using <code class="docutils literal notranslate"><span class="pre">arlib/optimization</span></code>.</p>
+<dt><strong>Optimization Modulo Theory</strong></dt><dd><p>Solve optimization problems over logical theories using <code class="docutils literal notranslate"><span class="pre">aria/optimization</span></code>.</p>
 </dd>
-<dt><strong>MaxSAT Solving</strong></dt><dd><p>Solve maximum satisfiability problems with <code class="docutils literal notranslate"><span class="pre">arlib/bool/maxsat</span></code>.</p>
+<dt><strong>MaxSAT Solving</strong></dt><dd><p>Solve maximum satisfiability problems with <code class="docutils literal notranslate"><span class="pre">aria/bool/maxsat</span></code>.</p>
 </dd>
 </dl>
 </section>
 <section id="learning-ai">
 <h2>Learning &amp; AI<a class="headerlink" href="#learning-ai" title="Link to this heading"></a></h2>
 <dl class="simple">
-<dt><strong>LLM-Enhanced Reasoning</strong></dt><dd><p>Integrate large language models with <code class="docutils literal notranslate"><span class="pre">arlib/llm</span></code> for constraint solving.</p>
+<dt><strong>LLM-Enhanced Reasoning</strong></dt><dd><p>Integrate large language models with <code class="docutils literal notranslate"><span class="pre">aria/llm</span></code> for constraint solving.</p>
 </dd>
-<dt><strong>Machine Learning Features</strong></dt><dd><p>Extract features for ML-based solver selection with <code class="docutils literal notranslate"><span class="pre">arlib/ml</span></code>.</p>
+<dt><strong>Machine Learning Features</strong></dt><dd><p>Extract features for ML-based solver selection with <code class="docutils literal notranslate"><span class="pre">aria/ml</span></code>.</p>
 </dd>
 </dl>
 </section>
@@ -188,7 +188,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024-2025, ZJU Automated Reasoning Group.</p>
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

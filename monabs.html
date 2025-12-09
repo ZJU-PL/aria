@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Monadic Predicate Abstraction &mdash; Arlib Documentation</title>
+  <title>Monadic Predicate Abstraction &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -32,7 +32,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            Arlib
+            ARIA
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -72,7 +72,7 @@
 <li class="toctree-l1"><a class="reference internal" href="llm.html#references">References</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Monadic Predicate Abstraction</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#introduction-to-monadic-predicate-abstraction">Introduction to Monadic Predicate Abstraction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#monadic-predicate-abstraction-in-arlib">Monadic Predicate Abstraction in Arlib</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#monadic-predicate-abstraction-in-aria">Monadic Predicate Abstraction in Aria</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#usage-example">Usage Example</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#performance-comparison">Performance Comparison</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
@@ -81,7 +81,7 @@
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pcdclt.html">Parallel SMT CDCL(T) Solving</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (arlib/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (aria/prob)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
@@ -107,7 +107,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Arlib</a>
+          <a href="index.html">ARIA</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -139,9 +139,9 @@ and verification tasks.</p>
 <li><p>In static analysis, monadic predicate abstraction can help determine which branches are feasible.</p></li>
 </ul>
 </section>
-<section id="monadic-predicate-abstraction-in-arlib">
-<h2>Monadic Predicate Abstraction in Arlib<a class="headerlink" href="#monadic-predicate-abstraction-in-arlib" title="Link to this heading"></a></h2>
-<p>Arlib provides several implementations of monadic predicate abstraction with different performance characteristics:</p>
+<section id="monadic-predicate-abstraction-in-aria">
+<h2>Monadic Predicate Abstraction in Aria<a class="headerlink" href="#monadic-predicate-abstraction-in-aria" title="Link to this heading"></a></h2>
+<p>Aria provides several implementations of monadic predicate abstraction with different performance characteristics:</p>
 <ol class="arabic simple">
 <li><p><strong>Unary Check</strong> (<cite>unary_check.py</cite>): Basic implementation that checks each predicate individually.
 - <cite>unary_check</cite>: Standard implementation
@@ -158,8 +158,8 @@ and verification tasks.</p>
 <h2>Usage Example<a class="headerlink" href="#usage-example" title="Link to this heading"></a></h2>
 <p><a href="#id1"><span class="problematic" id="id2">``</span></a><a href="#id3"><span class="problematic" id="id4">`</span></a>python
 import z3
-from arlib.monabs.unary_check import unary_check
-from arlib.monabs.dis_check import disjunctive_check_incremental</p>
+from aria.monabs.unary_check import unary_check
+from aria.monabs.dis_check import disjunctive_check_incremental</p>
 <p># Define variables
 x, y, z = z3.Ints(‘x y z’)</p>
 <p># Define formula and predicates
@@ -215,7 +215,7 @@ print(“Incremental check results:”, result_incremental)
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024-2025, ZJU Automated Reasoning Group.</p>
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

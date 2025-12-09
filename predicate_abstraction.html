@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Predicate Abstraction &mdash; Arlib Documentation</title>
+  <title>Predicate Abstraction &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -30,7 +30,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            Arlib
+            ARIA
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -72,7 +72,7 @@
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pcdclt.html">Parallel SMT CDCL(T) Solving</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (arlib/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (aria/prob)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
@@ -98,7 +98,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Arlib</a>
+          <a href="index.html">ARIA</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -135,9 +135,9 @@ that is implied by φ (denoted by GP(φ)).</p></li>
 <p>Here, the notions of weakness, strength and implication are with respect
 to entailment in the given theory T.</p>
 </section>
-<section id="implementation-in-arlib">
-<h2>Implementation in arlib<a class="headerlink" href="#implementation-in-arlib" title="Link to this heading"></a></h2>
-<p>arlib implements predicate abstraction in <cite>arlib/symabs/predicate_abstraction/predicate_abstraction.py</cite>.
+<section id="implementation-in-aria">
+<h2>Implementation in aria<a class="headerlink" href="#implementation-in-aria" title="Link to this heading"></a></h2>
+<p>aria implements predicate abstraction in <cite>aria/symabs/predicate_abstraction/predicate_abstraction.py</cite>.
 The implementation focuses on computing the strongest necessary condition of a formula that is
 a Boolean combination of the given predicates.</p>
 <p>### Core Functions</p>
@@ -199,10 +199,10 @@ while (i &lt; 10) {</p>
 <span class="pre">P1:</span> <span class="pre">i</span> <span class="pre">&lt;</span> <span class="pre">10</span>
 <span class="pre">P2:</span> <span class="pre">i</span> <span class="pre">&gt;=</span> <span class="pre">10</span>
 <span class="pre">`</span></code></p>
-<p>To apply predicate abstraction using arlib:</p>
+<p>To apply predicate abstraction using aria:</p>
 <p><a href="#id14"><span class="problematic" id="id15">``</span></a><a href="#id16"><span class="problematic" id="id17">`</span></a>python
 import z3
-from arlib.symabs.predicate_abstraction.predicate_abstraction import predicate_abstraction</p>
+from aria.symabs.predicate_abstraction.predicate_abstraction import predicate_abstraction</p>
 <p># Define variables
 i = z3.Int(‘i’)</p>
 <p># Define the formula (represents the loop body)
@@ -266,7 +266,7 @@ Fast Predicate Abstraction. In CAV’06</p></li>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024-2025, ZJU Automated Reasoning Group.</p>
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Probabilistic Reasoning (arlib/prob) &mdash; Arlib Documentation</title>
+  <title>Probabilistic Reasoning (aria/prob) &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -32,7 +32,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            Arlib
+            ARIA
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -74,7 +74,7 @@
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pcdclt.html">Parallel SMT CDCL(T) Solving</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Probabilistic Reasoning (arlib/prob)</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Probabilistic Reasoning (aria/prob)</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#api">API</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#notes">Notes</a></li>
@@ -105,7 +105,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Arlib</a>
+          <a href="index.html">ARIA</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -113,7 +113,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Probabilistic Reasoning (arlib/prob)</li>
+      <li class="breadcrumb-item active">Probabilistic Reasoning (aria/prob)</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/prob.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -123,11 +123,11 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="probabilistic-reasoning-arlib-prob">
-<h1>Probabilistic Reasoning (arlib/prob)<a class="headerlink" href="#probabilistic-reasoning-arlib-prob" title="Link to this heading"></a></h1>
+  <section id="probabilistic-reasoning-aria-prob">
+<h1>Probabilistic Reasoning (aria/prob)<a class="headerlink" href="#probabilistic-reasoning-aria-prob" title="Link to this heading"></a></h1>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">arlib.prob</span></code> package provides utilities for probabilistic reasoning over
+<p>The <code class="docutils literal notranslate"><span class="pre">aria.prob</span></code> package provides utilities for probabilistic reasoning over
 logical formulas.</p>
 <p>Currently supported:</p>
 <ul class="simple">
@@ -140,7 +140,7 @@ logical formulas.</p>
 <section id="api">
 <h2>API<a class="headerlink" href="#api" title="Link to this heading"></a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pysat.formula</span><span class="w"> </span><span class="kn">import</span> <span class="n">CNF</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">arlib.prob</span><span class="w"> </span><span class="kn">import</span> <span class="n">wmc_count</span><span class="p">,</span> <span class="n">WMCBackend</span><span class="p">,</span> <span class="n">WMCOptions</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.prob</span><span class="w"> </span><span class="kn">import</span> <span class="n">wmc_count</span><span class="p">,</span> <span class="n">WMCBackend</span><span class="p">,</span> <span class="n">WMCOptions</span>
 
 <span class="n">cnf</span> <span class="o">=</span> <span class="n">CNF</span><span class="p">(</span><span class="n">from_clauses</span><span class="o">=</span><span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">]])</span>
 <span class="n">weights</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="mf">0.7</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">}</span>
@@ -155,7 +155,7 @@ logical formulas.</p>
 <li><p>Literal weights are probabilities in <code class="docutils literal notranslate"><span class="pre">[0,1]</span></code>. If only one polarity is
 provided for a variable, the other is assumed to be <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">-</span> <span class="pre">w</span></code>.</p></li>
 <li><p>The DNNF backend relies on the knowledge compilation utilities in
-<code class="docutils literal notranslate"><span class="pre">arlib.bool.knowledge_compiler</span></code>.</p></li>
+<code class="docutils literal notranslate"><span class="pre">aria.bool.knowledge_compiler</span></code>.</p></li>
 <li><p>The enumeration backend is intended for small formulas and debugging.</p></li>
 </ul>
 </section>
@@ -172,7 +172,7 @@ provided for a variable, the other is assumed to be <code class="docutils litera
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024-2025, ZJU Automated Reasoning Group.</p>
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Program Synthesis &mdash; Arlib Documentation</title>
+  <title>Program Synthesis &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -32,7 +32,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            Arlib
+            ARIA
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -74,7 +74,7 @@
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pcdclt.html">Parallel SMT CDCL(T) Solving</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (arlib/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (aria/prob)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
@@ -88,10 +88,10 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="#components">Components</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#sygus-solvers">SyGuS Solvers</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#programming-by-example-arlib-synthesis-pbe">Programming by Example (<code class="docutils literal notranslate"><span class="pre">arlib/synthesis/pbe</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#version-space-algebra-arlib-synthesis-vsa">Version Space Algebra (<code class="docutils literal notranslate"><span class="pre">arlib/synthesis/vsa</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#spyro-property-synthesis-arlib-synthesis-spyro">Spyro: Property Synthesis (<code class="docutils literal notranslate"><span class="pre">arlib/synthesis/spyro</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#smt-based-pbe-arlib-synthesis-pbe">SMT-Based PBE (<code class="docutils literal notranslate"><span class="pre">arlib/synthesis/pbe/</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#programming-by-example-aria-synthesis-pbe">Programming by Example (<code class="docutils literal notranslate"><span class="pre">aria/synthesis/pbe</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-space-algebra-aria-synthesis-vsa">Version Space Algebra (<code class="docutils literal notranslate"><span class="pre">aria/synthesis/vsa</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#spyro-property-synthesis-aria-synthesis-spyro">Spyro: Property Synthesis (<code class="docutils literal notranslate"><span class="pre">aria/synthesis/spyro</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#smt-based-pbe-aria-synthesis-pbe">SMT-Based PBE (<code class="docutils literal notranslate"><span class="pre">aria/synthesis/pbe/</span></code>)</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="#applications">Applications</a></li>
@@ -110,7 +110,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Arlib</a>
+          <a href="index.html">ARIA</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -133,7 +133,7 @@
 </section>
 <section id="introduction">
 <h1>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h1>
-<p>The synthesis module (<code class="docutils literal notranslate"><span class="pre">arlib/synthesis</span></code>) provides program synthesis capabilities using constraint solving and inductive techniques. It supports syntax-guided synthesis (SyGuS), programming by example (PBE), and version space algebra.</p>
+<p>The synthesis module (<code class="docutils literal notranslate"><span class="pre">aria/synthesis</span></code>) provides program synthesis capabilities using constraint solving and inductive techniques. It supports syntax-guided synthesis (SyGuS), programming by example (PBE), and version space algebra.</p>
 <section id="key-features">
 <h2>Key Features<a class="headerlink" href="#key-features" title="Link to this heading"></a></h2>
 <ul class="simple">
@@ -150,7 +150,7 @@
 <section id="sygus-solvers">
 <h2>SyGuS Solvers<a class="headerlink" href="#sygus-solvers" title="Link to this heading"></a></h2>
 <p>Syntax-Guided Synthesis for invariants and PBE:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.synthesis</span><span class="w"> </span><span class="kn">import</span> <span class="n">SyGuSInvariantSolver</span><span class="p">,</span> <span class="n">SyGuSPBESolver</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.synthesis</span><span class="w"> </span><span class="kn">import</span> <span class="n">SyGuSInvariantSolver</span><span class="p">,</span> <span class="n">SyGuSPBESolver</span>
 
 <span class="c1"># Invariant synthesis</span>
 <span class="n">inv_solver</span> <span class="o">=</span> <span class="n">SyGuSInvariantSolver</span><span class="p">()</span>
@@ -166,10 +166,10 @@
 </pre></div>
 </div>
 </section>
-<section id="programming-by-example-arlib-synthesis-pbe">
-<h2>Programming by Example (<code class="docutils literal notranslate"><span class="pre">arlib/synthesis/pbe</span></code>)<a class="headerlink" href="#programming-by-example-arlib-synthesis-pbe" title="Link to this heading"></a></h2>
+<section id="programming-by-example-aria-synthesis-pbe">
+<h2>Programming by Example (<code class="docutils literal notranslate"><span class="pre">aria/synthesis/pbe</span></code>)<a class="headerlink" href="#programming-by-example-aria-synthesis-pbe" title="Link to this heading"></a></h2>
 <p>Synthesize programs from input-output examples:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.synthesis.pbe</span><span class="w"> </span><span class="kn">import</span> <span class="n">PBESolver</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.synthesis.pbe</span><span class="w"> </span><span class="kn">import</span> <span class="n">PBESolver</span>
 
 <span class="c1"># Create solver</span>
 <span class="n">solver</span> <span class="o">=</span> <span class="n">PBESolver</span><span class="p">(</span><span class="n">max_expression_depth</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">30.0</span><span class="p">)</span>
@@ -187,11 +187,11 @@
 </pre></div>
 </div>
 </section>
-<section id="version-space-algebra-arlib-synthesis-vsa">
-<h2>Version Space Algebra (<code class="docutils literal notranslate"><span class="pre">arlib/synthesis/vsa</span></code>)<a class="headerlink" href="#version-space-algebra-arlib-synthesis-vsa" title="Link to this heading"></a></h2>
+<section id="version-space-algebra-aria-synthesis-vsa">
+<h2>Version Space Algebra (<code class="docutils literal notranslate"><span class="pre">aria/synthesis/vsa</span></code>)<a class="headerlink" href="#version-space-algebra-aria-synthesis-vsa" title="Link to this heading"></a></h2>
 <p>Algebraic manipulation of program spaces:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.synthesis.pbe.vsa</span><span class="w"> </span><span class="kn">import</span> <span class="n">VersionSpace</span><span class="p">,</span> <span class="n">VSAlgebra</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">arlib.synthesis.pbe.expressions</span><span class="w"> </span><span class="kn">import</span> <span class="n">var</span><span class="p">,</span> <span class="n">const</span><span class="p">,</span> <span class="n">add</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.synthesis.pbe.vsa</span><span class="w"> </span><span class="kn">import</span> <span class="n">VersionSpace</span><span class="p">,</span> <span class="n">VSAlgebra</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.synthesis.pbe.expressions</span><span class="w"> </span><span class="kn">import</span> <span class="n">var</span><span class="p">,</span> <span class="n">const</span><span class="p">,</span> <span class="n">add</span>
 
 <span class="c1"># Create expressions</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">var</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">Theory</span><span class="o">.</span><span class="n">LIA</span><span class="p">)</span>
@@ -207,10 +207,10 @@
 </pre></div>
 </div>
 </section>
-<section id="spyro-property-synthesis-arlib-synthesis-spyro">
-<h2>Spyro: Property Synthesis (<code class="docutils literal notranslate"><span class="pre">arlib/synthesis/spyro</span></code>)<a class="headerlink" href="#spyro-property-synthesis-arlib-synthesis-spyro" title="Link to this heading"></a></h2>
+<section id="spyro-property-synthesis-aria-synthesis-spyro">
+<h2>Spyro: Property Synthesis (<code class="docutils literal notranslate"><span class="pre">aria/synthesis/spyro</span></code>)<a class="headerlink" href="#spyro-property-synthesis-aria-synthesis-spyro" title="Link to this heading"></a></h2>
 <p>Synthesize algebraic properties for functional programs:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.synthesis.spyro</span><span class="w"> </span><span class="kn">import</span> <span class="n">Spyro</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.synthesis.spyro</span><span class="w"> </span><span class="kn">import</span> <span class="n">Spyro</span>
 
 <span class="c1"># Define program specification</span>
 <span class="n">spec_file</span> <span class="o">=</span> <span class="s2">&quot;examples/spec/list/append.sp&quot;</span>
@@ -221,8 +221,8 @@
 </pre></div>
 </div>
 </section>
-<section id="smt-based-pbe-arlib-synthesis-pbe">
-<h2>SMT-Based PBE (<code class="docutils literal notranslate"><span class="pre">arlib/synthesis/pbe/</span></code>)<a class="headerlink" href="#smt-based-pbe-arlib-synthesis-pbe" title="Link to this heading"></a></h2>
+<section id="smt-based-pbe-aria-synthesis-pbe">
+<h2>SMT-Based PBE (<code class="docutils literal notranslate"><span class="pre">aria/synthesis/pbe/</span></code>)<a class="headerlink" href="#smt-based-pbe-aria-synthesis-pbe" title="Link to this heading"></a></h2>
 <p>Integration with SMT solvers for synthesis:</p>
 <ul class="simple">
 <li><p>Expression encoding to SMT</p></li>
@@ -262,7 +262,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024-2025, ZJU Automated Reasoning Group.</p>
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

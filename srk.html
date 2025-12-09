@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SRK Symbolic Reasoning Kit &mdash; Arlib Documentation</title>
+  <title>SRK Symbolic Reasoning Kit &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -32,7 +32,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            Arlib
+            ARIA
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -74,7 +74,7 @@
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pcdclt.html">Parallel SMT CDCL(T) Solving</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (arlib/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (aria/prob)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
@@ -107,7 +107,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Arlib</a>
+          <a href="index.html">ARIA</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -127,10 +127,10 @@
              
   <section id="srk-symbolic-reasoning-kit">
 <h1>SRK Symbolic Reasoning Kit<a class="headerlink" href="#srk-symbolic-reasoning-kit" title="Link to this heading"></a></h1>
-<p>The package <code class="docutils literal notranslate"><span class="pre">arlib.srk</span></code> is arlib’s Symbolic Reasoning Kit: a Python port of the
+<p>The package <code class="docutils literal notranslate"><span class="pre">aria.srk</span></code> is aria’s Symbolic Reasoning Kit: a Python port of the
 SRK framework for symbolic manipulation, verification, and automated reasoning.
 It bundles expression syntax, algebraic domains, SMT backends, and termination
-analyses under a single interface that interoperates with the rest of arlib.</p>
+analyses under a single interface that interoperates with the rest of aria.</p>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
 <ul class="simple">
@@ -176,7 +176,7 @@ combinatorial helpers used throughout the kit.</p>
 </section>
 <section id="getting-started">
 <h2>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading"></a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.srk</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.srk</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">Context</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span>
     <span class="n">mk_symbol</span><span class="p">,</span> <span class="n">mk_const</span><span class="p">,</span> <span class="n">mk_add</span><span class="p">,</span> <span class="n">mk_eq</span><span class="p">,</span>
     <span class="n">simplify_expression</span><span class="p">,</span> <span class="n">Z3Solver</span><span class="p">,</span> <span class="n">SMTResult</span>
@@ -211,7 +211,7 @@ infrastructure for parsing, simplification, and solver interaction.</p>
 <section id="further-reading">
 <h2>Further Reading<a class="headerlink" href="#further-reading" title="Link to this heading"></a></h2>
 <p>Explore the module docstrings and the extensive regression suite in
-<code class="docutils literal notranslate"><span class="pre">arlib/srk/tests</span></code> for concrete usage patterns covering algebraic manipulation,
+<code class="docutils literal notranslate"><span class="pre">aria/srk/tests</span></code> for concrete usage patterns covering algebraic manipulation,
 quantifier handling, and program analysis workflows.</p>
 </section>
 </section>
@@ -227,7 +227,7 @@ quantifier handling, and program analysis workflows.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024-2025, ZJU Automated Reasoning Group.</p>
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

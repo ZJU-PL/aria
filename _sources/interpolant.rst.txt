@@ -21,8 +21,8 @@ Craig interpolants have several important applications in model checking
 - Approximating the image computation in verification
 - ...?
 
-The computation of Craig interpolants is a challenging problem, and various 
-algorithms and techniques have been developed to compute them efficiently. 
+The computation of Craig interpolants is a challenging problem, and various
+algorithms and techniques have been developed to compute them efficiently.
 For example, for Boolean formulas, interpolants can be extracted from resolution proofs.
 
 Several approaches exist for computing Craig interpolants:
@@ -44,7 +44,7 @@ Several approaches exist for computing Craig interpolants:
 - Start with parameterized templates
 - Solve constraint systems to find parameters
 
-Interpolant Generation in Arlib
+Interpolant Generation in Aria
 =========
 
 
@@ -53,7 +53,7 @@ Usage Examples
 
 .. code-block:: python
 
-    from arlib import
+    from aria import
     # TBD
 
 

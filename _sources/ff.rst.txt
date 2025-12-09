@@ -102,7 +102,7 @@ Experimental features (may be removed in the future):
 Implementation
 ================
 
-Arlib provides SMT solving over finite fields in the ``arlib/smt/ff`` module with two encoding strategies:
+Aria provides SMT solving over finite fields in the ``aria/smt/ff`` module with two encoding strategies:
 
 * **Bit-vector encoding** (``ff_bv_solver.py``): Encodes field elements as bit-vectors (width log₂(field_size)) with modular constraints
 * **Integer encoding** (``ff_int_solver.py``): Encodes field elements as integers in [0, field_size-1] with explicit modulo operations
@@ -115,7 +115,7 @@ Usage Example
 
 .. code-block:: python
 
-    from arlib.smt.ff.ff_bv_solver import solve_qfff
+    from aria.smt.ff.ff_bv_solver import solve_qfff
 
     smt_input = """
     (set-logic QF_FF)

@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Abduction &mdash; Arlib Documentation</title>
+  <title>Abduction &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -33,7 +33,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            Arlib
+            ARIA
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -49,7 +49,7 @@
 <li class="toctree-l1"><a class="reference internal" href="applications.html">Applications</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Abduction</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#introduction-to-abduction">Introduction to Abduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#abduction-in-arlib">Abduction in Arlib</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#abduction-in-aria">Abduction in ARIA</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#code-example">Code Example</a></li>
 </ul>
 </li>
@@ -83,7 +83,7 @@
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pcdclt.html">Parallel SMT CDCL(T) Solving</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (arlib/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (aria/prob)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
@@ -109,7 +109,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Arlib</a>
+          <a href="index.html">ARIA</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -167,12 +167,12 @@ assumptions for the statement to be true. For example,
 Wu’s method can produce non-degeneracy conditions.
 Algebraic methods can also be used to generate more general abducts.</p>
 </section>
-<section id="abduction-in-arlib">
-<h2>Abduction in Arlib<a class="headerlink" href="#abduction-in-arlib" title="Link to this heading"></a></h2>
+<section id="abduction-in-aria">
+<h2>Abduction in ARIA<a class="headerlink" href="#abduction-in-aria" title="Link to this heading"></a></h2>
 <section id="code-example">
 <h3>Code Example<a class="headerlink" href="#code-example" title="Link to this heading"></a></h3>
-<p>Here is an example of how to use Arlib to perform abductive reasoning:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">abduction</span> <span class="p">(</span><span class="n">TO</span> <span class="n">FIX</span><span class="p">)</span>
+<p>Here is an example of how to use ARIA to perform abductive reasoning:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria</span><span class="w"> </span><span class="kn">import</span> <span class="n">abduction</span> <span class="p">(</span><span class="n">TO</span> <span class="n">FIX</span><span class="p">)</span>
 
 <span class="c1"># Define the theory and goal</span>
 <span class="n">theory</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;p(X) :- q(X)&quot;</span><span class="p">,</span> <span class="s2">&quot;q(a)&quot;</span><span class="p">]</span>
@@ -209,7 +209,7 @@ Algebraic methods can also be used to generate more general abducts.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024-2025, ZJU Automated Reasoning Group.</p>
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

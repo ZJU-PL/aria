@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Automata &mdash; Arlib Documentation</title>
+  <title>Automata &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -32,7 +32,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            Arlib
+            ARIA
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -54,9 +54,9 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="#components">Components</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#finite-automata-arlib-automata-fa-py">Finite Automata (<code class="docutils literal notranslate"><span class="pre">arlib/automata/fa.py</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#symbolic-automata-arlib-automata-symautomata">Symbolic Automata (<code class="docutils literal notranslate"><span class="pre">arlib/automata/symautomata</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#automata-learning-arlib-automata-fa-learning-py">Automata Learning (<code class="docutils literal notranslate"><span class="pre">arlib/automata/fa_learning.py</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#finite-automata-aria-automata-fa-py">Finite Automata (<code class="docutils literal notranslate"><span class="pre">aria/automata/fa.py</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#symbolic-automata-aria-automata-symautomata">Symbolic Automata (<code class="docutils literal notranslate"><span class="pre">aria/automata/symautomata</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#automata-learning-aria-automata-fa-learning-py">Automata Learning (<code class="docutils literal notranslate"><span class="pre">aria/automata/fa_learning.py</span></code>)</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="#applications">Applications</a></li>
@@ -82,7 +82,7 @@
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pcdclt.html">Parallel SMT CDCL(T) Solving</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (arlib/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (aria/prob)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
@@ -108,7 +108,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Arlib</a>
+          <a href="index.html">ARIA</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -131,7 +131,7 @@
 </section>
 <section id="introduction">
 <h1>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h1>
-<p>The automata module (<code class="docutils literal notranslate"><span class="pre">arlib/automata</span></code>) provides implementations of finite automata and related algorithms for formal language processing and constraint solving. It includes both classical finite automata (DFA/NFA) and symbolic automata for string constraint solving.</p>
+<p>The automata module (<code class="docutils literal notranslate"><span class="pre">aria/automata</span></code>) provides implementations of finite automata and related algorithms for formal language processing and constraint solving. It includes both classical finite automata (DFA/NFA) and symbolic automata for string constraint solving.</p>
 <section id="key-features">
 <h2>Key Features<a class="headerlink" href="#key-features" title="Link to this heading"></a></h2>
 <ul class="simple">
@@ -144,10 +144,10 @@
 </section>
 <section id="components">
 <h1>Components<a class="headerlink" href="#components" title="Link to this heading"></a></h1>
-<section id="finite-automata-arlib-automata-fa-py">
-<h2>Finite Automata (<code class="docutils literal notranslate"><span class="pre">arlib/automata/fa.py</span></code>)<a class="headerlink" href="#finite-automata-arlib-automata-fa-py" title="Link to this heading"></a></h2>
+<section id="finite-automata-aria-automata-fa-py">
+<h2>Finite Automata (<code class="docutils literal notranslate"><span class="pre">aria/automata/fa.py</span></code>)<a class="headerlink" href="#finite-automata-aria-automata-fa-py" title="Link to this heading"></a></h2>
 <p>Basic finite automata operations:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.automata.fa</span><span class="w"> </span><span class="kn">import</span> <span class="n">DFA</span><span class="p">,</span> <span class="n">NFA</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.fa</span><span class="w"> </span><span class="kn">import</span> <span class="n">DFA</span><span class="p">,</span> <span class="n">NFA</span>
 
 <span class="c1"># Create a DFA</span>
 <span class="n">dfa</span> <span class="o">=</span> <span class="n">DFA</span><span class="p">(</span>
@@ -163,14 +163,14 @@
 </pre></div>
 </div>
 </section>
-<section id="symbolic-automata-arlib-automata-symautomata">
-<h2>Symbolic Automata (<code class="docutils literal notranslate"><span class="pre">arlib/automata/symautomata</span></code>)<a class="headerlink" href="#symbolic-automata-arlib-automata-symautomata" title="Link to this heading"></a></h2>
+<section id="symbolic-automata-aria-automata-symautomata">
+<h2>Symbolic Automata (<code class="docutils literal notranslate"><span class="pre">aria/automata/symautomata</span></code>)<a class="headerlink" href="#symbolic-automata-aria-automata-symautomata" title="Link to this heading"></a></h2>
 <p>Symbolic finite automata framework supporting predicates over infinite alphabets. This module is adapted from the <a class="reference external" href="https://github.com/spencerwuwu/symautomata">symautomata</a> project.</p>
 </section>
-<section id="automata-learning-arlib-automata-fa-learning-py">
-<h2>Automata Learning (<code class="docutils literal notranslate"><span class="pre">arlib/automata/fa_learning.py</span></code>)<a class="headerlink" href="#automata-learning-arlib-automata-fa-learning-py" title="Link to this heading"></a></h2>
+<section id="automata-learning-aria-automata-fa-learning-py">
+<h2>Automata Learning (<code class="docutils literal notranslate"><span class="pre">aria/automata/fa_learning.py</span></code>)<a class="headerlink" href="#automata-learning-aria-automata-fa-learning-py" title="Link to this heading"></a></h2>
 <p>Active learning algorithms for inferring automata from examples:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.automata.fa_learning</span><span class="w"> </span><span class="kn">import</span> <span class="n">learn_automaton</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.fa_learning</span><span class="w"> </span><span class="kn">import</span> <span class="n">learn_automaton</span>
 
 <span class="c1"># Learn DFA from membership queries</span>
 <span class="n">automaton</span> <span class="o">=</span> <span class="n">learn_automaton</span><span class="p">(</span><span class="n">examples</span><span class="p">,</span> <span class="n">membership_oracle</span><span class="p">)</span>
@@ -207,7 +207,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024-2025, ZJU Automated Reasoning Group.</p>
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

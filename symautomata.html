@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Symbolic Finite Automata &mdash; Arlib Documentation</title>
+  <title>Symbolic Finite Automata &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -32,7 +32,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            Arlib
+            ARIA
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -74,7 +74,7 @@
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pcdclt.html">Parallel SMT CDCL(T) Solving</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (arlib/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (aria/prob)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
@@ -84,19 +84,19 @@
 <li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#core-components">Core Components</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#dfa-deterministic-finite-automata">DFA (Deterministic Finite Automata)</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#arlib.automata.symautomata.dfa.bfs"><code class="docutils literal notranslate"><span class="pre">bfs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.automata.symautomata.dfa.bfs"><code class="docutils literal notranslate"><span class="pre">bfs()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#sfa-symbolic-finite-automata">SFA (Symbolic Finite Automata)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#pda-pushdown-automata">PDA (Pushdown Automata)</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#arlib.automata.symautomata.pda.PDA"><code class="docutils literal notranslate"><span class="pre">PDA</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.automata.symautomata.pda.PDA"><code class="docutils literal notranslate"><span class="pre">PDA</span></code></a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#utility-modules">Utility Modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#alphabet-management">Alphabet Management</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#arlib.automata.symautomata.alphabet.createalphabet"><code class="docutils literal notranslate"><span class="pre">createalphabet()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.automata.symautomata.alphabet.createalphabet"><code class="docutils literal notranslate"><span class="pre">createalphabet()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#regular-expression-processing">Regular Expression Processing</a></li>
@@ -104,10 +104,10 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#advanced-features">Advanced Features</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#module-arlib.automata.symautomata.cfggenerator">Context-Free Grammar Support</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#arlib.automata.symautomata.cfggenerator.CFGGenerator"><code class="docutils literal notranslate"><span class="pre">CFGGenerator</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#arlib.automata.symautomata.cfggenerator.CNFGenerator"><code class="docutils literal notranslate"><span class="pre">CNFGenerator</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#arlib.automata.symautomata.cfgpda.CfgPDA"><code class="docutils literal notranslate"><span class="pre">CfgPDA</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-aria.automata.symautomata.cfggenerator">Context-Free Grammar Support</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#aria.automata.symautomata.cfggenerator.CFGGenerator"><code class="docutils literal notranslate"><span class="pre">CFGGenerator</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.automata.symautomata.cfggenerator.CNFGenerator"><code class="docutils literal notranslate"><span class="pre">CNFGenerator</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.automata.symautomata.cfgpda.CfgPDA"><code class="docutils literal notranslate"><span class="pre">CfgPDA</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#flex-integration">Flex Integration</a></li>
@@ -119,9 +119,9 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#string-analysis">String Analysis</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#arlib.automata.symautomata.pdastring.PdaString"><code class="docutils literal notranslate"><span class="pre">PdaString</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#arlib.automata.symautomata.pdastring.PdaString.init"><code class="docutils literal notranslate"><span class="pre">PdaString.init()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#arlib.automata.symautomata.pdastring.PdaString.printer"><code class="docutils literal notranslate"><span class="pre">PdaString.printer()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#aria.automata.symautomata.pdastring.PdaString"><code class="docutils literal notranslate"><span class="pre">PdaString</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#aria.automata.symautomata.pdastring.PdaString.init"><code class="docutils literal notranslate"><span class="pre">PdaString.init()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.automata.symautomata.pdastring.PdaString.printer"><code class="docutils literal notranslate"><span class="pre">PdaString.printer()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -165,7 +165,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Arlib</a>
+          <a href="index.html">ARIA</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -185,7 +185,7 @@
              
   <section id="symbolic-finite-automata">
 <h1>Symbolic Finite Automata<a class="headerlink" href="#symbolic-finite-automata" title="Link to this heading"></a></h1>
-<p>The <code class="docutils literal notranslate"><span class="pre">arlib.automata.symautomata</span></code> module provides a comprehensive implementation of symbolic finite automata and related computational models. This module supports various types of automata including Deterministic Finite Automata (DFA), Symbolic Finite Automata (SFA), and Pushdown Automata (PDA).</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">aria.automata.symautomata</span></code> module provides a comprehensive implementation of symbolic finite automata and related computational models. This module supports various types of automata including Deterministic Finite Automata (DFA), Symbolic Finite Automata (SFA), and Pushdown Automata (PDA).</p>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
 <p>Symbolic finite automata extend traditional finite automata by allowing transitions to be labeled with predicates over potentially infinite alphabets, rather than just individual symbols. This makes them particularly useful for string analysis, regular expression processing, and formal verification tasks.</p>
@@ -195,10 +195,10 @@
 <section id="dfa-deterministic-finite-automata">
 <h3>DFA (Deterministic Finite Automata)<a class="headerlink" href="#dfa-deterministic-finite-automata" title="Link to this heading"></a></h3>
 <p>The DFA implementation provides multiple backends for maximum compatibility:</p>
-<p id="module-arlib.automata.symautomata.dfa">This module contains the DFA implementation</p>
+<p id="module-aria.automata.symautomata.dfa">This module contains the DFA implementation</p>
 <dl class="py function">
-<dt class="sig sig-object py" id="arlib.automata.symautomata.dfa.bfs">
-<span class="sig-prename descclassname"><span class="pre">arlib.automata.symautomata.dfa.</span></span><span class="sig-name descname"><span class="pre">bfs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/arlib/automata/symautomata/dfa.html#bfs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arlib.automata.symautomata.dfa.bfs" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="aria.automata.symautomata.dfa.bfs">
+<span class="sig-prename descclassname"><span class="pre">aria.automata.symautomata.dfa.</span></span><span class="sig-name descname"><span class="pre">bfs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/aria/automata/symautomata/dfa.html#bfs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.dfa.bfs" title="Link to this definition"></a></dt>
 <dd><p>Finds the shortest string using BFS
 :param graph: The DFA states
 :type graph: DFA
@@ -234,8 +234,8 @@
 </li>
 </ul>
 <p><strong>Example Usage:</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.automata.symautomata.dfa</span><span class="w"> </span><span class="kn">import</span> <span class="n">DFA</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">arlib.automata.symautomata.alphabet</span><span class="w"> </span><span class="kn">import</span> <span class="n">createalphabet</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.dfa</span><span class="w"> </span><span class="kn">import</span> <span class="n">DFA</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.alphabet</span><span class="w"> </span><span class="kn">import</span> <span class="n">createalphabet</span>
 
 <span class="c1"># Create a DFA with default alphabet</span>
 <span class="n">dfa</span> <span class="o">=</span> <span class="n">DFA</span><span class="p">(</span><span class="n">createalphabet</span><span class="p">())</span>
@@ -266,7 +266,7 @@
 <li><p><strong>SFA States and Arcs</strong>: Extended state and transition structures</p></li>
 </ul>
 <p><strong>Example Usage:</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.automata.symautomata.sfa</span><span class="w"> </span><span class="kn">import</span> <span class="n">SFA</span><span class="p">,</span> <span class="n">SetPredicate</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.sfa</span><span class="w"> </span><span class="kn">import</span> <span class="n">SFA</span><span class="p">,</span> <span class="n">SetPredicate</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">string</span>
 
 <span class="c1"># Create SFA for pattern matching</span>
@@ -289,21 +289,21 @@
 </section>
 <section id="pda-pushdown-automata">
 <h3>PDA (Pushdown Automata)<a class="headerlink" href="#pda-pushdown-automata" title="Link to this heading"></a></h3>
-<p id="module-arlib.automata.symautomata.pda">This module contains the PDA implementation</p>
+<p id="module-aria.automata.symautomata.pda">This module contains the PDA implementation</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="arlib.automata.symautomata.pda.PDA">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">arlib.automata.symautomata.pda.</span></span><span class="sig-name descname"><span class="pre">PDA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alphabet</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/arlib/automata/symautomata/pda.html#PDA"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arlib.automata.symautomata.pda.PDA" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="aria.automata.symautomata.pda.PDA">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.automata.symautomata.pda.</span></span><span class="sig-name descname"><span class="pre">PDA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alphabet</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aria/automata/symautomata/pda.html#PDA"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.pda.PDA" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PythonPDA</span></code></p>
 <p>This is the structure for a PDA</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="arlib.automata.symautomata.pda.PDA.diff">
-<span class="sig-name descname"><span class="pre">diff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mmb</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/arlib/automata/symautomata/pda.html#PDA.diff"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arlib.automata.symautomata.pda.PDA.diff" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="aria.automata.symautomata.pda.PDA.diff">
+<span class="sig-name descname"><span class="pre">diff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mmb</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aria/automata/symautomata/pda.html#PDA.diff"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.pda.PDA.diff" title="Link to this definition"></a></dt>
 <dd><p>Automata Diff operation</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="arlib.automata.symautomata.pda.PDA.shortest_string">
-<span class="sig-name descname"><span class="pre">shortest_string</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/arlib/automata/symautomata/pda.html#PDA.shortest_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arlib.automata.symautomata.pda.PDA.shortest_string" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="aria.automata.symautomata.pda.PDA.shortest_string">
+<span class="sig-name descname"><span class="pre">shortest_string</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/aria/automata/symautomata/pda.html#PDA.shortest_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.pda.PDA.shortest_string" title="Link to this definition"></a></dt>
 <dd><p>Uses BFS in order to find the shortest string
 :param None:</p>
 <dl class="field-list simple">
@@ -331,14 +331,14 @@
 <h2>Utility Modules<a class="headerlink" href="#utility-modules" title="Link to this heading"></a></h2>
 <section id="alphabet-management">
 <h3>Alphabet Management<a class="headerlink" href="#alphabet-management" title="Link to this heading"></a></h3>
-<dl class="py function" id="module-arlib.automata.symautomata.alphabet">
-<dt class="sig sig-object py" id="arlib.automata.symautomata.alphabet.createalphabet">
-<span class="sig-prename descclassname"><span class="pre">arlib.automata.symautomata.alphabet.</span></span><span class="sig-name descname"><span class="pre">createalphabet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alphabetinput</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/arlib/automata/symautomata/alphabet.html#createalphabet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arlib.automata.symautomata.alphabet.createalphabet" title="Link to this definition"></a></dt>
+<dl class="py function" id="module-aria.automata.symautomata.alphabet">
+<dt class="sig sig-object py" id="aria.automata.symautomata.alphabet.createalphabet">
+<span class="sig-prename descclassname"><span class="pre">aria.automata.symautomata.alphabet.</span></span><span class="sig-name descname"><span class="pre">createalphabet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alphabetinput</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/aria/automata/symautomata/alphabet.html#createalphabet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.alphabet.createalphabet" title="Link to this definition"></a></dt>
 <dd><p>Creates a sample alphabet containing printable ASCII characters</p>
 </dd></dl>
 
 <p>The alphabet module provides flexible alphabet creation and management:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.automata.symautomata.alphabet</span><span class="w"> </span><span class="kn">import</span> <span class="n">createalphabet</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.alphabet</span><span class="w"> </span><span class="kn">import</span> <span class="n">createalphabet</span>
 
 <span class="c1"># Default printable ASCII alphabet</span>
 <span class="n">alpha1</span> <span class="o">=</span> <span class="n">createalphabet</span><span class="p">()</span>
@@ -354,7 +354,7 @@
 <section id="regular-expression-processing">
 <h3>Regular Expression Processing<a class="headerlink" href="#regular-expression-processing" title="Link to this heading"></a></h3>
 <p>The regex module implements the Brzozowski algebraic method for converting DFAs to regular expressions:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.automata.symautomata.regex</span><span class="w"> </span><span class="kn">import</span> <span class="n">Regex</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.regex</span><span class="w"> </span><span class="kn">import</span> <span class="n">Regex</span>
 
 <span class="c1"># Convert DFA to regex</span>
 <span class="n">converter</span> <span class="o">=</span> <span class="n">Regex</span><span class="p">(</span><span class="n">my_dfa</span><span class="p">)</span>
@@ -365,7 +365,7 @@
 <section id="brzozowski-algorithm">
 <h3>Brzozowski Algorithm<a class="headerlink" href="#brzozowski-algorithm" title="Link to this heading"></a></h3>
 <p>Implements Brzozowski’s algebraic method for regular expression derivation:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.automata.symautomata.brzozowski</span><span class="w"> </span><span class="kn">import</span> <span class="n">Brzozowski</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.brzozowski</span><span class="w"> </span><span class="kn">import</span> <span class="n">Brzozowski</span>
 
 <span class="c1"># Apply Brzozowski algorithm</span>
 <span class="n">brz</span> <span class="o">=</span> <span class="n">Brzozowski</span><span class="p">(</span><span class="n">input_dfa</span><span class="p">)</span>
@@ -376,22 +376,22 @@
 </section>
 <section id="advanced-features">
 <h2>Advanced Features<a class="headerlink" href="#advanced-features" title="Link to this heading"></a></h2>
-<section id="module-arlib.automata.symautomata.cfggenerator">
-<span id="context-free-grammar-support"></span><h3>Context-Free Grammar Support<a class="headerlink" href="#module-arlib.automata.symautomata.cfggenerator" title="Link to this heading"></a></h3>
+<section id="module-aria.automata.symautomata.cfggenerator">
+<span id="context-free-grammar-support"></span><h3>Context-Free Grammar Support<a class="headerlink" href="#module-aria.automata.symautomata.cfggenerator" title="Link to this heading"></a></h3>
 <p>This modules generates a string from a CFG</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="arlib.automata.symautomata.cfggenerator.CFGGenerator">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">arlib.automata.symautomata.cfggenerator.</span></span><span class="sig-name descname"><span class="pre">CFGGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfgr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">splitstring</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxstate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/arlib/automata/symautomata/cfggenerator.html#CFGGenerator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arlib.automata.symautomata.cfggenerator.CFGGenerator" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="aria.automata.symautomata.cfggenerator.CFGGenerator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.automata.symautomata.cfggenerator.</span></span><span class="sig-name descname"><span class="pre">CFGGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfgr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">splitstring</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxstate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aria/automata/symautomata/cfggenerator.html#CFGGenerator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.cfggenerator.CFGGenerator" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>This class generates a string from a CFG</p>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="arlib.automata.symautomata.cfggenerator.CFGGenerator.bfs_queue">
-<span class="sig-name descname"><span class="pre">bfs_queue</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#arlib.automata.symautomata.cfggenerator.CFGGenerator.bfs_queue" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="aria.automata.symautomata.cfggenerator.CFGGenerator.bfs_queue">
+<span class="sig-name descname"><span class="pre">bfs_queue</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#aria.automata.symautomata.cfggenerator.CFGGenerator.bfs_queue" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="arlib.automata.symautomata.cfggenerator.CFGGenerator.generate">
-<span class="sig-name descname"><span class="pre">generate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/arlib/automata/symautomata/cfggenerator.html#CFGGenerator.generate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arlib.automata.symautomata.cfggenerator.CFGGenerator.generate" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="aria.automata.symautomata.cfggenerator.CFGGenerator.generate">
+<span class="sig-name descname"><span class="pre">generate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aria/automata/symautomata/cfggenerator.html#CFGGenerator.generate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.cfggenerator.CFGGenerator.generate" title="Link to this definition"></a></dt>
 <dd><p>Generates a new random string from the start symbol
 :param None:</p>
 <dl class="field-list simple">
@@ -405,55 +405,55 @@
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="arlib.automata.symautomata.cfggenerator.CFGGenerator.grammar">
-<span class="sig-name descname"><span class="pre">grammar</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#arlib.automata.symautomata.cfggenerator.CFGGenerator.grammar" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="aria.automata.symautomata.cfggenerator.CFGGenerator.grammar">
+<span class="sig-name descname"><span class="pre">grammar</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#aria.automata.symautomata.cfggenerator.CFGGenerator.grammar" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="arlib.automata.symautomata.cfggenerator.CFGGenerator.maxstate">
-<span class="sig-name descname"><span class="pre">maxstate</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#arlib.automata.symautomata.cfggenerator.CFGGenerator.maxstate" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="aria.automata.symautomata.cfggenerator.CFGGenerator.maxstate">
+<span class="sig-name descname"><span class="pre">maxstate</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#aria.automata.symautomata.cfggenerator.CFGGenerator.maxstate" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="arlib.automata.symautomata.cfggenerator.CFGGenerator.resolved">
-<span class="sig-name descname"><span class="pre">resolved</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#arlib.automata.symautomata.cfggenerator.CFGGenerator.resolved" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="aria.automata.symautomata.cfggenerator.CFGGenerator.resolved">
+<span class="sig-name descname"><span class="pre">resolved</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#aria.automata.symautomata.cfggenerator.CFGGenerator.resolved" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="arlib.automata.symautomata.cfggenerator.CNFGenerator">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">arlib.automata.symautomata.cfggenerator.</span></span><span class="sig-name descname"><span class="pre">CNFGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grammar_rules</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/arlib/automata/symautomata/cfggenerator.html#CNFGenerator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arlib.automata.symautomata.cfggenerator.CNFGenerator" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="aria.automata.symautomata.cfggenerator.CNFGenerator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.automata.symautomata.cfggenerator.</span></span><span class="sig-name descname"><span class="pre">CNFGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grammar_rules</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aria/automata/symautomata/cfggenerator.html#CNFGenerator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.cfggenerator.CNFGenerator" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Use Chomsky to transform to CNF</p>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="arlib.automata.symautomata.cfggenerator.CNFGenerator.grammar_nonterminals">
-<span class="sig-name descname"><span class="pre">grammar_nonterminals</span></span><a class="headerlink" href="#arlib.automata.symautomata.cfggenerator.CNFGenerator.grammar_nonterminals" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="aria.automata.symautomata.cfggenerator.CNFGenerator.grammar_nonterminals">
+<span class="sig-name descname"><span class="pre">grammar_nonterminals</span></span><a class="headerlink" href="#aria.automata.symautomata.cfggenerator.CNFGenerator.grammar_nonterminals" title="Link to this definition"></a></dt>
 <dd><p>The nonterminals can be used to distinguish the terminals</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="arlib.automata.symautomata.cfggenerator.CNFGenerator.init_symbol">
-<span class="sig-name descname"><span class="pre">init_symbol</span></span><a class="headerlink" href="#arlib.automata.symautomata.cfggenerator.CNFGenerator.init_symbol" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="aria.automata.symautomata.cfggenerator.CNFGenerator.init_symbol">
+<span class="sig-name descname"><span class="pre">init_symbol</span></span><a class="headerlink" href="#aria.automata.symautomata.cfggenerator.CNFGenerator.init_symbol" title="Link to this definition"></a></dt>
 <dd><p>The grammar rules can be used to obtain the nonterminals</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="arlib.automata.symautomata.cfggenerator.CNFGenerator.next_rule">
-<span class="sig-name descname"><span class="pre">next_rule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left_hand_side</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right_hand_side</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rule_index</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/arlib/automata/symautomata/cfggenerator.html#CNFGenerator.next_rule"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arlib.automata.symautomata.cfggenerator.CNFGenerator.next_rule" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="aria.automata.symautomata.cfggenerator.CNFGenerator.next_rule">
+<span class="sig-name descname"><span class="pre">next_rule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left_hand_side</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right_hand_side</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rule_index</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aria/automata/symautomata/cfggenerator.html#CNFGenerator.next_rule"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.cfggenerator.CNFGenerator.next_rule" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<p id="module-arlib.automata.symautomata.cfgpda">This module generates a PDA using a CFG as input</p>
+<p id="module-aria.automata.symautomata.cfgpda">This module generates a PDA using a CFG as input</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="arlib.automata.symautomata.cfgpda.CfgPDA">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">arlib.automata.symautomata.cfgpda.</span></span><span class="sig-name descname"><span class="pre">CfgPDA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alphabet</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/arlib/automata/symautomata/cfgpda.html#CfgPDA"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arlib.automata.symautomata.cfgpda.CfgPDA" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="aria.automata.symautomata.cfgpda.CfgPDA">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.automata.symautomata.cfgpda.</span></span><span class="sig-name descname"><span class="pre">CfgPDA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alphabet</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aria/automata/symautomata/cfgpda.html#CfgPDA"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.cfgpda.CfgPDA" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Create a PDA from a CFG</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="arlib.automata.symautomata.cfgpda.CfgPDA.yyparse">
-<span class="sig-name descname"><span class="pre">yyparse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfgfile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">splitstring</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/arlib/automata/symautomata/cfgpda.html#CfgPDA.yyparse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arlib.automata.symautomata.cfgpda.CfgPDA.yyparse" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="aria.automata.symautomata.cfgpda.CfgPDA.yyparse">
+<span class="sig-name descname"><span class="pre">yyparse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfgfile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">splitstring</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aria/automata/symautomata/cfgpda.html#CfgPDA.yyparse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.cfgpda.CfgPDA.yyparse" title="Link to this definition"></a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -466,7 +466,7 @@ the splitting of symbols using a space</p></li>
 <dd class="field-even"><p>The generated PDA</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#arlib.automata.symautomata.pda.PDA" title="arlib.automata.symautomata.pda.PDA">PDA</a></p>
+<dd class="field-odd"><p><a class="reference internal" href="#aria.automata.symautomata.pda.PDA" title="aria.automata.symautomata.pda.PDA">PDA</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -483,7 +483,7 @@ the splitting of symbols using a space</p></li>
 <section id="flex-integration">
 <h3>Flex Integration<a class="headerlink" href="#flex-integration" title="Link to this heading"></a></h3>
 <p>Integration with Flex (Fast Lexical Analyzer) for converting lexical specifications to finite automata:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.automata.symautomata.flex2fst</span><span class="w"> </span><span class="kn">import</span> <span class="n">Flexparser</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.flex2fst</span><span class="w"> </span><span class="kn">import</span> <span class="n">Flexparser</span>
 
 <span class="c1"># Parse Flex file to DFA</span>
 <span class="n">parser</span> <span class="o">=</span> <span class="n">Flexparser</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">])</span>
@@ -514,22 +514,22 @@ the splitting of symbols using a space</p></li>
 </section>
 <section id="string-analysis">
 <h2>String Analysis<a class="headerlink" href="#string-analysis" title="Link to this heading"></a></h2>
-<p id="module-arlib.automata.symautomata.pdastring">This module retrieves a simple string from a PDA
+<p id="module-aria.automata.symautomata.pdastring">This module retrieves a simple string from a PDA
 using the state removal method</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="arlib.automata.symautomata.pdastring.PdaString">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">arlib.automata.symautomata.pdastring.</span></span><span class="sig-name descname"><span class="pre">PdaString</span></span><a class="reference internal" href="_modules/arlib/automata/symautomata/pdastring.html#PdaString"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arlib.automata.symautomata.pdastring.PdaString" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="aria.automata.symautomata.pdastring.PdaString">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.automata.symautomata.pdastring.</span></span><span class="sig-name descname"><span class="pre">PdaString</span></span><a class="reference internal" href="_modules/aria/automata/symautomata/pdastring.html#PdaString"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.pdastring.PdaString" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Retrieves a string from a PDA</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="arlib.automata.symautomata.pdastring.PdaString.init">
-<span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">states</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accepted</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/arlib/automata/symautomata/pdastring.html#PdaString.init"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arlib.automata.symautomata.pdastring.PdaString.init" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="aria.automata.symautomata.pdastring.PdaString.init">
+<span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">states</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accepted</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aria/automata/symautomata/pdastring.html#PdaString.init"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.pdastring.PdaString.init" title="Link to this definition"></a></dt>
 <dd><p>Initialization of the indexing dictionaries</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="arlib.automata.symautomata.pdastring.PdaString.printer">
-<span class="sig-name descname"><span class="pre">printer</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/arlib/automata/symautomata/pdastring.html#PdaString.printer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arlib.automata.symautomata.pdastring.PdaString.printer" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="aria.automata.symautomata.pdastring.PdaString.printer">
+<span class="sig-name descname"><span class="pre">printer</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aria/automata/symautomata/pdastring.html#PdaString.printer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.pdastring.PdaString.printer" title="Link to this definition"></a></dt>
 <dd><p>Visualizes the current state</p>
 </dd></dl>
 
@@ -600,7 +600,7 @@ using the state removal method</p>
 <section id="regular-expression-conversion">
 <h3>Regular Expression Conversion<a class="headerlink" href="#regular-expression-conversion" title="Link to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Convert automaton to regex</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">arlib.automata.symautomata.regex</span><span class="w"> </span><span class="kn">import</span> <span class="n">Regex</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.regex</span><span class="w"> </span><span class="kn">import</span> <span class="n">Regex</span>
 
 <span class="n">converter</span> <span class="o">=</span> <span class="n">Regex</span><span class="p">(</span><span class="n">my_dfa</span><span class="p">)</span>
 <span class="n">regex_pattern</span> <span class="o">=</span> <span class="n">converter</span><span class="o">.</span><span class="n">get_regex</span><span class="p">()</span>
@@ -660,7 +660,7 @@ using the state removal method</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024-2025, ZJU Automated Reasoning Group.</p>
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

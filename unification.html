@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Unification &mdash; Arlib Documentation</title>
+  <title>Unification &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -32,7 +32,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            Arlib
+            ARIA
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -74,7 +74,7 @@
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pcdclt.html">Parallel SMT CDCL(T) Solving</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (arlib/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (aria/prob)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
@@ -92,11 +92,11 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="#components">Components</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#core-unification-arlib-unification-core-py">Core Unification (<code class="docutils literal notranslate"><span class="pre">arlib/unification/core.py</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#pattern-matching-arlib-unification-match-py">Pattern Matching (<code class="docutils literal notranslate"><span class="pre">arlib/unification/match.py</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#variables-arlib-unification-variable-py">Variables (<code class="docutils literal notranslate"><span class="pre">arlib/unification/variable.py</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#utilities-arlib-unification-utils-py">Utilities (<code class="docutils literal notranslate"><span class="pre">arlib/unification/utils.py</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#type-dispatch-arlib-unification-dispatch-py">Type Dispatch (<code class="docutils literal notranslate"><span class="pre">arlib/unification/dispatch.py</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#core-unification-aria-unification-core-py">Core Unification (<code class="docutils literal notranslate"><span class="pre">aria/unification/core.py</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pattern-matching-aria-unification-match-py">Pattern Matching (<code class="docutils literal notranslate"><span class="pre">aria/unification/match.py</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#variables-aria-unification-variable-py">Variables (<code class="docutils literal notranslate"><span class="pre">aria/unification/variable.py</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utilities-aria-unification-utils-py">Utilities (<code class="docutils literal notranslate"><span class="pre">aria/unification/utils.py</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#type-dispatch-aria-unification-dispatch-py">Type Dispatch (<code class="docutils literal notranslate"><span class="pre">aria/unification/dispatch.py</span></code>)</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="#applications">Applications</a></li>
@@ -110,7 +110,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Arlib</a>
+          <a href="index.html">ARIA</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -133,7 +133,7 @@
 </section>
 <section id="introduction">
 <h1>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h1>
-<p>The unification module (<code class="docutils literal notranslate"><span class="pre">arlib/unification</span></code>) provides a general-purpose term unification engine supporting first-order unification, pattern matching, and substitution operations. It is used throughout arlib for term manipulation, pattern matching in theorem proving, and constraint solving.</p>
+<p>The unification module (<code class="docutils literal notranslate"><span class="pre">aria/unification</span></code>) provides a general-purpose term unification engine supporting first-order unification, pattern matching, and substitution operations. It is used throughout aria for term manipulation, pattern matching in theorem proving, and constraint solving.</p>
 <section id="key-features">
 <h2>Key Features<a class="headerlink" href="#key-features" title="Link to this heading"></a></h2>
 <ul class="simple">
@@ -147,10 +147,10 @@
 </section>
 <section id="components">
 <h1>Components<a class="headerlink" href="#components" title="Link to this heading"></a></h1>
-<section id="core-unification-arlib-unification-core-py">
-<h2>Core Unification (<code class="docutils literal notranslate"><span class="pre">arlib/unification/core.py</span></code>)<a class="headerlink" href="#core-unification-arlib-unification-core-py" title="Link to this heading"></a></h2>
+<section id="core-unification-aria-unification-core-py">
+<h2>Core Unification (<code class="docutils literal notranslate"><span class="pre">aria/unification/core.py</span></code>)<a class="headerlink" href="#core-unification-aria-unification-core-py" title="Link to this heading"></a></h2>
 <p>Main unification engine:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.unification</span><span class="w"> </span><span class="kn">import</span> <span class="n">unify</span><span class="p">,</span> <span class="n">Var</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.unification</span><span class="w"> </span><span class="kn">import</span> <span class="n">unify</span><span class="p">,</span> <span class="n">Var</span>
 
 <span class="c1"># Define variables and terms</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">Var</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
@@ -166,10 +166,10 @@
 </pre></div>
 </div>
 </section>
-<section id="pattern-matching-arlib-unification-match-py">
-<h2>Pattern Matching (<code class="docutils literal notranslate"><span class="pre">arlib/unification/match.py</span></code>)<a class="headerlink" href="#pattern-matching-arlib-unification-match-py" title="Link to this heading"></a></h2>
+<section id="pattern-matching-aria-unification-match-py">
+<h2>Pattern Matching (<code class="docutils literal notranslate"><span class="pre">aria/unification/match.py</span></code>)<a class="headerlink" href="#pattern-matching-aria-unification-match-py" title="Link to this heading"></a></h2>
 <p>One-way pattern matching for term rewriting:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.unification</span><span class="w"> </span><span class="kn">import</span> <span class="n">match</span><span class="p">,</span> <span class="n">Var</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.unification</span><span class="w"> </span><span class="kn">import</span> <span class="n">match</span><span class="p">,</span> <span class="n">Var</span>
 
 <span class="c1"># Match pattern against term</span>
 <span class="n">pattern</span> <span class="o">=</span> <span class="p">(</span><span class="n">Var</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">),</span> <span class="n">Var</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">),</span> <span class="n">Var</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">))</span>
@@ -180,10 +180,10 @@
 </pre></div>
 </div>
 </section>
-<section id="variables-arlib-unification-variable-py">
-<h2>Variables (<code class="docutils literal notranslate"><span class="pre">arlib/unification/variable.py</span></code>)<a class="headerlink" href="#variables-arlib-unification-variable-py" title="Link to this heading"></a></h2>
+<section id="variables-aria-unification-variable-py">
+<h2>Variables (<code class="docutils literal notranslate"><span class="pre">aria/unification/variable.py</span></code>)<a class="headerlink" href="#variables-aria-unification-variable-py" title="Link to this heading"></a></h2>
 <p>Variable representation and utilities:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.unification</span><span class="w"> </span><span class="kn">import</span> <span class="n">Var</span><span class="p">,</span> <span class="n">isvar</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.unification</span><span class="w"> </span><span class="kn">import</span> <span class="n">Var</span><span class="p">,</span> <span class="n">isvar</span>
 
 <span class="c1"># Create variables</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">Var</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
@@ -195,10 +195,10 @@
 </pre></div>
 </div>
 </section>
-<section id="utilities-arlib-unification-utils-py">
-<h2>Utilities (<code class="docutils literal notranslate"><span class="pre">arlib/unification/utils.py</span></code>)<a class="headerlink" href="#utilities-arlib-unification-utils-py" title="Link to this heading"></a></h2>
+<section id="utilities-aria-unification-utils-py">
+<h2>Utilities (<code class="docutils literal notranslate"><span class="pre">aria/unification/utils.py</span></code>)<a class="headerlink" href="#utilities-aria-unification-utils-py" title="Link to this heading"></a></h2>
 <p>Helper functions for substitution and term manipulation:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.unification.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">walk</span><span class="p">,</span> <span class="n">occurs_check</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.unification.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">walk</span><span class="p">,</span> <span class="n">occurs_check</span>
 
 <span class="c1"># Walk through substitutions</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">walk</span><span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="n">substitution</span><span class="p">)</span>
@@ -208,10 +208,10 @@
 </pre></div>
 </div>
 </section>
-<section id="type-dispatch-arlib-unification-dispatch-py">
-<h2>Type Dispatch (<code class="docutils literal notranslate"><span class="pre">arlib/unification/dispatch.py</span></code>)<a class="headerlink" href="#type-dispatch-arlib-unification-dispatch-py" title="Link to this heading"></a></h2>
+<section id="type-dispatch-aria-unification-dispatch-py">
+<h2>Type Dispatch (<code class="docutils literal notranslate"><span class="pre">aria/unification/dispatch.py</span></code>)<a class="headerlink" href="#type-dispatch-aria-unification-dispatch-py" title="Link to this heading"></a></h2>
 <p>Generic function dispatch based on type:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.unification.dispatch</span><span class="w"> </span><span class="kn">import</span> <span class="n">dispatch</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.unification.dispatch</span><span class="w"> </span><span class="kn">import</span> <span class="n">dispatch</span>
 
 <span class="nd">@dispatch</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">unify_ints</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
@@ -250,7 +250,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024-2025, ZJU Automated Reasoning Group.</p>
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

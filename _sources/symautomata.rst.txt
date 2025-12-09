@@ -1,7 +1,7 @@
 Symbolic Finite Automata
 ========================
 
-The ``arlib.automata.symautomata`` module provides a comprehensive implementation of symbolic finite automata and related computational models. This module supports various types of automata including Deterministic Finite Automata (DFA), Symbolic Finite Automata (SFA), and Pushdown Automata (PDA).
+The ``aria.automata.symautomata`` module provides a comprehensive implementation of symbolic finite automata and related computational models. This module supports various types of automata including Deterministic Finite Automata (DFA), Symbolic Finite Automata (SFA), and Pushdown Automata (PDA).
 
 Overview
 --------
@@ -16,7 +16,7 @@ DFA (Deterministic Finite Automata)
 
 The DFA implementation provides multiple backends for maximum compatibility:
 
-.. automodule:: arlib.automata.symautomata.dfa
+.. automodule:: aria.automata.symautomata.dfa
    :members:
    :undoc-members:
    :show-inheritance:
@@ -41,8 +41,8 @@ The DFA implementation provides multiple backends for maximum compatibility:
 
 .. code-block:: python
 
-   from arlib.automata.symautomata.dfa import DFA
-   from arlib.automata.symautomata.alphabet import createalphabet
+   from aria.automata.symautomata.dfa import DFA
+   from aria.automata.symautomata.alphabet import createalphabet
    
    # Create a DFA with default alphabet
    dfa = DFA(createalphabet())
@@ -64,7 +64,7 @@ The DFA implementation provides multiple backends for maximum compatibility:
 SFA (Symbolic Finite Automata)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. automodule:: arlib.automata.symautomata.sfa
+.. automodule:: aria.automata.symautomata.sfa
    :members:
    :undoc-members:
    :show-inheritance:
@@ -81,7 +81,7 @@ Symbolic Finite Automata extend traditional DFAs by using predicates on transiti
 
 .. code-block:: python
 
-   from arlib.automata.symautomata.sfa import SFA, SetPredicate
+   from aria.automata.symautomata.sfa import SFA, SetPredicate
    import string
    
    # Create SFA for pattern matching
@@ -103,7 +103,7 @@ Symbolic Finite Automata extend traditional DFAs by using predicates on transiti
 PDA (Pushdown Automata)
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. automodule:: arlib.automata.symautomata.pda
+.. automodule:: aria.automata.symautomata.pda
    :members:
    :undoc-members:
    :show-inheritance:
@@ -122,7 +122,7 @@ Utility Modules
 Alphabet Management
 ~~~~~~~~~~~~~~~~~~
 
-.. automodule:: arlib.automata.symautomata.alphabet
+.. automodule:: aria.automata.symautomata.alphabet
    :members:
    :undoc-members:
    :show-inheritance:
@@ -131,7 +131,7 @@ The alphabet module provides flexible alphabet creation and management:
 
 .. code-block:: python
 
-   from arlib.automata.symautomata.alphabet import createalphabet
+   from aria.automata.symautomata.alphabet import createalphabet
    
    # Default printable ASCII alphabet
    alpha1 = createalphabet()
@@ -145,7 +145,7 @@ The alphabet module provides flexible alphabet creation and management:
 Regular Expression Processing
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. automodule:: arlib.automata.symautomata.regex
+.. automodule:: aria.automata.symautomata.regex
    :members:
    :undoc-members:
    :show-inheritance:
@@ -154,7 +154,7 @@ The regex module implements the Brzozowski algebraic method for converting DFAs 
 
 .. code-block:: python
 
-   from arlib.automata.symautomata.regex import Regex
+   from aria.automata.symautomata.regex import Regex
    
    # Convert DFA to regex
    converter = Regex(my_dfa)
@@ -163,7 +163,7 @@ The regex module implements the Brzozowski algebraic method for converting DFAs 
 Brzozowski Algorithm
 ~~~~~~~~~~~~~~~~~~~
 
-.. automodule:: arlib.automata.symautomata.brzozowski
+.. automodule:: aria.automata.symautomata.brzozowski
    :members:
    :undoc-members:
    :show-inheritance:
@@ -172,7 +172,7 @@ Implements Brzozowski's algebraic method for regular expression derivation:
 
 .. code-block:: python
 
-   from arlib.automata.symautomata.brzozowski import Brzozowski
+   from aria.automata.symautomata.brzozowski import Brzozowski
    
    # Apply Brzozowski algorithm
    brz = Brzozowski(input_dfa)
@@ -184,12 +184,12 @@ Advanced Features
 Context-Free Grammar Support
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. automodule:: arlib.automata.symautomata.cfggenerator
+.. automodule:: aria.automata.symautomata.cfggenerator
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: arlib.automata.symautomata.cfgpda
+.. automodule:: aria.automata.symautomata.cfgpda
    :members:
    :undoc-members:
    :show-inheritance:
@@ -203,7 +203,7 @@ The module includes comprehensive support for context-free grammars:
 Flex Integration
 ~~~~~~~~~~~~~~~
 
-.. automodule:: arlib.automata.symautomata.flex2fst
+.. automodule:: aria.automata.symautomata.flex2fst
    :members:
    :undoc-members:
    :show-inheritance:
@@ -212,7 +212,7 @@ Integration with Flex (Fast Lexical Analyzer) for converting lexical specificati
 
 .. code-block:: python
 
-   from arlib.automata.symautomata.flex2fst import Flexparser
+   from aria.automata.symautomata.flex2fst import Flexparser
    
    # Parse Flex file to DFA
    parser = Flexparser(["a", "b", "c"])
@@ -226,7 +226,7 @@ The module provides multiple implementation backends for different use cases:
 Pure Python Backend
 ~~~~~~~~~~~~~~~~~~
 
-.. automodule:: arlib.automata.symautomata.pythondfa
+.. automodule:: aria.automata.symautomata.pythondfa
    :members:
    :undoc-members:
    :show-inheritance:
@@ -238,7 +238,7 @@ Pure Python Backend
 OpenFST Backend
 ~~~~~~~~~~~~~~
 
-.. automodule:: arlib.automata.symautomata.pywrapfstdfa
+.. automodule:: aria.automata.symautomata.pywrapfstdfa
    :members:
    :undoc-members:
    :show-inheritance:
@@ -250,7 +250,7 @@ OpenFST Backend
 String Analysis
 --------------
 
-.. automodule:: arlib.automata.symautomata.pdastring
+.. automodule:: aria.automata.symautomata.pdastring
    :members:
    :undoc-members:
    :show-inheritance:
@@ -324,7 +324,7 @@ Regular Expression Conversion
 .. code-block:: python
 
    # Convert automaton to regex
-   from arlib.automata.symautomata.regex import Regex
+   from aria.automata.symautomata.regex import Regex
    
    converter = Regex(my_dfa)
    regex_pattern = converter.get_regex()

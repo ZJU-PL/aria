@@ -4,7 +4,7 @@ Context-Free Language Reachability
 Introduction
 =====================
 
-The CFL module (``arlib/cfl``) implements algorithms for context-free language (CFL) reachability analysis, a powerful framework for program analysis problems including points-to analysis, interprocedural dataflow analysis, and shape analysis.
+The CFL module (``aria/cfl``) implements algorithms for context-free language (CFL) reachability analysis, a powerful framework for program analysis problems including points-to analysis, interprocedural dataflow analysis, and shape analysis.
 
 Key Features
 -------------
@@ -18,14 +18,14 @@ Key Features
 Components
 =====================
 
-CFL Solvers (``arlib/cfl/cfl_solver.py``)
+CFL Solvers (``aria/cfl/cfl_solver.py``)
 ------------------------------------------
 
 Core CFL-reachability solving:
 
 .. code-block:: python
 
-   from arlib.cfl import CFLSolver
+   from aria.cfl import CFLSolver
 
    # Create solver for CFL-reachability
    solver = CFLSolver()
@@ -37,20 +37,20 @@ Core CFL-reachability solving:
    # Compute reachability
    reachable = solver.solve(grammar, graph)
 
-Dynamic Transitive Closure (``arlib/cfl/cfl_dtc.py``, ``arlib/cfl/dtc.py``)
+Dynamic Transitive Closure (``aria/cfl/cfl_dtc.py``, ``aria/cfl/dtc.py``)
 -----------------------------------------------------------------------------
 
 Dynamic transitive closure algorithms including quantum-inspired methods:
 
 .. code-block:: python
 
-   from arlib.cfl.cfl_dtc import QuantumDTC
+   from aria.cfl.cfl_dtc import QuantumDTC
 
    # Quantum-inspired dynamic transitive closure
    dtc = QuantumDTC()
    closure = dtc.compute(graph)
 
-Grammar Support (``arlib/cfl/grammar.py``)
+Grammar Support (``aria/cfl/grammar.py``)
 -------------------------------------------
 
 Context-free grammar manipulation:
@@ -60,27 +60,27 @@ Context-free grammar manipulation:
 * Dyck language generation
 * Grammar normalization
 
-Matrix-Based Algorithms (``arlib/cfl/matrix.py``, ``arlib/cfl/pag_matrix.py``)
+Matrix-Based Algorithms (``aria/cfl/matrix.py``, ``aria/cfl/pag_matrix.py``)
 -------------------------------------------------------------------------------
 
 Matrix formulations for efficient CFL-reachability:
 
 .. code-block:: python
 
-   from arlib.cfl.pag_matrix import PAGMatrix
+   from aria.cfl.pag_matrix import PAGMatrix
 
    # Program assignment graph as matrix
    pag = PAGMatrix(graph)
    result = pag.cfl_reachability(grammar)
 
-Strong Component Reduction (``arlib/cfl/sc_solver.py``)
+Strong Component Reduction (``aria/cfl/sc_solver.py``)
 --------------------------------------------------------
 
 Optimization using strongly connected components:
 
 .. code-block:: python
 
-   from arlib.cfl.sc_solver import SCReducer
+   from aria.cfl.sc_solver import SCReducer
 
    # Reduce problem via SCC decomposition
    reducer = SCReducer()

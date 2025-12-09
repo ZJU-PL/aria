@@ -5,7 +5,7 @@ Backbone Computation
 Introduction to Backbone Computation
 ===============
 
-The backbone of a Boolean formula is the set of literals that take the same value (True or False) in all satisfying assignments. 
+The backbone of a Boolean formula is the set of literals that take the same value (True or False) in all satisfying assignments.
 These literals represent the "fixed" or "necessary" parts of any solution to the formula.
 
 Backbone computation has important applications in:
@@ -16,10 +16,10 @@ Backbone computation has important applications in:
 - **Optimization**: Reducing search space by fixing necessary assignments
 
 ===============
-Backbone Computation in Arlib
+Backbone Computation in Aria
 ===============
 
-Arlib provides two main approaches to backbone computation:
+Aria provides two main approaches to backbone computation:
 
 1. **Literal-based Backbone** (`backbone_literals.py`): Computes the backbone by analyzing individual literals.
 
@@ -33,7 +33,7 @@ Usage Example
 
 ```python
 import z3
-from arlib.backbone import get_backbone
+from aria.backbone import get_backbone
 
 # Define a formula
 x, y, z = z3.Bools('x y z')
@@ -48,7 +48,7 @@ for lit in backbone:
     print(f"  {lit}")
 
 # Using the clause-based approach
-from arlib.backbone import get_backbone_clauses
+from aria.backbone import get_backbone_clauses
 
 backbone_clauses = get_backbone_clauses(formula)
 print("Backbone literals (clause-based):")
@@ -60,7 +60,7 @@ for lit in backbone_clauses:
 Algorithm Details
 ===============
 
-The backbone computation algorithms in Arlib use several optimizations:
+The backbone computation algorithms in Aria use several optimizations:
 
 - **Incremental SAT solving**: Reusing solver state between iterations
 - **Assumption-based solving**: Efficiently testing candidate backbone literals
@@ -85,4 +85,4 @@ References
 
 - I. Lynce and J. Marques-Silva. "Efficient haplotype inference with Boolean satisfiability." National Conference on Artificial Intelligence, 2006.
 - J. Marques-Silva, M. Janota, and I. Lynce. "On computing backbones of propositional theories." ECAI, 2010.
-- N. Narodytska and T. Walsh. "The importance of being structured: On the computation of backdoors for MaxSAT." AAAI, 2014. 
+- N. Narodytska and T. Walsh. "The importance of being structured: On the computation of backdoors for MaxSAT." AAAI, 2014.

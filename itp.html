@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Interactive Theorem Proving (ITP) &mdash; Arlib Documentation</title>
+  <title>Interactive Theorem Proving (ITP) &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -32,7 +32,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            Arlib
+            ARIA
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -108,7 +108,7 @@
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pcdclt.html">Parallel SMT CDCL(T) Solving</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (arlib/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (aria/prob)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
@@ -134,7 +134,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Arlib</a>
+          <a href="index.html">ARIA</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -156,7 +156,7 @@
 <h1>Interactive Theorem Proving (ITP)<a class="headerlink" href="#interactive-theorem-proving-itp" title="Link to this heading"></a></h1>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">arlib.itp</span></code> module provides a framework for interactive theorem proving with SMT solvers. It offers a Python interface for writing formal proofs, defining axioms, and verifying mathematical properties.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">aria.itp</span></code> module provides a framework for interactive theorem proving with SMT solvers. It offers a Python interface for writing formal proofs, defining axioms, and verifying mathematical properties.</p>
 <p>This module serves as a bridge between Python and various SMT (Satisfiability Modulo Theories) solvers like Z3, CVC5, and Vampire, providing:</p>
 <ul class="simple">
 <li><p>A kernel that maintains the logical integrity of proofs</p></li>
@@ -181,8 +181,8 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;KNUCKLE_SOLVER&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;cvc5&quot;</span>  <span class="c1"># or &quot;vampire&quot;</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">arlib.itp</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">arlib.itp.smt</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">smt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.itp</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">aria.itp.smt</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">smt</span>
 </pre></div>
 </div>
 </section>
@@ -261,7 +261,7 @@
 <li><p>Logical foundations in <code class="docutils literal notranslate"><span class="pre">logic/</span></code></p></li>
 </ul>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import a theory</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">arlib.itp.theories</span><span class="w"> </span><span class="kn">import</span> <span class="nb">set</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.itp.theories</span><span class="w"> </span><span class="kn">import</span> <span class="nb">set</span>
 
 <span class="c1"># Use the theory</span>
 <span class="n">A</span> <span class="o">=</span> <span class="n">smt</span><span class="o">.</span><span class="n">Const</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="nb">set</span><span class="o">.</span><span class="n">SetSort</span><span class="p">(</span><span class="n">smt</span><span class="o">.</span><span class="n">IntSort</span><span class="p">()))</span>
@@ -362,7 +362,7 @@
 </section>
 <section id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
-<p>The module is part of the arlib package. External solvers may need separate installation.
+<p>The module is part of the aria package. External solvers may need separate installation.
 See <code class="docutils literal notranslate"><span class="pre">solvers/install.sh</span></code> for installing supported external solvers.</p>
 </section>
 <section id="api-reference">
@@ -461,7 +461,7 @@ See <code class="docutils literal notranslate"><span class="pre">solvers/install
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024-2025, ZJU Automated Reasoning Group.</p>
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

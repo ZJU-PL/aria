@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Symbolic Abstraction &mdash; Arlib Documentation</title>
+  <title>Symbolic Abstraction &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -32,7 +32,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            Arlib
+            ARIA
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -74,7 +74,7 @@
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pcdclt.html">Parallel SMT CDCL(T) Solving</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (arlib/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (aria/prob)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
@@ -169,7 +169,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Arlib</a>
+          <a href="index.html">ARIA</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -199,7 +199,7 @@ This abstraction preserves important properties (like satisfiability) while disc
 unnecessary details that would make analysis computationally expensive.</p>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
-<p>Arlib’s symbolic abstraction module (<code class="docutils literal notranslate"><span class="pre">arlib/symabs</span></code>) provides a comprehensive suite
+<p>Aria’s symbolic abstraction module (<code class="docutils literal notranslate"><span class="pre">aria/symabs</span></code>) provides a comprehensive suite
 of abstraction techniques for program analysis and verification. The module is organized
 around several key approaches:</p>
 <ol class="arabic simple">
@@ -256,7 +256,7 @@ various abstract domains.</p>
 <section id="interval-domain">
 <h4><strong>Interval Domain</strong><a class="headerlink" href="#interval-domain" title="Link to this heading"></a></h4>
 <p>The interval domain represents variable ranges using lower and upper bounds:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.symabs.ai_symabs.domains.interval.domain</span><span class="w"> </span><span class="kn">import</span> <span class="n">IntervalDomain</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.symabs.ai_symabs.domains.interval.domain</span><span class="w"> </span><span class="kn">import</span> <span class="n">IntervalDomain</span>
 
 <span class="c1"># Create interval domain for variables [&#39;x&#39;, &#39;y&#39;]</span>
 <span class="n">domain</span> <span class="o">=</span> <span class="n">IntervalDomain</span><span class="p">([</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">])</span>
@@ -269,7 +269,7 @@ various abstract domains.</p>
 <section id="sign-domain">
 <h4><strong>Sign Domain</strong><a class="headerlink" href="#sign-domain" title="Link to this heading"></a></h4>
 <p>The sign domain tracks the sign of variables (negative, zero, positive):</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.symabs.ai_symabs.domains.sign.domain</span><span class="w"> </span><span class="kn">import</span> <span class="n">SignDomain</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.symabs.ai_symabs.domains.sign.domain</span><span class="w"> </span><span class="kn">import</span> <span class="n">SignDomain</span>
 
 <span class="c1"># Sign domain for variable &#39;x&#39;</span>
 <span class="c1"># Possible abstract values: -, 0, +, T (top)</span>
@@ -279,7 +279,7 @@ various abstract domains.</p>
 <section id="reduced-product-domain">
 <h4><strong>Reduced Product Domain</strong><a class="headerlink" href="#reduced-product-domain" title="Link to this heading"></a></h4>
 <p>Combines multiple domains for better precision:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.symabs.ai_symabs.domains.reduced_product.domain</span><span class="w"> </span><span class="kn">import</span> <span class="n">ReducedProductDomain</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.symabs.ai_symabs.domains.reduced_product.domain</span><span class="w"> </span><span class="kn">import</span> <span class="n">ReducedProductDomain</span>
 
 <span class="c1"># Combine interval and sign domains</span>
 <span class="n">combined</span> <span class="o">=</span> <span class="n">ReducedProductDomain</span><span class="p">([</span><span class="n">interval_domain</span><span class="p">,</span> <span class="n">sign_domain</span><span class="p">])</span>
@@ -293,7 +293,7 @@ various abstract domains.</p>
 <h4><strong>Bilateral Algorithm</strong><a class="headerlink" href="#bilateral-algorithm" title="Link to this heading"></a></h4>
 <p>The bilateral algorithm efficiently computes abstractions by working with both the
 positive and negative forms of the formula:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.symabs.ai_symabs.domains.algorithms.bilateral</span><span class="w"> </span><span class="kn">import</span> <span class="n">bilateral</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.symabs.ai_symabs.domains.algorithms.bilateral</span><span class="w"> </span><span class="kn">import</span> <span class="n">bilateral</span>
 
 <span class="c1"># Compute abstraction using bilateral algorithm</span>
 <span class="n">abstract_state</span> <span class="o">=</span> <span class="n">bilateral</span><span class="p">(</span><span class="n">concrete_formula</span><span class="p">,</span> <span class="n">domain</span><span class="p">)</span>
@@ -303,7 +303,7 @@ positive and negative forms of the formula:</p>
 <section id="rsy-algorithm">
 <h4><strong>RSY Algorithm</strong><a class="headerlink" href="#rsy-algorithm" title="Link to this heading"></a></h4>
 <p>Recursive abstraction refinement algorithm that iteratively improves precision:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.symabs.ai_symabs.domains.algorithms.rsy</span><span class="w"> </span><span class="kn">import</span> <span class="n">rsy</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.symabs.ai_symabs.domains.algorithms.rsy</span><span class="w"> </span><span class="kn">import</span> <span class="n">rsy</span>
 
 <span class="c1"># Compute abstraction with RSY algorithm</span>
 <span class="n">abstract_state</span> <span class="o">=</span> <span class="n">rsy</span><span class="p">(</span><span class="n">concrete_formula</span><span class="p">,</span> <span class="n">domain</span><span class="p">)</span>
@@ -327,7 +327,7 @@ to find the best abstract representation.</p>
 </section>
 <section id="linear-arithmetic-abstraction">
 <h3>Linear Arithmetic Abstraction<a class="headerlink" href="#linear-arithmetic-abstraction" title="Link to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.symabs.omt_symabs.lira_symbolic_abstraction</span><span class="w"> </span><span class="kn">import</span> <span class="n">LIRASymbolicAbstraction</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.symabs.omt_symabs.lira_symbolic_abstraction</span><span class="w"> </span><span class="kn">import</span> <span class="n">LIRASymbolicAbstraction</span>
 
 <span class="c1"># Create LIRA symbolic abstraction</span>
 <span class="n">symabs</span> <span class="o">=</span> <span class="n">LIRASymbolicAbstraction</span><span class="p">()</span>
@@ -345,7 +345,7 @@ to find the best abstract representation.</p>
 </section>
 <section id="bit-vector-abstraction">
 <h3>Bit-Vector Abstraction<a class="headerlink" href="#bit-vector-abstraction" title="Link to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.symabs.omt_symabs.bv_symbolic_abstraction</span><span class="w"> </span><span class="kn">import</span> <span class="n">BVSymbolicAbstraction</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.symabs.omt_symabs.bv_symbolic_abstraction</span><span class="w"> </span><span class="kn">import</span> <span class="n">BVSymbolicAbstraction</span>
 
 <span class="c1"># Create bit-vector symbolic abstraction</span>
 <span class="n">bv_symabs</span> <span class="o">=</span> <span class="n">BVSymbolicAbstraction</span><span class="p">()</span>
@@ -372,7 +372,7 @@ software verification tasks.</p>
 <li><p>Evaluating predicates in each model</p></li>
 <li><p>Constructing the strongest Boolean formula consistent with the evaluations</p></li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.symabs.predicate_abstraction.predicate_abstraction</span><span class="w"> </span><span class="kn">import</span> <span class="n">compute_predicate_abstraction</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.symabs.predicate_abstraction.predicate_abstraction</span><span class="w"> </span><span class="kn">import</span> <span class="n">compute_predicate_abstraction</span>
 
 <span class="c1"># Define predicates</span>
 <span class="n">predicates</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">y</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">]</span>
@@ -416,8 +416,8 @@ and set operations over bit-vectors, offering efficient analysis for hardware ve
 <section id="basic-symbolic-abstraction">
 <h3>Basic Symbolic Abstraction<a class="headerlink" href="#basic-symbolic-abstraction" title="Link to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">arlib.symabs.ai_symabs.domains.interval.domain</span><span class="w"> </span><span class="kn">import</span> <span class="n">IntervalDomain</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">arlib.symabs.ai_symabs.domains.algorithms.bilateral</span><span class="w"> </span><span class="kn">import</span> <span class="n">bilateral</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.symabs.ai_symabs.domains.interval.domain</span><span class="w"> </span><span class="kn">import</span> <span class="n">IntervalDomain</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.symabs.ai_symabs.domains.algorithms.bilateral</span><span class="w"> </span><span class="kn">import</span> <span class="n">bilateral</span>
 
 <span class="c1"># Define concrete formula: 0 ≤ x ∧ x ≤ 10 ∧ x + y = 15</span>
 <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="s1">&#39;x y&#39;</span><span class="p">)</span>
@@ -437,7 +437,7 @@ and set operations over bit-vectors, offering efficient analysis for hardware ve
 </section>
 <section id="omt-based-abstraction">
 <h3>OMT-based Abstraction<a class="headerlink" href="#omt-based-abstraction" title="Link to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.symabs.omt_symabs.lira_symbolic_abstraction</span><span class="w"> </span><span class="kn">import</span> <span class="n">LIRASymbolicAbstraction</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.symabs.omt_symabs.lira_symbolic_abstraction</span><span class="w"> </span><span class="kn">import</span> <span class="n">LIRASymbolicAbstraction</span>
 
 <span class="c1"># Create symbolic abstraction engine</span>
 <span class="n">symabs</span> <span class="o">=</span> <span class="n">LIRASymbolicAbstraction</span><span class="p">()</span>
@@ -457,7 +457,7 @@ and set operations over bit-vectors, offering efficient analysis for hardware ve
 <section id="predicate-abstraction-example">
 <h3>Predicate Abstraction Example<a class="headerlink" href="#predicate-abstraction-example" title="Link to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">arlib.symabs.predicate_abstraction.predicate_abstraction</span><span class="w"> </span><span class="kn">import</span> <span class="n">compute_predicate_abstraction</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.symabs.predicate_abstraction.predicate_abstraction</span><span class="w"> </span><span class="kn">import</span> <span class="n">compute_predicate_abstraction</span>
 
 <span class="c1"># Define variables and predicates</span>
 <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="s1">&#39;x y&#39;</span><span class="p">)</span>
@@ -624,7 +624,7 @@ and set operations over bit-vectors, offering efficient analysis for hardware ve
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024-2025, ZJU Automated Reasoning Group.</p>
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

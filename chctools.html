@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Constrained Horn Clauses (CHC) Tools &mdash; Arlib Documentation</title>
+  <title>Constrained Horn Clauses (CHC) Tools &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -33,7 +33,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            Arlib
+            ARIA
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -88,7 +88,7 @@
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pcdclt.html">Parallel SMT CDCL(T) Solving</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (arlib/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (aria/prob)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
@@ -114,7 +114,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Arlib</a>
+          <a href="index.html">ARIA</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -136,7 +136,7 @@
 <h1>Constrained Horn Clauses (CHC) Tools<a class="headerlink" href="#constrained-horn-clauses-chc-tools" title="Link to this heading"></a></h1>
 <section id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h2>
-<p>Constrained Horn Clauses (CHCs) are a fragment of first-order logic that has become increasingly important in program verification and automated reasoning. The <code class="docutils literal notranslate"><span class="pre">arlib/quant/chctools</span></code> module provides a comprehensive toolkit for working with CHCs, including parsing, solving, model validation, and pretty-printing.</p>
+<p>Constrained Horn Clauses (CHCs) are a fragment of first-order logic that has become increasingly important in program verification and automated reasoning. The <code class="docutils literal notranslate"><span class="pre">aria/quant/chctools</span></code> module provides a comprehensive toolkit for working with CHCs, including parsing, solving, model validation, and pretty-printing.</p>
 <p>A Constrained Horn Clause has the form:</p>
 <div class="math notranslate nohighlight">
 \[\forall \vec{x}. (\phi(\vec{x}) \land P_1(\vec{t_1}) \land \ldots \land P_k(\vec{t_k})) \Rightarrow P(\vec{t})\]</div>
@@ -191,7 +191,7 @@
 </pre></div>
 </div>
 <p><strong>Example Usage:</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.quant.chctools.parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">ChcRulesSmtLibParser</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.quant.chctools.parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">ChcRulesSmtLibParser</span>
 
 <span class="n">parser</span> <span class="o">=</span> <span class="n">ChcRulesSmtLibParser</span><span class="p">()</span>
 <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;problem.smt2&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
@@ -213,7 +213,7 @@
 - <strong>Linear</strong>: A rule with at most one uninterpreted predicate in the body
 - <strong>Query</strong>: A rule with <code class="docutils literal notranslate"><span class="pre">false</span></code> as the head</p>
 <p><strong>Example Usage:</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.quant.chctools.horndb</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_horn_db_from_file</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.quant.chctools.horndb</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_horn_db_from_file</span>
 
 <span class="c1"># Load CHC problem from file</span>
 <span class="n">db</span> <span class="o">=</span> <span class="n">load_horn_db_from_file</span><span class="p">(</span><span class="s1">&#39;problem.smt2&#39;</span><span class="p">)</span>
@@ -244,15 +244,15 @@
 - <code class="docutils literal notranslate"><span class="pre">-y</span> <span class="pre">FILE</span></code>: Load configuration from YAML file</p>
 <p><strong>Example Usage:</strong></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Solve CHC problem with preprocessing</span>
-python<span class="w"> </span>-m<span class="w"> </span>arlib.quant.chctools.chcsolve<span class="w"> </span>--pp<span class="w"> </span>--st<span class="w"> </span>problem.smt2
+python<span class="w"> </span>-m<span class="w"> </span>aria.quant.chctools.chcsolve<span class="w"> </span>--pp<span class="w"> </span>--st<span class="w"> </span>problem.smt2
 
 <span class="c1"># Use custom Z3 options</span>
-python<span class="w"> </span>-m<span class="w"> </span>arlib.quant.chctools.chcsolve<span class="w"> </span>problem.smt2<span class="w"> </span>spacer.mbqi<span class="o">=</span><span class="nb">false</span>
+python<span class="w"> </span>-m<span class="w"> </span>aria.quant.chctools.chcsolve<span class="w"> </span>problem.smt2<span class="w"> </span>spacer.mbqi<span class="o">=</span><span class="nb">false</span>
 </pre></div>
 </div>
 <p><strong>Programmatic Usage:</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.quant.chctools.chcsolve</span><span class="w"> </span><span class="kn">import</span> <span class="n">chc_solve_with_fp</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">arlib.quant.chctools.horndb</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_horn_db_from_file</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.quant.chctools.chcsolve</span><span class="w"> </span><span class="kn">import</span> <span class="n">chc_solve_with_fp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.quant.chctools.horndb</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_horn_db_from_file</span>
 
 <span class="n">db</span> <span class="o">=</span> <span class="n">load_horn_db_from_file</span><span class="p">(</span><span class="s1">&#39;problem.smt2&#39;</span><span class="p">)</span>
 <span class="n">opts</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;spacer.mbqi&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
@@ -269,8 +269,8 @@ python<span class="w"> </span>-m<span class="w"> </span>arlib.quant.chctools.chc
 - Provides detailed error reporting for invalid models
 - Supports models in SMT-LIB <code class="docutils literal notranslate"><span class="pre">define-fun</span></code> format</p>
 <p><strong>Example Usage:</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.quant.chctools.chcmodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModelValidator</span><span class="p">,</span> <span class="n">load_model_from_file</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">arlib.quant.chctools.horndb</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_horn_db_from_file</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.quant.chctools.chcmodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModelValidator</span><span class="p">,</span> <span class="n">load_model_from_file</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.quant.chctools.horndb</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_horn_db_from_file</span>
 
 <span class="c1"># Load problem and model</span>
 <span class="n">db</span> <span class="o">=</span> <span class="n">load_horn_db_from_file</span><span class="p">(</span><span class="s1">&#39;problem.smt2&#39;</span><span class="p">)</span>
@@ -283,7 +283,7 @@ python<span class="w"> </span>-m<span class="w"> </span>arlib.quant.chctools.chc
 </pre></div>
 </div>
 <p><strong>Command-line Usage:</strong></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>arlib.quant.chctools.chcmodel<span class="w"> </span>-m<span class="w"> </span>model.smt2<span class="w"> </span>problem.smt2
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>aria.quant.chctools.chcmodel<span class="w"> </span>-m<span class="w"> </span>model.smt2<span class="w"> </span>problem.smt2
 </pre></div>
 </div>
 </section>
@@ -295,15 +295,15 @@ python<span class="w"> </span>-m<span class="w"> </span>arlib.quant.chctools.chc
 - <code class="docutils literal notranslate"><span class="pre">chc</span></code>: SMT-LIB format with assertions</p>
 <p><strong>Example Usage:</strong></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Pretty-print as CHC rules</span>
-python<span class="w"> </span>-m<span class="w"> </span>arlib.quant.chctools.chcpp<span class="w"> </span>--format<span class="w"> </span>rules<span class="w"> </span>-o<span class="w"> </span>output.smt2<span class="w"> </span>input.smt2
+python<span class="w"> </span>-m<span class="w"> </span>aria.quant.chctools.chcpp<span class="w"> </span>--format<span class="w"> </span>rules<span class="w"> </span>-o<span class="w"> </span>output.smt2<span class="w"> </span>input.smt2
 
 <span class="c1"># Convert to SMT format</span>
-python<span class="w"> </span>-m<span class="w"> </span>arlib.quant.chctools.chcpp<span class="w"> </span>--format<span class="w"> </span>chc<span class="w"> </span>-o<span class="w"> </span>output.smt2<span class="w"> </span>input.smt2
+python<span class="w"> </span>-m<span class="w"> </span>aria.quant.chctools.chcpp<span class="w"> </span>--format<span class="w"> </span>chc<span class="w"> </span>-o<span class="w"> </span>output.smt2<span class="w"> </span>input.smt2
 </pre></div>
 </div>
 <p><strong>Programmatic Usage:</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.quant.chctools.chcpp</span><span class="w"> </span><span class="kn">import</span> <span class="n">pp_chc</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">arlib.quant.chctools.horndb</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_horn_db_from_file</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.quant.chctools.chcpp</span><span class="w"> </span><span class="kn">import</span> <span class="n">pp_chc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.quant.chctools.horndb</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_horn_db_from_file</span>
 
 <span class="n">db</span> <span class="o">=</span> <span class="n">load_horn_db_from_file</span><span class="p">(</span><span class="s1">&#39;input.smt2&#39;</span><span class="p">)</span>
 <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;output.smt2&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
@@ -322,7 +322,7 @@ Complex queries can be automatically split into simpler forms:</p>
 </div>
 <p><strong>Solver Context Management:</strong>
 The <code class="docutils literal notranslate"><span class="pre">pushed_solver</span></code> utility provides safe solver state management:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.quant.chctools.solver_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">pushed_solver</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.quant.chctools.solver_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">pushed_solver</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
 
 <span class="n">solver</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Solver</span><span class="p">()</span>
@@ -346,8 +346,8 @@ YAML configuration files can specify solver options:</p>
 <section id="integration-examples">
 <h2>Integration Examples<a class="headerlink" href="#integration-examples" title="Link to this heading"></a></h2>
 <p><strong>Basic CHC Solving Workflow:</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.quant.chctools.horndb</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_horn_db_from_file</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">arlib.quant.chctools.chcsolve</span><span class="w"> </span><span class="kn">import</span> <span class="n">chc_solve_with_fp</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.quant.chctools.horndb</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_horn_db_from_file</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.quant.chctools.chcsolve</span><span class="w"> </span><span class="kn">import</span> <span class="n">chc_solve_with_fp</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
 
 <span class="c1"># Load CHC problem</span>
@@ -372,7 +372,7 @@ YAML configuration files can specify solver options:</p>
 </div>
 <p><strong>Model Extraction and Validation:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">arlib.quant.chctools.horndb</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_horn_db_from_file</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.quant.chctools.horndb</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_horn_db_from_file</span>
 
 <span class="c1"># Load and solve CHC problem</span>
 <span class="n">db</span> <span class="o">=</span> <span class="n">load_horn_db_from_file</span><span class="p">(</span><span class="s1">&#39;problem.smt2&#39;</span><span class="p">)</span>
@@ -394,21 +394,21 @@ YAML configuration files can specify solver options:</p>
 <p>The CHC tools can be used directly from the command line:</p>
 <p><strong>Solving CHC Problems:</strong></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Basic solving</span>
-python<span class="w"> </span>-m<span class="w"> </span>arlib.quant.chctools.chcsolve<span class="w"> </span>problem.smt2
+python<span class="w"> </span>-m<span class="w"> </span>aria.quant.chctools.chcsolve<span class="w"> </span>problem.smt2
 
 <span class="c1"># With preprocessing and statistics</span>
-python<span class="w"> </span>-m<span class="w"> </span>arlib.quant.chctools.chcsolve<span class="w"> </span>--pp<span class="w"> </span>--st<span class="w"> </span>problem.smt2
+python<span class="w"> </span>-m<span class="w"> </span>aria.quant.chctools.chcsolve<span class="w"> </span>--pp<span class="w"> </span>--st<span class="w"> </span>problem.smt2
 
 <span class="c1"># Custom solver options</span>
-python<span class="w"> </span>-m<span class="w"> </span>arlib.quant.chctools.chcsolve<span class="w"> </span>problem.smt2<span class="w"> </span>spacer.mbqi<span class="o">=</span><span class="nb">false</span><span class="w"> </span>spacer.reach_dnf<span class="o">=</span><span class="nb">true</span>
+python<span class="w"> </span>-m<span class="w"> </span>aria.quant.chctools.chcsolve<span class="w"> </span>problem.smt2<span class="w"> </span>spacer.mbqi<span class="o">=</span><span class="nb">false</span><span class="w"> </span>spacer.reach_dnf<span class="o">=</span><span class="nb">true</span>
 </pre></div>
 </div>
 <p><strong>Model Validation:</strong></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>arlib.quant.chctools.chcmodel<span class="w"> </span>-m<span class="w"> </span>model.smt2<span class="w"> </span>problem.smt2
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>aria.quant.chctools.chcmodel<span class="w"> </span>-m<span class="w"> </span>model.smt2<span class="w"> </span>problem.smt2
 </pre></div>
 </div>
 <p><strong>Pretty Printing:</strong></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>arlib.quant.chctools.chcpp<span class="w"> </span>-o<span class="w"> </span>formatted.smt2<span class="w"> </span>problem.smt2
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>aria.quant.chctools.chcpp<span class="w"> </span>-o<span class="w"> </span>formatted.smt2<span class="w"> </span>problem.smt2
 </pre></div>
 </div>
 </section>
@@ -436,7 +436,7 @@ python<span class="w"> </span>-m<span class="w"> </span>arlib.quant.chctools.chc
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024-2025, ZJU Automated Reasoning Group.</p>
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

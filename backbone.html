@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Backbone Computation &mdash; Arlib Documentation</title>
+  <title>Backbone Computation &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -32,7 +32,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            Arlib
+            ARIA
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -55,7 +55,7 @@
 <li class="toctree-l1"><a class="reference internal" href="automata.html#references">References</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Backbone Computation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#introduction-to-backbone-computation">Introduction to Backbone Computation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#backbone-computation-in-arlib">Backbone Computation in Arlib</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#backbone-computation-in-aria">Backbone Computation in Aria</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#usage-example">Usage Example</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#algorithm-details">Algorithm Details</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#performance-considerations">Performance Considerations</a></li>
@@ -82,7 +82,7 @@
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pcdclt.html">Parallel SMT CDCL(T) Solving</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (arlib/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (aria/prob)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
@@ -108,7 +108,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Arlib</a>
+          <a href="index.html">ARIA</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -140,9 +140,9 @@ These literals represent the “fixed” or “necessary” parts of any solutio
 <li><p><strong>Optimization</strong>: Reducing search space by fixing necessary assignments</p></li>
 </ul>
 </section>
-<section id="backbone-computation-in-arlib">
-<h2>Backbone Computation in Arlib<a class="headerlink" href="#backbone-computation-in-arlib" title="Link to this heading"></a></h2>
-<p>Arlib provides two main approaches to backbone computation:</p>
+<section id="backbone-computation-in-aria">
+<h2>Backbone Computation in Aria<a class="headerlink" href="#backbone-computation-in-aria" title="Link to this heading"></a></h2>
+<p>Aria provides two main approaches to backbone computation:</p>
 <ol class="arabic simple">
 <li><p><strong>Literal-based Backbone</strong> (<cite>backbone_literals.py</cite>): Computes the backbone by analyzing individual literals.</p></li>
 <li><p><strong>Clause-based Backbone</strong> (<cite>backbone_clauses.py</cite>): Computes the backbone by analyzing clauses in the formula.</p></li>
@@ -153,7 +153,7 @@ These literals represent the “fixed” or “necessary” parts of any solutio
 <h2>Usage Example<a class="headerlink" href="#usage-example" title="Link to this heading"></a></h2>
 <p><a href="#id1"><span class="problematic" id="id2">``</span></a><a href="#id3"><span class="problematic" id="id4">`</span></a>python
 import z3
-from arlib.backbone import get_backbone</p>
+from aria.backbone import get_backbone</p>
 <p># Define a formula
 x, y, z = z3.Bools(‘x y z’)
 formula = z3.And(z3.Or(x, y), z3.Or(z, ~y), z3.Or(~x, ~z))</p>
@@ -166,7 +166,7 @@ for lit in backbone:</p>
 <div><p>print(f”  {lit}”)</p>
 </div></blockquote>
 <p># Using the clause-based approach
-from arlib.backbone import get_backbone_clauses</p>
+from aria.backbone import get_backbone_clauses</p>
 <p>backbone_clauses = get_backbone_clauses(formula)
 print(“Backbone literals (clause-based):”)
 for lit in backbone_clauses:</p>
@@ -177,7 +177,7 @@ for lit in backbone_clauses:</p>
 </section>
 <section id="algorithm-details">
 <h2>Algorithm Details<a class="headerlink" href="#algorithm-details" title="Link to this heading"></a></h2>
-<p>The backbone computation algorithms in Arlib use several optimizations:</p>
+<p>The backbone computation algorithms in Aria use several optimizations:</p>
 <ul class="simple">
 <li><p><strong>Incremental SAT solving</strong>: Reusing solver state between iterations</p></li>
 <li><p><strong>Assumption-based solving</strong>: Efficiently testing candidate backbone literals</p></li>
@@ -224,7 +224,7 @@ for lit in backbone_clauses:</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024-2025, ZJU Automated Reasoning Group.</p>
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

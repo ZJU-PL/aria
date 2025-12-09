@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>arlib.automata.symautomata.cfggenerator &mdash; Arlib Documentation</title>
+  <title>aria.automata.symautomata.cfggenerator &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
 
@@ -29,7 +29,7 @@
           
           
           <a href="../../../../index.html" class="icon icon-home">
-            Arlib
+            ARIA
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
@@ -71,7 +71,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../optimization.html">Optimization Modulo Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../pcdclt.html">Parallel SMT CDCL(T) Solving</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../prob.html">Probabilistic Reasoning (arlib/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../prob.html">Probabilistic Reasoning (aria/prob)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../quantifiers.html">Playing wth Quantifiers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../sampling.html">Model Sampling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../smt.html">SMT Solving</a></li>
@@ -97,7 +97,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../../../index.html">Arlib</a>
+          <a href="../../../../index.html">ARIA</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -106,7 +106,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
-      <li class="breadcrumb-item active">arlib.automata.symautomata.cfggenerator</li>
+      <li class="breadcrumb-item active">aria.automata.symautomata.cfggenerator</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -115,7 +115,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <h1>Source code for arlib.automata.symautomata.cfggenerator</h1><div class="highlight"><pre>
+  <h1>Source code for aria.automata.symautomata.cfggenerator</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;This modules generates a string from a CFG&quot;&quot;&quot;</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">string</span>
@@ -124,7 +124,7 @@
 
 
 <div class="viewcode-block" id="CNFGenerator">
-<a class="viewcode-back" href="../../../../symautomata.html#arlib.automata.symautomata.cfggenerator.CNFGenerator">[docs]</a>
+<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.cfggenerator.CNFGenerator">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">CNFGenerator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Use Chomsky to transform to CNF&quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grammar_rules</span><span class="p">):</span>
@@ -242,7 +242,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">next_rule</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">rule_index</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">rule_index</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">rule_index</span><span class="p">)</span>
 
 <div class="viewcode-block" id="CNFGenerator.next_rule">
-<a class="viewcode-back" href="../../../../symautomata.html#arlib.automata.symautomata.cfggenerator.CNFGenerator.next_rule">[docs]</a>
+<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.cfggenerator.CNFGenerator.next_rule">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">next_rule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">left_hand_side</span><span class="p">,</span> <span class="n">right_hand_side</span><span class="p">,</span> <span class="n">rule_index</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">right_hand_side</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">right_hand_side</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">rule_index</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">left_hand_side</span><span class="p">,</span> <span class="n">right_hand_side</span><span class="p">)</span>
@@ -258,7 +258,7 @@
 
 
 <div class="viewcode-block" id="CFGGenerator">
-<a class="viewcode-back" href="../../../../symautomata.html#arlib.automata.symautomata.cfggenerator.CFGGenerator">[docs]</a>
+<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.cfggenerator.CFGGenerator">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">CFGGenerator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;This class generates a string from a CFG&quot;&quot;&quot;</span>
     <span class="n">grammar</span> <span class="o">=</span> <span class="kc">None</span>
@@ -299,7 +299,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">maxstate</span> <span class="o">=</span> <span class="n">maxstate</span>
 
 <div class="viewcode-block" id="CFGGenerator.generate">
-<a class="viewcode-back" href="../../../../symautomata.html#arlib.automata.symautomata.cfggenerator.CFGGenerator.generate">[docs]</a>
+<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.cfggenerator.CFGGenerator.generate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">generate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generates a new random string from the start symbol</span>
@@ -562,7 +562,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024-2025, ZJU Automated Reasoning Group.</p>
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

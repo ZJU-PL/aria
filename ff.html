@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SMT Solving for Finite Field &mdash; Arlib Documentation</title>
+  <title>SMT Solving for Finite Field &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -33,7 +33,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            Arlib
+            ARIA
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -82,7 +82,7 @@
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pcdclt.html">Parallel SMT CDCL(T) Solving</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (arlib/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (aria/prob)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
@@ -108,7 +108,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Arlib</a>
+          <a href="index.html">ARIA</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -204,7 +204,7 @@
 </ul>
 <section id="implementation">
 <h2>Implementation<a class="headerlink" href="#implementation" title="Link to this heading"></a></h2>
-<p>Arlib provides SMT solving over finite fields in the <code class="docutils literal notranslate"><span class="pre">arlib/smt/ff</span></code> module with two encoding strategies:</p>
+<p>Aria provides SMT solving over finite fields in the <code class="docutils literal notranslate"><span class="pre">aria/smt/ff</span></code> module with two encoding strategies:</p>
 <ul class="simple">
 <li><p><strong>Bit-vector encoding</strong> (<code class="docutils literal notranslate"><span class="pre">ff_bv_solver.py</span></code>): Encodes field elements as bit-vectors (width log₂(field_size)) with modular constraints</p></li>
 <li><p><strong>Integer encoding</strong> (<code class="docutils literal notranslate"><span class="pre">ff_int_solver.py</span></code>): Encodes field elements as integers in [0, field_size-1] with explicit modulo operations</p></li>
@@ -213,7 +213,7 @@
 </section>
 <section id="usage-example">
 <h2>Usage Example<a class="headerlink" href="#usage-example" title="Link to this heading"></a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.smt.ff.ff_bv_solver</span><span class="w"> </span><span class="kn">import</span> <span class="n">solve_qfff</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.smt.ff.ff_bv_solver</span><span class="w"> </span><span class="kn">import</span> <span class="n">solve_qfff</span>
 
 <span class="n">smt_input</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">(set-logic QF_FF)</span>
@@ -266,7 +266,7 @@ In <em>Computer Aided Verification (CAV)</em>.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024-2025, ZJU Automated Reasoning Group.</p>
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

@@ -1,10 +1,10 @@
-Probabilistic Reasoning (arlib/prob)
+Probabilistic Reasoning (aria/prob)
 ====================================
 
 Overview
 --------
 
-The ``arlib.prob`` package provides utilities for probabilistic reasoning over
+The ``aria.prob`` package provides utilities for probabilistic reasoning over
 logical formulas.
 
 Currently supported:
@@ -20,7 +20,7 @@ API
 .. code-block:: python
 
     from pysat.formula import CNF
-    from arlib.prob import wmc_count, WMCBackend, WMCOptions
+    from aria.prob import wmc_count, WMCBackend, WMCOptions
 
     cnf = CNF(from_clauses=[[1, 2], [-1, 3]])
     weights = {1: 0.6, 2: 0.7, 3: 0.5}
@@ -33,5 +33,5 @@ Notes
 - Literal weights are probabilities in ``[0,1]``. If only one polarity is
   provided for a variable, the other is assumed to be ``1 - w``.
 - The DNNF backend relies on the knowledge compilation utilities in
-  ``arlib.bool.knowledge_compiler``.
+  ``aria.bool.knowledge_compiler``.
 - The enumeration backend is intended for small formulas and debugging.

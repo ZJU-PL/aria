@@ -4,7 +4,7 @@ LLM Integration
 Introduction
 =====================
 
-The LLM module (``arlib/llm``) integrates large language models into automated reasoning workflows, enabling natural language interfaces, LLM-guided solving strategies, and reasoning about programs with unspecified components.
+The LLM module (``aria/llm``) integrates large language models into automated reasoning workflows, enabling natural language interfaces, LLM-guided solving strategies, and reasoning about programs with unspecified components.
 
 Key Features
 -------------
@@ -18,14 +18,14 @@ Key Features
 Components
 =====================
 
-Natural Language Translation (``arlib/llm/nl2smt.py``, ``arlib/llm/smt2nl.py``)
+Natural Language Translation (``aria/llm/nl2smt.py``, ``aria/llm/smt2nl.py``)
 --------------------------------------------------------------------------------
 
 Bidirectional translation between natural language and SMT-LIB:
 
 .. code-block:: python
 
-   from arlib.llm import nl_to_smt, smt_to_nl
+   from aria.llm import nl_to_smt, smt_to_nl
 
    # Convert natural language to SMT
    formula = nl_to_smt("x is greater than 5 and less than 10")
@@ -33,14 +33,14 @@ Bidirectional translation between natural language and SMT-LIB:
    # Convert SMT to natural language description
    description = smt_to_nl(smt_formula)
 
-SMTO: SMT with Oracles (``arlib/llm/smto``)
+SMTO: SMT with Oracles (``aria/llm/smto``)
 --------------------------------------------
 
 Satisfiability Modulo Theories and Oracles for reasoning about programs with unspecified components:
 
 .. code-block:: python
 
-   from arlib.llm.smto import OraxSolver, OracleInfo
+   from aria.llm.smto import OraxSolver, OracleInfo
    import z3
 
    # Initialize solver
@@ -69,7 +69,7 @@ Satisfiability Modulo Theories and Oracles for reasoning about programs with uns
 
 .. code-block:: python
 
-   from arlib.llm.smto import WhiteboxOracleInfo, OracleAnalysisMode
+   from aria.llm.smto import WhiteboxOracleInfo, OracleAnalysisMode
 
    oracle = WhiteboxOracleInfo(
        name="oracle_func",
@@ -77,14 +77,14 @@ Satisfiability Modulo Theories and Oracles for reasoning about programs with uns
        source_code="def oracle_func(x): return x > 0 and x < 100"
    )
 
-LLM-Guided Abduction (``arlib/llm/abduct``)
+LLM-Guided Abduction (``aria/llm/abduct``)
 --------------------------------------------
 
 Generate explanatory hypotheses for observations:
 
 .. code-block:: python
 
-   from arlib.llm.abduct import LLMAbductor
+   from aria.llm.abduct import LLMAbductor
 
    abductor = LLMAbductor()
    explanation = abductor.abduce(
@@ -92,18 +92,18 @@ Generate explanatory hypotheses for observations:
        observation=observation
    )
 
-LLM Interpolant Generation (``arlib/llm/interpolant``)
+LLM Interpolant Generation (``aria/llm/interpolant``)
 -------------------------------------------------------
 
 Synthesize Craig interpolants using language models:
 
 .. code-block:: python
 
-   from arlib.llm.interpolant import LLMInterpolant
+   from aria.llm.interpolant import LLMInterpolant
 
    interpolant = LLMInterpolant().generate(formula_a, formula_b)
 
-LLM Tools (``arlib/llm/llmtool``)
+LLM Tools (``aria/llm/llmtool``)
 ----------------------------------
 
 Utilities for LLM integration:

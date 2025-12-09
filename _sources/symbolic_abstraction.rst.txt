@@ -16,7 +16,7 @@ unnecessary details that would make analysis computationally expensive.
 Overview
 ======
 
-Arlib's symbolic abstraction module (``arlib/symabs``) provides a comprehensive suite
+Aria's symbolic abstraction module (``aria/symabs``) provides a comprehensive suite
 of abstraction techniques for program analysis and verification. The module is organized
 around several key approaches:
 
@@ -86,7 +86,7 @@ The interval domain represents variable ranges using lower and upper bounds:
 
 .. code-block:: python
 
-   from arlib.symabs.ai_symabs.domains.interval.domain import IntervalDomain
+   from aria.symabs.ai_symabs.domains.interval.domain import IntervalDomain
 
    # Create interval domain for variables ['x', 'y']
    domain = IntervalDomain(['x', 'y'])
@@ -101,7 +101,7 @@ The sign domain tracks the sign of variables (negative, zero, positive):
 
 .. code-block:: python
 
-   from arlib.symabs.ai_symabs.domains.sign.domain import SignDomain
+   from aria.symabs.ai_symabs.domains.sign.domain import SignDomain
 
    # Sign domain for variable 'x'
    # Possible abstract values: -, 0, +, T (top)
@@ -113,7 +113,7 @@ Combines multiple domains for better precision:
 
 .. code-block:: python
 
-   from arlib.symabs.ai_symabs.domains.reduced_product.domain import ReducedProductDomain
+   from aria.symabs.ai_symabs.domains.reduced_product.domain import ReducedProductDomain
 
    # Combine interval and sign domains
    combined = ReducedProductDomain([interval_domain, sign_domain])
@@ -129,7 +129,7 @@ positive and negative forms of the formula:
 
 .. code-block:: python
 
-   from arlib.symabs.ai_symabs.domains.algorithms.bilateral import bilateral
+   from aria.symabs.ai_symabs.domains.algorithms.bilateral import bilateral
 
    # Compute abstraction using bilateral algorithm
    abstract_state = bilateral(concrete_formula, domain)
@@ -141,7 +141,7 @@ Recursive abstraction refinement algorithm that iteratively improves precision:
 
 .. code-block:: python
 
-   from arlib.symabs.ai_symabs.domains.algorithms.rsy import rsy
+   from aria.symabs.ai_symabs.domains.algorithms.rsy import rsy
 
    # Compute abstraction with RSY algorithm
    abstract_state = rsy(concrete_formula, domain)
@@ -167,7 +167,7 @@ Linear Arithmetic Abstraction
 
 .. code-block:: python
 
-   from arlib.symabs.omt_symabs.lira_symbolic_abstraction import LIRASymbolicAbstraction
+   from aria.symabs.omt_symabs.lira_symbolic_abstraction import LIRASymbolicAbstraction
 
    # Create LIRA symbolic abstraction
    symabs = LIRASymbolicAbstraction()
@@ -186,7 +186,7 @@ Bit-Vector Abstraction
 
 .. code-block:: python
 
-   from arlib.symabs.omt_symabs.bv_symbolic_abstraction import BVSymbolicAbstraction
+   from aria.symabs.omt_symabs.bv_symbolic_abstraction import BVSymbolicAbstraction
 
    # Create bit-vector symbolic abstraction
    bv_symabs = BVSymbolicAbstraction()
@@ -217,7 +217,7 @@ The predicate abstraction algorithm works by:
 
 .. code-block:: python
 
-   from arlib.symabs.predicate_abstraction.predicate_abstraction import compute_predicate_abstraction
+   from aria.symabs.predicate_abstraction.predicate_abstraction import compute_predicate_abstraction
 
    # Define predicates
    predicates = [x > 0, y > 0, x + y < 10]
@@ -268,8 +268,8 @@ Basic Symbolic Abstraction
 .. code-block:: python
 
    import z3
-   from arlib.symabs.ai_symabs.domains.interval.domain import IntervalDomain
-   from arlib.symabs.ai_symabs.domains.algorithms.bilateral import bilateral
+   from aria.symabs.ai_symabs.domains.interval.domain import IntervalDomain
+   from aria.symabs.ai_symabs.domains.algorithms.bilateral import bilateral
 
    # Define concrete formula: 0 ≤ x ∧ x ≤ 10 ∧ x + y = 15
    x, y = z3.Ints('x y')
@@ -290,7 +290,7 @@ OMT-based Abstraction
 
 .. code-block:: python
 
-   from arlib.symabs.omt_symabs.lira_symbolic_abstraction import LIRASymbolicAbstraction
+   from aria.symabs.omt_symabs.lira_symbolic_abstraction import LIRASymbolicAbstraction
 
    # Create symbolic abstraction engine
    symabs = LIRASymbolicAbstraction()
@@ -311,7 +311,7 @@ Predicate Abstraction Example
 .. code-block:: python
 
    import z3
-   from arlib.symabs.predicate_abstraction.predicate_abstraction import compute_predicate_abstraction
+   from aria.symabs.predicate_abstraction.predicate_abstraction import compute_predicate_abstraction
 
    # Define variables and predicates
    x, y = z3.Ints('x y')

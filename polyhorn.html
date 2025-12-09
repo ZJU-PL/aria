@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PolyHorn: Polynomial Horn Clause Solver &mdash; Arlib Documentation</title>
+  <title>PolyHorn: Polynomial Horn Clause Solver &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -20,7 +20,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Probabilistic Reasoning (arlib/prob)" href="prob.html" />
+    <link rel="next" title="Probabilistic Reasoning (aria/prob)" href="prob.html" />
     <link rel="prev" title="Parallel SMT CDCL(T) Solving" href="pcdclt.html" /> 
 </head>
 
@@ -33,7 +33,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            Arlib
+            ARIA
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -112,7 +112,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (arlib/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (aria/prob)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
@@ -138,7 +138,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Arlib</a>
+          <a href="index.html">ARIA</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -229,7 +229,7 @@
 </dd>
 </dl>
 <p><strong>Example:</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.quant.polyhorn.main</span><span class="w"> </span><span class="kn">import</span> <span class="n">execute</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.quant.polyhorn.main</span><span class="w"> </span><span class="kn">import</span> <span class="n">execute</span>
 
 <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;theorem_name&quot;</span><span class="p">:</span> <span class="s2">&quot;farkas&quot;</span><span class="p">,</span>
@@ -282,7 +282,7 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pysmt.shortcuts</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span><span class="n">GE</span><span class="p">,</span> <span class="n">GT</span><span class="p">,</span> <span class="n">LE</span><span class="p">,</span> <span class="n">And</span><span class="p">,</span> <span class="n">Equals</span><span class="p">,</span> <span class="n">ForAll</span><span class="p">,</span> <span class="n">Implies</span><span class="p">,</span>
                              <span class="n">Minus</span><span class="p">,</span> <span class="n">Real</span><span class="p">,</span> <span class="n">Solver</span><span class="p">,</span> <span class="n">Symbol</span><span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pysmt.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">REAL</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">arlib.quant.polyhorn.main</span><span class="w"> </span><span class="kn">import</span> <span class="n">execute</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.quant.polyhorn.main</span><span class="w"> </span><span class="kn">import</span> <span class="n">execute</span>
 
 <span class="c1"># Create symbols</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">REAL</span><span class="p">)</span>
@@ -320,7 +320,7 @@
 </section>
 <section id="smt-lib2-file-input">
 <h3>SMT-LIB2 File Input<a class="headerlink" href="#smt-lib2-file-input" title="Link to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.quant.polyhorn.main</span><span class="w"> </span><span class="kn">import</span> <span class="n">execute</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.quant.polyhorn.main</span><span class="w"> </span><span class="kn">import</span> <span class="n">execute</span>
 
 <span class="c1"># Load from SMT2 file</span>
 <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
@@ -430,13 +430,13 @@ Horn_clause: (x^2 + y^2 &lt;= 1) -&gt; (x + y &lt;= 2)
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="pcdclt.html" class="btn btn-neutral float-left" title="Parallel SMT CDCL(T) Solving" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="prob.html" class="btn btn-neutral float-right" title="Probabilistic Reasoning (arlib/prob)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="prob.html" class="btn btn-neutral float-right" title="Probabilistic Reasoning (aria/prob)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024-2025, ZJU Automated Reasoning Group.</p>
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

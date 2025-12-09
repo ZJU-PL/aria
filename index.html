@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Welcome to arlib’s Documentation! &mdash; Arlib Documentation</title>
+  <title>Welcome to aria’s Documentation! &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -32,7 +32,7 @@
           
           
           <a href="#" class="icon icon-home">
-            Arlib
+            ARIA
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -74,7 +74,7 @@
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pcdclt.html">Parallel SMT CDCL(T) Solving</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (arlib/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (aria/prob)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
@@ -100,7 +100,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="#">Arlib</a>
+          <a href="#">ARIA</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -108,7 +108,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Welcome to arlib’s Documentation!</li>
+      <li class="breadcrumb-item active">Welcome to aria’s Documentation!</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -118,46 +118,46 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="welcome-to-arlib-s-documentation">
-<h1>Welcome to arlib’s Documentation!<a class="headerlink" href="#welcome-to-arlib-s-documentation" title="Link to this heading"></a></h1>
+  <section id="welcome-to-aria-s-documentation">
+<h1>Welcome to aria’s Documentation!<a class="headerlink" href="#welcome-to-aria-s-documentation" title="Link to this heading"></a></h1>
 <section id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h2>
-<p>Arlib is a comprehensive toolkit for automated reasoning and constraint solving. It provides implementations of various algorithms and tools for:</p>
+<p>Aria is a comprehensive toolkit for automated reasoning and constraint solving. It provides implementations of various algorithms and tools for:</p>
 <ul class="simple">
-<li><p><strong>Abductive Inference</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/abduction</span></code>) - Generate explanations for observations</p></li>
-<li><p><strong>AllSMT</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/allsmt</span></code>) - Enumerate all satisfying models</p></li>
-<li><p><strong>Backbone Computation</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/backbone</span></code>) - Extract forced assignments</p></li>
-<li><p><strong>UNSAT Core Extraction</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/unsat_core</span></code>) - Identify minimal unsatisfiable subsets</p></li>
-<li><p><strong>Quantifier Reasoning</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/quant</span></code>) - Handle exists-forall and quantified formulas</p></li>
-<li><p><strong>Quantifier Elimination</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/quant/qe</span></code>) - Eliminate quantifiers from formulas</p></li>
-<li><p><strong>Solution Sampling</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/sampling</span></code>) - Generate diverse solutions</p></li>
-<li><p><strong>Model Counting</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/counting</span></code>) - Count satisfying assignments</p></li>
-<li><p><strong>Optimization Modulo Theory</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/optimization</span></code>) - Solve optimization problems</p></li>
-<li><p><strong>Interpolant Generation</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/interpolant</span></code>) - Generate Craig interpolants</p></li>
-<li><p><strong>Symbolic Abstraction</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/symabs</span></code>) - Abstract state spaces</p></li>
-<li><p><strong>Predicate Abstraction</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/symabs/predicate_abstraction</span></code>) - Abstract with predicates</p></li>
-<li><p><strong>Monadic Abstraction</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/monabs</span></code>) - Monadic predicate abstraction</p></li>
-<li><p><strong>Knowledge Compilation</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/bool/knowledge_compiler</span></code>) - Compile to tractable forms</p></li>
-<li><p><strong>MaxSAT Solving</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/bool/maxsat</span></code>) - Solve maximum satisfiability problems</p></li>
+<li><p><strong>Abductive Inference</strong> (<code class="docutils literal notranslate"><span class="pre">aria/abduction</span></code>) - Generate explanations for observations</p></li>
+<li><p><strong>AllSMT</strong> (<code class="docutils literal notranslate"><span class="pre">aria/allsmt</span></code>) - Enumerate all satisfying models</p></li>
+<li><p><strong>Backbone Computation</strong> (<code class="docutils literal notranslate"><span class="pre">aria/backbone</span></code>) - Extract forced assignments</p></li>
+<li><p><strong>UNSAT Core Extraction</strong> (<code class="docutils literal notranslate"><span class="pre">aria/unsat_core</span></code>) - Identify minimal unsatisfiable subsets</p></li>
+<li><p><strong>Quantifier Reasoning</strong> (<code class="docutils literal notranslate"><span class="pre">aria/quant</span></code>) - Handle exists-forall and quantified formulas</p></li>
+<li><p><strong>Quantifier Elimination</strong> (<code class="docutils literal notranslate"><span class="pre">aria/quant/qe</span></code>) - Eliminate quantifiers from formulas</p></li>
+<li><p><strong>Solution Sampling</strong> (<code class="docutils literal notranslate"><span class="pre">aria/sampling</span></code>) - Generate diverse solutions</p></li>
+<li><p><strong>Model Counting</strong> (<code class="docutils literal notranslate"><span class="pre">aria/counting</span></code>) - Count satisfying assignments</p></li>
+<li><p><strong>Optimization Modulo Theory</strong> (<code class="docutils literal notranslate"><span class="pre">aria/optimization</span></code>) - Solve optimization problems</p></li>
+<li><p><strong>Interpolant Generation</strong> (<code class="docutils literal notranslate"><span class="pre">aria/interpolant</span></code>) - Generate Craig interpolants</p></li>
+<li><p><strong>Symbolic Abstraction</strong> (<code class="docutils literal notranslate"><span class="pre">aria/symabs</span></code>) - Abstract state spaces</p></li>
+<li><p><strong>Predicate Abstraction</strong> (<code class="docutils literal notranslate"><span class="pre">aria/symabs/predicate_abstraction</span></code>) - Abstract with predicates</p></li>
+<li><p><strong>Monadic Abstraction</strong> (<code class="docutils literal notranslate"><span class="pre">aria/monabs</span></code>) - Monadic predicate abstraction</p></li>
+<li><p><strong>Knowledge Compilation</strong> (<code class="docutils literal notranslate"><span class="pre">aria/bool/knowledge_compiler</span></code>) - Compile to tractable forms</p></li>
+<li><p><strong>MaxSAT Solving</strong> (<code class="docutils literal notranslate"><span class="pre">aria/bool/maxsat</span></code>) - Solve maximum satisfiability problems</p></li>
 <li><p><strong>QBF Solving</strong> - Quantified Boolean formula solving</p></li>
-<li><p><strong>Finite Field Solving</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/smt/ff</span></code>) - SMT for Galois field constraints</p></li>
-<li><p><strong>Interactive Theorem Proving</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/itp</span></code>) - Proof assistant framework</p></li>
-<li><p><strong>LLM Integration</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/llm</span></code>) - Language model enhanced reasoning</p></li>
-<li><p><strong>Automata Operations</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/automata</span></code>) - Finite automata algorithms</p></li>
-<li><p><strong>Program Synthesis</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/synthesis</span></code>) - Synthesize programs from specifications</p></li>
-<li><p><strong>Context-Free Language Reachability</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/cfl</span></code>) - CFL solving algorithms</p></li>
-<li><p><strong>Unification</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/unification</span></code>) - Term unification algorithms</p></li>
+<li><p><strong>Finite Field Solving</strong> (<code class="docutils literal notranslate"><span class="pre">aria/smt/ff</span></code>) - SMT for Galois field constraints</p></li>
+<li><p><strong>Interactive Theorem Proving</strong> (<code class="docutils literal notranslate"><span class="pre">aria/itp</span></code>) - Proof assistant framework</p></li>
+<li><p><strong>LLM Integration</strong> (<code class="docutils literal notranslate"><span class="pre">aria/llm</span></code>) - Language model enhanced reasoning</p></li>
+<li><p><strong>Automata Operations</strong> (<code class="docutils literal notranslate"><span class="pre">aria/automata</span></code>) - Finite automata algorithms</p></li>
+<li><p><strong>Program Synthesis</strong> (<code class="docutils literal notranslate"><span class="pre">aria/synthesis</span></code>) - Synthesize programs from specifications</p></li>
+<li><p><strong>Context-Free Language Reachability</strong> (<code class="docutils literal notranslate"><span class="pre">aria/cfl</span></code>) - CFL solving algorithms</p></li>
+<li><p><strong>Unification</strong> (<code class="docutils literal notranslate"><span class="pre">aria/unification</span></code>) - Term unification algorithms</p></li>
 </ul>
 <p>We welcome any feedback, issues, or suggestions for improvement. Please feel free to open an issue in our repository.</p>
 </section>
-<section id="installing-and-using-arlib">
-<h2>Installing and Using Arlib<a class="headerlink" href="#installing-and-using-arlib" title="Link to this heading"></a></h2>
-<section id="install-arlib-from-source">
-<h3>Install arlib from source<a class="headerlink" href="#install-arlib-from-source" title="Link to this heading"></a></h3>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">ZJU</span><span class="o">-</span><span class="n">PL</span><span class="o">/</span><span class="n">arlib</span>
+<section id="installing-and-using-aria">
+<h2>Installing and Using Aria<a class="headerlink" href="#installing-and-using-aria" title="Link to this heading"></a></h2>
+<section id="install-aria-from-source">
+<h3>Install aria from source<a class="headerlink" href="#install-aria-from-source" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">ZJU</span><span class="o">-</span><span class="n">PL</span><span class="o">/</span><span class="n">aria</span>
 <span class="n">virtualenv</span> <span class="o">--</span><span class="n">python</span><span class="o">=</span><span class="n">python3</span> <span class="n">venv</span>
 <span class="n">source</span> <span class="n">venv</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">activate</span>
-<span class="n">cd</span> <span class="n">arlib</span>
+<span class="n">cd</span> <span class="n">aria</span>
 <span class="n">bash</span> <span class="n">setup_local_env</span><span class="o">.</span><span class="n">sh</span>
 <span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="o">.</span>
 </pre></div>
@@ -170,7 +170,7 @@
 </section>
 <section id="quick-start">
 <h3>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading"></a></h3>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
 
 <span class="c1"># Example: Check satisfiability</span>
 <span class="n">formula</span> <span class="o">=</span> <span class="n">Bool</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># Simple tautology</span>
@@ -211,7 +211,7 @@
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pcdclt.html">Parallel SMT CDCL(T) Solving</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (arlib/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (aria/prob)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
@@ -245,7 +245,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024-2025, ZJU Automated Reasoning Group.</p>
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

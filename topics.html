@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Research Topics and Thesis Projects &mdash; Arlib Documentation</title>
+  <title>Research Topics and Thesis Projects &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -20,7 +20,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Applications" href="applications.html" />
-    <link rel="prev" title="Welcome to arlib’s Documentation!" href="index.html" /> 
+    <link rel="prev" title="Welcome to aria’s Documentation!" href="index.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -32,7 +32,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            Arlib
+            ARIA
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -83,7 +83,7 @@
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pcdclt.html">Parallel SMT CDCL(T) Solving</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (arlib/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (aria/prob)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
@@ -109,7 +109,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Arlib</a>
+          <a href="index.html">ARIA</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -129,26 +129,26 @@
              
   <section id="research-topics-and-thesis-projects">
 <h1>Research Topics and Thesis Projects<a class="headerlink" href="#research-topics-and-thesis-projects" title="Link to this heading"></a></h1>
-<p>Arlib offers numerous opportunities for research and thesis projects across multiple areas of automated reasoning.</p>
+<p>Aria offers numerous opportunities for research and thesis projects across multiple areas of automated reasoning.</p>
 <section id="core-algorithm-development">
 <h2>Core Algorithm Development<a class="headerlink" href="#core-algorithm-development" title="Link to this heading"></a></h2>
 <dl class="simple">
-<dt><strong>Parallel CDCL(T) Solving</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/smt/pcdclt</span></code>)</dt><dd><p>Develop parallel algorithms for conflict-driven clause learning with theory reasoning. Focus on work distribution, clause sharing, and portfolio solving.</p>
+<dt><strong>Parallel CDCL(T) Solving</strong> (<code class="docutils literal notranslate"><span class="pre">aria/smt/pcdclt</span></code>)</dt><dd><p>Develop parallel algorithms for conflict-driven clause learning with theory reasoning. Focus on work distribution, clause sharing, and portfolio solving.</p>
 </dd>
-<dt><strong>Optimization Modulo Theory</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/optimization</span></code>)</dt><dd><p>Extend SMT solving with optimization capabilities. Implement algorithms for OMT over bit-vectors, arithmetic, and mixed theories.</p>
+<dt><strong>Optimization Modulo Theory</strong> (<code class="docutils literal notranslate"><span class="pre">aria/optimization</span></code>)</dt><dd><p>Extend SMT solving with optimization capabilities. Implement algorithms for OMT over bit-vectors, arithmetic, and mixed theories.</p>
 </dd>
-<dt><strong>Advanced Model Counting</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/counting</span></code>)</dt><dd><p>Improve counting algorithms for Boolean, arithmetic, and quantifier-free bit-vector formulas. Focus on scalability and approximation techniques.</p>
+<dt><strong>Advanced Model Counting</strong> (<code class="docutils literal notranslate"><span class="pre">aria/counting</span></code>)</dt><dd><p>Improve counting algorithms for Boolean, arithmetic, and quantifier-free bit-vector formulas. Focus on scalability and approximation techniques.</p>
 </dd>
-<dt><strong>Symbolic Abstraction</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/symabs</span></code>)</dt><dd><p>Develop new abstraction techniques for infinite state systems. Implement counterexample-guided abstraction refinement (CEGAR).</p>
+<dt><strong>Symbolic Abstraction</strong> (<code class="docutils literal notranslate"><span class="pre">aria/symabs</span></code>)</dt><dd><p>Develop new abstraction techniques for infinite state systems. Implement counterexample-guided abstraction refinement (CEGAR).</p>
 </dd>
 </dl>
 </section>
 <section id="theory-specific-solving">
 <h2>Theory-Specific Solving<a class="headerlink" href="#theory-specific-solving" title="Link to this heading"></a></h2>
 <dl class="simple">
-<dt><strong>Finite Field SMT</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/smt/ff</span></code>)</dt><dd><p>Build decision procedures for Galois field constraints. Applications in cryptography and coding theory.</p>
+<dt><strong>Finite Field SMT</strong> (<code class="docutils literal notranslate"><span class="pre">aria/smt/ff</span></code>)</dt><dd><p>Build decision procedures for Galois field constraints. Applications in cryptography and coding theory.</p>
 </dd>
-<dt><strong>Floating-Point Arithmetic</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/smt/fp</span></code>)</dt><dd><p>Develop efficient solvers for IEEE 754 floating-point constraints with proper handling of rounding modes and special values.</p>
+<dt><strong>Floating-Point Arithmetic</strong> (<code class="docutils literal notranslate"><span class="pre">aria/smt/fp</span></code>)</dt><dd><p>Develop efficient solvers for IEEE 754 floating-point constraints with proper handling of rounding modes and special values.</p>
 </dd>
 <dt><strong>String Constraint Solving</strong></dt><dd><p>Extend string theory support with automata-based techniques. Implement length constraints and regular language operations.</p>
 </dd>
@@ -157,20 +157,20 @@
 <section id="ai-enhanced-reasoning">
 <h2>AI-Enhanced Reasoning<a class="headerlink" href="#ai-enhanced-reasoning" title="Link to this heading"></a></h2>
 <dl class="simple">
-<dt><strong>LLM-Driven Constraint Solving</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/llm</span></code>)</dt><dd><p>Integrate large language models to guide solver heuristics, strategy selection, and formula preprocessing.</p>
+<dt><strong>LLM-Driven Constraint Solving</strong> (<code class="docutils literal notranslate"><span class="pre">aria/llm</span></code>)</dt><dd><p>Integrate large language models to guide solver heuristics, strategy selection, and formula preprocessing.</p>
 </dd>
-<dt><strong>Machine Learning for Solvers</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/ml</span></code>)</dt><dd><p>Extract features for learned solver selection, clause learning prediction, and variable ordering heuristics.</p>
+<dt><strong>Machine Learning for Solvers</strong> (<code class="docutils literal notranslate"><span class="pre">aria/ml</span></code>)</dt><dd><p>Extract features for learned solver selection, clause learning prediction, and variable ordering heuristics.</p>
 </dd>
-<dt><strong>Automata Learning</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/automata</span></code>)</dt><dd><p>Apply active learning to infer automata from examples for string constraint solving and program verification.</p>
+<dt><strong>Automata Learning</strong> (<code class="docutils literal notranslate"><span class="pre">aria/automata</span></code>)</dt><dd><p>Apply active learning to infer automata from examples for string constraint solving and program verification.</p>
 </dd>
 </dl>
 </section>
 <section id="advanced-sampling-enumeration">
 <h2>Advanced Sampling &amp; Enumeration<a class="headerlink" href="#advanced-sampling-enumeration" title="Link to this heading"></a></h2>
 <dl class="simple">
-<dt><strong>Uniform Sampling</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/sampling</span></code>)</dt><dd><p>Develop algorithms for uniform solution sampling over complex constraint domains. Applications in probabilistic verification.</p>
+<dt><strong>Uniform Sampling</strong> (<code class="docutils literal notranslate"><span class="pre">aria/sampling</span></code>)</dt><dd><p>Develop algorithms for uniform solution sampling over complex constraint domains. Applications in probabilistic verification.</p>
 </dd>
-<dt><strong>AllSMT Algorithms</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/allsmt</span></code>)</dt><dd><p>Enumerate all solutions efficiently. Focus on diversity metrics and incremental solving techniques.</p>
+<dt><strong>AllSMT Algorithms</strong> (<code class="docutils literal notranslate"><span class="pre">aria/allsmt</span></code>)</dt><dd><p>Enumerate all solutions efficiently. Focus on diversity metrics and incremental solving techniques.</p>
 </dd>
 <dt><strong>Solution Space Analysis</strong></dt><dd><p>Implement tools for analyzing solution spaces, including backbone computation and minimal unsatisfiable core extraction.</p>
 </dd>
@@ -179,28 +179,28 @@
 <section id="quantifier-handling">
 <h2>Quantifier Handling<a class="headerlink" href="#quantifier-handling" title="Link to this heading"></a></h2>
 <dl class="simple">
-<dt><strong>Quantifier Elimination</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/quant/qe</span></code>)</dt><dd><p>Develop QE procedures for mixed theories combining arithmetic, bit-vectors, and arrays.</p>
+<dt><strong>Quantifier Elimination</strong> (<code class="docutils literal notranslate"><span class="pre">aria/quant/qe</span></code>)</dt><dd><p>Develop QE procedures for mixed theories combining arithmetic, bit-vectors, and arrays.</p>
 </dd>
-<dt><strong>E-Matching Optimization</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/quant/ematching</span></code>)</dt><dd><p>Improve quantifier instantiation through better pattern matching and trigger selection.</p>
+<dt><strong>E-Matching Optimization</strong> (<code class="docutils literal notranslate"><span class="pre">aria/quant/ematching</span></code>)</dt><dd><p>Improve quantifier instantiation through better pattern matching and trigger selection.</p>
 </dd>
-<dt><strong>CHC Solving</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/quant/chctools</span></code>)</dt><dd><p>Scale algorithms for constrained Horn clause solving. Applications in program verification and synthesis.</p>
+<dt><strong>CHC Solving</strong> (<code class="docutils literal notranslate"><span class="pre">aria/quant/chctools</span></code>)</dt><dd><p>Scale algorithms for constrained Horn clause solving. Applications in program verification and synthesis.</p>
 </dd>
 </dl>
 </section>
 <section id="applications-tools">
 <h2>Applications &amp; Tools<a class="headerlink" href="#applications-tools" title="Link to this heading"></a></h2>
 <dl class="simple">
-<dt><strong>Interactive Theorem Proving</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/itp</span></code>)</dt><dd><p>Build proof assistant tools with support for multiple theories and automated proof search.</p>
+<dt><strong>Interactive Theorem Proving</strong> (<code class="docutils literal notranslate"><span class="pre">aria/itp</span></code>)</dt><dd><p>Build proof assistant tools with support for multiple theories and automated proof search.</p>
 </dd>
-<dt><strong>Program Synthesis</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/synthesis</span></code>)</dt><dd><p>Implement syntax-guided synthesis techniques for bit-vectors, arithmetic, and string domains.</p>
+<dt><strong>Program Synthesis</strong> (<code class="docutils literal notranslate"><span class="pre">aria/synthesis</span></code>)</dt><dd><p>Implement syntax-guided synthesis techniques for bit-vectors, arithmetic, and string domains.</p>
 </dd>
-<dt><strong>Abductive Reasoning</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/abduction</span></code>)</dt><dd><p>Develop algorithms for generating explanations and hypotheses from constraint observations.</p>
+<dt><strong>Abductive Reasoning</strong> (<code class="docutils literal notranslate"><span class="pre">aria/abduction</span></code>)</dt><dd><p>Develop algorithms for generating explanations and hypotheses from constraint observations.</p>
 </dd>
 </dl>
 </section>
 <section id="getting-started">
 <h2>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading"></a></h2>
-<p>Each module includes examples and documentation. Start with <code class="docutils literal notranslate"><span class="pre">arlib/allsmt</span></code> for basic usage patterns, then explore specialized areas based on your interests.</p>
+<p>Each module includes examples and documentation. Start with <code class="docutils literal notranslate"><span class="pre">aria/allsmt</span></code> for basic usage patterns, then explore specialized areas based on your interests.</p>
 </section>
 </section>
 
@@ -208,14 +208,14 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to arlib’s Documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to aria’s Documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="applications.html" class="btn btn-neutral float-right" title="Applications" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024-2025, ZJU Automated Reasoning Group.</p>
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

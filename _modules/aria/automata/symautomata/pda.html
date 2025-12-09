@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>arlib.automata.symautomata.alphabet &mdash; Arlib Documentation</title>
+  <title>aria.automata.symautomata.pda &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
 
@@ -29,7 +29,7 @@
           
           
           <a href="../../../../index.html" class="icon icon-home">
-            Arlib
+            ARIA
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
@@ -71,7 +71,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../optimization.html">Optimization Modulo Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../pcdclt.html">Parallel SMT CDCL(T) Solving</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../prob.html">Probabilistic Reasoning (arlib/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../prob.html">Probabilistic Reasoning (aria/prob)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../quantifiers.html">Playing wth Quantifiers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../sampling.html">Model Sampling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../smt.html">SMT Solving</a></li>
@@ -97,7 +97,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../../../index.html">Arlib</a>
+          <a href="../../../../index.html">ARIA</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -106,7 +106,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
-      <li class="breadcrumb-item active">arlib.automata.symautomata.alphabet</li>
+      <li class="breadcrumb-item active">aria.automata.symautomata.pda</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -115,43 +115,58 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <h1>Source code for arlib.automata.symautomata.alphabet</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os.path</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
-<span class="sd">&quot;&quot;&quot;This module configures that alphabet.&quot;&quot;&quot;</span>
+  <h1>Source code for aria.automata.symautomata.pda</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;This module contains the PDA implementation&quot;&quot;&quot;</span>
+<span class="c1"># !/usr/bin/python</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Checking for pythonpda module:&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;OK&#39;</span><span class="p">)</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.pythonpda</span><span class="w"> </span><span class="kn">import</span> <span class="n">PythonPDA</span><span class="p">,</span> <span class="n">PDAState</span>
+
+<div class="viewcode-block" id="PDA">
+<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pda.PDA">[docs]</a>
+    <span class="k">class</span><span class="w"> </span><span class="nc">PDA</span><span class="p">(</span><span class="n">PythonPDA</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;This is the structure for a PDA&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="PDA.shortest_string">
+<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pda.PDA.shortest_string">[docs]</a>
+        <span class="k">def</span><span class="w"> </span><span class="nf">shortest_string</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Uses BFS in order to find the shortest string</span>
+<span class="sd">            Args:</span>
+<span class="sd">                None</span>
+<span class="sd">            Returns:</span>
+<span class="sd">                str: The shortest string</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.pdadiff</span><span class="w"> </span><span class="kn">import</span> <span class="n">PdaDiff</span>
+            <span class="n">ops</span> <span class="o">=</span> <span class="n">PdaDiff</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">)</span>
+            <span class="n">ops</span><span class="o">.</span><span class="n">mmc</span> <span class="o">=</span> <span class="bp">self</span>
+            <span class="k">return</span> <span class="n">ops</span><span class="o">.</span><span class="n">get_string</span><span class="p">()</span></div>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_load_alphabet</span><span class="p">(</span><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Load a file containing the characters of the alphabet.</span>
-<span class="sd">    Every unique character contained in this file will be used as a symbol</span>
-<span class="sd">    in the alphabet.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()))</span>
+<div class="viewcode-block" id="PDA.diff">
+<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pda.PDA.diff">[docs]</a>
+        <span class="k">def</span><span class="w"> </span><span class="nf">diff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mmb</span><span class="p">):</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Automata Diff operation</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.pdadiff</span><span class="w"> </span><span class="kn">import</span> <span class="n">PdaDiff</span>
+            <span class="n">ops</span> <span class="o">=</span> <span class="n">PdaDiff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mmb</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">)</span>
+            <span class="n">mmc</span> <span class="o">=</span> <span class="n">ops</span><span class="o">.</span><span class="n">diff</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">mmc</span></div>
+</div>
 
-<div class="viewcode-block" id="createalphabet">
-<a class="viewcode-back" href="../../../../symautomata.html#arlib.automata.symautomata.alphabet.createalphabet">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">createalphabet</span><span class="p">(</span><span class="n">alphabetinput</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Creates a sample alphabet containing printable ASCII characters</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">alphabetinput</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">alphabetinput</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">_load_alphabet</span><span class="p">(</span><span class="n">alphabetinput</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">alphabetinput</span><span class="p">:</span>
-        <span class="n">alpha</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">setlist</span> <span class="o">=</span> <span class="n">alphabetinput</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">alphaset</span> <span class="ow">in</span> <span class="n">setlist</span><span class="p">:</span>
-            <span class="n">a</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">alphaset</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
-            <span class="n">b</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">alphaset</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
-                <span class="n">alpha</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">unichr</span><span class="p">(</span><span class="n">i</span><span class="p">)))</span>
-        <span class="k">return</span> <span class="n">alpha</span>
-    <span class="n">alpha</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">127</span><span class="p">):</span>
-        <span class="n">alpha</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">unichr</span><span class="p">(</span><span class="n">i</span><span class="p">)))</span>
-    <span class="k">return</span> <span class="n">alpha</span></div>
 
+        <span class="c1">#def  consume_input(self, str):</span>
+        <span class="c1">#    &quot;&quot;&quot;</span>
+        <span class="c1">#    Not implemented</span>
+        <span class="c1">#    &quot;&quot;&quot;</span>
+        <span class="c1">#    return 0xffff</span>
+
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;FAIL&#39;</span><span class="p">)</span>
 </pre></div>
 
            </div>
@@ -161,7 +176,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024-2025, ZJU Automated Reasoning Group.</p>
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

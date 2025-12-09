@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Context-Free Language Reachability &mdash; Arlib Documentation</title>
+  <title>Context-Free Language Reachability &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -32,7 +32,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            Arlib
+            ARIA
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -60,11 +60,11 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="#components">Components</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#cfl-solvers-arlib-cfl-cfl-solver-py">CFL Solvers (<code class="docutils literal notranslate"><span class="pre">arlib/cfl/cfl_solver.py</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#dynamic-transitive-closure-arlib-cfl-cfl-dtc-py-arlib-cfl-dtc-py">Dynamic Transitive Closure (<code class="docutils literal notranslate"><span class="pre">arlib/cfl/cfl_dtc.py</span></code>, <code class="docutils literal notranslate"><span class="pre">arlib/cfl/dtc.py</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#grammar-support-arlib-cfl-grammar-py">Grammar Support (<code class="docutils literal notranslate"><span class="pre">arlib/cfl/grammar.py</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#matrix-based-algorithms-arlib-cfl-matrix-py-arlib-cfl-pag-matrix-py">Matrix-Based Algorithms (<code class="docutils literal notranslate"><span class="pre">arlib/cfl/matrix.py</span></code>, <code class="docutils literal notranslate"><span class="pre">arlib/cfl/pag_matrix.py</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#strong-component-reduction-arlib-cfl-sc-solver-py">Strong Component Reduction (<code class="docutils literal notranslate"><span class="pre">arlib/cfl/sc_solver.py</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cfl-solvers-aria-cfl-cfl-solver-py">CFL Solvers (<code class="docutils literal notranslate"><span class="pre">aria/cfl/cfl_solver.py</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dynamic-transitive-closure-aria-cfl-cfl-dtc-py-aria-cfl-dtc-py">Dynamic Transitive Closure (<code class="docutils literal notranslate"><span class="pre">aria/cfl/cfl_dtc.py</span></code>, <code class="docutils literal notranslate"><span class="pre">aria/cfl/dtc.py</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#grammar-support-aria-cfl-grammar-py">Grammar Support (<code class="docutils literal notranslate"><span class="pre">aria/cfl/grammar.py</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#matrix-based-algorithms-aria-cfl-matrix-py-aria-cfl-pag-matrix-py">Matrix-Based Algorithms (<code class="docutils literal notranslate"><span class="pre">aria/cfl/matrix.py</span></code>, <code class="docutils literal notranslate"><span class="pre">aria/cfl/pag_matrix.py</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#strong-component-reduction-aria-cfl-sc-solver-py">Strong Component Reduction (<code class="docutils literal notranslate"><span class="pre">aria/cfl/sc_solver.py</span></code>)</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="#applications">Applications</a></li>
@@ -84,7 +84,7 @@
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pcdclt.html">Parallel SMT CDCL(T) Solving</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (arlib/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (aria/prob)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
@@ -110,7 +110,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Arlib</a>
+          <a href="index.html">ARIA</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -133,7 +133,7 @@
 </section>
 <section id="introduction">
 <h1>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h1>
-<p>The CFL module (<code class="docutils literal notranslate"><span class="pre">arlib/cfl</span></code>) implements algorithms for context-free language (CFL) reachability analysis, a powerful framework for program analysis problems including points-to analysis, interprocedural dataflow analysis, and shape analysis.</p>
+<p>The CFL module (<code class="docutils literal notranslate"><span class="pre">aria/cfl</span></code>) implements algorithms for context-free language (CFL) reachability analysis, a powerful framework for program analysis problems including points-to analysis, interprocedural dataflow analysis, and shape analysis.</p>
 <section id="key-features">
 <h2>Key Features<a class="headerlink" href="#key-features" title="Link to this heading"></a></h2>
 <ul class="simple">
@@ -147,10 +147,10 @@
 </section>
 <section id="components">
 <h1>Components<a class="headerlink" href="#components" title="Link to this heading"></a></h1>
-<section id="cfl-solvers-arlib-cfl-cfl-solver-py">
-<h2>CFL Solvers (<code class="docutils literal notranslate"><span class="pre">arlib/cfl/cfl_solver.py</span></code>)<a class="headerlink" href="#cfl-solvers-arlib-cfl-cfl-solver-py" title="Link to this heading"></a></h2>
+<section id="cfl-solvers-aria-cfl-cfl-solver-py">
+<h2>CFL Solvers (<code class="docutils literal notranslate"><span class="pre">aria/cfl/cfl_solver.py</span></code>)<a class="headerlink" href="#cfl-solvers-aria-cfl-cfl-solver-py" title="Link to this heading"></a></h2>
 <p>Core CFL-reachability solving:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.cfl</span><span class="w"> </span><span class="kn">import</span> <span class="n">CFLSolver</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.cfl</span><span class="w"> </span><span class="kn">import</span> <span class="n">CFLSolver</span>
 
 <span class="c1"># Create solver for CFL-reachability</span>
 <span class="n">solver</span> <span class="o">=</span> <span class="n">CFLSolver</span><span class="p">()</span>
@@ -164,10 +164,10 @@
 </pre></div>
 </div>
 </section>
-<section id="dynamic-transitive-closure-arlib-cfl-cfl-dtc-py-arlib-cfl-dtc-py">
-<h2>Dynamic Transitive Closure (<code class="docutils literal notranslate"><span class="pre">arlib/cfl/cfl_dtc.py</span></code>, <code class="docutils literal notranslate"><span class="pre">arlib/cfl/dtc.py</span></code>)<a class="headerlink" href="#dynamic-transitive-closure-arlib-cfl-cfl-dtc-py-arlib-cfl-dtc-py" title="Link to this heading"></a></h2>
+<section id="dynamic-transitive-closure-aria-cfl-cfl-dtc-py-aria-cfl-dtc-py">
+<h2>Dynamic Transitive Closure (<code class="docutils literal notranslate"><span class="pre">aria/cfl/cfl_dtc.py</span></code>, <code class="docutils literal notranslate"><span class="pre">aria/cfl/dtc.py</span></code>)<a class="headerlink" href="#dynamic-transitive-closure-aria-cfl-cfl-dtc-py-aria-cfl-dtc-py" title="Link to this heading"></a></h2>
 <p>Dynamic transitive closure algorithms including quantum-inspired methods:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.cfl.cfl_dtc</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumDTC</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.cfl.cfl_dtc</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumDTC</span>
 
 <span class="c1"># Quantum-inspired dynamic transitive closure</span>
 <span class="n">dtc</span> <span class="o">=</span> <span class="n">QuantumDTC</span><span class="p">()</span>
@@ -175,8 +175,8 @@
 </pre></div>
 </div>
 </section>
-<section id="grammar-support-arlib-cfl-grammar-py">
-<h2>Grammar Support (<code class="docutils literal notranslate"><span class="pre">arlib/cfl/grammar.py</span></code>)<a class="headerlink" href="#grammar-support-arlib-cfl-grammar-py" title="Link to this heading"></a></h2>
+<section id="grammar-support-aria-cfl-grammar-py">
+<h2>Grammar Support (<code class="docutils literal notranslate"><span class="pre">aria/cfl/grammar.py</span></code>)<a class="headerlink" href="#grammar-support-aria-cfl-grammar-py" title="Link to this heading"></a></h2>
 <p>Context-free grammar manipulation:</p>
 <ul class="simple">
 <li><p>Grammar parsing and validation</p></li>
@@ -185,10 +185,10 @@
 <li><p>Grammar normalization</p></li>
 </ul>
 </section>
-<section id="matrix-based-algorithms-arlib-cfl-matrix-py-arlib-cfl-pag-matrix-py">
-<h2>Matrix-Based Algorithms (<code class="docutils literal notranslate"><span class="pre">arlib/cfl/matrix.py</span></code>, <code class="docutils literal notranslate"><span class="pre">arlib/cfl/pag_matrix.py</span></code>)<a class="headerlink" href="#matrix-based-algorithms-arlib-cfl-matrix-py-arlib-cfl-pag-matrix-py" title="Link to this heading"></a></h2>
+<section id="matrix-based-algorithms-aria-cfl-matrix-py-aria-cfl-pag-matrix-py">
+<h2>Matrix-Based Algorithms (<code class="docutils literal notranslate"><span class="pre">aria/cfl/matrix.py</span></code>, <code class="docutils literal notranslate"><span class="pre">aria/cfl/pag_matrix.py</span></code>)<a class="headerlink" href="#matrix-based-algorithms-aria-cfl-matrix-py-aria-cfl-pag-matrix-py" title="Link to this heading"></a></h2>
 <p>Matrix formulations for efficient CFL-reachability:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.cfl.pag_matrix</span><span class="w"> </span><span class="kn">import</span> <span class="n">PAGMatrix</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.cfl.pag_matrix</span><span class="w"> </span><span class="kn">import</span> <span class="n">PAGMatrix</span>
 
 <span class="c1"># Program assignment graph as matrix</span>
 <span class="n">pag</span> <span class="o">=</span> <span class="n">PAGMatrix</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span>
@@ -196,10 +196,10 @@
 </pre></div>
 </div>
 </section>
-<section id="strong-component-reduction-arlib-cfl-sc-solver-py">
-<h2>Strong Component Reduction (<code class="docutils literal notranslate"><span class="pre">arlib/cfl/sc_solver.py</span></code>)<a class="headerlink" href="#strong-component-reduction-arlib-cfl-sc-solver-py" title="Link to this heading"></a></h2>
+<section id="strong-component-reduction-aria-cfl-sc-solver-py">
+<h2>Strong Component Reduction (<code class="docutils literal notranslate"><span class="pre">aria/cfl/sc_solver.py</span></code>)<a class="headerlink" href="#strong-component-reduction-aria-cfl-sc-solver-py" title="Link to this heading"></a></h2>
 <p>Optimization using strongly connected components:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.cfl.sc_solver</span><span class="w"> </span><span class="kn">import</span> <span class="n">SCReducer</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.cfl.sc_solver</span><span class="w"> </span><span class="kn">import</span> <span class="n">SCReducer</span>
 
 <span class="c1"># Reduce problem via SCC decomposition</span>
 <span class="n">reducer</span> <span class="o">=</span> <span class="n">SCReducer</span><span class="p">()</span>
@@ -240,7 +240,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024-2025, ZJU Automated Reasoning Group.</p>
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

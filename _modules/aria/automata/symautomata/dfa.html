@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>arlib.automata.symautomata.dfa &mdash; Arlib Documentation</title>
+  <title>aria.automata.symautomata.dfa &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
 
@@ -29,7 +29,7 @@
           
           
           <a href="../../../../index.html" class="icon icon-home">
-            Arlib
+            ARIA
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
@@ -71,7 +71,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../optimization.html">Optimization Modulo Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../pcdclt.html">Parallel SMT CDCL(T) Solving</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../prob.html">Probabilistic Reasoning (arlib/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../prob.html">Probabilistic Reasoning (aria/prob)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../quantifiers.html">Playing wth Quantifiers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../sampling.html">Model Sampling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../smt.html">SMT Solving</a></li>
@@ -97,7 +97,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../../../index.html">Arlib</a>
+          <a href="../../../../index.html">ARIA</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -106,7 +106,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
-      <li class="breadcrumb-item active">arlib.automata.symautomata.dfa</li>
+      <li class="breadcrumb-item active">aria.automata.symautomata.dfa</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -115,19 +115,19 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <h1>Source code for arlib.automata.symautomata.dfa</h1><div class="highlight"><pre>
+  <h1>Source code for aria.automata.symautomata.dfa</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;This module contains the DFA implementation&quot;&quot;&quot;</span>
 <span class="c1"># !/usr/bin/python</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">importlib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">arlib.automata.symautomata.alphabet</span><span class="w"> </span><span class="kn">import</span> <span class="n">createalphabet</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.alphabet</span><span class="w"> </span><span class="kn">import</span> <span class="n">createalphabet</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">operator</span><span class="w"> </span><span class="kn">import</span> <span class="n">attrgetter</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">importlib.util</span>
 
 
 <div class="viewcode-block" id="bfs">
-<a class="viewcode-back" href="../../../../symautomata.html#arlib.automata.symautomata.dfa.bfs">[docs]</a>
+<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.dfa.bfs">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">bfs</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">start</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Finds the shortest string using BFS</span>
@@ -174,7 +174,7 @@
         <span class="c1">#print &#39;Checking for openfst_python module:&#39;,</span>
         <span class="c1">#importlib.util.find_spec(&#39;openfst_python&#39;)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;OK&#39;</span><span class="p">)</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">arlib.automata.symautomata.pywrapfstdfa</span><span class="w"> </span><span class="kn">import</span> <span class="n">PywrapfstDFA</span><span class="p">,</span> <span class="n">TropicalWeight</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.pywrapfstdfa</span><span class="w"> </span><span class="kn">import</span> <span class="n">PywrapfstDFA</span><span class="p">,</span> <span class="n">TropicalWeight</span>
         <span class="c1">#import openfst_python as fst</span>
         <span class="kn">import</span><span class="w"> </span><span class="nn">pywrapfst</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fst</span>
 
@@ -234,7 +234,7 @@
 <span class="sd">                Returns:</span>
 <span class="sd">                    str: A regex approximation</span>
 <span class="sd">                &quot;&quot;&quot;</span>
-                <span class="kn">from</span><span class="w"> </span><span class="nn">arlib.automata.symautomata.regex</span><span class="w"> </span><span class="kn">import</span> <span class="n">Regex</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.regex</span><span class="w"> </span><span class="kn">import</span> <span class="n">Regex</span>
                 <span class="n">converter</span> <span class="o">=</span> <span class="n">Regex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">converter</span><span class="o">.</span><span class="n">get_regex</span><span class="p">()</span>
 
@@ -244,7 +244,7 @@
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Checking for fst module:&#39;</span><span class="p">)</span>
         <span class="n">importlib</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">find_spec</span><span class="p">(</span><span class="s1">&#39;fst&#39;</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;OK&#39;</span><span class="p">)</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">arlib.automata.symautomata.fstdfa</span><span class="w"> </span><span class="kn">import</span> <span class="n">FstDFA</span><span class="p">,</span> <span class="n">TropicalWeight</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.fstdfa</span><span class="w"> </span><span class="kn">import</span> <span class="n">FstDFA</span><span class="p">,</span> <span class="n">TropicalWeight</span>
 
 
         <span class="k">class</span><span class="w"> </span><span class="nc">DFA</span><span class="p">(</span><span class="n">FstDFA</span><span class="p">):</span>
@@ -293,14 +293,14 @@
 <span class="sd">                Returns:</span>
 <span class="sd">                    str: A regex approximation</span>
 <span class="sd">                &quot;&quot;&quot;</span>
-                <span class="kn">from</span><span class="w"> </span><span class="nn">arlib.automata.symautomata.regex</span><span class="w"> </span><span class="kn">import</span> <span class="n">Regex</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.regex</span><span class="w"> </span><span class="kn">import</span> <span class="n">Regex</span>
                 <span class="n">converter</span> <span class="o">=</span> <span class="n">Regex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">converter</span><span class="o">.</span><span class="n">get_regex</span><span class="p">()</span>
 
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;FAIL&#39;</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Fallback to python implementation:OK&#39;</span><span class="p">)</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">arlib.automata.symautomata.pythondfa</span><span class="w"> </span><span class="kn">import</span> <span class="n">PythonDFA</span><span class="p">,</span> <span class="n">TropicalWeight</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.pythondfa</span><span class="w"> </span><span class="kn">import</span> <span class="n">PythonDFA</span><span class="p">,</span> <span class="n">TropicalWeight</span>
 
         <span class="k">class</span><span class="w"> </span><span class="nc">DFA</span><span class="p">(</span><span class="n">PythonDFA</span><span class="p">):</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;The DFA class implemented using python&quot;&quot;&quot;</span>
@@ -357,7 +357,7 @@
 <span class="sd">                Returns:</span>
 <span class="sd">                    str: A regex approximation</span>
 <span class="sd">                &quot;&quot;&quot;</span>
-                <span class="kn">from</span><span class="w"> </span><span class="nn">arlib.automata.symautomata.regex</span><span class="w"> </span><span class="kn">import</span> <span class="n">Regex</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.regex</span><span class="w"> </span><span class="kn">import</span> <span class="n">Regex</span>
                 <span class="n">converter</span> <span class="o">=</span> <span class="n">Regex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">converter</span><span class="o">.</span><span class="n">get_regex</span><span class="p">()</span>
 </pre></div>
@@ -369,7 +369,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024-2025, ZJU Automated Reasoning Group.</p>
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

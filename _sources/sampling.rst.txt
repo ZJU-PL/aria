@@ -43,7 +43,7 @@ Key Concepts
 
 
 ==========
-Model Sampling in Arlib
+Model Sampling in Aria
 ==========
 
 

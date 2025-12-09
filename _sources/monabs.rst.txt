@@ -5,7 +5,7 @@ Monadic Predicate Abstraction
 Introduction to Monadic Predicate Abstraction
 ===============
 
-Given a formula F and a set of predicates {P1, ..., Pn}, monadic predicate abstraction decides for 
+Given a formula F and a set of predicates {P1, ..., Pn}, monadic predicate abstraction decides for
 each Pi whether F and Pi is satisfiable or not. This is a fundamental operation in many program analysis
 and verification tasks.
 
@@ -16,10 +16,10 @@ Applications:
 - In static analysis, monadic predicate abstraction can help determine which branches are feasible.
 
 ==========
-Monadic Predicate Abstraction in Arlib
+Monadic Predicate Abstraction in Aria
 ==========
 
-Arlib provides several implementations of monadic predicate abstraction with different performance characteristics:
+Aria provides several implementations of monadic predicate abstraction with different performance characteristics:
 
 1. **Unary Check** (`unary_check.py`): Basic implementation that checks each predicate individually.
    - `unary_check`: Standard implementation
@@ -41,8 +41,8 @@ Usage Example
 
 ```python
 import z3
-from arlib.monabs.unary_check import unary_check
-from arlib.monabs.dis_check import disjunctive_check_incremental
+from aria.monabs.unary_check import unary_check
+from aria.monabs.dis_check import disjunctive_check_incremental
 
 # Define variables
 x, y, z = z3.Ints('x y z')
