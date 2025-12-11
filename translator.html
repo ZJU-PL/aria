@@ -1,0 +1,455 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Translator Module &mdash; ARIA Documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=a74d790d"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            ARIA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="topics.html">Research Topics and Thesis Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="applications.html">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="abduction.html">Abduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="allsmt.html">AllSMT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="automata.html">Automata</a></li>
+<li class="toctree-l1"><a class="reference internal" href="automata.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="automata.html#components">Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="automata.html#applications">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="automata.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backbone.html">Backbone Computation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cfl.html">Context-Free Language Reachability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cfl.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cfl.html#components">Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cfl.html#applications">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cfl.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chctools.html">Constrained Horn Clauses (CHC) Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="counting.html">Model Counting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ff.html">SMT Solving for Finite Field</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ff.html#theory-reference-finite-fields">Theory Reference: Finite Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ff.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="itp.html">Interactive Theorem Proving (ITP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="llm.html">LLM Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="llm.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="llm.html#components">Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="llm.html#applications">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="llm.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monabs.html">Monadic Predicate Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pcdclt.html">Parallel SMT CDCL(T) Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (aria/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="srk.html">SRK Symbolic Reasoning Kit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="symbolic_abstraction.html">Symbolic Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="symautomata.html">Symbolic Finite Automata</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synthesis.html">Program Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synthesis.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synthesis.html#components">Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synthesis.html#applications">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synthesis.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="unification.html">Unification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="unification.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="unification.html#components">Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="unification.html#applications">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="unification.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="unsat_core.html">UNSAT Core Extraction</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ARIA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Translator Module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/translator.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="translator-module">
+<h1>Translator Module<a class="headerlink" href="#translator-module" title="Link to this heading"></a></h1>
+</section>
+<section id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h1>
+<p>The translator module (<code class="docutils literal notranslate"><span class="pre">aria/translator</span></code>) provides format conversion utilities for various logic constraint representations. It enables translation between different formats used in automated reasoning, including DIMACS, QDIMACS, SMT-LIB2, SyGuS, and others.</p>
+<section id="key-features">
+<h2>Key Features<a class="headerlink" href="#key-features" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>DIMACS to SMT-LIB2</strong>: Convert CNF formulas to SMT2 format</p></li>
+<li><p><strong>QDIMACS to SMT-LIB2</strong>: Convert quantified Boolean formulas to SMT2 format</p></li>
+<li><p><strong>SMT-LIB2 to C</strong>: Generate C code from SMT formulas</p></li>
+<li><p><strong>SMT-LIB2 to SymPy</strong>: Convert SMT formulas to SymPy expressions</p></li>
+<li><p><strong>SyGuS to SMT-LIB2</strong>: Convert SyGuS synthesis instances to SMT2</p></li>
+<li><p><strong>WCNF to Z3</strong>: Convert weighted CNF to Z3 optimizer instances</p></li>
+<li><p><strong>CNF to Linear Programming</strong>: Convert CNF to LP format</p></li>
+<li><p><strong>FlatZinc to OMT</strong>: Convert FlatZinc to Optimization Modulo Theory formats</p></li>
+</ul>
+</section>
+</section>
+<section id="components">
+<h1>Components<a class="headerlink" href="#components" title="Link to this heading"></a></h1>
+<section id="dimacs-to-smt-lib2-aria-translator-dimacs2smt-py">
+<h2>DIMACS to SMT-LIB2 (<code class="docutils literal notranslate"><span class="pre">aria/translator/dimacs2smt.py</span></code>)<a class="headerlink" href="#dimacs-to-smt-lib2-aria-translator-dimacs2smt-py" title="Link to this heading"></a></h2>
+<p>Converts DIMACS CNF files to SMT-LIB2 format. Supports both command-line usage and programmatic API.</p>
+<p><strong>Command-line usage:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>aria.translator.dimacs2smt<span class="w"> </span>input.cnf<span class="w"> </span>-o<span class="w"> </span>output.smt2<span class="w"> </span>-l<span class="w"> </span>QF_UF
+</pre></div>
+</div>
+<p><strong>Programmatic usage:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.translator</span><span class="w"> </span><span class="kn">import</span> <span class="n">dimacs2smt</span>
+
+<span class="n">output_path</span> <span class="o">=</span> <span class="n">dimacs2smt</span><span class="o">.</span><span class="n">convert_dimacs_to_smt2</span><span class="p">(</span>
+    <span class="n">input_path</span><span class="o">=</span><span class="s2">&quot;input.cnf&quot;</span><span class="p">,</span>
+    <span class="n">output_path</span><span class="o">=</span><span class="s2">&quot;output.smt2&quot;</span><span class="p">,</span>
+    <span class="n">logic</span><span class="o">=</span><span class="s2">&quot;QF_UF&quot;</span><span class="p">,</span>
+    <span class="n">var_prefix</span><span class="o">=</span><span class="s2">&quot;v_&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Features:</strong>
+* Supports QF_UF and QF_BV logics
+* Customizable variable name prefixes
+* Preserves comments from DIMACS files
+* Handles empty clauses gracefully</p>
+</section>
+<section id="qdimacs-to-smt-lib2-aria-translator-qbf2smt-py">
+<h2>QDIMACS to SMT-LIB2 (<code class="docutils literal notranslate"><span class="pre">aria/translator/qbf2smt.py</span></code>)<a class="headerlink" href="#qdimacs-to-smt-lib2-aria-translator-qbf2smt-py" title="Link to this heading"></a></h2>
+<p>Converts QDIMACS (quantified Boolean formula) files to SMT-LIB2 format using UFBV logic. Uses bit-vector variables to compactly encode multiple Boolean variables.</p>
+<p><strong>Command-line usage:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>aria.translator.qbf2smt<span class="w"> </span>input.qdimacs
+</pre></div>
+</div>
+<p><strong>Features:</strong>
+* Converts quantifier prefixes (forall/exists) to SMT quantifiers
+* Uses bit-vectors for efficient encoding
+* Preserves quantifier structure
+* Outputs UFBV logic compatible with SMT solvers</p>
+<p><strong>Example:</strong></p>
+<p>The translator converts QDIMACS quantifier blocks like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">a</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">0</span>
+<span class="n">e</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">0</span>
+</pre></div>
+</div>
+<p>To SMT-LIB2 quantifiers:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">forall</span> <span class="p">((</span><span class="n">vec1</span> <span class="p">(</span><span class="n">_</span> <span class="n">BitVec</span> <span class="mi">2</span><span class="p">)))</span>
+<span class="p">(</span><span class="n">exists</span> <span class="p">((</span><span class="n">vec2</span> <span class="p">(</span><span class="n">_</span> <span class="n">BitVec</span> <span class="mi">2</span><span class="p">)))</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+</section>
+<section id="cnf-to-smt-lib2-aria-translator-cnf2smt-py">
+<h2>CNF to SMT-LIB2 (<code class="docutils literal notranslate"><span class="pre">aria/translator/cnf2smt.py</span></code>)<a class="headerlink" href="#cnf-to-smt-lib2-aria-translator-cnf2smt-py" title="Link to this heading"></a></h2>
+<p>Converts CNF formulas to Z3 expressions and SMT-LIB2 format. Provides parsing utilities for DIMACS strings and files.</p>
+<p><strong>Usage:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.translator</span><span class="w"> </span><span class="kn">import</span> <span class="n">cnf2smt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
+
+<span class="c1"># Parse DIMACS file to Z3 expression</span>
+<span class="n">formula</span> <span class="o">=</span> <span class="n">cnf2smt</span><span class="o">.</span><span class="n">dimacs_to_z3</span><span class="p">(</span><span class="s2">&quot;input.cnf&quot;</span><span class="p">)</span>
+
+<span class="c1"># Check satisfiability</span>
+<span class="n">solver</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Solver</span><span class="p">()</span>
+<span class="n">solver</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">formula</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">check</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>Functions:</strong>
+* <code class="docutils literal notranslate"><span class="pre">parse_dimacs(filename)</span></code>: Parse DIMACS file, returns (num_vars, num_clauses, clauses)
+* <code class="docutils literal notranslate"><span class="pre">parse_dimacs_string(dimacs_str)</span></code>: Parse DIMACS string
+* <code class="docutils literal notranslate"><span class="pre">dimacs_to_z3(filename)</span></code>: Convert DIMACS file to Z3 expression
+* <code class="docutils literal notranslate"><span class="pre">dimacs_string_to_z3(dimacs_str)</span></code>: Convert DIMACS string to Z3 expression
+* <code class="docutils literal notranslate"><span class="pre">int_clauses_to_z3(clauses)</span></code>: Convert integer clause list to Z3 expression</p>
+</section>
+<section id="cnf-to-linear-programming-aria-translator-cnf2lp-py">
+<h2>CNF to Linear Programming (<code class="docutils literal notranslate"><span class="pre">aria/translator/cnf2lp.py</span></code>)<a class="headerlink" href="#cnf-to-linear-programming-aria-translator-cnf2lp-py" title="Link to this heading"></a></h2>
+<p>Converts CNF formulas to linear programming (LP) format, useful for logic programming applications.</p>
+<p><strong>Usage:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.translator</span><span class="w"> </span><span class="kn">import</span> <span class="n">cnf2lp</span>
+
+<span class="n">cnf2lp</span><span class="o">.</span><span class="n">cnf2lp</span><span class="p">(</span><span class="s2">&quot;input.cnf&quot;</span><span class="p">,</span> <span class="s2">&quot;output.lp&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Output format:</strong></p>
+<p>Each clause is converted to an LP rule:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">p1</span> <span class="o">|</span> <span class="n">p2</span> <span class="p">:</span><span class="o">-</span> <span class="n">p3</span><span class="p">,</span> <span class="n">p4</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>Where positive literals appear in the head and negative literals in the body.</p>
+</section>
+<section id="smt-lib2-to-c-aria-translator-smt2c-py">
+<h2>SMT-LIB2 to C (<code class="docutils literal notranslate"><span class="pre">aria/translator/smt2c.py</span></code>)<a class="headerlink" href="#smt-lib2-to-c-aria-translator-smt2c-py" title="Link to this heading"></a></h2>
+<p>Generates C code from SMT-LIB2 formulas, useful for model counting and solution enumeration.</p>
+<p><strong>Usage:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>aria.translator.smt2c<span class="w"> </span>input.smt2<span class="w"> </span>-o<span class="w"> </span>output.c
+</pre></div>
+</div>
+<p><strong>Features:</strong>
+* Generates C code for model counting
+* Supports bit-vector operations
+* Includes modulo arithmetic helper functions
+* Can generate SAT checking code</p>
+</section>
+<section id="smt-lib2-to-sympy-aria-translator-smt2sympy-py">
+<h2>SMT-LIB2 to SymPy (<code class="docutils literal notranslate"><span class="pre">aria/translator/smt2sympy.py</span></code>)<a class="headerlink" href="#smt-lib2-to-sympy-aria-translator-smt2sympy-py" title="Link to this heading"></a></h2>
+<p>Converts SMT-LIB2 formulas to SymPy symbolic expressions for symbolic manipulation and analysis.</p>
+<p><strong>Usage:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.translator</span><span class="w"> </span><span class="kn">import</span> <span class="n">smt2sympy</span>
+
+<span class="n">sympy_expr</span> <span class="o">=</span> <span class="n">smt2sympy</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">smt_formula</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Features:</strong>
+* Preserves formula structure
+* Enables symbolic computation with SymPy
+* Supports arithmetic and Boolean operations</p>
+</section>
+<section id="sygus-to-smt-lib2-aria-translator-sygus2smt-py">
+<h2>SyGuS to SMT-LIB2 (<code class="docutils literal notranslate"><span class="pre">aria/translator/sygus2smt.py</span></code>)<a class="headerlink" href="#sygus-to-smt-lib2-aria-translator-sygus2smt-py" title="Link to this heading"></a></h2>
+<p>Converts SyGuS (Syntax-Guided Synthesis) instances to SMT-LIB2 format for use with SMT solvers.</p>
+<p><strong>Usage:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>aria.translator.sygus2smt<span class="w"> </span>--file<span class="w"> </span>input.sl
+</pre></div>
+</div>
+<p><strong>Conversion process:</strong>
+* Replaces <code class="docutils literal notranslate"><span class="pre">synth-fun</span></code> with <code class="docutils literal notranslate"><span class="pre">declare-fun</span></code>
+* Converts <code class="docutils literal notranslate"><span class="pre">declare-var</span></code> to <code class="docutils literal notranslate"><span class="pre">declare-const</span></code>
+* Transforms <code class="docutils literal notranslate"><span class="pre">constraint</span></code> to <code class="docutils literal notranslate"><span class="pre">assert</span></code>
+* Replaces <code class="docutils literal notranslate"><span class="pre">check-synth</span></code> with <code class="docutils literal notranslate"><span class="pre">check-sat</span></code>
+* Handles BitVec type annotations</p>
+</section>
+<section id="weighted-cnf-to-z3-aria-translator-wcnf2z3-py">
+<h2>Weighted CNF to Z3 (<code class="docutils literal notranslate"><span class="pre">aria/translator/wcnf2z3.py</span></code>)<a class="headerlink" href="#weighted-cnf-to-z3-aria-translator-wcnf2z3-py" title="Link to this heading"></a></h2>
+<p>Converts weighted CNF (WCNF) files to Z3 Optimize instances for partial weighted MaxSAT solving.</p>
+<p><strong>Usage:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.translator</span><span class="w"> </span><span class="kn">import</span> <span class="n">wcnf2z3</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">z3</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">opt</span><span class="p">,</span> <span class="n">soft_constraints</span> <span class="o">=</span> <span class="n">wcnf2z3</span><span class="o">.</span><span class="n">construct_z3_optimizer</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s2">&quot;input.wcnf&quot;</span><span class="p">))</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">check</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>Features:</strong>
+* Distinguishes hard and soft constraints
+* Uses Z3’s soft constraint API
+* Preserves clause weights
+* Supports partial MaxSAT instances</p>
+<p><strong>WCNF format:</strong>
+* Hard constraints have weight equal to <code class="docutils literal notranslate"><span class="pre">top</span></code>
+* Soft constraints have weight less than <code class="docutils literal notranslate"><span class="pre">top</span></code>
+* Format: <code class="docutils literal notranslate"><span class="pre">p</span> <span class="pre">wcnf</span> <span class="pre">&lt;vars&gt;</span> <span class="pre">&lt;clauses&gt;</span> <span class="pre">&lt;top&gt;</span></code></p>
+</section>
+<section id="flatzinc-to-omt-aria-translator-fzn2omt">
+<h2>FlatZinc to OMT (<code class="docutils literal notranslate"><span class="pre">aria/translator/fzn2omt/</span></code>)<a class="headerlink" href="#flatzinc-to-omt-aria-translator-fzn2omt" title="Link to this heading"></a></h2>
+<p>Converts FlatZinc constraint programming instances to Optimization Modulo Theory (OMT) formats for various solvers.</p>
+<p><strong>Supported solvers:</strong>
+* <strong>Z3</strong> (<code class="docutils literal notranslate"><span class="pre">fzn2z3.py</span></code>): Converts to Z3 optimization format
+* <strong>CVC4</strong> (<code class="docutils literal notranslate"><span class="pre">fzn2cvc4.py</span></code>): Converts to CVC4 OMT format
+* <strong>OptiMathSAT</strong> (<code class="docutils literal notranslate"><span class="pre">fzn2optimathsat.py</span></code>): Converts to OptiMathSAT format</p>
+<p><strong>Common utilities</strong> (<code class="docutils literal notranslate"><span class="pre">common.py</span></code>):
+* Shared parsing and conversion functions
+* Constraint mapping utilities
+* Variable declaration helpers</p>
+<p><strong>Model conversion</strong> (<code class="docutils literal notranslate"><span class="pre">smt2model2fzn.py</span></code>):
+* Converts SMT2 model output back to FlatZinc format
+* Useful for round-trip conversions</p>
+</section>
+</section>
+<section id="command-line-interface-aria-cli-fmldoc-py">
+<h1>Command-Line Interface (<code class="docutils literal notranslate"><span class="pre">aria/cli/fmldoc.py</span></code>)<a class="headerlink" href="#command-line-interface-aria-cli-fmldoc-py" title="Link to this heading"></a></h1>
+<p>A unified command-line interface for format translation with auto-detection capabilities.</p>
+<p><strong>Translate command:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>aria-fmldoc<span class="w"> </span>translate<span class="w"> </span>-i<span class="w"> </span>input.cnf<span class="w"> </span>-o<span class="w"> </span>output.smt2<span class="w"> </span>--input-format<span class="w"> </span>dimacs<span class="w"> </span>--output-format<span class="w"> </span>smtlib2
+</pre></div>
+</div>
+<p><strong>Auto-detect formats:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>aria-fmldoc<span class="w"> </span>translate<span class="w"> </span>-i<span class="w"> </span>input.cnf<span class="w"> </span>-o<span class="w"> </span>output.smt2<span class="w"> </span>--auto-detect
+</pre></div>
+</div>
+<p><strong>Supported format pairs:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">dimacs</span></code> → <code class="docutils literal notranslate"><span class="pre">smtlib2</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dimacs</span></code> → <code class="docutils literal notranslate"><span class="pre">lp</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dimacs</span></code> → <code class="docutils literal notranslate"><span class="pre">sympy</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">qdimacs</span></code> → <code class="docutils literal notranslate"><span class="pre">smtlib2</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sygus</span></code> → <code class="docutils literal notranslate"><span class="pre">smtlib2</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">smtlib2</span></code> → <code class="docutils literal notranslate"><span class="pre">c</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">smtlib2</span></code> → <code class="docutils literal notranslate"><span class="pre">sympy</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wcnf</span></code> → <code class="docutils literal notranslate"><span class="pre">smtlib2</span></code></p></li>
+</ul>
+<p><strong>Other commands:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">validate</span></code>: Validate file format correctness</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">analyze</span></code>: Analyze constraint properties (variable counts, clause counts, etc.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">batch</span></code>: Batch process multiple files</p></li>
+</ul>
+<p><strong>Format detection:</strong></p>
+<p>The CLI can auto-detect formats from file extensions:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">.cnf</span></code> → <code class="docutils literal notranslate"><span class="pre">dimacs</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.qdimacs</span></code> → <code class="docutils literal notranslate"><span class="pre">qdimacs</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.smt2</span></code> → <code class="docutils literal notranslate"><span class="pre">smtlib2</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.sy</span></code> → <code class="docutils literal notranslate"><span class="pre">sygus</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.lp</span></code> → <code class="docutils literal notranslate"><span class="pre">lp</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.fzn</span></code> → <code class="docutils literal notranslate"><span class="pre">fzn</span></code></p></li>
+</ul>
+</section>
+<section id="examples">
+<h1>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h1>
+<section id="converting-dimacs-to-smt-lib2">
+<h2>Converting DIMACS to SMT-LIB2<a class="headerlink" href="#converting-dimacs-to-smt-lib2" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.translator</span><span class="w"> </span><span class="kn">import</span> <span class="n">dimacs2smt</span>
+
+<span class="c1"># Convert DIMACS CNF to SMT2</span>
+<span class="n">dimacs2smt</span><span class="o">.</span><span class="n">convert_dimacs_to_smt2</span><span class="p">(</span>
+    <span class="s2">&quot;formula.cnf&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;formula.smt2&quot;</span><span class="p">,</span>
+    <span class="n">logic</span><span class="o">=</span><span class="s2">&quot;QF_UF&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="converting-qdimacs-to-smt-lib2">
+<h2>Converting QDIMACS to SMT-LIB2<a class="headerlink" href="#converting-qdimacs-to-smt-lib2" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.translator</span><span class="w"> </span><span class="kn">import</span> <span class="n">qbf2smt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+
+<span class="c1"># Convert QDIMACS file</span>
+<span class="n">qbf2smt</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s2">&quot;formula.qdimacs&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="using-cnf-to-z3-conversion">
+<h2>Using CNF to Z3 conversion<a class="headerlink" href="#using-cnf-to-z3-conversion" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.translator</span><span class="w"> </span><span class="kn">import</span> <span class="n">cnf2smt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
+
+<span class="c1"># Load CNF and check satisfiability</span>
+<span class="n">formula</span> <span class="o">=</span> <span class="n">cnf2smt</span><span class="o">.</span><span class="n">dimacs_to_z3</span><span class="p">(</span><span class="s2">&quot;instance.cnf&quot;</span><span class="p">)</span>
+<span class="n">solver</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Solver</span><span class="p">()</span>
+<span class="n">solver</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">formula</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">solver</span><span class="o">.</span><span class="n">check</span><span class="p">()</span> <span class="o">==</span> <span class="n">z3</span><span class="o">.</span><span class="n">sat</span><span class="p">:</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Satisfiable:&quot;</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="weighted-maxsat-with-z3">
+<h2>Weighted MaxSAT with Z3<a class="headerlink" href="#weighted-maxsat-with-z3" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.translator</span><span class="w"> </span><span class="kn">import</span> <span class="n">wcnf2z3</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">z3</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># Load weighted CNF</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;instance.wcnf&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">opt</span><span class="p">,</span> <span class="n">soft</span> <span class="o">=</span> <span class="n">wcnf2z3</span><span class="o">.</span><span class="n">construct_z3_optimizer</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+<span class="c1"># Solve MaxSAT</span>
+<span class="k">if</span> <span class="n">opt</span><span class="o">.</span><span class="n">check</span><span class="p">()</span> <span class="o">==</span> <span class="n">sat</span><span class="p">:</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Optimal solution found&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="applications">
+<h1>Applications<a class="headerlink" href="#applications" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p><strong>Format interoperability</strong>: Convert between different constraint formats</p></li>
+<li><p><strong>Solver integration</strong>: Prepare inputs for various SMT and SAT solvers</p></li>
+<li><p><strong>Model counting</strong>: Generate C code for efficient model enumeration</p></li>
+<li><p><strong>Symbolic analysis</strong>: Convert to SymPy for symbolic manipulation</p></li>
+<li><p><strong>Synthesis</strong>: Convert SyGuS instances for SMT-based synthesis</p></li>
+<li><p><strong>Optimization</strong>: Convert weighted constraints for MaxSAT solving</p></li>
+<li><p><strong>Constraint programming</strong>: Bridge between FlatZinc and OMT solvers</p></li>
+</ul>
+</section>
+<section id="references">
+<h1>References<a class="headerlink" href="#references" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p><a class="reference external" href="http://www.satcompetition.org/2009/format-benchmarks2009.html">DIMACS CNF Format</a></p></li>
+<li><p><a class="reference external" href="http://www.qbflib.org/qdimacs.html">QDIMACS Format</a></p></li>
+<li><p><a class="reference external" href="http://smtlib.cs.uiowa.edu/">SMT-LIB2 Standard</a></p></li>
+<li><p><a class="reference external" href="https://sygus.org/">SyGuS Format</a></p></li>
+<li><p><a class="reference external" href="https://www.minizinc.org/doc-2.5.5/en/flattening.html">FlatZinc Format</a></p></li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
