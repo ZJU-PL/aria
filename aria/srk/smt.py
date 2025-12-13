@@ -287,8 +287,16 @@ class Z3Solver(SMTSolver):
                 return env[name]
             return self._srk_to_z3_symbol(expr.symbol)
         elif isinstance(expr, Var):
-            # Represent variables as Z3 constants by id and type
-            return self.z3.Const(f"v{expr.var_id}", self._z3_sort_from_type(expr.var_type))
+            # Use bound variable from the environment when available, otherwise
+            # create (and record) a symbolic constant tied to the SRK symbol table.
+            if expr.name and expr.name in env:
+                return env[expr.name]
+
+            symbol = self.context._symbols.get(expr.var_id) if hasattr(self.context, "_symbols") else None
+            if symbol is None:
+                symbol = Symbol(expr.var_id, expr.name, expr.var_type)
+
+            return self._srk_to_z3_symbol(symbol)
         elif isinstance(expr, Eq):
             return self._srk_to_z3_expr_with_env(expr.left, env) == self._srk_to_z3_expr_with_env(expr.right, env)
         elif isinstance(expr, Lt):

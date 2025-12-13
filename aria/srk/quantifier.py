@@ -136,12 +136,24 @@ def normalize(srk: Any, phi: Any) -> Tuple[QuantifierPrefix, Any]:
     Returns:
         (quantifier_prefix, quantifier_free_formula)
     """
-    from .syntax import Formula, prenex, destruct, mk_eq, mk_leq, mk_lt, mk_sub, mk_real, QQ
+    from .syntax import Formula, prenex, destruct, mk_eq, mk_leq, mk_lt, mk_sub, mk_real, QQ, mk_symbol
 
     # Convert to prenex form
     phi = prenex(srk, phi)
 
     qf_pre = []
+
+    def resolve_symbol(name, typ):
+        """Reuse existing named symbol when available to preserve ids."""
+        try:
+            if name is not None and hasattr(srk, "is_registered_name") and srk.is_registered_name(name):
+                sym = srk.get_named_symbol(name)
+                if sym.typ == typ:
+                    return sym
+        except Exception:
+            # Fall back to creating a fresh symbol if lookup fails
+            pass
+        return mk_symbol(srk, name=name, typ=typ)
 
     def process(formula):
         """Recursively process quantifiers."""
@@ -150,12 +162,21 @@ def normalize(srk: Any, phi: Any) -> Tuple[QuantifierPrefix, Any]:
         if match and match[0] == 'Quantify':
             qt, name, typ, psi = match[1:]
 
-            from .syntax import mk_symbol
-            k = mk_symbol(srk, name=name, typ=typ)
+            k = resolve_symbol(name, typ)
 
             inner_prefix, inner_formula = process(psi)
 
             qt_str = 'Forall' if qt == 'forall' else 'Exists'
+            return ([(qt_str, k)] + inner_prefix, inner_formula)
+        elif match and match[0] in ('Exists', 'Forall'):
+            # Handle Exists/Forall directly from destruct
+            var_name, var_type, body = match[1]
+
+            k = resolve_symbol(var_name, var_type)
+
+            inner_prefix, inner_formula = process(body)
+
+            qt_str = match[0]  # 'Exists' or 'Forall'
             return ([(qt_str, k)] + inner_prefix, inner_formula)
         else:
             # Base case: quantifier-free
@@ -182,7 +203,7 @@ def normalize(srk: Any, phi: Any) -> Tuple[QuantifierPrefix, Any]:
 
                 return expr
 
-            normalized = rewrite(srk, normalize_atom, formula)
+            normalized = rewrite(formula, normalize_atom)
             return ([], normalized)
 
     return process(phi)
@@ -542,12 +563,43 @@ def mbp_virtual_term(srk: Any, interp: Any, x: Any, atoms: List[Any]) -> Virtual
     Returns:
         Virtual term for x
     """
-    from .linear import QQVector, linterm_of, evaluate_linterm, pivot
+    from .linear import QQVector, linterm_of
+
+    def value_of(sym):
+        """Get a rational value for a symbol using either Interpretation or SMTModel."""
+        try:
+            return interp.real(sym)
+        except Exception:
+            pass
+
+        if hasattr(interp, "get_value"):
+            val = interp.get_value(sym)
+            if isinstance(val, Fraction):
+                return val
+            if isinstance(val, (int, float)):
+                return Fraction(val)
+
+        return None
+
+    def evaluate_linterm(eval_fn, term):
+        total = Fraction(0)
+        for dim, coeff in term.entries.items():
+            # Map dimension back to a symbol if possible
+            sym = None
+            try:
+                sym = srk._symbols.get(dim)
+            except Exception:
+                pass
+
+            val = eval_fn(sym if sym is not None else dim)
+            if val is None:
+                return None
+            total += coeff * Fraction(val)
+        return total
 
     # Get the value of x in the model
-    try:
-        x_val = interp.real(x)
-    except:
+    x_val = value_of(x)
+    if x_val is None:
         return VirtualTerm('MinusInfinity')
 
     # Find bounds on x
@@ -665,9 +717,9 @@ def virtual_substitution(srk: Any, x: Any, vt: VirtualTerm, phi: Any) -> Any:
             elif vt.kind == 'MinusInfinity':
                 # x = -∞
                 if a < 0:
-                    return mk_false(srk)
+                    return mk_false()
                 else:
-                    return mk_true(srk)
+                    return mk_true()
 
             elif vt.kind == 'PlusEpsilon':
                 # x = t + ε
@@ -710,30 +762,159 @@ def mbp(srk: Any, exists: Callable[[Any], bool], phi: Any, dnf: bool = False) ->
     Returns:
         Quantifier-free formula
     """
-    from .smt import mk_solver, Solver
-    from .syntax import mk_not, mk_or, mk_and, mk_false, symbols as get_symbols
+    from .smt import mk_solver, Solver, SMTResult
+    from .syntax import (mk_not, mk_or, mk_and, mk_false, mk_true, symbols as get_symbols,
+                        Var, Symbol, ExpressionVisitor)
+
+    # Extract symbols from constants
+    all_symbols = get_symbols(phi)
+
+    # Also extract variables and convert them to symbols
+    class VariableExtractor(ExpressionVisitor[Set[Symbol]]):
+        """Extract variables and convert them to symbols."""
+        def visit_var(self, var: Var) -> Set[Symbol]:
+            # Create a symbol from the variable's id and type
+            return {Symbol(var.var_id, None, var.var_type)}
+
+        def visit_const(self, const) -> Set[Symbol]:
+            return set()
+
+        def visit_app(self, app) -> Set[Symbol]:
+            result = set()
+            for arg in app.args:
+                result.update(arg.accept(self))
+            return result
+
+        def visit_select(self, select) -> Set[Symbol]:
+            result = select.array.accept(self)
+            result.update(select.index.accept(self))
+            return result
+
+        def visit_store(self, store) -> Set[Symbol]:
+            result = store.array.accept(self)
+            result.update(store.index.accept(self))
+            result.update(store.value.accept(self))
+            return result
+
+        def visit_add(self, add) -> Set[Symbol]:
+            result = set()
+            for arg in add.args:
+                result.update(arg.accept(self))
+            return result
+
+        def visit_mul(self, mul) -> Set[Symbol]:
+            result = set()
+            for arg in mul.args:
+                result.update(arg.accept(self))
+            return result
+
+        def visit_ite(self, ite) -> Set[Symbol]:
+            result = ite.condition.accept(self)
+            result.update(ite.then_branch.accept(self))
+            result.update(ite.else_branch.accept(self))
+            return result
+
+        def visit_true(self, true_expr) -> Set[Symbol]:
+            return set()
+
+        def visit_false(self, false_expr) -> Set[Symbol]:
+            return set()
+
+        def visit_and(self, and_expr) -> Set[Symbol]:
+            result = set()
+            for arg in and_expr.args:
+                result.update(arg.accept(self))
+            return result
+
+        def visit_or(self, or_expr) -> Set[Symbol]:
+            result = set()
+            for arg in or_expr.args:
+                result.update(arg.accept(self))
+            return result
+
+        def visit_not(self, not_expr) -> Set[Symbol]:
+            return not_expr.arg.accept(self)
+
+        def visit_eq(self, eq) -> Set[Symbol]:
+            result = eq.left.accept(self)
+            result.update(eq.right.accept(self))
+            return result
+
+        def visit_lt(self, lt) -> Set[Symbol]:
+            result = lt.left.accept(self)
+            result.update(lt.right.accept(self))
+            return result
+
+        def visit_leq(self, leq) -> Set[Symbol]:
+            result = leq.left.accept(self)
+            result.update(leq.right.accept(self))
+            return result
+
+        def visit_forall(self, forall) -> Set[Symbol]:
+            # Extract variables from the body of the forall
+            return forall.body.accept(self)
+
+        def visit_exists(self, exists) -> Set[Symbol]:
+            # Extract variables from the body of the exists
+            return exists.body.accept(self)
+
+    # Add symbols from variables
+    var_extractor = VariableExtractor()
+    var_symbols = phi.accept(var_extractor)
+    all_symbols.update(var_symbols)
 
     # Identify variables to project
-    all_symbols = get_symbols(phi)
-    project = {s for s in all_symbols if not exists(s)}
+    # The exists predicate matches based on symbol id (from qe_mbp change)
+    # So we need to find symbols whose id matches what exists() is looking for
+    # But also, we need to handle the case where variables in the formula have different ids
+    # than the quantifier symbols created by normalize
+
+    # Try to match symbols using the exists predicate
+    project = {s for s in all_symbols if exists(s)}
+
+    # If no matches, the issue might be that normalize created symbols with different IDs
+    # than the variables in the formula. In that case, we should still try to eliminate
+    # variables that appear in the formula. But we need the symbol from exists() to use for projection.
+    # Actually, since exists() checks s.id == x_id, and we create Symbols from Var's var_id,
+    # they should match if the var_id matches x_id. But normalize creates a new symbol, so they don't.
 
     if not project:
+        # No symbols matched - this might mean the variable IDs don't match
+        # For now, return phi (no elimination possible)
         return phi
+
+    remaining_vars = {s for s in var_symbols if s not in project}
 
     solver = mk_solver(srk)
     Solver.add(solver, [phi])
 
+    # If eliminating all variables and only constants remain, just check SAT/UNSAT.
+    if not remaining_vars:
+        status = Solver.check(solver, [])
+        if status == SMTResult.SAT:
+            return mk_true()
+        if status == SMTResult.UNSAT:
+            return mk_false()
     disjuncts = []
 
     while True:
-        model = Solver.get_model(solver)
+        status = Solver.check(solver, [])
 
-        if model is None or model == 'Unsat':
+        if status != SMTResult.SAT:
             break
 
-        # Get implicant from model
+        model = Solver.get_model(solver)
+
+        if model is None:
+            break
+
+        # Get implicant from model. SMTModel doesn't implement select_implicant,
+        # so fall back to using the whole formula as the implicant.
         from .interpretation import select_implicant
-        implicant = select_implicant(model, phi)
+        try:
+            implicant = select_implicant(model, phi)
+        except AttributeError:
+            implicant = [phi]
 
         if implicant is None:
             break
@@ -750,7 +931,7 @@ def mbp(srk: Any, exists: Callable[[Any], bool], phi: Any, dnf: bool = False) ->
         # Block this disjunct
         Solver.add(solver, [mk_not(srk, projected)])
 
-    return mk_or(srk, disjuncts) if disjuncts else mk_false(srk)
+    return mk_or(srk, disjuncts) if disjuncts else mk_false()
 
 
 def simsat(srk: Any, phi: Any) -> str:
@@ -798,11 +979,14 @@ def qe_mbp(srk: Any, phi: Any) -> Any:
     for qt, x in reversed(qf_pre):
         if qt == 'Exists':
             # Eliminate existential quantifier
-            result = mbp(srk, lambda s: s == x, result, dnf=True)
+            # Match by symbol id since normalize may create new Symbol objects
+            x_id = x.id
+            result = mbp(srk, lambda s: s.id == x_id, result, dnf=True)
         else:
             # Forall: ∀x.φ ≡ ¬∃x.¬φ
             from .syntax import mk_not
-            result = mk_not(srk, mbp(srk, lambda s: s == x, mk_not(srk, result), dnf=True))
+            x_id = x.id
+            result = mk_not(mbp(srk, lambda s: s.id == x_id, mk_not(result), dnf=True))
 
     return result
 
@@ -842,7 +1026,7 @@ def mk_divides(srk: Any, divisor: int, term: Any) -> Any:
         raise ValueError("Divisor must be positive")
 
     if divisor == 1:
-        return mk_true(srk)
+        return mk_true()
 
     # Simplify using GCD
     term_gcd = coefficient_gcd(term)
@@ -1180,7 +1364,7 @@ def cover_virtual_substitution(srk: Any, x: Any, vt: CoverVirtualTerm, phi: Any)
             match = destruct(expr)
             if match and match[0] == 'Atom':
                 if x in symbols(expr):
-                    return mk_true(srk)
+                    return mk_true()
             return expr
 
         return rewrite(srk, drop, phi)
@@ -1206,7 +1390,7 @@ def cover_virtual_substitution(srk: Any, x: Any, vt: CoverVirtualTerm, phi: Any)
 
             if result is None:
                 # Can't isolate: drop the constraint
-                return mk_true(srk)
+                return mk_true()
 
             a, b = result
 
@@ -1223,9 +1407,9 @@ def cover_virtual_substitution(srk: Any, x: Any, vt: CoverVirtualTerm, phi: Any)
 
             if vt.kind == 'MinusInfinity':
                 if a < 0:
-                    return mk_false(srk)
+                    return mk_false()
                 else:
-                    return mk_true(srk)
+                    return mk_true()
 
             elif vt.kind == 'PlusEpsilon':
                 # x = t + ε
@@ -1303,7 +1487,7 @@ def mbp_cover(srk: Any, exists: Callable[[Any], bool], phi: Any, dnf: bool = Tru
         # Block this disjunct
         Solver.add(solver, [mk_not(srk, disjunct)])
 
-    return mk_or(srk, disjuncts) if disjuncts else mk_false(srk)
+    return mk_or(srk, disjuncts) if disjuncts else mk_false()
 
 
 def cover_virtual_substitution_formula(srk: Any, project: Set[Any], model: Any, phi: Any) -> Any:
@@ -1443,7 +1627,7 @@ class Skeleton:
             replacement = term_of_int_virtual_term(srk, move.vt)
         elif isinstance(move, Skeleton.MBool):
             from .syntax import mk_true, mk_false
-            replacement = mk_true(srk) if move.value else mk_false(srk)
+            replacement = mk_true() if move.value else mk_false()
         else:
             return phi
         return substitute_const({x: replacement}, phi)

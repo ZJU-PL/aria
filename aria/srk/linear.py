@@ -410,21 +410,21 @@ class QQMatrix:
 
         # Convert to mutable list for row operations
         rows_list = [QQVector(row.entries.copy()) for row in self.rows]
-        
+
         # Get dimensions
         m = len(rows_list)
         if m == 0:
             return 0
-        
+
         # Find all column indices
         all_cols = set()
         for row in rows_list:
             all_cols.update(row.dimensions())
         if not all_cols:
             return 0
-        
+
         n = max(all_cols) + 1
-        
+
         rank = 0
         for col in range(n):
             # Find pivot in current column
@@ -445,7 +445,7 @@ class QQMatrix:
             pivot_coeff = rows_list[rank].get(col)
             if pivot_coeff == 0:
                 continue
-                
+
             for row_idx in range(rank + 1, m):
                 factor = rows_list[row_idx].get(col, QQ(0)) / pivot_coeff
                 if factor != 0:
@@ -630,19 +630,19 @@ class QQVectorSpace:
         """Check if a vector is in this vector space."""
         if not self.basis:
             return vector.is_zero()
-        
+
         # Check if vector is a linear combination of basis vectors
         # Build matrix with basis vectors as columns
         # Check if Ax = vector has a solution
-        
+
         # Get all dimensions
         all_dims = set(vector.dimensions())
         for basis_vec in self.basis:
             all_dims.update(basis_vec.dimensions())
-        
+
         if not all_dims:
             return vector.is_zero()
-        
+
         # Build coefficient matrix
         rows = []
         for dim in sorted(all_dims):
@@ -652,10 +652,10 @@ class QQVectorSpace:
                 if coeff != 0:
                     row_entries[i] = coeff
             rows.append(QQVector(row_entries))
-        
+
         A = QQMatrix(rows)
         b = QQVector({i: vector.get(dim, QQ(0)) for i, dim in enumerate(sorted(all_dims))})
-        
+
         # Try to solve Ax = b
         from .linear_utils import solve_linear_system
         solution = solve_linear_system(A, b)
@@ -665,18 +665,18 @@ class QQVectorSpace:
         """Intersection of two vector spaces."""
         if not self.basis or not other.basis:
             return QQVectorSpace([])
-        
+
         # Compute intersection using the sum of null spaces
         # V1 ∩ V2 = ker([B1 | -B2]^T) where B1, B2 are bases
-        
+
         # Get all dimensions
         all_dims = set()
         for vec in self.basis + other.basis:
             all_dims.update(vec.dimensions())
-        
+
         if not all_dims:
             return QQVectorSpace([])
-        
+
         # Build augmented matrix [B1 | -B2]
         rows = []
         for dim in sorted(all_dims):
@@ -692,7 +692,7 @@ class QQVectorSpace:
                 if coeff != 0:
                     row_entries[len(self.basis) + i] = -coeff
             rows.append(QQVector(row_entries))
-        
+
         # Compute null space (simplified)
         # For now, return empty intersection
         # A full implementation would compute the actual null space
@@ -778,10 +778,100 @@ def solve_linear_system(matrix, vector):
     from .linear_utils import solve_linear_system as _solve_linear_system
     return _solve_linear_system(matrix, vector)
 
-def linterm_of(expr):
-    """Extract linear term from expression."""
-    from .linear_utils import linterm_of as _linterm_of
-    return _linterm_of(expr)
+#
+# Compatibility helpers for symbolic linear terms
+#
+# Dimension 0 is reserved for the constant term; symbols/vars map to (id + 1).
+const_dim = 0
+
+def dim_of_sym(symbol) -> int:
+    """Map a symbol/var to a QQVector dimension (0 is reserved for constants)."""
+    if hasattr(symbol, "var_id"):
+        return int(symbol.var_id) + 1
+    if hasattr(symbol, "id"):
+        return int(symbol.id) + 1
+    if hasattr(symbol, "name") and symbol.name is not None:
+        return (hash(symbol.name) % 1000) + 1
+    return 1
+
+
+def linterm_of(*args):
+    """Extract a linear term (QQVector) from a syntax arithmetic expression.
+
+    Supports both calling conventions:
+    - linterm_of(expr)
+    - linterm_of(srk, expr)   (srk is ignored; accepted for compatibility)
+    """
+    if len(args) == 1:
+        expr = args[0]
+    elif len(args) == 2:
+        _, expr = args
+    else:
+        raise TypeError(f"linterm_of expects (expr) or (srk, expr), got {len(args)} args")
+
+    from fractions import Fraction
+    from .syntax import Var, Const, Add, Mul
+
+    def _const_as_fraction(c: Const) -> Fraction | None:
+        name = getattr(c.symbol, "name", None)
+        if not name:
+            return None
+        # Integers and rationals written as strings.
+        try:
+            return Fraction(name)
+        except Exception:
+            pass
+        # Real constants are encoded as "real_<float>".
+        if name.startswith("real_"):
+            try:
+                return Fraction(str(float(name[5:])))
+            except Exception:
+                return None
+        return None
+
+    def _scale(v: QQVector, k: Fraction) -> QQVector:
+        if k == 0 or not v.entries:
+            return QQVector()
+        return QQVector({d: Fraction(c) * k for d, c in v.entries.items() if Fraction(c) * k != 0})
+
+    def _add(vs: list[QQVector]) -> QQVector:
+        out: dict[int, Fraction] = {}
+        for v in vs:
+            for d, c in v.entries.items():
+                out[d] = out.get(d, Fraction(0)) + Fraction(c)
+                if out[d] == 0:
+                    del out[d]
+        return QQVector(out)
+
+    def rec(e) -> QQVector:
+        if isinstance(e, Var):
+            return QQVector({dim_of_sym(e): Fraction(1)})
+        if isinstance(e, Const):
+            k = _const_as_fraction(e)
+            if k is not None:
+                return QQVector({const_dim: k}) if k != 0 else QQVector()
+            # Treat uninterpreted constants as symbolic dimensions.
+            return QQVector({dim_of_sym(e.symbol): Fraction(1)})
+        if isinstance(e, Add):
+            return _add([rec(a) for a in e.args])
+        if isinstance(e, Mul):
+            scalar = Fraction(1)
+            non_scalar = []
+            for a in e.args:
+                if isinstance(a, Const):
+                    k = _const_as_fraction(a)
+                    if k is not None:
+                        scalar *= k
+                        continue
+                non_scalar.append(a)
+            if not non_scalar:
+                return QQVector({const_dim: scalar}) if scalar != 0 else QQVector()
+            if len(non_scalar) == 1:
+                return _scale(rec(non_scalar[0]), scalar)
+            raise ValueError("Nonlinear term encountered in linterm_of")
+        raise ValueError(f"Unsupported term in linterm_of: {type(e)}")
+
+    return rec(expr)
 
 def divide_right(a: QQMatrix, b: QQMatrix) -> Optional[QQMatrix]:
     """Solve for x in a * x = b.
@@ -900,8 +990,10 @@ def gram_schmidt(vectors):
 __all__ = [
     'Linear', 'QQVector', 'QQMatrix', 'QQVectorSpace',
     # Utility functions
-    'zero_vector', 'unit_vector', 'identity_matrix', 'vector_from_list', 
+    'zero_vector', 'unit_vector', 'identity_matrix', 'vector_from_list',
     'matrix_from_lists', 'mk_vector', 'mk_matrix', 'solve_linear_system', 'linterm_of',
+    # Symbol dimension helpers
+    'const_dim', 'dim_of_sym',
     # Advanced functions
     'to_numpy_matrix', 'from_numpy_matrix', 'rational_eigenvalues', 'eigenvectors',
     'matrix_power', 'determinant', 'matrix_inverse', 'qr_decomposition', 'svd',
@@ -917,20 +1009,13 @@ class Linear:
     QQVectorSpace = QQVectorSpace
 
     # Symbolic constants for dimensions
-    const_dim = 0
+    const_dim = const_dim
 
     @staticmethod
     def dim_of_sym(symbol) -> int:
-        """Get dimension of a symbol."""
-        # For now, return a simple mapping based on symbol name
-        if hasattr(symbol, 'var_id'):
-            return symbol.var_id
-        elif hasattr(symbol, 'name'):
-            # Simple hash for string names
-            return hash(symbol.name) % 1000
-        else:
-            return 0
-    
+        """Get dimension of a symbol (0 is reserved for constants)."""
+        return dim_of_sym(symbol)
+
     @staticmethod
     def _get_utility_functions():
         """Get utility functions with local import to avoid cyclic dependencies."""
@@ -949,7 +1034,7 @@ class Linear:
             'solve_linear_system': solve_linear_system,
             'linterm_of': linterm_of
         }
-    
+
     @staticmethod
     def _get_advanced_functions():
         """Get advanced functions with local import to avoid cyclic dependencies."""
@@ -975,17 +1060,17 @@ class Linear:
             }
         except ImportError:
             return {}
-    
+
     def __getattr__(self, name):
         """Dynamically load utility or advanced functions when accessed."""
         # Try utility functions first
         utility_funcs = self._get_utility_functions()
         if name in utility_funcs:
             return utility_funcs[name]
-        
+
         # Try advanced functions
         advanced_funcs = self._get_advanced_functions()
         if name in advanced_funcs:
             return advanced_funcs[name]
-        
+
         raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")

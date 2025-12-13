@@ -147,7 +147,7 @@ class Context:
 
         return symbol
 
-    def mk_var(self, var_id_or_symbol, typ: Type = None):
+    def mk_var(self, var_id_or_symbol, typ: Type = None, name: Optional[str] = None):
         """Create a variable expression.
 
         Can be called in two ways:
@@ -157,12 +157,12 @@ class Context:
         if isinstance(var_id_or_symbol, Symbol):
             # Called as mk_var(symbol) - use symbol's id and type
             symbol = var_id_or_symbol
-            return Var(symbol.id, symbol.typ)
+            return Var(symbol.id, symbol.typ, symbol.name)
         elif isinstance(var_id_or_symbol, int) and typ is not None:
             # Called as mk_var(var_id, typ) - use given ID and type
             if not isinstance(typ, Type):
                 raise TypeError(f"typ must be a Type enum value, got {type(typ)}")
-            return Var(var_id_or_symbol, typ)
+            return Var(var_id_or_symbol, typ, name)
         else:
             raise TypeError(f"mk_var expects (var_id, typ) or (symbol), got ({type(var_id_or_symbol)}, {type(typ)})")
 
@@ -422,6 +422,8 @@ class Var(Expression):
     """Variable expression."""
     var_id: int
     var_type: Type
+    # Optional human-friendly name carried from the originating symbol.
+    name: Optional[str] = None
 
     typ = Type.INT  # Variables are typed
 
@@ -434,6 +436,8 @@ class Var(Expression):
         return hash((self.var_id, self.var_type))
 
     def __str__(self) -> str:
+        if self.name:
+            return self.name
         return f"v{self.var_id}"
 
     def accept(self, visitor: ExpressionVisitor[T]) -> T:
@@ -1071,56 +1075,186 @@ def mk_var(*args) -> Var:
         raise TypeError(f"mk_var expects 1, 2, or 3 arguments, got {len(args)}")
 
 
-def mk_const(symbol: Symbol) -> Const:
-    """Create a constant in the default context."""
-    return _default_builder.mk_const(symbol)
+def mk_const(*args) -> Const:
+    """Create a constant expression.
+
+    Supports:
+    - mk_const(symbol) -> uses default context
+    - mk_const(context, symbol) -> uses explicit context
+    """
+    if len(args) == 1 and isinstance(args[0], Symbol):
+        (symbol,) = args
+        return _default_builder.mk_const(symbol)
+    elif len(args) == 2 and isinstance(args[0], Context) and isinstance(args[1], Symbol):
+        context, symbol = args
+        builder = make_expression_builder(context)
+        return builder.mk_const(symbol)
+    else:
+        raise TypeError(f"mk_const expects (symbol) or (context, symbol), got {len(args)} args")
 
 
-def mk_add(args: List[ArithExpression]) -> Add:
-    """Create an addition expression in the default context."""
-    return _default_builder.mk_add(args)
+def mk_add(*args) -> Add:
+    """Create an addition expression.
+
+    Supports:
+    - mk_add(args) -> uses default context
+    - mk_add(context, args) -> uses explicit context
+    """
+    if len(args) == 1:
+        (terms,) = args
+        return _default_builder.mk_add(terms)
+    elif len(args) == 2 and isinstance(args[0], Context):
+        context, terms = args
+        builder = make_expression_builder(context)
+        return builder.mk_add(terms)
+    else:
+        raise TypeError(f"mk_add expects (args) or (context, args), got {len(args)} args")
 
 
-def mk_mul(args: List[ArithExpression]) -> Mul:
-    """Create a multiplication expression in the default context."""
-    return _default_builder.mk_mul(args)
+def mk_mul(*args) -> Mul:
+    """Create a multiplication expression.
+
+    Supports:
+    - mk_mul(args) -> uses default context
+    - mk_mul(context, args) -> uses explicit context
+    """
+    if len(args) == 1:
+        (terms,) = args
+        return _default_builder.mk_mul(terms)
+    elif len(args) == 2 and isinstance(args[0], Context):
+        context, terms = args
+        builder = make_expression_builder(context)
+        return builder.mk_mul(terms)
+    else:
+        raise TypeError(f"mk_mul expects (args) or (context, args), got {len(args)} args")
 
 
-def mk_eq(left: ArithExpression, right: ArithExpression) -> Eq:
-    """Create an equality formula in the default context."""
-    return _default_builder.mk_eq(left, right)
+def mk_eq(*args) -> Eq:
+    """Create an equality formula.
+
+    Supports:
+    - mk_eq(left, right)
+    - mk_eq(context, left, right)
+    """
+    if len(args) == 2:
+        left, right = args
+        return _default_builder.mk_eq(left, right)
+    elif len(args) == 3 and isinstance(args[0], Context):
+        context, left, right = args
+        builder = make_expression_builder(context)
+        return builder.mk_eq(left, right)
+    else:
+        raise TypeError(f"mk_eq expects (left, right) or (context, left, right), got {len(args)} args")
 
 
-def mk_lt(left: ArithExpression, right: ArithExpression) -> Lt:
-    """Create a less-than formula in the default context."""
-    return _default_builder.mk_lt(left, right)
+def mk_lt(*args) -> Lt:
+    """Create a less-than formula.
+
+    Supports:
+    - mk_lt(left, right)
+    - mk_lt(context, left, right)
+    """
+    if len(args) == 2:
+        left, right = args
+        return _default_builder.mk_lt(left, right)
+    elif len(args) == 3 and isinstance(args[0], Context):
+        context, left, right = args
+        builder = make_expression_builder(context)
+        return builder.mk_lt(left, right)
+    else:
+        raise TypeError(f"mk_lt expects (left, right) or (context, left, right), got {len(args)} args")
 
 
-def mk_leq(left: ArithExpression, right: ArithExpression) -> Leq:
-    """Create a less-than-or-equal formula in the default context."""
-    return _default_builder.mk_leq(left, right)
+def mk_leq(*args) -> Leq:
+    """Create a less-than-or-equal formula.
+
+    Supports:
+    - mk_leq(left, right)
+    - mk_leq(context, left, right)
+    """
+    if len(args) == 2:
+        left, right = args
+        return _default_builder.mk_leq(left, right)
+    elif len(args) == 3 and isinstance(args[0], Context):
+        context, left, right = args
+        builder = make_expression_builder(context)
+        return builder.mk_leq(left, right)
+    else:
+        raise TypeError(f"mk_leq expects (left, right) or (context, left, right), got {len(args)} args")
 
 
-def mk_geq(left: ArithExpression, right: ArithExpression) -> Leq:
-    """Create a greater-than-or-equal formula in the default context."""
-    return _default_builder.mk_geq(left, right)
+def mk_geq(*args) -> Leq:
+    """Create a greater-than-or-equal formula.
+
+    Supports:
+    - mk_geq(left, right)
+    - mk_geq(context, left, right)
+    """
+    if len(args) == 2:
+        left, right = args
+        return _default_builder.mk_geq(left, right)
+    elif len(args) == 3 and isinstance(args[0], Context):
+        context, left, right = args
+        builder = make_expression_builder(context)
+        return builder.mk_geq(left, right)
+    else:
+        raise TypeError(f"mk_geq expects (left, right) or (context, left, right), got {len(args)} args")
 
 
-def mk_div(left: ArithExpression, right: ArithExpression) -> Mul:
-    """Create a division expression in the default context."""
-    return _default_builder.mk_div(left, right)
+def mk_div(*args) -> Mul:
+    """Create a division expression.
+
+    Supports:
+    - mk_div(left, right)
+    - mk_div(context, left, right)
+    """
+    if len(args) == 2:
+        left, right = args
+        return _default_builder.mk_div(left, right)
+    elif len(args) == 3 and isinstance(args[0], Context):
+        context, left, right = args
+        builder = make_expression_builder(context)
+        return builder.mk_div(left, right)
+    else:
+        raise TypeError(f"mk_div expects (left, right) or (context, left, right), got {len(args)} args")
 
 
-def mk_mod(left: ArithExpression, right: ArithExpression) -> Mul:
-    """Create a modulo expression in the default context."""
-    return _default_builder.mk_mod(left, right)
+def mk_mod(*args) -> Mul:
+    """Create a modulo expression.
+
+    Supports:
+    - mk_mod(left, right)
+    - mk_mod(context, left, right)
+    """
+    if len(args) == 2:
+        left, right = args
+        return _default_builder.mk_mod(left, right)
+    elif len(args) == 3 and isinstance(args[0], Context):
+        context, left, right = args
+        builder = make_expression_builder(context)
+        return builder.mk_mod(left, right)
+    else:
+        raise TypeError(f"mk_mod expects (left, right) or (context, left, right), got {len(args)} args")
 
 
-def mk_floor(arg: ArithExpression) -> App:
-    """Create a floor expression in the default context."""
-    # Floor function application: floor(arg)
-    floor_symbol = _default_builder.mk_symbol("floor", Type.FUN([Type.REAL], Type.INT))
-    return _default_builder.mk_app(floor_symbol, [arg])
+def mk_floor(*args) -> App:
+    """Create a floor expression.
+
+    Supports:
+    - mk_floor(arg)
+    - mk_floor(context, arg)
+    """
+    if len(args) == 1:
+        (arg,) = args
+        floor_symbol = _default_builder.mk_symbol("floor", Type.FUN([Type.REAL], Type.INT))
+        return _default_builder.mk_app(floor_symbol, [arg])
+    elif len(args) == 2 and isinstance(args[0], Context):
+        context, arg = args
+        builder = make_expression_builder(context)
+        floor_symbol = builder.mk_symbol("floor", Type.FUN([Type.REAL], Type.INT))
+        return builder.mk_app(floor_symbol, [arg])
+    else:
+        raise TypeError(f"mk_floor expects (arg) or (context, arg), got {len(args)} args")
 
 
 def mk_neg(arg: ArithExpression) -> Mul:
@@ -1165,24 +1299,138 @@ def mk_real(*args) -> Const:
         raise TypeError(f"mk_real expects (value) or (context, value), got {len(args)} args")
 
 
-def mk_and(args: List[FormulaExpression]) -> And:
-    """Create a conjunction formula in the default context."""
-    return _default_builder.mk_and(args)
+def of_linterm(srk: Context, term: Any) -> ArithExpression:
+    """Convert a linear term (QQVector) into a syntax expression.
+
+    This is a small compatibility shim for quantifier-elimination code which
+    builds/consumes linear terms as sparse vectors.
+    """
+    from fractions import Fraction
+    from .linear import const_dim as _const_dim
+
+    # Accept both QQVector-like objects and plain dicts.
+    entries = getattr(term, "entries", term)
+    if not isinstance(entries, dict):
+        raise TypeError(f"of_linterm expected QQVector or dict, got {type(term)}")
+
+    parts: List[ArithExpression] = []
+
+    const_coeff = entries.get(_const_dim, Fraction(0))
+    try:
+        const_coeff = Fraction(const_coeff)
+    except Exception:
+        const_coeff = Fraction(float(const_coeff))
+    if const_coeff != 0:
+        parts.append(mk_real(srk, const_coeff))
+
+    # Remaining dimensions encode variables; dimension 0 is reserved for the constant.
+    for dim, coeff in sorted(entries.items(), key=lambda kv: kv[0]):
+        if dim == _const_dim:
+            continue
+
+        try:
+            coeff = Fraction(coeff)
+        except Exception:
+            coeff = Fraction(float(coeff))
+
+        # See `linear.dim_of_sym`: variable id is encoded as (dim - 1).
+        var_id = int(dim) - 1
+
+        # Recover type/name from the context when possible.
+        var_type = Type.REAL
+        var_name: Optional[str] = None
+        try:
+            sym = getattr(srk, "_symbols", {}).get(var_id)
+            if sym is not None:
+                var_type = sym.typ
+                var_name = sym.name
+        except Exception:
+            pass
+
+        var = Var(var_id, var_type, var_name)
+
+        if coeff == 1:
+            parts.append(var)
+        elif coeff == -1:
+            parts.append(mk_mul(srk, [mk_real(srk, Fraction(-1)), var]))
+        else:
+            parts.append(mk_mul(srk, [mk_real(srk, coeff), var]))
+
+    if not parts:
+        return mk_real(srk, Fraction(0))
+    if len(parts) == 1:
+        return parts[0]
+    return mk_add(srk, parts)
 
 
-def mk_or(args: List[FormulaExpression]) -> Or:
-    """Create a disjunction formula in the default context."""
-    return _default_builder.mk_or(args)
+def mk_and(*args) -> And:
+    """Create a conjunction formula.
+
+    Supports:
+    - mk_and(args) -> uses default context
+    - mk_and(context, args) -> uses explicit context
+    """
+    if len(args) == 1:
+        (conjuncts,) = args
+        return _default_builder.mk_and(conjuncts)
+    elif len(args) == 2 and isinstance(args[0], Context):
+        context, conjuncts = args
+        builder = make_expression_builder(context)
+        return builder.mk_and(conjuncts)
+    else:
+        raise TypeError(f"mk_and expects (args) or (context, args), got {len(args)} args")
 
 
-def mk_true() -> TrueExpr:
-    """Create a true formula in the default context."""
-    return _default_builder.mk_true()
+def mk_or(*args) -> Or:
+    """Create a disjunction formula.
+
+    Supports:
+    - mk_or(args) -> uses default context
+    - mk_or(context, args) -> uses explicit context
+    """
+    if len(args) == 1:
+        (disjuncts,) = args
+        return _default_builder.mk_or(disjuncts)
+    elif len(args) == 2 and isinstance(args[0], Context):
+        context, disjuncts = args
+        builder = make_expression_builder(context)
+        return builder.mk_or(disjuncts)
+    else:
+        raise TypeError(f"mk_or expects (args) or (context, args), got {len(args)} args")
 
 
-def mk_false() -> FalseExpr:
-    """Create a false formula in the default context."""
-    return _default_builder.mk_false()
+def mk_true(*args) -> TrueExpr:
+    """Create a true formula.
+
+    Supports:
+    - mk_true() -> uses default context
+    - mk_true(context) -> uses explicit context
+    """
+    if len(args) == 0:
+        return _default_builder.mk_true()
+    elif len(args) == 1 and isinstance(args[0], Context):
+        context = args[0]
+        builder = make_expression_builder(context)
+        return builder.mk_true()
+    else:
+        raise TypeError(f"mk_true expects () or (context), got {len(args)} args")
+
+
+def mk_false(*args) -> FalseExpr:
+    """Create a false formula.
+
+    Supports:
+    - mk_false() -> uses default context
+    - mk_false(context) -> uses explicit context
+    """
+    if len(args) == 0:
+        return _default_builder.mk_false()
+    elif len(args) == 1 and isinstance(args[0], Context):
+        context = args[0]
+        builder = make_expression_builder(context)
+        return builder.mk_false()
+    else:
+        raise TypeError(f"mk_false expects () or (context), got {len(args)} args")
 
 
 def mk_exists(var_name: str, var_type: Type, body: FormulaExpression) -> Exists:
@@ -1200,9 +1448,22 @@ def mk_ite(condition: FormulaExpression, then_branch: Expression, else_branch: E
     return _default_builder.mk_ite(condition, then_branch, else_branch)
 
 
-def mk_not(arg: FormulaExpression) -> Not:
-    """Create a negation expression."""
-    return _default_builder.mk_not(arg)
+def mk_not(*args) -> Not:
+    """Create a negation expression.
+
+    Supports:
+    - mk_not(arg)
+    - mk_not(context, arg)
+    """
+    if len(args) == 1:
+        (arg,) = args
+        return _default_builder.mk_not(arg)
+    elif len(args) == 2 and isinstance(args[0], Context):
+        context, arg = args
+        builder = make_expression_builder(context)
+        return builder.mk_not(arg)
+    else:
+        raise TypeError(f"mk_not expects (arg) or (context, arg), got {len(args)} args")
 
 
 def mk_app(context_or_symbol: Union[Context, Symbol], symbol_or_args: Union[Symbol, List[Expression]], args: List[Expression] = None) -> App:
@@ -1459,9 +1720,44 @@ def substitute(expr: Expression, subst_map: Dict[Symbol, Expression]) -> Express
     return expr.accept(visitor)
 
 
-def rewrite(expr: Expression, down: Optional[Callable] = None, up: Optional[Callable] = None) -> Expression:
-    """Rewrite an expression using rewrite rules."""
-    # Placeholder implementation
+def rewrite(*args, down: Optional[Callable] = None, up: Optional[Callable] = None) -> Expression:
+    """Rewrite an expression using rewrite rules.
+
+    This module is used by components that follow the original SRK API, which
+    sometimes passes an explicit `Context` as the first argument. We accept
+    both calling conventions:
+
+    - rewrite(expr, down=..., up=...)
+    - rewrite(srk, expr, down=..., up=...)
+    - rewrite(srk, down_fn, expr)   (legacy positional form used in `quantifier.py`)
+    """
+    # Normalize arguments to (expr, down, up)
+    if not args:
+        raise TypeError("rewrite expects at least 1 positional argument")
+
+    if isinstance(args[0], Context):
+        if len(args) == 2:
+            _, expr = args
+        elif len(args) == 3 and callable(args[1]):
+            _, down_fn, expr = args
+            down = down_fn
+        elif len(args) == 3:
+            # rewrite(srk, expr, up_fn) legacy convenience
+            _, expr, up_fn = args
+            if callable(up_fn) and up is None:
+                up = up_fn
+        else:
+            raise TypeError(f"rewrite expects (srk, expr, ...) or (expr, ...), got {len(args)} args")
+    else:
+        expr = args[0]
+        if len(args) == 2 and down is None:
+            down = args[1]
+        elif len(args) == 3 and down is None and up is None:
+            down, up = args[1], args[2]
+        elif len(args) > 3:
+            raise TypeError(f"rewrite expects at most 3 positional args, got {len(args)}")
+
+    # Placeholder implementation (kept intentionally lightweight)
     return expr
 
 
@@ -1676,10 +1972,94 @@ def symbol_of_int(id: int) -> Symbol:
     return Symbol(id, f"s{id}", Type.INT)
 
 
-def substitute_const(subst: Dict[Symbol, Expression], expr: Expression) -> Expression:
-    """Substitute constants in an expression."""
-    # This is essentially the same as substitute, but might be used for different purposes
-    return substitute(expr, subst)
+def substitute_const(*args) -> Expression:
+    """Substitute constants in an expression.
+
+    Supported calling conventions:
+    - substitute_const(subst_map: Dict[Symbol, Expression], expr: Expression)
+    - substitute_const(srk: Context, f: Callable[[Symbol], Expression], expr: Expression)
+
+    The second form is used by some quantifier-elimination routines which pass a
+    context and a function deciding how to rewrite each constant symbol.
+    """
+    # Dict-based form (current simplified API)
+    if len(args) == 2 and isinstance(args[0], dict):
+        subst_map, expr = args
+        return substitute(expr, subst_map)
+
+    # Legacy SRK-style form
+    if len(args) == 3 and isinstance(args[0], Context) and callable(args[1]):
+        srk, f, expr = args
+
+        class ConstSubVisitor(ExpressionVisitor[Expression]):
+            def visit_const(self, const: Const) -> Expression:
+                sym = const.symbol
+                replacement = f(sym)
+                # Treat "identity replacement" as no-op to avoid needless churn.
+                try:
+                    if replacement == mk_const(srk, sym):
+                        return const
+                except Exception:
+                    pass
+                return replacement
+
+            def _default_visit(self, e: Expression) -> Expression:
+                return e
+
+            def visit_var(self, var: Var) -> Expression:
+                return var
+
+            def visit_app(self, app: App) -> Expression:
+                return App(app.symbol, tuple(arg.accept(self) for arg in app.args))
+
+            def visit_select(self, select: Select) -> Expression:
+                return Select(select.array.accept(self), select.index.accept(self))
+
+            def visit_store(self, store: Store) -> Expression:
+                return Store(store.array.accept(self), store.index.accept(self), store.value.accept(self))
+
+            def visit_add(self, add: Add) -> Expression:
+                return Add(tuple(arg.accept(self) for arg in add.args))
+
+            def visit_mul(self, mul: Mul) -> Expression:
+                return Mul(tuple(arg.accept(self) for arg in mul.args))
+
+            def visit_ite(self, ite: Ite) -> Expression:
+                return Ite(ite.condition.accept(self), ite.then_branch.accept(self), ite.else_branch.accept(self))
+
+            def visit_true(self, true_expr: TrueExpr) -> Expression:
+                return true_expr
+
+            def visit_false(self, false_expr: FalseExpr) -> Expression:
+                return false_expr
+
+            def visit_and(self, and_expr: And) -> Expression:
+                return And(tuple(arg.accept(self) for arg in and_expr.args))
+
+            def visit_or(self, or_expr: Or) -> Expression:
+                return Or(tuple(arg.accept(self) for arg in or_expr.args))
+
+            def visit_not(self, not_expr: Not) -> Expression:
+                return Not(not_expr.arg.accept(self))
+
+            def visit_eq(self, eq: Eq) -> Expression:
+                return Eq(eq.left.accept(self), eq.right.accept(self))
+
+            def visit_lt(self, lt: Lt) -> Expression:
+                return Lt(lt.left.accept(self), lt.right.accept(self))
+
+            def visit_leq(self, leq: Leq) -> Expression:
+                return Leq(leq.left.accept(self), leq.right.accept(self))
+
+            def visit_forall(self, forall: Forall) -> Expression:
+                return Forall(forall.var_name, forall.var_type, forall.body.accept(self))
+
+            def visit_exists(self, exists: Exists) -> Expression:
+                return Exists(exists.var_name, exists.var_type, exists.body.accept(self))
+
+        return expr.accept(ConstSubVisitor())
+
+    raise TypeError(f"substitute_const expects (dict, expr) or (context, f, expr), got {len(args)} args")
 
 
 def prenex(srk: Context, phi: Expression) -> Expression:
