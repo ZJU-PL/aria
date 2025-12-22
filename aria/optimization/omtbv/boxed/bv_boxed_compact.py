@@ -2,7 +2,10 @@
 This module implements a compact boxed optimization algorithm for bit-vector
 optimization problems, parsing SMT-LIB2 files with maximize/minimize commands.
 
-Be caraful: we use pysmt in this file...
+The algorithm is a bit-level re-design and imple of the interval abstraction algorithm in
+"OOPSLA 2021: Program Analysis via Efficient Symbolic Abstraction"
+
+TODO: we use pysmt in this file and have a pysmt-based parser here, which is a bit strange (since we have other algorithms that rely on z3-based parsing and solving, like bv_boxed_z3.py)
 """
 import os
 import subprocess
@@ -154,6 +157,29 @@ def check_assum(model, assums_obj: List[List[int]], unsol: List[int],
     return ass_index
 
 
+def res_2int(result: List[List[int]], objectives: List[List]) -> List[int]:
+    """Convert binary result lists to integer values.
+
+    Args:
+        result: List of binary result lists (0/1 values)
+        objectives: Original objectives list with [expression, direction] pairs
+                    where direction is 1 for maximize, 0 for minimize
+
+    Returns:
+        List of integer values, converted based on objective direction
+    """
+    res_int = []
+    for i in range(len(objectives)):
+        score = cnt(result[i])
+        if objectives[i][1] == 1:  # Maximize
+            res_int.append(score)
+        else:  # Minimize: invert the score
+            l = len(result[i])
+            score = 2 ** l - 1 - score
+            res_int.append(score)
+    return res_int
+
+
 def solve(formula, objectives: List[List]) -> List[List[int]]:
     """Compact boxed optimization using incremental SAT over bit slices.
 
@@ -183,6 +209,7 @@ def solve(formula, objectives: List[List]) -> List[List[int]]:
     unsol = list(range(len(objectives)))
     result = list([list() for _ in range(len(objectives))])
     res_clause = list([list() for _ in range(len(objectives))])  # Store results for each objective
+    # TODO: indeed, we seem to be solving a "Monadic Predicate Abstraction" problme here. See `aria/monabs`. Maybe we can replace to use the engines there (dis_check.py is exactly the following code)
     while len(unsol):  # While there are unsolved objectives
         assumption = {}  # Store assumptions for unsolved objectives and next bit
         for i in unsol:
@@ -233,55 +260,28 @@ def solve(formula, objectives: List[List]) -> List[List[int]]:
     return result
 
 
-def res_2int(result: List[List[int]], objectives: List[List]) -> List[int]:
-    """Convert binary result lists to integer values.
-
-    Args:
-        result: List of binary result lists (0/1 values)
-        objectives: Original objectives list with [expression, direction] pairs
-                    where direction is 1 for maximize, 0 for minimize
-
-    Returns:
-        List of integer values, converted based on objective direction
-    """
-    res_int = []
-    for i in range(len(objectives)):
-        score = cnt(result[i])
-        if objectives[i][1] == 1:  # Maximize
-            res_int.append(score)
-        else:  # Minimize: invert the score
-            l = len(result[i])
-            score = 2 ** l - 1 - score
-            res_int.append(score)
-    return res_int
-
-
 if __name__ == '__main__':
-    # Get the project root directory (4 levels up from this file)
-    # File is at: aria/optimization/omtbv/boxed/bv_boxed_compact.py
-    # Project root is: aria/
     current_file_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(current_file_dir))))
+    benchmark_dir = os.path.join(project_root, 'benchmarks', 'smtlib2', 'omt', 'bv')
 
-    # Construct the benchmark file path
-    benchmark_file = os.path.join(project_root, 'benchmarks', 'smtlib2', 'omt', 'bv', 'box1.smt2')
-    filename = os.path.normpath(benchmark_file)
+    for bench_file in ['box1.smt2', 'box2.smt2', 'box3.smt2']:
+        filename = os.path.join(benchmark_dir, bench_file)
+        print(f'\n=== {bench_file} ===')
 
-    formu, objec = get_input(filename)
-    objs = map_bitvector(objec)
-    t = time.time()
-    r = solve(formu, objs)
-    r = res_2int(r, objec)
-    print(r)
-    # solve(formula, objs, res, res_cla, unsolved)
-    print('t:', time.time() - t)
+        formu, objec = get_input(filename)
+        objs = map_bitvector(objec)
+        obj_names = [str(obj[0]) for obj in objec]
 
-    obj_names = [str(obj[0]) for obj in objec]
+        t = time.time()
+        r = solve(formu, objs)
+        r = res_2int(r, objec)
+        t_compact = time.time() - t
 
-    # Direct Z3 Optimize call to obtain objective values.
-    t = time.time()
-    z3_res = solve_boxed_z3(filename, objective_order=obj_names)
-    t = time.time() - t
-    print('t_z3:', t)
-    print(z3_res)
-    print(z3_res == r)
+        t = time.time()
+        z3_res = solve_boxed_z3(filename, objective_order=obj_names)
+        t_z3 = time.time() - t
+
+        print(f'Compact: {r} (t={t_compact:.3f}s)')
+        print(f'Z3:      {z3_res} (t={t_z3:.3f}s)')
+        print(f'Match:   {z3_res == r}')

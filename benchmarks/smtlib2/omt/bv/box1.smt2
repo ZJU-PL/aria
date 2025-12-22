@@ -2,6 +2,7 @@
 (set-logic QF_BV)
 (set-info :smt-lib-version 2.6)
 (set-info :category "industrial")
+(set-option :opt.priority box)
 
 (declare-fun k!1 () (_ BitVec 8))
 (declare-fun k!2 () (_ BitVec 8))
