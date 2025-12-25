@@ -10,6 +10,7 @@ The `aria.quant` package collects prototypes, ports, and utilities for solving o
 - `ematching/`: Trigger selection helpers that annotate quantified formulas with patterns suitable for Z3’s E-matching.
 - `fossil/`: Port of the FOSSIL framework for synthesising inductive lemmas via natural proofs, SyGuS lemma synthesis, and benchmark suites.
 - `polyhorn/`: Polynomial Horn clause solver (PolyHorn) with pysmt integrations for proving quantified real/integer constraints.
+- `quantisat`: based on polyhorn, but can handle arbitrary quantifiers?
 - `qe/`: Quantifier elimination experiments—Shannon expansion for CNF, LME-based projection (sequential and parallel), and adapters for QEPCAD, Mathematica, and Redlog.
 - `ufbv/`: Parallel under/over-approximation framework for quantified bit-vectors (UFBV) coordinating multiple Z3 workers.
 
