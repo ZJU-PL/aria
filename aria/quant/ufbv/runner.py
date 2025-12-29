@@ -50,6 +50,7 @@ def run_z3_on_smt2_text(smt2_text: str, timeout_sec: int = 60, randomize: bool =
             capture_output=True,
             text=True,
             timeout=timeout_sec,
+            check=False,
         )
 
         # Parse the last occurrence of a sat-status token
@@ -65,7 +66,7 @@ def run_z3_on_smt2_text(smt2_text: str, timeout_sec: int = 60, randomize: bool =
         if temp_path and os.path.exists(temp_path):
             try:
                 os.unlink(temp_path)
-            except Exception:
+            except OSError:
                 pass
 
 

@@ -6,9 +6,10 @@ XOR-based (hash-based) sampling for bit-vector formulas.
 This implements approximate uniform sampling using random parity (XOR) constraints.
 """
 
+from random import randrange
 from typing import List, Dict, Any, Set
+
 import z3
-from random import randrange, seed as set_seed
 
 from aria.sampling.base import Sampler, Logic, SamplingMethod, SamplingOptions, SamplingResult
 from aria.utils.z3_expr_utils import get_variables, is_bv_sort

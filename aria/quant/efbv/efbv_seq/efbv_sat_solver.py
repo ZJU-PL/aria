@@ -1,3 +1,4 @@
+"""SAT solver wrapper for efbv module."""
 import logging
 # import sys
 from pysat.formula import CNF
@@ -27,9 +28,10 @@ sat_solvers_in_pysat = ['cd', 'cd15', 'gc3', 'gc4', 'g3',
 
 
 def solve_with_sat_solver(dimacs_str: str, solver_name: str) -> str:
+    """Solve a DIMACS string using the specified SAT solver."""
     assert solver_name in sat_solvers_in_pysat
     # print(dimacs_str)
-    print("Calling SAT solver {}".format(solver_name))
+    print(f"Calling SAT solver {solver_name}")
     pos = CNF(from_string=dimacs_str)
     # pos.to_fp(sys.stdout)
     aux = Solver(name=solver_name, bootstrap_with=pos)

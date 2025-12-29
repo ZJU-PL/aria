@@ -1,11 +1,13 @@
-"""
-In this engine, we bit-blast the BV formula to Boolean formulas, based on whcih
+"""Bit-blasting based solver for EFBV problems.
+
+In this engine, we bit-blast the BV formula to Boolean formulas, based on which
 we run (parallel) uniform sampling.
 
 However, the implementation is a bit complicated.
 E.g., we need to perform bit-blasting again and again
+
+FIXME: this file is not used for now (a bit complicated communication...)
 """
-# FIXME: this file is not used for now (a bit complicated communication...)
 
 import logging
 import time
@@ -30,26 +32,32 @@ logger = logging.getLogger(__name__)
 
 
 class SeqExistsSolver:
-    """
+    """Sequential exists solver using bit-blasting.
+
     TODO: it seems we need to create multiple objects
     """
 
     def __init__(self):
+        """Initialize sequential exists solver."""
         self.fml = None
-        self.bv2bool = {}  # map a bit-vector variable to a list of Boolean variables [ordered by bit?]
-        self.bool2id = {}  # map a Boolean variable to its internal ID in pysat
+        # map a bit-vector variable to a list of Boolean variables
+        # [ordered by bit?]
+        self.bv2bool = {}
+        # map a Boolean variable to its internal ID in pysat
+        self.bool2id = {}
         self.vars = []
         self.verbose = 0
         self.signed = False
 
     def bit_blast(self):
+        """Perform bit-blasting to CNF."""
         logger.debug("Start translating to CNF...")
         # NOTICE: can be slow
-        bv2bool, id_table, header, clauses = translate_smt2formula_to_cnf(self.fml)
+        bv2bool, id_table, _header, clauses = translate_smt2formula_to_cnf(self.fml)
         self.bv2bool = bv2bool
         self.bool2id = id_table
-        logger.debug("  from bv to bools: {}".format(self.bv2bool))
-        logger.debug("  from bool to pysat id: {}".format(self.bool2id))
+        logger.debug("  from bv to bools: %s", self.bv2bool)
+        logger.debug("  from bool to pysat id: %s", self.bool2id)
 
         clauses_numeric = []
         for cls in clauses:
@@ -57,8 +65,10 @@ class SeqExistsSolver:
         return clauses_numeric
 
     def sample_boolean_model(self):
-        """Check satisfiability of a bit-vector formula
-        If it is satisfiable, sample a set of models"""
+        """Check satisfiability and sample a model.
+
+        If it is satisfiable, sample a set of models.
+        """
         clauses_numeric = self.bit_blast()
         # Main difficulty: how to infer signedness of each variable
         cnf = CNF(from_clauses=clauses_numeric)
@@ -68,23 +78,25 @@ class SeqExistsSolver:
             with Solver(name=name, bootstrap_with=cnf) as solver:
                 if not solver.solve():
                     return SolverResult.UNSAT, []
-                # TODO: figure out what is the order of the vars in the boolean model
+                # TODO: figure out what is the order of the vars in the
+                # boolean model
                 bool_model = solver.get_model()
-                logger.debug("SAT solving time: {}".format(time.time() - start_time))
+                logger.debug("SAT solving time: %s", time.time() - start_time)
                 return SolverResult.SAT, bool_model
 
         except Exception as ex:
             print(ex)
+            return None
 
     def build_bv_model(self, bool_model) -> List[Tuple[str, int]]:
-        """Building `bv models' (used for building candidate bv formulas)"""
+        """Build `bv models' (used for building candidate bv formulas)."""
         bv_model = {}
         if not self.signed:  # unsigned
             for bv_var in self.bv2bool:
                 bool_vars = self.bv2bool[bv_var]
                 start = self.bool2id[bool_vars[0]]  # start ID
                 bv_val = 0
-                for i in range(len(bool_vars)):
+                for i, _ in enumerate(bool_vars):
                     if bool_model[i + start - 1] > 0:
                         bv_val += 2 ** i
                 bv_model[str(bv_var)] = bv_val
@@ -105,76 +117,93 @@ class SeqExistsSolver:
 
 
 class SeqForAllSolver:
-    """ForAllSolver
-    """
+    """ForAllSolver using bit-blasting."""
 
     def __init__(self):
+        """Initialize sequential forall solver."""
         self.phi = None
         self.bv_size = 16
         self.universal_vars = []
 
     def from_smt_formula(self, formula: z3.BoolRef, uvars: List[z3.ExprRef]):
+        """Set the formula and universal variables."""
         self.phi = formula
         self.universal_vars = uvars
 
     def check_model(self, raw_mappings: List[Tuple[str, int]]):
-        """Validate models produced by the exists solver
-        :param raw_mappings: [("x1", 3), ("x2", 10), ..., ()]
-        :return: counter-example? (in the form of another mapping)
+        """Validate models produced by the exists solver.
+
+        Args:
+            raw_mappings: [("x1", 3), ("x2", 10), ..., ()]
+
+        Returns:
+            counter-example? (in the form of another mapping)
         """
-        # e.g., mappings = [(var, emodel.eval(var, model_completion=True)) for var in x]
+        # e.g., mappings = [(var, emodel.eval(var, model_completion=True))
+        #                    for var in x]
         z3_mappings = []
         for var_name, var_value in raw_mappings:
-            z3_mappings.append((z3.BitVec(var_name, self.bv_size), var_value))  # TODO: need q quick test
-            # z3_mappings.append((z3.BitVec(var_name, self.bv_size), var_value))  # do we need this?
+            z3_mappings.append((z3.BitVec(var_name, self.bv_size), var_value))
+            # TODO: need a quick test
 
         sub_phi = z3.simplify(z3.substitute(self.phi, z3_mappings))
         sol = z3.Solver()
-        sol.add(z3.Not(sub_phi))  # z3.Not(sub_phi) is the condition to be checked/solved
+        # z3.Not(sub_phi) is the condition to be checked/solved
+        sol.add(z3.Not(sub_phi))
         if sol.check() == z3.unsat:
-            raise ForAllSolverSuccess()  # a "dirty" trick for exist (TODO: fix this?)
-        else:
-            fmodel = sol.model()
-            y_mappings = [(var, fmodel.eval(var, model_completion=True)) for var in self.universal_vars]
-            return y_mappings
+            # a "dirty" trick for exist (TODO: fix this?)
+            raise ForAllSolverSuccess()
+        fmodel = sol.model()
+        y_mappings = [(var, fmodel.eval(var, model_completion=True))
+                     for var in self.universal_vars]
+        return y_mappings
 
     def validate_models(self, all_mappings):
+        """Validate multiple models."""
         res = []
         for mappings in all_mappings:
-            res.append(self.validate_model(mappings))
+            res.append(self.check_model(mappings))
         return res
 
 
 class SeqEFBVSolver:
+    """Sequential EFBV solver using bit-blasting."""
+
     def __init__(self):
+        """Initialize sequential EFBV solver."""
         self.fml = None
-        self.bv2bool = {}  # map a bit-vector variable to a list of Boolean variables [ordered by bit?]
-        self.bool2id = {}  # map a Boolean variable to its internal ID in pysat
+        # map a bit-vector variable to a list of Boolean variables
+        # [ordered by bit?]
+        self.bv2bool = {}
+        # map a Boolean variable to its internal ID in pysat
+        self.bool2id = {}
         self.vars = []
         self.verbose = 0
         self.signed = False
 
     def from_smt_formula(self, formula: z3.BoolRef):
+        """Set the formula."""
         self.fml = formula
         self.vars = get_variables(self.fml)
 
     def solve_internal(self, models):
-        """Check Boolean models produced by the "exists solver"
+        """Check Boolean models produced by the "exists solver".
+
         1. Sample Boolean models
         2. Build bit-vector models M = {M1,...,Mn} from the Boolean models
         3. Build bit-vector formulas F1,..., Fn for the "forall solver"
         4. If any Fi is unsatisfiable, break and return "SAT"
-        5. If some Fi is satisfiable, build a blocking formula Gi (from a model of Fi)
+        5. If some Fi is satisfiable, build a blocking formula Gi
+           (from a model of Fi)
 
         FIXME: in principle, in 4, we can also use multiple Boolean models.
-        :return:
         """
         return
 
-    def solve(self, exists_vars: List[z3.ExprRef], forall_vars: List[z3.ExprRef], phi: z3.ExprRef,
-              maxloops=None) -> EFBVResult:
-        """
-        Solves exists x. forall y. phi(x, y)
+    def solve(self, exists_vars: List[z3.ExprRef], forall_vars: List[z3.ExprRef],
+              phi: z3.ExprRef, maxloops=None) -> EFBVResult:
+        """Solve exists x. forall y. phi(x, y).
+
         FIXME: inconsistent with efsmt
         """
         return EFBVResult.UNKNOWN

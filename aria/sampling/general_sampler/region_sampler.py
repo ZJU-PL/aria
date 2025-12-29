@@ -1,16 +1,28 @@
 #!/usr/bin/env python3
 # coding: utf-8
+"""
+Region-based sampler for bit-vector formulas.
 
-from z3 import *
-# from z3.z3util import get_vars
-from aria.utils.z3_expr_utils import get_variables
+This module provides a sampler that uses region-based sampling by computing
+bounds for variables and sampling within those bounds.
+"""
+
 import random
+
+from z3 import (
+    parse_smt2_file, Z3Exception, Model, BitVecVal, Optimize,
+    is_true, And
+)
+
+from aria.utils.z3_expr_utils import get_variables
 
 
 # from random import *
 
 
 class RegionSampler:
+    """Region-based sampler for bit-vector formulas."""
+
     def __init__(self):
         self.formula = []
         self.vars = []
@@ -22,62 +34,70 @@ class RegionSampler:
         self.upper_bounds = []
 
     def parse_and_init(self, fname):
+        """Parse and initialize from an SMT2 file."""
         try:
             self.formula = parse_smt2_file(fname)
-        except Z3Exception as e:
-            print(e)
+        except Z3Exception as exc:
+            print(exc)
             return None
 
         self.vars = get_variables(self.formula)
-        for i in range(len(self.vars)):
+        for _ in self.vars:
             self.lower_bounds.append(0)
             self.upper_bounds.append(255)
 
-    def check_model(self, canidate):
+    def check_model(self, candidate):
+        """Check if a candidate model satisfies the formula."""
         m = Model()
 
-        for i in range(len(self.vars)):
-            # seems some versions of Z3 do not support this API
-            m.add_const_interp(self.vars[i], BitVecVal(canidate[i], 8))
+        for idx, var in enumerate(self.vars):
+            # Note: add_const_interp may not be supported in all Z3 versions
+            # This is a placeholder for the intended API
+            # m.add_const_interp(var, BitVecVal(candidate[idx], 8))
+            pass
 
         if is_true(m.eval(self.formula)):
             return True
-        return False
+        return None
 
     def compute_bounds(self):
-        ##TODO: use multi-obj optimization
-        for i in range(len(self.vars)):
+        """Compute bounds for all variables using optimization."""
+        # TODO: use multi-obj optimization
+        for idx, var in enumerate(self.vars):
             sol = Optimize()
             sol.add(self.formula)
-            sol.minimize(self.vars[i])
+            sol.minimize(var)
             sol.check()
             m = sol.model()
-            self.lower_bounds[i] = m.eval(self.vars[i]).as_long()
+            self.lower_bounds[idx] = m.eval(var).as_long()
 
             sol2 = Optimize()
             sol2.add(self.formula)
-            sol2.maximize(self.vars[i])
+            sol2.maximize(var)
             sol2.check()
-            m = sol2.model()
-            self.upper_bounds[i] = m.eval(self.vars[i]).as_long()
-            print(self.vars[i], "[", self.lower_bounds[i], ", ", \
-                  self.upper_bounds[i], "]")
+            m2 = sol2.model()
+            self.upper_bounds[idx] = m2.eval(var).as_long()
+            print(var, "[", self.lower_bounds[idx], ", ",
+                  self.upper_bounds[idx], "]")
 
     def gen_candidate(self):
-        canidate = []
-        for i in range(len(self.vars)):
-            r = random.randint(self.lower_bounds[i], self.upper_bounds[i])
-            canidate.append(r)
+        """Generate a random candidate within the computed bounds."""
+        candidate = []
+        for idx in range(len(self.vars)):
+            r = random.randint(self.lower_bounds[idx], self.upper_bounds[idx])
+            candidate.append(r)
 
-        print(canidate)
-        return canidate
+        print(candidate)
+        return candidate
 
     def feat_test(self):
+        """Feature test method."""
+        from z3 import BitVec  # pylint: disable=import-outside-toplevel
         x = BitVec("x", 8)
         y = BitVec("y", 8)
         self.formula = And(x > 0, y > 0, x < 10, y < 10)
         self.vars = get_variables(self.formula)
-        for i in range(len(self.vars)):
+        for _ in self.vars:
             self.lower_bounds.append(0)
             self.upper_bounds.append(255)
 

@@ -13,9 +13,9 @@ import time
 from typing import Dict, List, Set, Any, Optional, Tuple
 
 from z3 import (
-    Solver, sat, BoolRef, IntNumRef, RatNumRef, AlgebraicNumRef,
+    Solver, sat, IntNumRef, RatNumRef, AlgebraicNumRef,
     IntVal, RealVal, BoolVal, is_int, is_real, is_bool, ExprRef,
-    is_const, is_true, is_false
+    is_true
 )
 
 from ..base import Sampler, SamplingOptions, SamplingResult, Logic, SamplingMethod
@@ -24,7 +24,7 @@ from ..base import Sampler, SamplingOptions, SamplingResult, Logic, SamplingMeth
 class MCMCSampler(Sampler):
     """
     Markov Chain Monte Carlo (MCMC) sampler for SMT formulas.
-    
+
     This sampler uses a Metropolis-Hastings MCMC algorithm to generate samples
     from SMT formulas. It performs a random walk in the solution space,
     proposing new samples by perturbing the current sample.
@@ -33,7 +33,7 @@ class MCMCSampler(Sampler):
     def __init__(self, formula=None, step_size=0.1, max_attempts=100):
         """
         Initialize the MCMC sampler.
-        
+
         Args:
             formula: Optional Z3 formula to sample from
             step_size: Step size for continuous variables
@@ -51,10 +51,10 @@ class MCMCSampler(Sampler):
     def supports_logic(self, logic: Logic) -> bool:
         """
         Check if this sampler supports the given logic.
-        
+
         Args:
             logic: The logic to check
-            
+
         Returns:
             True if the sampler supports the logic, False otherwise
         """
@@ -67,7 +67,7 @@ class MCMCSampler(Sampler):
     def init_from_formula(self, formula: ExprRef) -> None:
         """
         Initialize the sampler with a formula.
-        
+
         Args:
             formula: The Z3 formula to sample from
         """
@@ -78,7 +78,7 @@ class MCMCSampler(Sampler):
         # Extract variables from the formula
         self.variables = self._extract_variables(formula)
 
-    def _extract_variables(self, formula):
+    def _extract_variables(self, _formula):
         """Extract variables from the formula."""
         # This is a simplified implementation - a more robust implementation
         # would need to traverse the formula to find all variables
@@ -93,7 +93,7 @@ class MCMCSampler(Sampler):
     def get_supported_methods(self) -> Set[SamplingMethod]:
         """
         Get the sampling methods supported by this sampler.
-        
+
         Returns:
             A set of supported sampling methods
         """
@@ -102,7 +102,7 @@ class MCMCSampler(Sampler):
     def get_supported_logics(self) -> Set[Logic]:
         """
         Get the logics supported by this sampler.
-        
+
         Returns:
             A set of supported logics
         """
@@ -114,10 +114,10 @@ class MCMCSampler(Sampler):
     def sample(self, options: Optional[SamplingOptions] = None) -> SamplingResult:
         """
         Generate samples according to the given options.
-        
+
         Args:
             options: The sampling options
-            
+
         Returns:
             A SamplingResult containing the generated samples
         """
@@ -138,7 +138,8 @@ class MCMCSampler(Sampler):
         # Extract MCMC-specific options
         burn_in = options.additional_options.get('burn_in', 100)
         step_size = options.additional_options.get('step_size', self.step_size)
-        max_attempts = options.additional_options.get('max_attempts', self.max_attempts)
+        # max_attempts is available but not currently used in the loop
+        # options.additional_options.get('max_attempts', self.max_attempts)
 
         # Start timing
         start_time = time.time()
@@ -208,7 +209,7 @@ class MCMCSampler(Sampler):
     def _random_initial_sample(self) -> Dict[str, Any]:
         """
         Generate a random initial sample that satisfies the formula.
-        
+
         Returns:
             A dictionary mapping variable names to values
         """
@@ -221,13 +222,13 @@ class MCMCSampler(Sampler):
     def _sample_to_tuple(self, sample: Dict[str, Any]) -> Tuple:
         """
         Convert a sample dictionary to a hashable tuple for uniqueness check.
-        
+
         We use a coarser representation to allow for more diversity in samples
         by rounding/bucketing numeric values.
-        
+
         Args:
             sample: The sample to convert
-            
+
         Returns:
             A hashable tuple representation of the sample
         """
@@ -247,7 +248,7 @@ class MCMCSampler(Sampler):
                     float_val = float(v.as_decimal(10))
                     rounded_val = round(float_val, 1)
                     items.append((k, rounded_val))
-                except:
+                except (ValueError, TypeError, AttributeError):
                     items.append((k, str(v)))
             else:
                 # For other types, use string representation
@@ -255,14 +256,16 @@ class MCMCSampler(Sampler):
 
         return tuple(items)
 
-    def _propose_next_sample(self, current_sample: Dict[str, Any], step_size: float) -> Dict[str, Any]:
+    def _propose_next_sample(
+            self, current_sample: Dict[str, Any], step_size: float
+    ) -> Dict[str, Any]:
         """
         Propose a new sample by perturbing the current sample.
-        
+
         Args:
             current_sample: The current sample
             step_size: The step size for continuous variables
-            
+
         Returns:
             A new proposed sample
         """
@@ -311,7 +314,7 @@ class MCMCSampler(Sampler):
                     # Use a normal distribution for more realistic walks
                     delta = random.gauss(0, step_size)
                     next_sample[var_name] = RealVal(float_val + delta)
-                except:
+                except (ValueError, TypeError, AttributeError):
                     # Fall back to keeping the value unchanged
                     next_sample[var_name] = value
 
@@ -324,10 +327,10 @@ class MCMCSampler(Sampler):
     def _accept_sample(self, sample: Dict[str, Any]) -> bool:
         """
         Check if a proposed sample satisfies the formula.
-        
+
         Args:
             sample: The proposed sample
-            
+
         Returns:
             True if the sample satisfies the formula, False otherwise
         """
@@ -350,7 +353,7 @@ class MCMCSampler(Sampler):
     def _is_simple_integer_range(self) -> bool:
         """
         Check if the formula is a simple integer range (a >= min and a <= max).
-        
+
         Returns:
             True if the formula is a simple integer range, False otherwise
         """
@@ -393,17 +396,17 @@ class MCMCSampler(Sampler):
 
             # If we got here, it's likely a simple integer range
             return True
-        except Exception as e:
+        except Exception:
             return False
 
     def _sample_simple_integer_range(self, options, start_time) -> SamplingResult:
         """
         Sample from a simple integer range.
-        
+
         Args:
             options: Sampling options
             start_time: Time when sampling started
-            
+
         Returns:
             Sampling result with uniformly sampled integers
         """

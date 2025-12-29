@@ -1,6 +1,7 @@
 """Counting interfaces for pySMT Boolean formulas."""
 from typing import Tuple, List
-from pysmt.shortcuts import Solver as PySMTSolver
+from pysmt.shortcuts import Solver as PySMTSolver, Not, get_free_variables, Or
+from pysmt.rewritings import cnf
 
 from aria.counting.bool.dimacs_counting import count_dimacs_solutions, \
     count_dimacs_solutions_parallel
@@ -17,7 +18,6 @@ def count_pysmt_models_by_enumeration(formula, max_models: int = None) -> int:
     Returns:
         int: Number of models found (-1 if exceeded max_models)
     """
-    from pysmt.shortcuts import And, Not, get_free_variables, Or
     solver = PySMTSolver()
     solver.add_assertion(formula)
     count = 0
@@ -54,8 +54,6 @@ def pysmt_to_dimacs(formula) -> Tuple[List[str], List[str]]:
     Returns:
         Tuple[List[str], List[str]]: Header and clauses in DIMACS format
     """
-    from pysmt.rewritings import cnf
-
     # Convert to CNF
     cnf_formula = cnf(formula)
 

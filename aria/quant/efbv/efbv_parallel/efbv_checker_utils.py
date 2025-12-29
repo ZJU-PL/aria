@@ -1,4 +1,5 @@
-"""
+"""Checker utilities for EFBV parallel module.
+
 FIXME: the file is very likely buggy
 """
 import multiprocessing
@@ -12,10 +13,15 @@ from aria.quant.efbv.efbv_parallel.exceptions import ForAllSolverSuccess
 
 def check_candidate(fml: z3.BoolRef):
     """
-    Check candidate provided by the ExistsSolver
-    :param fml: the formula to be checked, which is based on
-                 a new z3 context different from the main thread
-    :return A model (to be translated to the main context by ForAllSolver)
+    Check candidate provided by the ExistsSolver.
+
+    Args:
+        fml: the formula to be checked, which is based on
+             a new z3 context different from the main thread
+
+    Returns:
+        A model (to be translated to the main context by ForAllSolver)
+
     TODO: we may pass a set of formulas to this function (any ways, the code in
       this function is thread-local?
     """
@@ -26,14 +32,16 @@ def check_candidate(fml: z3.BoolRef):
         m = solver.model()
         # will the next line cause race?
         return m  # to the original context?
-    else:
-        raise ForAllSolverSuccess()
+    raise ForAllSolverSuccess()
 
 
 def parallel_check_candidates(fmls: List[z3.BoolRef], num_workers: int):
-    # Create new context for the computation
-    # Note that we need to do this sequentially, as parallel access to the current context or its objects
-    # will result in a segfault
+    """Check candidates in parallel.
+
+    Create new context for the computation. Note that we need to do this
+    sequentially, as parallel access to the current context or its objects
+    will result in a segfault.
+    """
     # origin_ctx = fmls[0].ctx
     tasks = []
     for fml in fmls:
@@ -51,7 +59,8 @@ def parallel_check_candidates(fmls: List[z3.BoolRef], num_workers: int):
 
 
 def parallel_check_candidates_multiprocessing(fmls: List[z3.ExprRef], num_workers):
-    """Solve clauses under a set of assumptions (deal with each one in parallel)
+    """Solve clauses under a set of assumptions (deal with each one in parallel).
+
     FIXME: ValueError: ctypes objects containing pointers cannot be pickled
     """
     assert num_workers >= 1
@@ -63,8 +72,9 @@ def parallel_check_candidates_multiprocessing(fmls: List[z3.ExprRef], num_worker
         tasks.append((i_fml, i_context))
 
     answers_async = [None for _ in fmls]
-    terminated = multiprocessing.Value('i', 0)  # Shared flag to track if pool was terminated
-    
+    # Shared flag to track if pool was terminated
+    terminated = multiprocessing.Value('i', 0)
+
     with multiprocessing.Pool(num_workers) as p:
         def terminate_others(val):
             if val:
@@ -79,7 +89,7 @@ def parallel_check_candidates_multiprocessing(fmls: List[z3.ExprRef], num_worker
                     task[0], task[1]
                 ),
                 callback=lambda val: terminate_others(val[0]))
-        
+
         # Give tasks time to complete
         p.close()
         p.join()
@@ -89,8 +99,9 @@ def parallel_check_candidates_multiprocessing(fmls: List[z3.ExprRef], num_worker
     with terminated.get_lock():
         if terminated.value == 0:
             # Normal completion - collect all ready results
-            answers = [answer_async.get() for answer_async in answers_async if answer_async.ready()]
-            results = [pres for pans, pres in answers]
+            answers = [answer_async.get() for answer_async in answers_async
+                      if answer_async.ready()]
+            results = [pres for _pans, pres in answers]
         else:
             # Pool was terminated - get only the successful result
             for answer_async in answers_async:
@@ -100,7 +111,7 @@ def parallel_check_candidates_multiprocessing(fmls: List[z3.ExprRef], num_worker
                         if result[0]:  # This was the successful one
                             results = [result[1]]
                             break
-                    except:
+                    except Exception:
                         pass  # Ignore errors from terminated tasks
-    
+
     return results

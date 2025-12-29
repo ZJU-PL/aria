@@ -1,13 +1,12 @@
 """Quantifier Elimination via Lazy Model Enumeration (LME-QE)"""
 
-from typing import List
-
 import z3
 
 from aria.utils.z3_expr_utils import negate, get_atoms
 
 
 def eval_predicates(m, preds):
+    """Evaluate predicates in a model and return their truth values."""
     res = []
     for p in preds:
         if z3.is_true(m.eval(p)):
@@ -18,7 +17,9 @@ def eval_predicates(m, preds):
 
 
 def process_model(phi, qvars, preds, shared_models):
-    s = z3.Solver(); s.add(phi)
+    """Process a single model for quantifier elimination."""
+    s = z3.Solver()
+    s.add(phi)
     for model in shared_models:
         s.add(negate(model))
     if s.check() == z3.sat:
@@ -30,7 +31,9 @@ def process_model(phi, qvars, preds, shared_models):
 
 
 def qelim_exists_lme(phi, qvars):
-    s = z3.Solver(); s.add(phi)
+    """Eliminate existential quantifiers using lazy model enumeration."""
+    s = z3.Solver()
+    s.add(phi)
     res = []
     preds = get_atoms(phi)
     qe_for_conjunction = z3.Tactic('qe2')
@@ -44,6 +47,7 @@ def qelim_exists_lme(phi, qvars):
 
 
 def test_qe():
+    """Test quantifier elimination with a sample formula."""
     # x, y, z = z3.BitVecs("x y z", 16)
     x, y, z = z3.Reals("x y z")
     fml = z3.And(z3.Or(x > 2, x < y + 3), z3.Or(x - z > 3, z < 10))  # x: 4, y: 1

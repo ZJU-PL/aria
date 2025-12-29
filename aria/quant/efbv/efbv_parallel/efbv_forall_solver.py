@@ -1,6 +1,4 @@
-"""
-Forall Solver
-"""
+"""Forall Solver for EFBV parallel module."""
 import logging
 from typing import List
 
@@ -14,32 +12,33 @@ logger = logging.getLogger(__name__)
 m_forall_solver_strategy = FSolverMode.PARALLEL_THREAD
 
 
-class ForAllSolver(object):
+class ForAllSolver:
+    """Forall solver for EFBV problems."""
+
     def __init__(self, ctx: z3.Context):
+        """Initialize forall solver."""
         # self.forall_vars = []
         self.ctx = ctx  # the Z3 context of the main thread
         # self.phi = None
 
     def push(self):
-        return
+        """Push solver state (no-op)."""
 
     def pop(self):
-        return
+        """Pop solver state (no-op)."""
 
     def check(self, cnt_list: List[z3.BoolRef]):
+        """Check candidate formulas."""
         if m_forall_solver_strategy == FSolverMode.SEQUENTIAL:
             return self.sequential_check(cnt_list)
-        elif m_forall_solver_strategy == FSolverMode.PARALLEL_THREAD:
+        if m_forall_solver_strategy == FSolverMode.PARALLEL_THREAD:
             return self.parallel_check_thread(cnt_list)
-        elif m_forall_solver_strategy == FSolverMode.PARALLEL_PROCESS:
+        if m_forall_solver_strategy == FSolverMode.PARALLEL_PROCESS:
             return self.parallel_check_process(cnt_list)
-        else:
-            raise NotImplementedError
+        raise NotImplementedError
 
     def sequential_check(self, cnt_list: List[z3.BoolRef]):
-        """
-        Check one-by-one
-        """
+        """Check one-by-one."""
         models = []
         for cnt in cnt_list:
             s = z3.SolverFor("QF_BV")
@@ -53,9 +52,7 @@ class ForAllSolver(object):
         return models
 
     def parallel_check_thread(self, cnt_list: List[z3.BoolRef]):
-        """
-        Solve each formula in cnt_list in parallel
-        """
+        """Solve each formula in cnt_list in parallel."""
         logger.debug("Forall solver: Parallel checking the candidates")
         models_in_other_ctx = parallel_check_candidates(cnt_list, num_workers=4)
         res = []  # translate the model to the main thread
@@ -65,13 +62,15 @@ class ForAllSolver(object):
         return res
 
     def parallel_check_process(self, cnt_list: List[z3.BoolRef]):
+        """Parallel check using processes (not implemented)."""
         raise NotImplementedError
 
     def build_mappings(self):
-        """
-        Build the mapping for replacement (not used for now)
+        """Build the mapping for replacement (not used for now).
+
         mappings = []
         for v in m:
-            mappings.append((z3.BitVec(str(v)), v.size(), origin_ctx), z3.BitVecVal(m[v], v.size(), origin_ctx))
+            mappings.append((z3.BitVec(str(v), v.size(), origin_ctx),
+                           z3.BitVecVal(m[v], v.size(), origin_ctx)))
         """
         raise NotImplementedError

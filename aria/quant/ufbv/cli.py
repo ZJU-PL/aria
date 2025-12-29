@@ -5,7 +5,8 @@ Command-line interface for the UFBV parallel solver.
 from __future__ import annotations
 
 import argparse
-import os
+
+import z3
 
 from .orchestrator import (
     solve_qbv_file_parallel,
@@ -14,6 +15,7 @@ from .orchestrator import (
 
 
 def main() -> int:
+    """Main entry point for the UFBV CLI."""
     parser = argparse.ArgumentParser(description="Parallel QBV Solver (UFBV)")
     parser.add_argument("--file", type=str, help="SMT2 file to solve")
     parser.add_argument("--formula", type=str, help="SMT2 formula string to solve")
@@ -34,7 +36,11 @@ def main() -> int:
             return 0
         if args.demo:
             # Keep a tiny demo to avoid duplication; users can refer to orchestrator.
-            demo_fml = """(assert (exists ((x (_ BitVec 4))) (forall ((y (_ BitVec 4))) (= (bvadd x y) (bvadd y x))))) (check-sat)"""
+            demo_fml = (
+                "(assert (exists ((x (_ BitVec 4))) "
+                "(forall ((y (_ BitVec 4))) (= (bvadd x y) (bvadd y x))))) "
+                "(check-sat)"
+            )
             print("Running demo...")
             print(demo_fml)
             result = solve_qbv_str_parallel(demo_fml)
@@ -42,7 +48,7 @@ def main() -> int:
             return 0
         parser.print_help()
         return 2
-    except Exception as e:
+    except (ValueError, OSError, z3.Z3Exception) as e:
         print(f"Error: {e}")
         return 1
 

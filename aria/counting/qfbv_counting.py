@@ -7,9 +7,6 @@ using enumeration, parallel enumeration, and sharpSAT.
 from typing import List
 import itertools
 import logging
-import math
-import multiprocessing
-from copy import deepcopy
 from timeit import default_timer as counting_timer
 
 import z3
@@ -76,6 +73,15 @@ class BVModelCounter:
         self.smt2file = None
 
     def init_from_file(self, filename):
+        """
+        Initialize the model counter from an SMT2 file.
+
+        Args:
+            filename: Path to the SMT2 file
+
+        Returns:
+            None: Always returns None (raises exception on error)
+        """
         try:
             self.smt2file = filename
             self.formula = z3.And(z3.parse_smt2_file(filename))
@@ -85,9 +91,18 @@ class BVModelCounter:
             logging.debug("Init model counter success!")
         except z3.Z3Exception as ex:
             logging.error(ex)
-            return None
+            raise
 
     def init_from_fml(self, fml):
+        """
+        Initialize the model counter from a Z3 formula.
+
+        Args:
+            fml: Z3 formula to count models for
+
+        Returns:
+            None: Always returns None (raises exception on error)
+        """
         try:
             self.formula = fml
             for var in get_variables(self.formula):
@@ -95,7 +110,7 @@ class BVModelCounter:
                     self.vars.append(var)
         except z3.Z3Exception as ex:
             logging.error(ex)
-            return None
+            raise
 
     def count_model_by_bv_enumeration(self):
         """
@@ -120,7 +135,13 @@ class BVModelCounter:
         raise NotImplementedError("Parallel BV enumeration is not implemented.")
 
     def count_models_by_sharp_sat(self):
-        bv2bool, id_table, header, clauses = translate_smt2formula_to_cnf(self.formula)
+        """
+        Count models using sharpSAT solver.
+
+        Returns:
+            tuple: (solutions, time_taken) where solutions is the count and time_taken is elapsed time
+        """
+        _, _, header, clauses = translate_smt2formula_to_cnf(self.formula)
         time_start = counting_timer()
         # solutions = count_dimacs_solutions(header, clauses)
         solutions = count_dimacs_solutions_parallel(header, clauses)
@@ -130,6 +151,7 @@ class BVModelCounter:
 
 
 def feat_test():
+    """Test function for model counting features."""
     mc = BVModelCounter()
     x = z3.BitVec("x", 4)
     y = z3.BitVec("y", 4)

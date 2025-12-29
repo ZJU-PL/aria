@@ -8,7 +8,9 @@ from typing import List, Tuple
 from pysat.solvers import Solver
 
 
-def check_sat_assuming(clauses: List[List[int]], assumptions: List[int]) -> Tuple[bool, List[int]]:
+def check_sat_assuming(
+    clauses: List[List[int]], assumptions: List[int]
+) -> Tuple[bool, List[int]]:
     """Check satisfiability of a formula under some assumptions.
 
     Args:
@@ -16,7 +18,8 @@ def check_sat_assuming(clauses: List[List[int]], assumptions: List[int]) -> Tupl
         assumptions: A set of literals forming the assumptions.
 
     Returns:
-        A tuple containing the satisfiability result (True or False) and either the model or the unsatisfiable core.
+        A tuple containing the satisfiability result (True or False) and either
+        the model or the unsatisfiable core.
     """
     with Solver(name="m22", bootstrap_with=clauses) as solver:
         ans: bool = solver.solve(assumptions=assumptions)
@@ -26,7 +29,9 @@ def check_sat_assuming(clauses: List[List[int]], assumptions: List[int]) -> Tupl
 
 
 def parallel_check_assumptions(
-    clauses: List[List[int]], assumptions_lists: List[List[int]], num_workers: int
+    clauses: List[List[int]],
+    assumptions_lists: List[List[int]],
+    num_workers: int,
 ) -> List[List[int]]:
     """Solve clauses under a set of assumptions (deal with each one in parallel).
 
@@ -41,6 +46,9 @@ def parallel_check_assumptions(
     assert num_workers >= 1
 
     with Pool(num_workers) as pool:
-        results = pool.starmap(check_sat_assuming, [(clauses, assumptions) for assumptions in assumptions_lists])
+        results = pool.starmap(
+            check_sat_assuming,
+            [(clauses, assumptions) for assumptions in assumptions_lists],
+        )
 
     return [result for _, result in results]

@@ -4,9 +4,10 @@ Linear Integer and Real Arithmetic sampler implementation.
 This module provides a sampler for linear integer and real arithmetic formulas.
 """
 
-import z3
-from typing import Set, Dict, Any, List
 import random
+from typing import Set
+
+import z3
 
 from aria.sampling.base import Sampler, Logic, SamplingMethod, SamplingOptions, SamplingResult
 from aria.utils.z3_expr_utils import get_variables, is_int_sort, is_real_sort
@@ -19,7 +20,7 @@ class LIRASampler(Sampler):
     This class implements a sampler for linear integer and real arithmetic formulas using Z3.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **_kwargs):
         """Initialize the LIRA sampler."""
         self.formula = None
         self.variables = []
@@ -52,7 +53,7 @@ class LIRASampler(Sampler):
                 self.variables.append(var)
 
         # Sort variables by name for deterministic ordering
-        self.variables.sort(key=lambda v: str(v))
+        self.variables.sort(key=str)
 
     def sample(self, options: SamplingOptions) -> SamplingResult:
         """
@@ -97,7 +98,7 @@ class LIRASampler(Sampler):
                         try:
                             # Try as_decimal first (works for simple rationals)
                             sample[str(var)] = float(value.as_decimal(10))
-                        except:
+                        except (ValueError, TypeError, AttributeError):
                             try:
                                 # Try direct conversion for rationals
                                 if value.is_rational():
@@ -111,7 +112,7 @@ class LIRASampler(Sampler):
                                 else:
                                     # Fallback to string conversion
                                     sample[str(var)] = float(str(value))
-                            except:
+                            except (ValueError, TypeError, AttributeError):
                                 # Last resort - use 0.0
                                 sample[str(var)] = 0.0
 
@@ -129,7 +130,7 @@ class LIRASampler(Sampler):
                         try:
                             # Try as_decimal first
                             float_value = float(value.as_decimal(10))
-                        except:
+                        except (ValueError, TypeError, AttributeError):
                             try:
                                 # Try rational conversion
                                 if value.is_rational():
@@ -138,7 +139,7 @@ class LIRASampler(Sampler):
                                     float_value = float(num) / float(den) if den != 0 else 0.0
                                 else:
                                     float_value = 0.0
-                            except:
+                            except (ValueError, TypeError, AttributeError):
                                 float_value = 0.0
 
                         # For reals, we add a small delta to avoid numerical issues
@@ -172,6 +173,7 @@ class LIRASampler(Sampler):
 
 
 class LIASampler(Sampler):
+    """Linear Integer Arithmetic sampler."""
 
     def __init__(self, **options):
         Sampler.__init__(self, **options)

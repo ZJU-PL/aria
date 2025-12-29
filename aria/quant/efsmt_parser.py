@@ -5,14 +5,13 @@ We provide two differnet implementations
 2. Use z3's substitution facility
 """
 
-from typing import Tuple
 import z3
 from aria.utils.z3_expr_utils import get_variables
 
 # Being explicit about Types
 Symbol = str
-Number = (int, float)
-Atom = (Symbol, Number)
+NUMBER = (int, float)
+Atom = (Symbol, NUMBER)
 List = list
 Expr = (Atom, List)
 
@@ -50,19 +49,17 @@ def parse(program: str) -> Expr:
 def read_from_tokens(tokens: List) -> Expr:
     """Read an expression from a sequence of tokens."""
     if len(tokens) == 0:
-        return
-        # raise SyntaxError('unexpected EOF') # is this OK?
+        raise SyntaxError('unexpected EOF')
     token = tokens.pop(0)
     if token == '(':
-        L = []
+        result_list = []
         while tokens[0] != ')':
-            L.append(read_from_tokens(tokens))
+            result_list.append(read_from_tokens(tokens))
         tokens.pop(0)  # pop off ')'
-        return L
-    elif token == ')':
+        return result_list
+    if token == ')':
         raise SyntaxError('unexpected )')
-    else:
-        return atom(token)
+    return atom(token)
 
 
 def atom(token: str) -> Atom:
@@ -100,17 +97,20 @@ class EFSMTParser:
         self.fml_body = ""
 
     def parse_smt2_string(self, inputs: str):
+        """Parse an SMT2 string and return the EF system."""
         self.init_symbols(inputs)
         print("Finish internal parsing")
         return self.get_ef_system()
 
     def parse_smt2_file(self, filename: str):
-        with open(filename, "r") as f:
+        """Parse an SMT2 file and return the EF system."""
+        with open(filename, "r", encoding="utf-8") as f:
             res = f.read()
             return self.parse_smt2_string(res)
 
     def to_sexpr_misc(self, lines: [str]):
         """
+        Convert a list representation to S-expression format.
         E.g.,
         ['and', ['=', 'x', 1], ['=', 'y', 1]]
         ['and', ['=', 'x!', ['+', 'x', 'y']], ['=', 'y!', ['+', 'x', 'y']]]
@@ -126,12 +126,14 @@ class EFSMTParser:
         return res
 
     def to_sexpr_string(self, lines: [str]):
+        """Convert a list representation to S-expression string."""
         return " ".join(self.to_sexpr_misc(lines))
 
     def init_symbols(self, inputs: str) -> None:
+        """Initialize symbols from input string."""
         lines = input_to_list(inputs)
         for line in lines:
-            # TODO: perhaps we should not parse the assertion (because it is
+            # Note: perhaps we should not parse the assertion (because it is
             #  converted back to sexpr string after we extract the forall vars
             # print(line)
             slist = parse(line)
@@ -152,6 +154,7 @@ class EFSMTParser:
 
     def process_assert(self, slist) -> None:
         """
+        Process an assert command.
         slist is of the form ['assert', ['forall', [['y', 'Int'], ['z', 'Int']], [...]]]
         """
         assertion = slist[1]
@@ -163,6 +166,7 @@ class EFSMTParser:
         self.fml_body = self.to_sexpr_string(fml_body_in_list)
 
     def create_vars(self, var_info_list: List):
+        """Create Z3 variables from variable info list."""
         z3var_list = []
         sig_str = []
         for var_info in var_info_list:
@@ -171,10 +175,11 @@ class EFSMTParser:
             # print(var_name, var_type)
             if isinstance(var_type, List):
                 # ['x', ['_', 'BitVec', 8]]
-                sig_str.append("(declare-fun {0} () {1})".format(var_name, self.to_sexpr_string(var_type)))
+                type_str = self.to_sexpr_string(var_type)
+                sig_str.append(f"(declare-fun {var_name} () {type_str})")
                 z3var_list.append(z3.BitVec(var_name, int(var_type[2])))
             else:
-                sig_str.append("(declare-fun {0} () {1})".format(var_name, var_type))
+                sig_str.append(f"(declare-fun {var_name} () {var_type})")
                 if var_type.startswith("I"):  # Int
                     z3var_list.append(z3.Int(var_name))
                 elif var_type.startswith("R"):  # Real
@@ -185,13 +190,15 @@ class EFSMTParser:
 
     def get_ef_system(self):
         """
-        Return the format of our trivial transition system
+        Return the format of our trivial transition system.
         """
         exists_vars, exists_vars_sig = self.create_vars(self.exist_vars)
-        forall_vars, forall_vars_sig = self.create_vars(self.forall_vars)
+        forall_vars_local, forall_vars_sig = self.create_vars(self.forall_vars)
         fml_sig_str = exists_vars_sig + forall_vars_sig
 
-        fml_str = "\n".join(fml_sig_str) + "\n (assert {} )\n".format(self.fml_body) + "(check-sat)\n"
+        fml_str = (f"\n".join(fml_sig_str) +
+                   f"\n (assert {self.fml_body} )\n" +
+                   "(check-sat)\n")
         print("Finish building fml str")
         # print(fml_str)
         # We assume that there is only one assertion?
@@ -199,68 +206,60 @@ class EFSMTParser:
         fml_vec = z3.parse_smt2_string(fml_str)
         print("Finish building ef problem")
         if len(fml_vec) == 1:
-            return exists_vars, forall_vars, fml_vec[0]
-        else:
-            return exists_vars, forall_vars, z3.And(fml_vec)
+            return exists_vars, forall_vars_local, fml_vec[0]
+        return exists_vars, forall_vars_local, z3.And(fml_vec)
 
 
 def ground_quantifier(qexpr):
     """
+    Ground a quantifier expression.
     Seems this can only handle exists x . fml, or forall x.fml?
     FIXME: it seems that this can be very slow?
     """
     # from z3.z3util import get_vars
     body = qexpr.body()
-    forall_vars = list()
+    forall_vars_local = []
     for i in range(qexpr.num_vars()):
         vi_name = qexpr.var_name(i)
         vi_sort = qexpr.var_sort(i)
         vi = z3.Const(vi_name, vi_sort)
-        forall_vars.append(vi)
+        forall_vars_local.append(vi)
 
     # Substitute the free variables in body with the expression in var_list.
-    body = z3.substitute_vars(body, *forall_vars)
-    exists_vars = [x for x in get_variables(body) if x not in forall_vars]
-    return exists_vars, forall_vars, body
+    body = z3.substitute_vars(body, *forall_vars_local)
+    exists_vars = [x for x in get_variables(body) if x not in forall_vars_local]
+    return exists_vars, forall_vars_local, body
 
 
 class EFSMTZ3Parser:
-    """
-    """
+    """Parser using Z3's built-in parsing facilities."""
 
     def __init__(self):
         self.logic = None
 
     def parse_smt2_string(self, inputs: str):
+        """Parse an SMT2 string using Z3."""
         fml_vec = z3.parse_smt2_string(inputs)
         if len(fml_vec) == 1:
-            fml = fml_vec[0]
+            fml_local = fml_vec[0]
         else:
-            fml = fml_vec
+            fml_local = fml_vec
         print("Z3 finishes parsing")
-        return ground_quantifier(fml)
+        return ground_quantifier(fml_local)
 
     def parse_smt2_file(self, filename: str):
+        """Parse an SMT2 file using Z3."""
         fml_vec = z3.parse_smt2_file(filename)
         if len(fml_vec) == 1:
-            fml = fml_vec[0]
+            fml_local = fml_vec[0]
         else:
-            fml = fml_vec
+            fml_local = fml_vec
         print("Z3 finishes parsing")
-        return ground_quantifier(fml)
+        return ground_quantifier(fml_local)
 
 
 def test_parser():
-    lia = """
-(set-info :status unknown)
-(declare-fun x () Int)
- (assert
- (forall ((y Int) (z Int) )(let (($x20 (= (+ x y) 3)))
- (or (> x y) $x20 (< (+ y z) 3))))
- )
-(check-sat)
-        """
-
+    """Test the parser with sample inputs."""
     bv = """
     ; benchmark generated from python API
 (set-info :status unknown)
@@ -279,10 +278,3 @@ def test_parser():
 
 if __name__ == '__main__':
     test_parser()
-    exit(0)
-    file = "xx.smt2"
-    ss = EFSMTParser()
-    _, forall_vars, fml = ss.parse_smt2_file(file)
-    # sol = z3.Solver()
-    # sol.add(z3.ForAll(forall_vars, fml))
-    # print(sol.check())

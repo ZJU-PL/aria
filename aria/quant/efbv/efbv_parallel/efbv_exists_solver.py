@@ -31,16 +31,21 @@ m_exists_solver_strategy = ESolverMode.SEQUENTIAL
 
 class ExistsSolver(object):
     def __init__(self, cared_vars, phi):
+        """Initialize exists solver."""
         self.x_vars = cared_vars
         self.ctx = cared_vars[0].ctx  # the Z3 context of the main thread
         self.fmls = [phi]
-        self.cared_bits = []  # it seems they are only useful for certain sampling algorithms.
+        # it seems they are only useful for certain sampling algorithms.
+        self.cared_bits = []
         for var in cared_vars:
-            self.cared_bits = self.cared_bits + [z3.Extract(i, i, var) == 1 for i in range(var.size())]
+            self.cared_bits = (self.cared_bits +
+                              [z3.Extract(i, i, var) == 1
+                               for i in range(var.size())])
 
     def get_models_with_rand_seeds_sampling(self, num_samples: int):
-        """
-        Generate diverse models by adapting random seeds (seems works bad)
+        """Generate diverse models by adapting random seeds.
+
+        Note: seems to work poorly.
         """
         models = []
         s = z3.Solver()
@@ -54,9 +59,7 @@ class ExistsSolver(object):
         return models
 
     def get_models_with_xor_sampling(self, num_samples: int):
-        """
-        Get num_samples models using XOR-based (uniform sampling)
-        """
+        """Get num_samples models using XOR-based (uniform sampling)."""
         models = []
         s = z3.SolverFor("QF_BV")
         s.add(z3.And(self.fmls))
@@ -68,8 +71,9 @@ class ExistsSolver(object):
                 for _ in range(rounds):
                     trials = 10
                     fml = z3.BoolVal(randrange(0, 2))
-                    for i in range(trials):
-                        fml = z3.Xor(fml, self.cared_bits[randrange(0, len(self.cared_bits))])
+                    for _ in range(trials):
+                        idx = randrange(0, len(self.cared_bits))
+                        fml = z3.Xor(fml, self.cared_bits[idx])
                     # TODO: maybe use assumption literal (faster than push/pop)?
                     s.add(fml)
                 if s.check() == z3.sat:
@@ -85,7 +89,9 @@ class ExistsSolver(object):
                 for _ in range(rounds):
                     trials = 10
                     fml = z3.BoolVal(randrange(0, 2))
-                    for _ in range(trials): fml = z3.Xor(fml, self.cared_bits[randrange(0, len(self.cared_bits))])
+                    for _ in range(trials):
+                        idx = randrange(0, len(self.cared_bits))
+                        fml = z3.Xor(fml, self.cared_bits[idx])
                     assumption = z3.And(assumption, fml)
                 if s.check(assumption) == z3.sat:
                     models.append(s.model())
@@ -96,9 +102,7 @@ class ExistsSolver(object):
         return models
 
     def get_models_in_parallel(self, num_samples: int):
-        """
-        Solve each formula in cnt_list in parallel
-        """
+        """Solve each formula in cnt_list in parallel."""
         logger.debug("Exists solver: parallel sampling")
         models_in_other_ctx = parallel_sample(z3.And(self.fmls),
                                               cared_bits=self.cared_bits,
@@ -118,14 +122,11 @@ class ExistsSolver(object):
         if res == z3.sat:
             if num_samples == 1:
                 return [sol.model()]
-            else:
-                if m_exists_solver_strategy == ESolverMode.SEQUENTIAL:
-                    return self.get_models_with_xor_sampling(num_samples)
-                elif m_exists_solver_strategy == ESolverMode.PARALLEL:
-                    return self.get_models_in_parallel(num_samples)
-                else:
-                    raise NotImplementedError
-        elif res == z3.unsat:
+            if m_exists_solver_strategy == ESolverMode.SEQUENTIAL:
+                return self.get_models_with_xor_sampling(num_samples)
+            if m_exists_solver_strategy == ESolverMode.PARALLEL:
+                return self.get_models_in_parallel(num_samples)
+            raise NotImplementedError
+        if res == z3.unsat:
             return []
-        else:
-            raise ExitsSolverUnknown()
+        raise ExitsSolverUnknown()

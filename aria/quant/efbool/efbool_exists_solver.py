@@ -2,20 +2,23 @@
 "Exists" solver for EF problems over Boolean variables
 """
 import logging
+import multiprocessing
 import random
+from multiprocessing import Pool
 from typing import List, Optional
 
 from pysat.formula import CNF
 from pysat.solvers import Solver
 
-import multiprocessing
-from multiprocessing import Pool
-
 logger = logging.getLogger(__name__)
 
 
-class BoolExistsSolver(object):
-    def __init__(self, exists_vars: List[int], clauses: List[List[int]], solver_name: str = "m22") -> None:
+class BoolExistsSolver:
+    """Solver for existential quantifier in EFBool problems."""
+
+    def __init__(
+        self, exists_vars: List[int], clauses: List[List[int]], solver_name: str = "m22"
+    ) -> None:
         """Initialize exists solver with configurable SAT solver
 
         Args:
@@ -30,9 +33,11 @@ class BoolExistsSolver(object):
         self.clauses: List[List[int]] = []
 
     def get_random_assignment(self) -> List[int]:
+        """Generate a random assignment for existential variables."""
         return [v if random.random() < 0.5 else -v for v in self.existential_bools]
 
     def get_models(self, num: int = 1) -> List[List[int]]:
+        """Get models for the existential formula."""
         if len(self.clauses) == 0:
             return [self.get_random_assignment() for _ in range(num)]
 
@@ -44,12 +49,12 @@ class BoolExistsSolver(object):
                 for val in model:  # project?
                     if abs(val) in self.existential_bools:
                         existential_model.append(val)
-                logger.debug("model: {}".format(model))
-                logger.debug("e-model: {}".format(existential_model))
+                logger.debug("model: %s", model)
+                logger.debug("e-model: %s", existential_model)
                 results.append(existential_model)
             else:
                 logger.debug("e-solver UNSAT")
-                logger.debug("clauses: {}".format(self.clauses))
+                logger.debug("clauses: %s", self.clauses)
         else:
             for i, model in enumerate(self.solver.enum_models(), 1):
                 existential_model: List[int] = []
@@ -61,7 +66,9 @@ class BoolExistsSolver(object):
                     break
         return results
 
-    def get_models_parallel(self, num: int = 1, num_processes: Optional[int] = None) -> List[List[int]]:
+    def get_models_parallel(
+        self, num: int = 1, num_processes: Optional[int] = None
+    ) -> List[List[int]]:
         """Generate candidate models in parallel
 
         Args:
@@ -94,6 +101,7 @@ class BoolExistsSolver(object):
         return results
 
     def add_clause(self, clause: List[int]) -> None:
+        """Add a single clause to the solver."""
         self.solver.add_clause(clause)
         self.clauses.append(clause)
 
@@ -106,13 +114,10 @@ class BoolExistsSolver(object):
             self.clauses.append(cls)
 
     def add_cnf(self, cnf: CNF) -> None:
-        """
-        The add_cnf function adds a CNF object to the solver.
-        It does this by adding each clause in the CNF object to the solver, and then appending that list of clauses
-        to self.clauses.
+        """Add a CNF object to the solver.
 
-        :param self: Access the attributes and methods of the class in python
-        :param cnf:CNF: Add the clauses in the cnf object to the solver
+        Args:
+            cnf: CNF object containing clauses to add
         """
         # self.solver.append_formula(cnf.clauses, no_return=False)
         for cls in cnf.clauses:

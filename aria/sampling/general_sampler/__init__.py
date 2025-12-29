@@ -2,19 +2,21 @@
 General-purpose sampling utilities and model counting functions.
 """
 
-import z3
 from typing import Optional
+
+import z3
+
 from aria.counting.qfbv_counting import BVModelCounter
 from aria.counting.bool.dimacs_counting import count_dimacs_solutions_parallel
 
 
-def count_solutions(formula_str: str, format: str = 'smtlib2', timeout: Optional[int] = None) -> int:
+def count_solutions(formula_str: str, fmt: str = 'smtlib2', timeout: Optional[int] = None) -> int:
     """
     Count the number of solutions (models) for a given formula.
 
     Args:
         formula_str: The formula as a string
-        format: The format of the formula ('smtlib2' or 'dimacs')
+        fmt: The format of the formula ('smtlib2' or 'dimacs')
         timeout: Optional timeout in seconds
 
     Returns:
@@ -23,15 +25,14 @@ def count_solutions(formula_str: str, format: str = 'smtlib2', timeout: Optional
     Raises:
         ValueError: If the format is not supported or formula parsing fails
     """
-    if format == 'smtlib2':
+    if fmt == 'smtlib2':
         return _count_smtlib2_solutions(formula_str, timeout)
-    elif format == 'dimacs':
+    if fmt == 'dimacs':
         return _count_dimacs_solutions(formula_str, timeout)
-    else:
-        raise ValueError(f"Unsupported format: {format}. Supported formats: 'smtlib2', 'dimacs'")
+    raise ValueError(f"Unsupported format: {fmt}. Supported formats: 'smtlib2', 'dimacs'")
 
 
-def _count_smtlib2_solutions(formula_str: str, timeout: Optional[int] = None) -> int:
+def _count_smtlib2_solutions(formula_str: str, _timeout: Optional[int] = None) -> int:
     """Count solutions for SMTLIB2 format formulas."""
     try:
         # Parse the SMTLIB2 formula
@@ -43,7 +44,7 @@ def _count_smtlib2_solutions(formula_str: str, timeout: Optional[int] = None) ->
         if solver.check() == z3.sat:
             # Get the model and count variables
             model = solver.model()
-            variables = [decl for decl in model.decls()]
+            variables = list(model.decls())
 
             if not variables:
                 # No variables, just check satisfiability
@@ -55,8 +56,11 @@ def _count_smtlib2_solutions(formula_str: str, timeout: Optional[int] = None) ->
                 try:
                     # Create a formula from the assertions
                     formula = z3.And(*solver.assertions())
-                    counter = BVModelCounter(formula, timeout=timeout)
-                    return counter.count()
+                    counter = BVModelCounter()
+                    counter.init_from_fml(formula)
+                    # Use sharpSAT for counting
+                    result, _ = counter.count_models_by_sharp_sat()
+                    return result
                 except Exception:
                     # Fallback to basic enumeration
                     pass
@@ -68,10 +72,10 @@ def _count_smtlib2_solutions(formula_str: str, timeout: Optional[int] = None) ->
             return 0
 
     except Exception as e:
-        raise ValueError(f"Failed to parse SMTLIB2 formula: {e}")
+        raise ValueError(f"Failed to parse SMTLIB2 formula: {e}") from e
 
 
-def _count_dimacs_solutions(formula_str: str, timeout: Optional[int] = None) -> int:
+def _count_dimacs_solutions(formula_str: str, _timeout: Optional[int] = None) -> int:
     """Count solutions for DIMACS format formulas."""
     try:
         # Parse the DIMACS format string
@@ -95,7 +99,7 @@ def _count_dimacs_solutions(formula_str: str, timeout: Optional[int] = None) -> 
         return count_dimacs_solutions_parallel(header, clauses)
 
     except Exception as e:
-        raise ValueError(f"Failed to count DIMACS solutions: {e}")
+        raise ValueError(f"Failed to count DIMACS solutions: {e}") from e
 
 
 def _enumerate_models(solver: z3.Solver, timeout: Optional[int] = None) -> int:
@@ -137,13 +141,14 @@ def _enumerate_models(solver: z3.Solver, timeout: Optional[int] = None) -> int:
                     # For other values, use inequality
                     try:
                         block_terms.append(decl() != value)
-                    except:
+                    except (TypeError, ValueError, AttributeError):
                         # If we can't create inequality, skip this variable
                         continue
 
             if block_terms:
                 counting_solver.add(z3.Or(*block_terms))
-        else:  # unknown
+        else:
+            # unknown
             break
 
     return count

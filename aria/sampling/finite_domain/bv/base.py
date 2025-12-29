@@ -4,9 +4,10 @@ BitVector sampler implementation.
 This module provides a sampler for bit-vector formulas.
 """
 
-import z3
-from typing import Set, Dict, Any, List
 import random
+from typing import Set
+
+import z3
 
 from aria.sampling.base import Sampler, Logic, SamplingMethod, SamplingOptions, SamplingResult
 from aria.utils.z3_expr_utils import get_variables, is_bv_sort

@@ -7,7 +7,6 @@ from enum import Enum
 from typing import List
 
 import z3
-from z3.z3util import get_vars
 
 from aria.quant.efsmt_utils import solve_with_bin_smt
 from aria.utils.z3_expr_utils import get_variables
@@ -16,13 +15,14 @@ logger = logging.getLogger(__name__)
 
 
 class EFSMTStrategy(Enum):
-    Z3 = 0,  # via bin solver
-    CVC5 = 1,  # via bin solver
-    BOOLECTOR = 2,  # via bin solver
-    Yices2 = 3,  # via bin solver
-    SIMPLE_CEGAR = 4,
-    QBF = 5,
-    SAT = 6,
+    """Strategy for solving EFSMT problems."""
+    Z3 = 0  # via bin solver
+    CVC5 = 1  # via bin solver
+    BOOLECTOR = 2  # via bin solver
+    YICES2 = 3  # via bin solver
+    SIMPLE_CEGAR = 4
+    QBF = 5
+    SAT = 6
     PARALLEL_CEGAR = 7
 
 
@@ -58,20 +58,19 @@ def simple_cegar_efsmt(logic: str, y: List[z3.ExprRef], phi: z3.ExprRef, maxloop
         eres = esolver.check()
         if eres == z3.unsat:
             return z3.unsat
+        emodel = esolver.model()
+        mappings = [(var, emodel.eval(var, model_completion=True)) for var in x]
+        sub_phi = z3.simplify(z3.substitute(phi, mappings))
+        fsolver.push()
+        fsolver.add(z3.Not(sub_phi))
+        if fsolver.check() == z3.sat:
+            fmodel = fsolver.model()
+            y_mappings = [(var, fmodel.eval(var, model_completion=True)) for var in y]
+            sub_phi = z3.simplify(z3.substitute(phi, y_mappings))
+            esolver.add(sub_phi)
+            fsolver.pop()
         else:
-            emodel = esolver.model()
-            mappings = [(var, emodel.eval(var, model_completion=True)) for var in x]
-            sub_phi = z3.simplify(z3.substitute(phi, mappings))
-            fsolver.push()
-            fsolver.add(z3.Not(sub_phi))
-            if fsolver.check() == z3.sat:
-                fmodel = fsolver.model()
-                y_mappings = [(var, fmodel.eval(var, model_completion=True)) for var in y]
-                sub_phi = z3.simplify(z3.substitute(phi, y_mappings))
-                esolver.add(sub_phi)
-                fsolver.pop()
-            else:
-                return z3.sat
+            return z3.sat
     return z3.unknown
 
 
@@ -83,6 +82,7 @@ class EFSMTSolver:
         self.logic = logic
 
     def set_tactic(self, name: str):
+        """Set the solving tactic."""
         raise NotImplementedError
 
     def solve(self, y: List[z3.ExprRef], phi: z3.ExprRef):
@@ -90,15 +90,17 @@ class EFSMTSolver:
         :param y: variables to be universal quantified
         :param phi: a quantifier-free formula
         """
-        if self.tactic == EFSMTStrategy.Z3 or self.tactic == EFSMTStrategy.CVC5 \
-                or self.tactic == EFSMTStrategy.BOOLECTOR or self.tactic == EFSMTStrategy.Yices2:
+        bin_solver_strategies = {
+            EFSMTStrategy.Z3, EFSMTStrategy.CVC5,
+            EFSMTStrategy.BOOLECTOR, EFSMTStrategy.YICES2
+        }
+        if self.tactic in bin_solver_strategies:
             return self.solve_with_qsmt(y, phi)
-        elif self.tactic == EFSMTStrategy.SIMPLE_CEGAR:
+        if self.tactic == EFSMTStrategy.SIMPLE_CEGAR:
             return self.solve_with_simple_cegar(y, phi)
-        elif self.tactic == EFSMTStrategy.PARALLEL_CEGAR:
+        if self.tactic == EFSMTStrategy.PARALLEL_CEGAR:
             return self.solve_with_parallel_cegar(y, phi)
-        else:
-            return self.internal_solve(y, phi)
+        return self.internal_solve(y, phi)
 
     def internal_solve(self, y: List[z3.ExprRef], phi: z3.ExprRef) -> z3.CheckSatResult:
         """Call Z3's Python API"""
@@ -108,7 +110,9 @@ class EFSMTSolver:
         return s.check()
 
     def solve_with_simple_cegar(self, y: List[z3.ExprRef], phi: z3.ExprRef):
-        """Solve with a CEGAR-style algorithm, which consists of a "forall solver" and an "exists solver"
+        """Solve with a CEGAR-style algorithm.
+
+        Consists of a "forall solver" and an "exists solver"
         """
         # This can be slow (perhaps not a good idea for NRA) Maybe good for LRA or BV?
         print("Simple, sequential, CEGAR-style EFSMT!")
@@ -116,27 +120,28 @@ class EFSMTSolver:
         return z3_res, model
 
     def solve_with_parallel_cegar(self, y: List[z3.ExprRef], phi: z3.ExprRef):
-        """This should be the focus"""
+        """This should be the focus."""
         print("Parallel EFSMT starting!!!")
         z3_res, model = simple_cegar_efsmt(self.logic, y, phi)
         return z3_res, model
 
     def solve_with_qsmt(self, y: List[z3.ExprRef], phi: z3.ExprRef) -> z3.CheckSatResult:
-        """Solve with bin solvers"""
+        """Solve with bin solvers."""
         if self.tactic == EFSMTStrategy.Z3:
             return solve_with_bin_smt(y, phi, self.logic, "z3")
-        elif self.tactic == EFSMTStrategy.CVC5:
+        if self.tactic == EFSMTStrategy.CVC5:
             return solve_with_bin_smt(y, phi, self.logic, "cvc5")
-        elif self.tactic == EFSMTStrategy.BOOLECTOR:
+        if self.tactic == EFSMTStrategy.BOOLECTOR:
             return solve_with_bin_smt(y, phi, self.logic, "boolector2")
-        elif self.tactic == EFSMTStrategy.Yices2:
+        if self.tactic == EFSMTStrategy.YICES2:
             return solve_with_bin_smt(y, phi, self.logic, "yices2")
-        else:
-            return self.internal_solve(y, phi)  # for special cases
+        return self.internal_solve(y, phi)  # for special cases
 
     def solve_with_qbf(self, y: List[z3.ExprRef], phi: z3.ExprRef):
+        """Solve with QBF reduction."""
         assert self.logic in ("BV", "UFBV")
         raise NotImplementedError
 
     def solve_with_sat(self, y: List[z3.ExprRef], phi: z3.ExprRef):
+        """Solve with SAT reduction."""
         raise NotImplementedError

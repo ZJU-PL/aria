@@ -2,17 +2,20 @@
 Model counting for DIMACS files
 """
 import copy
+import logging
+import multiprocessing
 import os
 import subprocess
-from typing import List
-from threading import Timer
-import logging
-import uuid
 import time
-from pyapproxmc import Counter
-
-import multiprocessing
+import uuid
 from multiprocessing import cpu_count
+from threading import Timer
+from typing import List
+
+try:
+    from pyapproxmc import Counter  # pylint: disable=import-error
+except ImportError:
+    Counter = None  # type: ignore
 
 from pysat.formula import CNF
 from pysat.solvers import Solver
@@ -21,7 +24,7 @@ from aria.bool.pysat_cnf import gen_cubes
 
 from aria.global_params import global_config
 
-sharp_sat_timeout = 600  # seconds
+SHARP_SAT_TIMEOUT = 600  # seconds
 
 logger = logging.getLogger(__name__)
 
@@ -32,13 +35,14 @@ def terminate(process, is_timeout: List):
 
     Args:
         process (subprocess.Popen): The process to be terminated.
-        is_timeout (List): A list containing a single boolean value indicating if the process has timed out.
+        is_timeout (List): A list containing a single boolean value
+            indicating if the process has timed out.
     """
     if process.poll() is None:
         try:
             process.terminate()
             is_timeout[0] = True
-        except Exception as ex:
+        except (OSError, subprocess.SubprocessError) as ex:
             print("error for interrupting")
             print(ex)
 
@@ -54,7 +58,7 @@ def write_dimacs_to_file(header: List[str], clauses: List[str], output_file: str
     """
     # print("header: ", header)
     # print("clauses: ", len(clauses), clauses)
-    with open(output_file, 'w+') as file:
+    with open(output_file, 'w+', encoding='utf-8') as file:
         for info in header:
             file.write(info + "\n")
         for cls in clauses:
@@ -63,15 +67,21 @@ def write_dimacs_to_file(header: List[str], clauses: List[str], output_file: str
 
 def call_approxmc(clauses, timeout=600):
     """
-    Run the ApproxMC solver on a given DIMACS CNF file and return the number of solutions.
+    Run the ApproxMC solver on a given DIMACS CNF file.
+
+    Return the number of solutions.
 
     Args:
         clauses: List of clauses to count
-        timeout: Maximum time in seconds to run the solver (default: 300 seconds)
+        timeout: Maximum time in seconds to run the solver
+            (default: 300 seconds)
 
     Returns:
         int: Number of solutions, or -1 if timeout or error occurs
     """
+    if Counter is None:
+        print("pyapproxmc.Counter is not available")
+        return -1
     try:
         counter = Counter()
         for clause in clauses:
@@ -81,33 +91,39 @@ def call_approxmc(clauses, timeout=600):
             counter.add_clause(clause_list)
 
         # 设置超时
-        timer = Timer(timeout, lambda: counter.interrupt())
+        def interrupt_counter():
+            counter.interrupt()
+
+        timer = Timer(timeout, interrupt_counter)
         timer.start()
 
         try:
             c = counter.count()
             print("approxmc result: ", c)
             return c[0] * 2 ** (c[1])
-        except Exception as ex:
+        except (ValueError, RuntimeError) as ex:
             print("Exception in approxmc counting:", ex)
             return -1
         finally:
             timer.cancel()
 
-    except Exception as ex:
+    except (ValueError, RuntimeError) as ex:
         print("Error in approxmc setup:", ex)
         return -1
 
 
 def call_sharp_sat(cnf_filename: str):
     """
-    Call the sharpSAT solver on a given DIMACS CNF file and return the number of solutions and solving time.
+    Call the sharpSAT solver on a given DIMACS CNF file.
+
+    Returns the number of solutions and solving time.
 
     Args:
         cnf_filename (str): The path to the DIMACS CNF file.
 
     Returns:
-        tuple: (solutions, solving_time) where solutions is the number of solutions and solving_time is the time taken.
+        tuple: (solutions, solving_time) where solutions is the number of
+            solutions and solving_time is the time taken.
     """
 
     solutions = -1
@@ -119,7 +135,7 @@ def call_sharp_sat(cnf_filename: str):
     print("Calling sharpSAT")
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     is_timeout = [False]
-    timer = Timer(sharp_sat_timeout, terminate, args=[p, is_timeout])
+    timer = Timer(SHARP_SAT_TIMEOUT, terminate, args=[p, is_timeout])
     timer.start()
     try:
         find_sol_line = False
@@ -133,9 +149,9 @@ def call_sharp_sat(cnf_filename: str):
                 break
             if "solutions" in decode_line:
                 find_sol_line = True
-    except Exception as ex:
+    except (ValueError, IOError) as ex:
         # print(ex)
-        print("exception when running sharpSAT, will return false")
+        print(f"exception when running sharpSAT, will return false: {ex}")
     finally:
         timer.cancel()
         p.stdout.close()
@@ -171,7 +187,7 @@ def count_dimacs_solutions(header: List, str_clauses: List):
     Returns:
         int: The number of solutions for the given DIMACS CNF formula.
     """
-    output_file = '/tmp/{}.cnf'.format(str(uuid.uuid1()))
+    output_file = f'/tmp/{uuid.uuid1()}.cnf'
     write_dimacs_to_file(header, str_clauses, output_file)
     solutions, _ = call_sharp_sat(output_file)
     return solutions
@@ -196,16 +212,19 @@ def check_sat(clauses, assumptions):
 def count_dimacs_solutions_parallel(header: List[str], clauses: List[str]) -> int:
     """
     Count the number of solutions for a given DIMACS CNF formula in parallel.
-       1. Generate a set of disjoint cubes
-        C1: a, b
-        C2: Not(a), b
-        C3: a, Not b
-        C4: Not(a), Not(b)
-      2. Count the models subject to each cube in parallel, and sum the results
+
+    1. Generate a set of disjoint cubes
+       C1: a, b
+       C2: Not(a), b
+       C3: a, Not b
+       C4: Not(a), Not(b)
+    2. Count the models subject to each cube in parallel, and sum the results
 
     Args:
-        header (List[str]): A list containing the header information of the DIMACS CNF file.
-        clauses (List[str]): A list of strings representing the clauses of the DIMACS CNF file.
+        header (List[str]): A list containing the header information of
+            the DIMACS CNF file.
+        clauses (List[str]): A list of strings representing the clauses
+            of the DIMACS CNF file.
 
     Returns:
         int: The number of solutions for the given DIMACS CNF formula.
@@ -213,9 +232,9 @@ def count_dimacs_solutions_parallel(header: List[str], clauses: List[str]) -> in
 
     dimacs_str = ""
     for info in header:
-        dimacs_str += "{}\n".format(info)
+        dimacs_str += f"{info}\n"
     for cls in clauses:
-        dimacs_str += "{} 0\n".format(cls)
+        dimacs_str += f"{cls} 0\n"
 
     cnf = CNF(from_string=dimacs_str)
     cubes = gen_cubes(cnf, min(2, cnf.nv))
@@ -228,29 +247,28 @@ def count_dimacs_solutions_parallel(header: List[str], clauses: List[str]) -> in
 
     cnf_tasks = []
     for cube in satisfaible_cubes:
-        output_file = '/tmp/{}.cnf'.format(str(uuid.uuid1()))
+        output_file = f'/tmp/{uuid.uuid1()}.cnf'
         new_clauses = copy.deepcopy(clauses)
         # every list in the cube should be a unit clause?
         for lit in cube:
             new_clauses.append(str(lit))
-        new_header = ["p cnf {0} {1}".format(cnf.nv, len(clauses) + len(cube))]
+        new_header = [f"p cnf {cnf.nv} {len(clauses) + len(cube)}"]
         write_dimacs_to_file(new_header, new_clauses, output_file)
         cnf_tasks.append(output_file)
 
     results = []
     pool = multiprocessing.Pool(processes=cpu_count())  # process pool
     try:
-        for i in range(len(cnf_tasks)):
-            result = pool.apply_async(call_sharp_sat,
-                                    (cnf_tasks[i],))
+        for task_file in cnf_tasks:
+            result = pool.apply_async(call_sharp_sat, (task_file,))
             results.append(result)
 
         raw_solutions: List[int] = []
         sharp_sat_times: List[float] = []
-        for i in range(len(cnf_tasks)):
-            result = results[i].get()
-            raw_solutions.append(int(result[0]))
-            sharp_sat_times.append(result[1])
+        for result in results:
+            result_data = result.get()
+            raw_solutions.append(int(result_data[0]))
+            sharp_sat_times.append(result_data[1])
 
         print("results: ", raw_solutions)
         print("sharpSAT times: ", sharp_sat_times)
@@ -263,7 +281,7 @@ def count_dimacs_solutions_parallel(header: List[str], clauses: List[str]) -> in
         #     with open('temp.log', 'a') as f:
         #         f.write(f"{cnf.nv} {len(clauses)} {[-1 if x > 60 else x for x in sharp_sat_times]} {approxmc_time if result != -1 else -1}\n")
         #     return result
-        with open('temp.log', 'a') as f:
+        with open('temp.log', 'a', encoding='utf-8') as f:
             f.write(f"{cnf.nv} {len(clauses)} {sharp_sat_times} 0\n")
         return sum(raw_solutions)
     finally:
@@ -276,5 +294,5 @@ def count_dimacs_solutions_parallel(header: List[str], clauses: List[str]) -> in
             if os.path.isfile(file_path):
                 try:
                     os.remove(file_path)
-                except:
+                except OSError:
                     pass

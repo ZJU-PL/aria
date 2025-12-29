@@ -1,3 +1,10 @@
+"""
+Reduction type implementations for bit-vector approximations.
+
+This module provides functions for extending bit-vectors in various ways:
+zero extension, one extension, sign extension, and their right-side variants.
+"""
+
 from z3 import BitVecVal, Concat, Extract
 
 

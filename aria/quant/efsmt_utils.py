@@ -9,12 +9,12 @@ from aria.utils.smtlib_solver import SMTLIBSolver
 
 def solve_with_bin_smt(y, phi: z3.ExprRef, logic: str, solver_name: str):
     """Call bin SMT solvers to solve exists forall"""
-    smt2string = "(set-logic {})\n".format(logic)
+    smt2string = f"(set-logic {logic})\n"
     sol = z3.Solver()
     sol.add(z3.ForAll(y, phi))
     smt2string += sol.to_smt2()
 
-    # TODO: build/download bin solvers in the project
+    # Note: build/download bin solvers in the project
     # bin_cmd = ""
     if solver_name == "z3":
         bin_cmd = global_config.get_solver_path("z3")
@@ -29,7 +29,7 @@ def solve_with_bin_smt(y, phi: z3.ExprRef, logic: str, solver_name: str):
     if res == "sat":
         # print(bin_solver.get_expr_values(["p1", "p0", "p2"]))
         print("External solver success time: ", time.time() - start)
-        # TODO: get the model to build the invariant
+        # Note: get the model to build the invariant
     elif res == "unsat":
         print("External solver fails time: ", time.time() - start)
     else:

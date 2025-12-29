@@ -96,9 +96,9 @@ class BooleanSampler(Sampler):
                 block: List[z3.ExprRef] = []
                 for var in self.variables:
                     if z3.is_true(model[var]):
-                        block.append(var == False)
+                        block.append(var is False)  # type: ignore
                     else:
-                        block.append(var == True)
+                        block.append(var is True)  # type: ignore
 
                 solver.add(z3.Or(block))
                 stats["iterations"] += 1

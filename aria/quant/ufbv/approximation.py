@@ -26,6 +26,7 @@ from .reduction_types import (
 
 
 # Global tracker for the maximum bit width seen during traversal.
+# pylint: disable=invalid-name
 max_bit_width: int = 0
 
 
@@ -35,21 +36,21 @@ def approximate(formula: z3.AstRef, reduction_type: ReductionType, bit_places: i
     Only reduces bit-width when the current size is strictly greater than
     `bit_places` to avoid accidental widening.
     """
-    if formula.size() > bit_places:
-        if reduction_type == ReductionType.ZERO_EXTENSION:
-            return zero_extension(formula, bit_places)
-        if reduction_type == ReductionType.ONE_EXTENSION:
-            return one_extension(formula, bit_places)
-        if reduction_type == ReductionType.SIGN_EXTENSION:
-            return sign_extension(formula, bit_places)
-        if reduction_type == ReductionType.RIGHT_ZERO_EXTENSION:
-            return right_zero_extension(formula, bit_places)
-        if reduction_type == ReductionType.RIGHT_ONE_EXTENSION:
-            return right_one_extension(formula, bit_places)
-        if reduction_type == ReductionType.RIGHT_SIGN_EXTENSION:
-            return right_sign_extension(formula, bit_places)
-        raise ValueError("Unknown ReductionType")
-    return formula
+    if formula.size() <= bit_places:
+        return formula
+
+    reduction_map = {
+        ReductionType.ZERO_EXTENSION: zero_extension,
+        ReductionType.ONE_EXTENSION: one_extension,
+        ReductionType.SIGN_EXTENSION: sign_extension,
+        ReductionType.RIGHT_ZERO_EXTENSION: right_zero_extension,
+        ReductionType.RIGHT_ONE_EXTENSION: right_one_extension,
+        ReductionType.RIGHT_SIGN_EXTENSION: right_sign_extension,
+    }
+
+    if reduction_type in reduction_map:
+        return reduction_map[reduction_type](formula, bit_places)
+    raise ValueError("Unknown ReductionType")
 
 
 def recreate_vars(new_vars: list[z3.AstRef], quant: z3.QuantifierRef) -> None:
@@ -65,7 +66,7 @@ def recreate_vars(new_vars: list[z3.AstRef], quant: z3.QuantifierRef) -> None:
         elif quant.var_sort(i).is_bool():
             new_vars.append(z3.Bool(name))
         else:
-            raise ValueError("Unknown sort for bound variable: %r" % quant.var_sort(i))
+            raise ValueError(f"Unknown sort for bound variable: {quant.var_sort(i)!r}")
 
 
 def get_q_type(quant: z3.QuantifierRef, polarity: Polarity) -> Quantification:
@@ -81,7 +82,11 @@ def get_q_type(quant: z3.QuantifierRef, polarity: Polarity) -> Quantification:
     return Quantification.EXISTENTIAL
 
 
-def update_vars(quant: z3.QuantifierRef, var_list: list[tuple[str, Quantification]], polarity: Polarity) -> tuple[list[z3.AstRef], z3.QuantifierRef]:
+def update_vars(  # pylint: disable=too-many-arguments
+    quant: z3.QuantifierRef,
+    var_list: list[tuple[str, Quantification]],
+    polarity: Polarity,
+) -> tuple[list[z3.AstRef], z3.QuantifierRef]:
     """Recreate bound vars and extend `var_list` with their names/kinds.
 
     Also merges consecutive quantifiers with the same kind to keep traversal
@@ -107,12 +112,14 @@ def update_vars(quant: z3.QuantifierRef, var_list: list[tuple[str, Quantificatio
     return new_vars, quant
 
 
-def qform_process(quant: z3.QuantifierRef,
-                  var_list: list[tuple[str, Quantification]],
-                  reduction_type: ReductionType,
-                  q_type: Quantification,
-                  bit_places: int,
-                  polarity: Polarity) -> z3.AstRef:
+def qform_process(  # pylint: disable=too-many-arguments
+    quant: z3.QuantifierRef,
+    var_list: list[tuple[str, Quantification]],
+    reduction_type: ReductionType,
+    q_type: Quantification,
+    bit_places: int,
+    polarity: Polarity,
+) -> z3.AstRef:
     """Rebuild a quantifier node with a transformed body.
 
     The body is recursively processed; bound variables are recreated by name and
@@ -130,12 +137,14 @@ def qform_process(quant: z3.QuantifierRef,
     return z3.ForAll(new_vars, new_body) if quant.is_forall() else z3.Exists(new_vars, new_body)
 
 
-def cform_process(node: z3.AstRef,
-                  var_list: list[tuple[str, Quantification]],
-                  reduction_type: ReductionType,
-                  q_type: Quantification,
-                  bit_places: int,
-                  polarity: Polarity) -> z3.AstRef:
+def cform_process(  # pylint: disable=too-many-arguments
+    node: z3.AstRef,
+    var_list: list[tuple[str, Quantification]],
+    reduction_type: ReductionType,
+    q_type: Quantification,
+    bit_places: int,
+    polarity: Polarity,
+) -> z3.AstRef:
     """Process a compound node, adjusting polarity and rebuilding children.
     """
     new_children: list[z3.AstRef] = []
@@ -149,12 +158,26 @@ def cform_process(node: z3.AstRef,
     elif node.decl().name() == "=>":
         left_polarity = Polarity(not polarity.value)
         new_children.append(
-            rec_go(node.children()[0], var_list_copy, reduction_type, q_type, bit_places, left_polarity)
+            rec_go(
+                node.children()[0],
+                var_list_copy,
+                reduction_type,
+                q_type,
+                bit_places,
+                left_polarity,
+            )
         )
         new_children.append(
-            rec_go(node.children()[1], var_list_copy, reduction_type, q_type, bit_places, polarity)
+            rec_go(
+                node.children()[1],
+                var_list_copy,
+                reduction_type,
+                q_type,
+                bit_places,
+                polarity,
+            )
         )
-        return z3.Implies(*new_children)
+        return z3.Implies(new_children[0], new_children[1])
 
     # Regular children processing
     for child in node.children():
@@ -172,15 +195,18 @@ def cform_process(node: z3.AstRef,
         for ch in new_children[1:]:
             acc = acc + ch
         return acc
-    return node.decl().__call__(*new_children)
+    decl = node.decl()
+    return decl(*new_children)
 
 
-def rec_go(node: z3.AstRef,
-           var_list: list[tuple[str, Quantification]],
-           reduction_type: ReductionType,
-           q_type: Quantification,
-           bit_places: int,
-           polarity: Polarity) -> z3.AstRef:
+def rec_go(  # pylint: disable=too-many-arguments
+    node: z3.AstRef,
+    var_list: list[tuple[str, Quantification]],
+    reduction_type: ReductionType,
+    q_type: Quantification,
+    bit_places: int,
+    polarity: Polarity,
+) -> z3.AstRef:
     """Traverse `node` and apply approximations to targeted BV variables.
 
     Updates the global `max_bit_width` tracker when encountering BV variables.
@@ -194,9 +220,8 @@ def rec_go(node: z3.AstRef,
     if z3.is_var(node):
         order = -z3.get_var_index(node) - 1
         if isinstance(node, z3.BitVecRef):
-            global max_bit_width
-            if max_bit_width < node.size():
-                max_bit_width = node.size()
+            global max_bit_width  # pylint: disable=global-statement
+            max_bit_width = max(max_bit_width, node.size())
             if var_list and var_list[order][1] == q_type:
                 return approximate(node, reduction_type, bit_places)
         return node

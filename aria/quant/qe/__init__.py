@@ -39,7 +39,4 @@ __all__ = [
     'qe_expansion',
     'qe_lme',
     'qe_lme_parallel',
-    'qe_qepcad',
-    'qe_mma',
-    'qe_redlog'
 ]

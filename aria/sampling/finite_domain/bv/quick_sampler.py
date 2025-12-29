@@ -12,10 +12,10 @@ Note: The generated samples are currently not checked for whether they satisfy t
 """
 
 import random
-import z3
-import itertools
 from functools import reduce
 from typing import List, Dict, Any, Set, Optional
+
+import z3
 
 from aria.sampling.base import Sampler, Logic, SamplingMethod, SamplingOptions, SamplingResult
 from aria.utils.z3_expr_utils import get_variables, is_bv_sort

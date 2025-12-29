@@ -5,14 +5,20 @@ Take as input an SMT-LIB formula, and add a set of possible triggers?
 
 FIXME: by LLM, to be tested
 """
-from typing import List, Set, Tuple, Dict, Any, Optional
+from typing import List, Tuple, Dict
 import z3
-from z3 import Solver, StringVal, String, IntVal, Int, BoolVal, Not, Or, And, Implies, ForAll, Exists, IntSort, ExprRef, \
-    Const, Pattern
-from z3.z3util import get_vars
-c
+from z3 import (
+    Solver, ForAll, Exists, ExprRef, Const
+)
+
 
 class TriggerSelector:
+    """
+    Selects appropriate triggers for quantifiers in SMT formulas.
+
+    Triggers are patterns used in E-matching to instantiate quantifiers.
+    This class analyzes quantifiers and selects good trigger patterns.
+    """
     def __init__(self, formula: ExprRef):
         self.formula = formula
         self.solver = Solver()
@@ -159,41 +165,59 @@ class TriggerSelector:
                 body = expr.body()
                 body = self._annotate_expr(body)  # Annotate nested quantifiers
 
-                # Create proper Z3 patterns for the triggers - use only function applications, not constants
-                valid_triggers = [t for t in triggers if z3.is_app(t) and not z3.is_const(t)]
+                # Create proper Z3 patterns for the triggers
+                # Use only function applications, not constants
+                valid_triggers = [
+                    t for t in triggers
+                    if z3.is_app(t) and not z3.is_const(t)
+                ]
                 if not valid_triggers:
                     print("No valid function applications found for triggers.")
 
                     # Just recreate the quantifier without patterns
                     if expr.is_forall():
-                        vars = [Const(expr.var_name(i), expr.var_sort(i)) for i in range(expr.num_vars())]
-                        return ForAll(vars, body)
-                    else:  # Exists
-                        vars = [Const(expr.var_name(i), expr.var_sort(i)) for i in range(expr.num_vars())]
-                        return Exists(vars, body)
+                        bound_vars = [
+                            Const(expr.var_name(i), expr.var_sort(i))
+                            for i in range(expr.num_vars())
+                        ]
+                        return ForAll(bound_vars, body)
+                    # Exists
+                    bound_vars = [
+                        Const(expr.var_name(i), expr.var_sort(i))
+                        for i in range(expr.num_vars())
+                    ]
+                    return Exists(bound_vars, body)
 
                 # In Z3, patterns are lists of expressions
-                vars = [Const(expr.var_name(i), expr.var_sort(i)) for i in range(expr.num_vars())]
+                bound_vars = [
+                    Const(expr.var_name(i), expr.var_sort(i))
+                    for i in range(expr.num_vars())
+                ]
 
                 # Create the quantifier with patterns - simplified to avoid issues
                 if expr.is_forall():
                     # Just create without patterns to avoid errors
-                    result = ForAll(vars, body)
+                    result = ForAll(bound_vars, body)
                     print(f"Created ForAll: {result}")
                     return result
-                else:  # Exists
-                    result = Exists(vars, body)
-                    print(f"Created Exists: {result}")
-                    return result
-            else:
-                # If no triggers found, just recurse on the body
-                body = self._annotate_expr(expr.body())
-                if expr.is_forall():
-                    vars = [Const(expr.var_name(i), expr.var_sort(i)) for i in range(expr.num_vars())]
-                    return ForAll(vars, body)
-                else:  # Exists
-                    vars = [Const(expr.var_name(i), expr.var_sort(i)) for i in range(expr.num_vars())]
-                    return Exists(vars, body)
+                # Exists
+                result = Exists(bound_vars, body)
+                print(f"Created Exists: {result}")
+                return result
+            # If no triggers found, just recurse on the body
+            body = self._annotate_expr(expr.body())
+            if expr.is_forall():
+                bound_vars = [
+                    Const(expr.var_name(i), expr.var_sort(i))
+                    for i in range(expr.num_vars())
+                ]
+                return ForAll(bound_vars, body)
+            # Exists
+            bound_vars = [
+                Const(expr.var_name(i), expr.var_sort(i))
+                for i in range(expr.num_vars())
+            ]
+            return Exists(bound_vars, body)
         elif z3.is_app(expr):
             # Recurse on children
             args = [self._annotate_expr(child) for child in expr.children()]
@@ -210,7 +234,7 @@ def example_usage():
     """
     Example demonstrating the use of TriggerSelector.
     """
-    from z3 import Function, IntSort, ForAll, Implies, Int
+    from z3 import Function, IntSort, Int  # pylint: disable=import-outside-toplevel
 
     # Define sorts and functions
     int_sort = IntSort()
