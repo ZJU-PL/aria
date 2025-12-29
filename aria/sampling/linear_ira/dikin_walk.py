@@ -1,19 +1,30 @@
 #!/usr/bin/env python3
 # coding: utf-8
+"""
+Dikin walk algorithm for sampling from convex polytopes.
 
+This module implements the Dikin walk algorithm for uniform sampling from
+convex polytopes defined by linear constraints.
+"""
 import argparse
 from concurrent import futures
 
 import numpy as np
-from scipy.optimize import linprog
-from matplotlib import pyplot as plt
+try:
+    from scipy.optimize import linprog  # pylint: disable=import-error
+except ImportError:
+    linprog = None
+try:
+    from matplotlib import pyplot as plt  # pylint: disable=import-error
+except ImportError:
+    plt = None
 
 from six.moves import range
 
 
 def hessian(a, b, x):
     """Return log-barrier Hessian matrix at x."""
-    d = (b - a.dot(x))
+    d = b - a.dot(x)
     s = d ** -2.0
     return a.T.dot(np.diag(s)).dot(a)
 
@@ -53,7 +64,7 @@ def dikin_walk(a, b, x0, r=3 / 40):
     while True:
         if not (a.dot(x) <= b).all():
             print(a.dot(x) - b)
-            raise Exception('Invalid state: {}'.format(x))
+            raise ValueError(f'Invalid state: {x}')
 
         if np.random.uniform() < 0.5:
             yield x
@@ -81,7 +92,7 @@ def hit_and_run(a, b, x0):
     while True:
         if not (a.dot(x) <= b).all():
             print(a.dot(x) - b)
-            raise Exception('Invalid state: {}'.format(x))
+            raise ValueError(f'Invalid state: {x}')
 
         # Generate a point on the sphere surface
         d = np.random.normal(size=a.shape[1])
@@ -98,13 +109,15 @@ def hit_and_run(a, b, x0):
 
 def chebyshev_center(a, b):
     """Return Chebyshev center of the convex polytope."""
+    if linprog is None:
+        raise ImportError('scipy.optimize.linprog is required for chebyshev_center')
     norm_vector = np.reshape(np.linalg.norm(a, axis=1), (a.shape[0], 1))
     c = np.zeros(a.shape[1] + 1)
     c[-1] = -1
     a_lp = np.hstack((a, norm_vector))
     res = linprog(c, A_ub=a_lp, b_ub=b, bounds=(None, None))
     if not res.success:
-        raise Exception('Unable to find Chebyshev center')
+        raise ValueError('Unable to find Chebyshev center')
 
     return res.x[:-1]
 
@@ -131,12 +144,14 @@ def collect_chain(sampler, count, burn, thin, *args, **kwargs):
     return points
 
 
-class ConunctiveLRASampler(object):
+class ConunctiveLRASampler:
+    """Conjunctive LRA sampler (not yet implemented)."""
 
     def __init__(self):
         raise NotImplementedError
 
     def sample(self):
+        """Sample from the conjunctive LRA formula."""
         return []
 
 
@@ -165,9 +180,8 @@ def main():
     eq = np.array([
         [0, 0, 1]
     ])
-    eq_rhs = np.array([
-        0
-    ])
+    # eq_rhs is defined but not used in the current implementation
+    # eq_rhs = np.array([0])
 
     # Inequalities
     # TODO: how to deal with negation, and "<"
@@ -190,13 +204,13 @@ def main():
     ])
 
     # Find nullspace
-    u, s, vh = np.linalg.svd(eq)
+    _, s, vh = np.linalg.svd(eq)
     rank = np.sum(s >= 1e-10)
     if rank == 0:
         print('No equality constraints given...')
         nullspace = np.identity(vh.shape[0])
     elif rank == vh.shape[0]:
-        raise Exception('Only one solution in null space')
+        raise ValueError('Only one solution in null space')
     else:
         nullity = vh.shape[0] - rank
         nullspace = vh[-nullity:].T
@@ -208,11 +222,11 @@ def main():
     # Initial point to start the chains from.
     # Use the Chebyshev center.
     x0 = chebyshev_center(a, b)
-    print('Chebyshev center: {}'.format(x0.dot(nullspace.T)))
+    print(f'Chebyshev center: {x0.dot(nullspace.T)}')
 
-    print('A= {}'.format(a))
-    print('b= {}'.format(b))
-    print('x0= {}'.format(x0))
+    print(f'A= {a}')
+    print(f'b= {b}')
+    print(f'x0= {x0}')
 
     chain_count = args.chains
     burn = args.burn
@@ -227,7 +241,7 @@ def main():
         sampler = hit_and_run
         sampler_args = ()
     else:
-        parser.error('Invalid sampler: {}'.format(args.sampler))
+        parser.error(f'Invalid sampler: {args.sampler}')
 
     # Collect chains in parallel
     with futures.ProcessPoolExecutor() as executor:
@@ -237,8 +251,12 @@ def main():
         chains = [f.result() for f in futures.as_completed(fs)]
 
     # Plot chains
+    if plt is None:
+        print('matplotlib is not available, skipping plots')
+        return
+
     for chain_number, chain in enumerate(chains):
-        print('Chain {}/{}'.format(chain_number + 1, chain_count))
+        print(f'Chain {chain_number + 1}/{chain_count}')
 
         points = chain.dot(nullspace.T)
         maxes = points.max(axis=0)
@@ -247,7 +265,7 @@ def main():
         maxes += margins
         mins -= margins
 
-        fig, ax = plt.subplots()
+        _, ax = plt.subplots()
         ax.set_xlim(mins[0], maxes[0])
         ax.set_ylim(mins[1], maxes[1])
 
@@ -264,8 +282,8 @@ def main():
         plt.show()
 
         for i in range(points.shape[1]):
-            print('Variable x{}'.format(i))
-            fig, ax = plt.subplots()
+            print(f'Variable x{i}')
+            _, ax = plt.subplots()
             ax.plot(np.arange(count), points[:, i])
             plt.show()
 

@@ -1,3 +1,1 @@
-"""
-
-"""
+"""Predicate abstraction module."""

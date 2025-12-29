@@ -9,9 +9,9 @@ bounds for variables and sampling within those bounds.
 
 import random
 
+import z3
 from z3 import (
-    parse_smt2_file, Z3Exception, Model, BitVecVal, Optimize,
-    is_true, And
+    parse_smt2_file, Z3Exception, Optimize, And
 )
 
 from aria.utils.z3_expr_utils import get_variables
@@ -39,15 +39,24 @@ class RegionSampler:
             self.formula = parse_smt2_file(fname)
         except Z3Exception as exc:
             print(exc)
-            return None
+            return False
 
         self.vars = get_variables(self.formula)
         for _ in self.vars:
             self.lower_bounds.append(0)
             self.upper_bounds.append(255)
+        return True
 
-    def check_model(self, candidate):
-        """Check if a candidate model satisfies the formula."""
+    def check_model(self, _candidate):
+        """
+        Check if a candidate model satisfies the formula.
+
+        Args:
+            _candidate: The candidate model to check (currently unused)
+
+        Returns:
+            None - This method is not yet implemented
+        """
         # This method appears to be incomplete or uses an unsupported Z3 API
         # The original code attempted to use add_const_interp which may not be available
         # For now, return None to indicate the check cannot be performed
@@ -61,16 +70,16 @@ class RegionSampler:
             sol = Optimize()
             sol.add(self.formula)
             sol.minimize(var)
-            sol.check()
-            m = sol.model()
-            self.lower_bounds[idx] = m.eval(var).as_long()
+            if sol.check() == z3.sat:
+                m = sol.model()
+                self.lower_bounds[idx] = m.eval(var).as_long()
 
             sol2 = Optimize()
             sol2.add(self.formula)
             sol2.maximize(var)
-            sol2.check()
-            m2 = sol2.model()
-            self.upper_bounds[idx] = m2.eval(var).as_long()
+            if sol2.check() == z3.sat:
+                m2 = sol2.model()
+                self.upper_bounds[idx] = m2.eval(var).as_long()
             print(var, "[", self.lower_bounds[idx], ", ",
                   self.upper_bounds[idx], "]")
 

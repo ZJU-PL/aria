@@ -157,9 +157,9 @@ def expr_to_z3(expr: Expr, env: Dict[str, z3.ArithRef]) -> z3.ExprRef:
         if expr.op == "*":
             return lhs * rhs
         if expr.op == "//":
-            return z3.IntDiv(lhs, rhs)  # type: ignore[attr-defined]
+            return lhs / rhs  # Integer division for z3.Int
         if expr.op == "%":
-            return z3.Mod(lhs, rhs)  # type: ignore[attr-defined]
+            return lhs % rhs  # Modulo for z3.Int
         if expr.op == "&":
             return _bv_to_int(_as_bv(lhs) & _as_bv(rhs))
         if expr.op == "|":
@@ -225,9 +225,9 @@ def _apply_assignment(domain: ConjunctiveDomain, state: AbstractState, stmt: Ass
     elif stmt.op == "*=":
         assignment = lhs_post == lhs_pre * rhs_z3
     elif stmt.op == "//=":
-        assignment = lhs_post == z3.IntDiv(lhs_pre, rhs_z3)  # type: ignore[attr-defined]
+        assignment = lhs_post == lhs_pre / rhs_z3  # Integer division for z3.Int
     elif stmt.op == "%=":
-        assignment = lhs_post == z3.Mod(lhs_pre, rhs_z3)  # type: ignore[attr-defined]
+        assignment = lhs_post == lhs_pre % rhs_z3  # Modulo for z3.Int
     elif stmt.op == "&=":
         assignment = lhs_post == _bv_to_int(_as_bv(lhs_pre) & _as_bv(rhs_z3))
     elif stmt.op == "|=":

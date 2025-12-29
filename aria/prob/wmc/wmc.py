@@ -1,3 +1,10 @@
+"""
+Weighted Model Counting (WMC) for propositional CNF formulas.
+
+This module provides WMC computation using different backends:
+- DNNF compilation for exact counting
+- Enumeration for approximate counting with model limits
+"""
 from __future__ import annotations
 
 from typing import Iterable, List, Dict
@@ -13,7 +20,7 @@ from .base import WMCBackend, WMCOptions, LiteralWeights
 
 def _validate_weights(weights: LiteralWeights) -> None:
     for lit, w in weights.items():
-        if not (0.0 <= w <= 1.0):
+        if w < 0.0 or w > 1.0:
             raise ValueError(f"Weight of literal {lit} must be in [0,1], got {w}")
 
 
@@ -124,7 +131,6 @@ def wmc_count(cnf: CNF, weights: LiteralWeights, options: WMCOptions | None = No
         if root is None:
             return 0.0
         return _wmc_on_dnnf(root, w)
-    elif opts.backend == WMCBackend.ENUMERATION:
+    if opts.backend == WMCBackend.ENUMERATION:
         return _wmc_by_enumeration(cnf, w, opts.model_limit)
-    else:
-        raise ValueError(f"Unsupported WMC backend: {opts.backend}")
+    raise ValueError(f"Unsupported WMC backend: {opts.backend}")

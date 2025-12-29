@@ -1,6 +1,6 @@
 """Main class definition for the ReducedProduct conjunctive domain.
 """
-from typing import Any, List, Dict
+from typing import List, Dict
 import z3
 from ..z3_variables import Z3VariablesDomain
 from ..z3_variables.concrete import Z3VariablesState

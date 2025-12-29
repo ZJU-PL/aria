@@ -40,7 +40,9 @@ class CoreGuidedSolver(MaxSMTSolverBase):
         # Copy original weight
         self.original_weights.append(weight)
 
-    def add_soft_constraints(self, constraints: List[z3.ExprRef], weights: Optional[List[float]] = None) -> None:
+    def add_soft_constraints(
+        self, constraints: List[z3.ExprRef], weights: Optional[List[float]] = None
+    ) -> None:
         """Add multiple soft constraints with weights
 
         Args:
@@ -60,7 +62,9 @@ class CoreGuidedSolver(MaxSMTSolverBase):
             Tuple of (sat, model, optimal_cost)
         """
         # Create relaxation variables for soft constraints
-        relax_vars: List[z3.ExprRef] = [z3.Bool(f"_relax_{i}") for i in range(len(self.soft_constraints))]
+        relax_vars: List[z3.ExprRef] = [
+            z3.Bool(f"_relax_{i}") for i in range(len(self.soft_constraints))
+        ]
 
         # Add hard constraints to solver
         solver = z3.Solver()
@@ -130,7 +134,8 @@ class CoreGuidedSolver(MaxSMTSolverBase):
             block_vars.append(block_var)
             block_weights.append(min_weight)
 
-            # Add cardinality constraint to allow at most one soft constraint to be relaxed in the core
+            # Add cardinality constraint to allow at most one soft constraint
+            # to be relaxed in the core
             at_most_one: List[z3.ExprRef] = []
             for i in core_indices:
                 # Update the weight by subtracting the minimum weight

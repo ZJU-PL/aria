@@ -8,7 +8,8 @@ Approach taken from:
   Efficient Sampling of SAT Solutions for Testing, ICSE 2018.
   https://github.com/RafaelTupynamba/quicksampler/
 
-Note: The generated samples are currently not checked for whether they satisfy the given constraints!
+Note: The generated samples are currently not checked for whether they satisfy
+the given constraints!
 """
 
 import random
@@ -17,7 +18,9 @@ from typing import List, Dict, Any, Set, Optional
 
 import z3
 
-from aria.sampling.base import Sampler, Logic, SamplingMethod, SamplingOptions, SamplingResult
+from aria.sampling.base import (
+    Sampler, Logic, SamplingMethod, SamplingOptions, SamplingResult
+)
 from aria.utils.z3_expr_utils import get_variables, is_bv_sort
 
 
@@ -34,7 +37,7 @@ def _bvcount(b: z3.ExprRef):
 MAX_LEVEL = 6
 
 
-def _bvsampler(constraints, target):
+def _bvsampler(constraints, target):  # pylint: disable=too-many-locals
     """
     Internal implementation: Generate diverse samples using bit-flipping mutations.
 
@@ -134,7 +137,7 @@ class QuickBVSampler(Sampler):
         https://github.com/RafaelTupynamba/quicksampler/
     """
 
-    def __init__(self, target_var: Optional[z3.ExprRef] = None, **kwargs: Any) -> None:
+    def __init__(self, target_var: Optional[z3.ExprRef] = None, **_kwargs: Any) -> None:
         """
         Initialize the QuickSampler.
 

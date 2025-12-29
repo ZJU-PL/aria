@@ -1,3 +1,4 @@
+"""Expression utilities for polynomial and function expressions."""
 from itertools import product
 from typing import List
 
@@ -27,7 +28,7 @@ def get_function_expression(name: str, parameters: List[sp.Symbol]) -> sp.Expr:
 def get_polynomial_expression(coeffs_name: str, variables: List[sp.Symbol], degree: int) -> sp.Expr:
     """
     Get a polynomial expression over the given variables with the given degree.
-    Coefficients are named with the given name and indexed for unique identification. 
+    Coefficients are named with the given name and indexed for unique identification.
 
     Parameters
     ----------

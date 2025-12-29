@@ -45,7 +45,7 @@ def example_1_resource_allocation():
     symba = SYMBA(constraints, [objective])
     state = symba.optimize()
 
-    print(f"\nOptimization completed in {symba.stats['total_time']".3f"}s")
+    print(f"\nOptimization completed in {symba.stats['total_time']:.3f}s")
     print(f"SMT queries: {symba.stats['smt_queries']}")
     print(f"Rules applied: {symba.stats['rules_applied']}")
 
@@ -95,7 +95,7 @@ def example_2_production_optimization():
     multi_symba = MultiSYMBA(constraints, [profit, resource_usage])
     state = multi_symba.optimize()
 
-    print(f"\nOptimization completed in {multi_symba.symba.stats['total_time']".3f"}s")
+    print(f"\nOptimization completed in {multi_symba.symba.stats['total_time']:.3f}s")
     print(f"SMT queries: {multi_symba.symba.stats['smt_queries']}")
 
     # Display Pareto front
@@ -144,7 +144,7 @@ def example_3_bounded_optimization():
     symba = SYMBA(constraints, [objective])
     state = symba.optimize()
 
-    print(f"\nOptimization completed in {symba.stats['total_time']".3f"}s")
+    print(f"\nOptimization completed in {symba.stats['total_time']:.3f}s")
     print(f"SMT queries: {symba.stats['smt_queries']}")
 
     # Display results

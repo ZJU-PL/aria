@@ -109,7 +109,9 @@ class BitBlastOMTBVSolver:
             logger.error("Error in SAT solving: %s", ex)
             return None
 
-    def maximize_with_maxsat(self, obj: z3.ExprRef, is_signed: bool = False, minimize: bool = False) -> Optional[int]:
+    def maximize_with_maxsat(
+        self, obj: z3.ExprRef, is_signed: bool = False, minimize: bool = False
+    ) -> Optional[int]:
         """Solve OMT(BV) using MaxSAT reduction.
 
         Args:
@@ -129,7 +131,7 @@ class BitBlastOMTBVSolver:
         if sat_result == z3.unsat:
             logger.debug("the hard formula is unsatisfiable")
             return None
-        elif sat_result == z3.unknown:
+        if sat_result == z3.unknown:
             logger.warning("error checking satisfiability of hard formula")
             return None
 
@@ -149,7 +151,7 @@ class BitBlastOMTBVSolver:
         if z3.is_true(after_simp):
             logger.debug("the hard formula is a tautology (obj can be any value)")
             return None
-        elif z3.is_false(after_simp):
+        if z3.is_false(after_simp):
             logger.error("the hard formula with objective is trivially unsat")
             return None
 
@@ -159,11 +161,9 @@ class BitBlastOMTBVSolver:
             not_obj = z3.BitVec(f"not_{str(objname)}", objname.size())
             self.fml = z3.And(self.fml, not_obj == ~objname)
             self.vars.append(not_obj)
-            opt_obj = not_obj
             opt_obj_str = str(not_obj)
             do_minimize = False  # Now we're maximizing ~obj
         else:
-            opt_obj = objname
             opt_obj_str = str(objname)
             do_minimize = minimize
 

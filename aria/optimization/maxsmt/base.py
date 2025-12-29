@@ -75,7 +75,9 @@ class MaxSMTSolverBase:
         self.soft_constraints.append(constraint)
         self.weights.append(weight)
 
-    def add_soft_constraints(self, constraints: List[z3.ExprRef], weights: Optional[List[float]] = None) -> None:
+    def add_soft_constraints(
+        self, constraints: List[z3.ExprRef], weights: Optional[List[float]] = None
+    ) -> None:
         """Add multiple soft constraints with weights
 
         Args:
@@ -107,7 +109,8 @@ class MaxSMTSolverBase:
         variables: Set[z3.ExprRef] = set()
 
         def collect(expr: z3.ExprRef) -> None:
-            if z3.is_const(expr) and not z3.is_bool(expr) and not z3.is_true(expr) and not z3.is_false(expr):
+            if (z3.is_const(expr) and not z3.is_bool(expr) and
+                    not z3.is_true(expr) and not z3.is_false(expr)):
                 variables.add(expr)
             else:
                 for child in expr.children():

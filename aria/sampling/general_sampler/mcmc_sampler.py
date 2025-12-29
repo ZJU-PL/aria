@@ -10,7 +10,7 @@ by LLM, to check
 
 import random
 import time
-from typing import Dict, List, Set, Any, Optional, Tuple
+from typing import Dict, Set, Any, Optional, Tuple
 
 from z3 import (
     Solver, sat, IntNumRef, RatNumRef, AlgebraicNumRef,
@@ -380,7 +380,7 @@ class MCMCSampler(Sampler):
 
             for i in range(1, test_range + 1):
                 self.solver.push()
-                self.solver.add(var == i)
+                self.solver.add(var == IntVal(i))
                 if self.solver.check() == sat:
                     valid_values.append(i)
                 self.solver.pop()
@@ -396,7 +396,7 @@ class MCMCSampler(Sampler):
 
             # If we got here, it's likely a simple integer range
             return True
-        except Exception:
+        except (ValueError, TypeError, AttributeError, IndexError):
             return False
 
     def _sample_simple_integer_range(self, options, start_time) -> SamplingResult:
@@ -423,7 +423,7 @@ class MCMCSampler(Sampler):
         # Test each value
         for i in range(min_val, max_val + 1):
             self.solver.push()
-            self.solver.add(var == i)
+            self.solver.add(var == IntVal(i))
             if self.solver.check() == sat:
                 candidates.append(i)
             self.solver.pop()

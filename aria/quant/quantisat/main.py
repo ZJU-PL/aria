@@ -1,9 +1,11 @@
+"""Main entry point for the QuantiSAT solver."""
 import os
 import time
 from argparse import ArgumentParser
 from enum import Enum
-from aria.quant.quantisat.parser.formula_parser import parse_file
 from warnings import warn
+
+from aria.quant.quantisat.parser.formula_parser import parse_file
 
 from aria.quant.quantisat.solver import MultiQuantiSAT, QuantiSAT, Skolem, SolverBackend
 from aria.quant.quantisat.util import Result

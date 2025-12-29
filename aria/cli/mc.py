@@ -63,15 +63,14 @@ def count_from_file(filename: str, theory: str = "auto", method: str = "auto",  
                     clauses.append(line.rstrip(' 0').strip())
             count = count_dimacs_solutions_parallel(header, clauses)
             return count
-        else:
-            # Parse SMT-LIB2 and count Boolean models
-            try:
-                formula = z3.And(z3.parse_smt2_string(content))
-                count = count_bool_models(formula, method=method if method != 'auto' else 'solver')
-                return count
-            except Exception as e:
-                logging.error("Error parsing SMT-LIB2: %s", e)
-                raise
+        # Parse SMT-LIB2 and count Boolean models
+        try:
+            formula = z3.And(z3.parse_smt2_string(content))
+            count = count_bool_models(formula, method=method if method != 'auto' else 'solver')
+            return count
+        except Exception as e:
+            logging.error("Error parsing SMT-LIB2: %s", e)
+            raise
 
     elif theory == 'bv':
         # QF_BV model counting
@@ -81,7 +80,7 @@ def count_from_file(filename: str, theory: str = "auto", method: str = "auto",  
             count = counter.count_model_by_bv_enumeration()
         else:
             # Use general sampler
-            count = count_solutions(content, format='smtlib2', timeout=timeout)
+            count = count_solutions(content, fmt='smtlib2', timeout=timeout)
         return count
 
     elif theory == 'arith':
@@ -116,7 +115,7 @@ def count_from_file(filename: str, theory: str = "auto", method: str = "auto",  
 
     else:
         # Generic SMT-LIB2 counting
-        count = count_solutions(content, format=format_type, timeout=timeout)
+        count = count_solutions(content, fmt=format_type, timeout=timeout)
         return count
 
 
@@ -133,7 +132,8 @@ def main():
         type=str,
         choices=["bool", "bv", "arith", "auto"],
         default="auto",
-        help="Theory type: bool (Boolean/SAT), bv (bitvector), arith (arithmetic), auto (detect, default)"
+        help=("Theory type: bool (Boolean/SAT), bv (bitvector), "
+              "arith (arithmetic), auto (detect, default)")
     )
 
     parser.add_argument(
@@ -173,7 +173,7 @@ def main():
         count = count_from_file(args.file, args.theory, method, args.timeout)
         print(f"Number of models: {count}")
         return 0
-    except Exception as e:
+    except (ValueError, IOError, OSError, z3.Z3Exception) as e:
         print(f"Error: {e}", file=sys.stderr)
         if args.log_level == "DEBUG":
             import traceback  # pylint: disable=import-outside-toplevel

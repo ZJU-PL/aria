@@ -3,32 +3,33 @@ Algorithms for computing backbones of SAT formulas
 
 This module provides several algorithms for computing backbones of SAT formulas:
 
-1. Iterative Algorithm: The most straightforward approach that tests each 
+1. Iterative Algorithm: The most straightforward approach that tests each
    variable one by one using a SAT solver.
 
-2. Chunking Algorithm: Improves efficiency by testing multiple variables 
+2. Chunking Algorithm: Improves efficiency by testing multiple variables
    at once in "chunks".
 
 3. Backbone Refinement Algorithm: Uses a refinement-based approach that
    leverages previous models to quickly identify backbone literals.
 
 References:
-- J. Marques-Silva, M. Janota, C. Mencía. "Minimal sets over monotone predicates 
+- J. Marques-Silva, M. Janota, C. Mencía. "Minimal sets over monotone predicates
   in Boolean formulae." CAV, 2013.
 - C. Mencía, A. Previti, J. Marques-Silva. "Literal-based MCS extraction." IJCAI, 2015.
-- A. Previti, A. Ignatiev, A. Morgado, J. Marques-Silva. "Prime compilation of 
+- A. Previti, A. Ignatiev, A. Morgado, J. Marques-Silva. "Prime compilation of
   non-clausal formulae." IJCAI, 2015.
-- R. Grumberg, A. Schumann, A. Melnikov. "Faster Backbone Computation Using 
+- R. Grumberg, A. Schumann, A. Melnikov. "Faster Backbone Computation Using
   Efficient Enumeration Methods of Minimal Correction Subsets." CP, 2022.
 """
 
 import logging
 from enum import Enum
-from typing import List, Set, Tuple, Optional, Dict
+from typing import List, Tuple
+
+from pysat.formula import CNF
 
 from aria.bool.sat.pysat_solver import PySATSolver
 from aria.utils.types import SolverResult
-from pysat.formula import CNF
 
 logger = logging.getLogger(__name__)
 
@@ -44,13 +45,13 @@ def compute_backbone(cnf: CNF, algorithm: BackboneAlgorithm = BackboneAlgorithm.
                      solver_name: str = "cd", chunk_size: int = 10) -> Tuple[List[int], int]:
     """
     Compute the backbone of a SAT formula.
-    
+
     Args:
         cnf: The CNF formula
         algorithm: The algorithm to use for backbone computation
         solver_name: The SAT solver to use
         chunk_size: Size of chunks for the chunking algorithm
-        
+
     Returns:
         A tuple containing:
         - List of backbone literals (positive or negative integers)
@@ -58,34 +59,33 @@ def compute_backbone(cnf: CNF, algorithm: BackboneAlgorithm = BackboneAlgorithm.
     """
     if algorithm == BackboneAlgorithm.ITERATIVE:
         return compute_backbone_iterative(cnf, solver_name)
-    elif algorithm == BackboneAlgorithm.CHUNKING:
+    if algorithm == BackboneAlgorithm.CHUNKING:
         return compute_backbone_chunking(cnf, solver_name, chunk_size)
-    elif algorithm == BackboneAlgorithm.BACKBONE_REFINEMENT:
+    if algorithm == BackboneAlgorithm.BACKBONE_REFINEMENT:
         return compute_backbone_refinement(cnf, solver_name)
-    else:
-        raise ValueError(f"Unknown algorithm: {algorithm}")
+    raise ValueError(f"Unknown algorithm: {algorithm}")
 
 
 def compute_backbone_iterative(cnf: CNF, solver_name: str = "cd") -> Tuple[List[int], int]:
     """
     Compute the backbone of a SAT formula using the iterative algorithm.
-    
+
     This is the most straightforward approach that tests each variable
     one by one using a SAT solver.
-    
+
     Algorithm:
     1. Initialize the solver with the formula
     2. Check if the formula is satisfiable
     3. For each variable v in the formula:
        a. Check if F ∧ ¬v is satisfiable
        b. If not, v is a backbone literal
-       c. Check if F ∧ v is satisfiable 
+       c. Check if F ∧ v is satisfiable
        d. If not, ¬v is a backbone literal
-    
+
     Args:
         cnf: The CNF formula
         solver_name: The SAT solver to use
-        
+
     Returns:
         A tuple containing:
         - List of backbone literals (positive or negative integers)
@@ -127,14 +127,15 @@ def compute_backbone_iterative(cnf: CNF, solver_name: str = "cd") -> Tuple[List[
     return backbone_literals, num_solver_calls
 
 
-def compute_backbone_chunking(cnf: CNF, solver_name: str = "cd", chunk_size: int = 10) -> Tuple[List[int], int]:
+def compute_backbone_chunking(
+        cnf: CNF, solver_name: str = "cd", chunk_size: int = 10) -> Tuple[List[int], int]:
     """
     Compute the backbone of a SAT formula using the chunking algorithm.
-    
+
     This algorithm improves efficiency by testing multiple variables
     at once in "chunks". When a chunk test reveals a backbone literal,
     we narrow down to find the specific literal(s).
-    
+
     Algorithm:
     1. Initialize the solver with the formula
     2. Check if the formula is satisfiable and get a model M
@@ -146,12 +147,12 @@ def compute_backbone_chunking(cnf: CNF, solver_name: str = "cd", chunk_size: int
        d. For each variable in the chunk:
           i. Check if flipping just this variable makes formula unsatisfiable
           ii. If yes, it's a backbone literal
-    
+
     Args:
         cnf: The CNF formula
         solver_name: The SAT solver to use
         chunk_size: Size of each chunk of variables to test
-        
+
     Returns:
         A tuple containing:
         - List of backbone literals (positive or negative integers)
@@ -213,10 +214,10 @@ def compute_backbone_chunking(cnf: CNF, solver_name: str = "cd", chunk_size: int
 def compute_backbone_refinement(cnf: CNF, solver_name: str = "cd") -> Tuple[List[int], int]:
     """
     Compute the backbone of a SAT formula using the backbone refinement algorithm.
-    
+
     This algorithm maintains sets of potential backbone literals and non-backbone literals,
     refining these sets with each new model found.
-    
+
     Algorithm:
     1. Initialize the solver with the formula
     2. Check if formula is satisfiable and get a model M₁
@@ -226,11 +227,11 @@ def compute_backbone_refinement(cnf: CNF, solver_name: str = "cd") -> Tuple[List
        b. Check if F ∧ ¬l is satisfiable, getting model M₂ if SAT
        c. If UNSAT, l is a backbone literal
        d. If SAT, update B = B ∩ {literals in M₂}
-    
+
     Args:
         cnf: The CNF formula
         solver_name: The SAT solver to use
-        
+
     Returns:
         A tuple containing:
         - List of backbone literals (positive or negative integers)
@@ -275,17 +276,18 @@ def compute_backbone_refinement(cnf: CNF, solver_name: str = "cd") -> Tuple[List
     return backbone_literals, num_solver_calls
 
 
-def compute_backbone_with_approximation(cnf: CNF, solver_name: str = "cd") -> Tuple[List[int], List[int], int]:
+def compute_backbone_with_approximation(
+        cnf: CNF, solver_name: str = "cd") -> Tuple[List[int], List[int], int]:
     """
     Compute an approximation of the backbone of a SAT formula.
-    
+
     This algorithm computes a lower bound (definite backbone literals) and
     an upper bound (potential backbone literals) of the backbone.
-    
+
     Args:
         cnf: The CNF formula
         solver_name: The SAT solver to use
-        
+
     Returns:
         A tuple containing:
         - List of definite backbone literals
@@ -355,12 +357,12 @@ def compute_backbone_with_approximation(cnf: CNF, solver_name: str = "cd") -> Tu
 def is_backbone_literal(cnf: CNF, literal: int, solver_name: str = "cd") -> Tuple[bool, int]:
     """
     Check if a literal is a backbone literal of a SAT formula.
-    
+
     Args:
         cnf: The CNF formula
         literal: The literal to check
         solver_name: The SAT solver to use
-        
+
     Returns:
         A tuple containing:
         - True if literal is a backbone literal, False otherwise

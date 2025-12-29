@@ -1,19 +1,28 @@
 #!/usr/bin/env python3
 # coding: utf-8
 #
-# SMT version of SearchTreeSample procedure from 
-# "Uniform Solution Sampling Using a Constraint Solver As an Oracle" 
+# SMT version of SearchTreeSample procedure from
+# "Uniform Solution Sampling Using a Constraint Solver As an Oracle"
 # (Ermon et al UAI 2012)
-# 
+#
 # Using the Python interface to the Z3 theorem prover
 # http://research.microsoft.com/en-us/um/redmond/projects/z3/documentation.html
 #
-from z3 import *
+"""
+Search tree-based sampling for SMT formulas.
+
+This module implements the SearchTreeSample procedure for uniform solution sampling
+using a constraint solver as an oracle.
+"""
 from random import randint
+
+from z3 import (
+    Solver, sat, And, parse_smt2_file, Z3Exception
+)
 
 from aria.utils.z3_expr_utils import get_variables
 
-g_number_smtcall = 0
+G_NUMBER_SMTCALL = 0
 
 
 def uniform_select(xs):
@@ -24,31 +33,31 @@ def uniform_select(xs):
 
 
 def sample_without_replacement(k, xsc):
-    """Samples K elements form XSC without replacement."""
-    xs = list(xsc)
+    """Samples K elements from XSC without replacement."""
+    xsc_copy = list(xsc)
     ans = []
 
-    while (k > 0) and (xsc != []):
-        i = randint(0, len(xsc) - 1)
-        ans.append(xsc.pop(i))
+    while (k > 0) and xsc_copy:
+        i = randint(0, len(xsc_copy) - 1)
+        ans.append(xsc_copy.pop(i))
         k -= 1
 
     return ans
 
 
 def permutation(xs):
+    """Generate a random permutation of the list."""
     return sample_without_replacement(len(xs), xs)
 
 
 def findall_var(formula, variable):
-    """Enumerate models of FORMULA covering all possible assignments
-    to VARIABLE."""
-    global g_number_smtcall
+    """Enumerate models of FORMULA covering all possible assignments to VARIABLE."""
+    global G_NUMBER_SMTCALL  # pylint: disable=global-statement
     res = []
     s = Solver()
     s.add(formula)
     while True:
-        g_number_smtcall += 1
+        G_NUMBER_SMTCALL += 1
         if s.check() == sat:
             m = s.model()
             res.append(m)
@@ -74,9 +83,9 @@ def project_soln(variables, model):
 
 def black_box_sample(formula, prev_solns, samples, vars_used, next_var):
     """Samples approximately uniformly from the set of solutions to FORMULA
-    projected down to [NEXT_VAR] + VARS_USED, 
-    given a list of PREV_SOLNS. 
-    
+    projected down to [NEXT_VAR] + VARS_USED,
+    given a list of PREV_SOLNS.
+
     SAMPLES is a parameter controlling the uniformity."""
 
     num_to_sample = min(samples, len(prev_solns))
@@ -91,12 +100,17 @@ def black_box_sample(formula, prev_solns, samples, vars_used, next_var):
 
 
 def search_tree_sample(variables, formula, samples):
-    # print("I am called!!")
-    """Produes approximately uniform samples from the set of solutions to FORMULA
-    (with VARIALBES). 
-    
-    SAMPLES is a parameter controlling the uniformity."""
+    """
+    Produce approximately uniform samples from the set of solutions to FORMULA.
 
+    Args:
+        variables: List of variables in the formula
+        formula: The formula to sample from
+        samples: Parameter controlling the uniformity
+
+    Returns:
+        A model (sample) from the solution space
+    """
     to_use = list(variables)
     used_vars = []
     solns = [None]
@@ -108,13 +122,11 @@ def search_tree_sample(variables, formula, samples):
         solns = black_box_sample(formula, solns, samples, used_vars, next_var)
         used_vars.append(next_var)
 
-    # print("Solutions: ")
-    # print(solns)
-
     return uniform_select(solns)
 
 
 def histogram(f, samples=2):
+    """Compute histogram of function outputs."""
     res = {}
     i = 0
     total = 0
@@ -131,41 +143,38 @@ def histogram(f, samples=2):
 
 
 def test():
+    """Test the search tree sampler."""
+    from z3 import Int  # pylint: disable=import-outside-toplevel
     x = Int('x')
     y = Int('y')
     formula = And(x > 0, x < 10, y > 0, y < 10)
 
-    # x = BitVec('x', 8)
-    # y = BitVec('y', 8)
-    # formula = And(UGT(x, 0), ULT(x, 10), UGT(y, 0), ULT(y, 10))
-
     def sampler():
-        # 2 is the parameter controlling uniformanity
+        # 2 is the parameter controlling uniformity
         smp = search_tree_sample([x, y], formula, 2)
-        res = tuple(map(lambda v: (v.name(), str(smp[v])), smp))
+        res = tuple(map(lambda var: (var.name(), str(smp[var])), smp))
         return res
 
     print(histogram(sampler))
-    print("Num. SMT calls: ", g_number_smtcall)
+    print("Num. SMT calls: ", G_NUMBER_SMTCALL)
 
 
 def searchtree_sampler_for_file(fname):
+    """Run search tree sampler on an SMT2 file."""
     try:
         fvec = parse_smt2_file(fname)
         formula = And(fvec)
-        vars = []
-        for v in get_variables(formula):
-            vars.append(v)
+        variables = []
+        for var in get_variables(formula):
+            variables.append(var)
         print("start")
-        # 2 is the parameter controlling uniformanity
-        smp = search_tree_sample(vars, formula, 2)
-        res = tuple(map(lambda v: (v.name(), str(smp[v])), smp))
+        # 2 is the parameter controlling uniformity
+        smp = search_tree_sample(variables, formula, 2)
+        res = tuple(map(lambda var: (var.name(), str(smp[var])), variables))
         print(res)
 
-    except Z3Exception as e:
-        print(e)
-
-    return
+    except Z3Exception as exc:
+        print(exc)
 
 
 if __name__ == '__main__':

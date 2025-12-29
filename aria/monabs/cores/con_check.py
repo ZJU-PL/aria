@@ -5,6 +5,7 @@ Result encoding (shared across helpers):
 - 1: constraint satisfiable under the given precondition
 - 0: unsatisfiable
 - 2: unknown (e.g., solver returned unknown)
+
 """
 import z3
 from typing import List

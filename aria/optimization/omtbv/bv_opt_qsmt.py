@@ -9,7 +9,6 @@ and calls SMT solvers that support quantified bit-vector formulas:
 - ...?
 """
 import logging
-from typing import Optional  # noqa: F401
 
 import z3
 

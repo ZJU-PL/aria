@@ -1,3 +1,4 @@
+"""Tests for PySMT-based monadic predicate abstraction checking functions."""
 import pytest
 from pysmt.shortcuts import And, Bool, Not, Or, Symbol
 from pysmt.typing import BOOL
@@ -19,6 +20,7 @@ from aria.monabs.cores.con_check_pysmt import (
 
 
 def _vars():
+    """Create test variables."""
     return Symbol("x", BOOL), Symbol("y", BOOL)
 
 
@@ -32,6 +34,7 @@ def _vars():
     ],
 )
 def test_unary_variants(func):
+    """Test unary check variants."""
     x, _ = _vars()
     precond = x  # forces x true, so Not(x) becomes unsat
     cnts = [x, Not(x), Or(x, Bool(False))]
@@ -43,6 +46,7 @@ def test_unary_variants(func):
     [disjunctive_check_cached, disjunctive_check_incremental_cached],
 )
 def test_disjunctive_variants(func):
+    """Test disjunctive check variants."""
     x, y = _vars()
     precond = And(x, y)
     cnts = [x, y, Not(x)]
@@ -56,6 +60,7 @@ def test_disjunctive_variants(func):
     [conjunctive_check, conjunctive_check_incremental],
 )
 def test_conjunctive_variants(func, algo):
+    """Test conjunctive check variants with different algorithms."""
     x, y = _vars()
     precond = And(x, y)
     cnts = [x, y, Not(x)]

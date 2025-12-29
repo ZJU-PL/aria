@@ -1,11 +1,9 @@
 """This modules generates a string from a CFG"""
 import re
-import string
 import six
 
 
-
-class CNFGenerator(object):
+class CNFGenerator:  # pylint: disable=too-many-instance-attributes
     """Use Chomsky to transform to CNF"""
     def __init__(self, grammar_rules):
         """Parse input grammar rules"""
@@ -15,45 +13,41 @@ class CNFGenerator(object):
                 rule = grammar_rule
             else:
                 rule = grammar_rule[0]
-            """Split the rules based on : character"""
+            # Split the rules based on : character
             m = re.compile(":").search(rule)
             if not m:
                 continue
+            if m.start() == 0:
+                return
+            left_hand_side = rule[0:m.start()].strip()
+            if m.end() == len(rule):
+                return
+            rest = rule[m.end():].strip()
+            if rest == "[]":
+                # Empty right hand side
+                pass
             else:
-                if m.start() == 0:
-                    return
-                else:
-                    left_hand_side = rule[0:m.start()].strip()
-                if m.end() == len(rule):
-                    return
-                else:
-                    rest = string.strip(rule[m.end():])
-                    if rest == "[]":
-                        right_hand_side = []
+                combined_rulesets = rest.split("|")
+                for i in combined_rulesets:
+                    split_i = i.split()
+                    if len(split_i) > 1:
+                        parsed_grammar.append((left_hand_side, tuple(split_i)))
                     else:
-                        combined_rulesets = string.split(rest, "|")
-                        right_hand_side = []
-                        for i in combined_rulesets:
-                            l = string.split(i)
-                            if len(l) > 1:
-                                l = tuple(string.split(i))
-                            else:
-                                l = l[0]
-                            parsed_grammar.append((left_hand_side, l))
-        """Assing the parsed rules as the new grammar rules"""
+                        parsed_grammar.append((left_hand_side, split_i[0]))
+        # Assign the parsed rules as the new grammar rules
         self.grammar_rules = parsed_grammar
         self.grammar_terminals_map = {}
         self.grammar_nonterminals_map = {}
         self.new_grammar_nonterminals = {}
         self.init_symbol = self.grammar_rules[0][0]
-        """The grammar rules can be used to obtain the nonterminals"""
+        # The grammar rules can be used to obtain the nonterminals
         self.grammar_nonterminals = {r[0] for r in self.grammar_rules}
-        """The nonterminals can be used to distinguish the terminals"""
+        # The nonterminals can be used to distinguish the terminals
         self.grammar_terminals = set()
         for rule in self.grammar_rules:
-            """ Each rule can be a symbol ot a set of symbols
-                If rule is a non terminal symbol, add it to the grammar terminals
-                If rule is a set of symbols, add each non terminal symbol to the grammar terminals"""
+            # Each rule can be a symbol or a set of symbols
+            # If rule is a non terminal symbol, add it to the grammar terminals
+            # If rule is a set of symbols, add each non terminal symbol to the grammar terminals
             if isinstance(rule[1], six.string_types):
                 if rule[1] not in self.grammar_nonterminals:
                     self.grammar_terminals.add(rule[1])
@@ -66,7 +60,7 @@ class CNFGenerator(object):
                 self.grammar_nonterminals_map[self.grammar_rules[rule_index][0]] = {rule_index}
             else:
                 self.grammar_nonterminals_map[self.grammar_rules[rule_index][0]].add(rule_index)
-        """Create a reverse map from symbols to rules for both terminals and nonterminals"""
+        # Create a reverse map from symbols to rules for both terminals and nonterminals
         for a in self.grammar_terminals:
             for rule_index in range(len(self.grammar_rules)):
                 if self.grammar_rules[rule_index][1] == a:
@@ -79,13 +73,13 @@ class CNFGenerator(object):
                 self.grammar_nonterminals_map[self.grammar_rules[rule_index][0]] = {rule_index}
             else:
                 self.grammar_nonterminals_map[self.grammar_rules[rule_index][0]].add(rule_index)
-        """Remove all unitary rules"""
+        # Remove all unitary rules
         self.counter = 0
         self.unitary = {}
         f = 1
         while f:
             f = 0
-            self.unitary = set([rule for rule in self.grammar_rules if
+            self.unitary = {rule for rule in self.grammar_rules if
                     (isinstance(rule[1], six.string_types) and
                      rule[1] in self.grammar_nonterminals) or
                     (len(rule[1]) == 1 and rule[1][0] in self.grammar_nonterminals)])

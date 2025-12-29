@@ -1,3 +1,4 @@
+"""Converter for transforming quantifier expressions to SMT2 format."""
 from __future__ import annotations
 
 from typing import Dict, List, Tuple

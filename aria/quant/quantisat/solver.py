@@ -1,3 +1,4 @@
+"""Solver classes for quantifier elimination and satisfiability checking."""
 import os
 import time
 from abc import ABC, abstractmethod
@@ -7,7 +8,6 @@ from typing import Dict, List, Tuple
 from aria.quant.quantisat.converter import convert
 from aria.quant.quantisat.cvc5solver import cvc5_call
 from aria.quant.polyhorn.main import execute_smt2
-from aria.quant.polyhorn.PositiveModel import Result as PolyHornResult
 from aria.quant.quantisat.quantifier import Quantifier
 from aria.quant.quantisat.util import Result, set_timeout
 from aria.quant.quantisat.z3solver import z3_call
@@ -49,9 +49,9 @@ class Solver(ABC):
         self.output = args['output']
         self.timeout = args['timeout']
 
-        self.SAT = True  # Solver specific representation of SAT
-        self.UNSAT = False  # Solver specific representation of UNSAT
-        self.UNKNOWN = None  # Solver specific representation of UNKNOWN
+        self.sat = True  # Solver specific representation of SAT
+        self.unsat = False  # Solver specific representation of UNSAT
+        self.unknown = None  # Solver specific representation of UNKNOWN
 
         self.smt2_pos = None  # The converted positive formula
         self.smt2_negs = None  # The converted negated formula
@@ -72,7 +72,6 @@ class Solver(ABC):
         Tuple[Result, Dict]
             A tuple with the result of the solver and the model (if the formula is correct).
         """
-        pass
 
     def convert(self, pos_system: List[Quantifier], neg_system: List[Quantifier]):
         """
@@ -92,11 +91,11 @@ class Solver(ABC):
             convert, self.timeout, neg_system, degree=self.degree)
 
         if self.output is not None:
-            with open(self.output, 'w') as f:
+            with open(self.output, 'w', encoding='utf-8') as f:
                 f.write(self.smt2_pos)
 
             neg_path = os.path.splitext(self.output)[0] + '_neg.smt2'
-            with open(neg_path, 'w') as f:
+            with open(neg_path, 'w', encoding='utf-8') as f:
                 f.write(self.smt2_negs)
 
     def solve(self) -> Tuple[Result, Dict, float]:
@@ -121,13 +120,13 @@ class Solver(ABC):
 
         # Check if the solver timed out
         if result_pos is not None:
-            timeout = result_pos[0] == self.UNKNOWN
+            timeout = result_pos[0] == self.unknown
         else:
             timeout = True
 
         if not timeout:
             sat, model = result_pos
-            if sat == self.SAT:
+            if sat == self.sat:
                 return Result.CORRECT, model, solver_time
 
         start = time.time()
@@ -139,14 +138,13 @@ class Solver(ABC):
 
         if result_neg is not None:
             sat_neg, model_neg = result_neg
-            if sat_neg == self.UNKNOWN or (sat_neg == self.UNSAT and timeout):
-                return Result.SOLVER_TIMEOUT, {}, None
-            elif sat_neg == self.UNSAT:
-                return Result.INCORRECT, {}, None
-            elif sat_neg == self.SAT:
+            if sat_neg == self.unknown or (sat_neg == self.unsat and timeout):
+                return Result.SOLVER_TIMEOUT, {}, 0.0
+            if sat_neg == self.unsat:
+                return Result.INCORRECT, {}, 0.0
+            if sat_neg == self.sat:
                 return Result.CORRECT, model_neg, solver_time
-        else:
-            return Result.SOLVER_TIMEOUT, {}, None
+        return Result.SOLVER_TIMEOUT, {}, 0.0
 
     def print(self):
         """
@@ -222,31 +220,30 @@ class MultiQuantiSAT(Solver):
             try:
                 solver.convert(self.pos_system, self.neg_system)
                 print("Solving with", solver.polyhorn_config, solver.degree)
-                result, model, time = solver.solve()
+                result, model, solve_time = solver.solve()
             except TimeoutError:
                 results.append(Result.SOLVER_TIMEOUT)
                 continue
             if result == Result.CORRECT:
                 print("Solved with", solver.polyhorn_config, solver.degree)
-                return Result.CORRECT, model, time
+                return Result.CORRECT, model, solve_time
             results.append(result)
 
         if all(result == Result.INCORRECT for result in results):
-            return Result.INCORRECT, {}, None
-        else:
-            return Result.SOLVER_TIMEOUT, {}, None
+            return Result.INCORRECT, {}, 0.0
+        return Result.SOLVER_TIMEOUT, {}, 0.0
 
     def _solve(self, smt2: str) -> Tuple[Result, Dict]:
         """
         Not implemented, as this solver implements the solve method itself.
         """
-        pass
+        raise NotImplementedError("This solver implements solve() directly")
 
     def print(self):
         """
         Not implemented, as the conversion is done only when needed.
         """
-        pass
+        raise NotImplementedError("Conversion is done only when needed")
 
 
 class QuantiSAT(Solver):
@@ -270,9 +267,10 @@ class QuantiSAT(Solver):
         """
         super().__init__(args)
 
-        self.SAT = PolyHornResult.SAT
-        self.UNSAT = PolyHornResult.UNSAT
-        self.UNKNOWN = PolyHornResult.UNKNOWN
+        # execute_smt2 returns (bool, dict), so we use boolean values
+        self.sat = True
+        self.unsat = False
+        self.unknown = None
 
         self.degree = args['degree']
         self.output = args['output']
@@ -323,9 +321,9 @@ class Skolem(Solver):
         """
         super().__init__(args)
 
-        self.SAT = True
-        self.UNSAT = False
-        self.UNKNOWN = None
+        self.sat = True
+        self.unsat = False
+        self.unknown = None
 
         self.use_template = args['use_template']
         self.degree = args['degree']
@@ -350,7 +348,6 @@ class Skolem(Solver):
         """
         if self.backend == SolverBackend.Z3:
             return z3_call(smt2, self.timeout)
-        elif self.backend == SolverBackend.CVC5:
+        if self.backend == SolverBackend.CVC5:
             return cvc5_call(smt2, self.timeout)
-        else:
-            raise ValueError('Invalid backend.')
+        raise ValueError('Invalid backend.')

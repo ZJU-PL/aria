@@ -1,5 +1,5 @@
 """First-order logic theorem prover implementation."""
-# pylint: disable=wildcard-import
+# pylint: disable=wildcard-import,unused-wildcard-import
 from aria.fol.miniprover.language import *
 
 ##############################################################################

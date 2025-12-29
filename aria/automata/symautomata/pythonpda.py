@@ -4,7 +4,7 @@ It is an interface for push down automata.
 """
 
 
-class PDAState(object):
+class PDAState:  # pylint: disable=too-few-public-methods
     """This is the structure for a PDA state"""
     type = 0
     sym = 0
@@ -35,7 +35,7 @@ class PDAState(object):
         self.trans = {}
 
 
-class syms:
+class Syms:  # pylint: disable=invalid-name
     """The DFA accepted symbols"""
 
     def __init__(self):
@@ -84,7 +84,7 @@ class syms:
         """
         return self.symbols
 
-class PythonPDA(object):
+class PythonPDA:
     """This is the structure for a PDA"""
     n = 0
     s = None
@@ -101,7 +101,9 @@ class PythonPDA(object):
             self.s[i].printer()
             i = i + 1
 
-    def consume_input(self, mystr, stack=[], state=1, curchar=0, depth=0):
+    def consume_input(self, mystr, stack=None, state=1, curchar=0, depth=0):  # pylint: disable=too-many-arguments,too-many-branches,too-many-return-statements
+        if stack is None:
+            stack = []
         """
         Consumes an input and validates if it is accepted
         Args:
@@ -119,12 +121,12 @@ class PythonPDA(object):
             if len(self.s[state].trans) > 0:
                 print(state, self.s[state].trans)
                 state = list(self.s[state].trans.keys())[0]
-                if self.parse(
+                if self.consume_input(
                         mystr,
                         stack=stack,
                         state=state,
                         curchar=curchar,
-                        depth=depth + 1) == 1:
+                        depth=depth + 1):
                     return True
             return False
         if self.s[state].type == 2:
@@ -133,12 +135,12 @@ class PythonPDA(object):
             sym = stack.pop()
             for key in self.s[state].trans:
                 if sym in self.s[state].trans[key]:
-                    if self.parse(
+                    if self.consume_input(
                             mystr,
                             stack=stack,
                             state=key,
                             curchar=curchar,
-                            depth=depth + 1) == 1:
+                            depth=depth + 1):
                         return True
             return False
         if self.s[state].type == 3:
@@ -148,7 +150,7 @@ class PythonPDA(object):
                     if curchar + 1 == len(mystrsplit) \
                             and 'closing' in self.s[key].trans:
                         return True
-                    elif curchar + 1 == len(mystrsplit):
+                    if curchar + 1 == len(mystrsplit):
                         return False
 
                     # print 'lets try as next state the state ' + repr(key)

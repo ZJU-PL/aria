@@ -44,7 +44,7 @@ class Z3VariablesDomain(ConjunctiveDomain):
         solver.add(phi)
         if solver.check() == z3.sat:
             model = solver.model()
-            if self.variable_type == z3.Int:  # type: ignore[comparison-overlap]
+            if self.variable_type is z3.Int:
                 solution: Dict[str, Union[int, float]] = dict(
                     (d.name(), model.eval(d()).as_long())
                     for d in model.decls())
@@ -74,7 +74,7 @@ class Z3VariablesDomain(ConjunctiveDomain):
         check_result = solver.check()
         if check_result == z3.sat:
             model = solver.model()
-            if self.variable_type == z3.Int:  # type: ignore[comparison-overlap]
+            if self.variable_type is z3.Int:
                 solution: Dict[str, Union[int, float]] = dict(
                     (d.name(), model.eval(d()).as_long())
                     for d in model.decls())

@@ -153,9 +153,9 @@ def compare_models(algorithm_names, models, problem_vars):
         # For explicitly defined variables (boolean, integer)
         for i, var in enumerate(problem_vars):
             values = []
-                for alg, model in zip(algorithm_names, models):
-                    if model:
-                        values.append(f"{alg}: {model.eval(var)}")
+            for alg, model in zip(algorithm_names, models):
+                if model:
+                    values.append(f"{alg}: {model.eval(var)}")
 
             if values:
                 print(f"Variable {var}: {', '.join(values)}")
@@ -163,9 +163,9 @@ def compare_models(algorithm_names, models, problem_vars):
         # For scheduling problem (start times)
         for i, var in enumerate(problem_vars):
             values = []
-                for alg, model in zip(algorithm_names, models):
-                    if model:
-                        values.append(f"{alg}: {model.eval(var)}")
+            for alg, model in zip(algorithm_names, models):
+                if model:
+                    values.append(f"{alg}: {model.eval(var)}")
 
             if values:
                 print(f"start_{i}: {', '.join(values)}")

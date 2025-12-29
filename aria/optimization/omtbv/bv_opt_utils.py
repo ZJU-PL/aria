@@ -94,7 +94,9 @@ def cnf_from_z3(constraint_file: str) -> Optional[str]:
         return None
 
 
-def read_cnf(data: str) -> Optional[Tuple[List[List[int]], List[List[int]], List[int]]]:  # noqa: PLR0912
+def read_cnf(  # noqa: PLR0912
+    data: str
+) -> Optional[Tuple[List[List[int]], List[List[int]], List[int]]]:
     """Parse CNF data from Z3 output.
 
     Args:
@@ -229,7 +231,8 @@ def res_z3_trans(r_z3: str, objective_order: Optional[List[str]] = None) -> List
 
         # Multi-line (define-fun ...) blocks: capture the name first, then parse the value line.
         if line.startswith("(define-fun"):
-            pending_match = re.match(r"\(define-fun\s+(?P<name>\S+)\s+\(\)\s+\(_\s*BitVec\s+\d+\)", line)
+            pattern = r"\(define-fun\s+(?P<name>\S+)\s+\(\)\s+\(_\s*BitVec\s+\d+\)"
+            pending_match = re.match(pattern, line)
             if pending_match:
                 pending_define = pending_match.group("name")
             continue
@@ -263,13 +266,20 @@ def res_z3_trans(r_z3: str, objective_order: Optional[List[str]] = None) -> List
 
     # Order results deterministically
     if objective_order:
-        ordered = [objective_values[name] for name in objective_order if name in objective_values]
+        ordered = [
+            objective_values[name]
+            for name in objective_order
+            if name in objective_values
+        ]
     else:
         def _sort_key(var_name: str):
             match = re.search(r"(\d+)", var_name)
             return int(match.group(1)) if match else var_name
 
-        ordered = [objective_values[name] for name in sorted(objective_values.keys(), key=_sort_key)]
+        ordered = [
+            objective_values[name]
+            for name in sorted(objective_values.keys(), key=_sort_key)
+        ]
 
     return ordered
 

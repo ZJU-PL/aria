@@ -169,7 +169,6 @@ def demo():
 
     for alg in algorithms:
         print(f"\nSolving with {alg}")
-        import time  # pylint: disable=import-outside-toplevel
         start_time = time.time()
         sat, model, cost = solve_maxsmt(hard, soft, weights, algorithm=alg)
         end_time = time.time()
@@ -324,8 +323,10 @@ def example_scheduling():
                     z3_end = z3_job[2]
                     deadline = deadlines[i]
 
-                    print(f"{i:3} | {cg_start:2}-{cg_end:2} {' (Late)' if cg_end > deadline else '       '} | "
-                          f"{z3_start:2}-{z3_end:2} {' (Late)' if z3_end > deadline else '       '} | {deadline}")
+                    cg_status = ' (Late)' if cg_end > deadline else '       '
+                    z3_status = ' (Late)' if z3_end > deadline else '       '
+                    print(f"{i:3} | {cg_start:2}-{cg_end:2}{cg_status} | "
+                          f"{z3_start:2}-{z3_end:2}{z3_status} | {deadline}")
 
 
 def example_minimal_correction():

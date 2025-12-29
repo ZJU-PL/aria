@@ -1,3 +1,4 @@
+"""CVC5 solver interface for satisfiability checking."""
 import subprocess
 from typing import Dict, Tuple
 
@@ -27,24 +28,24 @@ def cvc5_call(formula: str, timeout: int) -> Tuple[bool, Dict[str, float]]:
     formula = re.sub(r'(?<!\w)-(\d+(\.\d+)?)', r'(- \g<1>)', formula)
     print(formula)
 
-    process = subprocess.Popen(['cvc5', '--lang=smt2', '--produce-models', '--tlimit=%d' % (timeout * 1000)],
-                               stdin=subprocess.PIPE,
-                               stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
-    process.stdin.write(formula.encode())
-    process.stdin.close()
+    with subprocess.Popen(['cvc5', '--lang=smt2', '--produce-models', f'--tlimit={timeout * 1000}'],
+                          stdin=subprocess.PIPE,
+                          stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE) as process:
+        process.stdin.write(formula.encode())
+        process.stdin.close()
 
-    try:
-        process.wait(timeout + 1)
-    except subprocess.TimeoutExpired:
-        process.kill()
-        return None, {}
+        try:
+            process.wait(timeout + 1)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            return None, {}
 
-    output = process.stdout.read().decode()
+        output = process.stdout.read().decode()
 
     if 'unsat' in output:
         return False, {}
-    elif 'sat' in output:
+    if 'sat' in output:
         model = {}
         for line in output.split('\n'):
             if line.startswith('(define-'):
@@ -53,5 +54,4 @@ def cvc5_call(formula: str, timeout: int) -> Tuple[bool, Dict[str, float]]:
                 _, var, _, _, val = line.split(maxsplit=4)
                 model[var] = val
         return True, model
-    else:
-        return None, {}
+    return None, {}

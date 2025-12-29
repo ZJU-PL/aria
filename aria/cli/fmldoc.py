@@ -109,7 +109,7 @@ def handle_validate(args):
         print(f"Successfully validated {args.input_file}")
         return 0
 
-    except Exception as e:
+    except (ValueError, IOError, OSError) as e:
         print(f"Validation failed: {e}")
         return 1
 
@@ -205,7 +205,7 @@ def handle_batch(args):
                 else:
                     failed += 1
 
-            except Exception as e:
+            except (ValueError, IOError, OSError) as e:
                 print(f"Error processing {input_file}: {e}")
                 failed += 1
 
@@ -259,17 +259,19 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return 1
 
     # Execute appropriate command
+    command_handlers = {
+        'translate': handle_translate,
+        'validate': handle_validate,
+        'analyze': handle_analyze,
+        'batch': handle_batch
+    }
+
     try:
-        if args.command == 'translate':
-            return handle_translate(args)
-        if args.command == 'validate':
-            return handle_validate(args)
-        if args.command == 'analyze':
-            return handle_analyze(args)
-        if args.command == 'batch':
-            return handle_batch(args)
+        handler = command_handlers.get(args.command)
+        if handler:
+            return handler(args)
         return 0
-    except Exception as e:
+    except (ValueError, IOError, OSError) as e:
         print(f"Error: {e}", file=sys.stderr)
         if args.debug:
             raise

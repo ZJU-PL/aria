@@ -9,6 +9,8 @@ import z3
 
 from aria.optimization.omt_solver import solve_opt_file
 from aria.optimization.omt_parser import OMTParser
+from aria.optimization.omtarith.arith_opt_qsmt import arith_opt_with_qsmt
+from aria.optimization.omtarith.arith_opt_ls import arith_opt_with_ls
 
 
 def solve_omt_problem(filename: str, engine: str, solver_name: str, theory: str = None):
@@ -38,9 +40,6 @@ def solve_omt_problem(filename: str, engine: str, solver_name: str, theory: str 
 
     if theory == "arith":
         # Use arithmetic optimization
-        from aria.optimization.omtarith.arith_opt_qsmt import arith_opt_with_qsmt
-        from aria.optimization.omtarith.arith_opt_ls import arith_opt_with_ls
-
         if engine == "qsmt":
             result = arith_opt_with_qsmt(fml, obj, minimize=False, solver_name=solver_name)
             logging.info("Arithmetic QSMT result: %s", result)
@@ -134,7 +133,7 @@ def main():
         theory = None if args.theory == "auto" else args.theory
         solve_omt_problem(args.file, args.engine, solver, theory)
         return 0
-    except Exception as e:
+    except (ValueError, IOError, OSError, z3.Z3Exception) as e:
         print(f"Error: {e}", file=sys.stderr)
         if args.log_level == "DEBUG":
             import traceback  # pylint: disable=import-outside-toplevel

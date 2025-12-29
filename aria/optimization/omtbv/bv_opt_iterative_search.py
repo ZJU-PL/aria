@@ -31,7 +31,7 @@ def bv_opt_with_linear_search(
 ) -> Union[int, str]:
     """Linear search-based OMT for bit-vectors."""
     obj, fml = _preprocess_objective(z3_fml, z3_obj)
-    logger.info("Linear search %simization", "min" if minimize else "max")
+    logger.info("Linear search %simization", "min" if minimize else "max")  # noqa: W1203
 
     with Solver(name=solver_name) as solver:
         solver.add_assertion(fml)
@@ -65,7 +65,7 @@ def _minimize_linear_search(solver: Solver, obj: Any) -> int:
         iteration += 1
         lower = solver.get_model().get_value(obj)
         solver.add_assertion(BVULT(obj, lower))
-    logger.info(f"Minimized in {iteration} iterations: {int(lower.constant_value())}")
+    logger.info("Minimized in %d iterations: %d", iteration, int(lower.constant_value()))
     return int(lower.constant_value())
 
 
@@ -110,7 +110,7 @@ def _minimize_binary_search(solver: Solver, obj: Any, bv_width: int, max_bv: int
             cur_max = int(lower.constant_value()) - 1
         solver.pop()
 
-    logger.info(f"Minimized in {iteration} iterations: {int(lower.constant_value())}")
+    logger.info("Minimized in %d iterations: %d", iteration, int(lower.constant_value()))
     return int(lower.constant_value())
 
 

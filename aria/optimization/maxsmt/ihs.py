@@ -96,7 +96,8 @@ class ImplicitHittingSetSolver(MaxSMTSolverBase):
 
                     # Add constraint to find a better solution
                     if hitting_set:  # If there are soft constraints violated
-                        # We want to find a solution where fewer than current_violated soft constraints are violated
+                        # We want to find a solution where fewer than current_violated
+                        # soft constraints are violated
                         # Instead of using PbLe with float, use a logical constraint
                         # Exclude at least one of the current violated constraints
                         hs_solver.add(z3.Not(z3.And([hs_vars[i] for i in hitting_set])))
@@ -115,8 +116,7 @@ class ImplicitHittingSetSolver(MaxSMTSolverBase):
                         # No soft constraints in the core
                         if best_model is not None:
                             return True, best_model, best_cost
-                        else:
-                            return False, None, float('inf')
+                        return False, None, float('inf')
 
                     # Add the core to the set of all cores
                     all_cores.append(core_indices)

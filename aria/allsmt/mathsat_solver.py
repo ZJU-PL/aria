@@ -30,10 +30,8 @@ class MathSATAllSMTSolver(AllSMTSolver[MathSATModel]):
         Args:
             mathsat_path: Optional path to the MathSAT executable
         """
-        self._models: List[MathSATModel] = []
-        self._model_count: int = 0
+        super().__init__()
         self._mathsat_path: str = mathsat_path or "mathsat"
-        self._model_limit_reached: bool = False
 
         # If mathsat_path is not provided, try to get it from global config
         if not mathsat_path:
@@ -111,9 +109,7 @@ class MathSATAllSMTSolver(AllSMTSolver[MathSATModel]):
         solver.add(expr)
 
         # Reset model storage
-        self._models = []
-        self._model_count = 0
-        self._model_limit_reached = False
+        self._reset_model_storage()
 
         # Create temporary file for SMT-LIB2 instance
         with tempfile.NamedTemporaryFile(mode='w', suffix='.smt2', delete=False) as tmp:
@@ -140,12 +136,7 @@ class MathSATAllSMTSolver(AllSMTSolver[MathSATModel]):
                         if line.startswith("unsat"):
                             break
                         if line.strip():
-                            self._model_count += 1
-                            self._models.append(line.strip())
-
-                            # Check if we've reached the model limit
-                            if self._model_count >= model_limit:
-                                self._model_limit_reached = True
+                            if self._add_model(line.strip(), model_limit):
                                 break
 
             finally:
@@ -154,44 +145,15 @@ class MathSATAllSMTSolver(AllSMTSolver[MathSATModel]):
 
         return self._models
 
-    def get_model_count(self) -> int:
+    def _format_model_verbose(self, model: MathSATModel) -> None:
         """
-        Get the number of models found in the last solve call.
-
-        Returns:
-            int: The number of models
-        """
-        return self._model_count
-
-    @property
-    def models(self) -> List[MathSATModel]:
-        """
-        Get all models found in the last solve call.
-
-        Returns:
-            List of models as strings (MathSAT output format)
-        """
-        return self._models
-
-    def print_models(self, verbose: bool = False) -> None:
-        """
-        Print all models found in the last solve call.
+        Print detailed information about a single MathSAT model.
 
         Args:
-            verbose: Whether to print detailed information about each model
+            model: The MathSAT model (string) to print
         """
-        if not self._models:
-            print("No models found.")
-            return
-
-        for i, model in enumerate(self._models):
-            print(f"Model {i + 1}: {model}")
-
-        if self._model_limit_reached:
-            print(f"Model limit reached. Found {self._model_count} models "
-                  f"(there may be more).")
-        else:
-            print(f"Total number of models: {self._model_count}")
+        # MathSAT models are already strings, so just print them
+        print(f"  {model}")
 
 
 def demo() -> None:

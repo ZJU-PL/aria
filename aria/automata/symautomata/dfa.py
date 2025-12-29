@@ -1,11 +1,12 @@
 """This module contains the DFA implementation"""
 # !/usr/bin/python
-import importlib
 import copy
-from typing import List, Optional
-from aria.automata.symautomata.alphabet import createalphabet
-from operator import attrgetter
+import importlib
 import importlib.util
+from operator import attrgetter
+from typing import List, Optional
+
+from aria.automata.symautomata.alphabet import createalphabet
 
 
 def bfs(graph, start) -> Optional[str]:
@@ -54,16 +55,16 @@ try:
         #importlib.util.find_spec('openfst_python')
         print('OK')
         from aria.automata.symautomata.pywrapfstdfa import PywrapfstDFA, TropicalWeight
-        #import openfst_python as fst
-        import pywrapfst as fst
 
 
         class DFA(PywrapfstDFA):
             """The DFA class implemented using openFst library"""
 
-            def __init__(self, alphabet: List[str] = createalphabet()):
+            def __init__(self, alphabet: List[str] = None):
+                if alphabet is None:
+                    alphabet = createalphabet()
                 self.alphabet = alphabet
-                super(DFA, self).__init__(alphabet)
+                super().__init__(alphabet)
 
             def copy(self) -> 'DFA':
                 mma = DFA(self.alphabet)
@@ -87,8 +88,7 @@ try:
                     reverse=True)
                 if len(initialstates) > 0:
                     return bfs(self, initialstates[0])
-                else:
-                    return None
+                return None
 
             def diff(self, input_mm) -> 'DFA':
                 """
@@ -113,7 +113,8 @@ try:
                 Returns:
                     str: A regex approximation
                 """
-                from aria.automata.symautomata.regex import Regex
+                # Import here to avoid circular import
+                from aria.automata.symautomata.regex import Regex  # pylint: disable=import-outside-toplevel
                 converter = Regex(self)
                 return converter.get_regex()
 
@@ -128,9 +129,11 @@ except ImportError:
 
         class DFA(FstDFA):
             """The DFA class implemented using openFst library"""
-            def __init__(self, alphabet: List[str] = createalphabet()):
+            def __init__(self, alphabet: List[str] = None):
+                if alphabet is None:
+                    alphabet = createalphabet()
                 self.alphabet = alphabet
-                super(DFA, self).__init__(alphabet)
+                super().__init__(alphabet)
 
             def shortest_string(self) -> Optional[str]:
                 """
@@ -146,8 +149,7 @@ except ImportError:
                     reverse=True)
                 if len(initialstates) > 0:
                     return bfs(self, initialstates[0])
-                else:
-                    return None
+                return None
 
             def diff(self, input_mm) -> 'DFA':
                 """
@@ -172,7 +174,8 @@ except ImportError:
                 Returns:
                     str: A regex approximation
                 """
-                from aria.automata.symautomata.regex import Regex
+                # Import here to avoid circular import
+                from aria.automata.symautomata.regex import Regex  # pylint: disable=import-outside-toplevel
                 converter = Regex(self)
                 return converter.get_regex()
 
@@ -184,9 +187,11 @@ except ImportError:
         class DFA(PythonDFA):
             """The DFA class implemented using python"""
 
-            def __init__(self, alphabet: List[str] = createalphabet()):
+            def __init__(self, alphabet: List[str] = None):
+                if alphabet is None:
+                    alphabet = createalphabet()
                 self.alphabet = alphabet
-                super(DFA, self).__init__(alphabet)
+                super().__init__(alphabet)
 
             def copy(self) -> 'DFA':
                 mma = DFA(self.alphabet)
@@ -210,8 +215,7 @@ except ImportError:
                     reverse=True)
                 if len(initialstates) > 0:
                     return bfs(self, initialstates[0])
-                else:
-                    return None
+                return None
 
             def diff(self, input_mm) -> 'DFA':
                 """
@@ -236,6 +240,7 @@ except ImportError:
                 Returns:
                     str: A regex approximation
                 """
-                from aria.automata.symautomata.regex import Regex
+                # Import here to avoid circular import
+                from aria.automata.symautomata.regex import Regex  # pylint: disable=import-outside-toplevel
                 converter = Regex(self)
                 return converter.get_regex()

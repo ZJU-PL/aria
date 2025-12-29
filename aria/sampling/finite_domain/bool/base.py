@@ -24,7 +24,7 @@ class BooleanSampler(Sampler):
     This class implements a sampler for Boolean formulas using Z3.
     """
 
-    def __init__(self, **kwargs: Any) -> None:
+    def __init__(self, **_kwargs: Any) -> None:
         """Initialize the Boolean sampler."""
         self.formula: Optional[z3.ExprRef] = None
         self.variables: List[z3.ExprRef] = []

@@ -1,6 +1,7 @@
+"""Z3 solver interface for satisfiability checking."""
 from typing import Dict, Tuple
 
-from z3 import *
+from z3 import Solver, parse_smt2_string, sat, unsat
 
 
 def z3_call(formula: str, timeout: int) -> Tuple[bool, Dict[str, float]]:
@@ -29,7 +30,6 @@ def z3_call(formula: str, timeout: int) -> Tuple[bool, Dict[str, float]]:
     if result == sat:
         model = s.model()
         return True, {d.name(): model[d] for d in model.decls()}
-    elif result == unsat:
+    if result == unsat:
         return False, {}
-    else:
-        return None, {}
+    return None, {}

@@ -101,11 +101,9 @@ class PySMTAllSMTSolver(AllSMTSolver[PySMTModel]):
         Args:
             solver_name: Optional name of the specific PySMT solver to use
         """
-        self._models: List[PySMTModel] = []
-        self._model_count: int = 0
+        super().__init__()
         self._solver_name: Optional[str] = solver_name
         self._pysmt_vars: List[FNode] = []
-        self._model_limit_reached: bool = False
 
     def solve(self, expr: ExprRef, keys: List[ExprRef], model_limit: int = 100) -> List[PySMTModel]:
         """
@@ -126,9 +124,7 @@ class PySMTAllSMTSolver(AllSMTSolver[PySMTModel]):
         target_logic = get_logic(pysmt_formula)
 
         # Reset model storage
-        self._models = []
-        self._model_count = 0
-        self._model_limit_reached = False
+        self._reset_model_storage()
 
         try:
             with Solver(logic=target_logic, name=self._solver_name) as solver:
@@ -140,12 +136,7 @@ class PySMTAllSMTSolver(AllSMTSolver[PySMTModel]):
                     for var in self._pysmt_vars:
                         model[var] = solver.get_value(var)
 
-                    self._model_count += 1
-                    self._models.append(model)
-
-                    # Check if we've reached the model limit
-                    if self._model_count >= model_limit:
-                        self._model_limit_reached = True
+                    if self._add_model(model, model_limit):
                         break
 
                     # Add constraint to find different model in next iteration
@@ -159,49 +150,15 @@ class PySMTAllSMTSolver(AllSMTSolver[PySMTModel]):
         except Exception as e:
             raise RuntimeError(f"Error during model sampling: {str(e)}") from e
 
-    def get_model_count(self) -> int:
+    def _format_model_verbose(self, model: PySMTModel) -> None:
         """
-        Get the number of models found in the last solve call.
-
-        Returns:
-            int: The number of models
-        """
-        return self._model_count
-
-    @property
-    def models(self) -> List[PySMTModel]:
-        """
-        Get all models found in the last solve call.
-
-        Returns:
-            List of PySMT models
-        """
-        return self._models
-
-    def print_models(self, verbose: bool = False) -> None:
-        """
-        Print all models found in the last solve call.
+        Print detailed information about a single PySMT model.
 
         Args:
-            verbose: Whether to print detailed information about each model
+            model: The PySMT model to print
         """
-        if not self._models:
-            print("No models found.")
-            return
-
-        for i, model in enumerate(self._models):
-            if verbose:
-                print(f"Model {i + 1}:")
-                for var, value in model.items():
-                    print(f"  {var} = {value}")
-            else:
-                print(f"Model {i + 1}: {model}")
-
-        if self._model_limit_reached:
-            print(f"Model limit reached. Found {self._model_count} models "
-                  f"(there may be more).")
-        else:
-            print(f"Total number of models: {self._model_count}")
+        for var, value in model.items():
+            print(f"  {var} = {value}")
 
 
 def demo() -> None:

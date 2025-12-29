@@ -12,7 +12,7 @@ from pysmt.shortcuts import And, TRUE
 from pysmt.smtlib.parser import SmtLibParser
 
 
-class MonAbsPySMTParser:
+class MonAbsPySMTParser:  # pylint: disable=too-few-public-methods
     """Lightweight parser that extracts (precond, cnt_list) using PySMT."""
 
     def __init__(self) -> None:

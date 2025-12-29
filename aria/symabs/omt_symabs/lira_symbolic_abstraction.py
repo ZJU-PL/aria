@@ -94,7 +94,7 @@ class LIRASymbolicAbstraction:
             self.interval_abs_as_fml = z3.simplify(self.omt_engine.min_max_many(multi_queries))
         else:
             cnts = []
-            for i, var in enumerate(self.vars):
+            for var in self.vars:
                 vmin = self.omt_engine.min_once(var)
                 vmax = self.omt_engine.max_once(var)
                 # print(var, "[", vmin, ", ", vmax, "]")
@@ -125,7 +125,7 @@ class LIRASymbolicAbstraction:
                 exmin = self.omt_engine.min_once(exp)
                 exmax = self.omt_engine.max_once(exp)
                 # TODO: this is not elegant (OptiMathSAT already returns an assertion)
-                if self.omt_engine.engine_type == OMTEngineType.OptiMathSAT:
+                if self.omt_engine.engine_type == OMTEngineType.OPTIMATHSAT:
                     zone_cnts.append(z3.And(exmin, exmax))
                 else:
                     zone_cnts.append(z3.And(exp >= exmin, exp <= exmax))
@@ -153,7 +153,7 @@ class LIRASymbolicAbstraction:
                 exmin = self.omt_engine.min_once(exp)
                 exmax = self.omt_engine.max_once(exp)
                 # TODO: this is not elegant (OptiMathSAT already returns an assertion)
-                if self.omt_engine.engine_type == OMTEngineType.OptiMathSAT:
+                if self.omt_engine.engine_type == OMTEngineType.OPTIMATHSAT:
                     oct_cnts.append(z3.And(exmin, exmax))
                 else:
                     oct_cnts.append(z3.And(exp >= exmin, exp <= exmax))

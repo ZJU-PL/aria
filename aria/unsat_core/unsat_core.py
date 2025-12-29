@@ -278,6 +278,8 @@ def enumerate_all_mus(constraints: List[Any], solver_factory: Callable[[], Any],
 
 
 def main():
+    """Main function for testing unsat core computation."""
+    from z3 import Bools
     x, y, z = Bools('x y z')
     constraints = [
         x,                    # x must be true

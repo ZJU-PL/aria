@@ -124,7 +124,7 @@ def _bounds_to_bv_constraints(
     l = _from_python_int(lower_bits, width)
     u = _from_python_int(upper_bits, width)
     if signed:
-        return (z3.SLE(l, x), z3.SLE(x, u))
+        return (l <= x, x <= u)  # Signed less than or equal for bitvectors
     return (z3.ULE(l, x), z3.ULE(x, u))
 
 

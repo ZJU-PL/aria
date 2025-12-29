@@ -8,7 +8,7 @@ Based on the paper "Symbolic Optimization with SMT Solvers" by Li, Albarghouthi,
 """
 
 import z3
-from typing import List, Tuple, Optional, Set, Dict, Any, Union
+from typing import List, Tuple, Optional, Set, Dict
 from dataclasses import dataclass, field
 from enum import Enum
 import time

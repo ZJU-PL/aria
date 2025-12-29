@@ -6,7 +6,7 @@ using the SYMBA algorithm.
 """
 
 import z3
-from typing import List, Dict, Tuple, Optional, Any
+from typing import List, Tuple
 from .symba import SYMBA, SYMBAState
 
 
@@ -74,7 +74,7 @@ class MultiSYMBA:
         for i, (model_i, values_i) in enumerate(model_values):
             is_dominated = False
 
-            for j, (model_j, values_j) in enumerate(model_values):
+            for j, (_model_j, values_j) in enumerate(model_values):
                 if i != j:
                     # Check if model_i is dominated by model_j
                     # model_i is dominated if model_j is better or equal in all objectives

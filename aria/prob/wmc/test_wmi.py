@@ -6,7 +6,6 @@ This demonstrates basic WMI usage with different density functions.
 """
 
 import sys
-import os
 
 # Add the aria path so we can import it
 
@@ -29,7 +28,8 @@ try:
         options = WMIOptions(method="region", num_samples=100, random_seed=42)
         result = wmi_integrate(formula, density, options)
 
-        print(f"WMI result for triangle: {result:.4f} (expected ~1.0 - uniform density over constraint)")
+        expected_msg = "expected ~1.0 - uniform density over constraint"
+        print(f"WMI result for triangle: {result:.4f} ({expected_msg})")
         return result
 
     def test_gaussian_triangle():
@@ -69,7 +69,8 @@ try:
 
         print(f"Sampling method: {result_sampling:.4f}")
         print(f"Region method: {result_region:.4f}")
-        print(f"Expected ~1.0 for both methods (uniform density over constraint)")
+        expected = "Expected ~1.0 for both methods (uniform density over constraint)"
+        print(expected)
 
     if __name__ == "__main__":
         print("WMI Test Script")
@@ -83,7 +84,7 @@ try:
             test_region_vs_sampling()
             print("\nWMI tests completed successfully!")
 
-        except Exception as e:
+        except (ValueError, ImportError, RuntimeError) as e:
             print(f"Error during WMI testing: {e}")
             import traceback
             traceback.print_exc()

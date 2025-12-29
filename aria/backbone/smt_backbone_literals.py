@@ -5,14 +5,15 @@ A backbone literal is a literal that is entailed by the formula.
 For example, in the formula "p1 or p2 or p3", "p1" is a backbone literal.
 """
 
-from typing import List, Set
-from z3 import *
+from typing import List
+
+from z3 import Solver, Not, And, unsat, sat, ExprRef
 
 
 # from aria.utils.z3_expr_utils import get_atoms
 
 
-def get_backbone_literals_by_sequence_checking(fml: z3.ExprRef, literals: List[z3.ExprRef]):
+def get_backbone_literals_by_sequence_checking(fml: ExprRef, literals: List[ExprRef]):
     """
     This function takes an expression and a list of atoms.
     It returns a list of all the literals that are entailed by the expression,
@@ -38,7 +39,7 @@ def get_backbone_literals_by_sequence_checking(fml: z3.ExprRef, literals: List[z
         solver.pop()
 
 
-def get_backbone_literals_by_model_enumeration(fml: z3.ExprRef, literals: List[z3.ExprRef]):
+def get_backbone_literals_by_model_enumeration(fml: ExprRef, literals: List[ExprRef]):
     """
     A backbone literal is a literal that is entailed by the formula.
 
@@ -64,7 +65,7 @@ def get_backbone_literals_by_model_enumeration(fml: z3.ExprRef, literals: List[z
     return res
 
 
-def get_backbone_literals_by_unsat_core_enumeration(fml: z3.ExprRef, literals: List[z3.ExprRef]):
+def get_backbone_literals_by_unsat_core_enumeration(fml: ExprRef, literals: List[ExprRef]):
     """
     A backbone literal is a literal that is entailed by the formula.
     The idea: enumerate all models of the fml and check whether each literal is true in each model.
@@ -72,12 +73,13 @@ def get_backbone_literals_by_unsat_core_enumeration(fml: z3.ExprRef, literals: L
     raise NotImplementedError
 
 
-def get_backbone_literals_by_monadic_predicate_abstraction(fml: z3.ExprRef, literals: List[z3.ExprRef]):
+def get_backbone_literals_by_monadic_predicate_abstraction(
+        fml: ExprRef, literals: List[ExprRef]):
     """Call the monadic predicate abstraction algorithm to get the backbone literals."""
     raise NotImplementedError
 
 
-def get_backbone_literals(fml: z3.ExprRef, literals: List[z3.ExprRef], alg: str):
+def get_backbone_literals(fml: ExprRef, literals: List[ExprRef], alg: str):
     """
     This function takes an expression and a list of atoms.
     It returns a list of all the literals that are entailed by the expression,
@@ -90,9 +92,8 @@ def get_backbone_literals(fml: z3.ExprRef, literals: List[z3.ExprRef], alg: str)
     # allow for choosing different implementations in this file
     if alg == 'sequence_checking':
         return get_backbone_literals_by_sequence_checking(fml, literals)
-    elif alg == 'model_enumeration':
+    if alg == 'model_enumeration':
         return get_backbone_literals_by_model_enumeration(fml, literals)
-    elif alg == 'unsat_core_enumeration':
+    if alg == 'unsat_core_enumeration':
         return get_backbone_literals_by_unsat_core_enumeration(fml, literals)
-    else:
-        raise NotImplementedError
+    raise NotImplementedError

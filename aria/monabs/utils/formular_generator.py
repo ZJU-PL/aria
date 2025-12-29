@@ -10,7 +10,9 @@ import random
 import z3
 
 
-class FormulaGenerator:
+class FormulaGenerator:  # pylint: disable=too-many-instance-attributes
+    """Generate random formulas using Z3's Python APIs."""
+
     def __init__(self, init_vars, bv_signed=True,
                  bv_no_overflow=False, bv_no_underflow=False):
         self.bools = []
@@ -54,13 +56,16 @@ class FormulaGenerator:
 
     @staticmethod
     def random_int():
+        """Generate a random integer value."""
         return z3.IntVal(random.randint(-100, 100))
 
     @staticmethod
     def random_real():
+        """Generate a random real value."""
         return z3.IntVal(random.randint(-100, 100))
 
     def int_from_int(self):
+        """Generate integer expressions from existing integers."""
         # TODO: also use constant
         if len(self.ints) >= 2:
             # while True:
@@ -87,6 +92,7 @@ class FormulaGenerator:
                 self.ints.append(i1 % i2)
 
     def real_from_real(self):
+        """Generate real expressions from existing reals."""
         if len(self.reals) >= 2:
             data = random.sample(self.reals, 2)
             r1 = data[0]
@@ -103,9 +109,7 @@ class FormulaGenerator:
                 self.reals.append(r1 / r2)
 
     def bv_from_bv(self):
-        """
-        TODO: More bit-vec operations!!
-        """
+        """Generate bit-vector expressions from existing bit-vectors."""
         if len(self.bvs) >= 2:
             data = random.sample(self.bvs, 2)
             r1 = data[0]
@@ -136,6 +140,7 @@ class FormulaGenerator:
                     self.hard_bools.append(z3.BVSDivNoOverflow(r1, r2))
 
     def bool_from_int(self):
+        """Generate boolean expressions from integer comparisons."""
         if len(self.ints) >= 2:
             # while True:
             #     data = random.sample(self.ints, 2)
@@ -163,6 +168,7 @@ class FormulaGenerator:
             self.bools.append(new_bool)
 
     def bool_from_real(self):
+        """Generate boolean expressions from real comparisons."""
         if len(self.reals) >= 2:
             data = random.sample(self.reals, 2)
             i1 = data[0]
@@ -184,6 +190,7 @@ class FormulaGenerator:
             self.bools.append(new_bool)
 
     def bool_from_bv(self):
+        """Generate boolean expressions from bit-vector comparisons."""
         unsigned = not self.bv_signed
         if len(self.bvs) >= 2:
             data = random.sample(self.bvs, 2)
@@ -218,6 +225,7 @@ class FormulaGenerator:
             self.bools.append(new_bv)
 
     def bool_from_bool(self):
+        """Generate boolean expressions from existing booleans."""
         if len(self.bools) >= 2:
             if random.random() < 0.22:
                 b = random.choice(self.bools)
@@ -239,8 +247,8 @@ class FormulaGenerator:
                 self.bools.append(z3.Implies(b1, b2))
 
     def generate_formula(self):
-
-        for i in range(random.randint(3, 8)):
+        """Generate a random formula."""
+        for _ in range(random.randint(3, 8)):
             if self.use_int:
                 self.bool_from_int()
             if self.use_real:
@@ -270,7 +278,7 @@ class FormulaGenerator:
 
         max_assert = random.randint(5, 30)
         res = []
-        assert (len(self.bools) >= 1)
+        assert len(self.bools) >= 1
         for _ in range(max_assert):
             clen = random.randint(1, 8)  # clause length
             if clen == 1:
@@ -284,10 +292,10 @@ class FormulaGenerator:
 
         if len(res) == 1:
             return res[0]
-        else:
-            return z3.And(res)
+        return z3.And(res)
 
     def generate_formula_as_str(self):
+        """Generate formula and return as SMT-LIB string."""
         mutant = self.generate_formula()
         sol = z3.Solver()
         sol.add(mutant)
@@ -295,6 +303,7 @@ class FormulaGenerator:
         return smt2_string
 
     def get_preds(self, k):
+        """Get k random predicates from generated booleans."""
         res = []
         for _ in range(k):
             res.append(random.choice(self.bools))

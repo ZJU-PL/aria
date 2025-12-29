@@ -5,20 +5,31 @@ Given a formula and a set of predicates {P1,...,Pn},
 decide for each Pi, whether F and Pi is satisfiable or not.
 """
 
-import re
 import logging
-from typing import List, Any
-from functools import reduce
-from z3 import *
-
-
-logger = logging.getLogger(__name__)
-
+import re
 import sys
+from functools import reduce
+from typing import List, Any
+
+import z3
+from z3 import (  # noqa: F401
+    And, Array, ArraySort, ArraySortRef, BitVec, BitVecSort, BitVecSortRef,
+    BitVecVal, Bool, BoolSort, BoolVal, Concat, Distinct, Extract, FP, FPVal,
+    FPSort, FPSortRef, Function, If, Implies, Int, IntSort, LShR, Not, Or,
+    Real, RealSort, Select, SignExt, Solver, Sort, Store, UDiv, UGE, UGT, ULE,
+    ULT, URem, ZeroExt, Z3_BOOL_SORT, Z3_INT_SORT, Z3_REAL_SORT, fpAbs, fpAdd,
+    fpDiv, fpEQ, fpGEQ, fpGT, fpIsInf, fpIsNaN, fpIsZero, fpLEQ, fpLT, fpMul,
+    fpNeg, fpSub, RNE, SRem
+)
+
 # print(sys.getrecursionlimit())
 sys.setrecursionlimit(200000)  # Adjust the value accordingly
 
+logger = logging.getLogger(__name__)
+
+
 class MonAbsSMTLIBParser:
+    """Parser for Monadic Predicate Abstraction SMT-LIB queries."""
 
     def __init__(self, **kwargs):
         self.solver = Solver()
@@ -40,13 +51,12 @@ class MonAbsSMTLIBParser:
         # "only_parse" mode: do not execute the check-sat commands; just record the cnts
         # if we need to record the oracle, we shoud ignore the option.
         self.only_parse = kwargs.get('only_parse', False)
-        
+
         # extract precond: z3.ExprRef, cnt_list: List[z3.ExprRef]
-        self.flag: Bool = False
+        self.flag: bool = False
         self.cnt: z3.ExprRef = z3.BoolVal(True)
         self.precond: z3.ExprRef = z3.BoolVal(True)
         self.cnt_list: List[z3.ExprRef] = []
-        
 
     def flatten_sort(self, sort_expr):
         """Flatten sort expression appropriately"""
@@ -66,12 +76,11 @@ class MonAbsSMTLIBParser:
         if isinstance(sort_expr, str):
             if sort_expr == 'Bool':
                 return BoolSort()
-            elif sort_expr == 'Int':
+            if sort_expr == 'Int':
                 return IntSort()
-            elif sort_expr == 'Real':
+            if sort_expr == 'Real':
                 return RealSort()
-            else:
-                raise ValueError(f"Unknown sort: {sort_expr}")
+            raise ValueError(f"Unknown sort: {sort_expr}")
         elif isinstance(sort_expr, list):
             if sort_expr[0] == '_':
                 if sort_expr[1] == 'BitVec':
@@ -104,6 +113,7 @@ class MonAbsSMTLIBParser:
         return all_constraints
 
     def tokenize(self, s):
+        """Tokenize SMT-LIB input string."""
         # Remove comments
         s = re.sub(';.*\n', '\n', s)
         # Add spaces around parentheses
@@ -112,6 +122,7 @@ class MonAbsSMTLIBParser:
         return [token for token in s.split() if token]
 
     def parse_tokens(self, tokens):
+        """Parse tokens into expression tree."""
         if not tokens:
             return None
 
@@ -125,8 +136,7 @@ class MonAbsSMTLIBParser:
             if tokens:
                 tokens.pop(0)  # Remove closing ')'
             return expression
-        else:
-            return tokens.pop(0)
+        return tokens.pop(0)
 
     def create_variable(self, name: str, sort) -> Any:
         """Create a variable of the specified sort"""
@@ -134,20 +144,20 @@ class MonAbsSMTLIBParser:
 
         if isinstance(z3_sort, BitVecSortRef):
             return BitVec(name, z3_sort.size())
-        elif isinstance(z3_sort, FPSortRef):
+        if isinstance(z3_sort, FPSortRef):
             return FP(name, z3_sort)
-        elif isinstance(z3_sort, ArraySortRef):
+        if isinstance(z3_sort, ArraySortRef):
             return Array(name, z3_sort.domain(), z3_sort.range())
-        elif z3_sort.kind() == Z3_BOOL_SORT:
+        if z3_sort.kind() == Z3_BOOL_SORT:
             return Bool(name)
-        elif z3_sort.kind() == Z3_INT_SORT:
+        if z3_sort.kind() == Z3_INT_SORT:
             return Int(name)
-        elif z3_sort.kind() == Z3_REAL_SORT:
+        if z3_sort.kind() == Z3_REAL_SORT:
             return Real(name)
-        else:
-            raise ValueError(f"Unsupported sort kind: {z3_sort.kind()}")
+        raise ValueError(f"Unsupported sort kind: {z3_sort.kind()}")
 
     def process_command(self, command):
+        """Process a parsed SMT-LIB command."""
         if not isinstance(command, list):
             return
 
@@ -156,7 +166,7 @@ class MonAbsSMTLIBParser:
         if cmd == 'set-logic':
             self.logic = command[1]
 
-        elif cmd == 'declare-const':
+        if cmd == 'declare-const':
             name = command[1]
             sort = command[2] if isinstance(command[2], str) else command[2:]
             self.variables[name] = self.create_variable(name, sort)
@@ -173,25 +183,25 @@ class MonAbsSMTLIBParser:
                 self.functions[name] = Function(name, *domain_sorts, range_sort)
 
         # elif cmd == 'declare-sort':
-            # TODO
-            
-        elif cmd == 'assert':
+            # TODO: also use constant
+
+        if cmd == 'assert':
             expr = self.build_expression(command[1])
             self.solver.add(expr)
             # Store both the original constraint and the built z3 expression
             self.add_constraint(command[1], expr)
-            if self.flag == False:
+            if not self.flag:
                 self.precond = z3.And(self.precond, expr)
-            elif self.flag == True:
-                self.cnt = z3.And(self.cnt, expr)          
+            if self.flag:
+                self.cnt = z3.And(self.cnt, expr)
 
-        elif cmd == 'push':
+        if cmd == 'push':
             self.solver.push()
             self.flag = True
             # Create new scope for constraints
             self.constraints_stack.append([])
 
-        elif cmd == 'pop':
+        if cmd == 'pop':
             if len(self.constraints_stack) <= 1:
                 raise ValueError("Cannot pop global scope")
             self.solver.pop()
@@ -200,14 +210,14 @@ class MonAbsSMTLIBParser:
             self.cnt = z3.BoolVal(True)
             # Remove constraints from the current scope
             popped_constraints = self.constraints_stack.pop()
-            logger.debug(f"Popped constraints from scope {len(self.constraints_stack)}:")
+            logger.debug("Popped constraints from scope %s:", len(self.constraints_stack))
             for original, _ in popped_constraints:
-                logger.debug(f"  {original}")
+                logger.debug("  %s", original)
             # print(f"Popped constraints from scope {len(self.constraints_stack)}:")
             # for original, _ in popped_constraints:
             #    print(f"  {original}")
 
-        elif cmd == 'check-sat':
+        if cmd == 'check-sat':
             # if we set a "only parse mode", do not actually check-sat
             if self.only_parse:
                 return
@@ -220,22 +230,31 @@ class MonAbsSMTLIBParser:
                 print(f"  {original}")
             self.check_sat_results.append(result)
 
+    def get_default_fp_sort(self):
+        """Get default floating point sort."""
+        return FPSort(8, 24)  # Single precision
+
+    def parse_special_fp_value(self, value):
+        """Parse special floating point values like +oo, -oo, NaN."""
+        # This is a placeholder - implement based on actual SMT-LIB format
+        raise NotImplementedError("Special FP value parsing not yet implemented")
+
     def parse_constant(self, value):
-        """Parse constants based on the current logic"""
+        """Parse constants based on the current logic."""
         try:
             if self.logic and 'FP' in self.logic:
                 # Handle floating point constants
                 if value.startswith('#b'):
                     # Binary format
                     return FPVal(value[2:], self.get_default_fp_sort())
-                elif value.startswith('('):
+                if value.startswith('('):
                     # Special values like +oo, -oo, NaN
                     return self.parse_special_fp_value(value)
-            elif self.logic and 'BV' in self.logic:
+            if self.logic and 'BV' in self.logic:
                 # Handle bit-vector constants
                 if value.startswith('#b'):
                     return BitVecVal(int(value[2:], 2), len(value[2:]))
-                elif value.startswith('#x'):
+                if value.startswith('#x'):
                     return BitVecVal(int(value[2:], 16), len(value[2:]) * 4)
 
             # Try parsing as regular numeric constant
@@ -244,81 +263,82 @@ class MonAbsSMTLIBParser:
             return value
 
     def build_expression(self, expr):
+        """Build Z3 expression from parsed SMT-LIB expression."""
         if not isinstance(expr, list):
             # Handle constants and variables
             if expr in self.variables:
                 return self.variables[expr]
-            elif expr in self.functions:
+            if expr in self.functions:
                 return self.functions[expr]
-            elif expr in self.let_bindings:
+            if expr in self.let_bindings:
                 return self.let_bindings[expr]
-            elif expr == 'true':
+            if expr == 'true':
                 return z3.BoolVal(True)
-            elif expr == 'false':
+            if expr == 'false':
                 return z3.BoolVal(False)
             return self.parse_constant(expr)
 
         op = expr[0]
-        
+
         if isinstance(op, list):
             flatten_expr = expr[0]
             flatten_expr.append(expr[1])
             return self.build_special_operator(flatten_expr)
-        
+
         if op == 'let':
             return self.build_let_expression(expr)
-        
+
         args = [self.build_expression(arg) for arg in expr[1:]]
 
         # Theory-specific operations
         if op in self.functions:
             # Function application
             return self.functions[op](*args)
-        elif op == 'select':
+        if op == 'select':
             # Array select
             return Select(args[0], args[1])
-        elif op == 'store':
+        if op == 'store':
             # Array store
             return Store(args[0], args[1], args[2])
-        elif op.startswith('fp.'):
+        if op.startswith('fp.'):
             # Floating point operations
             return self.build_fp_expression(op, args)
-        elif op.startswith('bv'):
+        if op.startswith('bv'):
             # Bit-vector operations
             return self.build_bitvector_expression(op, args)
-        elif op == '_':
+        if op == '_':
             # Bit-vector constants
             return self.build_special_operator(expr)
-        else:
-            # Standard operations
-            return self.build_standard_expression(op, args)
+        # Standard operations
+        return self.build_standard_expression(op, args)
 
     def build_special_operator(self, expr):
+        """Build special operators like bit-vector constants and extensions."""
         if expr[1].startswith('bv'):
             # Bit-vector constant
             value = int(expr[1][2:])  # Extract the value after 'bv'
             width = int(expr[2])  # Extract the bit-width
-            return BitVecVal(value, width) 
-        elif expr[1] == 'sign_extend':
+            return BitVecVal(value, width)
+        if expr[1] == 'sign_extend':
             # Sign extension
             extension_bits = int(expr[2])
             value = self.build_expression(expr[3])
             return SignExt(extension_bits, value)
-        elif expr[1] == 'zero_extend':
+        if expr[1] == 'zero_extend':
             # Zero extension
-            extension_bits = int(expr[2])  
-            value = self.build_expression(expr[3]) 
-            return ZeroExt(extension_bits, value) 
-        elif expr[1] == 'extract':
+            extension_bits = int(expr[2])
+            value = self.build_expression(expr[3])
+            return ZeroExt(extension_bits, value)
+        if expr[1] == 'extract':
             # Bit extraction
             high = int(expr[2])
             low = int(expr[3])
             value = self.build_expression(expr[4])
             return Extract(high, low, value)
-        else:
-            raise ValueError(f"Unknown special operator: {expr[1]}")
-    
+        raise ValueError(f"Unknown special operator: {expr[1]}")
+
     def build_let_expression(self, expr):
+        """Build let expression with local bindings."""
         bindings = expr[1]
         body = expr[2]
 
@@ -327,153 +347,151 @@ class MonAbsSMTLIBParser:
             var_name = binding[0]
             var_expr = self.build_expression(binding[1])
             self.let_bindings[var_name] = var_expr
-        
+
         return self.build_expression(body)
-        
+
     def build_standard_expression(self, op, args):
-        """Build expression for standard operations"""
+        """Build expression for standard operations."""
         if op == '+':
             return sum(args)
-        elif op == '-':
+        if op == '-':
             return args[0] - args[1] if len(args) == 2 else -args[0]
-        elif op == '*':
+        if op == '*':
             return reduce(lambda x, y: x * y, args)
-        elif op == '/':
+        if op == '/':
             return args[0] / args[1]
-        elif op == 'div':
+        if op == 'div':
             return args[0] / args[1]
-        elif op == '>':
+        if op == '>':
             return args[0] > args[1]
-        elif op == '<':
+        if op == '<':
             return args[0] < args[1]
-        elif op == '>=':
+        if op == '>=':
             return args[0] >= args[1]
-        elif op == '<=':
+        if op == '<=':
             return args[0] <= args[1]
-        elif op == '=':
+        if op == '=':
             return args[0] == args[1]
-        elif op == 'mod':
+        if op == 'mod':
             return args[0] % args[1]
-        elif op == 'distinct':
+        if op == 'distinct':
             return Distinct(*args)
-        elif op == 'concat':
+        if op == 'concat':
             return Concat(*args)
-        elif op == 'and':
+        if op == 'and':
             return And(*args)
-        elif op == 'or':
+        if op == 'or':
             return Or(*args)
-        elif op == 'not':
+        if op == 'not':
             return Not(args[0])
-        elif op == '=>':
+        if op == '=>':
             return Implies(args[0], args[1])
-        elif op == 'ite':
+        if op == 'ite':
             return If(args[0], args[1], args[2])
-        else:
-            raise ValueError(f"Unknown operator: {op}")
+        raise ValueError(f"Unknown operator: {op}")
 
     def build_fp_expression(self, op, args):
-        """Build floating-point expressions"""
+        """Build floating-point expressions."""
         rm = RNE()  # Default rounding mode
         if op == 'fp.add':
             return fpAdd(rm, args[0], args[1])
-        elif op == 'fp.sub':
+        if op == 'fp.sub':
             return fpSub(rm, args[0], args[1])
-        elif op == 'fp.mul':
+        if op == 'fp.mul':
             return fpMul(rm, args[0], args[1])
-        elif op == 'fp.div':
+        if op == 'fp.div':
             return fpDiv(rm, args[0], args[1])
-        elif op == 'fp.neg':
+        if op == 'fp.neg':
             return fpNeg(args[0])
-        elif op == 'fp.abs':
+        if op == 'fp.abs':
             return fpAbs(args[0])
-        elif op == 'fp.lt':
+        if op == 'fp.lt':
             return fpLT(args[0], args[1])
-        elif op == 'fp.gt':
+        if op == 'fp.gt':
             return fpGT(args[0], args[1])
-        elif op == 'fp.leq':
+        if op == 'fp.leq':
             return fpLEQ(args[0], args[1])
-        elif op == 'fp.geq':
+        if op == 'fp.geq':
             return fpGEQ(args[0], args[1])
-        elif op == 'fp.eq':
+        if op == 'fp.eq':
             return fpEQ(args[0], args[1])
-        elif op == 'fp.isNaN':
+        if op == 'fp.isNaN':
             return fpIsNaN(args[0])
-        elif op == 'fp.isInfinite':
+        if op == 'fp.isInfinite':
             return fpIsInf(args[0])
-        elif op == 'fp.isZero':
+        if op == 'fp.isZero':
             return fpIsZero(args[0])
-        else:
-            raise ValueError(f"Unknown FP operator: {op}")
+        raise ValueError(f"Unknown FP operator: {op}")
 
     def build_bitvector_expression(self, op, args):
-        """Build bit-vector expression with comprehensive operation support"""
+        """Build bit-vector expression with comprehensive operation support."""
         # Comparison operations
         if op == 'bvult':
             return ULT(args[0], args[1])
-        elif op == 'bvule':
+        if op == 'bvule':
             return ULE(args[0], args[1])
-        elif op == 'bvugt':
+        if op == 'bvugt':
             return UGT(args[0], args[1])
-        elif op == 'bvuge':
+        if op == 'bvuge':
             return UGE(args[0], args[1])
-        elif op == 'bvslt':
+        if op == 'bvslt':
             return args[0] < args[1]
-        elif op == 'bvsle':
+        if op == 'bvsle':
             return args[0] <= args[1]
-        elif op == 'bvsgt':
+        if op == 'bvsgt':
             return args[0] > args[1]
-        elif op == 'bvsge':
+        if op == 'bvsge':
             return args[0] >= args[1]
 
         # Arithmetic operations
-        elif op == 'bvneg':
+        if op == 'bvneg':
             return -args[0]
-        elif op == 'bvadd':
+        if op == 'bvadd':
             return args[0] + args[1]
-        elif op == 'bvsub':
+        if op == 'bvsub':
             return args[0] - args[1]
-        elif op == 'bvmul':
+        if op == 'bvmul':
             return args[0] * args[1]
-        elif op == 'bvudiv':
+        if op == 'bvudiv':
             return UDiv(args[0], args[1])
-        elif op == 'bvsdiv':
+        if op == 'bvsdiv':
             return args[0] / args[1]
-        elif op == 'bvurem':
+        if op == 'bvurem':
             return URem(args[0], args[1])
-        elif op == 'bvsrem':
+        if op == 'bvsrem':
             return SRem(args[0], args[1])
-        elif op == 'bvsmod':
+        if op == 'bvsmod':
             # return SMod(args[0], args[1])
             return args[0] % args[1]
 
         # Bitwise operations
-        elif op == 'bvand':
+        if op == 'bvand':
             return args[0] & args[1]
-        elif op == 'bvor':
+        if op == 'bvor':
             return args[0] | args[1]
-        elif op == 'bvxor':
+        if op == 'bvxor':
             return args[0] ^ args[1]
-        elif op == 'bvnot':
+        if op == 'bvnot':
             return ~args[0]
-        elif op == 'bvnand':
+        if op == 'bvnand':
             return ~(args[0] & args[1])
-        elif op == 'bvnor':
+        if op == 'bvnor':
             return ~(args[0] | args[1])
-        elif op == 'bvxnor':
+        if op == 'bvxnor':
             return ~(args[0] ^ args[1])
 
         # Shift operations
-        elif op == 'bvshl':
+        if op == 'bvshl':
             return args[0] << args[1]
-        elif op == 'bvlshr':
+        if op == 'bvlshr':
             return LShR(args[0], args[1])
-        elif op == 'bvashr':
+        if op == 'bvashr':
             return args[0] >> args[1]
 
-        else:
-            raise ValueError(f"Unknown bit-vector operator: {op}")
+        raise ValueError(f"Unknown bit-vector operator: {op}")
 
     def parse_string(self, content):
+        """Parse SMT-LIB content from string."""
         tokens = self.tokenize(content)
         while tokens:
             command = self.parse_tokens(tokens)
@@ -481,20 +499,24 @@ class MonAbsSMTLIBParser:
                 self.process_command(command)
 
     def parse_file(self, filename):
+        """Parse SMT-LIB content from file."""
         with open(filename, 'r', encoding='utf-8') as file:
             content = file.read()
         self.parse_string(content)
-        
-    def extract_scope_constraints(self):        
+
+    def extract_scope_constraints(self):
+        """Extract and print scope constraints."""
         print("precond:\n->", self.precond)
         print("cnt_list:")
         for cnt in self.cnt_list:
             print("->", cnt)
-        
+
         return self.precond, self.cnt_list
 
     def get_precond(self):
+        """Get precondition."""
         return self.precond
-    
+
     def get_cnt_list(self):
+        """Get constraint list."""
         return self.cnt_list

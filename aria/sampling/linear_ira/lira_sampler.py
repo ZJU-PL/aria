@@ -176,17 +176,33 @@ class LIASampler(Sampler):
     """Linear Integer Arithmetic sampler."""
 
     def __init__(self, **options):
-        Sampler.__init__(self, **options)
-
+        super().__init__()
         self.conjuntion_sampler = None
         self.number_samples = 0
 
-    def sample(self, number=1):
+    def supports_logic(self, logic: Logic) -> bool:
+        """Check if this sampler supports the given logic."""
+        return logic == Logic.QF_LIA
+
+    def init_from_formula(self, formula: z3.ExprRef) -> None:
+        """Initialize the sampler with a formula."""
+        raise NotImplementedError
+
+    def sample(self, options: SamplingOptions) -> SamplingResult:
         """
-        External interface
+        External interface - generate samples.
+
+        Args:
+            options: Sampling options (num_samples will be used)
         """
-        self.number_samples = number
+        self.number_samples = options.num_samples
         return self.sample_via_enumeration()
+
+    def sample_via_enumeration(self):
+        """
+        Call an SMT solver iteratively (block sampled models).
+        """
+        raise NotImplementedError
 
     def sample_via_smt_enumeration(self):
         """
@@ -196,7 +212,7 @@ class LIASampler(Sampler):
 
     def sample_via_smt_random_seed(self):
         """
-        Call an SMT solver iteratively (no blocking, but give the solver diferent
+        Call an SMT solver iteratively (no blocking, but give the solver different
         random seeds)
         """
         raise NotImplementedError

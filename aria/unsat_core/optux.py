@@ -233,7 +233,8 @@ class OptUx:
         self.formula.nv = formula.nv
 
         # copying atmost constraints, if any
-        if isinstance(formula, WCNFPlus) and formula.atms:
+        if (isinstance(formula, WCNFPlus) and
+                hasattr(formula, 'atms') and formula.atms):
             self.formula.atms = formula.atms[:]
 
         # top variable identifier
@@ -294,16 +295,19 @@ class OptUx:
             name=solver,
             bootstrap_with=unweighted.hard + [[mcs] for mcs in self.units])
 
-        if unweighted.atms:
+        if hasattr(unweighted, 'atms') and unweighted.atms:
             # Check if solver supports atmost constraints
-            if hasattr(SolverNames, 'cadical195') and solver in getattr(SolverNames, 'cadical195', []):
+            cadical195 = getattr(SolverNames, 'cadical195', [])
+            if (hasattr(SolverNames, 'cadical195') and
+                    solver in cadical195):
                 # we are using CaDiCaL195 and it can use external linear engine
                 if hasattr(self.oracle, 'activate_atmost'):
                     self.oracle.activate_atmost()
 
             assert self.oracle.supports_atmost(), \
                 (f'{self.solver} does not support native cardinality '
-                 f'constraints. Make sure you use the right type of formula.')
+                 f'constraints. Make sure you use the right type of '
+                 f'formula.')
 
             for atm in unweighted.atms:
                 self.oracle.add_atmost(*atm)
@@ -659,36 +663,45 @@ if __name__ == '__main__':
     adapt, cover, dcalls, exhaust, minz, trim, to_enum, solver, puresat, \
         unsorted, verbose, files = parse_options()
 
-    if files:
-        # reading standard CNF, WCNF, or (W)CNF+
-        if re.search(r'cnf[p|+]?(\.(gz|bz2|lzma|xz))?$', files[0]):
-            if re.search(r'\.wcnf[p|+]?(\.(gz|bz2|lzma|xz))?$', files[0]):
-                formula = WCNFPlus(from_file=files[0])
-            else:  # expecting '*.cnf[,p,+].*'
-                formula = CNFPlus(from_file=files[0]).weighted()
+        if files:
+            # reading standard CNF, WCNF, or (W)CNF+
+            if re.search(r'cnf[p|+]?(\.(gz|bz2|lzma|xz))?$', files[0]):
+                if re.search(
+                    r'\.wcnf[p|+]?(\.(gz|bz2|lzma|xz))?$', files[0]
+                ):
+                    formula = WCNFPlus(from_file=files[0])
+                else:  # expecting '*.cnf[,p,+].*'
+                    formula = CNFPlus(from_file=files[0]).weighted()
+            else:
+                formula = None
 
-        if cover:  # expecting  '*.cnf[,p,+].*' only!
-            assert re.search(r'cnf[p|+]?(\.(gz|bz2|lzma|xz))?$', cover), 'wrong file for formula to cover'
-            cover = CNFPlus(from_file=cover)
+            if cover:  # expecting  '*.cnf[,p,+].*' only!
+                assert re.search(
+                    r'cnf[p|+]?(\.(gz|bz2|lzma|xz))?$', cover
+                ), 'wrong file for formula to cover'
+                cover = CNFPlus(from_file=cover)
 
-        # creating an object of OptUx
-        with OptUx(formula, solver=solver, adapt=adapt, cover=cover,
-                   dcalls=dcalls, exhaust=exhaust, minz=minz, puresat=puresat,
-                   unsorted=unsorted, trim=trim, verbose=verbose) as optux:
+            if formula:
+                # creating an object of OptUx
+                with OptUx(formula, solver=solver, adapt=adapt, cover=cover,
+                           dcalls=dcalls, exhaust=exhaust, minz=minz,
+                           puresat=puresat, unsorted=unsorted, trim=trim,
+                           verbose=verbose) as optux:
 
-            # iterating over the necessary number of optimal MUSes
-            for i, mus in enumerate(optux.enumerate()):
-                # reporting the current solution
-                if verbose:
-                    print('c mus:', ' '.join([str(cl_id) for cl_id in mus]), '0')
+                    # iterating over the necessary number of optimal MUSes
+                    for i, mus in enumerate(optux.enumerate()):
+                        # reporting the current solution
+                        if verbose:
+                            mus_str = ' '.join([str(cl_id) for cl_id in mus])
+                            print(f'c mus: {mus_str} 0')
 
+                            if verbose > 1:
+                                print('c cost:', optux.cost)
+
+                        # checking if we are done
+                        if to_enum and i + 1 == to_enum:
+                            break
+
+                    # reporting the total oracle time
                     if verbose > 1:
-                        print('c cost:', optux.cost)
-
-                # checking if we are done
-                if to_enum and i + 1 == to_enum:
-                    break
-
-            # reporting the total oracle time
-            if verbose > 1:
-                print(f'c oracle time: {optux.oracle_time():.4f}')
+                        print(f'c oracle time: {optux.oracle_time():.4f}')

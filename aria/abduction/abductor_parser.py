@@ -75,10 +75,12 @@ def parse_abduction_problem(smt2_str: str) -> Tuple[z3.BoolRef, z3.BoolRef, Dict
     while pos != -1:
         expr, next_pos = extract_assertion(smt2_str, pos)
         if expr:
-        try:
-            assertions.append(parse_expr(expr, variables))
-        except (ValueError, z3.Z3Exception) as e:
-            print(f"Warning: Failed to parse assertion: {expr}. {e}")
+            try:
+                assertions.append(parse_expr(expr, variables))
+            except (ValueError, z3.Z3Exception) as e:
+                print(f"Warning: Failed to parse assertion: {expr}. {e}")
+            except Exception as e:
+                print(f"Warning: Failed to parse assertion: {expr}. {e}")
         pos = smt2_str.find('(assert', next_pos)
 
     # Extract goal

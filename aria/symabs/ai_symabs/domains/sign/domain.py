@@ -1,6 +1,6 @@
 """Main class definition for the Signs conjunctive domain.
 """
-from typing import Dict, List, Optional
+from typing import List
 import z3
 from ..z3_variables import Z3VariablesDomain
 from ..z3_variables.concrete import Z3VariablesState

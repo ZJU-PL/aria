@@ -20,7 +20,7 @@ class BitVectorSampler(Sampler):
     This class implements a sampler for bit-vector formulas using Z3.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **_kwargs):
         """Initialize the bit-vector sampler."""
         self.formula = None
         self.variables = []

@@ -11,7 +11,7 @@ OUTPUT: a formula g such that
 Following CAV'06 paper "SMT Techniques for Fast Predicate Abstraction"
 """
 
-from typing import List, Optional, Set, Dict
+from typing import List, Dict
 
 import z3
 from z3 import BoolRef, Solver, unsat, ModelRef, ExprRef

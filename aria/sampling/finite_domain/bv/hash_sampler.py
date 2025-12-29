@@ -63,7 +63,7 @@ class HashBasedBVSampler(Sampler):
         https://github.com/Z3Prover/z3/issues/4675#issuecomment-686880139
     """
 
-    def __init__(self, **kwargs: Any) -> None:
+    def __init__(self, **_kwargs: Any) -> None:
         """Initialize the hash-based bit-vector sampler."""
         self.formula: z3.ExprRef = None
         self.variables: List[z3.ExprRef] = []

@@ -17,12 +17,6 @@ class Z3AllSMTSolver(AllSMTSolver[ModelRef]):
     This class implements the AllSMT solver interface using Z3 as the underlying solver.
     """
 
-    def __init__(self) -> None:
-        """Initialize the Z3-based AllSMT solver."""
-        self._models: List[ModelRef] = []
-        self._model_count: int = 0
-        self._model_limit_reached: bool = False
-
     def solve(self, expr: ExprRef, keys: List[ExprRef], model_limit: int = 100) -> List[ModelRef]:
         """
         Enumerate all satisfying models for the given expression over the specified keys.
@@ -37,18 +31,11 @@ class Z3AllSMTSolver(AllSMTSolver[ModelRef]):
         """
         solver = Solver()
         solver.add(expr)
-        self._models = []
-        self._model_count = 0
-        self._model_limit_reached = False
+        self._reset_model_storage()
 
         while solver.check() == sat:
             model = solver.model()
-            self._model_count += 1
-            self._models.append(model)
-
-            # Check if we've reached the model limit
-            if self._model_count >= model_limit:
-                self._model_limit_reached = True
+            if self._add_model(model, model_limit):
                 break
 
             # Create blocking clause to exclude the current model
@@ -59,48 +46,15 @@ class Z3AllSMTSolver(AllSMTSolver[ModelRef]):
 
         return self._models
 
-    def get_model_count(self) -> int:
+    def _format_model_verbose(self, model: ModelRef) -> None:
         """
-        Get the number of models found in the last solve call.
-
-        Returns:
-            int: The number of models
-        """
-        return self._model_count
-
-    @property
-    def models(self) -> List[ModelRef]:
-        """
-        Get all models found in the last solve call.
-
-        Returns:
-            List of Z3 models
-        """
-        return self._models
-
-    def print_models(self, verbose: bool = False) -> None:
-        """
-        Print all models found in the last solve call.
+        Print detailed information about a single Z3 model.
 
         Args:
-            verbose: Whether to print detailed information about each model
+            model: The Z3 model to print
         """
-        if not self._models:
-            print("No models found.")
-            return
-
-        for i, model in enumerate(self._models):
-            if verbose:
-                print(f"Model {i + 1}:")
-                for decl in model.decls():
-                    print(f"  {decl.name()} = {model[decl]}")
-            else:
-                print(f"Model {i + 1}: {model}")
-
-        if self._model_limit_reached:
-            print(f"Model limit reached. Found {self._model_count} models (there may be more).")
-        else:
-            print(f"Total number of models: {self._model_count}")
+        for decl in model.decls():
+            print(f"  {decl.name()} = {model[decl]}")
 
 
 def demo() -> None:

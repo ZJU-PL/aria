@@ -61,17 +61,17 @@ def _count_smtlib2_solutions(formula_str: str, _timeout: Optional[int] = None) -
                     # Use sharpSAT for counting
                     result, _ = counter.count_models_by_sharp_sat()
                     return result
-                except Exception:
+                except (ValueError, TypeError, AttributeError, RuntimeError):
                     # Fallback to basic enumeration
                     pass
 
             # Basic enumeration approach for other cases
             # This is a simplified approach - in practice you'd want more sophisticated counting
-            return _enumerate_models(solver, timeout)
+            return _enumerate_models(solver, _timeout)
         else:
             return 0
 
-    except Exception as e:
+    except (z3.Z3Exception, ValueError, TypeError, AttributeError) as e:
         raise ValueError(f"Failed to parse SMTLIB2 formula: {e}") from e
 
 
@@ -98,7 +98,7 @@ def _count_dimacs_solutions(formula_str: str, _timeout: Optional[int] = None) ->
         # Use the existing DIMACS counting function
         return count_dimacs_solutions_parallel(header, clauses)
 
-    except Exception as e:
+    except (ValueError, TypeError, IndexError) as e:
         raise ValueError(f"Failed to count DIMACS solutions: {e}") from e
 
 
@@ -121,7 +121,7 @@ def _enumerate_models(solver: z3.Solver, timeout: Optional[int] = None) -> int:
         result = counting_solver.check()
         if result == z3.unsat:
             break
-        elif result == z3.sat:
+        if result == z3.sat:
             count += 1
             model = counting_solver.model()
 
@@ -147,8 +147,8 @@ def _enumerate_models(solver: z3.Solver, timeout: Optional[int] = None) -> int:
 
             if block_terms:
                 counting_solver.add(z3.Or(*block_terms))
-        else:
-            # unknown
+        # else: unknown - break
+        if result != z3.sat:
             break
 
     return count

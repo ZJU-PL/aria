@@ -1,3 +1,4 @@
+"""Quantifier classes for existential and universal quantification."""
 from __future__ import annotations
 
 from abc import ABC, abstractmethod

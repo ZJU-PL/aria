@@ -33,10 +33,10 @@ class Brzozowski:
         # a is a matrix that holds all transitions
         # If there is a transition from state 0 to state 1 with the symbol x
         # then a[0][1]=x
-        self.A = {}
+        self.A = {}  # pylint: disable=invalid-name
         # B[n] holds the regular expression that describes how a final state
         # can be reached from state n
-        self.B = {}
+        self.B = {}  # pylint: disable=invalid-name
         self.epsilon = ''
         self.empty = None
 
@@ -86,10 +86,9 @@ class Brzozowski:
         Returns:
             str: The applied Kleene star operation on the input string
         """
-        if input_string != self.epsilon and input_string != self.empty:
+        if input_string not in (self.epsilon, self.empty):
             return "(" + input_string + ")*"
-        else:
-            return ""
+        return ""
 
     def _brzozowski_algebraic_method_init(self):
         """Initialize Brzozowski Algebraic Method"""
@@ -143,16 +142,14 @@ class Brzozowski:
             for i in range(0, n):
                 # B[i] += A[i,n] . B[n]
                 newnode = None
-                if self.A[orderedstates[i].stateid, orderedstates[n].stateid] != self.empty \
-                        and self.B[orderedstates[n].stateid] != self.empty:
-                    newnode = self.A[orderedstates[i].stateid, orderedstates[
-                        n].stateid] + self.B[orderedstates[n].stateid]
-                elif self.A[orderedstates[i].stateid, orderedstates[n].stateid] != self.empty:
-                    newnode = self.A[
-                        orderedstates[i].stateid,
-                        orderedstates[n].stateid]
-                elif self.B[orderedstates[n].stateid] != self.empty:
-                    newnode = self.B[orderedstates[n].stateid]
+                a_in_n = self.A[orderedstates[i].stateid, orderedstates[n].stateid]
+                b_n = self.B[orderedstates[n].stateid]
+                if a_in_n != self.empty and b_n != self.empty:
+                    newnode = a_in_n + b_n
+                elif a_in_n != self.empty:
+                    newnode = a_in_n
+                elif b_n != self.empty:
+                    newnode = b_n
                 if self.B[orderedstates[i].stateid] != self.empty:
                     if newnode is not None:
                         self.B[orderedstates[i].stateid] += newnode
@@ -161,21 +158,14 @@ class Brzozowski:
                 for j in range(0, n):
                     # A[i,j] += A[i,n] . A[n,j]
                     newnode = None
-                    if self.A[
-                            orderedstates[i].stateid,
-                            orderedstates[n].stateid] != self.empty \
-                            and self.A[orderedstates[n].stateid, orderedstates[j].stateid] \
-                                    != self.empty:
-                        newnode = self.A[orderedstates[i].stateid, orderedstates[
-                            n].stateid] + self.A[orderedstates[n].stateid, orderedstates[j].stateid]
-                    elif self.A[orderedstates[i].stateid, orderedstates[n].stateid] != self.empty:
-                        newnode = self.A[
-                            orderedstates[i].stateid,
-                            orderedstates[n].stateid]
-                    elif self.A[orderedstates[n].stateid, orderedstates[j].stateid] != self.empty:
-                        newnode = self.A[
-                            orderedstates[n].stateid,
-                            orderedstates[j].stateid]
+                    a_in_n = self.A[orderedstates[i].stateid, orderedstates[n].stateid]
+                    a_n_j = self.A[orderedstates[n].stateid, orderedstates[j].stateid]
+                    if a_in_n != self.empty and a_n_j != self.empty:
+                        newnode = a_in_n + a_n_j
+                    elif a_in_n != self.empty:
+                        newnode = a_in_n
+                    elif a_n_j != self.empty:
+                        newnode = a_n_j
                     if self.A[
                             orderedstates[i].stateid,
                             orderedstates[j].stateid] != self.empty:

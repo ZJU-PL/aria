@@ -139,7 +139,7 @@ class SmtServer:
                 raise ValueError("Empty expression")
 
             op = tokens[0]
-            args = [self.parse_smt2_expr(t) for t in tokens[1:]]
+            expr_args = [self.parse_smt2_expr(t) for t in tokens[1:]]
 
             # Handle operations
             if op in ('and', 'or', 'not', '=', '>=', '<=', '>', '<', '+', '-', '*', '/'):
@@ -151,7 +151,7 @@ class SmtServer:
                     '+': lambda x, y: x + y, '-': lambda x, y: x - y,
                     '*': lambda x, y: x * y, '/': lambda x, y: x / y
                 }
-                return op_map[op](*args)
+                return op_map[op](*expr_args)
 
             raise ValueError(f"Unknown operator: {op}")
         except Exception as e:
@@ -174,7 +174,7 @@ class SmtServer:
 
             self.current_scope.variables[name] = z3.Const(name, sort_map[sort])
             return "success"
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError) as e:
             return f"error: {str(e)}"
 
     def handle_assert(self, expr_str: str):
@@ -184,7 +184,7 @@ class SmtServer:
             self.solver.add(expr)
             self.current_scope.assertions.append(expr)
             return "success"
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError) as e:
             return f"error: {str(e)}"
 
     def handle_push(self) -> str:
@@ -195,7 +195,7 @@ class SmtServer:
             new_scope = ScopeFrame(dict(self.current_scope.variables), [])
             self.scope_stack.append(new_scope)
             return "success"
-        except Exception as e:
+        except (RuntimeError, AttributeError) as e:
             return f"error: {str(e)}"
 
     def handle_pop(self) -> str:
@@ -206,8 +206,45 @@ class SmtServer:
             self.solver.pop()
             self.scope_stack.pop()
             return "success"
-        except Exception as e:
+        except (RuntimeError, IndexError) as e:
             return f"error: {str(e)}"
+
+    def _parse_allsmt_args(self, cmd_args: str):
+        """Parse allsmt command arguments."""
+        parts = cmd_args.split()
+        if not parts:
+            return None, None, "error: allsmt requires variable names"
+
+        # Extract model limit if provided
+        model_limit = self.allsmt_model_limit
+        if parts[0].startswith(":limit="):
+            limit_str = parts[0].split("=")[1]
+            try:
+                model_limit = int(limit_str)
+                parts = parts[1:]
+            except ValueError:
+                return None, None, f"error: invalid model limit: {limit_str}"
+
+        # Get variables to project onto
+        var_names = parts
+        variables = []
+        for name in var_names:
+            if name not in self.current_scope.variables:
+                return None, None, f"error: variable {name} not declared"
+            variables.append(self.current_scope.variables[name])
+
+        return var_names, variables, model_limit
+
+    def _format_allsmt_results(self, models, var_names, variables):
+        """Format allsmt results."""
+        result = []
+        for model in models:
+            model_str = []
+            for var_name, var in zip(var_names, variables):
+                value = model.get(var)
+                model_str.append(f"({var_name} {value})")
+            result.append("(" + " ".join(model_str) + ")")
+        return "(" + " ".join(result) + ")"
 
     def handle_allsmt(self, cmd_args: str) -> str:
         """Handle allsmt command to enumerate all satisfying models."""
@@ -215,48 +252,63 @@ class SmtServer:
             return "error: allsmt feature not available"
 
         try:
-            # Parse arguments
-            parts = cmd_args.split()
-            if not parts:
-                return "error: allsmt requires variable names"
+            var_names, variables, parsed = self._parse_allsmt_args(cmd_args)
+            if var_names is None:
+                return parsed  # Return error message
 
-            # Extract model limit if provided
-            model_limit = self.allsmt_model_limit
-            if parts[0].startswith(":limit="):
-                limit_str = parts[0].split("=")[1]
-                try:
-                    model_limit = int(limit_str)
-                    parts = parts[1:]
-                except ValueError:
-                    return f"error: invalid model limit: {limit_str}"
-
-            # Get variables to project onto
-            var_names = parts
-            variables = []
-            for name in var_names:
-                if name not in self.current_scope.variables:
-                    return f"error: variable {name} not declared"
-                variables.append(self.current_scope.variables[name])
+            model_limit = parsed
 
             # Create formula from current assertions
-            formula = z3.And(*self.current_scope.assertions) if self.current_scope.assertions else z3.BoolVal(True)
+            if self.current_scope.assertions:
+                formula = z3.And(*self.current_scope.assertions)
+            else:
+                formula = z3.BoolVal(True)
 
             # Create AllSMT solver and enumerate models
             solver = create_allsmt_solver()
             models = solver.get_all_sat(formula, variables, model_limit=model_limit)
 
-            # Format results
-            result = []
-            for model in models:
-                model_str = []
-                for var_name, var in zip(var_names, variables):
-                    value = model.get(var)
-                    model_str.append(f"({var_name} {value})")
-                result.append("(" + " ".join(model_str) + ")")
-
-            return "(" + " ".join(result) + ")"
-        except Exception as e:
+            return self._format_allsmt_results(models, var_names, variables)
+        except (ValueError, TypeError, AttributeError, KeyError) as e:
             return f"error: {str(e)}"
+
+    def _parse_unsat_core_args(self, cmd_args: str):
+        """Parse unsat-core command arguments."""
+        parts = cmd_args.split()
+        algorithm = self.unsat_core_algorithm
+        timeout = self.unsat_core_timeout
+        enumerate_all = False
+
+        # Process options
+        i = 0
+        while i < len(parts):
+            if parts[i].startswith(":algorithm="):
+                algorithm = parts[i].split("=")[1]
+                parts.pop(i)
+            elif parts[i].startswith(":timeout="):
+                timeout_str = parts[i].split("=")[1]
+                try:
+                    timeout = int(timeout_str)
+                except ValueError:
+                    return None, None, None, f"error: invalid timeout: {timeout_str}"
+                parts.pop(i)
+            elif parts[i] == ":enumerate-all":
+                enumerate_all = True
+                parts.pop(i)
+            else:
+                i += 1
+
+        return algorithm, timeout, enumerate_all, None
+
+    def _format_unsat_core_results(self, result, constraints):
+        """Format unsat-core results."""
+        cores = result.cores
+        formatted_cores = []
+        for core in cores:
+            core_exprs = [constraints[idx] for idx in core]
+            core_str = " ".join(str(expr) for expr in core_exprs)
+            formatted_cores.append(f"({core_str})")
+        return "(" + " ".join(formatted_cores) + ")"
 
     def handle_unsat_core(self, cmd_args: str) -> str:
         """Handle unsat-core command to compute unsatisfiable cores."""
@@ -264,30 +316,9 @@ class SmtServer:
             return "error: unsat-core feature not available"
 
         try:
-            # Parse arguments
-            parts = cmd_args.split()
-            algorithm = self.unsat_core_algorithm
-            timeout = self.unsat_core_timeout
-            enumerate_all = False
-
-            # Process options
-            i = 0
-            while i < len(parts):
-                if parts[i].startswith(":algorithm="):
-                    algorithm = parts[i].split("=")[1]
-                    parts.pop(i)
-                elif parts[i].startswith(":timeout="):
-                    timeout_str = parts[i].split("=")[1]
-                    try:
-                        timeout = int(timeout_str)
-                    except ValueError:
-                        return f"error: invalid timeout: {timeout_str}"
-                    parts.pop(i)
-                elif parts[i] == ":enumerate-all":
-                    enumerate_all = True
-                    parts.pop(i)
-                else:
-                    i += 1
+            algorithm, timeout, enumerate_all, error = self._parse_unsat_core_args(cmd_args)
+            if error:
+                return error
 
             # Get assertions as constraints
             constraints = self.current_scope.assertions
@@ -300,20 +331,15 @@ class SmtServer:
 
             # Compute unsat core
             if enumerate_all:
-                result = enumerate_all_mus(constraints, solver_factory, timeout=timeout)
+                result = enumerate_all_mus(
+                    constraints, solver_factory, timeout=timeout)
             else:
-                result = get_unsat_core(constraints, solver_factory, algorithm=algorithm, timeout=timeout)
+                result = get_unsat_core(
+                    constraints, solver_factory, algorithm=algorithm,
+                    timeout=timeout)
 
-            # Format results
-            cores = result.cores
-            formatted_cores = []
-            for core in cores:
-                core_exprs = [constraints[idx] for idx in core]
-                core_str = " ".join(str(expr) for expr in core_exprs)
-                formatted_cores.append(f"({core_str})")
-
-            return "(" + " ".join(formatted_cores) + ")"
-        except Exception as e:
+            return self._format_unsat_core_results(result, constraints)
+        except (ValueError, TypeError, AttributeError, IndexError) as e:
             return f"error: {str(e)}"
 
     def handle_backbone(self, cmd_args: str) -> str:
@@ -332,7 +358,10 @@ class SmtServer:
                 parts = parts[1:]
 
             # Get formula from current assertions
-            formula = z3.And(*self.current_scope.assertions) if self.current_scope.assertions else z3.BoolVal(True)
+            if self.current_scope.assertions:
+                formula = z3.And(*self.current_scope.assertions)
+            else:
+                formula = z3.BoolVal(True)
 
             # Get all variables as potential literals
             literals = []
@@ -347,7 +376,7 @@ class SmtServer:
             # Format results
             result = " ".join(str(lit) for lit in backbone_lits)
             return f"({result})"
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError) as e:
             return f"error: {str(e)}"
 
     def handle_count_models(self, cmd_args: str) -> str:
@@ -378,16 +407,18 @@ class SmtServer:
                     i += 1
 
             # Get formula from current assertions
-            formula = z3.And(*self.current_scope.assertions) if self.current_scope.assertions else z3.BoolVal(True)
+            if self.current_scope.assertions:
+                formula = z3.And(*self.current_scope.assertions)
+            else:
+                formula = z3.BoolVal(True)
 
             # Count models
             if approximate:
                 count = model_counter.approximate_model_count(formula, timeout=timeout)
                 return f"(approximate {count})"
-            else:
-                count = model_counter.exact_model_count(formula, timeout=timeout)
-                return f"(exact {count})"
-        except Exception as e:
+            count = model_counter.exact_model_count(formula, timeout=timeout)
+            return f"(exact {count})"
+        except (ValueError, TypeError, AttributeError) as e:
             return f"error: {str(e)}"
 
     def handle_set_option(self, cmd_args: str) -> str:
@@ -400,30 +431,49 @@ class SmtServer:
             option, value = parts
 
             # Handle different options
-            if option == ":allsmt-model-limit":
-                try:
-                    self.allsmt_model_limit = int(value)
-                    return "success"
-                except ValueError:
-                    return f"error: invalid model limit: {value}"
-            if option == ":unsat-core-algorithm":
-                self.unsat_core_algorithm = value
-                return "success"
-            if option == ":unsat-core-timeout":
-                try:
-                    self.unsat_core_timeout = int(value) if value != "none" else None
-                    return "success"
-                except ValueError:
-                    return f"error: invalid timeout: {value}"
-            if option == ":model-count-timeout":
-                try:
-                    self.model_count_timeout = int(value)
-                    return "success"
-                except ValueError:
-                    return f"error: invalid timeout: {value}"
+            option_handlers = {
+                ":allsmt-model-limit": self._handle_allsmt_limit,
+                ":unsat-core-algorithm": self._handle_unsat_core_algorithm,
+                ":unsat-core-timeout": self._handle_unsat_core_timeout,
+                ":model-count-timeout": self._handle_model_count_timeout
+            }
+
+            handler = option_handlers.get(option)
+            if handler:
+                return handler(value)
             return f"error: unknown option: {option}"
-        except Exception as e:
+        except (ValueError, TypeError) as e:
             return f"error: {str(e)}"
+
+    def _handle_allsmt_limit(self, value: str) -> str:
+        """Handle allsmt-model-limit option."""
+        try:
+            self.allsmt_model_limit = int(value)
+            return "success"
+        except ValueError:
+            return f"error: invalid model limit: {value}"
+
+    def _handle_unsat_core_algorithm(self, value: str) -> str:
+        """Handle unsat-core-algorithm option."""
+        self.unsat_core_algorithm = value
+        return "success"
+
+    def _handle_unsat_core_timeout(self, value: str) -> str:
+        """Handle unsat-core-timeout option."""
+        try:
+            self.unsat_core_timeout = (
+                int(value) if value != "none" else None)
+            return "success"
+        except ValueError:
+            return f"error: invalid timeout: {value}"
+
+    def _handle_model_count_timeout(self, value: str) -> str:
+        """Handle model-count-timeout option."""
+        try:
+            self.model_count_timeout = int(value)
+            return "success"
+        except ValueError:
+            return f"error: invalid timeout: {value}"
 
     def handle_help(self) -> str:
         """Handle help command to show available commands."""
@@ -469,7 +519,7 @@ class SmtServer:
                 return ""
 
             cmd = parts[0].lower()
-            args = parts[1] if len(parts) > 1 else ""
+            cmd_args = parts[1] if len(parts) > 1 else ""
 
             handlers = {
                 "exit": lambda _: self._handle_exit(),
@@ -491,8 +541,8 @@ class SmtServer:
             if cmd not in handlers:
                 return f"error: unknown command {cmd}"
 
-            return handlers[cmd](args)
-        except Exception as e:
+            return handlers[cmd](cmd_args)
+        except (ValueError, TypeError, AttributeError) as e:
             return f"error: {str(e)}"
 
     def _handle_exit(self) -> str:
@@ -519,10 +569,11 @@ class SmtServer:
             values = []
             for var_name in cmd_args.split():
                 if var_name in self.current_scope.variables:
-                    val = model.evaluate(self.current_scope.variables[var_name])
+                    val = model.evaluate(
+                        self.current_scope.variables[var_name])
                     values.append(f"({var_name} {val})")
             return "(" + " ".join(values) + ")"
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError, KeyError) as e:
             return f"error: {str(e)}"
 
     def run(self):
@@ -553,7 +604,7 @@ class SmtServer:
                     break
                 time.sleep(0.1)
                 continue
-            except Exception as e:
+            except (ValueError, TypeError, AttributeError) as e:
                 logging.error("Unexpected error: %s", e)
                 self.write_response(f"error: {str(e)}")
 
@@ -565,8 +616,10 @@ def parse_args():
                         help="Path to input pipe (default: /tmp/smt_input)")
     parser.add_argument("--output-pipe", default="/tmp/smt_output",
                         help="Path to output pipe (default: /tmp/smt_output)")
-    parser.add_argument("--log-level", default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
-                        help="Logging level (default: INFO)")
+    parser.add_argument(
+        "--log-level", default="INFO",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        help="Logging level (default: INFO)")
     return parser.parse_args()
 
 
@@ -582,6 +635,6 @@ if __name__ == "__main__":
         server.run()
     except KeyboardInterrupt:
         logging.info("Server stopped by user")
-    except Exception as e:
+    except (OSError, IOError, ValueError) as e:
         logging.error("Fatal error: %s", e)
         sys.exit(1)

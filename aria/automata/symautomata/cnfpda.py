@@ -1,9 +1,9 @@
 """This module creates a PDA from a CNF """
-from typing import Dict, List, Tuple
+from typing import Dict, List
 from aria.automata.symautomata.pda import PDA, PDAState
 
 
-class ProdStruct:
+class ProdStruct:  # pylint: disable=too-few-public-methods
     """This class is used as a struct for each CNF rule"""
     type = 0
     a = 0
@@ -12,10 +12,9 @@ class ProdStruct:
 
     def __init__(self) -> None:
         """ Initialization class """
-        pass
 
 
-class CnfPda:
+class CnfPda:  # pylint: disable=too-few-public-methods
     """This class creates a PDA from a CNF"""
     def __init__(self, alphabet: List[str]):
         """
@@ -24,8 +23,7 @@ class CnfPda:
         """
         self.alphabet = alphabet
 
-
-    def _mkpda(
+    def _mkpda(  # pylint: disable=too-many-arguments,too-many-statements,too-many-nested-blocks
         self,
         nonterms: List[str],
         productions: Dict[str, Dict[int, Dict[str, str]]],

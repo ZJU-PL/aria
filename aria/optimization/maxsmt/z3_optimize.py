@@ -9,7 +9,6 @@ from typing import Tuple, Optional
 import z3
 
 from .base import MaxSMTSolverBase
-from .base import logger
 
 
 class Z3OptimizeSolver(MaxSMTSolverBase):

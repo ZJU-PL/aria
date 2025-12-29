@@ -1,3 +1,4 @@
+"""Utility functions for quantifier elimination and constraint conversion."""
 import signal
 from enum import Enum
 from typing import Callable
@@ -5,7 +6,7 @@ from warnings import warn
 
 import sympy as sp
 
-from quantifier import Exists, ForAll
+from .quantifier import Exists, ForAll
 
 
 class Result(Enum):
@@ -72,7 +73,7 @@ def to_smt(constraint: sp.Basic) -> str:
     """
     if isinstance(constraint, Exists):
         return f'(exists ({" ".join([f"({to_smt(var)} Real)" for var in constraint.variables])}) {to_smt(constraint.formula)})'
-    elif isinstance(constraint, ForAll):
+    if isinstance(constraint, ForAll):
         return f'(forall ({" ".join([f"({to_smt(var)} Real)" for var in constraint.variables])}) {to_smt(constraint.formula)})'
     elif constraint.is_Relational:
         assert len(
@@ -81,13 +82,12 @@ def to_smt(constraint: sp.Basic) -> str:
         if constraint.rel_op == '==':
             # PolyHorn Bug
             return f'(and (<= {arg_pair}) (>= {arg_pair}))'
-        elif constraint.rel_op == '!=':
+        if constraint.rel_op == '!=':
             return f'(or (< {arg_pair}) (> {arg_pair}))'
-        elif constraint.rel_op in ['<', '<=', '>', '>=']:
+        if constraint.rel_op in ['<', '<=', '>', '>=']:
             return f'({constraint.rel_op} {arg_pair})'
-        else:
-            warn(f'Unsupported relational operator: {constraint.rel_op}')
-            return f'({constraint.rel_op} {arg_pair})'
+        warn(f'Unsupported relational operator: {constraint.rel_op}')
+        return f'({constraint.rel_op} {arg_pair})'
     elif constraint.is_Add:
         return f'(+ {" ".join([to_smt(arg) for arg in constraint.args])})'
     elif constraint.is_Mul:
@@ -100,11 +100,11 @@ def to_smt(constraint: sp.Basic) -> str:
             assert len(
                 constraint.args) >= 2, f'Expected 2 arguments, got {len(constraint.args)}'
             return f'(and {" ".join([to_smt(arg) for arg in constraint.args])})'
-        elif f == 'or':
+        if f == 'or':
             assert len(
                 constraint.args) >= 2, f'Expected 2 arguments, got {len(constraint.args)}'
             return f'(or {" ".join([to_smt(arg) for arg in constraint.args])})'
-        elif f == 'not':
+        if f == 'not':
             assert len(
                 constraint.args) == 1, f'Expected 1 argument, got {len(constraint.args)}'
             child = constraint.args[0]
@@ -112,18 +112,17 @@ def to_smt(constraint: sp.Basic) -> str:
                 assert len(
                     child.args) == 2, f'Expected 2 arguments, got {len(child.args)}'
                 return f'(and {to_smt(child.args[0])} {to_smt(sp.Not(child.args[1]))})'
-            elif isinstance(child, sp.And):
+            if isinstance(child, sp.And):
                 assert len(
                     child.args) >= 2, f'Expected 2 arguments, got {len(child.args)}'
                 return f'(or {" ".join([to_smt(sp.Not(arg)) for arg in child.args])})'
-            elif isinstance(child, sp.Or):
+            if isinstance(child, sp.Or):
                 assert len(
                     child.args) >= 2, f'Expected 2 arguments, got {len(child.args)}'
                 return f'(and {" ".join([to_smt(sp.Not(arg)) for arg in child.args])})'
-            else:
-                raise ValueError(
-                    f'Unable to reduce negation on: {type(child)}')
-        elif f == 'implies':
+            raise ValueError(
+                f'Unable to reduce negation on: {type(child)}')
+        if f == 'implies':
             assert len(
                 constraint.args) == 2, f'Expected 2 arguments, got {len(constraint.args)}'
             # return f'(=> {to_smt(constraint.args[0])} {to_smt(constraint.args[1])})'
@@ -135,8 +134,7 @@ def to_smt(constraint: sp.Basic) -> str:
         # Non-boolean functions (e.g. skolem functions)
         if len(constraint.args) == 0:
             return str(constraint.func)
-        else:
-            return f'({str(constraint.func)} {" ".join([to_smt(arg) for arg in constraint.args])})'
+        return f'({str(constraint.func)} {" ".join([to_smt(arg) for arg in constraint.args])})'
     elif isinstance(constraint, sp.UnevaluatedExpr):
         return to_smt(constraint.args[0])
     elif constraint.is_Symbol:

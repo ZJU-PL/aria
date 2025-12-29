@@ -2,15 +2,16 @@
 This module performs all basic DFA operations, without pyfst
 """
 #!/usr/bin/python
-from operator import attrgetter
-from itertools import product
 import copy
-from aria.automata.symautomata.alphabet import createalphabet
 from collections import defaultdict
+from itertools import product
+from operator import attrgetter
+
+from aria.automata.symautomata.alphabet import createalphabet
 EPSILON = 0xffff
 
 
-def TropicalWeight(param):
+def tropical_weight(param):  # pylint: disable=invalid-name
     """
     Returns the emulated fst TropicalWeight
     Args:
@@ -20,8 +21,11 @@ def TropicalWeight(param):
     """
     if param == (float('inf')):
         return False
-    else:
-        return True
+    return True
+
+
+# Keep old name for backward compatibility
+TropicalWeight = tropical_weight  # pylint: disable=invalid-name
 
 
 class DFAState:
@@ -63,7 +67,7 @@ class DFAArc:
         self.ilabel = ilabel
 
 
-class syms:
+class Syms:  # pylint: disable=invalid-name
     """The DFA accepted symbols"""
 
     def __init__(self):
@@ -113,10 +117,12 @@ class syms:
         return self.symbols
 
 
-class PythonDFA(object):
+class PythonDFA:
     """A DFA implementation that uses the
     same interface with python symautomata"""
-    def __init__(self, alphabet=createalphabet()):
+    def __init__(self, alphabet=None):
+        if alphabet is None:
+            alphabet = createalphabet()
         """
         Args:
             alphabet (list): The imput alphabet
@@ -127,15 +133,15 @@ class PythonDFA(object):
         self.alphabet = alphabet
         self.nfa = False
         num = 1
-        self.isyms = syms()
-        self.osyms = syms()
+        self.isyms = Syms()
+        self.osyms = Syms()
         for char in alphabet + [EPSILON]:
             self.isyms.__setitem__(char, num)
             self.osyms.__setitem__(char, num)
             num = num + 1
         self.yy_last_accepting_state = None
         self.yy_accept = []
- 
+
     def __str__(self):
         """String representation of the DFA"""
         return "This is a python DFA object with " + repr(len(self.states)) + " states"
@@ -194,13 +200,13 @@ class PythonDFA(object):
                 for i in range(len(self.states), s_idx + 1):
                     self.states.append(DFAState(i))
         for arc in self.states[src].arcs:
-            if arc.ilabel == self.isyms.__getitem__(char) or char == EPSILON:
+            if arc.ilabel == self.isyms[char] or char == EPSILON:
                 self.nfa = True
                 break
         self.states[src].arcs.append(
-            DFAArc(src, dst, self.isyms.__getitem__(char)))
+            DFAArc(src, dst, self.isyms[char]))
 
-    def fixminimized(self, alphabet):
+    def fixminimized(self, alphabet):  # pylint: disable=unused-argument
         """
         After pyfst minimization,
         all unused arcs are removed,
@@ -277,7 +283,7 @@ class PythonDFA(object):
                     break
             if not found:
                 return False
-        if cur_state.stateid and self.yy_last_accepting_state is not None == 0:
+        if cur_state.stateid == 0 and self.yy_last_accepting_state is not None:
             return self.yy_accept[self.yy_last_accepting_state.stateid] == 1
         return cur_state.final
 
@@ -314,7 +320,7 @@ class PythonDFA(object):
         Return True if the DFA accepts the empty language.
         """
         # self.minimize()
-        return len(list(self.states)) == 0
+        return len(self.states) == 0
 
     def complement(self, alphabet):
         """
@@ -353,21 +359,16 @@ class PythonDFA(object):
         Returns:
             None
         """
-        output_filename = open(txt_fst_file_name, 'w+')
-        states = sorted(self.states, key=attrgetter('initial'), reverse=True)
-        for state in states:
-            for arc in state.arcs:
-                itext = self.isyms.find(arc.ilabel)
-                otext = self.osyms.find(arc.ilabel)
-                output_filename.write(
-                    '{}\t{}\t{}\t{}\n'.format(
-                        state.stateid,
-                        arc.nextstate,
-                        itext.encode('hex'),
-                        otext.encode('hex')))
-            if state.final:
-                output_filename.write('{}\n'.format(state.stateid))
-        output_filename.close()
+        with open(txt_fst_file_name, 'w+', encoding='utf-8') as output_filename:
+            states = sorted(self.states, key=attrgetter('initial'), reverse=True)
+            for state in states:
+                for arc in state.arcs:
+                    itext = self.isyms.find(arc.ilabel)
+                    otext = self.osyms.find(arc.ilabel)
+                    output_filename.write(
+                        f'{state.stateid}\t{arc.nextstate}\t{itext.encode("hex")}\t{otext.encode("hex")}\n')
+                if state.final:
+                    output_filename.write(f'{state.stateid}\n')
 
     def load(self, txt_fst_file_name):
         """
@@ -381,7 +382,7 @@ class PythonDFA(object):
         Returns:
             None
         """
-        with open(txt_fst_file_name, 'r') as input_filename:
+        with open(txt_fst_file_name, 'r', encoding='utf-8') as input_filename:
             for line in input_filename:
                 line = line.strip()
                 split_line = line.split()
@@ -511,9 +512,9 @@ class PythonDFA(object):
         # Given a set of nfa states representing a dfa_state return 1 if the
         # corresponding DFA state is a final state, i.e. if any of the
         # corresponding NFA states are final.
-        is_final = lambda nfa_states, dfa_state: True \
-            if sum([ int(nfa_states[x].final) for x in dfa_state ]) >= 1 \
-            else False
+        def is_final(nfa_states, dfa_state):
+            """Check if any NFA state in the DFA state is final."""
+            return sum(int(nfa_states[x].final) for x in dfa_state) >= 1
 
         # Precomputation is over, start executing the conversion algorithm
         state_idx = 1
@@ -537,9 +538,10 @@ class PythonDFA(object):
                 # Compute the set of target states
                 target_dfa_state = set([])
                 for nfa_state in src_dfa_state:
-                    next_states = \
-                        set([y for x in trans_table[nfa_state][char] \
-                             for y in epsilon_closure[x] ])
+                    next_states = {
+                        y for x in trans_table[nfa_state][char]
+                        for y in epsilon_closure[x]
+                    }
                     target_dfa_state.update(next_states)
                 # If the computed state set is not part of our new DFA add it,
                 # along with the transition for the current character.
@@ -751,10 +753,10 @@ class PythonDFA(object):
 
                         inv_target_states = {
                             v: k for k, v in target_states.items()}
-                        new_g = [set(selectedstate) for selectedstate in target.values()]
+                        new_g = [set(selectedstate) for selectedstate in target.values()]  # pylint: disable=unnecessary-comprehension
                         done = False
                         # Get all the partitions of destgroups
-                        queue = [set([x for x in target_states.values()])]
+                        queue = [set(target_states.values())]
                         while queue:
                             top = queue.pop(0)
                             (group1, group2) = _partition_group(bookeeping, top)
@@ -895,4 +897,3 @@ class PythonDFA(object):
                 sid2 = _add_state_if_nonexistent(
                     transitions_s1[char], transitions_s2[char])
                 self.add_arc(sid1, sid2, char)
-
