@@ -27,7 +27,6 @@ def RSY(domain: Any, phi: Any) -> Any:
 
         if S is None:
             break
-        else:
-            lower = domain.join([lower, domain.beta(S)])
+        lower = domain.join([lower, domain.beta(S)])
 
     return lower

@@ -8,13 +8,14 @@ import os
 
 
 def error(msg):
-    sys.stderr.write("%s : %s.%s" % (sys.argv[0], msg, os.linesep))
+    """Print an error message and exit."""
+    sys.stderr.write(f"{sys.argv[0]} : {msg}.{os.linesep}")
     sys.exit(1)
 
 
 def spacesplit(string):
-    return list(filter(lambda x: x, string.split(" ")))
-    # return filter(lambda x: x, string.split(" "))
+    """Split a string by spaces and filter out empty strings."""
+    return list(filter(None, string.split(" ")))
 
 
 def tointlist(lst):
@@ -31,21 +32,20 @@ def tointlist(lst):
         ValueError: If the list is not a 0-terminated list of integers.
     """
     try:
-        # ns = map(lambda x: int(x), lst)
-        ns = list(map(lambda x: int(x), lst))
+        ns = [int(x) for x in lst]
         if not ns[-1] == 0:
             error("expected 0-terminated number list")
         return ns[:-1]
 
     except ValueError:
-        error("expected number list (got: %s)" % str(lst))
+        error(f"expected number list (got: {lst})")
 
 
 def parse(filename):
     """
     Parses a QDIMACS file and outputs its equivalent in SMT-LIB2 format, using UFBV logic.
     """
-    with open(filename) as f:
+    with open(filename, encoding='utf-8') as f:
         printed_comments = False
         seendesc = False
         overprefix = False
@@ -57,7 +57,7 @@ def parse(filename):
             if trimmed.startswith("c"):
                 # Comment
                 printed_comments = True
-                print("; %s" % trimmed[1:].strip())
+                print(f"; {trimmed[1:].strip()}")
             elif trimmed.startswith("p"):
                 # Problem definition
                 if seendesc:
@@ -75,23 +75,21 @@ def parse(filename):
                 probccstr = infoparts[2]
 
                 if not probformat == "cnf":
-                    error("unexpected problem format ('%s', not cnf?)" % probformat)
+                    error(f"unexpected problem format ('{probformat}', not cnf?)")
 
                 if not probvcstr.isdigit():
-                    error("variable count is not a number (%s)" % probvcstr)
-                else:
-                    varcount = int(probvcstr)
+                    error(f"variable count is not a number ({probvcstr})")
+                varcount = int(probvcstr)
 
                 if not probccstr.isdigit():
-                    error("clause count is not a number (%s)" % probccstr)
-                else:
-                    clausecount = int(probccstr)
+                    error(f"clause count is not a number ({probccstr})")
+                clausecount = int(probccstr)
 
                 if printed_comments:
                     print(";")
 
-                print("; QBF variable count : %d" % varcount)
-                print("; QBF clause count   : %d" % clausecount)
+                print(f"; QBF variable count : {varcount}")
+                print(f"; QBF clause count   : {clausecount}")
                 print("")
                 print("(set-logic UFBV)")
                 print("(assert")
@@ -107,12 +105,12 @@ def parse(filename):
 
                 for i, v in enumerate(vs):
                     if v in mapping:
-                        error("variable %d bound multiple times" % v)
+                        error(f"variable {v} bound multiple times")
                     mapping[v] = (level, i)
 
                 quant = "forall" if isuniversal else "exists"
 
-                print("  (%s ((vec%d (_ BitVec %d)))" % (quant, level, len(vs)))
+                print(f"  ({quant} ((vec{level} (_ BitVec {len(vs)})))")
             else:
                 # Clause definition
                 if not overprefix:
@@ -126,12 +124,15 @@ def parse(filename):
                 for v in vs:
                     a = abs(v)
                     (lvl, i) = mapping[a]
-                    sys.stdout.write(" (= ((_ extract %d %d) vec%d) #b%d)" % (i, i, lvl, 1 if a == v else 0))
+                    bit_val = 1 if a == v else 0
+                    sys.stdout.write(
+                        f" (= ((_ extract {i} {i}) vec{lvl}) #b{bit_val})"
+                    )
 
-                sys.stdout.write(")%s" % os.linesep)
+                sys.stdout.write(f"){os.linesep}")
 
     print("    )")
-    print("  %s" % (")" * level))
+    print(f"  {')' * level}")
     print(")")
     print("")
     print("(check-sat)")
@@ -139,9 +140,9 @@ def parse(filename):
 
 
 def main(argv):
+    """Main function for command-line execution."""
     if len(argv) < 2:
         error("expected file argument")
-        return 1
 
     parse(argv[1])
     return 0

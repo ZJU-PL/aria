@@ -12,7 +12,8 @@ from aria.allsmt.bool_enumeration import count_models as count_bool_models
 from aria.sampling.general_sampler import count_solutions
 
 
-def count_from_file(filename: str, theory: str = "auto", method: str = "auto", timeout: int = None):
+def count_from_file(filename: str, theory: str = "auto", method: str = "auto",  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+                    timeout: int = None):
     """Count models from a file.
 
     Args:
@@ -21,12 +22,12 @@ def count_from_file(filename: str, theory: str = "auto", method: str = "auto", t
         method: Counting method (varies by theory)
         timeout: Timeout in seconds
     """
-    with open(filename) as f:
+    with open(filename, encoding='utf-8') as f:
         content = f.read()
 
     # Auto-detect format
     file_ext = Path(filename).suffix.lower()
-    if file_ext == '.cnf' or file_ext == '.dimacs':
+    if file_ext in ('.cnf', '.dimacs'):
         format_type = 'dimacs'
         theory = 'bool' if theory == 'auto' else theory
     elif file_ext == '.smt2':
@@ -43,11 +44,11 @@ def count_from_file(filename: str, theory: str = "auto", method: str = "auto", t
         else:
             theory = 'bool'  # default
 
-    logging.info(f"Detected theory: {theory}, format: {format_type}")
+    logging.info("Detected theory: %s, format: %s", theory, format_type)
 
     if theory == 'bool':
         if format_type == 'dimacs':
-            from aria.counting.bool.dimacs_counting import count_dimacs_solutions_parallel
+            from aria.counting.bool.dimacs_counting import count_dimacs_solutions_parallel  # pylint: disable=import-outside-toplevel
             # Parse DIMACS format
             lines = content.strip().split('\n')
             header = []
@@ -69,16 +70,14 @@ def count_from_file(filename: str, theory: str = "auto", method: str = "auto", t
                 count = count_bool_models(formula, method=method if method != 'auto' else 'solver')
                 return count
             except Exception as e:
-                logging.error(f"Error parsing SMT-LIB2: {e}")
+                logging.error("Error parsing SMT-LIB2: %s", e)
                 raise
 
     elif theory == 'bv':
         # QF_BV model counting
         counter = BVModelCounter()
-        result = counter.init_from_file(filename)
-        if result is None:
-            raise ValueError("Failed to initialize BV model counter from file")
-        if method == 'enumeration' or method == 'auto':
+        counter.init_from_file(filename)
+        if method in ('enumeration', 'auto'):
             count = counter.count_model_by_bv_enumeration()
         else:
             # Use general sampler
@@ -88,7 +87,7 @@ def count_from_file(filename: str, theory: str = "auto", method: str = "auto", t
     elif theory == 'arith':
         # Arithmetic model counting
         try:
-            from aria.counting.arith.arith_counting_latte import count_lia_models
+            from aria.counting.arith.arith_counting_latte import count_lia_models  # pylint: disable=import-outside-toplevel
             formula = z3.And(z3.parse_smt2_file(filename))
             count = count_lia_models(formula)
             return count
@@ -98,17 +97,21 @@ def count_from_file(filename: str, theory: str = "auto", method: str = "auto", t
             # Fallback to enumeration using AllSMT
             try:
                 formula = z3.And(z3.parse_smt2_file(filename))
-                from aria.allsmt.allsat import allsat
+                from aria.allsmt import create_allsmt_solver  # pylint: disable=import-outside-toplevel
+                from aria.utils.z3_expr_utils import get_variables  # pylint: disable=import-outside-toplevel
                 # Extract variables from formula
-                from aria.utils.z3_expr_utils import get_variables
-                vars = get_variables(formula)
-                models = list(allsat(formula, vars[:20] if len(vars) > 20 else vars))  # Limit vars for performance
+                variables = get_variables(formula)
+                # Limit vars for performance
+                vars_to_use = variables[:20] if len(variables) > 20 else variables
+                # Use AllSMT solver to enumerate models
+                solver = create_allsmt_solver()
+                models = solver.solve(formula, vars_to_use, model_limit=1000)  # pylint: disable=no-member
                 return len(models)
             except Exception as e:
-                logging.error(f"Enumeration-based counting failed: {e}")
-                raise ValueError("Arithmetic model counting is not fully supported yet")
+                logging.error("Enumeration-based counting failed: %s", e)
+                raise ValueError("Arithmetic model counting is not fully supported yet") from e
         except Exception as e:
-            logging.warning(f"LattE-based counting failed: {e}")
+            logging.warning("LattE-based counting failed: %s", e)
             raise
 
     else:
@@ -173,7 +176,7 @@ def main():
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
         if args.log_level == "DEBUG":
-            import traceback
+            import traceback  # pylint: disable=import-outside-toplevel
             traceback.print_exc()
         return 1
 

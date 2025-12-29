@@ -1,6 +1,8 @@
-# TODO: This file is just a copy/paste/substitute from test_rsy.py, we should
-# have a better way of dealing with the duplication here.
+"""Tests for bilateral algorithm.
 
+TODO: This file is just a copy/paste/substitute from test_rsy.py, we should
+have a better way of dealing with the duplication here.
+"""
 import z3
 
 from aria.symabs.ai_symabs.domains.algorithms import bilateral

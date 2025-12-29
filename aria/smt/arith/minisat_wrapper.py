@@ -1,13 +1,22 @@
-from sympy.assumptions.cnf import EncodedCNF
+"""Wrapper for MiniSat22 solver integration with SymPy."""
+try:
+    from sympy.assumptions.cnf import EncodedCNF
+except ImportError:
+    EncodedCNF = None
+
 
 def minisat22_satisfiable(expr, all_models=False, minimal=False):
+    """Check satisfiability using MiniSat22 solver."""
+
+    if EncodedCNF is None:
+        raise ImportError("sympy.assumptions.cnf.EncodedCNF is not available")
 
     if not isinstance(expr, EncodedCNF):
         exprs = EncodedCNF()
         exprs.add_prop(expr)
         expr = exprs
 
-    from pysat.solvers import Minisat22
+    from pysat.solvers import Minisat22  # noqa: E402
 
     # Return UNSAT when False (encoded as 0) is present in the CNF
     if {0} in expr.data:
@@ -26,21 +35,19 @@ def minisat22_satisfiable(expr, all_models=False, minimal=False):
     if not all_models:
         return {expr.symbols[abs(lit) - 1]: lit > 0 for lit in r.get_model()}
 
-    else:
-        # Make solutions SymPy compatible by creating a generator
-        def _gen(results):
-            satisfiable = False
-            while results.solve():
-                sol = results.get_model()
-                yield {expr.symbols[abs(lit) - 1]: lit > 0 for lit in sol}
-                if minimal:
-                    results.add_clause([-i for i in sol if i>0])
-                else:
-                    results.add_clause([-i for i in sol])
-                satisfiable = True
-            if not satisfiable:
-                yield False
-            raise StopIteration
+    # Make solutions SymPy compatible by creating a generator
+    def _gen(results):
+        satisfiable = False
+        while results.solve():
+            sol = results.get_model()
+            yield {expr.symbols[abs(lit) - 1]: lit > 0 for lit in sol}
+            if minimal:
+                results.add_clause([-i for i in sol if i > 0])
+            else:
+                results.add_clause([-i for i in sol])
+            satisfiable = True
+        if not satisfiable:
+            yield False
+        return
 
-
-        return _gen(r)
+    return _gen(r)

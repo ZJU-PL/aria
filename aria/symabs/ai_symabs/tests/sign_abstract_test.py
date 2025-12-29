@@ -1,7 +1,9 @@
+"""Tests for sign abstract domain."""
 from aria.symabs.ai_symabs.domains.sign import Sign, SignAbstractState
 
 
 def test_sign_enum_comparisons():
+    """Test sign enum comparison operations."""
     # First, we test that Top is greater than everything and Bottom is less
     # than everything
     for sign in Sign:
@@ -15,10 +17,11 @@ def test_sign_enum_comparisons():
             assert not (sign <= Sign.Bottom)
 
     # Positive and Negative should be uncomparable
-    assert not (Sign.Negative <= Sign.Positive)
-    assert not (Sign.Positive <= Sign.Negative)
-    assert not (Sign.Negative >= Sign.Positive)
-    assert not (Sign.Positive >= Sign.Negative)
+    # Using explicit comparisons to avoid pylint warnings
+    assert not (Sign.Negative <= Sign.Positive)  # pylint: disable=unnecessary-negation
+    assert not (Sign.Positive <= Sign.Negative)  # pylint: disable=unnecessary-negation
+    assert not (Sign.Negative >= Sign.Positive)  # pylint: disable=unnecessary-negation
+    assert not (Sign.Positive >= Sign.Negative)  # pylint: disable=unnecessary-negation
 
 
 def test_sign_state_creation_query():

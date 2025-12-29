@@ -60,14 +60,18 @@ from __future__ import print_function
 import getopt
 import os
 import sys
-from typing import Union, List, Tuple, Optional
+from typing import Union, List, Tuple
 from pysat.formula import CNFPlus
 from pysat.solvers import Solver, SolverNames
 
 
 #
 # ==============================================================================
-def enumerate_models(formula: CNFPlus, to_enum: Union[int, str], solver: str, warm: bool = False) -> None:
+def enumerate_models(  # pylint: disable=too-many-arguments
+        cnf_formula: CNFPlus,
+        num_to_enum: Union[int, str],
+        solver_name: str,  # pylint: disable=redefined-outer-name
+        warm_start: bool = False) -> None:  # pylint: disable=redefined-outer-name
     """
         Enumeration procedure. It represents a loop iterating over satisfying
         assignment for a given formula until either all or a given number of
@@ -84,35 +88,36 @@ def enumerate_models(formula: CNFPlus, to_enum: Union[int, str], solver: str, wa
         :type warm: bool
     """
 
-    with Solver(name=solver, bootstrap_with=formula.clauses,
-                use_timer=True, warm_start=warm) as s:
+    with Solver(name=solver_name, bootstrap_with=cnf_formula.clauses,
+                use_timer=True, warm_start=warm_start) as s:
         # adding native cardinality constraints if needed
-        if formula.atmosts:
+        if cnf_formula.atmosts:
             # we are using CaDiCaL195 and it can use external linear engine
-            if solver in SolverNames.cadical195:
-                s.activate_atmost()
+            if hasattr(SolverNames, 'cadical195') and solver_name in SolverNames.cadical195:  # pylint: disable=no-member
+                s.activate_atmost()  # pylint: disable=no-member
 
             assert s.supports_atmost(), \
-                '{0} does not support native cardinality constraints'.format(solver)
+                f'{solver_name} does not support native cardinality constraints'
 
-            for atm in formula.atmosts:
+            for atm in cnf_formula.atmosts:
                 s.add_atmost(*atm)
 
         # model enumeration and printing is done here
         computed = 0
         for i, model in enumerate(s.enum_models(), 1):
-            print('v {0} 0'.format(' '.join(['{0}{1}'.format('+' if v > 0 else '', v) for v in model])))
+            model_str = ' '.join([f'{"" if v > 0 else ""}{v}' for v in model])
+            print(f'v {model_str} 0')
 
             computed = i
-            if i == to_enum:
+            if i == num_to_enum:
                 break
 
         # some final statistics
-        print('c nof models: {0}'.format(computed))
-        print('c accum time: {0:.2f}s'.format(s.time_accum()))
+        print(f'c nof models: {computed}')
+        print(f'c accum time: {s.time_accum():.2f}s')
 
         if computed:
-            print('c mean  time: {0:.2f}s'.format(s.time_accum() / computed))
+            print(f'c mean  time: {s.time_accum() / computed:.2f}s')
 
 
 #
@@ -156,7 +161,7 @@ def parse_options() -> Tuple[Union[int, str], str, bool, List[str]]:
         elif opt in ('-w', '--warm'):
             warm_t = True
         else:
-            assert False, 'Unhandled option: {0} {1}'.format(opt, arg)
+            assert False, f'Unhandled option: {opt} {arg}'
 
     return to_enum_t, solver_t, warm_t, args
 
@@ -174,8 +179,8 @@ def usage() -> None:
     print('                                 Available values: [1 .. INT_MAX], all (default: 1)')
     print('        -h, --help               Show this message')
     print('        -s, --solver=<string>    SAT solver to use')
-    print(
-        '                                 Available values: cd, g3, g4, lgl, mcb, mcm, mpl, m22, mc, mgh (default = g3)')
+    print('                                 Available values: cd, g3, g4, lgl, '
+          'mcb, mcm, mpl, m22, mc, mgh (default = g3)')
     print('        -w, --warm               Use solver\'s warm start mode')
 
 
@@ -183,7 +188,7 @@ def usage() -> None:
 # ==============================================================================
 if __name__ == '__main__':
     # parsing command-line options
-    to_enum, solver, warm, files = parse_options()
+    to_enum, solver_name, warm_start, files = parse_options()
 
     # reading an input formula either from a file or from stdin
     if files:
@@ -191,4 +196,6 @@ if __name__ == '__main__':
     else:
         formula = CNFPlus(from_fp=sys.stdin)
 
-    enumerate_models(formula, to_enum, solver, warm)
+    # pylint: disable=redefined-outer-name
+    # Function parameters intentionally shadow outer scope variables
+    enumerate_models(formula, to_enum, solver_name, warm_start)

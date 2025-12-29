@@ -3,17 +3,16 @@ Converting DIMACS (CNF format) to SMT2
 """
 import sys
 import argparse
-import os
-from typing import TextIO, List, Set
+from typing import TextIO
 
 
 def parse_header(line: str) -> int:
     """
     Parse the DIMACS header line to extract the number of variables.
-    
+
     Args:
         line: The header line starting with 'p cnf'
-        
+
     Returns:
         The number of variables declared in the problem
     """
@@ -29,7 +28,7 @@ def parse_header(line: str) -> int:
 def declare_variables(num_vars: int, output: TextIO, prefix: str = "v_") -> None:
     """
     Write variable declarations to the SMT2 output.
-    
+
     Args:
         num_vars: Number of Boolean variables to declare
         output: Output file handle
@@ -43,7 +42,7 @@ def parse_clause(line: str, output: TextIO, prefix: str = "v_") -> None:
     """
     Parse a single clause and write the corresponding
     compound logic expression to the output.
-    
+
     Args:
         line: DIMACS clause line (space-separated literals ending with 0)
         output: Output file handle
@@ -83,13 +82,13 @@ def convert_dimacs_to_smt2(
 ) -> str:
     """
     Convert a DIMACS CNF file to SMT2 format.
-    
+
     Args:
         input_path: Path to input DIMACS file
         output_path: Path to output SMT2 file (default: input_path + ".smt2")
         logic: SMT2 logic to use (default: QF_UF)
         var_prefix: Prefix for variable names
-        
+
     Returns:
         Path to the created SMT2 file
     """
@@ -97,7 +96,7 @@ def convert_dimacs_to_smt2(
         output_path = f"{input_path}.smt2"
 
     try:
-        with open(input_path, 'r') as input_file:
+        with open(input_path, 'r', encoding='utf-8') as input_file:
             # Skip comments and find header
             header_line = None
             for line in input_file:
@@ -122,7 +121,7 @@ def convert_dimacs_to_smt2(
                 clauses.append(line)
 
         # Write SMT2 file
-        with open(output_path, 'w') as output_file:
+        with open(output_path, 'w', encoding='utf-8') as output_file:
             output_file.write(f"(set-logic {logic})\n")
             declare_variables(num_vars, output_file, var_prefix)
 
@@ -134,7 +133,7 @@ def convert_dimacs_to_smt2(
 
         return output_path
 
-    except Exception as e:
+    except (ValueError, IOError, OSError) as e:
         print(f"Error converting {input_path}: {str(e)}", file=sys.stderr)
         raise
 
@@ -161,7 +160,7 @@ def main():
             args.prefix
         )
         print(f"Successfully converted {args.input} to {output_path}")
-    except Exception as e:
+    except (ValueError, IOError, OSError) as e:
         print(f"Conversion failed: {str(e)}", file=sys.stderr)
         sys.exit(1)
 

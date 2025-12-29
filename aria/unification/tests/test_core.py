@@ -1,3 +1,4 @@
+"""Tests for core unification functionality."""
 import sys
 from collections import OrderedDict
 from types import MappingProxyType
@@ -5,7 +6,7 @@ from types import MappingProxyType
 import pytest
 
 from aria.unification.tests.utils import gen_long_chain
-from aria.unification.variable import Var, isvar, var, variables, vars
+from aria.unification.variable import Var, isvar, var, variables, vars as vars_  # noqa: F401
 from aria.unification.core import assoc, isground, reify, unground_lvars, unify
 from aria.unification.utils import freeze
 
@@ -231,11 +232,11 @@ def test_reify_recursion_limit():
         sys.setrecursionlimit(recursion_limit)
 
         b, _ = gen_long_chain(a_lv, recursion_limit * 2)  # Generate longer chain than the limit
-        
+
         # Try in a separate function to reduce call stack depth
         def do_reify():
             return reify(b, {a_lv: "a"})
-        
+
         # Modern Python implementations may have optimizations that avoid
         # recursion errors in some cases, so we'll check both possibilities
         try:

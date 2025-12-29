@@ -34,10 +34,10 @@ def get_sort_str(var: z3.ExprRef) -> str:
         sort = var.sort()
         if z3.is_bv_sort(sort):
             return f"(_ BitVec {sort.size()})"
-        elif z3.is_array_sort(sort):
+        if z3.is_array_sort(sort):
             return f"(Array {sort.domain()} {sort.range()})"
         return str(sort)
-    elif isinstance(var, z3.FuncDeclRef):
+    if isinstance(var, z3.FuncDeclRef):
         domain = [str(var.domain(i)) for i in range(var.arity())]
         return f"({' '.join(domain)}) {var.range()}"
     return "Int"
@@ -75,10 +75,10 @@ def parse_abduction_problem(smt2_str: str) -> Tuple[z3.BoolRef, z3.BoolRef, Dict
     while pos != -1:
         expr, next_pos = extract_assertion(smt2_str, pos)
         if expr:
-            try:
-                assertions.append(parse_expr(expr, variables))
-            except Exception as e:
-                print(f"Warning: Failed to parse assertion: {expr}. {e}")
+        try:
+            assertions.append(parse_expr(expr, variables))
+        except (ValueError, z3.Z3Exception) as e:
+            print(f"Warning: Failed to parse assertion: {expr}. {e}")
         pos = smt2_str.find('(assert', next_pos)
 
     # Extract goal
@@ -88,7 +88,12 @@ def parse_abduction_problem(smt2_str: str) -> Tuple[z3.BoolRef, z3.BoolRef, Dict
     goal = parse_expr(goal_expr, variables)
 
     # Combine preconditions
-    precond = z3.And(*assertions) if len(assertions) > 1 else (assertions[0] if assertions else z3.BoolVal(True))
+    if len(assertions) > 1:
+        precond = z3.And(*assertions)
+    elif assertions:
+        precond = assertions[0]
+    else:
+        precond = z3.BoolVal(True)
     return precond, goal, variables
 
 
@@ -101,9 +106,11 @@ def parse_expr(expr_str: str, variables: Dict[str, Any]) -> z3.ExprRef:
             raise ValueError("Failed to parse expression: empty result")
         return _convert_sexpr_to_z3(s_expr, variables)
     except SExprParser.ParseError as e:
-        raise ValueError(f"S-expression parse error: {e}")
+        raise ValueError(f"S-expression parse error: {e}") from e
     except Exception as e:
-        raise ValueError(f"Failed to parse expression: {balanced_expr}. Error: {e}")
+        raise ValueError(
+            f"Failed to parse expression: {balanced_expr}. Error: {e}"
+        ) from e
 
 
 def _convert_sexpr_to_z3(sexpr: Any, variables: Dict[str, Any]) -> z3.ExprRef:
@@ -126,54 +133,84 @@ def _convert_sexpr_to_z3(sexpr: Any, variables: Dict[str, Any]) -> z3.ExprRef:
 
     # Handle lists
     if isinstance(sexpr, list) and sexpr:
-        op, args = sexpr[0], [_convert_sexpr_to_z3(arg, variables) for arg in sexpr[1:]]
+        op = sexpr[0]
+        args = [_convert_sexpr_to_z3(arg, variables) for arg in sexpr[1:]]
 
         # Arithmetic
-        if op == "+": return sum(args[1:], args[0])
-        elif op == "-": return -args[0] if len(args) == 1 else args[0] - sum(args[1:])
-        elif op == "*":
+        if op == "+":
+            return sum(args[1:], args[0])
+        if op == "-":
+            if len(args) == 1:
+                return -args[0]
+            return args[0] - sum(args[1:])
+        if op == "*":
             result = args[0]
             for arg in args[1:]:
                 result *= arg
             return result
-        elif op in ["div", "/"]: return args[0] / args[1]
+        if op in ["div", "/"]:
+            return args[0] / args[1]
 
         # Comparisons
-        elif op == "=": return args[0] == args[1]
-        elif op == "<": return args[0] < args[1]
-        elif op == "<=": return args[0] <= args[1]
-        elif op == ">": return args[0] > args[1]
-        elif op == ">=": return args[0] >= args[1]
+        if op == "=":
+            return args[0] == args[1]
+        if op == "<":
+            return args[0] < args[1]
+        if op == "<=":
+            return args[0] <= args[1]
+        if op == ">":
+            return args[0] > args[1]
+        if op == ">=":
+            return args[0] >= args[1]
 
         # Boolean
-        elif op == "and": return z3.And(*args)
-        elif op == "or": return z3.Or(*args)
-        elif op == "not": return z3.Not(args[0])
-        elif op == "=>": return z3.Implies(args[0], args[1])
+        if op == "and":
+            return z3.And(*args)
+        if op == "or":
+            return z3.Or(*args)
+        if op == "not":
+            return z3.Not(args[0])
+        if op == "=>":
+            return z3.Implies(args[0], args[1])
 
         # Bit-vector operations
-        bv_ops = {"bvadd": lambda a, b: a + b, "bvsub": lambda a, b: a - b, "bvmul": lambda a, b: a * b,
-                  "bvudiv": z3.UDiv, "bvurem": z3.URem, "bvslt": lambda a, b: a < b}
+        bv_ops = {
+            "bvadd": lambda a, b: a + b,
+            "bvsub": lambda a, b: a - b,
+            "bvmul": lambda a, b: a * b,
+            "bvudiv": z3.UDiv,
+            "bvurem": z3.URem,
+            "bvslt": lambda a, b: a < b
+        }
         if op in bv_ops:
             return bv_ops[op](args[0], args[1])
 
         # Bit-vector comparisons
-        bv_cmp = {"bvult": z3.ULT, "bvule": z3.ULE, "bvugt": z3.UGT, "bvuge": z3.UGE,
-                  "bvsle": lambda a, b: a <= b, "bvsgt": lambda a, b: a > b}
+        bv_cmp = {
+            "bvult": z3.ULT,
+            "bvule": z3.ULE,
+            "bvugt": z3.UGT,
+            "bvuge": z3.UGE,
+            "bvsle": lambda a, b: a <= b,
+            "bvsgt": lambda a, b: a > b
+        }
         if op in bv_cmp:
             return bv_cmp[op](args[0], args[1])
 
         # Arrays and control flow
-        elif op == "select": return z3.Select(args[0], args[1])
-        elif op == "store": return z3.Store(args[0], args[1], args[2])
-        elif op == "ite": return z3.If(args[0], args[1], args[2])
+        if op == "select":
+            return z3.Select(args[0], args[1])
+        if op == "store":
+            return z3.Store(args[0], args[1], args[2])
+        if op == "ite":
+            return z3.If(args[0], args[1], args[2])
 
         # Function applications
-        elif op in variables and isinstance(variables[op], z3.FuncDeclRef):
+        if op in variables and isinstance(variables[op], z3.FuncDeclRef):
             return variables[op](*args)
 
         # Special cases
-        elif op == "_" and len(args) >= 2 and str(args[0]) == "BitVec":
+        if op == "_" and len(args) >= 2 and str(args[0]) == "BitVec":
             return z3.BitVec("result", args[1].as_long())
 
         raise ValueError(f"Unsupported operation: {op}")
@@ -196,12 +233,12 @@ def example_int():
     """
 
     try:
-        precond, goal, vars = parse_abduction_problem(smt2_str)
+        precond, goal, variables = parse_abduction_problem(smt2_str)
         print("== Integer Example ==")
-        print("Variables:", list(vars.keys()))
+        print("Variables:", list(variables.keys()))
         print("Precondition:", precond)
         print("Goal:", goal)
-    except Exception as e:
+    except (ValueError, z3.Z3Exception) as e:
         print(f"Error: {e}")
 
 
@@ -217,12 +254,12 @@ def example_bv():
     """
 
     try:
-        precond, goal, vars = parse_abduction_problem(smt2_str)
+        precond, goal, variables = parse_abduction_problem(smt2_str)
         print("\n== Bit-Vector Example ==")
-        print("Variables:", list(vars.keys()))
+        print("Variables:", list(variables.keys()))
         print("Precondition:", precond)
         print("Goal:", goal)
-    except Exception as e:
+    except (ValueError, z3.Z3Exception) as e:
         print(f"Error: {e}")
 
 
@@ -240,10 +277,10 @@ def example_mixed():
     """
 
     try:
-        precond, goal, vars = parse_abduction_problem(smt2_str)
+        precond, goal, variables = parse_abduction_problem(smt2_str)
         print("\n== Mixed Types Example ==")
-        print("Variables:", list(vars.keys()))
-        for name, var in vars.items():
+        print("Variables:", list(variables.keys()))
+        for name, var in variables.items():
             if isinstance(var, z3.FuncDeclRef):
                 args = [str(var.domain(i)) for i in range(var.arity())]
                 print(f"  {name}: Function({', '.join(args)}) -> {var.range()}")
@@ -251,7 +288,7 @@ def example_mixed():
                 print(f"  {name}: {var.sort()}")
         print("Precondition:", precond)
         print("Goal:", goal)
-    except Exception as e:
+    except (ValueError, z3.Z3Exception) as e:
         print(f"Error: {e}")
 
 

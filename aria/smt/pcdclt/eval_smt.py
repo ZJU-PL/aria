@@ -15,13 +15,10 @@ import signal
 import subprocess
 import sys
 import time
-import multiprocessing as mp
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
-
-from aria.smt.pcdclt import solve as pcdclt_solve
 from aria.utils import SolverResult
 from aria.global_params import SMT_SOLVERS_PATH
 from aria.smt.pcdclt import config as pcdclt_config
@@ -41,12 +38,12 @@ def kill_process_group(process, pgid, logger_inst):
             os.killpg(pgid, signal.SIGKILL)
         process.wait(timeout=1)
     except (subprocess.TimeoutExpired, ProcessLookupError, PermissionError) as e:
-        logger_inst.warning(f"Error killing process group {pgid}: {e}")
+        logger_inst.warning("Error killing process group %d: %s", pgid, e)
         try:
             process.kill()
             process.wait(timeout=1)
-        except Exception as e2:
-            logger_inst.error(f"Failed to kill process: {e2}")
+        except (subprocess.TimeoutExpired, ProcessLookupError, PermissionError) as e2:
+            logger_inst.error("Failed to kill process: %s", e2)
 
 
 @dataclass
@@ -78,11 +75,11 @@ def parse_result(output: str) -> SolverResult:
 def extract_logic(filepath: str) -> str:
     """Extract logic declaration from SMT-LIB2 file"""
     try:
-        with open(filepath, 'r') as f:
+        with open(filepath, 'r', encoding='utf-8') as f:
             for line in f:
                 if line.strip().startswith('(set-logic'):
                     return line.split()[1].rstrip(')')
-    except Exception:
+    except (OSError, IOError):
         pass
     return "ALL"
 
@@ -94,25 +91,35 @@ def apply_pcdclt_params(params: Dict):
             setattr(pcdclt_config, param.upper(), value)
 
 
-def run_pcdclt(input_file: str, timeout: int, params: Optional[Dict] = None) -> Tuple[str, str, int, str, str, float]:
+def run_pcdclt(
+        input_file: str, timeout: int, params: Optional[Dict] = None
+) -> Tuple[str, str, int, str, str, float]:
     """Run PCDCLT solver with process-based timeout using process groups"""
     start_time = time.time()
-
-    # Create a wrapper script to run pcdclt
-    import sys
     python_executable = sys.executable
 
     # Build command to run pcdclt via Python
+    current_file = os.path.abspath(__file__)
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(current_file)))
+    params_code = ''
+    if params:
+        params_str = str(params)
+        params_code = (
+            f'for k, v in {params_str}.items():\\n'
+            '    if hasattr(pcdclt_config, k.upper()):\\n'
+            '        setattr(pcdclt_config, k.upper(), v)'
+        )
+
     script = f"""
 import sys
-sys.path.insert(0, '{os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))}')
+sys.path.insert(0, '{base_dir}')
 from aria.smt.pcdclt import solve as pcdclt_solve
 from aria.smt.pcdclt import config as pcdclt_config
 
 # Apply params if needed
-{('for k, v in ' + str(params) + '.items():\\n    if hasattr(pcdclt_config, k.upper()):\\n        setattr(pcdclt_config, k.upper(), v)') if params else ''}
+{params_code}
 
-with open('{input_file}', 'r') as f:
+with open('{input_file}', 'r', encoding='utf-8') as f:
     smt2_string = f.read()
 
 # Extract logic
@@ -127,18 +134,20 @@ print(result.name.lower())
 """
 
     try:
+        # Use start_new_session instead of preexec_fn for thread safety
         process = subprocess.Popen(
             [python_executable, '-c', script],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
-            preexec_fn=os.setsid
+            start_new_session=True
         )
         pgid = os.getpgid(process.pid)
 
         try:
-            stdout, stderr = process.communicate(timeout=timeout)
+            stdout, _ = process.communicate(timeout=timeout)
             retcode = process.returncode
+            stderr = ""
         except subprocess.TimeoutExpired:
             kill_process_group(process, pgid, logger)
             stdout, stderr = "", "Timeout"
@@ -147,13 +156,15 @@ print(result.name.lower())
         elapsed = time.time() - start_time
         return (input_file, "pcdclt", retcode, stdout.strip(), stderr, elapsed)
 
-    except Exception as e:
+    except (OSError, subprocess.SubprocessError) as e:
         elapsed = time.time() - start_time
-        logger.error(f"Error running PCDCLT: {e}")
+        logger.error("Error running PCDCLT: %s", e)
         return (input_file, "pcdclt", 1, "", str(e), elapsed)
 
 
-def run_external(solver: SolverConfig, input_file: str, timeout: int) -> Tuple[str, str, int, str, str, float]:
+def run_external(
+        solver: SolverConfig, input_file: str, timeout: int
+) -> Tuple[str, str, int, str, str, float]:
     """Run external SMT solver using process groups"""
     start_time = time.time()
     args_list = solver.args.split() if solver.args else []
@@ -167,7 +178,7 @@ def run_external(solver: SolverConfig, input_file: str, timeout: int) -> Tuple[s
 
     try:
         if use_stdin:
-            with open(input_file, 'r') as f:
+            with open(input_file, 'r', encoding='utf-8') as f:
                 input_data = f.read()
             process = subprocess.Popen(
                 cmd,
@@ -175,7 +186,7 @@ def run_external(solver: SolverConfig, input_file: str, timeout: int) -> Tuple[s
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                preexec_fn=os.setsid
+                start_new_session=True
             )
         else:
             process = subprocess.Popen(
@@ -183,17 +194,18 @@ def run_external(solver: SolverConfig, input_file: str, timeout: int) -> Tuple[s
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                preexec_fn=os.setsid
+                start_new_session=True
             )
 
         pgid = os.getpgid(process.pid)
 
         try:
             if use_stdin:
-                stdout, stderr = process.communicate(input=input_data, timeout=timeout)
+                stdout, _ = process.communicate(input=input_data, timeout=timeout)
             else:
-                stdout, stderr = process.communicate(timeout=timeout)
+                stdout, _ = process.communicate(timeout=timeout)
             retcode = process.returncode
+            stderr = ""
         except subprocess.TimeoutExpired:
             kill_process_group(process, pgid, logger)
             stdout, stderr = "", "Timeout"
@@ -202,13 +214,15 @@ def run_external(solver: SolverConfig, input_file: str, timeout: int) -> Tuple[s
         elapsed = time.time() - start_time
         return (input_file, solver.name, retcode, stdout, stderr, elapsed)
 
-    except Exception as e:
+    except (OSError, subprocess.SubprocessError) as e:
         elapsed = time.time() - start_time
-        logger.error(f"Error running {solver.name}: {e}")
+        logger.error("Error running %s: %s", solver.name, e)
         return (input_file, solver.name, 1, "", str(e), elapsed)
 
 
-def run_solver(solver: SolverConfig, input_file: str, timeout: int) -> Tuple[str, str, int, str, str, float]:
+def run_solver(
+        solver: SolverConfig, input_file: str, timeout: int
+) -> Tuple[str, str, int, str, str, float]:
     """Run a solver (dispatches to PCDCLT or external)"""
     if solver.solver_type == 'pcdclt':
         return run_pcdclt(input_file, timeout, solver.params)
@@ -217,7 +231,7 @@ def run_solver(solver: SolverConfig, input_file: str, timeout: int) -> Tuple[str
 
 def load_config_file(config_file: str) -> Dict[str, SolverConfig]:
     """Load solver configurations from JSON file"""
-    with open(config_file, 'r') as f:
+    with open(config_file, 'r', encoding='utf-8') as f:
         data = json.load(f)
 
     return {
@@ -250,7 +264,7 @@ def compare_results(results: List[Tuple]) -> Dict:
     """Compare results across solvers for correctness checking"""
     file_results = defaultdict(dict)
 
-    for file, solver, retcode, stdout, stderr, elapsed in results:
+    for file, solver, retcode, stdout, _stderr, elapsed in results:
         # Always parse stdout first; fall back to timeout/error based on retcode
         result = parse_result(stdout) if stdout else SolverResult.ERROR
         if result == SolverResult.ERROR and retcode == -1:
@@ -261,7 +275,7 @@ def compare_results(results: List[Tuple]) -> Dict:
 
     for file, solver_data in file_results.items():
         valid = [(s, d['result']) for s, d in solver_data.items()
-                if d['result'] in [SolverResult.SAT, SolverResult.UNSAT]]
+                 if d['result'] in [SolverResult.SAT, SolverResult.UNSAT]]
 
         if len(valid) > 1:
             if len(set(r for _, r in valid)) == 1:
@@ -308,11 +322,17 @@ def _update_stats(stats, retcode, elapsed, result_name, filename):
 
 def _print_solver_summary(solver, stats, show_details):
     total = stats['total']
-    print(f"\n{'Solver: ' + solver:-^80}")
-    print(f"Files: {stats['success']}/{total} success, {stats['timeout']}/{total} timeout, {stats['failed']}/{total} failed")
-    print(f"Time: total={stats['total_time']:.2f}s, avg={stats['total_time']/total:.2f}s, max={stats['max_time']:.2f}s")
-    print(f"Results: SAT={stats['results']['sat']}, UNSAT={stats['results']['unsat']}, "
-          f"UNKNOWN={stats['results']['unknown']}, ERROR={stats['results']['error']}")
+    solver_header = f"Solver: {solver}"
+    print(f"\n{solver_header:-^80}")
+    avg_time = stats['total_time'] / total
+    print(f"Files: {stats['success']}/{total} success, "
+          f"{stats['timeout']}/{total} timeout, {stats['failed']}/{total} failed")
+    print(f"Time: total={stats['total_time']:.2f}s, "
+          f"avg={avg_time:.2f}s, max={stats['max_time']:.2f}s")
+    print(f"Results: SAT={stats['results']['sat']}, "
+          f"UNSAT={stats['results']['unsat']}, "
+          f"UNKNOWN={stats['results']['unknown']}, "
+          f"ERROR={stats['results']['error']}")
 
     if show_details and (stats['files_timeout'] or stats['files_failed']):
         if stats['files_timeout']:
@@ -330,7 +350,7 @@ def summarize_results(results: List[Tuple], show_details: bool = False):
     """Summarize results by solver"""
     solver_stats = defaultdict(_init_solver_stats)
 
-    for file, solver, retcode, stdout, stderr, elapsed in results:
+    for file, solver, retcode, stdout, _stderr, elapsed in results:
         filename = os.path.basename(file)
         # Always parse the output to get the result, regardless of return code
         result_name = parse_result(stdout).name.lower() if stdout else None
@@ -376,53 +396,66 @@ def save_json(results: List[Tuple], comparison: Dict, output_file: str):
             result = parsed.name
         organized[file][solver] = {
             'result': result, 'time': elapsed, 'retcode': retcode,
-            'stdout': stdout[:200] if stdout else None, 'stderr': stderr or None
+            'stdout': stdout[:200] if stdout else None,
+            'stderr': stderr or None
         }
 
-    with open(output_file, 'w') as f:
-        json.dump({'results': dict(organized), 'comparison': comparison}, f, indent=2)
-    logger.info(f"Results saved to {output_file}")
+    with open(output_file, 'w', encoding='utf-8') as f:
+        output_data = {'results': dict(organized), 'comparison': comparison}
+        json.dump(output_data, f, indent=2)
+    logger.info("Results saved to %s", output_file)
 
 
 def _setup_args():
-    parser = argparse.ArgumentParser(description="Evaluate PCDCLT solver performance and correctness")
-    parser.add_argument("--bench-dir", required=True, help="Directory with SMT-LIB2 files")
-    parser.add_argument("--timeout", type=int, default=60, help="Timeout per benchmark (default: 60s)")
-    parser.add_argument("--config", "-c", help="JSON config file for solver configurations")
-    parser.add_argument("--solvers", nargs='+', help="Specific solvers to test (default: all available)")
-    parser.add_argument("--parallel", action="store_true", help="Run benchmarks in parallel")
-    parser.add_argument("--max-workers", type=int, help="Max parallel workers (default: CPU count)")
-    parser.add_argument("--output", "-o", help="Output JSON file for detailed results")
-    parser.add_argument("--verbose", "-v", action="store_true", help="Show detailed output")
-    parser.add_argument("--log-level", default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR"])
+    desc = "Evaluate PCDCLT solver performance and correctness"
+    parser = argparse.ArgumentParser(description=desc)
+    parser.add_argument("--bench-dir", required=True,
+                        help="Directory with SMT-LIB2 files")
+    parser.add_argument("--timeout", type=int, default=60,
+                        help="Timeout per benchmark (default: 60s)")  # noqa: E501
+    parser.add_argument("--config", "-c",
+                        help="JSON config file for solver configurations")
+    parser.add_argument("--solvers", nargs='+',
+                        help="Specific solvers to test (default: all available)")
+    parser.add_argument("--parallel", action="store_true",
+                        help="Run benchmarks in parallel")
+    parser.add_argument("--max-workers", type=int,
+                        help="Max parallel workers (default: CPU count)")
+    parser.add_argument("--output", "-o",
+                        help="Output JSON file for detailed results")
+    parser.add_argument("--verbose", "-v", action="store_true",
+                        help="Show detailed output")
+    parser.add_argument("--log-level", default="INFO",
+                        choices=["DEBUG", "INFO", "WARNING", "ERROR"])
     parser.add_argument("--pattern", default="*.smt2", help="File pattern (default: *.smt2)")
     return parser.parse_args()
 
 def _find_benchmarks(bench_dir, pattern):
     bench_path = Path(bench_dir)
     if not bench_path.is_dir():
-        logger.error(f"Directory not found: {bench_dir}")
+        logger.error("Directory not found: %s", bench_dir)
         sys.exit(1)
 
     benchmarks = [str(f) for f in bench_path.glob(pattern)]
     if not benchmarks:
-        logger.error(f"No {pattern} files found in {bench_dir}")
+        logger.error("No %s files found in %s", pattern, bench_dir)
         sys.exit(1)
 
-    logger.info(f"Found {len(benchmarks)} benchmark files")
+    logger.info("Found %d benchmark files", len(benchmarks))
     return benchmarks
 
-def _log_progress(i, total, result, parallel=True):
-    file, solver, retcode, stdout, stderr, elapsed = result
+def _log_progress(i, total, result):
+    file, solver, retcode, _stdout, _stderr, elapsed = result
     status = "✓" if retcode == 0 else ("T" if retcode == -1 else "✗")
-    logger.info(f"[{i}/{total}] {status} {solver:8s} {os.path.basename(file):40s} {elapsed:6.2f}s")
+    filename = os.path.basename(file)
+    logger.info("[%d/%d] %s %-8s %-40s %6.2fs", i, total, status, solver, filename, elapsed)
 
 def _run_benchmarks_parallel(solvers, benchmarks, timeout, max_workers):
     results = []
     total = len(solvers) * len(benchmarks)
 
     max_workers = max_workers or min(os.cpu_count() or 4, total)
-    logger.info(f"Running in parallel with {max_workers} workers (processes)")
+    logger.info("Running in parallel with %d workers (processes)", max_workers)
 
     # Use ProcessPoolExecutor for true parallelism and proper process isolation
     with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
@@ -435,9 +468,9 @@ def _run_benchmarks_parallel(solvers, benchmarks, timeout, max_workers):
             try:
                 result = future.result()
                 results.append(result)
-                _log_progress(i, total, result, parallel=True)
-            except Exception as e:
-                logger.error(f"Future {i} failed: {e}")
+                _log_progress(i, total, result)
+            except (OSError, subprocess.SubprocessError, RuntimeError) as e:
+                logger.error("Future %d failed: %s", i, e)
                 results.append(("unknown", "unknown", 1, "", str(e), 0.0))
 
     return results
@@ -450,11 +483,12 @@ def _run_benchmarks_sequential(solvers, benchmarks, timeout):
     for i, (solver, bench) in enumerate([(s, b) for s in solvers.values() for b in benchmarks], 1):
         result = run_solver(solver, bench, timeout)
         results.append(result)
-        _log_progress(i, total, result, parallel=False)
+        _log_progress(i, total, result)
 
     return results
 
 def main():
+    """Main entry point for the evaluation script"""
     args = _setup_args()
 
     # Setup logging
@@ -467,24 +501,33 @@ def main():
         solvers = {n: all_solvers[n] for n in args.solvers if n in all_solvers}
         missing = [n for n in args.solvers if n not in all_solvers]
         if missing:
-            logger.warning(f"Unavailable solvers: {missing}")
+            logger.warning("Unavailable solvers: %s", missing)
     else:
         solvers = all_solvers
 
-    logger.info(f"Solvers: {list(solvers.keys())}, Timeout: {args.timeout}s")
+    logger.info("Solvers: %s, Timeout: %ds", list(solvers.keys()), args.timeout)
 
     # Find benchmarks
     benchmarks = _find_benchmarks(args.bench_dir, args.pattern)
 
     # Run benchmarks
-    results = (_run_benchmarks_parallel(solvers, benchmarks, args.timeout, args.max_workers)
-              if args.parallel else _run_benchmarks_sequential(solvers, benchmarks, args.timeout))
+    if args.parallel:
+        results = _run_benchmarks_parallel(
+            solvers, benchmarks, args.timeout, args.max_workers)
+    else:
+        results = _run_benchmarks_sequential(solvers, benchmarks, args.timeout)
 
     # Summarize and compare
     summarize_results(results, args.verbose)
 
-    comparison = (compare_results(results) if len(solvers) > 1
-                 else {'total_files': len(benchmarks), 'agreements': 0, 'disagreements': 0})
+    if len(solvers) > 1:
+        comparison = compare_results(results)
+    else:
+        comparison = {
+            'total_files': len(benchmarks),
+            'agreements': 0,
+            'disagreements': 0
+        }
 
     if len(solvers) > 1:
         print_comparison(comparison)

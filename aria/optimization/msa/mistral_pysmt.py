@@ -81,7 +81,7 @@ class Mistral:
         qsolve: str,
         verbose: int,
         fname: str,
-    ) -> None:
+    ) -> None:  # pylint: disable=too-many-arguments
         """Initialize the Mistral solver.
 
         Args:
@@ -129,7 +129,7 @@ class Mistral:
 
     def compute_mus(
         self,
-        X: FrozenSet,
+        x_set: FrozenSet,
         fvars: FrozenSet,
         lb: int,
     ) -> FrozenSet:
@@ -153,22 +153,22 @@ class Mistral:
 
         best: FrozenSet = frozenset()
         # TODO: Choose x in a more clever way (e.g., based on variable importance)
-        x = frozenset([next(iter(fvars))])
+        x_var = frozenset([next(iter(fvars))])
 
         if self.verb > 1:
-            logger.debug("State: X = %s + %s, lb = %d", list(X), list(x), lb)
+            logger.debug("State: X = %s + %s, lb = %d", list(x_set), list(x_var), lb)
 
-        if self.get_model_forall(X.union(x)):
-            Y = self.compute_mus(X.union(x), fvars - x, lb - 1)
+        if self.get_model_forall(x_set.union(x_var)):
+            y_set = self.compute_mus(x_set.union(x_var), fvars - x_var, lb - 1)
 
-            cost_curr = len(Y) + 1
+            cost_curr = len(y_set) + 1
             if cost_curr > lb:
-                best = Y.union(x)
+                best = y_set.union(x_var)
                 lb = cost_curr
 
-        Y = self.compute_mus(X, fvars - x, lb)
-        if len(Y) > lb:
-            best = Y
+        y_set = self.compute_mus(x_set, fvars - x_var, lb)
+        if len(y_set) > lb:
+            best = y_set
 
         return best
 
@@ -185,15 +185,14 @@ class Mistral:
         """
         if self.qsolve == 'std':
             return get_model(ForAll(x_univl, self.formula), solver_name=self.sname)
-        elif self.qsolve == 'z3qe':
+        if self.qsolve == 'z3qe':
             # Use quantifier elimination
             formula = qelim(ForAll(x_univl, self.formula))
             return get_model(formula, solver_name=self.sname)
-        else:
-            # Use CEGAR-based quantifier solving
-            return get_qmodel(
-                x_univl,
-                self.formula,
-                solver_name=self.sname,
-                verbose=(self.verb > 2),
-            )
+        # Use CEGAR-based quantifier solving
+        return get_qmodel(
+            x_univl,
+            self.formula,
+            solver_name=self.sname,
+            verbose=(self.verb > 2),
+        )

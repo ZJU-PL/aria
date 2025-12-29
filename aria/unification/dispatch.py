@@ -1,8 +1,9 @@
+"""Dispatch module for multiple dispatch functionality."""
 from functools import partial
-from typing import Any, Callable, Dict
+from typing import Any, Callable
 
 from multipledispatch import dispatch
 
-namespace: Dict[str, Any] = dict()
+namespace: dict[str, Any] = {}
 
 dispatch = partial(dispatch, namespace=namespace)

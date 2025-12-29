@@ -5,8 +5,8 @@ TODO: this file relies on qiskit, which is not installed in the aria environment
 #!pypy3
 import sys
 from copy import deepcopy
-from math import pi, sqrt, floor, ceil, log
-from typing import List, Dict, Any, Union, Tuple, Optional
+from math import sqrt, ceil, log
+from typing import List, Dict, Any, Tuple
 from qiskit import *
 from qiskit.quantum_info import Statevector
 from qiskit.algorithms import Grover, AmplificationProblem
@@ -46,11 +46,10 @@ class RandomCFLSolver:
             return_value = int(result.top_measurement,2)
             if sol[return_value] == 1:
                 return return_value, total
-            else:
-                m = min(lab*m, sqrt(2**n))
-                # stop because reaching the threshold
-                if total > sqrt(2**n):
-                    return -1, total
+            m = min(lab*m, sqrt(2**n))
+            # stop because reaching the threshold
+            if total > sqrt(2**n):
+                return -1, total
 
     # Algorithm 3 in the paper
     def estimate(self, sol_list: List[int], answer_num: int) -> int:

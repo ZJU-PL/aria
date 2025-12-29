@@ -1,5 +1,6 @@
+"""Additional unification functionality for objects."""
 from collections.abc import Mapping
-from typing import Any, Dict, Generator, Type, TypeVar
+from typing import Any, Generator, Type, TypeVar
 
 from aria.unification.core import _reify, _unify, construction_sentinel
 
@@ -32,7 +33,7 @@ def unifiable(cls: Type[T]) -> Type[T]:
     return cls
 
 
-def _reify_object(o: Any, s: Dict) -> Generator[Any, None, Any]:
+def _reify_object(o: Any, s: dict) -> Generator[Any, None, Any]:
     """Reify a Python object with a substitution.
 
     >>> class Foo(object):
@@ -51,11 +52,10 @@ def _reify_object(o: Any, s: Dict) -> Generator[Any, None, Any]:
     """
     if hasattr(o, "__slots__"):
         return _reify_object_slots(o, s)
-    else:
-        return _reify_object_dict(o, s)
+    return _reify_object_dict(o, s)
 
 
-def _reify_object_dict(o: Any, s: Dict) -> Generator[Any, None, Any]:
+def _reify_object_dict(o: Any, s: dict) -> Generator[Any, None, Any]:
     obj = type(o).__new__(type(o))
 
     d = yield _reify(o.__dict__, s)
@@ -69,7 +69,7 @@ def _reify_object_dict(o: Any, s: Dict) -> Generator[Any, None, Any]:
         yield obj
 
 
-def _reify_object_slots(o: Any, s: Dict) -> Generator[Any, None, Any]:
+def _reify_object_slots(o: Any, s: dict) -> Generator[Any, None, Any]:
     attrs = [getattr(o, attr) for attr in o.__slots__]
     new_attrs = yield _reify(attrs, s)
 
@@ -85,7 +85,7 @@ def _reify_object_slots(o: Any, s: Dict) -> Generator[Any, None, Any]:
         yield newobj
 
 
-def _unify_object(u: Any, v: Any, s: Dict) -> Generator[bool, None, None]:
+def _unify_object(u: Any, v: Any, s: dict) -> Generator[bool, None, None]:
     """Unify two Python objects.
 
     Unifies their type and ``__dict__`` attributes

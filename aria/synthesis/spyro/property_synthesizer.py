@@ -1,6 +1,7 @@
+"""Property synthesizer for Spyro."""
+
 import subprocess
 import os
-import random
 import time
 import configparser
 
@@ -19,6 +20,8 @@ TEMP_FILE_DIR = config["DEFAULT"]["TEMP_FILE_DIR"]
 TEMP_NAME_DEFAULT = config["DEFAULT"]["TEMP_NAME_DEFAULT"]
 
 class PropertySynthesizer:
+    """Property synthesizer for Spyro."""
+
     def __init__(
         self, infiles,
         outfile, verbose, write_log,
@@ -26,7 +29,6 @@ class PropertySynthesizer:
         num_atom_max, disable_min, keep_neg_may):
 
         # Input/Output file stream
-        self.__infiles = infiles
         self.__outfile = outfile
 
         # Temporary filename for iteration
@@ -79,6 +81,9 @@ class PropertySynthesizer:
 
         self.__statistics = []
 
+        # Log file (initialized in run() if needed)
+        self.__logfile = None
+
     def __extract_filename_from_path(self, path):
         basename = os.path.basename(path)
         filename, extension = os.path.splitext(basename)
@@ -106,8 +111,6 @@ class PropertySynthesizer:
 
         return open(LOG_FILE_DIR + filename, 'w')
 
-    def __write_output(self, output):
-        self.__outfile.write(output)
 
     def __get_new_tempfile_path(self):
         path = TEMP_FILE_DIR
@@ -404,11 +407,6 @@ class PropertySynthesizer:
 
         return (False, phi_list)
 
-    def __minimize_phi_list(self, phi_list):
-        has_redundant = True
-        while has_redundant:
-            has_redundant, phi_list = self.__remove_redundant(phi_list)
-        return phi_list
 
     def __synthesizeAllProperties(self):
         phi_list = []
@@ -633,19 +631,16 @@ class PropertySynthesizer:
         avg_time_synthesis = total_time_synthesis / total_num_synth if total_num_synth > 0 else 0
         _, avg_max_synthesis, max_max_synthesis = self.__statisticsFromList(max_times_synthesis)
 
-        total_time_maxsat, avg_time_maxsat_per_clause, total_max_time_maxsat = \
+        total_time_maxsat, _, _ = \
             self.__statisticsFromList(times_maxsat)
 
-
-        total_time_soundness, avg_time_soundness_per_clause, total_max_time_soundness = \
+        total_time_soundness, _, _ = \
             self.__statisticsFromList(times_soundness)
 
-
-
-        total_time_precision, avg_time_precision_per_clause, total_max_time_precision = \
+        total_time_precision, _, _ = \
             self.__statisticsFromList(times_precision)
 
-        total_last, avg_last, max_last = self.__statisticsFromList(last_calls)
+        total_last, _, _ = self.__statisticsFromList(last_calls)
 
         last = self.__statistics[-1]
 
@@ -663,6 +658,7 @@ class PropertySynthesizer:
         return statistics
 
     def run(self):
+        """Run the property synthesis process."""
         if self.__write_log:
             self.__logfile = self.__open_logfile(self.__tempfile_name)
 

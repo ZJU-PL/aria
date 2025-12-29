@@ -1,3 +1,6 @@
+"""
+Module for converting CNF (DIMACS format) to Z3 expressions.
+"""
 from typing import List, Tuple
 
 import pytest
@@ -22,8 +25,8 @@ def parse_dimacs_string(dimacs_str: str) -> Tuple[int, int, List[List[int]]]:
 
         if line.startswith('p cnf'):
             # Parse problem line
-            _, _, vars, cls = line.split()
-            num_vars = int(vars)
+            _, _, var_count, cls = line.split()
+            num_vars = int(var_count)
             num_clauses = int(cls)
             continue
 
@@ -45,7 +48,7 @@ def parse_dimacs(filename: str) -> Tuple[int, int, List[List[int]]]:
     num_vars = 0
     num_clauses = 0
 
-    with open(filename, 'r') as f:
+    with open(filename, 'r', encoding='utf-8') as f:
         for line in f:
             line = line.strip()
             if not line or line.startswith('c'):  # Skip empty lines and comments
@@ -53,8 +56,8 @@ def parse_dimacs(filename: str) -> Tuple[int, int, List[List[int]]]:
 
             if line.startswith('p cnf'):
                 # Parse problem line
-                _, _, vars, cls = line.split()
-                num_vars = int(vars)
+                _, _, var_count, cls = line.split()
+                num_vars = int(var_count)
                 num_clauses = int(cls)
                 continue
 
@@ -97,16 +100,16 @@ def int_clauses_to_z3(clauses: List[List[int]]) -> z3.BoolRef:
     :return: Z3 expression
     """
     z3_clauses = []
-    vars = {}
+    var_map = {}
     for clause in clauses:
         conds = []
         for lit in clause:
             a = abs(lit)
-            if a in vars:
-                b = vars[a]
+            if a in var_map:
+                b = var_map[a]
             else:
                 b = z3.Bool(f"k!{a}")
-                vars[a] = b
+                var_map[a] = b
             b = z3.Not(b) if lit < 0 else b
             conds.append(b)
         z3_clauses.append(z3.Or(*conds))
@@ -115,6 +118,7 @@ def int_clauses_to_z3(clauses: List[List[int]]) -> z3.BoolRef:
 
 # Test cases
 def test_parse_dimacs_string_simple():
+    """Test parsing a simple DIMACS string."""
     dimacs_str = """c Simple test case
 p cnf 2 2
 1 2 0
@@ -126,6 +130,7 @@ p cnf 2 2
 
 
 def test_parse_dimacs_string_with_comments():
+    """Test parsing a DIMACS string with comments."""
     dimacs_str = """c This is a comment
 c Another comment
 p cnf 3 3
@@ -139,6 +144,7 @@ p cnf 3 3
 
 
 def test_dimacs_string_to_z3_simple():
+    """Test converting a simple DIMACS string to Z3."""
     dimacs_str = """p cnf 2 2
 1 2 0
 -1 -2 0"""
@@ -149,6 +155,7 @@ def test_dimacs_string_to_z3_simple():
 
 
 def test_dimacs_string_to_z3_unsat():
+    """Test converting an unsatisfiable DIMACS string to Z3."""
     dimacs_str = """p cnf 1 2
 1 0
 -1 0"""
@@ -159,6 +166,7 @@ def test_dimacs_string_to_z3_unsat():
 
 
 def test_empty_clause():
+    """Test parsing a DIMACS string with an empty clause."""
     dimacs_str = """p cnf 1 1
 0"""
     num_vars, num_clauses, clauses = parse_dimacs_string(dimacs_str)
@@ -168,6 +176,7 @@ def test_empty_clause():
 
 
 def test_single_literal_clause():
+    """Test parsing a DIMACS string with a single literal clause."""
     dimacs_str = """p cnf 1 1
 1 0"""
     expr = dimacs_string_to_z3(dimacs_str)

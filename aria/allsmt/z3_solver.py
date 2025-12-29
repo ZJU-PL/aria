@@ -4,7 +4,7 @@ Z3-based AllSMT solver implementation.
 This module provides an implementation of the AllSMT solver using Z3.
 """
 
-from typing import List, Any, Dict, Optional
+from typing import List
 from z3 import Solver, sat, Or, ModelRef, ExprRef
 
 from .base import AllSMTSolver
@@ -105,7 +105,7 @@ class Z3AllSMTSolver(AllSMTSolver[ModelRef]):
 
 def demo() -> None:
     """Demonstrate the usage of the Z3-based AllSMT solver."""
-    from z3 import Ints, And
+    from z3 import Ints, And  # pylint: disable=import-outside-toplevel
 
     x, y = Ints('x y')
     expr = And(x + y == 5, x > 0, y > 0)

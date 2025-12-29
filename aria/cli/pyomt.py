@@ -26,7 +26,7 @@ def solve_omt_problem(filename: str, engine: str, solver_name: str, theory: str 
         sort_kind = obj_sort.kind()
         if sort_kind == z3.Z3_BV_SORT:
             theory = "bv"
-        elif sort_kind == z3.Z3_INT_SORT or sort_kind == z3.Z3_REAL_SORT:
+        elif sort_kind in (z3.Z3_INT_SORT, z3.Z3_REAL_SORT):
             theory = "arith"
         else:
             # Try to infer from formula - check for BV operations in string representation
@@ -43,10 +43,10 @@ def solve_omt_problem(filename: str, engine: str, solver_name: str, theory: str 
 
         if engine == "qsmt":
             result = arith_opt_with_qsmt(fml, obj, minimize=False, solver_name=solver_name)
-            logging.info(f"Arithmetic QSMT result: {result}")
+            logging.info("Arithmetic QSMT result: %s", result)
         elif engine == "iter":
             result = arith_opt_with_ls(fml, obj, minimize=False, solver_name=solver_name)
-            logging.info(f"Arithmetic iterative search result: {result}")
+            logging.info("Arithmetic iterative search result: %s", result)
         else:
             # Fall back to general OMT solver
             solve_opt_file(filename, engine, solver_name)
@@ -130,15 +130,14 @@ def main():
             print("Error: MaxSMT support not yet implemented in CLI", file=sys.stderr)
             print("Note: MaxSMT problems need hard/soft constraint specification", file=sys.stderr)
             return 1
-        else:
-            # OMT problem
-            theory = None if args.theory == "auto" else args.theory
-            solve_omt_problem(args.file, args.engine, solver, theory)
+        # OMT problem
+        theory = None if args.theory == "auto" else args.theory
+        solve_omt_problem(args.file, args.engine, solver, theory)
         return 0
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
         if args.log_level == "DEBUG":
-            import traceback
+            import traceback  # pylint: disable=import-outside-toplevel
             traceback.print_exc()
         return 1
 

@@ -1,3 +1,4 @@
+"""Tests for RSY algorithm."""
 import z3
 
 from aria.symabs.ai_symabs.domains.algorithms import RSY
@@ -5,7 +6,7 @@ from aria.symabs.ai_symabs.domains.sign import Sign, SignAbstractState
 from aria.symabs.ai_symabs.domains.sign import SignDomain
 
 
-def test_RSY_alpha_hat_add_subtract():
+def test_rsy_alpha_hat_add_subtract():
     """Attempts to analyze computation of the form:
 
     x' := x - 5
@@ -28,7 +29,7 @@ def test_RSY_alpha_hat_add_subtract():
     assert alpha_hat.sign_of("x''") == Sign.Top
 
 
-def test_RSY_post_hat_add_subtract():
+def test_rsy_post_hat_add_subtract():
     """Here, we add the knowledge of the input state
     """
     domain = SignDomain(["x", "x'", "x''"])
@@ -50,7 +51,7 @@ def test_RSY_post_hat_add_subtract():
     assert post_hat.sign_of("x''") == Sign.Positive
 
 
-def test_RSY_alpha_hat_useful():
+def test_rsy_alpha_hat_useful():
     """Attempts to analyze computation of the form:
 
     x' := ((x * x) + 1) * ((x * x) + 1)

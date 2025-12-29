@@ -8,7 +8,10 @@ compare the performance of different enumeration strategies.
 import itertools
 import time
 from typing import List, Callable, Tuple, Optional, Set
-from z3 import *
+from z3 import (
+    Solver, BoolRef, sat, Not, Or, And, Bools, BoolVal, is_true, is_false,
+    is_const, ExprRef, simplify, substitute, BoolSort, Z3_OP_UNINTERPRETED
+)
 
 
 def benchmark(name: str, function: Callable[[Solver, List[BoolRef], bool], int],
@@ -97,12 +100,15 @@ def count_models_by_enumeration(solver: Solver, variables: List[BoolRef],
     total_assignments = 2 ** len(variables)
 
     # Generate all possible combinations of variable assignments
-    for i, assignment in enumerate(itertools.product(*[(x, Not(x)) for x in variables])):
-        if solver.check(assignment) == sat:  # conditional check (does not add assignment permanently)
+    for i, assignment in enumerate(
+            itertools.product(*[(x, Not(x)) for x in variables])):
+        # conditional check (does not add assignment permanently)
+        if solver.check(assignment) == sat:
             solutions += 1
 
         if show_progress and (i + 1) % 10000 == 0:
-            print(f"Checked {i + 1}/{total_assignments} assignments, found {solutions} models so far...")
+            print(f"Checked {i + 1}/{total_assignments} assignments, "
+                  f"found {solutions} models so far...")
 
     return solutions
 
@@ -126,15 +132,20 @@ def count_models_by_enumeration2(solver: Solver, variables: List[BoolRef],
     total_assignments = 2 ** len(variables)
 
     # Generate all possible combinations of True/False values
-    for i, assignment in enumerate(itertools.product([False, True], repeat=len(variables))):
+    for i, assignment in enumerate(
+            itertools.product([False, True], repeat=len(variables))):
         # Create Z3 constraints based on the assignment
-        constraints = [x if assign_true else Not(x) for x, assign_true in zip(variables, assignment)]
+        constraints = [
+            x if assign_true else Not(x)
+            for x, assign_true in zip(variables, assignment)
+        ]
 
         if solver.check(constraints) == sat:
             solutions += 1
 
         if show_progress and (i + 1) % 10000 == 0:
-            print(f"Checked {i + 1}/{total_assignments} assignments, found {solutions} models so far...")
+            print(f"Checked {i + 1}/{total_assignments} assignments, "
+                  f"found {solutions} models so far...")
 
     return solutions
 
@@ -158,12 +169,15 @@ def count_models_by_enumeration3(solver: Solver, variables: List[BoolRef],
     total_assignments = 2 ** len(variables)
 
     # Generate all possible combinations of True/False values
-    for i, assignment in enumerate(itertools.product([BoolVal(False), BoolVal(True)], repeat=len(variables))):
+    bool_vals = [BoolVal(False), BoolVal(True)]
+    for i, assignment in enumerate(
+            itertools.product(bool_vals, repeat=len(variables))):
         satisfied = True
 
         # Check if the assignment satisfies all assertions in the solver
         for assertion in solver.assertions():
-            if is_false(simplify(substitute(assertion, list(zip(variables, assignment))))):
+            subbed = substitute(assertion, list(zip(variables, assignment)))
+            if is_false(simplify(subbed)):
                 satisfied = False
                 break
 
@@ -171,7 +185,8 @@ def count_models_by_enumeration3(solver: Solver, variables: List[BoolRef],
             solutions += 1
 
         if show_progress and (i + 1) % 10000 == 0:
-            print(f"Checked {i + 1}/{total_assignments} assignments, found {solutions} models so far...")
+            print(f"Checked {i + 1}/{total_assignments} assignments, "
+                  f"found {solutions} models so far...")
 
     return solutions
 
@@ -188,7 +203,8 @@ def run_benchmarks(formula_name: str, formula: BoolRef, variables: List[BoolRef]
         max_vars: Maximum number of variables to use (to prevent excessive runtime)
     """
     if len(variables) > max_vars:
-        print(f"Warning: Formula has {len(variables)} variables, which may cause excessive runtime.")
+        print(f"Warning: Formula has {len(variables)} variables, "
+              f"which may cause excessive runtime.")
         print(f"Using only the first {max_vars} variables for benchmarking.")
         variables = variables[:max_vars]
 
@@ -234,7 +250,8 @@ def count_models(formula: BoolRef, variables: Optional[List[BoolRef]] = None,
 
     Args:
         formula: Z3 formula to count models for
-        variables: List of Boolean variables in the formula (if None, will be extracted from formula)
+        variables: List of Boolean variables in the formula
+            (if None, will be extracted from formula)
         method: Counting method to use ('solver', 'enum1', 'enum2', or 'enum3')
         show_progress: Whether to show progress during enumeration
 
@@ -252,14 +269,13 @@ def count_models(formula: BoolRef, variables: Optional[List[BoolRef]] = None,
     # Select counting method
     if method == 'solver':
         return count_models_with_solver(solver, variables, show_progress)
-    elif method == 'enum1':
+    if method == 'enum1':
         return count_models_by_enumeration(solver, variables, show_progress)
-    elif method == 'enum2':
+    if method == 'enum2':
         return count_models_by_enumeration2(solver, variables, show_progress)
-    elif method == 'enum3':
+    if method == 'enum3':
         return count_models_by_enumeration3(solver, variables, show_progress)
-    else:
-        raise ValueError(f"Unknown method: {method}. Use 'solver', 'enum1', 'enum2', or 'enum3'.")
+    raise ValueError(f"Unknown method: {method}. Use 'solver', 'enum1', 'enum2', or 'enum3'.")
 
 
 def get_vars(formula: BoolRef) -> List[BoolRef]:
@@ -275,7 +291,9 @@ def get_vars(formula: BoolRef) -> List[BoolRef]:
     vars_set: Set[BoolRef] = set()
 
     def collect_vars(expr: ExprRef) -> None:
-        if is_const(expr) and expr.decl().kind() == Z3_OP_UNINTERPRETED and expr.sort() == BoolSort():
+        if (is_const(expr) and
+                expr.decl().kind() == Z3_OP_UNINTERPRETED and
+                expr.sort() == BoolSort()):
             vars_set.add(expr)  # type: ignore
         for child in expr.children():
             collect_vars(child)

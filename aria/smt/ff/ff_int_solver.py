@@ -4,17 +4,19 @@ ff_int_solver.py  –  Finite-field formulas via integer translation
 Sound for every prime field GF(p).
 """
 from __future__ import annotations
-from typing import Dict, List, Optional
-import math, sys, pathlib
+from typing import Dict, Optional
+import math
 import z3
 from .ff_ast import (
     FieldExpr, FieldAdd, FieldMul, FieldEq, FieldVar, FieldConst,
-    FieldSub, FieldNeg, FieldPow, FieldDiv, BoolOr, BoolAnd, BoolNot, BoolImplies, BoolIte, BoolVar, ParsedFormula
+    FieldSub, FieldNeg, FieldPow, FieldDiv, BoolOr, BoolAnd, BoolNot,
+    BoolImplies, BoolIte, BoolVar, ParsedFormula
 )
 # ---------------------------------------------------------------------
 
-def _is_prime(n:int)->bool:
-    return n >= 2 and all(n % k for k in range(2, int(math.isqrt(n))+1))
+def _is_prime(n: int) -> bool:
+    """Check if n is a prime number."""
+    return n >= 2 and all(n % k for k in range(2, int(math.isqrt(n)) + 1))
 
 class FFIntSolver:
     """
@@ -26,27 +28,32 @@ class FFIntSolver:
         self.p    : Optional[int] = None
 
     # ---------------------------------------------------------------
-    def check(self, formula:ParsedFormula)->z3.CheckSatResult:
+    def check(self, formula: ParsedFormula) -> z3.CheckSatResult:
+        """Check satisfiability of a finite-field formula."""
         self._setup_field(formula.field_size)
         self._declare_vars(formula.variables)
         for a in formula.assertions:
             self.solver.add(self._tr(a))
         return self.solver.check()
 
-    def model(self)->Optional[z3.ModelRef]:
+    def model(self) -> Optional[z3.ModelRef]:
+        """Get the model if the formula is satisfiable."""
         if self.solver.check() == z3.sat:
             return self.solver.model()
         return None
 
     # ---------------------------------------------------------------
-    def _setup_field(self, p:int)->None:
+    def _setup_field(self, p: int) -> None:
+        """Set up the finite field with prime p."""
         if not _is_prime(p):
             raise ValueError(f"Finite-field sort requires prime p, got {p}")
         self.p = p
 
-    def _declare_vars(self, varmap:Dict[str,str])->None:
+    def _declare_vars(self, varmap: Dict[str, str]) -> None:
+        """Declare variables in the solver."""
         for v, sort_type in varmap.items():
-            if v in self.vars: continue
+            if v in self.vars:
+                continue
             if sort_type == 'bool':
                 self.vars[v] = z3.Bool(v)
             else:  # 'ff' or finite field
@@ -55,10 +62,11 @@ class FFIntSolver:
                 self.solver.add(z3.And(iv >= 0, iv < self.p))
 
     # ---------------- translation helpers --------------------------
-    def _mod(self, term:z3.IntRef)->z3.IntRef:
+    def _mod(self, term: z3.IntRef) -> z3.IntRef:
+        """Apply modulo reduction."""
         return term % self.p             # ← portable remainder
 
-    def _pow_mod(self, base:z3.IntRef, exp:int)->z3.IntRef:
+    def _pow_mod(self, base: z3.IntRef, exp: int) -> z3.IntRef:
         """Return (base ** exp) mod p using square-and-multiply."""
         result = z3.IntVal(1)
         b = base
@@ -71,7 +79,8 @@ class FFIntSolver:
                 b = self._mod(b * b)
         return result
 
-    def _tr(self, e:FieldExpr)->z3.ExprRef:
+    def _tr(self, e: FieldExpr) -> z3.ExprRef:  # pylint: disable=too-many-return-statements,too-many-branches
+        """Translate a finite-field expression to Z3."""
         if isinstance(e, FieldAdd):
             res = z3.IntVal(0)
             for arg in e.args:
@@ -91,7 +100,7 @@ class FFIntSolver:
             return self.vars[e.name]
 
         if isinstance(e, FieldConst):
-            if not (0 <= e.value < self.p):
+            if not 0 <= e.value < self.p:
                 raise ValueError("constant outside field range")
             return z3.IntVal(e.value)
 

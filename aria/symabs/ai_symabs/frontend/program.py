@@ -1,6 +1,6 @@
 """Helper methods for Symbolic Abstraction analysis of straight-line programs.
 """
-from typing import Dict, List, Set, Tuple, Any
+from typing import List
 import z3
 from ..domains.algorithms import bilateral
 from ..domains.core import ConjunctiveDomain
@@ -25,8 +25,9 @@ class Program:
         assert all(len(statement) == 3 for statement in program_statements)
 
         inouts, _ops, ins = zip(*program_statements)
-        self.variables: List[str] = sorted(variable for variable in set(inouts) | set(ins)
-                                if not variable.isdigit())
+        self.variables: List[str] = sorted(
+            variable for variable in set(inouts) | set(ins)
+            if not variable.isdigit())
         assert all("'" not in variable for variable in self.variables)
 
         z3_variables: List[List[z3.ArithRef]] = [list(map(z3.Int, self.variables))]
@@ -76,7 +77,9 @@ class Program:
         self.prime_depth: int = len(program_statements)
         self.z3_formula: z3.BoolRef = z3.And(*z3_statements)
 
-    def transform(self, domain: ConjunctiveDomain, input_abstract_state: AbstractState) -> AbstractState:
+    def transform(
+            self, domain: ConjunctiveDomain,
+            input_abstract_state: AbstractState) -> AbstractState:
         """Compute the most precise output abstract state.
         """
 

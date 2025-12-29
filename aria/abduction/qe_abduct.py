@@ -100,4 +100,3 @@ def qe_abduce(pre_cond: z3.BoolRef, post_cond: z3.BoolRef) -> Optional[z3.ExprRe
     except z3.Z3Exception as e:
         print(f"QE abduction failed: {e}")
         return None
-    

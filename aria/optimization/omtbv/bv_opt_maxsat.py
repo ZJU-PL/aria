@@ -41,15 +41,13 @@ def bv_opt_with_maxsat(
     omt = BitBlastOMTBVSolver()
     omt.from_smt_formula(z3_fml)
     omt.set_engine(solver_name)
-    bv_width = z3_obj.size()
-    max_bv = (1 << bv_width) - 1
 
     return omt.maximize_with_maxsat(z3_obj, is_signed=False, minimize=minimize)
 
 
 def demo_maxsat() -> None:
     """Demo function for MaxSAT-based bit-vector optimization."""
-    import time
+    import time  # pylint: disable=import-outside-toplevel
 
     y = z3.BitVec("y", 4)
     fml = z3.And(z3.UGT(y, 3), z3.ULT(y, 10))

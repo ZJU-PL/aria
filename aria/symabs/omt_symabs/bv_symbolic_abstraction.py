@@ -2,11 +2,11 @@
 This module provides a symbolic abstraction for bit-vector formulas.
 It supports interval, zone, and octagon abstractions.
 """
-
-import z3
 import itertools
 from timeit import default_timer as symabs_timer
-from typing import List, Optional, Tuple, Any, Dict, Union
+from typing import List, Optional
+
+import z3
 
 from aria.utils.z3_expr_utils import get_variables
 from aria.utils.z3_solver_utils import is_entail
@@ -20,11 +20,11 @@ def get_bv_size(x: z3.ExprRef) -> int:
     """Get the bit-vector size of an expression"""
     if z3.is_bv(x):
         return x.sort().size()
-    else:
-        return -1
+    return -1
 
 
 class BVSymbolicAbstraction:
+    """Symbolic abstraction for bit-vector formulas."""
     def __init__(self) -> None:
         self.initialized: bool = False
         self.formula: z3.ExprRef = z3.BoolVal(True)
@@ -61,7 +61,11 @@ class BVSymbolicAbstraction:
             # TODO: it seems that propagate-bv-bounds has bugs, which can be even non-terminating on some formulas
             # TODO: use try_for?
             simp_start = symabs_timer()
-            tac = z3.Then(z3.Tactic("simplify"), z3.Tactic("propagate-values"), z3.Tactic("propagate-bv-bounds"))
+            tac = z3.Then(
+                z3.Tactic("simplify"),
+                z3.Tactic("propagate-values"),
+                z3.Tactic("propagate-bv-bounds")
+            )
             simp_formula = tac.apply(self.formula).as_expr()
             simp_end = symabs_timer()
             if simp_end - simp_start > 6:
@@ -113,8 +117,10 @@ class BVSymbolicAbstraction:
             m = sol.model()
             return m.eval(exp, True)
             # return m.eval(exp).as_long()
+        return None
 
-    def max_once(self, exp: z3.ExprRef):
+    def max_once(self, exp: z3.ExprRef) -> Optional[z3.ExprRef]:
+        """Maximize exp."""
         sol = z3.Optimize()
         sol.set("timeout", self.single_query_timeout)
         sol.add(self.formula)
@@ -124,6 +130,7 @@ class BVSymbolicAbstraction:
             # print(m)
             return m.eval(exp, True)
             # return m.eval(exp).as_long()
+        return None
 
     def min_max_many(self, multi_queries: List[z3.ExprRef]):
         """
@@ -132,21 +139,24 @@ class BVSymbolicAbstraction:
         """
 
         n_queries = len(multi_queries)
-        timeout = n_queries * self.single_query_timeout * 2 # is this reasonable?
-        min_res, max_res = box_optimize(self.formula, minimize=multi_queries, maximize=multi_queries, timeout=timeout)
+        timeout = n_queries * self.single_query_timeout * 2  # is this reasonable?
+        min_res, max_res = box_optimize(
+            self.formula, minimize=multi_queries, maximize=multi_queries, timeout=timeout
+        )
         # TODO: the res of handler.xx() is not a BitVec val, but Int?
-        # TODO: what if it is a value large than the biggest integer of the size (is it possible? e.g., due to overflow)
+        # TODO: what if it is a value large than the biggest integer of the size
+        # (is it possible? e.g., due to overflow)
         cnts = []
-        for i in range(len(multi_queries)):
+        for i, query in enumerate(multi_queries):
             vmin = min_res[i]
             vmax = max_res[i]
-            vmin_bvval = z3.BitVecVal(vmin.as_long(), multi_queries[i].sort().size())
-            vmax_bvval = z3.BitVecVal(vmax.as_long(), multi_queries[i].sort().size())
+            vmin_bvval = z3.BitVecVal(vmin.as_long(), query.sort().size())
+            vmax_bvval = z3.BitVecVal(vmax.as_long(), query.sort().size())
             # print(self.vars[i].sort(), vmin.sort(), vmax.sort())
             if self.signed:
-                cnts.append(z3.And(multi_queries[i] >= vmin_bvval, multi_queries[i] <= vmax_bvval))
+                cnts.append(z3.And(query >= vmin_bvval, query <= vmax_bvval))
             else:
-                cnts.append(z3.And(z3.UGE(multi_queries[i], vmin_bvval), z3.ULE(multi_queries[i], vmax_bvval)))
+                cnts.append(z3.And(z3.UGE(query, vmin_bvval), z3.ULE(query, vmax_bvval)))
         return z3.And(cnts)
 
     def interval_abs(self):
@@ -158,7 +168,7 @@ class BVSymbolicAbstraction:
         start_time = symabs_timer()
         if self.compact_opt:
             # Use multi-query optimization for better performance
-            multi_queries = [var for var in self.vars]
+            multi_queries = list(self.vars)
             self.interval_abs_as_fml = self.min_max_many(multi_queries)
         else:
             # Compute intervals one variable at a time
@@ -174,8 +184,11 @@ class BVSymbolicAbstraction:
                     constraint = z3.And(z3.UGE(var, vmin), z3.ULE(var, vmax))
                 constraints.append(constraint)
             self.interval_abs_as_fml = z3.And(constraints)
-        self.interval_abs_as_fml = z3.And(self.interval_abs_as_fml,
-                                          z3.And([bool_var == bool_var for bool_var in self.bool_vars]))
+        # Preserve boolean variables in abstraction
+        self.interval_abs_as_fml = z3.And(
+            self.interval_abs_as_fml,
+            z3.And([z3.BoolVal(True) for _ in self.bool_vars])
+        )
         print("\ninterval abs:", self.interval_abs_as_fml, sep="\n")
         self.interval_abs_time = symabs_timer() - start_time
 
@@ -236,8 +249,11 @@ class BVSymbolicAbstraction:
                     zone_cnts.append(z3.And(z3.UGE(exp, exmin), z3.ULE(exp, exmax)))
 
             self.zone_abs_as_fml = z3.And(zone_cnts)
-        self.zone_abs_as_fml = z3.And(self.zone_abs_as_fml,
-                                      z3.And([bool_var == bool_var for bool_var in self.bool_vars]))
+        # Preserve boolean variables in abstraction
+        self.zone_abs_as_fml = z3.And(
+            self.zone_abs_as_fml,
+            z3.And([z3.BoolVal(True) for _ in self.bool_vars])
+        )
         self.formula = tmp
         print("\nzone abs:", self.zone_abs_as_fml, sep="\n")
         self.zone_abs_time = symabs_timer() - start_time
@@ -306,8 +322,11 @@ class BVSymbolicAbstraction:
                     oct_cnts.append(z3.And(z3.UGE(exp, exmin), z3.ULE(exp, exmax)))
 
             self.octagon_abs_as_fml = z3.And(oct_cnts)
-        self.octagon_abs_as_fml = z3.And(self.octagon_abs_as_fml,
-                                         z3.And([bool_var == bool_var for bool_var in self.bool_vars]))
+        # Preserve boolean variables in abstraction
+        self.octagon_abs_as_fml = z3.And(
+            self.octagon_abs_as_fml,
+            z3.And([z3.BoolVal(True) for _ in self.bool_vars])
+        )
         self.formula = tmp
         print("\noctagon abs:", self.octagon_abs_as_fml, sep="\n")
         self.octagon_abs_time = symabs_timer() - start_time
@@ -336,12 +355,17 @@ class BVSymbolicAbstraction:
                     continue
                 cnts.append(z3.Or(z3.Extract(i, i, var) == 0, z3.Extract(i, i, var) == 1))
         self.bitwise_abs_as_fml = z3.And(cnts)
-        self.bitwise_abs_as_fml = z3.And(self.bitwise_abs_as_fml,
-                                         z3.And([bool_var == bool_var for bool_var in self.bool_vars]))
+        # Preserve boolean variables in abstraction
+        self.bitwise_abs_as_fml = z3.And(
+            self.bitwise_abs_as_fml,
+            z3.And([z3.BoolVal(True) for _ in self.bool_vars])
+        )
         print("\nbitwise abs:", self.bitwise_abs_as_fml)
         self.bitwise_abs_time = symabs_timer() - start_time
 
+
 def feat_test():
+    """Feature test for interval and zone abstraction."""
     x = z3.BitVec("x", 8)
     y = z3.BitVec("y", 8)
     fml = z3.And(z3.UGT(x, 0), z3.UGT(y, 0), z3.ULT(x, 10), z3.ULT(y, 10))
@@ -352,6 +376,7 @@ def feat_test():
 
 
 def feat_test_counting():
+    """Feature test for counting models with abstraction."""
     x = z3.BitVec("x", 8)
     y = z3.BitVec("y", 8)
     z = z3.BitVec("z", 8)
@@ -382,32 +407,29 @@ def feat_test_counting():
         print("abs has no false positives!")
     else:
         print("abs has false positives!")
-        '''
         # Count the number of false positives
         # print(solver.to_smt2()) # TODO: may save as a file
-        fp_fml = And(solver.assertions())
-        mc_abs = ModelCountrer()
-        mc_abs.init_from_fml(fp_fml)
+        # fp_fml = And(solver.assertions())
+        # mc_abs = ModelCountrer()
+        # mc_abs.init_from_fml(fp_fml)
         # mc_abs.count_models_by_bit_enumeration()
-        mc_abs.count_model_by_bv_enumeration()
+        # mc_abs.count_model_by_bv_enumeration()
         # mc_abs.count_models_by_sharpSAT()
-        '''
 
 
 def test():
+    """Test function."""
     # test_multi_opt()
-    feat_test_counting('../test/t1.smt2')
+    feat_test_counting()
 
 
 if __name__ == '__main__':
     test()
-    '''
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--domain', dest='domain', default='interval', type=str,
-                      help="domain: interval, octagon, zone")
-    parser.add_argument('--timeout', dest='timeout', default=30, type=int, help="timeout")
-    parser.add_argument('--file', dest='file', default='none', type=str, help="file")
-
-    args = parser.parse_args()
-    main(args.file, args.timeout, args.domain)
-    '''
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument('--domain', dest='domain', default='interval', type=str,
+    #                   help="domain: interval, octagon, zone")
+    # parser.add_argument('--timeout', dest='timeout', default=30, type=int, help="timeout")
+    # parser.add_argument('--file', dest='file', default='none', type=str, help="file")
+    #
+    # args = parser.parse_args()
+    # main(args.file, args.timeout, args.domain)

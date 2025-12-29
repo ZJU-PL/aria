@@ -5,7 +5,7 @@ Provides the abstract base class for MaxSMT solvers and common utility functions
 """
 
 import logging
-from typing import List, Tuple, Optional, Set, Any, Union
+from typing import List, Tuple, Optional, Set
 from enum import Enum
 
 import z3
@@ -128,7 +128,7 @@ class MaxSMTSolverBase:
         """Evaluate a formula under a model"""
         try:
             return z3.is_true(model.eval(formula, model_completion=True))
-        except:
+        except (AttributeError, z3.Z3Exception):
             # For complex formulas that can't be directly evaluated
             return False
 

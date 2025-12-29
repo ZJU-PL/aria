@@ -1,27 +1,31 @@
 """
+OMT (Optimization Modulo Theories) engines for symbolic abstraction.
+
 TODO: use utils.z3_plus_smtlib_solver to integrate third-party engine
 """
+from enum import Enum
+from typing import List, Optional, Any
 
 import z3
-from typing import List, Optional, Any
-from enum import Enum
 
 from aria.utils.z3_plus_smtlib_solver import Z3SolverPlus
 from aria.symabs.omt_symabs.z3opt_util import box_optimize, optimize
 
 
 class OMTEngineType(Enum):
+    """Types of OMT engines available."""
     LINEAR_SEARCH = 0
     BINARY_SEARCH = 1  # not implemented
     MIXED_LINEAR_BINARY_SEARCH = 2  # not implemented
     QUANTIFIED_SATISFACTION = 3  # has bugs??
     Z3OPT = 4
-    OptiMathSAT = 5  # external?
+    OPTIMATHSAT = 5  # external?
     CVC5 = 6  # does it support int and real?
     PYSMT = 7  # what does pysmt support
 
 
 class OMTEngine:
+    """Engine for Optimization Modulo Theories."""
     def __init__(self) -> None:
         self.initialized: bool = False
         self.formula: Optional[z3.ExprRef] = None
@@ -60,14 +64,14 @@ class OMTEngine:
 
         while True:
             assumption = z3.BoolVal(False)
-            for i in range(len(objs)):
-                assumption = z3.Or(assumption, objs[i] > maximum_list[i])
+            for i, obj in enumerate(objs):
+                assumption = z3.Or(assumption, obj > maximum_list[i])
             if s.check(assumption) == z3.unsat:
                 # stop here
                 break
             cur_model = s.model()
-            for i in range(len(objs)):
-                value_of_ith_obj = cur_model.eval(objs[i])
+            for i, obj in enumerate(objs):
+                value_of_ith_obj = cur_model.eval(obj)
                 if value_of_ith_obj.as_long() >= maximum_list[i].as_long():
                     maximum_list[i] = value_of_ith_obj
             print("current: ", maximum_list)
@@ -89,14 +93,17 @@ class OMTEngine:
             qfml = z3.And(self.formula, z3.ForAll([exp_misc], z3.Implies(new_fml, exp <= exp_misc)))
         else:
             # TODO: why not working when x can be +oo????
-            qfml = z3.And(self.formula, z3.ForAll([exp_misc], z3.Implies(new_fml, exp_misc <= exp)))
+            qfml = z3.And(
+                self.formula,
+                z3.ForAll([exp_misc], z3.Implies(new_fml, exp_misc <= exp))
+            )
         s.add(qfml)
         if s.check() == z3.sat:
             tt = s.model().eval(exp)
             return tt
-        else:
-            print(s.to_smt2())
-            print("UNSAT")
+        print(s.to_smt2())
+        print("UNSAT")
+        return None
 
     def max_with_qe(self, exp: z3.ExprRef):
         """
@@ -105,12 +112,15 @@ class OMTEngine:
         raise NotImplementedError
 
     def minimize_with_z3opt(self, obj: z3.ExprRef):
+        """Minimize using Z3 optimizer."""
         return optimize(self.formula, obj, minimize=True)
 
     def maximize_with_z3opt(self, obj: z3.ExprRef):
+        """Maximize using Z3 optimizer."""
         return optimize(self.formula, obj, minimize=False)
 
     def minimize_with_optimathsat(self, obj: z3.ExprRef):
+        """Minimize using OptiMathSAT."""
         s = Z3SolverPlus()
         return s.optimize(self.formula, obj, minimize=True)
 
@@ -122,6 +132,7 @@ class OMTEngine:
         return s.optimize(self.formula, obj, minimize=False)
 
     def init_from_file(self, filename: str):
+        """Initialize from an SMT2 file."""
         try:
             self.formula = z3.And(z3.parse_smt2_file(filename))
             self.initialized = True
@@ -130,6 +141,7 @@ class OMTEngine:
             print(ex)
 
     def init_from_fml(self, fml: z3.BoolRef):
+        """Initialize from a Z3 formula."""
         try:
             self.formula = fml
             self.initialized = True
@@ -143,18 +155,17 @@ class OMTEngine:
         """
         if self.engine_type == OMTEngineType.Z3OPT:
             return -self.maximize_with_z3opt(-exp)
-        elif self.engine_type == OMTEngineType.LINEAR_SEARCH:
+        if self.engine_type == OMTEngineType.LINEAR_SEARCH:
             return -self.maximize_with_linear_search(-exp)
-        elif self.engine_type == OMTEngineType.BINARY_SEARCH:
+        if self.engine_type == OMTEngineType.BINARY_SEARCH:
             raise NotImplementedError
-        elif self.engine_type == OMTEngineType.MIXED_LINEAR_BINARY_SEARCH:
+        if self.engine_type == OMTEngineType.MIXED_LINEAR_BINARY_SEARCH:
             raise NotImplementedError
-        elif self.engine_type == OMTEngineType.QUANTIFIED_SATISFACTION:
+        if self.engine_type == OMTEngineType.QUANTIFIED_SATISFACTION:
             return self.opt_with_qsat(exp, minimize=True)
-        elif self.engine_type == OMTEngineType.OptiMathSAT:
+        if self.engine_type == OMTEngineType.OPTIMATHSAT:
             return self.minimize_with_optimathsat(exp)
-        else:
-            return self.minimize_with_z3opt(exp)
+        return self.minimize_with_z3opt(exp)
 
     def max_once(self, exp: z3.ExprRef):
         """
@@ -162,31 +173,31 @@ class OMTEngine:
         """
         if self.engine_type == OMTEngineType.Z3OPT:
             return self.maximize_with_z3opt(exp)
-        elif self.engine_type == OMTEngineType.LINEAR_SEARCH:
+        if self.engine_type == OMTEngineType.LINEAR_SEARCH:
             return self.maximize_with_linear_search(exp)
-        elif self.engine_type == OMTEngineType.BINARY_SEARCH:
+        if self.engine_type == OMTEngineType.BINARY_SEARCH:
             raise NotImplementedError
-        elif self.engine_type == OMTEngineType.MIXED_LINEAR_BINARY_SEARCH:
+        if self.engine_type == OMTEngineType.MIXED_LINEAR_BINARY_SEARCH:
             raise NotImplementedError
-        elif self.engine_type == OMTEngineType.QUANTIFIED_SATISFACTION:
+        if self.engine_type == OMTEngineType.QUANTIFIED_SATISFACTION:
             return self.opt_with_qsat(exp, minimize=False)
-        elif self.engine_type == OMTEngineType.OptiMathSAT:
+        if self.engine_type == OMTEngineType.OPTIMATHSAT:
             return self.maximize_with_optimathsat(exp)
-        else:
-            return self.maximize_with_z3opt(exp)
+        return self.maximize_with_z3opt(exp)
 
     def min_max_many(self, multi_queries):
         """
         Boxed-OMT: compute the maximum AND minimum of queries in multi_queries
         """
-        """Boxed-OMT: compute the maximum AND minimum of queries in multi_queries"""
         if self.engine_type == OMTEngineType.Z3OPT:
             print("fml: ", self.formula)
             print("objs: ", multi_queries, multi_queries)
-            min_res, max_res = box_optimize(self.formula, minimize=multi_queries, maximize=multi_queries)
+            min_res, max_res = box_optimize(
+                self.formula, minimize=multi_queries, maximize=multi_queries
+            )
             print("box res: ", min_res, max_res)
             cnts = []
-            for i in range(len(multi_queries)):
+            for i, query in enumerate(multi_queries):
                 vmin = min_res[i]
                 vmax = max_res[i]
                 str_vmin = str(vmin)
@@ -196,18 +207,17 @@ class OMTEngine:
                 # FIXME: how to efficiently identify oo and epsilon (the following is ugly)
                 if "oo" not in str_vmin:
                     if "eps" in str_vmin:
-                        cnts.append(multi_queries[i] > z3.RealVal(vmin.children()[0]))
-                        # cnts.append(multi_queries[i] > vmin.children()[0])
+                        cnts.append(query > z3.RealVal(vmin.children()[0]))
+                        # cnts.append(query > vmin.children()[0])
                     else:
-                        cnts.append(multi_queries[i] >= z3.RealVal(vmin))
-                        # cnts.append(multi_queries[i] >= vmin)
+                        cnts.append(query >= z3.RealVal(vmin))
+                        # cnts.append(query >= vmin)
                 if "oo" not in str_vmax:
                     if "eps" in str_vmax:
-                        cnts.append(multi_queries[i] < z3.RealVal(vmax.children()[0]))
-                        # cnts.append(multi_queries[i] < vmax.children()[0])
+                        cnts.append(query < z3.RealVal(vmax.children()[0]))
+                        # cnts.append(query < vmax.children()[0])
                     else:
-                        cnts.append(multi_queries[i] <= z3.RealVal(vmax))
-                        # cnts.append(multi_queries[i] <= vmax)
+                        cnts.append(query <= z3.RealVal(vmax))
+                        # cnts.append(query <= vmax)
             return z3.And(cnts)
-        else:
-            raise NotImplementedError
+        raise NotImplementedError

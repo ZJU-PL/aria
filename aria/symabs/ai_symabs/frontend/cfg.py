@@ -157,9 +157,9 @@ def expr_to_z3(expr: Expr, env: Dict[str, z3.ArithRef]) -> z3.ExprRef:
         if expr.op == "*":
             return lhs * rhs
         if expr.op == "//":
-            return z3.IntDiv(lhs, rhs)
+            return z3.IntDiv(lhs, rhs)  # type: ignore[attr-defined]
         if expr.op == "%":
-            return z3.Mod(lhs, rhs)
+            return z3.Mod(lhs, rhs)  # type: ignore[attr-defined]
         if expr.op == "&":
             return _bv_to_int(_as_bv(lhs) & _as_bv(rhs))
         if expr.op == "|":
@@ -203,8 +203,13 @@ def _apply_assignment(domain: ConjunctiveDomain, state: AbstractState, stmt: Ass
     translation = {name: f"{name}'" for name in domain.variables}  # type: ignore[attr-defined]
     post_domain = domain.translate(translation)
 
-    pre_env = {name: domain.z3_variable(name) for name in domain.variables}  # type: ignore[attr-defined]
-    post_env = {name: post_domain.z3_variable(translation[name]) for name in domain.variables}  # type: ignore[attr-defined]
+    pre_env = {
+        name: domain.z3_variable(name) for name in domain.variables
+    }  # type: ignore[attr-defined]
+    post_env = {
+        name: post_domain.z3_variable(translation[name])
+        for name in domain.variables
+    }  # type: ignore[attr-defined]
 
     rhs_z3 = expr_to_z3(stmt.expr, pre_env)
     lhs = stmt.target
@@ -220,9 +225,9 @@ def _apply_assignment(domain: ConjunctiveDomain, state: AbstractState, stmt: Ass
     elif stmt.op == "*=":
         assignment = lhs_post == lhs_pre * rhs_z3
     elif stmt.op == "//=":
-        assignment = lhs_post == z3.IntDiv(lhs_pre, rhs_z3)
+        assignment = lhs_post == z3.IntDiv(lhs_pre, rhs_z3)  # type: ignore[attr-defined]
     elif stmt.op == "%=":
-        assignment = lhs_post == z3.Mod(lhs_pre, rhs_z3)
+        assignment = lhs_post == z3.Mod(lhs_pre, rhs_z3)  # type: ignore[attr-defined]
     elif stmt.op == "&=":
         assignment = lhs_post == _bv_to_int(_as_bv(lhs_pre) & _as_bv(rhs_z3))
     elif stmt.op == "|=":
@@ -242,9 +247,12 @@ def _apply_assignment(domain: ConjunctiveDomain, state: AbstractState, stmt: Ass
         if name != lhs
     ]  # type: ignore[attr-defined]
 
-    phi = domain.logic_and([domain.gamma_hat(state), assignment, *frame_equalities])
+    phi = domain.logic_and(
+        [domain.gamma_hat(state), assignment, *frame_equalities])
     post_state = bilateral(post_domain, phi)
-    return post_state.translate({translation[name]: name for name in domain.variables})  # type: ignore[attr-defined]
+    return post_state.translate(
+        {translation[name]: name for name in domain.variables}
+    )  # type: ignore[attr-defined]
 
 
 def _apply_block(domain: ConjunctiveDomain, state: AbstractState, block: BasicBlock) -> AbstractState:
@@ -274,7 +282,9 @@ def analyze_cfg(cfg: CFG, domain: ConjunctiveDomain, input_state: AbstractState)
         term = block.terminator
 
         if isinstance(term, Branch):
-            env = {name: domain.z3_variable(name) for name in domain.variables}  # type: ignore[attr-defined]
+            env = {
+                name: domain.z3_variable(name) for name in domain.variables
+            }  # type: ignore[attr-defined]
             cond = expr_to_z3(term.condition, env)
             true_state = _refine(domain, post_state, cond)
             false_state = _refine(domain, post_state, domain.logic_not(cond))

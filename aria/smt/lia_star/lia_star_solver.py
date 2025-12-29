@@ -192,12 +192,12 @@ def main():
         start = time.time()
         if interpolation_on:
             i.update(sls)
-            i.addForwardInterpolant(unfold)
-            i.addBackwardInterpolant(unfold)
+            i.add_forward_interpolant(unfold)
+            i.add_backward_interpolant(unfold)
 
             # Extract all inductive clauses
-            i.filterToInductive()
-            inductive_clauses = i.getInductive()
+            i.filter_to_inductive()
+            inductive_clauses = i.get_inductive()
             printV("\nInductive clauses: {}\n".format(inductive_clauses))
 
             # Check satisfiability against inductive interpolant

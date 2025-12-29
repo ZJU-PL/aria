@@ -1,11 +1,12 @@
 # coding: utf-8
-import z3
-from typing import List
+"""
+Utility functions for Z3 optimization.
 
+This module provides functions for optimization modes (pareto, lex, box)
+and various optimization engines (farkas, symba, etc.).
 """
-Mode: pareto, lex, box
-Engine: farkas, symba, ...
-"""
+from typing import List
+import z3
 
 
 def optimize(fml: z3.ExprRef, obj: z3.ExprRef, minimize=False, timeout: int = 0):
@@ -19,7 +20,7 @@ def optimize(fml: z3.ExprRef, obj: z3.ExprRef, minimize=False, timeout: int = 0)
     :param obj:z3.ExprRef: Specify the objective function
     :param minimize: Specify whether we want to maximize or minimize the objective function
     :param timeout:int: Set a timeout for the optimization
-    :return: The value of the objective
+    :return: The value of the objective, or None if unsatisfiable
     """
     s = z3.Optimize()
     s.add(fml)
@@ -32,6 +33,7 @@ def optimize(fml: z3.ExprRef, obj: z3.ExprRef, minimize=False, timeout: int = 0)
     if s.check() == z3.sat:
         # FIXME: is it possible that the value may exceed the max length of a bit-width?
         return obj.value()
+    return None
 
 
 def box_optimize(fml: z3.ExprRef, minimize: List, maximize: List, timeout: int = 0):
@@ -54,8 +56,7 @@ def box_optimize(fml: z3.ExprRef, minimize: List, maximize: List, timeout: int =
         min_res = [obj.value() for obj in min_objectives]
         max_res = [obj.value() for obj in max_objectives]
         return min_res, max_res
-    else:
-        raise Exception("box_optimize: No solution found or timeout")
+    raise ValueError("box_optimize: No solution found or timeout")
 
 
 def maxsmt(hard: z3.BoolRef, soft: List[z3.BoolRef], weight: List[int], timeout=0) -> int:
@@ -68,11 +69,11 @@ def maxsmt(hard: z3.BoolRef, soft: List[z3.BoolRef], weight: List[int], timeout=
     s.add(hard)
     if timeout > 0:
         s.set("timeout", timeout)
-    for i in range(len(soft)):
-        s.add_soft(soft[i], weight=weight[i])
+    for i, soft_clause in enumerate(soft):
+        s.add_soft(soft_clause, weight=weight[i])
     if s.check() == z3.sat:
         m = s.model()
-        for i in range(len(soft)):
-            if z3.is_false(m.eval(soft[i], True)):
+        for i, soft_clause in enumerate(soft):
+            if z3.is_false(m.eval(soft_clause, True)):
                 cost += weight[i]
     return cost

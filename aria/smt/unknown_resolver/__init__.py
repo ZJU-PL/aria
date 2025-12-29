@@ -1,7 +1,8 @@
 """
 SAE Unknown Formula Retriever
 
-Uses Skeletal Approximation Enumeration (SAE) and structural mutations to resolve unknown SMT formulas.
+Uses Skeletal Approximation Enumeration (SAE) and structural mutations
+to resolve unknown SMT formulas.
 """
 
 from .resolver import SAEUnknownResolver

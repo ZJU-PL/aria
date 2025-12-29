@@ -4,8 +4,10 @@ This module provides SMT-based verification and counterexample generation
 for expressions in the Version Space Algebra.
 """
 
+from typing import Dict, Any, List, Optional
+
 import z3
-from typing import Dict, Any, List, Optional, Set, Tuple
+
 from .expressions import Expression, Theory, Variable
 from .expression_to_smt import SMTConverter, expression_to_smt
 
@@ -17,8 +19,9 @@ class SMTVerifier:
         self.converter = SMTConverter()
         self.solver = z3.Solver(ctx=self.converter.context)
 
-    def verify_expression(self, expr: Expression, examples: List[Dict[str, Any]],
-                         var_types: Dict[str, str] = None) -> bool:
+    def verify_expression(
+            self, expr: Expression, examples: List[Dict[str, Any]],
+            var_types: Dict[str, str] = None) -> bool:
         """Verify that an expression is consistent with all examples using SMT."""
         try:
             # Create SMT formula for the expression
@@ -52,8 +55,8 @@ class SMTVerifier:
                     self.solver.add(smt_expr != output_var)
                     result = self.solver.check()
 
-                    # If UNSAT, then the expression DOES equal the output (constraint is false)
-                    # If SAT, then the expression does NOT equal the output (constraint is satisfiable)
+                    # If UNSAT, expression equals output (constraint is false)
+                    # If SAT, expression does NOT equal output (constraint satisfiable)
                     if result == z3.sat:
                         self.solver.pop()
                         return False
@@ -66,9 +69,10 @@ class SMTVerifier:
             print(f"SMT verification failed: {e}")
             return False
 
-    def find_counterexample(self, expressions: List[Expression],
-                           examples: List[Dict[str, Any]],
-                           var_types: Dict[str, str] = None) -> Optional[Dict[str, Any]]:
+    def find_counterexample(
+            self, expressions: List[Expression],
+            examples: List[Dict[str, Any]],
+            var_types: Dict[str, str] = None) -> Optional[Dict[str, Any]]:
         """Find a counterexample that distinguishes between expressions using SMT."""
         try:
             if not expressions:
@@ -155,7 +159,9 @@ class SMTVerifier:
             print(f"SMT counterexample generation failed: {e}")
             return None
 
-    def _create_variable(self, var_name: str, theory: Theory, var_types: Dict[str, str] = None) -> z3.ExprRef:
+    def _create_variable(
+            self, var_name: str, theory: Theory,
+            var_types: Dict[str, str] = None) -> z3.ExprRef:
         """Create a variable in the SMT context."""
         var_types = var_types or {}
 

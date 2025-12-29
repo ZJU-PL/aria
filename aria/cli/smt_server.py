@@ -15,14 +15,14 @@ import sys
 import time
 import argparse
 from dataclasses import dataclass
-from typing import Dict, Any, List, Set, Optional, Callable, Union
+from typing import Dict, Any, List
 
 import z3
 
 # Import advanced aria features
 try:
     from aria.allsmt import create_allsmt_solver
-    from aria.unsat_core.unsat_core import get_unsat_core, enumerate_all_mus, Algorithm as UnsatAlgorithm
+    from aria.unsat_core.unsat_core import get_unsat_core, enumerate_all_mus
     from aria.backbone.smt_backbone_literals import get_backbone_literals
     from aria.counting import model_counter
 
@@ -43,11 +43,13 @@ logging.basicConfig(
 
 @dataclass
 class ScopeFrame:
+    """Frame for managing scope in SMT server."""
     variables: Dict[str, Any]
     assertions: List[z3.ExprRef]
 
 
 class SmtServer:
+    """SMT server that handles SMT-LIB2 commands via IPC."""
     def __init__(self, input_pipe="/tmp/smt_input", output_pipe="/tmp/smt_output"):
         self.input_pipe = input_pipe
         self.output_pipe = output_pipe
@@ -71,16 +73,16 @@ class SmtServer:
                 if os.path.exists(pipe):
                     try:
                         os.unlink(pipe)
-                        logging.debug(f"Removed existing FIFO: {pipe}")
+                        logging.debug("Removed existing FIFO: %s", pipe)
                     except OSError as e:
-                        logging.warning(f"Failed to remove existing FIFO {pipe}: {e}")
+                        logging.warning("Failed to remove existing FIFO %s: %s", pipe, e)
 
                 # Create new pipe
                 os.mkfifo(pipe)
                 os.chmod(pipe, 0o666)  # Make pipes readable/writable by all users
-                logging.debug(f"Created FIFO: {pipe}")
+                logging.debug("Created FIFO: %s", pipe)
             except OSError as e:
-                logging.error(f"Failed to create FIFO {pipe}: {e}")
+                logging.error("Failed to create FIFO %s: %s", pipe, e)
                 raise
 
     @property
@@ -91,11 +93,11 @@ class SmtServer:
     def write_response(self, response: str):
         """Write response to output pipe with error handling."""
         try:
-            with open(self.output_pipe, 'w') as f:
+            with open(self.output_pipe, 'w', encoding='utf-8') as f:
                 f.write(response + '\n')
                 f.flush()
         except IOError as e:
-            logging.error(f"Failed to write response: {e}")
+            logging.error("Failed to write response: %s", e)
             raise
 
     def parse_smt2_expr(self, expr_str: str) -> z3.ExprRef:
@@ -109,8 +111,8 @@ class SmtServer:
                     return self.current_scope.variables[expr_str]
                 try:
                     return z3.Int(expr_str) if expr_str.isdigit() else z3.Bool(expr_str)
-                except Exception:
-                    raise ValueError(f"Invalid expression: {expr_str}")
+                except Exception as exc:
+                    raise ValueError(f"Invalid expression: {expr_str}") from exc
 
             # Remove outer parentheses and split
             inner = expr_str[1:-1].strip()
@@ -153,7 +155,7 @@ class SmtServer:
 
             raise ValueError(f"Unknown operator: {op}")
         except Exception as e:
-            raise ValueError(f"Failed to parse expression: {e}")
+            raise ValueError(f"Failed to parse expression: {e}") from e
 
     def handle_declare_const(self, name: str, sort: str):
         """Handle declare-const command with improved type handling."""
@@ -207,14 +209,14 @@ class SmtServer:
         except Exception as e:
             return f"error: {str(e)}"
 
-    def handle_allsmt(self, args: str) -> str:
+    def handle_allsmt(self, cmd_args: str) -> str:
         """Handle allsmt command to enumerate all satisfying models."""
         if not ARIA_FEATURES_AVAILABLE:
             return "error: allsmt feature not available"
 
         try:
             # Parse arguments
-            parts = args.split()
+            parts = cmd_args.split()
             if not parts:
                 return "error: allsmt requires variable names"
 
@@ -256,14 +258,14 @@ class SmtServer:
         except Exception as e:
             return f"error: {str(e)}"
 
-    def handle_unsat_core(self, args: str) -> str:
+    def handle_unsat_core(self, cmd_args: str) -> str:
         """Handle unsat-core command to compute unsatisfiable cores."""
         if not ARIA_FEATURES_AVAILABLE:
             return "error: unsat-core feature not available"
 
         try:
             # Parse arguments
-            parts = args.split()
+            parts = cmd_args.split()
             algorithm = self.unsat_core_algorithm
             timeout = self.unsat_core_timeout
             enumerate_all = False
@@ -314,14 +316,14 @@ class SmtServer:
         except Exception as e:
             return f"error: {str(e)}"
 
-    def handle_backbone(self, args: str) -> str:
+    def handle_backbone(self, cmd_args: str) -> str:
         """Handle backbone command to compute backbone literals."""
         if not ARIA_FEATURES_AVAILABLE:
             return "error: backbone feature not available"
 
         try:
             # Parse arguments
-            parts = args.split()
+            parts = cmd_args.split()
             algorithm = "model-enumeration"  # Default algorithm
 
             # Process options
@@ -348,14 +350,14 @@ class SmtServer:
         except Exception as e:
             return f"error: {str(e)}"
 
-    def handle_count_models(self, args: str) -> str:
+    def handle_count_models(self, cmd_args: str) -> str:
         """Handle count-models command to count satisfying models."""
         if not ARIA_FEATURES_AVAILABLE:
             return "error: model-counting feature not available"
 
         try:
             # Parse arguments
-            parts = args.split()
+            parts = cmd_args.split()
             timeout = self.model_count_timeout
             approximate = False
 
@@ -388,10 +390,10 @@ class SmtServer:
         except Exception as e:
             return f"error: {str(e)}"
 
-    def handle_set_option(self, args: str) -> str:
+    def handle_set_option(self, cmd_args: str) -> str:
         """Handle set-option command to configure server options."""
         try:
-            parts = args.split(maxsplit=1)
+            parts = cmd_args.split(maxsplit=1)
             if len(parts) != 2:
                 return "error: set-option requires option name and value"
 
@@ -404,23 +406,22 @@ class SmtServer:
                     return "success"
                 except ValueError:
                     return f"error: invalid model limit: {value}"
-            elif option == ":unsat-core-algorithm":
+            if option == ":unsat-core-algorithm":
                 self.unsat_core_algorithm = value
                 return "success"
-            elif option == ":unsat-core-timeout":
+            if option == ":unsat-core-timeout":
                 try:
                     self.unsat_core_timeout = int(value) if value != "none" else None
                     return "success"
                 except ValueError:
                     return f"error: invalid timeout: {value}"
-            elif option == ":model-count-timeout":
+            if option == ":model-count-timeout":
                 try:
                     self.model_count_timeout = int(value)
                     return "success"
                 except ValueError:
                     return f"error: invalid timeout: {value}"
-            else:
-                return f"error: unknown option: {option}"
+            return f"error: unknown option: {option}"
         except Exception as e:
             return f"error: {str(e)}"
 
@@ -472,18 +473,18 @@ class SmtServer:
 
             handlers = {
                 "exit": lambda _: self._handle_exit(),
-                "declare-const": lambda a: self._handle_declare_const_args(a),
-                "assert": lambda a: self.handle_assert(a),
+                "declare-const": self._handle_declare_const_args,
+                "assert": self.handle_assert,
                 "check-sat": lambda _: str(self.solver.check()),
                 "get-model": lambda _: self._handle_get_model(),
                 "push": lambda _: self.handle_push(),
                 "pop": lambda _: self.handle_pop(),
-                "get-value": lambda a: self._handle_get_value(a),
-                "allsmt": lambda a: self.handle_allsmt(a),
-                "unsat-core": lambda a: self.handle_unsat_core(a),
-                "backbone": lambda a: self.handle_backbone(a),
-                "count-models": lambda a: self.handle_count_models(a),
-                "set-option": lambda a: self.handle_set_option(a),
+                "get-value": self._handle_get_value,
+                "allsmt": self.handle_allsmt,
+                "unsat-core": self.handle_unsat_core,
+                "backbone": self.handle_backbone,
+                "count-models": self.handle_count_models,
+                "set-option": self.handle_set_option,
                 "help": lambda _: self.handle_help()
             }
 
@@ -498,8 +499,8 @@ class SmtServer:
         self.running = False
         return "bye"
 
-    def _handle_declare_const_args(self, args: str) -> str:
-        parts = args.split()
+    def _handle_declare_const_args(self, cmd_args: str) -> str:
+        parts = cmd_args.split()
         if len(parts) != 2:
             return "error: declare-const requires name and sort"
         return self.handle_declare_const(parts[0], parts[1])
@@ -510,13 +511,13 @@ class SmtServer:
             return " ".join(f"({k} {model[v]})" for k, v in self.current_scope.variables.items())
         return "unknown"
 
-    def _handle_get_value(self, args: str) -> str:
+    def _handle_get_value(self, cmd_args: str) -> str:
         if self.solver.check() != z3.sat:
             return "unknown"
         try:
             model = self.solver.model()
             values = []
-            for var_name in args.split():
+            for var_name in cmd_args.split():
                 if var_name in self.current_scope.variables:
                     val = model.evaluate(self.current_scope.variables[var_name])
                     values.append(f"({var_name} {val})")
@@ -526,41 +527,42 @@ class SmtServer:
 
     def run(self):
         """Run the server with improved error handling."""
-        logging.info(f"SMT server started. Input pipe: {self.input_pipe}, Output pipe: {self.output_pipe}")
+        logging.info("SMT server started. Input pipe: %s, Output pipe: %s",
+                     self.input_pipe, self.output_pipe)
         logging.info("Waiting for commands...")
 
         while self.running:
             try:
                 # Read one command at a time instead of blocking in a loop
-                with open(self.input_pipe, 'r') as f:
+                with open(self.input_pipe, 'r', encoding='utf-8') as f:
                     line = f.readline()
                     if line:
                         command = line.strip()
                         if command:
-                            logging.debug(f"Received command: {command}")
+                            logging.debug("Received command: %s", command)
                             response = self.handle_command(command)
-                            logging.debug(f"Sending response: {response}")
+                            logging.debug("Sending response: %s", response)
                             self.write_response(response)
                         if not self.running:
                             break
-                    else:
-                        # No input available, sleep briefly and continue
-                        time.sleep(0.01)
+                    # No input available, sleep briefly and continue
+                    time.sleep(0.01)
             except IOError as e:
-                logging.error(f"IO Error: {e}")
+                logging.error("IO Error: %s", e)
                 if not self.running:
                     break
                 time.sleep(0.1)
                 continue
             except Exception as e:
-                logging.error(f"Unexpected error: {e}")
+                logging.error("Unexpected error: %s", e)
                 self.write_response(f"error: {str(e)}")
 
 
 def parse_args():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(description="Enhanced SMT Server with advanced aria features")
-    parser.add_argument("--input-pipe", default="/tmp/smt_input", help="Path to input pipe (default: /tmp/smt_input)")
+    parser.add_argument("--input-pipe", default="/tmp/smt_input",
+                        help="Path to input pipe (default: /tmp/smt_input)")
     parser.add_argument("--output-pipe", default="/tmp/smt_output",
                         help="Path to output pipe (default: /tmp/smt_output)")
     parser.add_argument("--log-level", default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
@@ -581,5 +583,5 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         logging.info("Server stopped by user")
     except Exception as e:
-        logging.error(f"Fatal error: {e}")
+        logging.error("Fatal error: %s", e)
         sys.exit(1)

@@ -2,8 +2,8 @@
 In a real program analyzer this would be combined with a fixedpoint computation
 engine to handle loops.
 """
-from frontend.program import Program
-from domains.sign import Sign, SignAbstractState, SignDomain
+from aria.symabs.ai_symabs.frontend.program import Program
+from aria.symabs.ai_symabs.domains.sign import Sign, SignAbstractState, SignDomain
 
 
 def main() -> None:

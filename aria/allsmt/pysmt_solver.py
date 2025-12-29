@@ -5,12 +5,12 @@ This module provides an implementation of the AllSMT solver using PySMT.
 It accepts Z3 expressions as input and converts them to PySMT format internally.
 """
 
-from typing import List, Any, Dict, Optional, Tuple, Union
+from typing import List, Dict, Tuple, Optional
 import z3
 from z3 import ExprRef
 from pysmt.fnode import FNode
 from pysmt.oracles import get_logic
-from pysmt.shortcuts import Solver, Not, EqualsOrIff, And, Or
+from pysmt.shortcuts import Solver, Not, EqualsOrIff, Or
 
 from aria.allsmt.base import AllSMTSolver
 
@@ -35,8 +35,8 @@ class Z3ToPySMTConverter:
         Raises:
             NotImplementedError: If unsupported Z3 type is encountered
         """
-        from pysmt.shortcuts import Symbol
-        from pysmt.typing import INT, REAL, BVType, BOOL
+        from pysmt.shortcuts import Symbol  # pylint: disable=import-outside-toplevel
+        from pysmt.typing import INT, REAL, BVType, BOOL  # pylint: disable=import-outside-toplevel
 
         type_mapping = {
             z3.is_int: INT,
@@ -74,7 +74,7 @@ class Z3ToPySMTConverter:
         Returns:
             Tuple of (PySMT variables, PySMT formula)
         """
-        from aria.utils.z3_expr_utils import get_variables
+        from aria.utils.z3_expr_utils import get_variables  # pylint: disable=import-outside-toplevel
 
         z3_vars = get_variables(z3_formula)
         pysmt_vars = Z3ToPySMTConverter.to_pysmt_vars(z3_vars)
@@ -113,7 +113,8 @@ class PySMTAllSMTSolver(AllSMTSolver[PySMTModel]):
 
         Args:
             expr: The Z3 expression/formula to solve
-            keys: The Z3 variables to track in the models (not used directly, but kept for API compatibility)
+            keys: The Z3 variables to track in the models
+                (not used directly, but kept for API compatibility)
             model_limit: Maximum number of models to generate (default: 100)
 
         Returns:
@@ -156,7 +157,7 @@ class PySMTAllSMTSolver(AllSMTSolver[PySMTModel]):
             return self._models
 
         except Exception as e:
-            raise Exception(f"Error during model sampling: {str(e)}")
+            raise RuntimeError(f"Error during model sampling: {str(e)}") from e
 
     def get_model_count(self) -> int:
         """
@@ -197,23 +198,24 @@ class PySMTAllSMTSolver(AllSMTSolver[PySMTModel]):
                 print(f"Model {i + 1}: {model}")
 
         if self._model_limit_reached:
-            print(f"Model limit reached. Found {self._model_count} models (there may be more).")
+            print(f"Model limit reached. Found {self._model_count} models "
+                  f"(there may be more).")
         else:
             print(f"Total number of models: {self._model_count}")
 
 
 def demo() -> None:
     """Demonstrate the usage of the PySMT-based AllSMT solver with Z3 input."""
-    from z3 import Ints, Bools, And, Or, Not
+    from z3 import Ints, Bools, And as Z3And, Or as Z3Or  # pylint: disable=import-outside-toplevel
 
     # Define Z3 variables
     x, y = Ints('x y')
     a, b = Bools('a b')
 
     # Define Z3 constraints
-    expr = And(
+    expr = Z3And(
         a == (x + y > 0),
-        Or(a, b),
+        Z3Or(a, b),
         x > 0,
         y > 0
     )

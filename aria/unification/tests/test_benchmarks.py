@@ -1,3 +1,4 @@
+"""Benchmark tests for unification."""
 import platform
 import sys
 
@@ -11,7 +12,7 @@ from aria.unification.utils import transitive_get as walk
 skip_benchmarks = True
 
 try:
-    import pytest_benchmark
+    import pytest_benchmark  # noqa: F401
     skip_benchmarks = False
 except ImportError:
     pass

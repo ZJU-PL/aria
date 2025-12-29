@@ -1,4 +1,6 @@
-import aria.utils.ply.lex as lex
+"""Lexer for Spyro synthesis language."""
+
+from aria.utils.ply import lex
 
 tokens = (
     'SPLITTER', 'ID', 'INT',
@@ -31,8 +33,11 @@ t_TIMES = r'\*'
 t_DIV = r'/'
 t_ignore = ' \t\r\n'
 
+
 def t_error(t):
-    print("Illegal character %s" % repr(t.value[0]))
+    """Handle lexer errors."""
+    print(f"Illegal character {repr(t.value[0])}")
     t.lexer.skip(1)
+
 
 lexer = lex.lex(debug=0)

@@ -86,7 +86,9 @@ class CoreGuidedSolver(MaxSMTSolverBase):
         # Main loop: find and relax cores
         while True:
             # Assume all relaxation variables are false (soft constraints must be satisfied)
-            assumptions: List[z3.ExprRef] = [z3.Not(rv) for rv in relax_vars if rv not in block_vars]
+            assumptions: List[z3.ExprRef] = [
+                z3.Not(rv) for rv in relax_vars if rv not in block_vars
+            ]
 
             # Check satisfiability with current assumptions
             result = solver.check(assumptions)
@@ -143,5 +145,7 @@ class CoreGuidedSolver(MaxSMTSolverBase):
                 at_most_one.append(relax_vars[i])
 
             # Add constraint: block_var OR at_most_one(relax_vars in core)
-            at_most_one_constraint = z3.PbLe([(var, 1) for var in at_most_one], 1)
+            at_most_one_constraint = z3.PbLe(
+                [(var, 1) for var in at_most_one], 1
+            )
             solver.add(z3.Or(block_var, at_most_one_constraint))

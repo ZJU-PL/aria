@@ -23,7 +23,7 @@ Author: aria team
 
 import re
 import copy
-from typing import Dict, List, Any, Union, Tuple, Optional
+from typing import Dict, List, Any, Union, Tuple
 
 
 class Grammar:
@@ -88,7 +88,7 @@ class Grammar:
 
     def ebnf_grammar_loader(self, production_rules: List[str]) -> Dict[str, List[List[str]]]:
         # paser the string to dict datastructure
-        grammar: Dict[str, List[List[str]]] = dict()
+        grammar: Dict[str, List[List[str]]] = {}
         for rule in production_rules:
             _ = rule.split('->')
             head, LHS = _[0].strip(), _[1]
@@ -116,10 +116,10 @@ class Grammar:
     # Convert every option ? [ E ] to a fresh non-terminal X and add
     # X = $\epsilon$ | E.
     def ebnf_sign_replace(self, grammar: Dict[str, List[List[str]]], sign: str) -> Dict[str, List[List[str]]]:
-        if sign != "?" and sign != "*":
+        if sign not in ('?', '*'):
             raise Exception('Only accept ? or *')
         # select * position
-        new_rule_checker: Dict[str, str] = dict()
+        new_rule_checker: Dict[str, str] = {}
         for head in grammar:
             for rule in grammar[head]:
                 i = 0
@@ -127,7 +127,7 @@ class Grammar:
                     if rule[i] == sign:
                         if i == 0:
                             raise Exception('Ebnf form is not correct!')
-                        elif rule[i-1] != ")":
+                        if rule[i-1] != ")":
                             repetition_start = i-1
                         else:
                             repetition_start = self.ebnf_bracket_match(rule, i)
@@ -156,7 +156,7 @@ class Grammar:
         for head in grammar:
             for rule in grammar[head]:
                 for element in rule:
-                    if element == '(' or element == ')':
+                    if element in ('(', ')'):
                         rule.remove(element)
         return grammar
 
@@ -168,7 +168,7 @@ class Grammar:
         return False
 
     def ebnf_BIN(self, grammar: Dict[str, List[List[str]]]) -> Dict[str, List[List[str]]]:
-        new_grammar: Dict[str, List[List[str]]] = dict()
+        new_grammar: Dict[str, List[List[str]]] = {}
         for head in grammar:
             for rule in grammar[head]:
                 if len(rule) >= 3:
@@ -177,48 +177,47 @@ class Grammar:
                     rule.clear()
                     rule.append(first)
                     # check whether has this rule
-                    X = self.check_head(new_grammar,long_rule)
-                    if X == False:
-                        X = self.check_head(grammar, long_rule)
-                    if X:
-                        rule.append(X)
+                    x_var = self.check_head(new_grammar,long_rule)
+                    if x_var is False:
+                        x_var = self.check_head(grammar, long_rule)
+                    if x_var:
+                        rule.append(x_var)
                         break
-                    else:
-                        X = f'X{self.num_generator()}'
-                        rule.append(X)
-                    new_grammar[X] = []
+                    x_var = f'X{self.num_generator()}'
+                    rule.append(x_var)
+                    new_grammar[x_var] = []
                     temp = copy.copy(long_rule)
                     if len(long_rule) == 2:
-                        new_grammar[X].append(temp)
+                        new_grammar[x_var].append(temp)
                         long_rule.clear()
                     else:
                         first = long_rule.pop(0)
-                        RHX = self.check_head(new_grammar,long_rule)
-                        if RHX == False:
-                            RHX = self.check_head(grammar,long_rule)
-                        if RHX == False:
-                            RHX = f'X{self.num_generator()}'
-                        new_grammar[X].append([first, RHX])
+                        rhx = self.check_head(new_grammar,long_rule)
+                        if rhx is False:
+                            rhx = self.check_head(grammar,long_rule)
+                        if rhx is False:
+                            rhx = f'X{self.num_generator()}'
+                        new_grammar[x_var].append([first, rhx])
                     while len(long_rule) >= 2:
                         if len(long_rule) == 2:
-                            new_grammar[RHX] = []
-                            new_grammar[RHX].append(long_rule)
+                            new_grammar[rhx] = []
+                            new_grammar[rhx].append(long_rule)
                             break
                         first = long_rule.pop(0)
                         print(f'long{long_rule}')
                         # check whether has this rule
-                        X = RHX
-                        RHX = self.check_head(new_grammar,long_rule[1:])
-                        if RHX == False:
-                            RHX = self.check_head(grammar,long_rule[1:])
-                        if RHX == False:
-                            RHX = f'X{self.num_generator()}'
-                        temp_rule = [first,RHX]
-                        new_grammar[X] = []
-                        new_grammar[X].append(temp_rule)
+                        x_var = rhx
+                        rhx = self.check_head(new_grammar,long_rule[1:])
+                        if rhx is False:
+                            rhx = self.check_head(grammar,long_rule[1:])
+                        if rhx is False:
+                            rhx = f'X{self.num_generator()}'
+                        temp_rule = [first,rhx]
+                        new_grammar[x_var] = []
+                        new_grammar[x_var].append(temp_rule)
 
-        for new_head in new_grammar:
-            grammar[new_head] = new_grammar[new_head]
+        for new_head, new_rules in new_grammar.items():
+            grammar[new_head] = new_rules
         return grammar
 
 

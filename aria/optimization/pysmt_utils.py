@@ -1,7 +1,8 @@
-from typing import List, Tuple, Union, Any
+"""Utility functions for converting between Z3 and PySMT formats."""
+from typing import List, Tuple
+
 import z3
-from pysmt.shortcuts import BVULT, BVUGT
-from pysmt.shortcuts import Symbol, And, BV, BVUGE, BVULE, Solver, ForAll, Exists, qelim
+from pysmt.shortcuts import Symbol, Solver, qelim
 from pysmt.typing import INT, REAL, BVType, BOOL
 from pysmt.fnode import FNode
 from aria.utils.z3_expr_utils import get_expr_vars
@@ -37,13 +38,13 @@ def z3_to_pysmt(zf: z3.ExprRef, obj: z3.ExprRef) -> Tuple[Symbol, FNode]:
     Returns:
         Tuple of (PySMT symbol, PySMT formula)
     """
-    # FIXME: we use  the following two lines to hide warnings from PYSMT(?)
+    # NOTE: we use the following two lines to hide warnings from PYSMT(?)
     #  However, they seem not to be necessary and z3.z3util.get_vars can be very slow
-    #  (Is the warning caused py pySMT?)
+    #  (Is the warning caused by pySMT?)
     # zvs = z3.z3util.get_vars(zf)  # this can be very slow...
     zvs = get_expr_vars(zf)
 
-    _ = z3_to_pysmt_vars(zvs)
+    _ = z3_to_pysmt_vars(zvs)  # Convert to suppress warnings
 
     #
     z3s = Solver(name='z3')

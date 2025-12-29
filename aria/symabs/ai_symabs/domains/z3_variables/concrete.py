@@ -11,7 +11,9 @@ class Z3VariablesState(ConcreteState):
     """
 
     # pylint: disable=unused-argument
-    def __init__(self, variable_values: Dict[str, Union[int, float]], variable_type: Any = None) -> None:
+    def __init__(
+            self, variable_values: Dict[str, Union[int, float]],
+            variable_type: Any = None) -> None:
         """Constructs a new Z3VariablesState.
 
         variable_values should be a dictionary of form { "variable_name": value

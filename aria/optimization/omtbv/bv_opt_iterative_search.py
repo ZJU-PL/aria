@@ -31,7 +31,7 @@ def bv_opt_with_linear_search(
 ) -> Union[int, str]:
     """Linear search-based OMT for bit-vectors."""
     obj, fml = _preprocess_objective(z3_fml, z3_obj)
-    logger.info(f"Linear search {'min' if minimize else 'max'}imization")
+    logger.info("Linear search %simization", "min" if minimize else "max")
 
     with Solver(name=solver_name) as solver:
         solver.add_assertion(fml)
@@ -48,11 +48,13 @@ def bv_opt_with_binary_search(
     obj, fml = _preprocess_objective(z3_fml, z3_obj)
     bv_width = obj.bv_width()
     max_bv = (1 << bv_width) - 1
-    logger.info(f"Binary search {'min' if minimize else 'max'}imization")
+    logger.info("Binary search %simization", "min" if minimize else "max")
 
     with Solver(name=solver_name) as solver:
         solver.add_assertion(fml)
-        return _minimize_binary_search(solver, obj, bv_width, max_bv) if minimize else _maximize_binary_search(solver, obj, bv_width, max_bv)
+        if minimize:
+            return _minimize_binary_search(solver, obj, bv_width, max_bv)
+        return _maximize_binary_search(solver, obj, bv_width, max_bv)
 
 
 def _minimize_linear_search(solver: Solver, obj: Any) -> int:
@@ -78,11 +80,10 @@ def _maximize_linear_search(solver: Solver, obj: Any) -> Union[int, str]:
 
     if cur_upper is not None:
         result = int(cur_upper.constant_value())
-        logger.info(f"Maximized in {iteration} iterations: {result}")
+        logger.info("Maximized in %d iterations: %d", iteration, result)
         return result
-    else:
-        logger.info("Unsatisfiable")
-        return "unsatisfiable"
+    logger.info("Unsatisfiable")
+    return "unsatisfiable"
 
 
 def _minimize_binary_search(solver: Solver, obj: Any, bv_width: int, max_bv: int) -> int:
@@ -96,7 +97,10 @@ def _minimize_binary_search(solver: Solver, obj: Any, bv_width: int, max_bv: int
         solver.push()
         cur_mid = cur_min + ((cur_max - cur_min) >> 1)
 
-        cond = And(BVUGE(obj, BV(cur_min, bv_width)), BVULE(obj, BV(cur_mid, bv_width)))
+        cond = And(
+            BVUGE(obj, BV(cur_min, bv_width)),
+            BVULE(obj, BV(cur_mid, bv_width))
+        )
         solver.add_assertion(cond)
 
         if not solver.solve():
@@ -121,7 +125,10 @@ def _maximize_binary_search(solver: Solver, obj: Any, bv_width: int, max_bv: int
         solver.push()
         cur_mid = cur_min + ((cur_max - cur_min) >> 1)
 
-        cond = And(BVUGE(obj, BV(cur_mid, bv_width)), BVULE(obj, BV(cur_max, bv_width)))
+        cond = And(
+            BVUGE(obj, BV(cur_mid, bv_width)),
+            BVULE(obj, BV(cur_max, bv_width))
+        )
         solver.add_assertion(cond)
 
         if not solver.solve():
@@ -131,13 +138,13 @@ def _maximize_binary_search(solver: Solver, obj: Any, bv_width: int, max_bv: int
             cur_min = int(upper.constant_value()) + 1
         solver.pop()
 
-    logger.info(f"Maximized in {iteration} iterations: {int(upper.constant_value())}")
+    logger.info("Maximized in %d iterations: %d", iteration, int(upper.constant_value()))
     return int(upper.constant_value())
 
 
 def demo_iterative() -> None:
     """Demonstrate iterative search optimization."""
-    import time
+    import time  # pylint: disable=import-outside-toplevel
 
     y = z3.BitVec("y", 16)
     fml = z3.And(z3.UGT(y, 3), z3.ULT(y, 10))
@@ -146,15 +153,15 @@ def demo_iterative() -> None:
     try:
         logger.info("Linear search maximization:")
         lin_res = bv_opt_with_linear_search(fml, y, minimize=False, solver_name="z3")
-        logger.info(f"Result: {lin_res}")
+        logger.info("Result: %s", lin_res)
 
         logger.info("Binary search minimization:")
         bin_res = bv_opt_with_binary_search(fml, y, minimize=True, solver_name="z3")
-        logger.info(f"Result: {bin_res}")
+        logger.info("Result: %s", bin_res)
 
-        logger.info(f"Total time: {time.time() - start:.3f}s")
-    except Exception as e:
-        logger.error(f"Demo failed: {e}")
+        logger.info("Total time: %.3fs", time.time() - start)
+    except (ValueError, RuntimeError) as e:
+        logger.error("Demo failed: %s", e)
 
 
 def init_logger(log_level: str = 'INFO') -> None:

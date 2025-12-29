@@ -1,14 +1,18 @@
+"""Variable module for logic variables."""
 import weakref
 from abc import ABCMeta
+from collections.abc import Hashable
 from contextlib import contextmanager, suppress
-from typing import Any, Hashable, Iterator, List, Optional, Set, Union
+from typing import Any, Iterator, List, Optional, Set, Union
 
 _global_logic_variables: Set[Any] = set()
 _glv = _global_logic_variables
 
 
 class LVarType(ABCMeta):
-    def __instancecheck__(self, o: Any) -> bool:
+    """Metaclass for logic variable type checking."""
+
+    def __instancecheck__(self, o: Any) -> bool:  # noqa: ARG004
         with suppress(TypeError):
             return issubclass(type(o), (Var, LVarType)) or o in _glv
 
@@ -71,20 +75,21 @@ class Var(metaclass=LVarType):
         return hash((type(self), self.token))
 
 
-var = Var
+var = Var  # noqa: N816
 
 
-def vars(n: int, **kwargs: Any) -> List[Var]:
+def vars(n: int, **kwargs: Any) -> List[Var]:  # noqa: A001
     """Create n-many fresh logic variables."""
-    return [var(**kwargs) for i in range(n)]
+    return [var(**kwargs) for _ in range(n)]
 
 
 def isvar(o: Any) -> bool:
+    """Check if an object is a logic variable."""
     return isinstance(o, Var)
 
 
 @contextmanager
-def variables(*variables: Any) -> Iterator[None]:
+def variables(*variables: Any) -> Iterator[None]:  # noqa: A001
     """Create a context manager within which arbitrary objects can be logic variables.
 
     >>> with variables(1):

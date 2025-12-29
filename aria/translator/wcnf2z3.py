@@ -6,9 +6,10 @@ Authors: Anthony Lin, Matt Hague
 
 Modified from https://github.com/matthewhague/sat-css-tool/blob/master/wcnf2z3.py
 """
+import sys
 from timeit import default_timer
 
-from z3 import *
+import z3
 
 
 def construct_z3_optimizer(fin):
@@ -16,19 +17,20 @@ def construct_z3_optimizer(fin):
     Construct a z3 optimizer from wcnf file referenced by fin
     """
     # Ignoring comments
+    header_line = None
     for line in fin:
         linestrip = line.strip()
         if len(linestrip) > 0 and linestrip[0] == 'c':
             continue
-        elif len(linestrip) > 0 and linestrip[0] == 'p':
+        if len(linestrip) > 0 and linestrip[0] == 'p':
+            header_line = linestrip
             break
-        else:
-            assert False, 'Parse error: p expected after comments'
+        assert False, 'Parse error: p expected after comments'
 
     # Extracting p-info
-    assert linestrip[0] == 'p', 'Empty file'  # the only possibility of error
-    if line[0] == ' ':
-        line = linestrip
+    if header_line is None:
+        assert False, 'Empty file'  # the only possibility of error
+    line = header_line
     line_array = line.split()
     assert len(line_array) == 5, 'Unexpected number of words in p line'
     assert line_array[0] == 'p'
@@ -43,7 +45,8 @@ def construct_z3_optimizer(fin):
     except ValueError:
         assert False, 'Unexpected input'
 
-    opt = Optimize()
+    opt = z3.Optimize()
+    h = None
     # Parsing clauses
     for line in fin:
         line_array = line.split()
@@ -52,19 +55,19 @@ def construct_z3_optimizer(fin):
             clause = []
             for lit in line_array[1:-1]:  # Note last number is 0
                 var = abs(int(lit))
-                z3var = Bool(str(var))
+                z3var = z3.Bool(str(var))
                 if int(lit) > 0:
                     clause.append(z3var)
                 elif int(lit) < 0:
-                    clause.append(Not(z3var))
+                    clause.append(z3.Not(z3var))
                 else:
                     assert False, 'Zero value is seen prematurely'
         except ValueError:
             assert False, 'Unexpected input'
         if wt == top:
-            opt.add(Or(clause))
+            opt.add(z3.Or(clause))
         elif wt < top:
-            h = opt.add_soft(Or(clause), wt)
+            h = opt.add_soft(z3.Or(clause), wt)
         else:
             assert False, 'Weight bigger than max weight declared'
 
@@ -72,13 +75,14 @@ def construct_z3_optimizer(fin):
 
 
 def main():
+    """Main function for command-line execution."""
     filename = 'file.wcnf'
-    if len(sys.argv) > 0:
+    if len(sys.argv) > 1:
         filename = sys.argv[1]
         print(sys.argv[1])
 
-    fin = open(filename, 'r')
-    (opt, h) = construct_z3_optimizer(fin)
+    with open(filename, 'r', encoding='utf-8') as fin:
+        (opt, h) = construct_z3_optimizer(fin)
 
     opt.set('maxsat_engine', 'wmax')
 
@@ -89,7 +93,8 @@ def main():
     print("Done in", (end_t - start_t), "s")
 
     print(opt.model())
-    print(h.value())
+    if h is not None:
+        print(h.value())
 
 
 if __name__ == '__main__':

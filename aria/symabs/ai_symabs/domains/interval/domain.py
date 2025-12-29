@@ -63,7 +63,9 @@ class IntervalDomain(Z3VariablesDomain):
                 met.set_interval(name, intersection)
         return met
 
-    def abstract_consequence(self, lower: IntervalAbstractState, upper: IntervalAbstractState) -> IntervalAbstractState:
+    def abstract_consequence(
+            self, lower: IntervalAbstractState,
+            upper: IntervalAbstractState) -> IntervalAbstractState:
         """Returns the "abstract consequence" of lower and upper.
 
         The abstract consequence must be a superset of lower and *NOT* a

@@ -78,7 +78,9 @@ class SignDomain(Z3VariablesDomain):
                     met.set_sign(name, Sign.Bottom)
         return met
 
-    def abstract_consequence(self, lower: SignAbstractState, upper: SignAbstractState) -> SignAbstractState:
+    def abstract_consequence(
+            self, lower: SignAbstractState,
+            upper: SignAbstractState) -> SignAbstractState:
         """Returns the "abstract consequence" of lower and upper.
 
         The abstract consequence must be a superset of lower and *NOT* a

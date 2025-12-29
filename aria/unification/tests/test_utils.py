@@ -1,8 +1,10 @@
+"""Tests for unification utilities."""
 from aria.unification.utils import freeze, transitive_get
 from aria.unification.variable import var
 
 
 def test_transitive_get():
+    """Test transitive_get function."""
     x, y = var(), var()
     assert transitive_get(x, {x: y, y: 1}) == 1
     assert transitive_get({1: 2}, {x: y, y: 1}) == {1: 2}

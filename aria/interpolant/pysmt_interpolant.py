@@ -13,11 +13,12 @@ class PySMTInterpolantSynthesizer:
         self.logic = logic
         self._solver = PySMTSolver()
 
-    def interpolate(self, A: z3.BoolRef, B: z3.BoolRef) -> Optional[z3.ExprRef]:
+    def interpolate(self, formula_a: z3.BoolRef, formula_b: z3.BoolRef) -> Optional[z3.ExprRef]:
         """Generate a binary interpolant for formulas A and B."""
-        if not A or not B:
+        if not formula_a or not formula_b:
             raise ValueError("Both formulas A and B must be provided")
-        return self._solver.binary_interpolant(A, B, solver_name=self.solver_name, logic=self.logic)
+        return self._solver.binary_interpolant(
+            formula_a, formula_b, solver_name=self.solver_name, logic=self.logic)
 
     def sequence_interpolate(self, formulas: List[z3.ExprRef]) -> Optional[List[z3.ExprRef]]:
         """Generate a sequence interpolant for a list of formulas."""

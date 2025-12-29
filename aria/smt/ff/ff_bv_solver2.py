@@ -19,13 +19,13 @@ Public API mirrors `FFBVSolver` so that the regression driver can easily
 switch between implementations.
 """
 from __future__ import annotations
-from typing import Dict, Optional, List
+from typing import Dict, Optional
 import z3
 
 from .ff_ast import (
     FieldExpr, FieldAdd, FieldMul, FieldNeg, FieldEq, FieldVar, FieldConst,
     FieldSub, FieldPow, FieldDiv,
-    BoolOr, BoolAnd, BoolNot, BoolImplies, BoolIte, BoolVar, ParsedFormula,
+    BoolOr, BoolAnd, BoolNot, BoolImplies, BoolIte, BoolVar, ParsedFormula
 )
 
 __all__ = ["FFBVBridgeSolver"]
@@ -34,7 +34,7 @@ __all__ = ["FFBVBridgeSolver"]
 class FFBVBridgeSolver:
     """Finite-field solver using Int/BV bridge for modulo arithmetic."""
 
-    def __init__(self, theory: str = "QF_BV"):
+    def __init__(self, theory: str = "QF_BV"):  # pylint: disable=unused-argument
         self.solver: z3.Solver = z3.Solver()
         self.vars: Dict[str, z3.BitVecRef] = {}
         self.p: Optional[int] = None  # prime field size
@@ -54,6 +54,7 @@ class FFBVBridgeSolver:
         return self.solver.check()
 
     def model(self) -> Optional[z3.ModelRef]:
+        """Get the model if the formula is satisfiable."""
         if self.solver.reason_unknown():
             return None
         if self.solver.check() == z3.sat:
@@ -90,12 +91,14 @@ class FFBVBridgeSolver:
 
     def _mod_p_int(self, int_expr: z3.ArithRef) -> z3.ArithRef:
         """Return *int_expr* mod p as an `Int` expression."""
-        return int_expr % self.p if self.p is not None else int_expr
+        if self.p is None:
+            return int_expr
+        return int_expr % self.p
 
     # ------------------------------------------------------------------
     # Translation
     # ------------------------------------------------------------------
-    def _tr(self, e: FieldExpr) -> z3.ExprRef:
+    def _tr(self, e: FieldExpr) -> z3.ExprRef:  # pylint: disable=too-many-return-statements,too-many-branches
         """Translate a finite-field / Boolean AST node to a Z3 expression."""
         # Field algebra --------------------------------------------------
         if isinstance(e, FieldAdd):
@@ -149,7 +152,9 @@ class FFBVBridgeSolver:
             return self.vars[e.name]
 
         if isinstance(e, FieldConst):
-            if self.p is None or not (0 <= e.value < self.p):
+            if self.p is None:
+                raise ValueError("Field not initialized")
+            if not 0 <= e.value < self.p:
                 raise ValueError("Constant out of field range")
             return z3.BitVecVal(e.value, self.k)
 

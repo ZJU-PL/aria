@@ -1,6 +1,6 @@
 """Definitions for the ReducedProduct abstract states.
 """
-from typing import Any, Dict
+from typing import Dict
 from ..core.abstract import AbstractState
 
 

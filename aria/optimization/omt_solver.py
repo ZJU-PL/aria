@@ -3,7 +3,6 @@ Cmd line interface for solving OMT(BV) problems with different solvers.
 """
 import argparse
 import logging
-from typing import Any, Optional
 
 import z3
 
@@ -44,19 +43,19 @@ def solve_opt_file(filename: str, engine: str, solver_name: str) -> None:
         if search_type == 'ls':
             lin_res = bv_opt_with_linear_search(fml, obj, minimize=False, solver_name=solver_type)
             # print("lin res: ", lin_res)
-            logger.info(f"Linear search result: {lin_res}")
+            logger.info("Linear search result: %s", lin_res)
         elif search_type == 'bs':
             # 2. use SMT-based binary search
             bin_res = bv_opt_with_binary_search(fml, obj, minimize=False, solver_name=solver_type)
-            logger.info(f"Binary search result: {bin_res}")
+            logger.info("Binary search result: %s", bin_res)
     elif engine == 'maxsat':
         # 3. use MaxSAT
         maxsat_res = bv_opt_with_maxsat(fml, obj, minimize=False, solver_name=solver_name)
-        logger.info(f"MaxSAT result: {maxsat_res}")
+        logger.info("MaxSAT result: %s", maxsat_res)
     elif engine == 'qsmt':
         # 4. use QSMT
         qsmt_res = bv_opt_with_qsmt(fml, obj, minimize=False, solver_name=solver_name)
-        logger.info(f"QSMT result: {qsmt_res}")
+        logger.info("QSMT result: %s", qsmt_res)
     elif engine == "z3py":
         opt = z3.Optimize()
         opt.from_file(filename=filename)
@@ -97,7 +96,9 @@ def main() -> None:
                               help="Choose the weighted MaxSAT solver to use")
 
     # for single-objective optimization
-    iter_group = parser.add_argument_group('iter', 'Arguments for the iterative search-based engine')
+    iter_group = parser.add_argument_group(
+        'iter', 'Arguments for the iterative search-based engine'
+    )
     iter_group.add_argument("--solver-iter", type=str, default="z3-ls",
                             choices=[i + '-ls' for i in ["z3", "cvc5", "yices", "msat", "btor"]]
                                     + [i + '-bs' for i in ["z3", "cvc5", "yices", "msat", "btor"]],

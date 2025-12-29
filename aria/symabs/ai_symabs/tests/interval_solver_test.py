@@ -1,8 +1,10 @@
+"""Tests for interval domain solver."""
 from aria.symabs.ai_symabs.domains.interval import Interval, IntervalAbstractState
 from aria.symabs.ai_symabs.domains.interval import IntervalDomain
 
 
 def test_solver_constrained_satisfiable():
+    """Test solver with constrained satisfiable state."""
     domain = IntervalDomain(["a", "b", "c"])
     state = IntervalAbstractState({
         "a": Interval(0, 100),
@@ -19,6 +21,7 @@ def test_solver_constrained_satisfiable():
 
 
 def test_solver_constrained_unsatisfiable():
+    """Test solver with constrained unsatisfiable state."""
     domain = IntervalDomain(["a", "b", "c"])
     state = IntervalAbstractState({
         "a": Interval(0, 100),
@@ -31,6 +34,7 @@ def test_solver_constrained_unsatisfiable():
 
 
 def test_solver_one_unconstrained_satisfiable():
+    """Test solver with one unconstrained variable."""
     domain = IntervalDomain(["a", "b", "c"])
     state = IntervalAbstractState({
         "a": Interval(0, 100),

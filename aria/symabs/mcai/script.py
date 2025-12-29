@@ -1,14 +1,18 @@
-import z3
-import sys
-import os
+"""Script for generating and running examples for the MCAI project."""
 import argparse
+import os
+import sys
+
+import z3
+
 from aria.tests.formula_generator import FormulaGenerator
 from aria.utils.z3_expr_utils import get_variables
 
 
-def gen_examples(tot: int, output_dir: str):
-    if not os.path.exists(output_dir):
-        os.mkdir(output_dir)
+def gen_examples(tot: int, output_directory: str) -> None:
+    """Generate example formulas and save them as SMT2 files."""
+    if not os.path.exists(output_directory):
+        os.mkdir(output_directory)
     for i in range(tot):
         x, y, z = z3.BitVecs("x y z", 8)
         variables = [x, y, z]
@@ -17,15 +21,20 @@ def gen_examples(tot: int, output_dir: str):
         sol.add(formula)
         var = get_variables(formula)
         if sol.check() == z3.sat and len(var) == len(variables):
-            with open(f"{output_dir}/formula_{i}.smt2", "w") as f:
+            filepath = f"{output_directory}/formula_{i}.smt2"
+            with open(filepath, "w", encoding="utf-8") as f:
                 f.write(sol.sexpr())
 
-def run_examples(output_dir: str):
-    for root, dirs, files in os.walk(output_dir):
+
+def run_examples(output_directory: str) -> None:
+    """Run examples from the output directory."""
+    for root, _, files in os.walk(output_directory):
         for file in files:
             if file.endswith(".smt2"):
                 path = os.path.abspath(os.path.join(root, file))
-                cmd = f"python3 bv_mcai.py -f={path} -l={path.replace('.smt2', '.log')} -c={output_dir}/results.csv"
+                log_path = path.replace(".smt2", ".log")
+                cmd = (f"python3 bv_mcai.py -f={path} "
+                       f"-l={log_path} -c={output_directory}/results.csv")
                 print(cmd)
                 os.system(cmd)
 
@@ -59,7 +68,7 @@ if __name__ == "__main__":
         help="Directory to load C programs.",
         default="c"
     )
-    
+
     args = parser.parse_args()
     cnt = args.num
     output_dir = args.dir
@@ -70,6 +79,6 @@ if __name__ == "__main__":
             run_examples(output_dir)
         if not args.gen and not args.run:
             print("No action specified. Please specify either -g or -r.")
-    except Exception as e:
-        print(e)
+    except Exception as exc:
+        print(exc)
         sys.exit(1)

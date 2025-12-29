@@ -5,7 +5,7 @@ from collections.abc import Generator, Iterator, Mapping, Set
 from copy import copy
 from functools import partial
 from operator import length_hint
-from typing import Any, Callable, Dict, Optional, Set as TypeSet, Union
+from typing import Any, Callable, Optional, Set as TypeSet, Union
 
 from aria.unification.dispatch import dispatch
 from aria.unification.utils import transitive_get as walk
@@ -68,12 +68,14 @@ class UngroundLVarException(Exception):
 
 
 @dispatch(object, Mapping)
-def _reify(o: Any, s: Mapping) -> Any:
+def _reify(o: Any, s: Mapping) -> Any:  # noqa: ARG001
+    """Reify a non-variable object."""
     return o
 
 
 @_reify.register(Var, Mapping)
-def _reify_Var(o: Var, s: Mapping) -> Generator[Any, None, Any]:
+def _reify_var(o: Var, s: Mapping) -> Generator[Any, None, Any]:
+    """Reify a variable."""
     o_w = walk(o, s)
 
     if o_w is o:
@@ -82,7 +84,7 @@ def _reify_Var(o: Var, s: Mapping) -> Generator[Any, None, Any]:
         yield _reify(o_w, s)
 
 
-def _reify_Iterable_ctor(ctor: Callable, t: Any, s: Mapping) -> Generator[Any, None, Any]:
+def _reify_iterable_ctor(ctor: Callable, t: Any, s: Mapping) -> Generator[Any, None, Any]:
     """Create a generator that yields `_reify` generators.
 
     The yielded generators need to be evaluated by the caller and the fully
@@ -115,11 +117,11 @@ for seq, ctor in (
     (set, set),
     (frozenset, frozenset),
 ):
-    _reify.add((seq, Mapping), partial(_reify_Iterable_ctor, ctor))
+    _reify.add((seq, Mapping), partial(_reify_iterable_ctor, ctor))
 
 
 for seq in (dict, OrderedDict):
-    _reify.add((seq, Mapping), partial(_reify_Iterable_ctor, seq))
+    _reify.add((seq, Mapping), partial(_reify_iterable_ctor, seq))
 
 
 @_reify.register(slice, Mapping)
@@ -160,7 +162,10 @@ def _unify(u: Any, v: Any, s: Mapping) -> Union[Mapping, bool]:
 
 
 @_unify.register(Var, (Var, object), Mapping)
-def _unify_Var_object(u: Var, v: Union[Var, Any], s: Mapping) -> Generator[Union[Mapping, bool], None, None]:
+def _unify_var_object(
+    u: Var, v: Union[Var, Any], s: Mapping
+) -> Generator[Union[Mapping, bool], None, None]:
+    """Unify a variable with another variable or object."""
     u_w = walk(u, s)
 
     if isvar(v):
@@ -178,10 +183,11 @@ def _unify_Var_object(u: Var, v: Union[Var, Any], s: Mapping) -> Generator[Union
         yield _unify(u_w, v_w, s)
 
 
-_unify.add((object, Var, Mapping), _unify_Var_object)
+_unify.add((object, Var, Mapping), _unify_var_object)
 
 
-def _unify_Iterable(u: Any, v: Any, s: Mapping) -> Generator[Union[Mapping, bool], None, None]:
+def _unify_iterable(u: Any, v: Any, s: Mapping) -> Generator[Union[Mapping, bool], None, None]:
+    """Unify two iterable objects."""
     len_u = length_hint(u, -1)
     len_v = length_hint(v, -1)
 
@@ -193,16 +199,16 @@ def _unify_Iterable(u: Any, v: Any, s: Mapping) -> Generator[Union[Mapping, bool
         s = yield _unify(uu, vv, s)
         if s is False:
             return
-    else:
-        yield s
+    yield s
 
 
 for seq in (tuple, list, Iterator):
-    _unify.add((seq, seq, Mapping), _unify_Iterable)
+    _unify.add((seq, seq, Mapping), _unify_iterable)
 
 
 @_unify.register(Set, Set, Mapping)
-def _unify_Set(u: Set, v: Set, s: Mapping) -> Generator[Union[Mapping, bool], None, None]:
+def _unify_set(u: Set, v: Set, s: Mapping) -> Generator[Union[Mapping, bool], None, None]:
+    """Unify two sets."""
     i = u & v
     u = u - i
     v = v - i
@@ -210,7 +216,10 @@ def _unify_Set(u: Set, v: Set, s: Mapping) -> Generator[Union[Mapping, bool], No
 
 
 @_unify.register(Mapping, Mapping, Mapping)
-def _unify_Mapping(u: Mapping, v: Mapping, s: Mapping) -> Generator[Union[Mapping, bool], None, None]:
+def _unify_mapping(
+    u: Mapping, v: Mapping, s: Mapping
+) -> Generator[Union[Mapping, bool], None, None]:
+    """Unify two mapping objects."""
     if len(u) != len(v):
         yield False
         return
@@ -224,8 +233,7 @@ def _unify_Mapping(u: Mapping, v: Mapping, s: Mapping) -> Generator[Union[Mappin
 
         if s is False:
             return
-    else:
-        yield s
+    yield s
 
 
 @_unify.register(slice, slice, Mapping)
@@ -254,7 +262,8 @@ def unify(u: Any, v: Any, s: Mapping) -> Union[Mapping, bool]:
 
 
 @unify.register(object, object)
-def unify_NoMap(u: Any, v: Any) -> Union[Mapping, bool]:
+def unify_no_map(u: Any, v: Any) -> Union[Mapping, bool]:
+    """Unify two objects without an initial mapping."""
     return unify(u, v, {})
 
 
@@ -282,13 +291,13 @@ def unground_lvars(u: Any, s: Mapping) -> TypeSet[Var]:
 
 
 def isground(u: Any, s: Mapping) -> bool:
-    """Determine whether or not `u` contains an unground logic variable under mappings `s`."""  # noqa: E501
+    """Determine whether or not `u` contains an unground logic variable under mappings `s`."""
 
     def lvar_filter(z: Generator, r: Any) -> None:
 
         if isvar(r):
             raise UngroundLVarException()
-        elif r is construction_sentinel:
+        if r is construction_sentinel:
             z.close()
 
             # Remove this generator from the stack.
@@ -322,11 +331,11 @@ def debug_unify(u: Any, v: Any, s: Mapping) -> Union[Mapping, bool]:  # pragma: 
         'vv': ('name', 'Bob')}
     """
 
-    def _filter(z: Generator, r: Any) -> None:
+    def _filter(z: Generator, r: Any) -> None:  # noqa: ARG001
         if r is False:
-            import pdb
+            import pdb  # noqa: T100
 
-            pdb.set_trace()
+            pdb.set_trace()  # noqa: T100
 
     z = _unify(u, v, s)
     return stream_eval(z, _filter)

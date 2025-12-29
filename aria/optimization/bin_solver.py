@@ -23,7 +23,7 @@ def terminate(process, is_timeout: List):
             process.terminate()
             is_timeout[0] = True
             logger.debug("Process terminated due to timeout.")
-        except Exception as ex:
+        except (OSError, RuntimeError) as ex:
             logger.error("Error interrupting process: %s", ex)
 
 
@@ -33,7 +33,7 @@ def get_solver_command(solver_type: str, solver_name: str, tmp_filename: str) ->
     solver_name_map = {
         "yices": "yices2",
     }
-    config_solver_name = solver_name_map.get(solver_name, solver_name)
+    _ = solver_name_map.get(solver_name, solver_name)  # Unused but kept for future use
 
     # Get solver path using the GlobalConfig API
     def get_path(solver: str) -> str:
@@ -66,33 +66,31 @@ def get_solver_command(solver_type: str, solver_name: str, tmp_filename: str) ->
 
 def run_solver(cmd: List[str]) -> str:
     """Run solver command and handle timeout."""
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    is_timeout = [False]
-    timer = Timer(BIN_SOLVER_TIMEOUT, terminate, args=[p, is_timeout])
+    with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as p:
+        is_timeout = [False]
+        timer = Timer(BIN_SOLVER_TIMEOUT, terminate, args=[p, is_timeout])
 
-    try:
-        timer.start()
-        out = p.stdout.readlines()
-        out = ' '.join([line.decode('UTF-8') for line in out])
+        try:
+            timer.start()
+            out = p.stdout.readlines()
+            out = ' '.join([line.decode('UTF-8') for line in out])
 
-        if is_timeout[0]:
+            if is_timeout[0]:
+                return "unknown"
+            if "unsat" in out:
+                return out
+            if "sat" in out:
+                return out
             return "unknown"
-        elif "unsat" in out:
-            return out
-        elif "sat" in out:
-            return out
-        else:
-            return "unknown"
-    finally:
-        timer.cancel()
-        if p.poll() is None:
-            p.terminate()
-        p.stdout.close()
+        finally:
+            timer.cancel()
+            if p.poll() is None:
+                p.terminate()
 
 
 def solve_with_bin_smt(logic: str, qfml: z3.ExprRef, obj_name: str, solver_name: str) -> str:
     """Call binary SMT solvers to solve quantified SMT problems."""
-    logger.debug(f"Solving QSMT via {solver_name}")
+    logger.debug("Solving QSMT via %s", solver_name)
 
     # Prepare SMT2 formula
     fml_str = "(set-option :produce-models true)\n"
@@ -105,7 +103,7 @@ def solve_with_bin_smt(logic: str, qfml: z3.ExprRef, obj_name: str, solver_name:
     # Create temporary file
     tmp_filename = f"/tmp/{uuid.uuid1()}_temp.smt2"
     try:
-        with open(tmp_filename, "w") as tmp:
+        with open(tmp_filename, "w", encoding="utf-8") as tmp:
             tmp.write(fml_str)
 
         cmd = get_solver_command("smt", solver_name, tmp_filename)
@@ -118,11 +116,11 @@ def solve_with_bin_smt(logic: str, qfml: z3.ExprRef, obj_name: str, solver_name:
 
 def solve_with_bin_maxsat(wcnf: str, solver_name: str) -> str:
     """Solve weighted MaxSAT via binary solvers."""
-    logger.debug(f"Solving MaxSAT via {solver_name}")
+    logger.debug("Solving MaxSAT via %s", solver_name)
 
     tmp_filename = f"/tmp/{uuid.uuid1()}_temp.wcnf"
     try:
-        with open(tmp_filename, "w") as tmp:
+        with open(tmp_filename, "w", encoding="utf-8") as tmp:
             tmp.write(wcnf)
 
         cmd = get_solver_command("maxsat", solver_name, tmp_filename)
@@ -139,20 +137,19 @@ def demo_solver():
     if z3_path is None:
         raise RuntimeError("Z3 solver not found. Please ensure Z3 is installed.")
     cmd = [z3_path, 'tmp.smt2']
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    is_timeout = [False]
-    timer = Timer(BIN_SOLVER_TIMEOUT, terminate, args=[p, is_timeout])
+    with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as p:
+        is_timeout = [False]
+        timer = Timer(BIN_SOLVER_TIMEOUT, terminate, args=[p, is_timeout])
 
-    try:
-        timer.start()
-        out = p.stdout.readlines()
-        out = ' '.join([line.decode('UTF-8') for line in out])
-        print(out)
-    finally:
-        timer.cancel()
-        if p.poll() is None:
-            p.terminate()
-        p.stdout.close()
+        try:
+            timer.start()
+            out = p.stdout.readlines()
+            out = ' '.join([line.decode('UTF-8') for line in out])
+            print(out)
+        finally:
+            timer.cancel()
+            if p.poll() is None:
+                p.terminate()
 
 
 if __name__ == "__main__":

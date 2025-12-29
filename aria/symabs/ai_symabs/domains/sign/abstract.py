@@ -1,7 +1,7 @@
 """Definitions for the Signs abstract space.
 """
 from enum import Enum
-from typing import Any, Dict
+from typing import Dict
 from ..core.abstract import AbstractState
 
 

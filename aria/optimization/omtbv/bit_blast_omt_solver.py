@@ -73,7 +73,7 @@ class BitBlastOMTBVSolver:
             List of CNF clauses, where each clause is a list of integer literals
         """
         logger.debug("Start translating to CNF...")
-        bv2bool, id_table, header, clauses = translate_smt2formula_to_cnf(self.fml)
+        bv2bool, id_table, _header, clauses = translate_smt2formula_to_cnf(self.fml)
         self.bv2bool = bv2bool
         self.bool2id = id_table
         logger.debug("  from bv to bools: %s", self.bv2bool)
@@ -105,7 +105,7 @@ class BitBlastOMTBVSolver:
                 logger.debug("outcome by %s: %s", name, res)
             logger.debug("SAT solving time: %.3f", time.time() - start)
             return res
-        except Exception as ex:
+        except (RuntimeError, ValueError) as ex:
             logger.error("Error in SAT solving: %s", ex)
             return None
 
@@ -222,13 +222,12 @@ class BitBlastOMTBVSolver:
         """
         if self.engine in ("FM", "RC2"):
             return self._solve_weighted(maxsat_sol, obj_str, total_score)
-        elif self.engine == "OBV-BS":
+        if self.engine == "OBV-BS":
             return self._solve_obv_bs(maxsat_sol, obj_str, bool_vars, is_signed)
-        else:
-            # Default to FM
-            logger.warning("Unknown engine %s, defaulting to FM", self.engine)
-            maxsat_sol.set_maxsat_engine("FM")
-            return self._solve_weighted(maxsat_sol, obj_str, total_score)
+        # Default to FM
+        logger.warning("Unknown engine %s, defaulting to FM", self.engine)
+        maxsat_sol.set_maxsat_engine("FM")
+        return self._solve_weighted(maxsat_sol, obj_str, total_score)
 
     def _solve_weighted(self, maxsat_sol: MaxSATSolver, obj_str: str, total_score: int) -> int:
         """Solve using weighted MaxSAT (FM or RC2)."""
@@ -250,7 +249,7 @@ class BitBlastOMTBVSolver:
         self,
         maxsat_sol: MaxSATSolver,
         obj_str: str,
-        bool_vars: List[str],
+        bool_vars: List[str],  # pylint: disable=unused-argument
         is_signed: bool,
     ) -> int:
         """Solve using OBV-BS (binary-search-based) engine."""

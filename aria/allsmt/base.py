@@ -5,13 +5,13 @@ This module provides the abstract base class for all AllSMT solver implementatio
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Any, Optional, Dict, Union, TypeVar, Generic
+from typing import List, Any, TypeVar, Generic
 
 # Type variable for model types
-ModelType = TypeVar('ModelType')
+ModelTypeVar = TypeVar('ModelTypeVar')
 
 
-class AllSMTSolver(ABC, Generic[ModelType]):
+class AllSMTSolver(ABC, Generic[ModelTypeVar]):
     """
     Abstract base class for AllSMT solvers.
 
@@ -19,7 +19,7 @@ class AllSMTSolver(ABC, Generic[ModelType]):
     """
 
     @abstractmethod
-    def solve(self, expr: Any, keys: List[Any], model_limit: int = 100) -> List[ModelType]:
+    def solve(self, expr: Any, keys: List[Any], model_limit: int = 100) -> List[ModelTypeVar]:
         """
         Enumerate all satisfying models for the given expression over the specified keys.
 
@@ -31,7 +31,6 @@ class AllSMTSolver(ABC, Generic[ModelType]):
         Returns:
             List of models satisfying the expression
         """
-        pass
 
     @abstractmethod
     def get_model_count(self) -> int:
@@ -41,18 +40,16 @@ class AllSMTSolver(ABC, Generic[ModelType]):
         Returns:
             int: The number of models
         """
-        pass
 
     @property
     @abstractmethod
-    def models(self) -> List[ModelType]:
+    def models(self) -> List[ModelTypeVar]:
         """
         Get all models found in the last solve call.
 
         Returns:
             List of models
         """
-        pass
 
     @abstractmethod
     def print_models(self, verbose: bool = False) -> None:
@@ -62,4 +59,3 @@ class AllSMTSolver(ABC, Generic[ModelType]):
         Args:
             verbose: Whether to print detailed information about each model
         """
-        pass

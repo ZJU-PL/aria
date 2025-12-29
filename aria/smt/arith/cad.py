@@ -5,17 +5,29 @@ Cylindrical algebraic decomposition in Python
 # based on SymPy as the computer algebra backend.
 #
 #
-# CAD is a fundamental algorithm: it can test the consistency of a semialgebraic set, i.e., a
-# system defined by Boolean combinations of multivariate polynomials. This makes it extremely general and powerful, but also means it scales poorly.
+# CAD is a fundamental algorithm: it can test the consistency of a
+# semialgebraic set, i.e., a system defined by Boolean combinations of
+# multivariate polynomials. This makes it extremely general and powerful,
+# but also means it scales poorly.
 #
-# Currently, there are few implementations of CAD available. There is one in
-# Mathematica; there is also something called QEPCAD, developed by Christopher
-# W. Brown, who was key in the development of CAD; as well, satisfiability modulo theories (SMT) solvers like Z3 by Microsoft also implement it as the theory solver for nonlinear real arithmetic (NRA).
-
-# CAD decomposes ℝⁿ into *cells* over which each polynomial is sign-invariant, returning a *sample point* in each of these cells. Then, the consistency of the system can be checked over each of these cells just by plugging in the sample point representing it. In this way, a satisfying point for a semialgebraic set can be found, or none exists can be returned. That's what this CAD implementation does.
-
-
-# There is a further step in CAD which goes beyond just satisfiability, and actually constructs a *solution formula* that describes the semialgebraic set; this is required to perform quantifier elimination over the reals. This has not been implemented yet. To current knowledge, only Mathematica and QEPCAD do. That step is quite complicated
+# Currently, there are few implementations of CAD available. There is one
+# in Mathematica; there is also something called QEPCAD, developed by
+# Christopher W. Brown, who was key in the development of CAD; as well,
+# satisfiability modulo theories (SMT) solvers like Z3 by Microsoft also
+# implement it as the theory solver for nonlinear real arithmetic (NRA).
+#
+# CAD decomposes ℝⁿ into *cells* over which each polynomial is
+# sign-invariant, returning a *sample point* in each of these cells.
+# Then, the consistency of the system can be checked over each of these
+# cells just by plugging in the sample point representing it. In this way,
+# a satisfying point for a semialgebraic set can be found, or none exists
+# can be returned. That's what this CAD implementation does.
+#
+# There is a further step in CAD which goes beyond just satisfiability,
+# and actually constructs a *solution formula* that describes the
+# semialgebraic set; this is required to perform quantifier elimination
+# over the reals. This has not been implemented yet. To current knowledge,
+# only Mathematica and QEPCAD do. That step is quite complicated.
 
 The main interface is `solve_poly_system_cad` which takes a list of polynomials and a list of variables. The other functions are all background to this. By default, it returns a single satisfying point, if it exists, otherwise an empty list.
 
@@ -40,12 +52,10 @@ from sympy.core.numbers import Integer, Rational
 from sympy.core.function import diff
 from sympy.core.relational import Relational
 from sympy.polys.rootoftools import ComplexRootOf
-from sympy.polys import Poly, roots, real_roots, nroots
-from sympy.polys.polytools import parallel_poly_from_expr
+from sympy.polys import Poly, real_roots, nroots
 from sympy.polys.polytools import LT, LC, degree, subresultants, factor_list
 from sympy.polys.domains import QQ
-from sympy.polys.polyerrors import (ComputationFailed,
-    PolificationFailed, CoercionFailed, PolynomialError)
+from sympy.polys.polyerrors import PolynomialError
 from sympy.functions.elementary.integers import floor, ceiling
 
 def solve_poly_system_cad(seq, gens, return_one_sample=True):
@@ -197,7 +207,7 @@ def red_set(f, mvar):
     try:
         if f.is_number:
             return []
-    except Exception: # if its not a sympy Basic object, then also return []
+    except AttributeError:  # if its not a sympy Basic object, then also return []
         return []
 
     for i in range(degree(f, mvar) + 1):
@@ -276,9 +286,9 @@ def subresultant_polynomials(f, g, mvar):
     subres_polys[-1] = prs[1] * LC(g, mvar) ** (degree(f, mvar) - degree(g, mvar) - 1)
 
     # try to expand to simplify
-    for i in range(len(subres_polys)):
+    for i, poly in enumerate(subres_polys):
         try:
-            subres_polys[i] = expand(subres_polys[i])
+            subres_polys[i] = expand(poly)
         except Exception:
             continue
 
@@ -341,9 +351,9 @@ def get_nice_roots(poly):
     except Exception:
         return []
 
-    factors = factor_list(poly)[1] # the 0th is just a number
+    factors = factor_list(poly)[1]  # the 0th is just a number
 
-    roots = set()
+    roots_set = set()
     # get the roots of the factors that are polynomials
     for factor in factors:
         curr_factor = factor[0]
@@ -360,11 +370,12 @@ def get_nice_roots(poly):
         except NotImplementedError:
             new_roots = [Rational(root) for root in nroots(curr_factor) if root.is_real]
         except PolynomialError:
-            new_roots = [Rational(root) for root in nroots(curr_factor) if root.is_real]
+            new_roots = [Rational(root) for root in nroots(curr_factor)
+                         if root.is_real]
 
-        roots.update(new_roots)
+        roots_set.update(new_roots)
 
-    return sorted(roots, reverse=False)
+    return sorted(roots_set, reverse=False)
 
 
 def get_sample_point(left, right):
@@ -378,14 +389,14 @@ def get_sample_point(left, right):
         left, right = right, left
 
     # If they lie on either side of 0 then just return 0
-    if left < 0 and 0 < right:
+    if left < 0 < right:
         return 0
 
     # Ray cases
     # always +- 1 in case integer
     if left == S.NegativeInfinity:
         return Integer(floor(right)) - 1
-    elif right == S.Infinity:
+    if right == S.Infinity:
         return Integer(ceiling(left)) + 1
 
     # Finite interval
@@ -405,26 +416,27 @@ def get_sample_point(left, right):
     # check if an integer is in the interval
     if left < floor(between_num) < right:
         return floor(between_num)
-    elif left < ceiling(between_num) < right:
+    if left < ceiling(between_num) < right:
         return ceiling(between_num)
-    else:
-        return between_num
+    return between_num
 
 
-# uses the new .lift() functionality to simplify substituting algebraic numbers in polynomials
+# uses the new .lift() functionality to simplify substituting algebraic
+# numbers in polynomials
 def simplify_alg_sub(poly, point):
+    """Simplify polynomial substitution with algebraic numbers."""
     alg_points = [p for p in point.values() if S(p).has(ComplexRootOf)]
     if len(alg_points) == 0:
         return poly.subs(point)
-    else:
-        return poly.as_poly(domain=QQ.algebraic_field(*alg_points)).subs(point)
+    return poly.as_poly(domain=QQ.algebraic_field(*alg_points)).subs(point)
 
 
 # HONG PROJECTION OPERATOR (1990)
 # input: set F of k-variate polynomials
-# output: set F' of (k-1)-variate polynomials such that a CAD of R^{k-1} can be lifted to R^k
+# output: set F' of (k-1)-variate polynomials such that a CAD of R^{k-1}
+# can be lifted to R^k
 
-def projone(F, mvar):
+def projone(poly_set, mvar):
     """
     Computes the PROJ1 operator as defined in Hong 1990.
 
@@ -462,7 +474,7 @@ def projone(F, mvar):
     {0, 1, y, 2*y}
     """
     proj_set = set()
-    for f in F:
+    for f in poly_set:
         for g in red_set(f, mvar):
             proj_set.add(LC(g, mvar))
             proj_set.update(
@@ -472,7 +484,7 @@ def projone(F, mvar):
     return proj_set
 
 
-def projtwo(F, mvar):
+def projtwo(poly_set, mvar):
     """
     Computes the PROJ2* operator as defined in Hong (1990).
     This is an updated version of the PROJ2 operator from Collins.
@@ -512,10 +524,9 @@ def projtwo(F, mvar):
     """
 
     proj_set = set()
-    for i in range(len(F)):
+    for i, f in enumerate(poly_set):
         # impose "linear ordering"
-        for j in range(i+1, len(F)):
-            f, g = F[i], F[j]
+        for g in poly_set[i+1:]:
             for f_ in red_set(f, mvar):
                 proj_set.update(
                     subresultant_coefficients(f_, g, mvar)
@@ -524,7 +535,7 @@ def projtwo(F, mvar):
     return proj_set
 
 
-def hongproj(F, mvar):
+def hongproj(poly_set, mvar):
     """
     The Hong projection operator, as defined in Hong(1990).
     PROJH takes a set of k-variate polynomials F, with an mvar, and
@@ -574,20 +585,19 @@ def hongproj(F, mvar):
     {y, 2*y}
     """
 
-    proj_factors = projone(F, mvar).union(projtwo(F, mvar))
+    proj_factors = projone(poly_set, mvar).union(projtwo(poly_set, mvar))
     proj_factors_clean = set()
 
     for p in proj_factors:
         if p.is_number:
             continue
-        else:
-            if -p not in proj_factors_clean:
-                proj_factors_clean.add(p)
+        if -p not in proj_factors_clean:
+            proj_factors_clean.add(p)
 
     return proj_factors_clean
 
 
-def cylindrical_algebraic_decomposition(F, gens):
+def cylindrical_algebraic_decomposition(poly_set, gens):
     """
     Calculates a cylindrical algebraic decomposition adapted to F.
     Uses the Hong projection operator. Returns sample points which
@@ -622,7 +632,7 @@ def cylindrical_algebraic_decomposition(F, gens):
     """
 
     # Compute the projection sets
-    projs_set = [F]
+    projs_set = [poly_set]
     for i in range(len(gens) - 1):
         projs_set.append(list(hongproj(projs_set[-1], gens[i])))
 
@@ -636,29 +646,29 @@ def cylindrical_algebraic_decomposition(F, gens):
 
         new_sample_points = []
 
-        for i, point in enumerate(sample_points):
-            roots = set()
+        for point in sample_points:
+            roots_list = set()
             for proj in projs:
                 subbed = simplify_alg_sub(proj, point)
-                roots.update(get_nice_roots(subbed))
+                roots_list.update(get_nice_roots(subbed))
             # have to sort them overall now
-            roots = sorted(roots, reverse=False)
+            roots_list = sorted(roots_list, reverse=False)
 
 
             # Calculate sample points
-            if not roots:
+            if not roots_list:
                 samples = [0]
-            elif len(roots) == 1:
-                samples = [get_sample_point(S.NegativeInfinity, roots[0]),
-                           roots[0],
-                           get_sample_point(roots[0], S.Infinity)]
+            elif len(roots_list) == 1:
+                samples = [get_sample_point(S.NegativeInfinity, roots_list[0]),
+                           roots_list[0],
+                           get_sample_point(roots_list[0], S.Infinity)]
             else:
-                samples = [get_sample_point(S.NegativeInfinity, roots[0])]
-                for r1, r2 in zip(roots, roots[1:]):
+                samples = [get_sample_point(S.NegativeInfinity, roots_list[0])]
+                for r1, r2 in zip(roots_list, roots_list[1:]):
                     samples.extend([r1,
                                     get_sample_point(r1, r2)])
-                samples.extend([roots[-1],
-                                get_sample_point(roots[-1], S.Infinity)])
+                samples.extend([roots_list[-1],
+                                get_sample_point(roots_list[-1], S.Infinity)])
 
             for value in samples:
                 new_point = point.copy()

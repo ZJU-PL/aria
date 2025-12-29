@@ -35,8 +35,8 @@ class TheorySolver:
 
         try:
             self.solver = SMTLIBSolver(solver_bin)
-        except Exception as e:
-            logger.error(f"Failed to initialize SMT solver: {e}")
+        except (OSError, RuntimeError, ValueError) as e:
+            logger.error("Failed to initialize SMT solver: %s", e)
             raise
 
         # Setup logging if enabled
@@ -46,7 +46,7 @@ class TheorySolver:
             self.log_dir = os.path.join(QUERY_LOG_DIR, f"run_{timestamp}")
             os.makedirs(self.log_dir, exist_ok=True)
             self.start_time = time.time()
-            logger.debug(f"Worker {worker_id} logging to {self.log_dir}")
+            logger.debug("Worker %d logging to %s", worker_id, self.log_dir)
 
     def __enter__(self):
         """Context manager entry"""
@@ -66,16 +66,17 @@ class TheorySolver:
         if self.solver is not None:
             try:
                 self.solver.stop()
-                logger.debug(f"Theory solver {self.worker_id} subprocess cleaned up")
-            except Exception as e:
-                logger.warning(f"Error stopping solver subprocess: {e}")
+                logger.debug("Theory solver %s subprocess cleaned up", self.worker_id)
+            except (OSError, RuntimeError) as e:
+                logger.warning("Error stopping solver subprocess: %s", e)
             finally:
                 self.solver = None
 
     def __del__(self):
         """Cleanup solver process (fallback, but context manager is preferred)"""
         if not self._closed:
-            logger.warning(f"TheorySolver {self.worker_id} not properly closed, using __del__ cleanup")
+            logger.warning("TheorySolver %s not properly closed, using __del__ cleanup",
+                           self.worker_id)
             self.close()
 
     def add_formula(self, smt2_string: str):
@@ -93,7 +94,7 @@ class TheorySolver:
         Returns:
             SolverResult.SAT or SolverResult.UNSAT
         """
-        logger.debug(f"Theory solver checking {len(assumptions)} assumptions")
+        logger.debug("Theory solver checking %d assumptions", len(assumptions))
         result = self.solver.check_sat_assuming(assumptions)
         self._log_query("check_sat_assuming", assumptions, result)
         return result
@@ -116,17 +117,19 @@ class TheorySolver:
         filename = f"worker_{self.worker_id}_query_{query_id}.smt2"
         filepath = os.path.join(self.log_dir, filename)
 
-        with open(filepath, 'w') as f:
+        with open(filepath, 'w', encoding='utf-8') as f:
+            elapsed = time.time() - self.start_time
             f.write(f"; Worker: {self.worker_id}\n")
             f.write(f"; Query: {query_id}\n")
             f.write(f"; Type: {query_type}\n")
-            f.write(f"; Time: {time.time() - self.start_time:.3f}s\n")
+            f.write(f"; Time: {elapsed:.3f}s\n")
 
             if query_type == "check_sat_assuming":
-                f.write(f"\n; Assumptions:\n")
+                f.write("\n; Assumptions:\n")
                 for assumption in content:
                     f.write(f"; {assumption}\n")
-                f.write(f"\n(check-sat-assuming ({' '.join(content)}))\n")
+                assumptions_str = ' '.join(content)
+                f.write(f"\n(check-sat-assuming ({assumptions_str}))\n")
             else:
                 f.write(f"\n{content}\n")
 

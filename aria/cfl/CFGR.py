@@ -26,7 +26,6 @@ Author: aria team
 """
 
 import sys
-import cProfile
 from typing import List
 
 from aria.cfl.graph import Graph

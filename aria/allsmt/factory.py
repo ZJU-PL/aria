@@ -4,7 +4,7 @@ Factory for creating AllSMT solvers.
 This module provides a factory for creating instances of different AllSMT solver implementations.
 """
 
-from typing import Dict, Type, Optional, Any
+from typing import Dict, Type, Any
 
 from aria.allsmt.base import AllSMTSolver
 
@@ -115,7 +115,7 @@ def create_solver(name: str = "z3", **kwargs: Any) -> AllSMTSolver:
     Returns:
         An instance of the specified AllSMT solver
     """
-    import warnings
+    import warnings  # pylint: disable=import-outside-toplevel
     warnings.warn(
         "create_solver() is deprecated and will be removed in a future version. "
         "Please use create_allsmt_solver() instead.",
@@ -139,7 +139,7 @@ def demo() -> None:
         try:
             solver = create_allsmt_solver(solver_name)
             print(f"Successfully created {solver_name} solver: {solver}")
-        except Exception as e:
+        except (ValueError, ImportError, AttributeError) as e:
             print(f"Failed to create {solver_name} solver: {e}")
 
 

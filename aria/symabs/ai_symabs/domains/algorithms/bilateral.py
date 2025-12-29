@@ -1,7 +1,7 @@
 """Implementation of the Bilateral algorithm for calculating alpha-tilde.
 Can also be used to calculate post-tilde.
 """
-from typing import Any, Optional, Callable
+from typing import Any, Optional
 from .timeout import TimeoutException
 
 

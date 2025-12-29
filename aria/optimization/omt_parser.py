@@ -1,8 +1,9 @@
 """Parse an OMT instance"""
 
+from typing import List, Optional
+
 import z3
-from z3.z3consts import *
-from typing import List, Optional, Any
+from z3.z3consts import Z3_OP_UMINUS, Z3_OP_BNEG
 
 
 class OMTParser:
@@ -39,7 +40,7 @@ class OMTParser:
         # pysmt does not support
         raise NotImplementedError
 
-    def parse_with_z3(self, fml: str, is_file: bool = False) -> None:
+    def parse_with_z3(self, formula: str, is_file: bool = False) -> None:
         """Parse OMT instance using Z3.
 
         Args:
@@ -52,9 +53,9 @@ class OMTParser:
         """
         s = z3.Optimize()
         if is_file:
-            s.from_file(fml)
+            s.from_file(formula)
         else:
-            s.from_string(fml)
+            s.from_string(formula)
         self.assertions = s.assertions()
         # sanity check for mutually-exclusive normalisation options
         if self.to_min_obj and self.to_max_obj:
@@ -65,7 +66,7 @@ class OMTParser:
 
         def _bvneg(e: z3.ExprRef) -> z3.ExprRef:
             # wrapper to handle BV negation uniformly across bit-widths
-            return z3.BVSub(z3.BitVecVal(0, e.size()), e)
+            return z3.BitVecVal(0, e.size()) - e
 
         # First collect original expressions and their optimisation sense
         raw_objectives = []
@@ -108,7 +109,7 @@ class OMTParser:
             self.objective = self.objectives[0]
 
         if self.debug:
-            import logging
+            import logging  # pylint: disable=import-outside-toplevel
             logger = logging.getLogger(__name__)
             for expr, dirn in zip(self.objectives, self.original_directions):
                 logger.debug("objective (%s): %s", dirn, expr)

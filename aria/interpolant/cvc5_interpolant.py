@@ -6,7 +6,6 @@ import tempfile
 from typing import Optional
 import pysmt.parsing
 from pysmt.fnode import FNode
-from z3 import ExprRef
 from aria.global_params import global_config
 
 logger = logging.getLogger(__name__)
@@ -24,26 +23,34 @@ class CVC5InterpolantSynthesizer:
             raise RuntimeError("CVC5 solver not found.")
         self.cvc5_path = cvc5_path
 
-    def interpolate(self, A: FNode, B: FNode) -> Optional[FNode]:
+    def __repr__(self) -> str:
+        """Return string representation of the synthesizer."""
+        return f"CVC5InterpolantSynthesizer(timeout={self.timeout}, verbose={self.verbose})"
+
+    def interpolate(self, formula_a: FNode, formula_b: FNode) -> Optional[FNode]:
         """Generate an interpolant for formulas A and B."""
-        if not A or not B:
+        if not formula_a or not formula_b:
             raise ValueError("Both formulas A and B must be provided")
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.smt2', delete=False, encoding='utf-8') as temp_file:
-            temp_file.write(f"(set-logic ALL)\n{B.to_smtlib()}\n(get-interpolant A {A.to_smtlib()})\n")
+        with tempfile.NamedTemporaryFile(
+                mode='w', suffix='.smt2', delete=False, encoding='utf-8') as temp_file:
+            temp_file.write(
+                f"(set-logic ALL)\n{formula_b.to_smtlib()}\n"
+                f"(get-interpolant A {formula_a.to_smtlib()})\n")
             temp_file_path = temp_file.name
 
         try:
             if self.verbose:
-                logger.debug(f"Created temporary file: {temp_file_path}")
+                logger.debug("Created temporary file: %s", temp_file_path)
 
             cmd = [self.cvc5_path, "--produce-interpolants", "--interpolants-mode=default",
                    "--sygus-enum=fast", "--check-interpolants", "--quiet", temp_file_path]
 
             if self.verbose:
-                logger.info(f"Running CVC5: {' '.join(cmd)}")
+                logger.info("Running CVC5: %s", ' '.join(cmd))
 
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=self.timeout)
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, timeout=self.timeout, check=False)
 
             if result.returncode != 0:
                 raise RuntimeError(f"CVC5 failed (code {result.returncode}): {result.stderr or ''}")
@@ -57,17 +64,17 @@ class CVC5InterpolantSynthesizer:
                 logger.info("Successfully generated interpolant")
             return pysmt.parsing.parse(output)
 
-        except subprocess.TimeoutExpired:
-            raise RuntimeError(f"CVC5 timed out after {self.timeout} seconds")
-        except Exception as e:
-            raise RuntimeError(f"Interpolant generation failed: {e}")
+        except subprocess.TimeoutExpired as exc:
+            raise RuntimeError(f"CVC5 timed out after {self.timeout} seconds") from exc
+        except Exception as exc:
+            raise RuntimeError(f"Interpolant generation failed: {exc}") from exc
         finally:
             try:
                 os.remove(temp_file_path)
                 if self.verbose:
-                    logger.debug(f"Removed temporary file: {temp_file_path}")
-            except OSError as e:
-                logger.warning(f"Failed to remove temporary file {temp_file_path}: {e}")
+                    logger.debug("Removed temporary file: %s", temp_file_path)
+            except OSError as exc:
+                logger.warning("Failed to remove temporary file %s: %s", temp_file_path, exc)
 
 
 # Backward compatibility alias

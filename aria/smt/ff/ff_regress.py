@@ -17,9 +17,9 @@ import z3
 # Handle both direct execution and module import
 if __name__ == "__main__":
     # Add parent directories to path for direct execution
-    import os
-    _script_dir = os.path.dirname(os.path.abspath(__file__))
-    _aria_dir = os.path.dirname(os.path.dirname(os.path.dirname(_script_dir)))
+    import os as _os
+    _script_dir = _os.path.dirname(_os.path.abspath(__file__))
+    _aria_dir = _os.path.dirname(_os.path.dirname(_os.path.dirname(_script_dir)))
     if _aria_dir not in sys.path:
         sys.path.insert(0, _aria_dir)
 
@@ -29,7 +29,7 @@ try:
     from aria.smt.ff.ff_bv_solver2 import FFBVBridgeSolver
     from aria.smt.ff.ff_int_solver import FFIntSolver
     from aria.smt.ff.ff_ast import (
-        FieldExpr, FieldAdd, FieldMul, FieldEq, FieldVar, FieldConst, ParsedFormula
+        FieldAdd, FieldMul, FieldEq, FieldVar, FieldConst, ParsedFormula
     )
 except ImportError:
     # Fallback to relative imports when used as a module
@@ -38,7 +38,7 @@ except ImportError:
     from .ff_bv_solver2 import FFBVBridgeSolver
     from .ff_int_solver import FFIntSolver
     from .ff_ast import (
-        FieldExpr, FieldAdd, FieldMul, FieldEq, FieldVar, FieldConst, ParsedFormula
+        FieldAdd, FieldMul, FieldEq, FieldVar, FieldConst, ParsedFormula
     )
 
 
@@ -47,14 +47,14 @@ def tiny_demo() -> ParsedFormula:
     # m * x + 16 == is_zero     ∧     is_zero * x == 0
     p = 17
     x, m, z = "x", "m", "is_zero"
-    vars = {x: "ff", m: "ff", z: "ff"}
+    variables = {x: "ff", m: "ff", z: "ff"}
     f1 = FieldEq(
         FieldAdd(FieldMul(FieldVar(m), FieldVar(x)),
                  FieldConst(16),
                  FieldVar(z)),
         FieldConst(0))
     f2 = FieldEq(FieldMul(FieldVar(z), FieldVar(x)), FieldConst(0))
-    return ParsedFormula(p, vars, [f1, f2])
+    return ParsedFormula(p, variables, [f1, f2])
 
 
 def run_demo(solver_type: str = "bv"):
@@ -82,15 +82,15 @@ def solve_in_subprocess(file_path: str, solver_type: str, timeout: float = 5.0) 
     Returns:
         (result, error_message) where result is "sat", "unsat", "unknown", "timeout", or "error"
     """
-    import os
+    import os as _os_module  # pylint: disable=import-outside-toplevel
     script_path = pathlib.Path(__file__).resolve()
     # Ensure subprocess can find aria by setting PYTHONPATH (same calculation as __main__)
-    env = os.environ.copy()
+    env = _os_module.environ.copy()
     script_dir = script_path.parent
     root_dir = script_dir.parent.parent.parent  # Go up 3 levels: smt/ff -> smt -> aria -> root
     pythonpath = env.get("PYTHONPATH", "")
     if pythonpath:
-        env["PYTHONPATH"] = f"{root_dir}{os.pathsep}{pythonpath}"
+        env["PYTHONPATH"] = f"{root_dir}{_os_module.pathsep}{pythonpath}"
     else:
         env["PYTHONPATH"] = str(root_dir)
 
@@ -100,16 +100,17 @@ def solve_in_subprocess(file_path: str, solver_type: str, timeout: float = 5.0) 
             capture_output=True,
             text=True,
             timeout=timeout,
-            env=env
+            env=env,
+            check=False
         )
         if result.returncode == 0:
             verdict = result.stdout.strip()
             return (verdict, "")
-        else:
-            return ("error", result.stderr.strip() or "Unknown error")
+        return ("error", result.stderr.strip() or "Unknown error")
     except subprocess.TimeoutExpired:
         return ("timeout", "")
-    except Exception as ex:
+    except Exception as ex:  # pylint: disable=broad-exception-caught
+        # Catch all exceptions for subprocess errors
         return ("error", str(ex))
 
 
@@ -127,11 +128,12 @@ def solve_single(file_path: str, solver_type: str) -> str:
             return "error"
         result = solver.check(formula)
         return str(result)
-    except Exception:
+    except Exception:  # pylint: disable=broad-exception-caught
+        # Catch all exceptions to return "error" for any solver failure
         return "error"
 
 
-def regress(dir_path: str, solver_type: str = "bv", timeout: float = 5.0) -> None:
+def regress(dir_path: str, solver_type: str = "bv", timeout: float = 5.0) -> None:  # pylint: disable=too-many-locals
     """Walk a directory containing .smt2 finite-field benchmarks.
 
     Args:
@@ -153,7 +155,7 @@ def regress(dir_path: str, solver_type: str = "bv", timeout: float = 5.0) -> Non
             formula = parse_ff_file(str(fn))
             if formula.expected_status:
                 expect = formula.expected_status
-        except Exception as ex:
+        except Exception as ex:  # pylint: disable=broad-exception-caught
             print(f"{fn.name:<50}  parse error: {ex}")
             stats["parse_errors"] += 1
             continue
@@ -176,8 +178,8 @@ def regress(dir_path: str, solver_type: str = "bv", timeout: float = 5.0) -> Non
             if has_timeout:
                 stats["timeouts"] += 1
 
-            ok_bv = verdict_bv != "timeout" and (verdict_bv == expect or expect == "unknown")
-            ok_int = verdict_int != "timeout" and (verdict_int == expect or expect == "unknown")
+            ok_bv = verdict_bv != "timeout" and (verdict_bv == expect or expect in ("unknown",))
+            ok_int = verdict_int != "timeout" and (verdict_int == expect or expect in ("unknown",))
             passed = ok_bv and ok_int
 
             stats["passed" if passed else "failed"] += 1
@@ -188,7 +190,7 @@ def regress(dir_path: str, solver_type: str = "bv", timeout: float = 5.0) -> Non
             verdict, _ = solve_in_subprocess(file_path, solver_type, timeout)
             if verdict == "timeout":
                 stats["timeouts"] += 1
-            passed = verdict != "timeout" and (verdict == expect or expect == "unknown")
+            passed = verdict != "timeout" and (verdict == expect or expect in ("unknown",))
             stats["passed" if passed else "failed"] += 1
             print(f"{fn.name:<50}  expect={expect:7}  got={verdict:7}  {'✓' if passed else '✗'}")
 

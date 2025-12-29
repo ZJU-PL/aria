@@ -16,8 +16,8 @@ Author: aria team
 Adapted from: "Dynamic Transitive Closure-Based Static Analysis through the Lens of Quantum Search"
 """
 
-from math import pi, sqrt, floor, ceil, log
-from typing import List, Dict, Any, Union, Tuple, Optional
+from math import sqrt, floor, log
+from typing import List, Dict, Any, Union, Tuple
 
 
 class CFLSolver:
@@ -162,7 +162,7 @@ class CFLSolver:
                                 i = selected_edge[1]
                                 k = pair[1]
                                 if pair[0] == selected_edge[2]:
-                                    if not (graph.new_check_edge(i,k,X)):
+                                    if not graph.new_check_edge(i,k,X):
                                         graph.add_edge(i,k,X)
                                         Worklist.append([X,i,k])
                                         num_of_sol+=1
@@ -183,7 +183,7 @@ class CFLSolver:
                                 i = selected_edge[1]
                                 k = pair[0]
                                 if pair[1] == i:
-                                    if not (graph.new_check_edge(k,j,X)):
+                                    if not graph.new_check_edge(k,j,X):
                                         graph.add_edge(k,j,X)
                                         Worklist.append([X,k,j])
                                         num_of_sol+=1

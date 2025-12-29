@@ -1,5 +1,7 @@
-import aria.utils.ply.yacc as yacc
-import aria.synthesis.spyro.lexer as lexer
+"""Parser for example rules in Spyro synthesis."""
+
+from aria.utils.ply import yacc
+from aria.synthesis.spyro import lexer
 
 tokens = lexer.tokens
 
@@ -9,7 +11,9 @@ precedence = (
     ('right', 'UMINUS')
 )
 
+
 def p_exrulelist(p):
+    """Parse example rule list."""
     '''exrulelist : exrule
                   | exrulelist exrule'''
 
@@ -19,7 +23,9 @@ def p_exrulelist(p):
     else:
         p[0] = [p[1]]
 
+
 def p_exrule(p):
+    """Parse an example rule."""
     '''exrule : type ARROW exprlist SEMI
               | type LPAREN INT RPAREN ARROW exprlist SEMI'''
 
@@ -28,12 +34,16 @@ def p_exrule(p):
     else:
         p[0] = (p[1], p[3], 0)
 
+
 def p_type(p):
+    """Parse a type."""
     "type : ID"
 
     p[0] = p[1]
 
+
 def p_exprlist(p):
+    """Parse expression list."""
     '''exprlist : expr
                 | exprlist SPLITTER expr'''
 
@@ -43,22 +53,30 @@ def p_exprlist(p):
     else:
         p[0] = [p[1]]
 
+
 def p_expr_paren(p):
+    """Parse parenthesized expression."""
     "expr : LPAREN expr RPAREN"
 
     p[0] = p[2]
 
+
 def p_expr_uminus(p):
+    """Parse unary minus expression."""
     "expr : MINUS expr %prec UMINUS"
 
     p[0] = ('UNARY', '-', p[2])
 
+
 def p_expr_unaryop(p):
+    """Parse unary operator expression."""
     "expr : NOT expr"
 
     p[0] = ('UNARY', p[1], p[2])
 
+
 def p_expr_binop(p):
+    """Parse binary operator expression."""
     '''expr : expr PLUS expr
             | expr MINUS expr
             | expr TIMES expr
@@ -74,12 +92,16 @@ def p_expr_binop(p):
 
     p[0] = ('BINOP', p[2], p[1], p[3])
 
+
 def p_expr_type(p):
+    """Parse type expression."""
     "expr : ID"
 
     p[0] = ('TYPE', p[1])
 
+
 def p_expr_hole(p):
+    """Parse hole expression."""
     '''expr : HOLE
             | HOLE LPAREN INT RPAREN'''
 
@@ -88,12 +110,16 @@ def p_expr_hole(p):
     else:
         p[0] = ('HOLE', 0)
 
+
 def p_expr_num(p):
+    """Parse number expression."""
     "expr : INT"
 
     p[0] = ('INT', p[1])
 
+
 def p_expr_call(p):
+    """Parse function call expression."""
     '''expr : ID LPAREN RPAREN
             | ID LPAREN args RPAREN'''
     if len(p) > 4:
@@ -101,7 +127,9 @@ def p_expr_call(p):
     else:
         p[0] = ('FCALL', p[1], [])
 
+
 def p_args(p):
+    """Parse function arguments."""
     '''args : expr
             | args COMMA expr'''
 
@@ -111,10 +139,13 @@ def p_args(p):
     else:
         p[0] = [p[1]]
 
+
 def p_error(p):
+    """Handle parser errors."""
     if p:
-        print("Syntax error at '%s'" % p.value)
+        print(f"Syntax error at '{p.value}'")
     else:
         print("Syntax error at EOF")
+
 
 parser = yacc.yacc()

@@ -1,26 +1,34 @@
+"""Pattern matching and dispatch functionality."""
+from typing import Any, Callable, Dict, List, Tuple
+
 from toolz import first, groupby
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from aria.unification.core import reify, unify
 from aria.unification.utils import _toposort, freeze
 from aria.unification.variable import isvar, Var
 
 
-class Dispatcher(object):
+class Dispatcher:
+    """Dispatcher for pattern matching."""
+
     def __init__(self, name: str) -> None:
+        """Initialize a dispatcher with a name."""
         self.name: str = name
-        self.funcs: Dict[Tuple, Callable] = dict()
+        self.funcs: Dict[Tuple, Callable] = {}
         self.ordering: List[Tuple] = []
 
     def add(self, signature: Tuple, func: Callable) -> None:
+        """Add a function to the dispatcher for a given signature."""
         self.funcs[freeze(signature)] = func
         self.ordering = ordering(self.funcs)
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
-        func, s = self.resolve(args)
+        """Call the dispatcher with arguments."""
+        func, s = self.resolve(args)  # noqa: ARG001
         return func(*args, **kwargs)
 
     def resolve(self, args: Tuple) -> Tuple[Callable, Dict]:
+        """Resolve the function to call for given arguments."""
         n = len(args)
         frozen_args = freeze(args)
         for signature in self.ordering:
@@ -35,6 +43,7 @@ class Dispatcher(object):
         )
 
     def register(self, *signature: Any) -> Callable[[Callable], "Dispatcher"]:
+        """Register a function with a signature."""
         def _(func: Callable) -> "Dispatcher":
             self.add(signature, func)
             return self
@@ -65,12 +74,13 @@ class VarDispatcher(Dispatcher):
     """
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        """Call the dispatcher with arguments, using variable names as kwargs."""
         func, s = self.resolve(args)
-        d = dict((k.token, v) for k, v in s.items())
+        d = {k.token: v for k, v in s.items()}
         return func(**d)
 
 
-global_namespace: Dict[str, Dispatcher] = dict()
+global_namespace: Dict[str, Dispatcher] = {}
 
 
 def match(*signature: Any, **kwargs: Any) -> Callable[[Callable], Dispatcher]:
@@ -98,11 +108,12 @@ def supercedes(a: Any, b: Any) -> bool:
     s = unify(a, b)
     if s is False:
         return False
-    s = dict((k, v) for k, v in s.items() if not isvar(k) or not isvar(v))
+    s = {k: v for k, v in s.items() if not isvar(k) or not isvar(v)}
     if reify(a, s) == a:
         return True
     if reify(b, s) == b:
         return False
+    return False
 
 
 def edge(a: Any, b: Any, tie_breaker: Callable = hash) -> bool:
@@ -113,8 +124,7 @@ def edge(a: Any, b: Any, tie_breaker: Callable = hash) -> bool:
     if supercedes(a, b):
         if supercedes(b, a):
             return tie_breaker(a) > tie_breaker(b)
-        else:
-            return True
+        return True
     return False
 
 
@@ -124,10 +134,10 @@ def ordering(signatures: List[Tuple]) -> List[Tuple]:
     Topological sort of edges as given by ``edge`` and ``supercedes``
     """
     signatures = list(map(tuple, signatures))
-    edges = [(a, b) for a in signatures for b in signatures if edge(a, b)]
-    edges = groupby(first, edges)
-    for s in signatures:
-        if s not in edges:
-            edges[s] = []
-    edges = dict((k, [b for a, b in v]) for k, v in edges.items())
-    return _toposort(edges)
+    edge_list = [(a, b) for a in signatures for b in signatures if edge(a, b)]
+    edge_list = groupby(first, edge_list)
+    for sig in signatures:
+        if sig not in edge_list:
+            edge_list[sig] = []
+    edge_dict = {k: [b for a, b in v] for k, v in edge_list.items()}
+    return _toposort(edge_dict)

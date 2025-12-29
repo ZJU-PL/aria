@@ -9,7 +9,7 @@ and calls SMT solvers that support quantified bit-vector formulas:
 - ...?
 """
 import logging
-from typing import Optional
+from typing import Optional  # noqa: F401
 
 import z3
 
@@ -78,7 +78,7 @@ def bv_opt_with_qsmt(
 
 def demo_qsmt() -> None:
     """Demo function for QSMT-based bit-vector optimization."""
-    import time
+    import time  # pylint: disable=import-outside-toplevel
 
     y = z3.BitVec("y", 16)
     fml = z3.And(z3.UGT(y, 0), z3.ULT(y, 10))

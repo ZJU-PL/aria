@@ -13,37 +13,37 @@ from typing import Dict, List, Optional, Tuple
 logger = logging.getLogger(__name__)
 
 
-def cnt(result: List[int]) -> int:
+def cnt(result_list: List[int]) -> int:
     """Convert a list of binary digits to an integer.
 
     The list is interpreted as little-endian (LSB first after reversal).
 
     Args:
-        result: List of integers representing binary digits (will be reversed)
+        result_list: List of integers representing binary digits (will be reversed)
 
     Returns:
         Integer value represented by the binary digits
     """
-    result.reverse()
+    result_list.reverse()
     total = 0
-    for i, bit in enumerate(result):
+    for i, bit in enumerate(result_list):
         if bit > 0:
             total += 2 ** i
     return total
 
 
-def list_to_int(result: List[List[int]], obj_type: List[int]) -> List[int]:
+def list_to_int(result_list: List[List[int]], obj_type: List[int]) -> List[int]:
     """Convert lists of binary results to integers based on objective type.
 
     Args:
-        result: List of binary result lists
+        result_list: List of binary result lists
         obj_type: List indicating objective type (0 for minimize, 1 for maximize)
 
     Returns:
         List of integer values, converted based on objective type
     """
     res: List[int] = []
-    for i, binary_result in enumerate(result):
+    for i, binary_result in enumerate(result_list):
         score = cnt(binary_result)
         if obj_type[i] == 1:
             # Maximization: use score directly
@@ -94,7 +94,7 @@ def cnf_from_z3(constraint_file: str) -> Optional[str]:
         return None
 
 
-def read_cnf(data: str) -> Optional[Tuple[List[List[int]], List[List[int]], List[int]]]:
+def read_cnf(data: str) -> Optional[Tuple[List[List[int]], List[List[int]], List[int]]]:  # noqa: PLR0912
     """Parse CNF data from Z3 output.
 
     Args:
@@ -144,8 +144,7 @@ def read_cnf(data: str) -> Optional[Tuple[List[List[int]], List[List[int]], List
         try:
             index = int(split_by_excl[-1])
             comment_dict[index] = lines[j]
-            if index < min_index:
-                min_index = index
+            min_index = min(min_index, index)
         except (ValueError, IndexError) as e:
             logger.error("Error parsing comment line %s: %s", lines[j], e)
             return None
@@ -276,9 +275,9 @@ def res_z3_trans(r_z3: str, objective_order: Optional[List[str]] = None) -> List
 
 
 if __name__ == '__main__':
-    benchmark_path = '/aria/benchmarks/omt/'
+    BENCHMARK_PATH = '/aria/benchmarks/omt/'
     result = subprocess.run(
-        ['z3', 'opt.priority=box', benchmark_path],
+        ['z3', 'opt.priority=box', BENCHMARK_PATH],
         capture_output=True,
         text=True,
         check=True

@@ -1,24 +1,32 @@
 #!/usr/bin/env python3
+"""Run lia_star_solver.py on all bapa benchmarks and write runtime statistics."""
 
-import sys
-import subprocess
 import argparse
-import time
 import ast
 import csv
+import subprocess
+import time
+
 
 def main():
+    """
+    Run lia_star_solver.py on all bapa benchmarks with given options.
 
+    Writes runtime statistics to txt and csv files.
+    """
     # Initialize arg parser
-    prog_desc = ('Runs lia_star_solver.py on all bapa benchmarks, with the given options, '
-                 'and writes runtime statistics to txt and csv files')
+    prog_desc = (
+        'Runs lia_star_solver.py on all bapa benchmarks, with the given options, '
+        'and writes runtime statistics to txt and csv files'
+    )
     p = argparse.ArgumentParser(description=prog_desc)
     p.add_argument('outfile', metavar='FILENAME_NO_EXT', type=str,
                    help='name of the output file to write statistics to (omit extension)')
     p.add_argument('timeout', metavar='TIMEOUT', type=int,
                    help='timeout for each benchmark in seconds')
     p.add_argument('-m', '--mapa', action='store_true',
-                   help='treat the BAPA benchmark as a MAPA problem (interpret the variables as multisets, not sets)')
+                   help='treat the BAPA benchmark as a MAPA problem '
+                         '(interpret the variables as multisets, not sets)')
     p.add_argument('--no-interp', action='store_true',
                    help='turn off interpolation')
     p.add_argument('--unfold', metavar='N', type=int, default=0,
@@ -34,14 +42,14 @@ def main():
 
     # Collect filenames
     dirs = ["bapa"]
-    benchmarks = ["fol_{}.smt2".format(str(i).zfill(7)) for i in range(1,121)]
-    txtfile = "{}.txt".format(filename)
-    csvfile = "{}.csv".format(filename)
+    benchmarks = [f"fol_{str(i).zfill(7)}.smt2" for i in range(1, 121)]
+    txtfile = f"{filename}.txt"
+    csvfile = f"{filename}.csv"
 
     # Run each benchmark, storing the output in a file
-    print("\ncheck {} to see test results\n".format(txtfile))
-    with open(txtfile, 'w') as outfile:
-        with open(csvfile, 'w') as outcsv:
+    print(f"\ncheck {txtfile} to see test results\n")
+    with open(txtfile, 'w', encoding='utf-8') as outfile:
+        with open(csvfile, 'w', encoding='utf-8') as outcsv:
 
             # Set up csv file
             fieldnames = [
@@ -68,10 +76,16 @@ def main():
                 for f in benchmarks:
 
                     # Print the current file
-                    print("{}/{}...".format(d, f))
+                    print(f"{d}/{f}...")
 
                     # Set up command line arguments to lia_star_solver.py
-                    cmd = ["python3", "../lia_star_solver.py", "{}/{}".format(d, f), "--unfold={}".format(unfold), "-i"]
+                    cmd = [
+                        "python3",
+                        "../lia_star_solver.py",
+                        f"{d}/{f}",
+                        f"--unfold={unfold}",
+                        "-i"
+                    ]
                     if mapa:
                         cmd.append("--mapa")
                     if no_interp:
@@ -95,7 +109,7 @@ def main():
                     except subprocess.CalledProcessError as exc:
                         end = time.time()
                         stats = {}
-                        output = "ERROR {}".format(exc.output.decode("utf-8"))
+                        output = f"ERROR {exc.output.decode('utf-8')}"
 
                     # Solver times out
                     except subprocess.TimeoutExpired as exc:
@@ -105,16 +119,16 @@ def main():
                         output = "timeout"
 
                     # Write sat or unsat and time taken to file
-                    outfile.write("{}/{}".format(d, f).ljust(27) + " : {} : {}\n".format(output.rjust(7), end - start))
+                    outfile.write(f"{d}/{f}".ljust(27) + f" : {output.rjust(7)} : {end - start}\n")
                     outfile.flush()
 
                     # Write stats to csv file
-                    stats['name'] = "{}/{}".format(d, f)
+                    stats['name'] = f"{d}/{f}"
                     writer.writerow(stats)
                     outcsv.flush()
 
     # Reminder
-    print("\ncheck {} to see test results\n".format(txtfile))
+    print(f"\ncheck {txtfile} to see test results\n")
 
 
 # Entry point

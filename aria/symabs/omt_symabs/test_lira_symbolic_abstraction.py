@@ -1,4 +1,7 @@
 # coding: utf-8
+"""
+Test module for LIRA symbolic abstraction functionality.
+"""
 import z3
 from aria.tests.formula_generator import FormulaGenerator
 # from aria.tests.grammar_gene import generate_from_grammar_as_str
@@ -6,6 +9,7 @@ from aria.symabs.omt_symabs.lira_symbolic_abstraction import LIRASymbolicAbstrac
 
 
 def is_sat(e):
+    """Check if a formula is satisfiable."""
     s = z3.Solver()
     s.add(e)
     s.set("timeout", 6000)
@@ -13,6 +17,7 @@ def is_sat(e):
 
 
 def test_lira_symbolic_abstraction():
+    """Test LIRA symbolic abstraction with different OMT engines."""
     try:
         w, x, y, z = z3.Ints("w x y z")
         fg = FormulaGenerator([w, x, y, z])
@@ -24,7 +29,7 @@ def test_lira_symbolic_abstraction():
             sa.init_from_fml(fml)
 
             sa.omt_engine.compact_opt = False
-            sa.set_omt_engine_type(OMTEngineType.OptiMathSAT)
+            sa.set_omt_engine_type(OMTEngineType.OPTIMATHSAT)
             # sa.set_omt_engine_type(OMTEngineType.Z3OPT)
             sa.interval_abs()
             # sa.zone_abs()
@@ -46,7 +51,7 @@ def test_lira_symbolic_abstraction():
             return True
 
         return False
-    except Exception as ex:
+    except (z3.Z3Exception, ValueError, AttributeError) as ex:
         print(ex)
         return False
 

@@ -4,7 +4,6 @@ Examples of using the AllSMT API.
 This module provides examples of using the AllSMT API with different solvers and formulas.
 """
 
-from typing import List
 from aria.allsmt import create_allsmt_solver
 
 
@@ -12,7 +11,7 @@ def z3_example() -> None:
     """Example of using the Z3-based AllSMT solver."""
     print("\n=== Z3 AllSMT Example ===")
 
-    from z3 import Ints, Bools, And, Or, Not
+    from z3 import Ints, Bools, And, Or  # pylint: disable=import-outside-toplevel
 
     # Create a Z3 solver
     solver = create_allsmt_solver("z3")
@@ -46,7 +45,7 @@ def pysmt_example() -> None:
     print("\n=== PySMT AllSMT Example (with Z3 input) ===")
 
     try:
-        from z3 import Ints, Bools, And, Or, Not
+        from z3 import Ints, Bools, And, Or  # pylint: disable=import-outside-toplevel
 
         # Create a PySMT solver
         solver = create_allsmt_solver("pysmt")
@@ -82,7 +81,7 @@ def mathsat_example() -> None:
     print("\n=== MathSAT AllSMT Example ===")
 
     try:
-        from z3 import Ints, Bools, And, Or, Not
+        from z3 import Ints, Bools, And, Or  # pylint: disable=import-outside-toplevel
 
         # Create a MathSAT solver
         solver = create_allsmt_solver("mathsat")
@@ -109,7 +108,7 @@ def mathsat_example() -> None:
 
         # Print the model count
         print(f"\nTotal models: {solver.get_model_count()}")
-    except Exception as e:
+    except (ImportError, AttributeError, RuntimeError) as e:
         print(f"MathSAT example failed: {e}")
 
 
@@ -117,7 +116,7 @@ def simple_example() -> None:
     """A simple example that works with any solver."""
     print("\n=== Simple Example (Default Solver) ===")
 
-    from z3 import Ints, And
+    from z3 import Ints, And  # pylint: disable=import-outside-toplevel
 
     # Create a solver (default is Z3)
     solver = create_allsmt_solver()
@@ -142,7 +141,7 @@ def infinite_models_example() -> None:
     """Example with potentially infinite models."""
     print("\n=== Infinite Models Example ===")
 
-    from z3 import Ints, Reals, And
+    from z3 import Ints, Reals, And  # pylint: disable=import-outside-toplevel
 
     # Create a solver
     solver = create_allsmt_solver("z3")

@@ -9,16 +9,15 @@ import re
 
 
 def convert_to_smt(slfile, smtfile):
-    with open(slfile, 'r') as f:
+    """Convert a SyGuS file to SMT format."""
+    with open(slfile, 'r', encoding='utf-8') as f:
         lines = f.readlines()
-    f.close()
     content = ''
     flag = 0
     for line in lines:
         if line.startswith("(synth-fun"):
-            pattern = "\(synth-fun(.*?)\("
             line = line.replace("(synth-fun", "(declare-fun")
-            varname_pattern = "\(([a-z]*[A-Z]*[0-9]*)\s"
+            varname_pattern = r"\(([a-z]*[A-Z]*[0-9]*)\s"
             varname = re.findall(varname_pattern, line)
             for var in varname:
                 if var != "":
@@ -44,12 +43,12 @@ def convert_to_smt(slfile, smtfile):
             if "constraint" in line:
                 line = line.replace("constraint", "assert")
             content += line
-    f = open(smtfile, "w")
-    f.write(content)
-    f.close()
+    with open(smtfile, "w", encoding='utf-8') as f:
+        f.write(content)
 
 
 def convert_sl_to_smt(file):
+    """Convert a .sl file to .smt2 format."""
     filename = file.split(".sl")[0]
     convert_to_smt(file, filename + ".smt2")
 

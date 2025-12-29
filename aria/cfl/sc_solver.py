@@ -21,10 +21,10 @@ Author: aria team
 Adapted from: "Dynamic Transitive Closure-Based Static Analysis through the Lens of Quantum Search"
 """
 
-from math import pi, sqrt, floor, ceil, log
+from math import sqrt, floor
 from collections import defaultdict
 from copy import deepcopy
-from typing import List, Dict, Any, Union, Tuple, Optional, Set
+from typing import List, Dict, Any, Tuple, Set
 
 
 class SCSolver:
@@ -129,7 +129,7 @@ class SCSolver:
                 left, right = i.split(',')
                 W.add(('con', left, right))
         # step 2
-        ground: Dict[str, int] = dict()
+        ground: Dict[str, int] = {}
         for i in self.set_variable:
             ground[i] = 0
         # number of classical iteraitons

@@ -44,12 +44,14 @@ class Z3VariablesDomain(ConjunctiveDomain):
         solver.add(phi)
         if solver.check() == z3.sat:
             model = solver.model()
-            if self.variable_type == z3.Int:
-                solution: Dict[str, Union[int, float]] = dict((d.name(), model.eval(d()).as_long())
-                                for d in model.decls())
+            if self.variable_type == z3.Int:  # type: ignore[comparison-overlap]
+                solution: Dict[str, Union[int, float]] = dict(
+                    (d.name(), model.eval(d()).as_long())
+                    for d in model.decls())
             else:
-                solution: Dict[str, Union[int, float]] = dict((d.name(), model.eval(d()).as_fraction())
-                                for d in model.decls())
+                solution: Dict[str, Union[int, float]] = dict(
+                    (d.name(), model.eval(d()).as_fraction())
+                    for d in model.decls())
             for name in self.variables:
                 if name not in solution:
                     solution[name] = 0
@@ -69,14 +71,17 @@ class Z3VariablesDomain(ConjunctiveDomain):
         solver = self.iterative_solvers[id(phi1)]
         solver.push()
         solver.add(phi2)
-        if solver.check() == z3.sat:
+        check_result = solver.check()
+        if check_result == z3.sat:
             model = solver.model()
-            if self.variable_type == z3.Int:
-                solution: Dict[str, Union[int, float]] = dict((d.name(), model.eval(d()).as_long())
-                                for d in model.decls())
+            if self.variable_type == z3.Int:  # type: ignore[comparison-overlap]
+                solution: Dict[str, Union[int, float]] = dict(
+                    (d.name(), model.eval(d()).as_long())
+                    for d in model.decls())
             else:
-                solution: Dict[str, Union[int, float]] = dict((d.name(), model.eval(d()).as_fraction())
-                                for d in model.decls())
+                solution: Dict[str, Union[int, float]] = dict(
+                    (d.name(), model.eval(d()).as_fraction())
+                    for d in model.decls())
             for name in self.variables:
                 if name not in solution:
                     solution[name] = 0

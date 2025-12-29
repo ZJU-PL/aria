@@ -1,10 +1,13 @@
+"""Main entry point for Spyro synthesis."""
+
 import argparse
 import sys
-import os
 
 from aria.synthesis.spyro.property_synthesizer import PropertySynthesizer
 
+
 def main():
+    """Run Spyro property synthesizer."""
     parser = argparse.ArgumentParser()
     parser.add_argument('infiles', nargs='+', type=argparse.FileType('r'))
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
@@ -29,7 +32,7 @@ def main():
     keep_neg_may = args.keep_neg_may
     slv_seed = args.slv_seed
 
-    phi_list, fun_list, statistics = PropertySynthesizer(
+    phi_list, fun_list, _ = PropertySynthesizer(
         infiles, outfile, v, write_log,
         timeout, inline_bnd, slv_seed,
         num_atom_max, disable_min, keep_neg_may).run()
@@ -49,5 +52,6 @@ def main():
         f.close()
     outfile.close()
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()

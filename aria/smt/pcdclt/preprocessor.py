@@ -1,6 +1,6 @@
 """Preprocessing and Boolean abstraction for CDCL(T)"""
 
-from typing import List, Tuple, Optional
+from typing import List
 import z3
 from aria.utils import SolverResult
 
@@ -62,10 +62,9 @@ class FormulaAbstraction:
             if inner not in atom_to_bool:
                 atom_to_bool[inner] = self._make_bool_var(inner)
             return z3.Not(atom_to_bool[inner])
-        else:
-            if lit not in atom_to_bool:
-                atom_to_bool[lit] = self._make_bool_var(lit)
-            return atom_to_bool[lit]
+        if lit not in atom_to_bool:
+            atom_to_bool[lit] = self._make_bool_var(lit)
+        return atom_to_bool[lit]
 
     def _abstract_clause(self, clause, atom_to_bool):
         """Abstract a clause"""
@@ -108,7 +107,7 @@ class FormulaAbstraction:
         # Check if we can decide immediately
         if z3.is_false(result_expr):
             return SolverResult.UNSAT
-        elif z3.is_true(result_expr):
+        if z3.is_true(result_expr):
             return SolverResult.SAT
 
         # Build Boolean abstraction

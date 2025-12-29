@@ -38,7 +38,7 @@ class MathSATAllSMTSolver(AllSMTSolver[MathSATModel]):
         # If mathsat_path is not provided, try to get it from global config
         if not mathsat_path:
             try:
-                from aria.global_params import global_config
+                from aria.global_params import global_config  # pylint: disable=import-outside-toplevel
                 path = global_config.get_solver_path("mathsat")
                 if path:
                     self._mathsat_path = path
@@ -59,8 +59,8 @@ class MathSATAllSMTSolver(AllSMTSolver[MathSATModel]):
         smtlib2 = "(set-logic QF_LIA)\n\n"
 
         # First declare all original variables
-        for k in keys:
-            smtlib2 += f"(declare-fun {k} () Int)\n"
+        declarations = [f"(declare-fun {k} () Int)\n" for k in keys]
+        smtlib2 += "".join(declarations)
         smtlib2 += "\n"
 
         # Create Boolean labels for tracking conditions
@@ -92,7 +92,9 @@ class MathSATAllSMTSolver(AllSMTSolver[MathSATModel]):
 
         return smtlib2
 
-    def solve(self, expr: ExprRef, keys: List[ExprRef], model_limit: int = 100) -> List[MathSATModel]:
+    def solve(
+            self, expr: ExprRef, keys: List[ExprRef],
+            model_limit: int = 100) -> List[MathSATModel]:
         """
         Enumerate all satisfying models for the given expression over the specified keys.
 
@@ -115,6 +117,7 @@ class MathSATAllSMTSolver(AllSMTSolver[MathSATModel]):
 
         # Create temporary file for SMT-LIB2 instance
         with tempfile.NamedTemporaryFile(mode='w', suffix='.smt2', delete=False) as tmp:
+            tmp_path = tmp.name
             try:
                 # Convert constraints to SMT-LIB2 and write to file
                 smtlib2_content = self._z3_to_smtlib2(solver, keys)
@@ -122,30 +125,32 @@ class MathSATAllSMTSolver(AllSMTSolver[MathSATModel]):
                 tmp.flush()
 
                 # Call MathSAT with all-sat option
-                cmd = [self._mathsat_path, tmp.name]
+                cmd = [self._mathsat_path, tmp_path]
 
                 # Run MathSAT and capture output
-                process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-                output, error = process.communicate()
+                with subprocess.Popen(
+                        cmd, stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE, text=True) as process:
+                    output, _ = process.communicate()
 
-                # Parse output and store models
-                for line in output.splitlines():
-                    if line.startswith("sat"):
-                        continue
-                    if line.startswith("unsat"):
-                        break
-                    if line.strip():
-                        self._model_count += 1
-                        self._models.append(line.strip())
-
-                        # Check if we've reached the model limit
-                        if self._model_count >= model_limit:
-                            self._model_limit_reached = True
+                    # Parse output and store models
+                    for line in output.splitlines():
+                        if line.startswith("sat"):
+                            continue
+                        if line.startswith("unsat"):
                             break
+                        if line.strip():
+                            self._model_count += 1
+                            self._models.append(line.strip())
+
+                            # Check if we've reached the model limit
+                            if self._model_count >= model_limit:
+                                self._model_limit_reached = True
+                                break
 
             finally:
                 # Clean up temporary file
-                os.unlink(tmp.name)
+                os.unlink(tmp_path)
 
         return self._models
 
@@ -183,14 +188,15 @@ class MathSATAllSMTSolver(AllSMTSolver[MathSATModel]):
             print(f"Model {i + 1}: {model}")
 
         if self._model_limit_reached:
-            print(f"Model limit reached. Found {self._model_count} models (there may be more).")
+            print(f"Model limit reached. Found {self._model_count} models "
+                  f"(there may be more).")
         else:
             print(f"Total number of models: {self._model_count}")
 
 
 def demo() -> None:
     """Demonstrate the usage of the MathSAT-based AllSMT solver."""
-    from z3 import Ints, And
+    from z3 import Ints, And  # pylint: disable=import-outside-toplevel
 
     x, y = Ints('x y')
     expr = And(x + y == 5, x > 0, y > 0)

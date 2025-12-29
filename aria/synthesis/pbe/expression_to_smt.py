@@ -4,11 +4,13 @@ This module provides functions to convert expressions from Version Space Algebra
 to SMT format for use with ARIA's SMT solvers.
 """
 
+from typing import Dict, Any
+
 import z3
-from typing import Dict, Any, List, Set, Tuple
+
 from .expressions import (
     Expression, Theory, Variable, Constant, BinaryExpr, UnaryExpr,
-    BinaryOp, UnaryOp, IfExpr, LoopExpr, FunctionCallExpr
+    BinaryOp, UnaryOp, IfExpr, FunctionCallExpr
 )
 
 
@@ -143,7 +145,9 @@ class SMTConverter:
 
         return z3.If(condition, then_expr, else_expr)
 
-    def _convert_function_call(self, expr: FunctionCallExpr, var_types: Dict[str, str]) -> z3.ExprRef:
+    def _convert_function_call(
+            self, expr: FunctionCallExpr,
+            var_types: Dict[str, str]) -> z3.ExprRef:
         """Convert a function call to SMT format."""
         args = [self.convert_expression(arg, var_types) for arg in expr.args]
 

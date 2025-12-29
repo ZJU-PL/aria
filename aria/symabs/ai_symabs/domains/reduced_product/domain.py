@@ -2,7 +2,6 @@
 """
 from typing import Any, List, Dict
 import z3
-from ..algorithms import bilateral
 from ..z3_variables import Z3VariablesDomain
 from ..z3_variables.concrete import Z3VariablesState
 from ..sign import Sign
@@ -23,7 +22,9 @@ class ReducedProductDomain(Z3VariablesDomain):
     information in another.
     """
 
-    def __init__(self, variables: List[str], domain_A: Z3VariablesDomain, domain_B: Z3VariablesDomain) -> None:
+    def __init__(
+            self, variables: List[str], domain_A: Z3VariablesDomain,
+            domain_B: Z3VariablesDomain) -> None:
         """Construct a ReducedProductDomain with given variables, sub-domains.
 
         @domain_A, @domain_B should be instantiated Z3VariablesDomains with the
@@ -76,7 +77,9 @@ class ReducedProductDomain(Z3VariablesDomain):
         met = ReducedProductAbstractState(met_A, met_B)
         return met
 
-    def abstract_consequence(self, lower: ReducedProductAbstractState, upper: ReducedProductAbstractState) -> ReducedProductAbstractState:
+    def abstract_consequence(
+            self, lower: ReducedProductAbstractState,
+            upper: ReducedProductAbstractState) -> ReducedProductAbstractState:
         """Returns the "abstract consequence" of lower and upper.
 
         The abstract consequence must be a superset of lower and *NOT* a
@@ -112,14 +115,14 @@ class ReducedProductDomain(Z3VariablesDomain):
 
     def reduce(self, alpha: ReducedProductAbstractState) -> ReducedProductAbstractState:
         """Reduces the abstract state by using information from one domain to refine the other.
-        
+
         For example, if we know from the interval domain that a variable is always positive,
         we can refine the sign domain to indicate that the variable is positive.
         """
         # Create copies to avoid modifying the original states
         state_A = alpha.state_A.copy()
         state_B = alpha.state_B.copy()
-        
+
         # Refine Sign domain (state_A) based on Interval domain (state_B)
         if hasattr(state_A, 'set_sign') and hasattr(state_B, 'interval_of'):
             for var in self.variables:
@@ -130,7 +133,7 @@ class ReducedProductDomain(Z3VariablesDomain):
                 # If the interval is entirely negative
                 elif interval.upper < 0:
                     state_A.set_sign(var, Sign.Negative)
-        
+
         # Refine Interval domain (state_B) based on Sign domain (state_A)
         if hasattr(state_B, 'set_interval') and hasattr(state_A, 'sign_of'):
             for var in self.variables:
@@ -144,7 +147,7 @@ class ReducedProductDomain(Z3VariablesDomain):
                 elif sign == Sign.Negative:
                     if interval.upper >= 0:
                         state_B.set_interval(var, Interval(interval.lower, -1))
-        
+
         return ReducedProductAbstractState(state_A, state_B)
 
     def translate(self, translation: Dict[str, str]) -> 'ReducedProductDomain':

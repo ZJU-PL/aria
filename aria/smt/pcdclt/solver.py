@@ -31,7 +31,7 @@ def _theory_worker(worker_id: int, init_theory_formula, task_queue, result_queue
         result_queue: Queue to send (task_id, unsat_core) results
         solver_bin: Path to SMT solver binary
     """
-    logger.debug(f"Theory worker {worker_id} starting")
+    logger.debug("Theory worker %d starting", worker_id)
 
     # Use context manager to ensure proper cleanup
     theory_solver = None
@@ -44,7 +44,7 @@ def _theory_worker(worker_id: int, init_theory_formula, task_queue, result_queue
 
             # Shutdown signal
             if task_id == -1:
-                logger.debug(f"Theory worker {worker_id} shutting down cleanly")
+                logger.debug("Theory worker %d shutting down cleanly", worker_id)
                 break
 
             try:
@@ -59,21 +59,21 @@ def _theory_worker(worker_id: int, init_theory_formula, task_queue, result_queue
                     # Theory consistent - signal SAT
                     result_queue.put((task_id, ""))
 
-            except Exception as e:
-                logger.error(f"Worker {worker_id} error processing task: {e}")
+            except (OSError, RuntimeError, ValueError) as e:
+                logger.error("Worker %d error processing task: %s", worker_id, e)
                 result_queue.put((task_id, f"ERROR:{e}"))
 
-    except Exception as e:
-        logger.error(f"Worker {worker_id} fatal error during initialization: {e}")
+    except (OSError, RuntimeError, ValueError) as e:
+        logger.error("Worker %d fatal error during initialization: %s", worker_id, e)
 
     finally:
         # Ensure theory solver subprocess is cleaned up
         if theory_solver is not None:
             try:
                 theory_solver.close()
-            except Exception as e:
-                logger.warning(f"Worker {worker_id} cleanup error: {e}")
-        logger.debug(f"Theory worker {worker_id} exiting")
+            except (OSError, RuntimeError) as e:
+                logger.warning("Worker %d cleanup error: %s", worker_id, e)
+        logger.debug("Theory worker %d exiting", worker_id)
 
 
 def _parse_unsat_core(core: str, abstraction: FormulaAbstraction) -> List[int]:
@@ -102,7 +102,9 @@ def _parse_unsat_core(core: str, abstraction: FormulaAbstraction) -> List[int]:
     return blocking_clause
 
 
-def _models_to_assumptions(bool_models: List[List[int]], abstraction: FormulaAbstraction) -> List[List[str]]:
+def _models_to_assumptions(
+        bool_models: List[List[int]],
+        abstraction: FormulaAbstraction) -> List[List[str]]:
     """
     Convert Boolean models to theory solver assumptions
 
@@ -145,7 +147,7 @@ def solve(smt2_string: str, logic: str = "ALL") -> SolverResult:
 
     if preprocess_result != SolverResult.UNKNOWN:
         # Decided during preprocessing
-        logger.debug(f"Solved during preprocessing: {preprocess_result}")
+        logger.debug("Solved during preprocessing: %s", preprocess_result)
         return preprocess_result
 
     # Step 2: Initialize Boolean solver
@@ -153,7 +155,10 @@ def solve(smt2_string: str, logic: str = "ALL") -> SolverResult:
     bool_solver.add_clauses(abstraction.numeric_clauses)
 
     # Step 3: Setup theory solver workers
-    num_workers = cpu_count() if MAX_T_CHECKING_PROCESSES == 0 else MAX_T_CHECKING_PROCESSES
+    if MAX_T_CHECKING_PROCESSES == 0:
+        num_workers = cpu_count()
+    else:
+        num_workers = MAX_T_CHECKING_PROCESSES
     num_workers = min(num_workers, cpu_count())
 
     # Build theory formula
@@ -191,7 +196,7 @@ def solve(smt2_string: str, logic: str = "ALL") -> SolverResult:
         worker.start()
         workers.append(worker)
 
-    logger.debug(f"Started {num_workers} theory workers")
+    logger.debug("Started %d theory workers", num_workers)
 
     # Step 4: Main CDCL(T) loop
     result = SolverResult.UNKNOWN
@@ -212,7 +217,7 @@ def solve(smt2_string: str, logic: str = "ALL") -> SolverResult:
                 result = SolverResult.UNSAT
                 break
 
-            logger.debug(f"Sampled {len(bool_models)} Boolean models")
+            logger.debug("Sampled %d Boolean models", len(bool_models))
 
             # Convert to assumptions and submit to theory workers
             all_assumptions = _models_to_assumptions(bool_models, abstraction)
@@ -226,7 +231,7 @@ def solve(smt2_string: str, logic: str = "ALL") -> SolverResult:
                 task_id, core_result = result_queue.get()
 
                 if isinstance(core_result, str) and core_result.startswith("ERROR:"):
-                    logger.error(f"Theory solver error: {core_result}")
+                    logger.error("Theory solver error: %s", core_result)
                     continue
 
                 if core_result == "":
@@ -241,32 +246,33 @@ def solve(smt2_string: str, logic: str = "ALL") -> SolverResult:
                 break
 
             # All models are theory-inconsistent - learn from unsat cores
-            logger.debug(f"All models theory-inconsistent, processing {len(unsat_cores)} unsat cores")
+            logger.debug("All models theory-inconsistent, processing %d unsat cores",
+                         len(unsat_cores))
 
             blocking_clauses = [_parse_unsat_core(core, abstraction) for core in unsat_cores]
 
             if SIMPLIFY_CLAUSES:
                 blocking_clauses = simplify_numeric_clauses(blocking_clauses)
 
-            logger.debug(f"Adding {len(blocking_clauses)} blocking clauses")
+            logger.debug("Adding %d blocking clauses", len(blocking_clauses))
 
             for clause in blocking_clauses:
                 bool_solver.add_clause(clause)
 
-    except Exception as e:
-        logger.error(f"Error in CDCL(T) main loop: {e}")
+    except (OSError, RuntimeError, ValueError) as e:
+        logger.error("Error in CDCL(T) main loop: %s", e)
         result = SolverResult.UNKNOWN
 
     finally:
         # Shutdown workers gracefully
-        logger.debug(f"Shutting down {num_workers} theory workers")
+        logger.debug("Shutting down %d theory workers", num_workers)
 
         # Send shutdown signal to all workers
         for _ in range(num_workers):
             try:
                 task_queue.put((-1, None))
-            except Exception as e:
-                logger.warning(f"Error sending shutdown signal: {e}")
+            except (OSError, RuntimeError) as e:
+                logger.warning("Error sending shutdown signal: %s", e)
 
         # Wait for workers to finish gracefully
         alive_workers = []
@@ -277,24 +283,26 @@ def solve(smt2_string: str, logic: str = "ALL") -> SolverResult:
 
         # Force terminate any workers that didn't exit gracefully
         if alive_workers:
-            logger.warning(f"{len(alive_workers)} workers didn't exit gracefully, terminating")
+            logger.warning("%d workers didn't exit gracefully, terminating",
+                           len(alive_workers))
             for worker in alive_workers:
                 try:
                     worker.terminate()
                     worker.join(timeout=0.5)
-                except Exception as e:
-                    logger.error(f"Error terminating worker: {e}")
+                except (OSError, RuntimeError) as e:
+                    logger.error("Error terminating worker: %s", e)
 
         # Final check for zombie workers
         still_alive = [w for w in workers if w.is_alive()]
         if still_alive:
-            logger.error(f"{len(still_alive)} workers are still alive after termination!")
+            logger.error("%d workers are still alive after termination!",
+                         len(still_alive))
             # Last resort: kill
             for worker in still_alive:
                 try:
                     worker.kill()
-                except Exception as e:
-                    logger.error(f"Error killing worker: {e}")
+                except (OSError, RuntimeError) as e:
+                    logger.error("Error killing worker: %s", e)
         else:
             logger.debug("All workers terminated cleanly")
 
@@ -302,18 +310,18 @@ def solve(smt2_string: str, logic: str = "ALL") -> SolverResult:
         try:
             task_queue.close()
             task_queue.join_thread()
-        except Exception as e:
-            logger.debug(f"task_queue cleanup error: {e}")
+        except (OSError, RuntimeError) as e:
+            logger.debug("task_queue cleanup error: %s", e)
         try:
             result_queue.close()
             result_queue.join_thread()
-        except Exception as e:
-            logger.debug(f"result_queue cleanup error: {e}")
+        except (OSError, RuntimeError) as e:
+            logger.debug("result_queue cleanup error: %s", e)
         try:
             # Shutdown the manager server process explicitly
             manager.shutdown()
-        except Exception as e:
-            logger.debug(f"manager shutdown error: {e}")
+        except (OSError, RuntimeError) as e:
+            logger.debug("manager shutdown error: %s", e)
 
     return result
 
@@ -327,6 +335,6 @@ class CDCLTSolver:
 
     def solve_smt2_file(self, filename: str, logic: str = "ALL") -> SolverResult:
         """Solve SMT-LIB2 file"""
-        with open(filename, 'r') as f:
+        with open(filename, 'r', encoding='utf-8') as f:
             smt2_string = f.read()
         return solve(smt2_string, logic)

@@ -108,17 +108,17 @@
 from __future__ import print_function
 import getopt
 import os
+import re
+import sys
 from pysat.examples.hitman import Atom, Hitman
 from pysat.examples.rc2 import RC2
 from pysat.formula import CNFPlus, WCNFPlus
 from pysat.solvers import Solver, SolverNames
-import re
-import sys
 
 
 #
 # ==============================================================================
-class OptUx(object):
+class OptUx:
     """
         A simple Python version of the implicit hitting set based optimal MUS
         extractor and enumerator. Given a (weighted) (partial) CNF formula,
@@ -252,28 +252,32 @@ class OptUx(object):
                                             minz, trim)
 
         if self.verbose > 2:
-            print('c mcses: {0} unit, {1} disj'.format(len(self.units),
-                                                       len(to_hit) + len(self.units)))
+            print(f'c mcses: {len(self.units)} unit, '
+                  f'{len(to_hit) + len(self.units)} disj')
 
         if not unsorted:
             # MaxSAT-based hitting set enumerator
-            self.hitman = Hitman(bootstrap_with=to_hit, weights=self.weights,
-                                 solver=solver, htype='sorted', mxs_adapt=adapt,
-                                 mxs_exhaust=exhaust, mxs_minz=minz, mxs_trim=trim)
+            self.hitman = Hitman(
+                bootstrap_with=to_hit, weights=self.weights,
+                solver=solver, htype='sorted', mxs_adapt=adapt,
+                mxs_exhaust=exhaust, mxs_minz=minz, mxs_trim=trim)
         elif not puresat:
             # MCS-based hitting set enumerator
-            self.hitman = Hitman(bootstrap_with=to_hit, weights=self.weights,
-                                 solver=solver, htype='lbx', mcs_usecld=dcalls)
+            self.hitman = Hitman(
+                bootstrap_with=to_hit, weights=self.weights,
+                solver=solver, htype='lbx', mcs_usecld=dcalls)
         else:
             # pure SAT-based hitting set enumerator with preferred phases
-            self.hitman = Hitman(bootstrap_with=to_hit, weights=self.weights,
-                                 solver=puresat, htype='sat')
+            self.hitman = Hitman(
+                bootstrap_with=to_hit, weights=self.weights,
+                solver=puresat, htype='sat')
 
         # adding the formula to cover to the hitting set enumerator
         self.cover = cover is not None
         if cover:
             # mapping literals to Hitman's atoms
-            m = lambda l: Atom(l, sign=True) if -l not in self.weights else Atom(-l, sign=False)
+            def m(l):
+                return Atom(l, sign=True) if -l not in self.weights else Atom(-l, sign=False)
 
             for cl in cover:
                 if len(cl) != 2 or not type(cl[0]) in (list, tuple, set):
@@ -285,17 +289,21 @@ class OptUx(object):
 
         # SAT oracle bootstrapped with the hard clauses; note that
         # clauses of the unit-size MCSes are enforced to be enabled
-        self.oracle = Solver(name=solver, bootstrap_with=unweighted.hard +
-                                                         [[mcs] for mcs in self.units])
+        self.solver = solver
+        self.oracle = Solver(
+            name=solver,
+            bootstrap_with=unweighted.hard + [[mcs] for mcs in self.units])
 
         if unweighted.atms:
-            if solver in SolverNames.cadical195:
+            # Check if solver supports atmost constraints
+            if hasattr(SolverNames, 'cadical195') and solver in getattr(SolverNames, 'cadical195', []):
                 # we are using CaDiCaL195 and it can use external linear engine
-                self.oracle.activate_atmost()
+                if hasattr(self.oracle, 'activate_atmost'):
+                    self.oracle.activate_atmost()
 
             assert self.oracle.supports_atmost(), \
-                '{0} does not support native cardinality constraints. Make sure you use the right type of formula.'.format(
-                    self.solver)
+                (f'{self.solver} does not support native cardinality '
+                 f'constraints. Make sure you use the right type of formula.')
 
             for atm in unweighted.atms:
                 self.oracle.add_atmost(*atm)
@@ -393,7 +401,7 @@ class OptUx(object):
         assert len(self.sels) == len(self.smap) == len(self.formula.wght)
 
         # creating a dictionary of weights
-        self.weights = {l: w for l, w in zip(self.sels, self.formula.wght)}
+        self.weights = dict(zip(self.sels, self.formula.wght))
 
     def _disjoint(self, formula, solver, adapt, exhaust, minz, trim):
         """
@@ -439,7 +447,7 @@ class OptUx(object):
                     break
 
                 # extracting the MCS corresponding to the model
-                falsified = list(filter(lambda l: model[abs(l) - 1] == -l, self.sels))
+                falsified = [l for l in self.sels if model[abs(l) - 1] == -l]
 
                 # unit size or not?
                 if len(falsified) > 1:
@@ -454,7 +462,8 @@ class OptUx(object):
 
                 # reporting the MCS
                 if self.verbose > 3:
-                    print('c mcs: {0} 0'.format(' '.join([str(self.smap[s]) for s in falsified])))
+                    mcs_str = ' '.join([str(self.smap[s]) for s in falsified])
+                    print(f'c mcs: {mcs_str} 0')
 
             # RC2 will be destroyed next; let's keep the oracle time
             self.disj_time = oracle.oracle_time()
@@ -472,7 +481,7 @@ class OptUx(object):
         """
 
         # correctly computed cost of the unit-mcs component
-        units_cost = sum(map(lambda l: self.weights[l], self.units))
+        units_cost = sum(self.weights[l] for l in self.units)
 
         while True:
             # computing a new optimal hitting set
@@ -480,7 +489,7 @@ class OptUx(object):
 
             if hs is None:
                 # no more hitting sets exist
-                break
+                return None
 
             # setting all the selector polarities to true
             self.oracle.set_phases(self.sels)
@@ -488,27 +497,26 @@ class OptUx(object):
             # testing satisfiability of the {self.units + hs} subset
             res = self.oracle.solve(assumptions=hs)
 
-            if res == False:
+            if res is False:
                 # the candidate subset of clauses is unsatisfiable,
                 # i.e. it is an optimal MUS we are searching for;
                 # therefore, blocking it and returning
                 self.hitman.block(hs)
-                self.cost = sum(map(lambda l: self.weights[l], hs)) + units_cost
+                self.cost = sum(self.weights[l] for l in hs) + units_cost
 
                 if self.units and self.cover:
                     # due to additional constraints to cover and unit mcses,
                     # there may be duplicate clauses in self.units + hs
-                    return sorted(map(lambda s: self.smap[s], sorted(set(self.units + hs))))
-                else:
-                    return sorted(map(lambda s: self.smap[s], self.units + hs))
-            else:
-                # the candidate subset is satisfiable,
-                # thus extracting a correction subset
-                model = self.oracle.get_model()
-                cs = list(filter(lambda l: model[abs(l) - 1] == -l, self.sels))
+                    return sorted(
+                        self.smap[s] for s in sorted(set(self.units + hs)))
+                return sorted(self.smap[s] for s in self.units + hs)
+            # the candidate subset is satisfiable,
+            # thus extracting a correction subset
+            model = self.oracle.get_model()
+            cs = [l for l in self.sels if model[abs(l) - 1] == -l]
 
-                # hitting the new correction subset
-                self.hitman.hit(cs, weights=self.weights)
+            # hitting the new correction subset
+            self.hitman.hit(cs, weights=self.weights)
 
     def enumerate(self):
         """
@@ -524,7 +532,7 @@ class OptUx(object):
         while not done:
             mus = self.compute()
 
-            if mus != None:
+            if mus is not None:
                 yield mus
             else:
                 done = True
@@ -600,7 +608,7 @@ def parse_options():
         elif opt in ('-x', '--exhaust'):
             exhaust = True
         else:
-            assert False, 'Unhandled option: {0} {1}'.format(opt, arg)
+            assert False, f'Unhandled option: {opt} {arg}'
 
     return adapt, cover, dcalls, exhaust, minz, trim, to_enum, solver, \
         puresat, unsorted, verbose, args
@@ -616,21 +624,30 @@ def usage():
     print('Usage:', os.path.basename(sys.argv[0]), '[options] file')
     print('Options:')
     print('        -a, --adapt               Try to adapt (simplify) input formula')
-    print('        -c, --cover=<string>      Stop MUS enumeration as soon as this formula is covered')
-    print('                                  Available values: any valid file path, none (default = none)')
-    print('        -d, --dcalls              Apply clause D calls (in unsorted enumeration only)')
+    print('        -c, --cover=<string>      Stop MUS enumeration as soon as this '
+          'formula is covered')
+    print('                                  Available values: any valid file path, '
+          'none (default = none)')
+    print('        -d, --dcalls              Apply clause D calls (in unsorted '
+          'enumeration only)')
     print('        -e, --enum=<string>       Enumerate top-k solutions')
-    print('                                  Available values: [1 .. INT_MAX], all (default: 1)')
+    print('                                  Available values: [1 .. INT_MAX], all '
+          '(default: 1)')
     print('        -h, --help                Show this message')
-    print('        -m, --minimize            Use a heuristic unsatisfiable core minimizer')
-    print('        -p, --puresat=<string>    Use a pure SAT-based hitting set enumerator')
-    print('                                  Available values: cd15, cd19, lgl, mgh (default = mgh)')
+    print('        -m, --minimize            Use a heuristic unsatisfiable core '
+          'minimizer')
+    print('        -p, --puresat=<string>    Use a pure SAT-based hitting set '
+          'enumerator')
+    print('                                  Available values: cd15, cd19, lgl, mgh '
+          '(default = mgh)')
     print('                                  Requires: unsorted mode, i.e. \'-u\'')
     print('        -s, --solver              SAT solver to use')
-    print(
-        '                                  Available values: cd15, cd19, g3, g4, lgl, mcb, mcm, mpl, m22, mc, mgh (default = g3)')
-    print('        -t, --trim=<int>          How many times to trim unsatisfiable cores')
-    print('                                  Available values: [0 .. INT_MAX] (default = 0)')
+    print('                                  Available values: cd15, cd19, g3, g4, '
+          'lgl, mcb, mcm, mpl, m22, mc, mgh (default = g3)')
+    print('        -t, --trim=<int>          How many times to trim unsatisfiable '
+          'cores')
+    print('                                  Available values: [0 .. INT_MAX] '
+          '(default = 0)')
     print('        -u, --unsorted            Enumerate MUSes in an unsorted way')
     print('        -v, --verbose             Be verbose')
     print('        -x, --exhaust             Exhaust new unsatisfiable cores')
@@ -674,4 +691,4 @@ if __name__ == '__main__':
 
             # reporting the total oracle time
             if verbose > 1:
-                print('c oracle time: {0:.4f}'.format(optux.oracle_time()))
+                print(f'c oracle time: {optux.oracle_time():.4f}')

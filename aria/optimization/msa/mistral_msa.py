@@ -97,7 +97,7 @@ class MSASolver:
 
     def compute_mus(
         self,
-        X: FrozenSet[z3.ExprRef],
+        x_set: FrozenSet[z3.ExprRef],
         fvars: FrozenSet[z3.ExprRef],
         lb: int,
     ) -> FrozenSet[z3.ExprRef]:
@@ -121,22 +121,22 @@ class MSASolver:
 
         best: FrozenSet[z3.ExprRef] = frozenset()
         # TODO: Choose x in a more clever way (e.g., based on variable importance)
-        x = frozenset([next(iter(fvars))])
+        x_var = frozenset([next(iter(fvars))])
 
         if self.verb > 1:
-            logger.debug("State: X = %s + %s, lb = %d", list(X), list(x), lb)
+            logger.debug("State: X = %s + %s, lb = %d", list(x_set), list(x_var), lb)
 
-        if self.get_model_forall(X.union(x)):
-            Y = self.compute_mus(X.union(x), fvars - x, lb - 1)
+        if self.get_model_forall(x_set.union(x_var)):
+            y_set = self.compute_mus(x_set.union(x_var), fvars - x_var, lb - 1)
 
-            cost_curr = len(Y) + 1
+            cost_curr = len(y_set) + 1
             if cost_curr > lb:
-                best = Y.union(x)
+                best = y_set.union(x_var)
                 lb = cost_curr
 
-        Y = self.compute_mus(X, frozenset(fvars) - x, lb)
-        if len(Y) > lb:
-            best = Y
+        y_set = self.compute_mus(x_set, frozenset(fvars) - x_var, lb)
+        if len(y_set) > lb:
+            best = y_set
 
         return best
 
@@ -164,7 +164,7 @@ class MSASolver:
 
 
 if __name__ == "__main__":
-    """Demo: Find minimal satisfying assignment."""
+    # Demo: Find minimal satisfying assignment
     a, b, c, d = z3.Ints('a b c d')
     fml = z3.Or(
         z3.And(a == 3, b == 3),

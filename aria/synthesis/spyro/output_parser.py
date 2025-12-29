@@ -1,16 +1,30 @@
-from aria.synthesis.spyro.util import *
+"""Parser for Spyro synthesis output."""
+
+from aria.synthesis.spyro.util import (
+    find_linenum_starts_with,
+    find_linenum_with,
+    sum_dict,
+    max_dict,
+    union_dict
+)
+
 
 def replace_last_argument(text, var):
+    """Replace the last argument in a function call."""
     start = text.rfind(',')
     end = text.rfind(')')
 
     return text[:start] + ', out' + text[end:]
 
+
 class OutputParser:
+    """Parser for Spyro synthesis output."""
+
     def __init__(self, text):
         self.__text = text.decode('utf-8')
 
     def __get_function_code_lines(self, function_name):
+        """Get code lines for a function."""
         lines = self.__text.splitlines()
 
         target = 'void ' + function_name + ' ('
@@ -20,6 +34,8 @@ class OutputParser:
         return lines[start+2:end]
 
     def get_lam_functions(self):
+        """Get lambda functions from output."""
+
         lines = self.__text.splitlines()
 
         lam_functions = {}
@@ -33,6 +49,7 @@ class OutputParser:
         return lam_functions
 
     def parse_positive_example(self):
+        """Parse positive example from output."""
         soundness_code_lines = self.__get_function_code_lines('soundness')
         soundness_code_lines = [line for line in soundness_code_lines if 'copy' not in line]
         soundness_code_lines = [line for line in soundness_code_lines if 'minimize' not in line]
@@ -57,6 +74,8 @@ class OutputParser:
         return positive_example_code
 
     def parse_negative_example_precision(self):
+        """Parse negative example from precision output."""
+
         precision_code_lines = self.__get_function_code_lines('precision')
         precision_code_lines = [line for line in precision_code_lines if 'copy' not in line]
         precision_code_lines = [line for line in precision_code_lines if 'minimize' not in line]
@@ -79,6 +98,7 @@ class OutputParser:
         return negative_example_code
 
     def parse_improves_predicate(self):
+        """Parse improves predicate from output."""
         precision_code_lines = self.__get_function_code_lines('improves_predicate')
         precision_code_lines = ['\t' + line.strip() for line in precision_code_lines]
 
@@ -94,13 +114,14 @@ class OutputParser:
         return negative_example_code
 
     def parse_maxsat(self, neg_examples):
+        """Parse maxsat results from output."""
         maxsat_code_lines = self.__get_function_code_lines('maxsat')
         maxsat_code = '\n'.join(maxsat_code_lines)
 
         used_neg_examples = []
         discarded_examples = []
         for i, e in enumerate(neg_examples):
-            if 'negative_example_{}'.format(i) in maxsat_code:
+            if f'negative_example_{i}' in maxsat_code:
                 used_neg_examples.append(e)
             else:
                 discarded_examples.append(e)
@@ -108,6 +129,8 @@ class OutputParser:
         return used_neg_examples, discarded_examples
 
     def parse_property(self):
+        """Parse property from output."""
+
         property_code_lines = self.__get_function_code_lines('property')
         property_code_lines = ['\t' + line.strip() for line in property_code_lines]
 
