@@ -15,12 +15,12 @@ from aria.sampling.base import Sampler, Logic, SamplingMethod, SamplingOptions, 
 from aria.utils.z3_expr_utils import get_variables, is_bv_sort
 
 
-def _get_uniform_samples_with_xor(vars: List[z3.ExprRef], cnt: z3.ExprRef, num_samples: int):
+def _get_uniform_samples_with_xor(bv_vars: List[z3.ExprRef], cnt: z3.ExprRef, num_samples: int):
     """
     Internal implementation: Get num_samples models (projected to vars) using XOR constraints.
 
     Args:
-        vars: List of bit-vector variables to project on
+        bv_vars: List of bit-vector variables to project on
         cnt: The constraints/formula
         num_samples: Number of samples to generate
 
@@ -31,20 +31,20 @@ def _get_uniform_samples_with_xor(vars: List[z3.ExprRef], cnt: z3.ExprRef, num_s
     s = z3.Solver()
     s.add(cnt)
     bits = []
-    for var in vars:
+    for var in bv_vars:
         bits = bits + [z3.Extract(i, i, var) == 1 for i in range(var.size())]
     num_success = 0
     while True:
         s.push()
         rounds = 3  # why 3?
-        for x in range(rounds):
+        for _ in range(rounds):
             trials = 10
             fml = z3.BoolVal(randrange(0, 2))
-            for i in range(trials):
+            for _ in range(trials):
                 fml = z3.Xor(fml, bits[randrange(0, len(bits))])
             s.add(fml)
         if s.check() == z3.sat:
-            res.append([s.model().eval(var, True) for var in vars])
+            res.append([s.model().eval(var, True) for var in bv_vars])
             num_success += 1
             if num_success == num_samples:
                 break
@@ -113,7 +113,8 @@ class HashBasedBVSampler(Sampler):
 
         # Set random seed if provided
         if options.random_seed is not None:
-            set_seed(options.random_seed)
+            import random as rnd_module  # pylint: disable=import-outside-toplevel
+            rnd_module.seed(options.random_seed)
 
         # Generate samples using XOR constraints
         raw_samples = _get_uniform_samples_with_xor(

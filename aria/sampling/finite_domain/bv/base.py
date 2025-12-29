@@ -53,7 +53,7 @@ class BitVectorSampler(Sampler):
                 self.variables.append(var)
 
         # Sort variables by name for deterministic ordering
-        self.variables.sort(key=lambda v: str(v))
+        self.variables.sort(key=str)
 
     def sample(self, options: SamplingOptions) -> SamplingResult:
         """

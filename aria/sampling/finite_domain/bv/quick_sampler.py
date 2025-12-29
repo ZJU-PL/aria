@@ -67,7 +67,7 @@ def _bvsampler(constraints, target):
             break
 
         model = solver.model()
-        result0 = model[result].as_long()
+        result0 = model.eval(result).as_long()
         solver.pop()
 
         results.add(result0)
@@ -90,7 +90,7 @@ def _bvsampler(constraints, target):
 
             if solver.check() == z3.sat:
                 model = solver.model()
-                result1 = model[result].as_long()
+                result1 = model.eval(result).as_long()
 
                 if result1 not in results:
                     results.add(result1)
@@ -99,8 +99,7 @@ def _bvsampler(constraints, target):
                 new_mutations = {}
                 new_mutations[result1] = 1
 
-                for value in mutations:
-                    level = mutations[value]
+                for value, level in mutations.items():
                     if level > MAX_LEVEL:
                         continue
 

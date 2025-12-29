@@ -8,9 +8,10 @@ TODO:
    - Support pyunigen sampler for uniform sampling
 """
 
-import z3
-from typing import Set, Dict, Any, List, Optional
 import random
+from typing import Set, Dict, Any, List, Optional
+
+import z3
 
 from aria.sampling.base import Sampler, Logic, SamplingMethod, SamplingOptions, SamplingResult
 from aria.utils.z3_expr_utils import get_variables, is_bool_sort
@@ -96,9 +97,9 @@ class BooleanSampler(Sampler):
                 block: List[z3.ExprRef] = []
                 for var in self.variables:
                     if z3.is_true(model[var]):
-                        block.append(var is False)  # type: ignore
+                        block.append(var == z3.BoolVal(False))
                     else:
-                        block.append(var is True)  # type: ignore
+                        block.append(var == z3.BoolVal(True))
 
                 solver.add(z3.Or(block))
                 stats["iterations"] += 1
