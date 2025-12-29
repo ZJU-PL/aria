@@ -1,13 +1,14 @@
 """Orax: SMTO solver integrating Z3 with LLM-powered oracles (blackbox/whitebox)."""
 
-import z3
 import os
 import tempfile
 from typing import Dict, List, Optional, Any
 
-from aria.ml.llm.smto.oracles import OracleInfo, WhiteboxOracleInfo, OracleType
+import z3
+
 from aria.ml.llm.llmtool.LLM_utils import LLM
 from aria.ml.llm.llmtool.logger import Logger
+from aria.ml.llm.smto.oracles import OracleInfo, WhiteboxOracleInfo, OracleType
 from aria.ml.llm.smto.whitebox import WhiteboxAnalyzer, ModelEvaluator
 from aria.ml.llm.smto.utils import (
     OracleCache,
@@ -36,7 +37,10 @@ class OraxSolver:
                  explanation_level: str = "basic",
                  whitebox_analysis: bool = False,
                  temperature: float = 0.1,
-                 system_role: str = "You are a experienced programmer and good at understanding programs written in mainstream programming languages."):
+                 system_role: str = (
+                     "You are a experienced programmer and good at understanding "
+                     "programs written in mainstream programming languages."
+                 )):
         """
         Initialize Orax solver
 
@@ -139,7 +143,9 @@ class OraxSolver:
             # Add learned constraints from oracle feedback
             self._add_oracle_constraints(model)
 
-            self._add_explanation(f"Model validation failed, adding oracle constraints and trying again")
+            self._add_explanation(
+                "Model validation failed, adding oracle constraints and trying again"
+            )
 
         self._add_explanation("Maximum iterations reached without finding valid model")
         return None
@@ -164,8 +170,10 @@ class OraxSolver:
             model_result = self._get_model_result(model, oracle_info.name, call_inputs)
 
             if not values_equal(oracle_result, model_result):
-                self._add_explanation(f"Oracle mismatch for {oracle_info.name}{call_inputs}: "
-                                   f"oracle={oracle_result}, model={model_result}")
+                self._add_explanation(
+                    f"Oracle mismatch for {oracle_info.name}{call_inputs}: "
+                    f"oracle={oracle_result}, model={model_result}"
+                )
                 return False
 
         return True
@@ -212,7 +220,7 @@ class OraxSolver:
             f"Act as the following function:\n{oracle_info.description}\n\n"
             f"Examples:\n{examples_text}\n\n"
             f"Now, given the input: {inputs}\nWhat is the output?"
-        )
+        )  # noqa: E501
 
         try:
             original_system_role = self.llm.systemRole
@@ -238,7 +246,9 @@ class OraxSolver:
             if output_type == z3.RealSort():
                 return float(response)
             if output_type == z3.StringSort():
-                return response[1:-1] if response.startswith('"') and response.endswith('"') else response
+                if response.startswith('"') and response.endswith('"'):
+                    return response[1:-1]
+                return response
             return response
         except Exception as e:
             self._add_explanation(f"Error parsing LLM response: {e}")

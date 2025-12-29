@@ -1,16 +1,24 @@
-# FIXME: do we need to use SATElite for pre-processing first?
-
-from aria.bool.features.enums import VarState, ClauseState
-
 """
 First we need to compute the active variables and clauses
 After pre-processing, active variable and clause computation is done
-Tautologies are removed, clauses are counted as passive and active, and variables marked as unassigned or irrelevant
+Tautologies are removed, clauses are counted as passive and active, and
+variables marked as unassigned or irrelevant
 This information is used when probing, and performing unit propagation.
+
+FIXME: do we need to use SATElite for pre-processing first?
 """
+from aria.bool.features.enums import ClauseState, VarState
 
 
 def get_active_features(sat_instance, clauses, c, v):
+    """
+    Compute active features for SAT instance.
+    :param sat_instance: SAT instance object
+    :param clauses: List of clauses
+    :param c: Number of clauses
+    :param v: Number of variables
+    :return: Tuple of active features
+    """
     # initialize the lists that contain information on the clauses and variables
     clause_states = [ClauseState.PASSIVE] * c
     num_active_clauses_with_var = [0] * (v + 1)
@@ -27,7 +35,7 @@ def get_active_features(sat_instance, clauses, c, v):
     clauses_with_positive_var = []
     clauses_with_negative_var = []
 
-    for k in range(v + 1):
+    for _ in range(v + 1):
         clauses_with_positive_var.append([])
         clauses_with_negative_var.append([])
 
@@ -41,7 +49,7 @@ def get_active_features(sat_instance, clauses, c, v):
 
         clause = clauses[clause_i]
         num_literals = len(clause)
-        clause.sort(key=lambda x: abs(x))
+        clause.sort(key=abs)
 
         # mark and remove redundant literals
         for i in range(num_literals - 1):

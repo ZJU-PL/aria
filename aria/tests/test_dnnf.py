@@ -53,7 +53,7 @@ class TestDNNF(TestCase):
         dnnf_project = dnnf_compiler.simplify(dnnf_project)
         dnnf_project.reset()
 
-        print('Computing Min Card ... result = ', dnnf_compiler.MCard(dnnf))
+        print('Computing Min Card ... result = ', dnnf_compiler.m_card(dnnf))
 
         dnnf_min = copy.deepcopy(dnnf_smooth)
         dnnf_min = dnnf_compiler.minimize(dnnf_min)

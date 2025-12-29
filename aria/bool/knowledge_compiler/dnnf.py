@@ -1,12 +1,15 @@
 # import numpy as np
 """
-DNNF (Decomposable Negation Normal Form) is a form of propositional logic formula that provides efficient support for many logical operations.
+DNNF (Decomposable Negation Normal Form) is a form of propositional logic formula
+that provides efficient support for many logical operations.
 """
 import copy
-from typing import List, Optional, Dict, Set, Any, Union, Tuple
+from typing import List, Optional, Dict, Union, Tuple
 
 
 class DNF_Node:
+    """Represents a node in a DNNF (Decomposable Negation Normal Form) tree."""
+
     def __init__(self, node_type: str, left_child: Optional['DNF_Node'] = None,
                  right_child: Optional['DNF_Node'] = None, literal: Optional[int] = None,
                  conflict_atom: Optional[int] = None) -> None:
@@ -20,7 +23,7 @@ class DNF_Node:
             literal: Literal value (for leaf nodes)
             conflict_atom: Conflict atom (for OR nodes)
         """
-        assert node_type == 'A' or node_type == 'O' or node_type == 'L'
+        assert node_type in ('A', 'O', 'L')
         self.type = node_type  # A, O or L
         self.left_child = left_child
         self.right_child = right_child
@@ -37,7 +40,7 @@ class DNF_Node:
             assert self.left_child is None
             assert self.right_child is None
             self.atoms = [abs(literal)]
-        elif self.type == 'O' or self.type == 'A':
+        elif self.type in ('O', 'A'):
             assert self.literal is None
             assert self.left_child is not None
             assert self.right_child is not None
@@ -70,8 +73,7 @@ class DNF_Node:
         """
         if self.type == 'L':
             return 0
-        else:
-            return self.left_child.count_edge() + self.right_child.count_edge() + 2
+        return self.left_child.count_edge() + self.right_child.count_edge() + 2
 
     def collect_var(self) -> List[int]:
         """
@@ -82,8 +84,7 @@ class DNF_Node:
         """
         if self.type == 'L':
             return [abs(self.literal)]
-        else:
-            return list(set(self.left_child.collect_var()).union(self.right_child.collect_var()))
+        return list(set(self.left_child.collect_var()).union(self.right_child.collect_var()))
 
     def print_nnf(self, current_id: int, output_file: Optional[str] = None) -> int:
         """
@@ -96,36 +97,36 @@ class DNF_Node:
         Returns:
             Next available node ID
         """
-        out = None
-        if output_file is not None:
-            out = open(output_file, 'a')
-
         if self.explore_id is not None:
             return current_id
 
         if self.type == 'L':
             if output_file is not None:
-                out.write('L {}\n'.format(self.literal))
-                out.close()
+                with open(output_file, 'a', encoding='utf-8') as out:
+                    out.write(f'L {self.literal}\n')
             else:
-                print('{} L {}'.format(current_id, self.literal))
+                print(f'{current_id} L {self.literal}')
         else:
             current_id = self.left_child.print_nnf(current_id, output_file)
             current_id = self.right_child.print_nnf(current_id, output_file)
             if self.type == 'A':
                 if output_file is not None:
-                    out.write('A 2 {} {}\n'.format(self.left_child.explore_id, self.right_child.explore_id))
-                    out.close()
+                    with open(output_file, 'a', encoding='utf-8') as out:
+                        out.write(f'A 2 {self.left_child.explore_id} '
+                                  f'{self.right_child.explore_id}\n')
                 else:
-                    print('{} A 2 {} {}'.format(current_id, self.left_child.explore_id, self.right_child.explore_id))
+                    print(f'{current_id} A 2 {self.left_child.explore_id} '
+                          f'{self.right_child.explore_id}')
             if self.type == 'O':
                 if output_file is not None:
-                    out.write('O {} 2 {} {}\n'.format(self.conflict_atom, self.left_child.explore_id,
-                                                      self.right_child.explore_id))
-                    out.close()
+                    with open(output_file, 'a', encoding='utf-8') as out:
+                        out.write(f'O {self.conflict_atom} 2 '
+                                  f'{self.left_child.explore_id} '
+                                  f'{self.right_child.explore_id}\n')
                 else:
-                    print('{} O {} 2 {} {}'.format(current_id, self.conflict_atom, self.left_child.explore_id,
-                                                   self.right_child.explore_id))
+                    print(f'{current_id} O {self.conflict_atom} 2 '
+                          f'{self.left_child.explore_id} '
+                          f'{self.right_child.explore_id}')
         self.explore_id = current_id
         return current_id + 1
 
@@ -136,30 +137,10 @@ class DNF_Node:
             self.left_child.reset()
             self.right_child.reset()
 
-    """
-    # '''
-    # Queries and transformation
-    # '''
-    # def conditioning(self, instanciation):
-    #     if self.explore_id != 1:
-    #         assert type(self.literal) is not bool
-    #         if self.type == 'L':
-    #             if self.literal in instanciation:
-    #                 self.literal = True
-    #             elif -self.literal in instanciation:
-    #                 self.literal = False
-    #         else:
-    #             self.left_child.conditioning(instanciation)
-    #             self.right_child.conditioning(instanciation)
-    #         self.explore_id = 1
-
-    # def conjoin(self, instanciation):
-    #     return DNF_Node(node_type='A', left_child=self.conditioning(instanciation),
-    #           right_child=create_term_node(term=instanciation))
-    """
 
 
 class DNNF_Compiler:
+    """Compiler for converting CNF to DNNF format."""
     def __init__(self, dtree: 'Node') -> None:
         """
         Initialize DNNF compiler.
@@ -172,10 +153,6 @@ class DNNF_Compiler:
         self.cache_lit: Dict[int, DNF_Node] = {}
         self.ddnnf: Optional[DNF_Node] = None
 
-    """
-    These functions take a dtree as input
-    Export a new dtree
-    """
 
     def bcp(self, dtree: 'Node', literal: int) -> Union['Node', int]:
         """
@@ -214,8 +191,10 @@ class DNNF_Compiler:
         else:
             modified.left_child = self.bcp(modified.left_child, literal)
             modified.right_child = self.bcp(modified.right_child, literal)
-            modified.atoms = list(set(modified.left_child.atoms).union(modified.right_child.atoms))
-            modified.separators = list(set(modified.left_child.atoms).intersection(modified.right_child.atoms))
+            modified.atoms = list(set(modified.left_child.atoms).union(
+                modified.right_child.atoms))
+            modified.separators = list(set(modified.left_child.atoms).intersection(
+                modified.right_child.atoms))
             modified.clauses = modified.left_child.clauses + modified.right_child.clauses
             modified.clause_key = modified.left_child.clause_key + modified.right_child.clause_key
             modified.lit_key += 2 ** (abs(literal) - 1)
@@ -251,15 +230,11 @@ class DNNF_Compiler:
             unit_assignment.append(unit)
             if modified == -1:
                 return -1, []
-            elif len(modified.clauses) == 0:
+            if len(modified.clauses) == 0:
                 return modified, unit_assignment
             unit_clauses = [c for c in modified.clauses if len(c) == 1]
         return modified, unit_assignment
 
-    '''
-    Compose some subtree into a new tree with declared node type (O or A)
-    i.e we do not compose leaves but only compose AND or OR of defined nodes
-    '''
 
     def compose(self, node_type: str, list_tree: List[DNF_Node],
                 conflict: Optional[List[int]] = None) -> Optional[DNF_Node]:
@@ -275,21 +250,26 @@ class DNNF_Compiler:
             Composed node or None
         """
         assert node_type != 'L'
-        assert len(list_tree) > 0
+        # Filter out None values first
         list_tree = [t for t in list_tree if t is not None]
         if len(list_tree) == 0:
             return None
 
         if len(list_tree) == 1:
-            composed_node = list_tree[0]
+            return list_tree[0]
+
+        if conflict is not None:
+            right_composed_node = self.compose(
+                node_type, list_tree[1:], conflict[1:]
+            )
+            composed_node = DNF_Node(
+                node_type=node_type, left_child=list_tree[0],
+                right_child=right_composed_node, conflict_atom=conflict[0])
         else:
-            if conflict is not None:
-                right_composed_node = self.compose(node_type, list_tree[1:], conflict[1:])
-                composed_node = DNF_Node(node_type=node_type, left_child=list_tree[0], right_child=right_composed_node,
-                                         conflict_atom=conflict[0])
-            else:
-                right_composed_node = self.compose(node_type, list_tree[1:])
-                composed_node = DNF_Node(node_type=node_type, left_child=list_tree[0], right_child=right_composed_node)
+            right_composed_node = self.compose(node_type, list_tree[1:])
+            composed_node = DNF_Node(
+                node_type=node_type, left_child=list_tree[0],
+                right_child=right_composed_node)
         return composed_node
 
     def create_term_node(self, term: List[int]) -> Optional[DNF_Node]:
@@ -304,16 +284,15 @@ class DNNF_Compiler:
         """
         if len(term) == 0:
             return None
-        else:
-            leaves: List[DNF_Node] = []
-            for literal in term:
-                if literal not in self.cache_lit:
-                    leaf_node = DNF_Node(node_type='L', literal=literal)
-                    leaves.append(leaf_node)
-                    self.cache_lit[literal] = leaf_node
-                else:
-                    leaves.append(self.cache_lit[literal])
-            return self.compose(node_type='A', list_tree=leaves)
+        leaves: List[DNF_Node] = []
+        for literal in term:
+            if literal not in self.cache_lit:
+                leaf_node = DNF_Node(node_type='L', literal=literal)
+                leaves.append(leaf_node)
+                self.cache_lit[literal] = leaf_node
+            else:
+                leaves.append(self.cache_lit[literal])
+        return self.compose(node_type='A', list_tree=leaves)
 
     def clause2ddnnf(self, dtree: 'Node') -> Optional[DNF_Node]:
         """
@@ -332,7 +311,7 @@ class DNNF_Compiler:
         nodes: List[DNF_Node] = []
         conflict: List[int] = []
 
-        for i in range(len(clause)):
+        for i, _ in enumerate(clause):
             # li= [DNF_Node(node_type='L',literal=clause[i])]
             # not_lj = [DNF_Node(node_type='L',literal=-clause[j]) for j in range(i)]
             li: List[DNF_Node] = []
@@ -368,27 +347,22 @@ class DNNF_Compiler:
         """
         if dtree.is_leaf():
             return self.clause2ddnnf(dtree)
-        else:
-            l_key = dtree.lit_key
-            c_key = 0
-            for i, v in enumerate(dtree.clause_key):
-                c_key += v * (2 ** i)
-            if l_key in self.cache and c_key in self.cache[l_key]:
-                print('Using cache !')
-                return self.cache[l_key][c_key]
-            else:
-                r = self.cnf2ddnnf(dtree)
-                if r != False and r is not None:  # seems redundant?
-                    if self.cache is None:
-                        self.cache = {}
-                    if l_key not in self.cache:
-                        self.cache[l_key] = {}
-                    self.cache[l_key][c_key] = r
-                return r
+        l_key = dtree.lit_key
+        c_key = 0
+        for i, v in enumerate(dtree.clause_key):
+            c_key += v * (2 ** i)
+        if l_key in self.cache and c_key in self.cache[l_key]:
+            print('Using cache !')
+            return self.cache[l_key][c_key]
+        r = self.cnf2ddnnf(dtree)
+        if r is not False and r is not None:
+            if self.cache is None:
+                self.cache = {}
+            if l_key not in self.cache:
+                self.cache[l_key] = {}
+            self.cache[l_key][c_key] = r
+        return r
 
-    '''
-    Core function of compiler
-    '''
 
     def cnf2ddnnf(self, dtree: 'Node') -> Optional[DNF_Node]:
         """
@@ -404,7 +378,7 @@ class DNNF_Compiler:
         #     return clause2ddnnf(dtree)
         dtree, unit_assignment = self.unit_propagation(dtree)
         if dtree == -1:
-            return False
+            return None
         term_node = self.create_term_node(unit_assignment)
         sep = dtree.separators
         if sep is None or len(sep) == 0:
@@ -434,7 +408,9 @@ class DNNF_Compiler:
                 self.cache_lit[-v] = not_v_node
             p_node = self.compose(node_type='A', list_tree=[v_node, p])
             n_node = self.compose(node_type='A', list_tree=[not_v_node, n])
-            t_node = DNF_Node(node_type='O', left_child=p_node, right_child=n_node, conflict_atom=abs(v))
+            t_node = DNF_Node(
+                node_type='O', left_child=p_node, right_child=n_node,
+                conflict_atom=abs(v))
             # t_node = compose(node_type='O', list_tree=[p_node, n_node])
             return self.compose(node_type='A', list_tree=[term_node, t_node])
 
@@ -448,9 +424,6 @@ class DNNF_Compiler:
         self.ddnnf = self.cnf2ddnnf(self.dtree)
         return copy.deepcopy(self.ddnnf)
 
-    '''
-    Queries and transformation
-    '''
 
     def conditioning(self, dnnf: DNF_Node, instanciation: List[int]) -> DNF_Node:
         """
@@ -464,7 +437,7 @@ class DNNF_Compiler:
             Conditioned DNNF node
         """
         if dnnf.explore_id is None:
-            assert type(dnnf.literal) is not bool
+            assert not isinstance(dnnf.literal, bool)
             if dnnf.type == 'L':
                 if dnnf.literal in instanciation:
                     dnnf.literal = True
@@ -487,8 +460,10 @@ class DNNF_Compiler:
         Returns:
             Conjoined DNNF node
         """
-        return DNF_Node(node_type='A', left_child=self.simplify(self.conditioning(dnnf, instanciation)),
-                        right_child=self.create_term_node(instanciation))
+        return DNF_Node(
+            node_type='A',
+            left_child=self.simplify(self.conditioning(dnnf, instanciation)),
+            right_child=self.create_term_node(instanciation))
 
     def simplify(self, dnnf: DNF_Node) -> DNF_Node:
         """
@@ -502,30 +477,29 @@ class DNNF_Compiler:
         """
         if dnnf.type == 'L':
             return dnnf
-        elif dnnf.type == 'O':
+        if dnnf.type == 'O':
             dnnf.left_child = self.simplify(dnnf.left_child)
             dnnf.right_child = self.simplify(dnnf.right_child)
             if dnnf.left_child.literal:
                 return dnnf.left_child
-            elif dnnf.right_child.literal:
+            if dnnf.right_child.literal:
                 return dnnf.right_child
-            elif not dnnf.left_child.literal:
+            if not dnnf.left_child.literal:
                 return dnnf.right_child
-            elif not dnnf.right_child.literal:
+            if not dnnf.right_child.literal:
                 return dnnf.left_child
-            else:
-                return dnnf
-        elif dnnf.type == 'A':
+            return dnnf
+        if dnnf.type == 'A':
             dnnf.left_child = self.simplify(dnnf.left_child)
             dnnf.right_child = self.simplify(dnnf.right_child)
             if dnnf.left_child.literal and dnnf.right_child.literal:
                 return dnnf.left_child
-            elif not dnnf.left_child.literal:
+            if not dnnf.left_child.literal:
                 return dnnf.left_child
-            elif not dnnf.right_child.literal:
+            if not dnnf.right_child.literal:
                 return dnnf.right_child
-            else:
-                return dnnf
+            return dnnf
+        return dnnf
 
     def is_sat(self, dnnf: DNF_Node) -> bool:
         """
@@ -538,16 +512,12 @@ class DNNF_Compiler:
             True if satisfiable, False otherwise
         """
         if dnnf.type == 'L':
-            if not dnnf.literal:
-                return False
-            else:
-                return True
-
-        elif dnnf.type == 'O':
+            return bool(dnnf.literal)
+        if dnnf.type == 'O':
             return self.is_sat(dnnf.left_child) or self.is_sat(dnnf.right_child)
-
-        elif dnnf.type == 'A':
+        if dnnf.type == 'A':
             return self.is_sat(dnnf.left_child) and self.is_sat(dnnf.right_child)
+        return False
 
     def project(self, dnnf: DNF_Node, atoms: List[int]) -> DNF_Node:
         """
@@ -561,7 +531,7 @@ class DNNF_Compiler:
             Projected DNNF node
         """
         if dnnf.type == 'L':
-            if type(dnnf.literal) is not bool:
+            if not isinstance(dnnf.literal, bool):
                 if abs(dnnf.literal) not in atoms:
                     dnnf.literal = True
         else:
@@ -569,7 +539,7 @@ class DNNF_Compiler:
             dnnf.right_child = self.project(dnnf.right_child, atoms)
         return dnnf
 
-    def MCard(self, dnnf: DNF_Node) -> float:
+    def m_card(self, dnnf: DNF_Node) -> float:
         """
         Compute minimum cardinality of DNNF.
 
@@ -580,50 +550,48 @@ class DNNF_Compiler:
             Minimum cardinality
         """
         if dnnf.type == 'L':
-            if type(dnnf.literal) is bool:
+            if isinstance(dnnf.literal, bool):
                 if dnnf.literal:
                     return 0
-                else:
-                    return float('inf')
-                    # return np.inf
-
-            else:
-                if dnnf.literal > 0:
-                    return 0
-                else:
-                    return 1
-        elif dnnf.type == 'O':
-            return min(self.MCard(dnnf.left_child), self.MCard(dnnf.right_child))
-        elif dnnf.type == 'A':
-            return self.MCard(dnnf.left_child) + self.MCard(dnnf.right_child)
+                return float('inf')
+            if dnnf.literal > 0:
+                return 0
+            return 1
+        if dnnf.type == 'O':
+            return min(self.m_card(dnnf.left_child), self.m_card(dnnf.right_child))
+        if dnnf.type == 'A':
+            return self.m_card(dnnf.left_child) + self.m_card(dnnf.right_child)
+        return float('inf')
 
     def minimize(self, dnnf):
+        """Minimize DNNF by removing unnecessary nodes."""
         if dnnf.type == 'L':
             return dnnf
-        elif dnnf.type == 'A':
+        if dnnf.type == 'A':
             dnnf.left_child = self.minimize(dnnf.left_child)
             dnnf.right_child = self.minimize(dnnf.right_child)
             if dnnf.left_child is None:
                 return dnnf.right_child
-            elif dnnf.right_child is None:
+            if dnnf.right_child is None:
                 return dnnf.left_child
             return dnnf
-        elif dnnf.type == 'O':
-            mcard = self.MCard(dnnf)
-            left_mcard = self.MCard(dnnf.left_child)
-            right_mcard = self.MCard(dnnf.right_child)
-            if left_mcard != mcard and right_mcard != mcard:
+        if dnnf.type == 'O':
+            mcard = self.m_card(dnnf)
+            left_mcard = self.m_card(dnnf.left_child)
+            right_mcard = self.m_card(dnnf.right_child)
+            if mcard not in (left_mcard, right_mcard):
                 return None
-            elif left_mcard == mcard and right_mcard != mcard:
+            if left_mcard == mcard and right_mcard != mcard:
                 return self.minimize(dnnf.left_child)
-            elif left_mcard != mcard and right_mcard == mcard:
+            if left_mcard != mcard and right_mcard == mcard:
                 return self.minimize(dnnf.right_child)
-            else:
-                dnnf.left_child = self.minimize(dnnf.left_child)
-                dnnf.right_child = self.minimize(dnnf.right_child)
-                return dnnf
+            dnnf.left_child = self.minimize(dnnf.left_child)
+            dnnf.right_child = self.minimize(dnnf.right_child)
+            return dnnf
+        return dnnf
 
     def create_trivial_node(self, atom):
+        """Create a trivial OR node for an atom."""
         if atom in self.cache_lit:
             p = self.cache_lit[atom]
         else:
@@ -637,6 +605,7 @@ class DNNF_Compiler:
         return DNF_Node('O', left_child=p, right_child=n, conflict_atom=abs(atom))
 
     def smooth(self, dnnf):
+        """Smooth DNNF by ensuring all children have the same atoms."""
         if dnnf.type == 'L':
             pass
         elif dnnf.type == 'A':
@@ -649,32 +618,39 @@ class DNNF_Compiler:
             if len(not_atoms_left) > 0:
                 print('Left node is not smooth')
                 trivial_nodes = [self.create_trivial_node(lit) for lit in not_atoms_left]
-                dnnf.left_child = self.compose(node_type='A', list_tree=[dnnf.left_child] + trivial_nodes)
+                dnnf.left_child = self.compose(
+                    node_type='A', list_tree=[dnnf.left_child] + trivial_nodes)
                 dnnf.left_child.atoms = atoms
             if len(not_atoms_right) > 0:
                 print('Right node is not smooth')
                 trivial_nodes = [self.create_trivial_node(lit) for lit in not_atoms_right]
-                dnnf.right_child = self.compose(node_type='A', list_tree=[dnnf.right_child] + trivial_nodes)
+                dnnf.right_child = self.compose(
+                    node_type='A', list_tree=[dnnf.right_child] + trivial_nodes)
                 dnnf.right_child.atoms = atoms
             dnnf.left_child = self.smooth(dnnf.left_child)
             dnnf.right_child = self.smooth(dnnf.right_child)
         return dnnf
 
     def enumerate_models(self, dnnf):
+        """Enumerate all models of the DNNF."""
         if dnnf.type == 'L':
-            if type(dnnf.literal) is bool:
+            if isinstance(dnnf.literal, bool):
                 if dnnf.literal:
                     return [[]]
-                else:
-                    return []
-            else:
-                return [[dnnf.literal]]
-        elif dnnf.type == 'O':
-            return self.union_models(self.enumerate_models(dnnf.left_child), self.enumerate_models(dnnf.right_child))
-        elif dnnf.type == 'A':
-            return self.multiply_models(self.enumerate_models(dnnf.left_child), self.enumerate_models(dnnf.right_child))
+                return []
+            return [[dnnf.literal]]
+        if dnnf.type == 'O':
+            return self.union_models(
+                self.enumerate_models(dnnf.left_child),
+                self.enumerate_models(dnnf.right_child))
+        if dnnf.type == 'A':
+            return self.multiply_models(
+                self.enumerate_models(dnnf.left_child),
+                self.enumerate_models(dnnf.right_child))
+        return []
 
     def union_models(self, l1, l2):
+        """Union two lists of models."""
         model = l1.copy()
         for item in l2:
             if item not in l1:
@@ -682,8 +658,9 @@ class DNNF_Compiler:
         return model
 
     def multiply_models(self, l1, l2):
+        """Multiply two lists of models (cartesian product)."""
         model = []
-        for item_A in l1:
-            for item_B in l2:
-                model.append(list(set(item_A).union(item_B)))
+        for item_a in l1:
+            for item_b in l2:
+                model.append(list(set(item_a).union(item_b)))
         return model

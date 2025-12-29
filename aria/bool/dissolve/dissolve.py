@@ -23,7 +23,6 @@ Key components:
 
 from __future__ import annotations
 
-import dataclasses
 import logging
 import multiprocessing as mp
 import os
@@ -31,11 +30,9 @@ import queue
 import random
 import time
 import threading
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple, Callable, Set, Union
-from collections import defaultdict, deque
-import heapq
+from dataclasses import dataclass
+from typing import Dict, List, Optional, Sequence, Tuple, Set
+from collections import defaultdict
 
 from pysat.formula import CNF
 from pysat.solvers import Solver
@@ -82,6 +79,7 @@ class WorkerResult:
 
 @dataclass
 class DissolveResult:
+    """Result from running the Dissolve algorithm."""
     result: SolverResult
     model: Optional[List[int]] = None
     unsat_core: Optional[List[int]] = None
@@ -90,7 +88,8 @@ class DissolveResult:
 
 
 @dataclass
-class DissolveConfig:
+class DissolveConfig:  # pylint: disable=too-many-instance-attributes
+    """Configuration for the Dissolve algorithm."""
     k_split_vars: int = 5
     per_query_conflict_budget: int = 20000
     max_rounds: Optional[int] = None
@@ -122,9 +121,12 @@ class DilemmaEngine:
     """
 
     def __init__(self):
-        self.equivalences: Dict[int, int] = {}  # variable -> equivalence class (0 or 1)
-        self.inverse_equivalences: Dict[int, Set[int]] = defaultdict(set)  # equiv_class -> variables
-        self.constraints: Set[Tuple[int, int, int]] = set()  # (var, value) constraints
+        # variable -> equivalence class (0 or 1)
+        self.equivalences: Dict[int, int] = {}
+        # equiv_class -> variables
+        self.inverse_equivalences: Dict[int, Set[int]] = defaultdict(set)
+        # (var, value) constraints
+        self.constraints: Set[Tuple[int, int, int]] = set()
 
     def add_equivalence(self, var: int, value: int) -> None:
         """Add an equivalence relation: variable ≡ value."""
@@ -155,7 +157,7 @@ class DilemmaEngine:
                 self.get_equivalence(abs(r)) == 0):    # r ≡ 0
                 # This shouldn't happen in a valid derivation
                 pass
-        except:
+        except (KeyError, TypeError):
             pass
         return new_equivalences
 
@@ -171,7 +173,7 @@ class DilemmaEngine:
                 self.get_equivalence(abs(r)) == 1):    # r ≡ 1
                 # This shouldn't happen in a valid derivation
                 pass
-        except:
+        except (KeyError, TypeError):
             pass
         return new_equivalences
 
@@ -270,7 +272,6 @@ class UBTree:
         """Create a normalized key for a clause."""
         # Sort by absolute value, maintain sign relationships
         abs_literals = [abs(l) for l in clause]
-        signs = [1 if l > 0 else -1 for l in clause]
         sorted_indices = sorted(range(len(clause)), key=lambda i: abs_literals[i])
         return tuple(clause[i] for i in sorted_indices)
 
@@ -287,7 +288,10 @@ class UBTree:
                 levels.add(assignment[var])
         return len(levels) if levels else 1
 
-    def insert_clause(self, clause: List[int], round_id: int, assignment: Optional[Dict[int, int]] = None) -> UBTreeNode:
+    def insert_clause(
+        self, clause: List[int], round_id: int,
+        assignment: Optional[Dict[int, int]] = None
+    ) -> UBTreeNode:
         """
         Insert a clause into the UBTree with subsumption checking.
 
@@ -307,8 +311,7 @@ class UBTree:
             return existing_node
 
         # Create path for the clause
-        path_literals = [lit for lit in clause]
-        current_node = self.root.find_or_create_path(path_literals)
+        current_node = self.root.find_or_create_path(clause)
 
         # Set the clause for the leaf node
         current_node.clause = clause
@@ -431,6 +434,7 @@ class Scheduler:
                 continue
 
             # Generate queries for this round
+            # pylint: disable=protected-access
             queries = dissolve_instance._generate_dilemma_queries(round_id)
 
             if not queries:
@@ -449,6 +453,7 @@ class Scheduler:
                     result = self.result_queue.get(timeout=1.0)
                     results_collected += 1
                     # Process result
+                    # pylint: disable=protected-access
                     dissolve_instance._process_worker_result(result)
                 except queue.Empty:
                     continue
@@ -466,6 +471,7 @@ class Scheduler:
                     self.active_queries[query_id] = query
 
                 # Process the query
+                # pylint: disable=protected-access
                 result = dissolve_instance._solve_dilemma_query(query, clauses)
 
                 # Return result
@@ -477,8 +483,8 @@ class Scheduler:
 
             except queue.Empty:
                 continue
-            except Exception as e:
-                logger.exception(f"Worker {worker_id} error: {e}")
+            except (RuntimeError, ValueError) as e:
+                logger.exception("Worker %d error: %s", worker_id, e)
                 with self.lock:
                     self.idle_workers.add(worker_id)
 
@@ -486,7 +492,7 @@ class Scheduler:
 # ------------------------------ Main Dissolve Implementation ------------------------------ #
 
 
-class Dissolve:
+class Dissolve:  # pylint: disable=too-many-instance-attributes,too-few-public-methods
     """Complete Dissolve algorithm implementation following the full paper."""
 
     def __init__(self, config: Optional[DissolveConfig] = None):
@@ -596,7 +602,9 @@ class Dissolve:
 
     # -------------------------- Worker Query Processing ------------------------- #
 
-    def _solve_dilemma_query(self, query: DilemmaQuery, original_clauses: List[List[int]]) -> WorkerResult:
+    def _solve_dilemma_query(
+        self, query: DilemmaQuery, original_clauses: List[List[int]]
+    ) -> WorkerResult:
         """Solve a dilemma-based query using PySAT (Algorithm 2 implementation)."""
         try:
             # Get shared clauses from previous rounds
@@ -613,12 +621,15 @@ class Dissolve:
             try:
                 s.conf_budget(budget)
                 budgeted = True
-            except Exception:
+            except (AttributeError, RuntimeError):
                 budgeted = False
 
             # Solve with assumptions
             assumptions = query.assumptions
-            status_val = s.solve_limited(assumptions=assumptions) if budgeted else s.solve(assumptions=assumptions)
+            if budgeted:
+                status_val = s.solve_limited(assumptions=assumptions)
+            else:
+                status_val = s.solve(assumptions=assumptions)
 
             if status_val is True:
                 model = s.get_model()
@@ -646,7 +657,7 @@ class Dissolve:
             core = None
             try:
                 core = s.get_core()
-            except Exception:
+            except (AttributeError, RuntimeError):
                 core = None
 
             # Extract learned clauses and variable information
@@ -662,8 +673,8 @@ class Dissolve:
                 dilemma_info=query.dilemma_triple
             )
 
-        except Exception as exc:
-            logger.exception(f"Query {query.query_id} failed: {exc}")
+        except (RuntimeError, ValueError, AttributeError) as exc:
+            logger.exception("Query %d failed: %s", query.query_id, exc)
             return WorkerResult(
                 status=SolverResult.ERROR,
                 learnt_clauses=[],
@@ -679,7 +690,7 @@ class Dissolve:
             return []
         return self.ubtree.get_best_clauses_for_round(round_id - 1, self.cfg.max_shared_per_round)
 
-    def _extract_learnt_clauses(self, solver: Solver, assumptions: List[int]) -> List[List[int]]:
+    def _extract_learnt_clauses(self, _solver: Solver, assumptions: List[int]) -> List[List[int]]:
         """Extract learned clauses from the solver."""
         # In a full implementation, this would access the solver's learned clause database
         # For now, return a sample based on assumptions
@@ -723,7 +734,7 @@ class Dissolve:
 
     def _process_worker_result(self, result: Tuple[int, WorkerResult]) -> None:
         """Process a result from a worker."""
-        query_id, worker_result = result
+        _query_id, worker_result = result
 
         if worker_result.status == SolverResult.SAT:
             # Found a satisfying assignment
@@ -759,7 +770,6 @@ class Dissolve:
 
         # Extract clauses and variable information from CNF
         clauses = list(cnf.clauses)
-        num_vars = cnf.nv
 
         # Initialize state
         self.global_learnts = []
@@ -815,18 +825,19 @@ class Dissolve:
                 rounds=round_id,
                 runtime_sec=time.time() - start,
             )
-        else:
-            return DissolveResult(
-                result=SolverResult.UNKNOWN,
-                rounds=round_id,
-                runtime_sec=time.time() - start,
-            )
+        return DissolveResult(
+            result=SolverResult.UNKNOWN,
+            rounds=round_id,
+            runtime_sec=time.time() - start,
+        )
 
 
 # ------------------------------ Legacy Compatibility ------------------------------ #
 
 
-def pick_split_variables(num_vars: int, scores: Dict[int, int], k: int, rng: random.Random) -> List[int]:
+def pick_split_variables(
+    num_vars: int, scores: Dict[int, int], k: int, rng: random.Random
+) -> List[int]:
     """Legacy function for backward compatibility."""
     candidates = list(range(1, num_vars + 1))
     rng.shuffle(candidates)
@@ -843,13 +854,13 @@ def assumptions_from_bits(vars_to_split: Sequence[int], mask: int) -> List[int]:
     return assumps
 
 
-def _worker_solve(
+def _worker_solve(  # pylint: disable=too-many-locals
     solver_name: str,
     cnf_clauses: List[List[int]],
     assumptions: List[int],
     learnt_in: List[List[int]],
     conflict_budget: int,
-    seed: Optional[int],
+    _seed: Optional[int],
 ) -> Tuple[SolverResult, List[List[int]], List[int], Dict[int, int], Optional[List[int]]]:
     """Legacy worker function for backward compatibility."""
     try:
@@ -857,16 +868,19 @@ def _worker_solve(
         for c in learnt_in:
             try:
                 s.add_clause(c)
-            except Exception:
+            except (ValueError, RuntimeError):
                 pass
 
         try:
             s.conf_budget(conflict_budget)
             budgeted = True
-        except Exception:
+        except (AttributeError, RuntimeError):
             budgeted = False
 
-        status_val = s.solve_limited(assumptions=assumptions) if budgeted else s.solve(assumptions=assumptions)
+        if budgeted:
+            status_val = s.solve_limited(assumptions=assumptions)
+        else:
+            status_val = s.solve(assumptions=assumptions)
 
         if status_val is True:
             return (SolverResult.SAT, [], [], {}, s.get_model())
@@ -877,7 +891,7 @@ def _worker_solve(
         core = None
         try:
             core = s.get_core()
-        except Exception:
+        except (AttributeError, RuntimeError):
             core = None
 
         learnt: List[List[int]] = []
@@ -888,7 +902,7 @@ def _worker_solve(
                 votes[v] = votes.get(v, 0) + 1
 
         return (SolverResult.UNSAT, learnt, [], votes, core)
-    except Exception as exc:
+    except (RuntimeError, ValueError, AttributeError) as exc:
         logger.exception("Worker crashed: %s", exc)
         return (SolverResult.ERROR, [], [], {}, None)
 

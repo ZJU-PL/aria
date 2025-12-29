@@ -10,9 +10,9 @@ This script demonstrates the key features of the full Dissolve implementation:
 """
 
 from aria.bool.dissolve.dissolve import (
-    Dissolve, DissolveConfig, DissolveResult,
-    DilemmaTriple, DilemmaQuery, WorkerResult,
-    DilemmaEngine, UBTree, UBTreeNode, Scheduler
+    DissolveConfig,
+    DilemmaTriple, DilemmaQuery,
+    DilemmaEngine, UBTree, Scheduler
 )
 
 def demo_dilemma_engine():
@@ -64,7 +64,9 @@ def demo_dilemma_queries():
     config = DissolveConfig(k_split_vars=2)
 
     # Create a minimal Dissolve instance (just for demo)
+    # pylint: disable=too-few-public-methods,duplicate-code
     class DemoDissolve:
+        """Demo class for demonstrating dilemma query generation."""
         def __init__(self):
             self.cfg = config
             self.variable_scores = {1: 10, 2: 8, 3: 5}
@@ -99,11 +101,17 @@ def demo_dilemma_queries():
 
     # Generate queries manually for demo
     queries = []
+    # pylint: disable=protected-access
     split_vars = demo._select_split_variables()
     for mask in range(1 << len(split_vars)):
         assumptions = demo._assumptions_from_mask(split_vars, mask)
         dilemma_triple = demo._create_dilemma_triple(split_vars, mask)
-        query = DilemmaQuery(assumptions=assumptions, dilemma_triple=dilemma_triple, round_id=0, query_id=mask)
+        query = DilemmaQuery(
+            assumptions=assumptions,
+            dilemma_triple=dilemma_triple,
+            round_id=0,
+            query_id=mask
+        )
         queries.append(query)
 
     print(f"Generated {len(queries)} dilemma queries:")
@@ -143,9 +151,9 @@ def main():
         print("- Sophisticated variable selection heuristics")
         print("- Full integration following the paper's Algorithm 1-3")
 
-    except Exception as e:
+    except (RuntimeError, ValueError, AttributeError) as e:
         print(f"Demo error: {e}")
-        import traceback
+        import traceback  # pylint: disable=import-outside-toplevel
         traceback.print_exc()
 
 if __name__ == "__main__":

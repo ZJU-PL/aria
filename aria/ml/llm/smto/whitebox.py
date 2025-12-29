@@ -1,10 +1,11 @@
 """Whitebox oracle analysis and model evaluation."""
 
-import z3
 from typing import Dict, Optional, Any
 
-from aria.ml.llm.smto.oracles import WhiteboxOracleInfo, OracleAnalysisMode
+import z3
+
 from aria.ml.llm.llmtool.LLM_utils import LLM
+from aria.ml.llm.smto.oracles import WhiteboxOracleInfo, OracleAnalysisMode
 
 
 class WhiteboxAnalyzer:
@@ -49,7 +50,8 @@ class WhiteboxAnalyzer:
             [f"Input: {ex['input']}\nOutput: {ex['output']}" for ex in oracle_info.examples]
         )
         sections: list[str] = [
-            "As an expert in software analysis, create a precise symbolic model for the following component:",
+            ("As an expert in software analysis, create a precise symbolic model "
+             "for the following component:"),
             f"Component name: {oracle_info.name}",
             f"Input types: {[str(t) for t in oracle_info.input_types]}",
             f"Output type: {str(oracle_info.output_type)}",
@@ -59,11 +61,14 @@ class WhiteboxAnalyzer:
             examples_text,
         ]
         # Attach whitebox content per analysis mode
-        if oracle_info.analysis_mode == OracleAnalysisMode.DOCUMENTATION and oracle_info.documentation:
+        if (oracle_info.analysis_mode == OracleAnalysisMode.DOCUMENTATION and
+                oracle_info.documentation):
             sections += ["", "Documentation:", oracle_info.documentation]
-        if oracle_info.analysis_mode == OracleAnalysisMode.SOURCE_CODE and oracle_info.source_code:
+        if (oracle_info.analysis_mode == OracleAnalysisMode.SOURCE_CODE and
+                oracle_info.source_code):
             sections += ["", "Source code:", oracle_info.source_code]
-        if oracle_info.analysis_mode == OracleAnalysisMode.BINARY and oracle_info.binary_code:
+        if (oracle_info.analysis_mode == OracleAnalysisMode.BINARY and
+                oracle_info.binary_code):
             sections += ["", "Binary code is available for analysis (metadata only)."]
         if oracle_info.analysis_mode == OracleAnalysisMode.MIXED:
             if oracle_info.documentation:
@@ -83,7 +88,8 @@ class WhiteboxAnalyzer:
             "3. Express this model using SMT expressions compatible with Z3",
             "4. Ensure the model matches all provided examples",
             "",
-            "Output only the model in a form directly evaluable with Z3, with no extra text:",
+            ("Output only the model in a form directly evaluable with Z3, "
+             "with no extra text:"),
         ]
         return "\n".join(sections)
 
@@ -109,7 +115,9 @@ class ModelEvaluator:
                 return result
 
             if self.explanation_callback:
-                self.explanation_callback("Direct Z3 evaluation failed, falling back to LLM evaluation")
+                self.explanation_callback(
+                    "Direct Z3 evaluation failed, falling back to LLM evaluation"
+                )
 
             return self._evaluate_with_llm(oracle_info, inputs)
 
@@ -145,7 +153,9 @@ class ModelEvaluator:
                     z3_vars[var_name] = z3.FP(var_name, input_type)
                 elif z3.is_array_sort(input_type):
                     # For arrays, create Array variable with appropriate domain and range
-                    z3_vars[var_name] = z3.Array(var_name, input_type.domain(), input_type.range())
+                    z3_vars[var_name] = z3.Array(
+                        var_name, input_type.domain(), input_type.range()
+                    )
                 else:
                     return None
 
@@ -180,9 +190,13 @@ class ModelEvaluator:
                             solver.add(z3_vars[var_name] == z3.FPVal(value, input_type))
                         elif isinstance(value, str):
                             try:
-                                solver.add(z3_vars[var_name] == z3.FPVal(float(value), input_type))
-                            except:
-                                solver.add(z3_vars[var_name] == z3.FPVal(value, input_type))
+                                solver.add(
+                                    z3_vars[var_name] == z3.FPVal(float(value), input_type)
+                                )
+                            except Exception:
+                                solver.add(
+                                    z3_vars[var_name] == z3.FPVal(value, input_type)
+                                )
                         else:
                             solver.add(z3_vars[var_name] == z3.FPVal(float(value), input_type))
                     elif z3.is_array_sort(input_type):
@@ -190,25 +204,23 @@ class ModelEvaluator:
                         # A full implementation would need sophisticated array handling
                         pass  # Skip for now
 
-            model_str = oracle_info.symbolic_model
-
             # Create output variable
             if oracle_info.output_type == z3.IntSort():
-                output_var = z3.Int("output")
+                z3.Int("output")
             elif oracle_info.output_type == z3.RealSort():
-                output_var = z3.Real("output")
+                z3.Real("output")
             elif oracle_info.output_type == z3.BoolSort():
-                output_var = z3.Bool("output")
+                z3.Bool("output")
             elif oracle_info.output_type == z3.StringSort():
-                output_var = z3.String("output")
+                z3.String("output")
             elif z3.is_bv_sort(oracle_info.output_type):
-                output_var = z3.BitVec("output", oracle_info.output_type.size())
+                z3.BitVec("output", oracle_info.output_type.size())
             elif z3.is_fp_sort(oracle_info.output_type):
-                output_var = z3.FP("output", oracle_info.output_type)
+                z3.FP("output", oracle_info.output_type)
             elif z3.is_array_sort(oracle_info.output_type):
-                output_var = z3.Array("output",
-                                     oracle_info.output_type.domain(),
-                                     oracle_info.output_type.range())
+                z3.Array("output",
+                         oracle_info.output_type.domain(),
+                         oracle_info.output_type.range())
             else:
                 return None
 
@@ -241,7 +253,7 @@ Return only the resulting output value, with no additional text.
 
             self.llm.systemRole = original_system_role
 
-            from aria.llm.smto.utils import parse_text_by_sort
+            from aria.ml.llm.smto.utils import parse_text_by_sort
             return parse_text_by_sort(result, oracle_info.output_type)
 
         except Exception as e:

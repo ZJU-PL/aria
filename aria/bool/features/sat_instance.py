@@ -5,7 +5,11 @@ from aria.bool.features.dpll import DPLLProbing
 
 
 def write_features_to_json(results_dict):
-    with open("features.json", "w") as f:
+    """
+    Write features dictionary to JSON file.
+    :param results_dict: Dictionary of features to write
+    """
+    with open("features.json", "w", encoding="utf-8") as f:
         json.dump(results_dict, f)
 
 
@@ -35,8 +39,7 @@ class SATInstance:
         if self.v == 0 or self.c == 0:
             self.solved = True
             return
-        else:
-            self.solved = False
+        self.solved = False
 
         # computed with active features
         # These change as they are processed with dpll probing algorithms
@@ -75,17 +78,19 @@ class SATInstance:
     def clauses_with_literal(self, literal):
         """
         Returns a list of clauses that contain the literal
-        :param literal:
-        :return:
+        :param literal: Literal value (positive or negative)
+        :return: List of clause indices containing the literal
         """
         if literal > 0:
             return self.clauses_with_positive_var[literal]
-        else:
-            return self.clauses_with_negative_var[abs(literal)]
+        return self.clauses_with_negative_var[abs(literal)]
 
     def parse_active_features(self):
-        # self.num_active_vars, self.num_active_clauses, self.clause_states, self.clauses,
-        # self.num_bin_clauses_with_var, self.var_states =\
+        """
+        Parse and compute active features for the SAT instance.
+        """
+        # self.num_active_vars, self.num_active_clauses, self.clause_states,
+        # self.clauses, self.num_bin_clauses_with_var, self.var_states =\
         active_features.get_active_features(self, self.clauses, self.c, self.v)
 
     def gen_basic_features(self):
@@ -124,10 +129,16 @@ class SATInstance:
         raise NotImplementedError()
 
     def display_results(self):
-        for ele in self.features_dict:
-            print(ele, self.features_dict[ele])
+        """
+        Display all computed features.
+        """
+        for ele in self.features_dict.items():
+            print(ele[0], ele[1])
 
     def write_results(self):
+        """
+        Write computed features to JSON file.
+        """
         write_features_to_json(self.features_dict)
 
 
@@ -144,7 +155,9 @@ def get_base_features(cnf_path):
 
 
 def demo_features():
-    from pathlib import Path
+    """
+    Demo function to compute and display features.
+    """
     from aria.global_params import BENCHMARKS_PATH
     cnf_path = BENCHMARKS_PATH / "dimacs" / "parity_5.cnf"
     get_base_features(cnf_path)

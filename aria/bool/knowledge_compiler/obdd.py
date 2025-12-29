@@ -3,10 +3,11 @@ OBDD: Ordered Binary Decision Diagrams
 """
 import copy
 import itertools
-from typing import List, Dict, Optional, Tuple, Any
+from typing import List, Dict, Optional, Tuple
 
 
 class BDD:
+    """Represents a Binary Decision Diagram (BDD) node."""
     def __init__(self, var: int, low: Optional['BDD'], high: Optional['BDD']) -> None:
         """
         Initialize a BDD node.
@@ -43,25 +44,26 @@ class BDD:
 
         if self.is_sink():
             if output_file is not None:
-                out = open(output_file, 'a')
-                if self.var:
-                    out.write('     {} [label="True", color=green, shape=square];\n'.format(current_id + 1))
-                elif not self.var:
-                    out.write('     {} [label="False", color=red, shape=square];\n'.format(current_id + 1))
-                out.close()
+                with open(output_file, 'a', encoding='utf-8') as out:
+                    if self.var:
+                        out.write(f'     {current_id + 1} [label="True", '
+                                  f'color=green, shape=square];\n')
+                    else:
+                        out.write(f'     {current_id + 1} [label="False", '
+                                  f'color=red, shape=square];\n')
             else:
-                print('{}-SINK : {}'.format(current_id + 1, self.var))
+                print(f'{current_id + 1}-SINK : {self.var}')
         else:
             left_current_id, rank = self.low._print_info(current_id, rank, output_file)
             current_id, rank = self.high._print_info(left_current_id, rank, output_file)
             if output_file is not None:
-                out = open(output_file, 'a')
-                out.write('     {} [label="{}"];\n'.format(current_id + 1, self.var))
-                out.write('     {} -> {} [style=dotted];\n'.format(current_id + 1, self.low.explore_id))
-                out.write('     {} -> {};\n'.format(current_id + 1, self.high.explore_id))
-                out.close()
+                with open(output_file, 'a', encoding='utf-8') as out:
+                    out.write(f'     {current_id + 1} [label="{self.var}"];\n')
+                    out.write(f'     {current_id + 1} -> {self.low.explore_id} '
+                              f'[style=dotted];\n')
+                    out.write(f'     {current_id + 1} -> {self.high.explore_id};\n')
             else:
-                print('{}-Var: {}'.format(current_id + 1, self.var))
+                print(f'{current_id + 1}-Var: {self.var}')
         self.explore_id = current_id + 1
         if self.is_sink():
             rank[0].append(self.explore_id)
@@ -88,6 +90,7 @@ class BDD:
 
 
 class BDD_Compiler:
+    """Compiler for converting CNF to OBDD (Ordered Binary Decision Diagram)."""
     def __init__(self, n_vars: int, clausal_form: List[List[int]]) -> None:
         """
         Initialize BDD compiler.
@@ -105,8 +108,8 @@ class BDD_Compiler:
         self.cutset_cache = self._generate_cutset_cache()
         self.separator_cache = self._generate_separator_cache()
 
-        self.F_SINK = BDD(False, None, None)
-        self.T_SINK = BDD(True, None, None)
+        self.f_sink = BDD(False, None, None)
+        self.t_sink = BDD(True, None, None)
 
     def bcp(self, formula: List[List[int]], literal: int) -> List[List[int]]:
         """
@@ -132,9 +135,6 @@ class BDD_Compiler:
                 modified.append(clause)
         return modified
 
-    '''
-    Functions used for computing cutset key and cache
-    '''
 
     def _compute_cutset(self, clausal_form: List[List[int]], var: int) -> List[int]:
         """
@@ -163,7 +163,7 @@ class BDD_Compiler:
         for i in range(self.n_vars):
             cutset_i = self._compute_cutset(self.clausal_form, i + 1)
             cutset_cache.append(cutset_i)
-            print('-cutset {} : {}'.format(i + 1, cutset_i))
+            print(f'-cutset {i + 1} : {cutset_i}')
         return cutset_cache
 
     def compute_cutset_key(self, clausal_form: List[List[int]], var: int) -> int:
@@ -171,24 +171,24 @@ class BDD_Compiler:
         Compute cutset key for caching.
 
         Args:
-            clausal_form: CNF formula
+            clausal_form: CNF formula (unused, uses cache instead)
             var: Variable index
 
         Returns:
             Cutset key
         """
+        # clausal_form is kept for interface compatibility but uses cache
+        del clausal_form
         cutset_var = self.cutset_cache[var - 1]
         cutset_key = 0
         for i, c in enumerate(cutset_var):
-            if len(clausal_form[c]) == 0:
+            if len(self.clausal_form[c]) == 0:
                 cutset_key += 2 ** i
         return cutset_key
 
-    '''
-    Functions used for compute separator key and cache
-    '''
 
-    def _compute_separator(self, clausal_form: List[List[int]], var: int) -> List[int]:
+    def _compute_separator(self, clausal_form: List[List[int]],
+                          var: int) -> List[int]:
         """
         Compute separator for a variable.
 
@@ -213,29 +213,29 @@ class BDD_Compiler:
         for i in range(self.n_vars):
             sep_i = self._compute_separator(self.clausal_form, i + 1)
             sep_cache.append(sep_i)
-            print('-sep {} : {}'.format(i + 1, sep_i))
+            print(f'-sep {i + 1} : {sep_i}')
         return sep_cache
 
-    def compute_separator_key(self, clausal_form: List[List[int]], var: int) -> int:
+    def compute_separator_key(self, clausal_form: List[List[int]],
+                              var: int) -> int:
         """
         Compute separator key for caching.
 
         Args:
-            clausal_form: CNF formula
+            clausal_form: CNF formula (unused, uses cache instead)
             var: Variable index
 
         Returns:
             Separator key
         """
+        # clausal_form is kept for interface compatibility but uses cache
+        del clausal_form
         sep_var = self.separator_cache[var - 1]
         sep_key = 0
         for v in sep_var:
             sep_key += 2 ** v
         return sep_key
 
-    '''
-    Core functions
-    '''
 
     def get_nodes(self, var: int, low: BDD, high: BDD) -> BDD:
         """
@@ -251,14 +251,14 @@ class BDD_Compiler:
         """
         if low == high:
             return low
-        if (var, low, high) in self.unique:  # and low == self.unique[i].low and high == self.unique[i].high:
-            # print('Unique node {} found!'.format(var))
+        if (var, low, high) in self.unique:
             return self.unique[(var, low, high)]
         result = BDD(var, low, high)
         self.unique[(var, low, high)] = result
         return result
 
-    def cnf2obdd(self, clausal_form: List[List[int]], i: int, key_type: str = 'cutset') -> BDD:
+    def cnf2obdd(self, clausal_form: List[List[int]], i: int,
+                 key_type: str = 'cutset') -> BDD:
         """
         Convert CNF to OBDD.
 
@@ -270,22 +270,22 @@ class BDD_Compiler:
         Returns:
             BDD representing the formula
         """
-        assert key_type == 'cutset' or key_type == 'separator'
+        assert key_type in ('cutset', 'separator')
 
         if clausal_form == -1:
-            return self.F_SINK
-        elif len(list(itertools.chain(*clausal_form))) == 0:
-            return self.T_SINK
+            return self.f_sink
+        if len(list(itertools.chain(*clausal_form))) == 0:
+            return self.t_sink
 
         assert i <= self.n_vars + 1
 
         if key_type == 'cutset':
             key = self.compute_cutset_key(clausal_form, i - 1)
-        elif key_type == 'separator':
+        else:
             key = self.compute_separator_key(clausal_form, i - 1)
 
         if key in self.cache[i - 1]:
-            print('This node is already in cache {} with key {}'.format(i - 1, key))
+            print(f'This node is already in cache {i - 1} with key {key}')
             return self.cache[i - 1][key]
 
         low = self.cnf2obdd(self.bcp(clausal_form, -i), i + 1)

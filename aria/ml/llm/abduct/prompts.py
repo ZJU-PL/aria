@@ -41,13 +41,23 @@ def create_feedback_prompt(
     last_iteration = previous_iterations[-1]
     ce_formatted = "\n".join([f"{var} = {value}" for var, value in last_counterexample.items()])
 
-    issue = ("inconsistent with the premise" if not last_iteration.is_consistent
-             else "doesn't imply the conclusion")
+    if not last_iteration.is_consistent:
+        issue = "inconsistent with the premise"
+    else:
+        issue = "doesn't imply the conclusion"
 
     history = ""
     for i, result in enumerate(previous_iterations[:-1]):
-        ce_str = ", ".join([f"{var}={val}" for var, val in result.counterexample.items()]) if result.counterexample else ""
-        history += f"Attempt {i+1}: {result.hypothesis} (Consistent: {result.is_consistent}, Sufficient: {result.is_sufficient})\n"
+        ce_str = ""
+        if result.counterexample:
+            ce_str = ", ".join(
+                [f"{var}={val}" for var, val in result.counterexample.items()]
+            )
+        history += (
+            f"Attempt {i+1}: {result.hypothesis} "
+            f"(Consistent: {result.is_consistent}, "
+            f"Sufficient: {result.is_sufficient})\n"
+        )
         if ce_str:
             history += f"Counterexample: {ce_str}\n"
 

@@ -3,16 +3,18 @@
 """
 Wrappers for PySAT.
 Currently, we hope to use this as the Boolean solver of the parallel CDCL(T) engine.
-Besides, we may want to integrate some advanced facilities, such as (parallel) uniform sampling. Or, use pyunigen package
+Besides, we may want to integrate some advanced facilities, such as (parallel) uniform
+sampling. Or, use pyunigen package
 """
 import logging
 from enum import Enum
 from multiprocessing import Pool
 from typing import List
 
-from aria.utils.types import SolverResult
 from pysat.formula import CNF
 from pysat.solvers import Solver
+
+from aria.utils.types import SolverResult
 
 logger = logging.getLogger(__name__)
 
@@ -84,25 +86,25 @@ class PySATSolver:
         self.parallel_reduce = False  # parallel reduce
 
     def check_sat(self) -> SolverResult:
+        """Check satisfiability of the current formula."""
         res = self._solver.solve()
         if res:
             return SolverResult.SAT
-        else:
-            return SolverResult.UNSAT
+        return SolverResult.UNSAT
 
     def check_sat_assuming(self, assumptions: List[int]) -> SolverResult:
+        """Check satisfiability with assumptions."""
         res = self._solver.solve(assumptions=assumptions)
         if res:
             return SolverResult.SAT
-        else:
-            return SolverResult.UNSAT
+        return SolverResult.UNSAT
 
     def get_unsat_core(self, assumptions: List[int]) -> List[int]:
+        """Get unsat core for the given assumptions."""
         res = self._solver.solve(assumptions=assumptions)
         if res:
             return self._solver.get_core()
-        else:
-            return []
+        return []
 
     def add_clause(self, clause: List[int]):
         """add clause"""
@@ -110,11 +112,13 @@ class PySATSolver:
         self._clauses.append(clause)
 
     def add_clauses(self, clauses: List[List[int]]):
+        """Add multiple clauses to the solver."""
         for cls in clauses:
             self._solver.add_clause(cls)
             self._clauses.append(cls)
 
     def add_cnf(self, cnf: CNF):
+        """Add a CNF formula to the solver."""
         # self.solver.append_formula(cnf.clauses, no_return=False)
         for cls in cnf.clauses:
             self._solver.add_clause(cls)
@@ -133,12 +137,12 @@ class PySATSolver:
             results.append(model)
             if i == to_enum:
                 break
-        logger.debug("Sampled models: {}".format(results))
+        logger.debug("Sampled models: %s", results)
         if not self.reduce_samples:
             # do not reduce the sampled models
             return results
         reduced_models = self.reduce_models(results)
-        logger.debug("Reduced models: {}".format(reduced_models))
+        logger.debug("Reduced models: %s", reduced_models)
         # TODO: remove redundant ones in the reduced models?
         return reduced_models
 
@@ -177,6 +181,7 @@ class PySATSolver:
         return reduced_models
 
     def get_model(self) -> List[int]:
+        """Get the current model if satisfiable."""
         return self._solver.get_model()
 
     def internal_parallel_solve(self, clauses: List[List], assumptions_lists: List[List]):
@@ -210,6 +215,7 @@ class PySATSolver:
 
 
 def test_pysat():
+    """Test the PySAT solver functionality."""
     cnf = CNF(from_clauses=[[1, 3], [-1, 2, -4], [2, 4]])
     # solver_name = random.choice(sat_solvers)
     sol = PySATSolver()

@@ -1,6 +1,6 @@
 """Counting interfaces for Z3py Boolean formulas."""
 
-from typing import List
+from typing import List, Tuple
 import z3
 from aria.utils.z3_expr_utils import get_variables
 
@@ -39,7 +39,7 @@ def count_z3_models_by_enumeration(formula) -> int:
     return count
 
 
-def z3_to_dimacs(formula: z3.BoolRef) -> tuple[List[str], List[str]]:
+def z3_to_dimacs(formula: z3.BoolRef) -> Tuple[List[str], List[str]]:
     """
     Convert a z3 formula to DIMACS format.
 
@@ -47,7 +47,7 @@ def z3_to_dimacs(formula: z3.BoolRef) -> tuple[List[str], List[str]]:
         formula (z3.BoolRef): Z3 formula to convert
 
     Returns:
-        tuple[List[str], List[str]]: Header and clauses in DIMACS format
+        Tuple[List[str], List[str]]: Header and clauses in DIMACS format
     """
     # Convert to CNF
     goal = z3.Goal()

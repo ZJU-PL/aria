@@ -20,7 +20,7 @@ def extract_output_constraints(response):
 
     Arguments:
         response (str): GPT-x's response.
-    
+
     Returns:
         output_constraints (list): Output list of constraints from GPT-x in string format.
     """
@@ -48,7 +48,7 @@ def build_smt2_formula_from_string_constraints(
             There is one-to-one correspondence with constraints in ``all_constraints``.
         placeholder (str): SMT2-Lib input file string placeholder, where all assertions
             are represented by "<ASSERT>" keyword.
-    
+
     Returns:
         smt2_formula (str): SMT2-Lib input format string, where assertions corresponding
             to ``constraints`` are inserted in ``placeholder``.
@@ -63,7 +63,7 @@ def build_smt2_formula_from_string_constraints(
 def build_smt2_formula_from_cvc5_constraints(
         cvc5_constraints, all_smt2_constraints, all_cvc5_constraints, placeholder
     ):
-    """Builds SMT2-Lib formula from 
+    """Builds SMT2-Lib formula from
 
     Arguments:
         cvc5_constraints (list): Constraint subset in cvc5 format.
@@ -71,12 +71,14 @@ def build_smt2_formula_from_cvc5_constraints(
         all_cvc5_constraints (list): Complete list of constraints in cvc5 format.
         placeholder (str): SMT2-Lib input file string placeholder, where all assertions
             are represented by "<ASSERT>" keyword.
-    
+
     Returns:
-        smt2_formula (str): SMT2-Lib input format string, where assertions corresponding
-            to ``constraints`` are inserted in ``placeholder``.
+        smt2_formula (str): SMT2-Lib input format string, where assertions
+            corresponding to ``constraints`` are inserted in ``placeholder``.
     """
-    constraints_idx = [all_cvc5_constraints.index(constraint) for constraint in cvc5_constraints]
+    constraints_idx = [
+        all_cvc5_constraints.index(constraint) for constraint in cvc5_constraints
+    ]
     smt2_assertions = [f"(assert {all_smt2_constraints[idx]})" for idx in constraints_idx]
     assertions = "\n".join(smt2_assertions)
     smt2_formula = placeholder.replace("<ASSERT>", assertions, 1)
@@ -90,7 +92,7 @@ def build_smt2_formula_from_smt2_constraints(constraints, placeholder):
         constraints (list): Constraint subset in string format.
         placeholder (str): SMT2-Lib input file string placeholder, where all assertions
             are represented by "<ASSERT>" keyword.
-    
+
     Returns:
         smt2_formula (str): SMT2-Lib input format string, where assertions corresponding
             to ``constraints`` are inserted in ``placeholder``.
@@ -125,7 +127,7 @@ def parse_input_formula(solver, formula, formula_name):
 
 def set_cvc5_options_for_mus(solver, optimize_for_mus):
     """Initialize configuration for ``cvc5.Solver``.
-    If ``optimize_for_mus`` is ``True``, option ``minimal-unsat-cores`` is 
+    If ``optimize_for_mus`` is ``True``, option ``minimal-unsat-cores`` is
     set to ``true``. This gets the solver to look for MUSes.
 
     Arguments:
@@ -137,7 +139,6 @@ def set_cvc5_options_for_mus(solver, optimize_for_mus):
     solver.setOption("produce-unsat-cores", "true")
     solver.setOption("unsat-cores-mode", "assumptions")
     solver.setOption("minimal-unsat-cores", str(optimize_for_mus).lower())
-    return
 
 
 def set_cvc5_options_for_unsat(solver):
@@ -145,10 +146,9 @@ def set_cvc5_options_for_unsat(solver):
 
     Arguments:
         solver (cvc5.Solver): SMT solver.
-    """    
+    """
     solver.setOption("print-success", "true")
     solver.setOption("produce-models", "true")
-    return
 
 
 def compute_time_for_mus(constraints, placeholder):
@@ -160,13 +160,14 @@ def compute_time_for_mus(constraints, placeholder):
             are represented by "<ASSERT>" keyword.
 
     Returns:
-        mus_time (float): Time for MUS computation.        
+        mus_time (float): Time for MUS computation.
     """
+    import random
+
     solver = cvc5.Solver()
     set_cvc5_options_for_mus(solver, True)
     solver.setLogic("QF_SLIA")
 
-    import random
     random.seed(42)
     random.shuffle(constraints)
     smt2_formula = build_smt2_formula_from_smt2_constraints(constraints, placeholder)
@@ -175,10 +176,12 @@ def compute_time_for_mus(constraints, placeholder):
     unsat_check_start_time = time.time()
     result = solver.checkSat()
 
-    if not result.isUnsat(): 
+    if not result.isUnsat():
         return None
 
-    unsat_core = solver.getUnsatCore()
+    solver.getUnsatCore()
     unsat_core_end_time = time.time()
-    mus_time = "{:.3f}".format((unsat_core_end_time - unsat_check_start_time)*1000)
+    mus_time = "{:.3f}".format(
+        (unsat_core_end_time - unsat_check_start_time) * 1000
+    )
     return mus_time

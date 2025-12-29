@@ -7,21 +7,25 @@ Useful functions for exploring Z3's powerful SAT engine.
 Currently, we hope to use this as the Boolean solver of the parallel CDCL(T) engine.
 """
 from typing import List
-from aria.utils.types import SolverResult
 
 import z3
 
+from aria.utils.types import SolverResult
+
 
 class Z3SATSolver:
+    """Z3 SAT solver wrapper."""
     def __init__(self, logic="QF_FD"):
         self.int2z3var = {}  # for initializing from int clauses
         self.solver = z3.SolverFor(logic)
         # self.solver = z3.SimpleSolver()
 
     def from_smt2file(self, fname: str) -> None:
+        """Load formula from SMT2 file."""
         self.solver.add(z3.And(z3.parse_smt2_file(fname)))
 
     def from_smt2string(self, smtstring: str) -> None:
+        """Load formula from SMT2 string."""
         self.solver.add(z3.And(z3.parse_smt2_string(smtstring)))
 
     def from_int_clauses(self, clauses: List[List[int]]) -> None:
@@ -32,13 +36,14 @@ class Z3SATSolver:
         for clause in clauses:
             conds = []
             for t in clause:
-                if t == 0: break
+                if t == 0:
+                    break
                 a = abs(t)
                 if a in self.int2z3var:
                     b = self.int2z3var[a]
                 else:
-                    b = z3.Bool("k!{}".format(a))
-                    # b = z3.BitVec("k!{}".format(a), 1)
+                    b = z3.Bool(f"k!{a}")
+                    # b = z3.BitVec(f"k!{a}", 1)
                     self.int2z3var[a] = b
                 b = z3.Not(b) if t < 0 else b
                 conds.append(b)
@@ -54,34 +59,32 @@ class Z3SATSolver:
         """
         if intname in self.int2z3var:
             return self.int2z3var[intname]
-        raise Exception(str(intname) + " not in the var list!")
+        raise ValueError(f"{intname} not in the var list!")
 
-    def get_consequences(self, prelist: List[z3.BoolRef], postlist: List[z3.BoolRef]) -> List[z3.BoolRef]:
-        # get consequences of using Z3's extension
-        try:
-            res, factslist = self.solver.consequences([prelist], [postlist])
-            if res == z3.sat:
-                return factslist
-        except Exception as ex:
-            raise ex
+    def get_consequences(
+        self, prelist: List[z3.BoolRef], postlist: List[z3.BoolRef]
+    ) -> List[z3.BoolRef]:
+        """Get consequences using Z3's extension."""
+        res, factslist = self.solver.consequences([prelist], [postlist])
+        if res == z3.sat:
+            return factslist
+        return []
 
     def get_unsat_core(self, assumptions: List[z3.BoolRef]) -> List[z3.BoolRef]:
-        # get unsat core
-        try:
-            res, core = self.solver.unsat_core(assumptions)
-            if res == z3.unsat:
-                return core
-        except Exception as ex:
-            raise ex
+        """Get unsat core."""
+        res = self.solver.check(assumptions)
+        if res == z3.unsat:
+            return self.solver.unsat_core()
+        return []
 
     def check_sat_assuming(self, assumptions: List[z3.BoolRef]) -> SolverResult:
+        """Check satisfiability with assumptions."""
         res = self.solver.check(assumptions)
         if res == z3.sat:
             return SolverResult.SAT
-        elif res == z3.unsat:
+        if res == z3.unsat:
             return SolverResult.UNSAT
-        else:
-            return SolverResult.UNKNOWN
+        return SolverResult.UNKNOWN
 
 
 class Z3MaxSATSolver:
@@ -112,13 +115,14 @@ class Z3MaxSATSolver:
         for clause in hard:
             conds = []
             for t in clause:
-                if t == 0: break
+                if t == 0:
+                    break
                 a = abs(t)
                 if a in self.int2z3var:
                     b = self.int2z3var[a]
                 else:
-                    b = z3.Bool("k!{}".format(a))
-                    # b = z3.BitVec("k!{}".format(a), 1)
+                    b = z3.Bool(f"k!{a}")
+                    # b = z3.BitVec(f"k!{a}", 1)
                     self.int2z3var[a] = b
                 b = z3.Not(b) if t < 0 else b
                 conds.append(b)
@@ -127,16 +131,17 @@ class Z3MaxSATSolver:
             self.solver.add(cls)
             self.hard.append(cls)
 
-        for i in range(len(soft)):
+        for i, soft_clause in enumerate(soft):
             conds = []
-            for t in soft[i]:
-                if t == 0: break  # TODO: need this?
+            for t in soft_clause:
+                if t == 0:  # TODO: need this?
+                    break
                 a = abs(t)
                 if a in self.int2z3var:
                     b = self.int2z3var[a]
                 else:
-                    b = z3.Bool("k!{}".format(a))
-                    # b = z3.BitVec("k!{}".format(a), 1)
+                    b = z3.Bool(f"k!{a}")
+                    # b = z3.BitVec(f"k!{a}", 1)
                     self.int2z3var[a] = b
                 b = z3.Not(b) if t < 0 else b
                 conds.append(b)
@@ -148,21 +153,18 @@ class Z3MaxSATSolver:
 
     def check(self):
         """
+        Check MaxSAT and return cost.
         TODO: get rid of self.hard, self.soft, and self.cost
           use the API of Optimize() to obtain the cost...
           cost: sum of weight of falsified soft clauses
         """
         cost = 0
-        try:
-            # print(len(self.solver.objectives()))
-            if self.solver.check() == z3.sat:
-                model = self.solver.model()
-                for i in range(len(self.soft)):
-                    if z3.is_false(model.eval(self.soft[i])):
-                        cost += self.weight[i]
-                print("finish z3 MaxSAT")
-                # TODO: query the weight...
-        except Exception as ex:
-            print(ex)
-            raise ex
+        # print(len(self.solver.objectives()))
+        if self.solver.check() == z3.sat:
+            model = self.solver.model()
+            for i, soft_clause in enumerate(self.soft):
+                if z3.is_false(model.eval(soft_clause)):
+                    cost += self.weight[i]
+            print("finish z3 MaxSAT")
+            # TODO: query the weight...
         return cost

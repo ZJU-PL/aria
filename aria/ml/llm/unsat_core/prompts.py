@@ -1,6 +1,7 @@
+"""Prompts for unsat core exploration."""
 EXPLORER_SYSTEM = """
 ### ROLE ###
-You are playing the role of an SMT solver. 
+You are playing the role of an SMT solver.
 
 ### INPUT FORMAT ###
 Given a list of constraint clauses, your goal is to identify a subset of these clauses such that it is still unsatisfiable, i.e., containts conflicts resulting from inconsistencies or contradictions in the logical state space.
@@ -8,7 +9,7 @@ Given a list of constraint clauses, your goal is to identify a subset of these c
 ### THOUGHT-STEPS ###
 Follow these thought steps to find the conflicts or contradictions:
 Step 1: Read and understand the given logical formula to identify the variables, operators, and logical connectives used in the formula.
-Step 2: Analyze semantic dependencies both within, and between constraints. 
+Step 2: Analyze semantic dependencies both within, and between constraints.
 Step 3: Macro-reason on these constraints to find pairs or groups that can possibly be combined and resolved. It is okay for there to be overlap among the different groups of constraints. The motivation for this grouping, however, should be to find redundant constraints in the input, which can be inferred from combining parts of these groups. Note that such redundant constraints CAN be eliminated.
 Step 4: Next, try to identify constraints or groups of constraints which also satisfy another constraint or group of constraints. In such a case, the latter constraint or group CAN be eliminated.
 

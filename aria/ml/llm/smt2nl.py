@@ -182,13 +182,25 @@ class SMT2NLConverter:
         return top_level_count
 
     def convert_expr(self, expr: Union[str, List[Any]]) -> str:
+        """Convert an S-expression to natural language.
+
+        Args:
+            expr: Either a string (atom) or a list (S-expression).
+
+        Returns:
+            Natural language description of the expression.
+        """
         if isinstance(expr, str):
-            if expr.startswith('#b'): return f"0b{expr[2:]}"
-            if expr.startswith('#x'): return f"0x{expr[2:]}"
-            if expr.startswith('_'): return expr[1:]  # Remove underscore prefix
+            if expr.startswith('#b'):
+                return f"0b{expr[2:]}"
+            if expr.startswith('#x'):
+                return f"0x{expr[2:]}"
+            if expr.startswith('_'):
+                return expr[1:]  # Remove underscore prefix
             return expr
 
-        if not expr: return ""
+        if not expr:
+            return ""
         op, *args = expr
 
         if isinstance(op, list):
@@ -200,14 +212,18 @@ class SMT2NLConverter:
                 return f"{op_text}({', '.join(arg_texts)})" if args else op_text
 
         # Special forms
-        if op == 'assert': return self.convert_expr(args[0]) if args else ""
+        if op == 'assert':
+            return self.convert_expr(args[0]) if args else ""
         if op == 'let':
             if len(args) >= 2:
                 binds = ", ".join(f"{b[0]}={self.convert_expr(b[1])}"
                                 for b in args[0] if len(b) == 2)
                 return f"let {binds} in {self.convert_expr(args[1])}"
         if op == 'ite' and len(args) == 3:
-            return f"({self.convert_expr(args[0])} ? {self.convert_expr(args[1])} : {self.convert_expr(args[2])})"
+            cond = self.convert_expr(args[0])
+            then_expr = self.convert_expr(args[1])
+            else_expr = self.convert_expr(args[2])
+            return f"({cond} ? {then_expr} : {else_expr})"
         if op in ['forall', 'exists'] and len(args) >= 2:
             vars_text = ", ".join(f"{v[0]}:{v[1]}" for v in args[0] if len(v) >= 2)
             return f"{'∀' if op == 'forall' else '∃'}{vars_text}. {self.convert_expr(args[1])}"
@@ -269,11 +285,18 @@ class SMT2NLConverter:
 
         if op in self.ops:
             sym = self.ops[op]
-            if len(args) == 1: return f"{sym} {self.convert_expr(args[0])}"
+            if len(args) == 1:
+                return f"{sym} {self.convert_expr(args[0])}"
             if len(args) == 2:
-                l, r = self.convert_expr(args[0]), self.convert_expr(args[1])
-                if op in ['select']: return f"{l}[{r}]"
-                if op in ['store']: return f"{l}[{r} := {self.convert_expr(args[2])}]" if len(args) > 2 else f"{l}[{r}]"
+                l = self.convert_expr(args[0])
+                r = self.convert_expr(args[1])
+                if op in ['select']:
+                    return f"{l}[{r}]"
+                if op in ['store']:
+                    if len(args) > 2:
+                        val = self.convert_expr(args[2])
+                        return f"{l}[{r} := {val}]"
+                    return f"{l}[{r}]"
                 return f"({l} {sym} {r})"
             # N-ary
             arg_strs = [self.convert_expr(a) for a in args]
@@ -286,16 +309,25 @@ class SMT2NLConverter:
         return f"{op}({', '.join(arg_strs)})" if args else op
 
     def convert(self, smt_text: str) -> str:
+        """Convert SMT-LIB text to natural language.
+
+        Args:
+            smt_text: SMT-LIB formatted text.
+
+        Returns:
+            Natural language description or error message.
+        """
         try:
             smt_text = re.sub(r';.*$', '', smt_text, flags=re.MULTILINE).strip()
             if not smt_text:
                 raise SMT2NLParseError("Empty SMT-LIB input")
 
-            return (self._convert_multiple(smt_text) if self._has_multiple_expressions(smt_text)
-                    else self.convert_expr(self.parse_sexpr(smt_text)))
+            if self._has_multiple_expressions(smt_text):
+                return self._convert_multiple(smt_text)
+            return self.convert_expr(self.parse_sexpr(smt_text))
         except SMT2NLParseError as e:
             return f"Error: {e}"
-        except Exception as e:
+        except (ValueError, IndexError, TypeError) as e:
             return f"Error: {e}"
 
     def _has_multiple_expressions(self, smt_text: str) -> bool:

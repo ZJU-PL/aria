@@ -1,6 +1,10 @@
+"""Utility functions for abduction module."""
 import re
 from typing import Optional
+
 import z3
+
+from aria.utils.z3_expr_utils import get_variables
 
 
 
@@ -140,9 +144,11 @@ def parse_smt2_string(smt_string: str, problem: Optional['AbductionProblem'] = N
 
                     # Apply substitution if needed
                     if subst:
-                        return z3.substitute(parsed_formula, *[(k, v) for k, v in subst.items()])
+                        return z3.substitute(
+                            parsed_formula, *list(subst.items())
+                        )
                     return parsed_formula
-            except Exception as e:
+            except Exception:
                 pass
 
             # TODO: If Z3 parsing fails, maybe try simpler approaches?
@@ -151,7 +157,7 @@ def parse_smt2_string(smt_string: str, problem: Optional['AbductionProblem'] = N
             return z3.BoolVal(True)
 
 
-    except Exception as e:
+    except Exception:
         # Return a default hypothesis
         return z3.BoolVal(True)
 

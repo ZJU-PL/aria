@@ -1,10 +1,15 @@
+"""
+Balance features computation for SAT instances.
+"""
+
+
 def compute_balance_features(clauses, c, v):
     """
     Computes the balance features
     :param clauses: List of clauses of the cnf
-    :param c: number of clauses
+    :param c: number of clauses (unused, kept for API compatibility)
     :param v: number of variables
-    :return:
+    :return: Tuple of balance features
     """
     variables_pos_count = [0] * v
     variables_neg_count = [0] * v
@@ -67,8 +72,12 @@ def compute_balance_features(clauses, c, v):
         if (pos_instances == 0) and (neg_instances == 0):
             pos_neg_variable_balance.append(0.0)
         else:
-            pos_neg_variable_balance.append(2.0 * abs(0.5 - (pos_instances / (pos_instances + neg_instances))))
+            pos_neg_variable_balance.append(
+                2.0 * abs(0.5 - (pos_instances / (pos_instances + neg_instances)))
+            )
 
     # dictionary could be a cleaner way to format and return the results
-    return pos_neg_clause_ratios, pos_neg_clause_balance, pos_neg_variable_ratios, pos_neg_variable_balance, \
-        num_binary_clauses, num_ternary_clauses, num_horn_clauses, horn_clause_variable_count
+    return (pos_neg_clause_ratios, pos_neg_clause_balance,
+            pos_neg_variable_ratios, pos_neg_variable_balance,
+            num_binary_clauses, num_ternary_clauses, num_horn_clauses,
+            horn_clause_variable_count)

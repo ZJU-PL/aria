@@ -49,8 +49,10 @@ class UNSATVerifier:
             constraints, all_constraints, all_smt2_constraints, placeholder
         )
         if "set-logic" not in smt2_formula:
-            try: self.solver.setLogic("QF_SLIA")
-            except: pass
+            try:
+                self.solver.setLogic("QF_SLIA")
+            except Exception:
+                pass
 
         parse_input_formula(self.solver, smt2_formula, "smt_formula")
 
@@ -58,10 +60,10 @@ class UNSATVerifier:
         statistics_dict = self.solver.getStatistics().get()
         setattr(self, "statistics", statistics_dict)
 
-        if result: return True
-        else:
-            self.reset()
-            return False
+        if result:
+            return True
+        self.reset()
+        return False
 
 
 class MUSVerifier:
@@ -109,8 +111,10 @@ class MUSVerifier:
             )
 
             if "set-logic" not in smt2_formula:
-                try: self.solver.setLogic("QF_SLIA")
-                except: pass
+                try:
+                    self.solver.setLogic("QF_SLIA")
+                except Exception:
+                    pass
 
             parse_input_formula(self.solver, smt2_formula, "smt_formula")
             result = self.solver.checkSat().isSat()
@@ -118,5 +122,5 @@ class MUSVerifier:
             if result:
                 self.reset()
                 continue
-            else: return False
+            return False
         return True

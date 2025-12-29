@@ -1,17 +1,26 @@
-import networkx as nx
+"""
+Graph features computation for SAT instances.
+"""
+try:
+    import networkx as nx
+except ImportError:
+    nx = None
 
 
 def create_vcg(clauses, c, v):
     """
     Create VCG
     Variable-Clause Graph features
-    A variable-clause graph (VCG) is a bipartite graph with a node for each variable, a node for each clause,
-    and an edge between them whenever a variable occurs in a clause
-    :param clauses:
-    :param c:
-    :param v:
+    A variable-clause graph (VCG) is a bipartite graph with a node for each
+    variable, a node for each clause, and an edge between them whenever a
+    variable occurs in a clause
+    :param clauses: List of clauses
+    :param c: Number of clauses
+    :param v: Number of variables
     :return: Variable node degrees and clause node degrees
     """
+    if nx is None:
+        raise ImportError("networkx is required for this function")
     vcg = nx.Graph()
 
     # Node for each variable
@@ -41,19 +50,21 @@ def create_vcg(clauses, c, v):
 
 def create_vg(clauses):
     """
-    A variable graph (VG) has a node for each variable, and an edge between variables that occur together in at least one clause
-    :param clauses:
+    A variable graph (VG) has a node for each variable, and an edge between
+    variables that occur together in at least one clause
+    :param clauses: List of clauses
     :return: The degree of each node in the variable graph
     """
+    if nx is None:
+        raise ImportError("networkx is required for this function")
 
     # for each literal in a clause, for all the other literals in that clause
     vg = nx.Graph()
 
-    for k, clause in enumerate(clauses):
-
-        for i in range(len(clause)):
+    for clause in clauses:
+        for i, literal_i in enumerate(clause):
             for j in range(i + 1, len(clause)):
-                v_node_i = "v_" + str(abs(clause[i]))
+                v_node_i = "v_" + str(abs(literal_i))
                 v_node_j = "v_" + str(abs(clause[j]))
                 vg.add_edge(v_node_i, v_node_j)
 

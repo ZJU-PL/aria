@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """LLM-based Craig interpolant generation PoC.
 
 Workflow:
@@ -12,19 +10,21 @@ Workflow:
    If both hold, accept; otherwise, report failure.
 
 
-TODO: currently, we use s-expr for easy commutnicaiton, but it might be more easier for LLM to return other formats, e.g., Z3's Python APIs, natural languages, etc.
+TODO: currently, we use s-expr for easy communication, but it might be more
+easier for LLM to return other formats, e.g., Z3's Python APIs, natural
+languages, etc.
 """
+from __future__ import annotations
 
 from dataclasses import dataclass
+import os
 from typing import List, Optional, Tuple, Sequence, Union
 
-import os
 import z3
-from z3.z3util import get_vars
 
-from aria.ml.llm.llmtool.LLM_tool import LLMTool, LLMToolInput, LLMToolOutput
+from aria.ml.llm.llmtool.LLM_tool import LLMTool
 from aria.ml.llm.llmtool.logger import Logger
-from aria.ml.llm.interpolant.prompts import mk_interpolant_prompt, mk_interpolant_prompt_with_type
+from aria.ml.llm.interpolant.prompts import mk_interpolant_prompt_with_type
 
 
 SMTText = str
@@ -58,6 +58,7 @@ def _to_asserts(formulas: Union[Sequence[Union[SMTText, Z3Expr]], SMTText, Z3Exp
 
 @dataclass
 class InterpolantResult:
+    """Result of interpolant generation."""
     interpolant: Optional[Z3Expr]
     valid_A_implies_I: bool
     unsat_I_and_B: bool
@@ -65,6 +66,7 @@ class InterpolantResult:
 
 
 class LLMInterpolantGenerator:
+    """Generate Craig interpolants using LLM."""
     def __init__(self, model_name: str = os.environ.get("ARIA_LLM_MODEL", "glm-4-flash"),
                  temperature: float = 0.2, prompt_type: str = "basic") -> None:
         log_dir = os.environ.get("ARIA_LOG_DIR", ".aria_logs")
@@ -81,14 +83,16 @@ class LLMInterpolantGenerator:
 
     def generate(
         self,
-        A: Union[Sequence[Union[SMTText, Z3Expr]], SMTText, Z3Expr],
-        B: Union[Sequence[Union[SMTText, Z3Expr]], SMTText, Z3Expr],
+        formulas_a: Union[Sequence[Union[SMTText, Z3Expr]], SMTText, Z3Expr],
+        formulas_b: Union[Sequence[Union[SMTText, Z3Expr]], SMTText, Z3Expr],
         max_attempts: int = 3,
         prompt_type: Optional[str] = None,
     ) -> InterpolantResult:
-        A_list, B_list = _to_asserts(A), _to_asserts(B)
+        """Generate an interpolant between two sets of formulas."""
+        a_list = _to_asserts(formulas_a)
+        b_list = _to_asserts(formulas_b)
         prompt_type = prompt_type or self.prompt_type
-        prompt = mk_interpolant_prompt_with_type(A_list, B_list, prompt_type)
+        prompt = mk_interpolant_prompt_with_type(a_list, b_list, prompt_type)
 
         last_text = ""
         for _ in range(max_attempts):
@@ -97,10 +101,10 @@ class LLMInterpolantGenerator:
             if not text:
                 continue
             try:
-                I = self._parse_interpolant(text)
-                v1, v2 = self._verify(A_list, B_list, I)
+                interpolant = self._parse_interpolant(text)
+                v1, v2 = self._verify(a_list, b_list, interpolant)
                 if v1 and v2:
-                    return InterpolantResult(I, v1, v2, text)
+                    return InterpolantResult(interpolant, v1, v2, text)
             except Exception:
                 continue
 
@@ -120,24 +124,33 @@ class LLMInterpolantGenerator:
         raise ValueError("No valid formula parsed from LLM output")
 
     @staticmethod
-    def _verify(A: List[Z3Expr], B: List[Z3Expr], I: Z3Expr) -> Tuple[bool, bool]:
+    def _verify(
+        formulas_a: List[Z3Expr], formulas_b: List[Z3Expr], interpolant: Z3Expr
+    ) -> Tuple[bool, bool]:
+        """Verify interpolant properties."""
         # Check A => I by testing A ∧ ¬I is unsat
         s1 = z3.Solver()
-        s1.add(A)
-        s1.add(z3.Not(I))
+        s1.add(formulas_a)
+        s1.add(z3.Not(interpolant))
         v1 = s1.check() == z3.unsat
 
         # Check I ∧ B is unsat
         s2 = z3.Solver()
-        s2.add(I)
-        s2.add(B)
+        s2.add(interpolant)
+        s2.add(formulas_b)
         v2 = s2.check() == z3.unsat
         return v1, v2
 
 
 def main():
-    A = ["(declare-fun x () Int)", "(declare-fun y () Int)", "(assert (> x 6))", "(assert (= y (+ x 1)))"]
-    B = ["(declare-fun y () Int)", "(assert (<= y 4))"]
+    """Main function for testing."""
+    formulas_a = [
+        "(declare-fun x () Int)",
+        "(declare-fun y () Int)",
+        "(assert (> x 6))",
+        "(assert (= y (+ x 1)))"
+    ]
+    formulas_b = ["(declare-fun y () Int)", "(assert (<= y 4))"]
 
     # Test different prompt types
     prompt_types = ["basic", "cot", "fewshot", "structured"]
@@ -145,9 +158,12 @@ def main():
     for prompt_type in prompt_types:
         print(f"\n=== Testing {prompt_type.upper()} prompt ===")
         gen = LLMInterpolantGenerator(prompt_type=prompt_type)
-        res = gen.generate(A, B)
+        res = gen.generate(formulas_a, formulas_b)
         print("Interpolant:", res.raw_text)
-        print("A => I:", res.valid_A_implies_I, "; I & B unsat:", res.unsat_I_and_B)
+        print(
+            "A => I:", res.valid_A_implies_I,
+            "; I & B unsat:", res.unsat_I_and_B
+        )
 
 
 if __name__ == "__main__":

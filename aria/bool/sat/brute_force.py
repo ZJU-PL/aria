@@ -10,14 +10,16 @@ Formula = List[List[int]]
 Assignment = Dict[int, bool]
 
 
-def solve_sat_brute_force(formula: Formula, variables: Union[List[int], Set[int]]) -> Optional[Assignment]:
+def solve_sat_brute_force(
+    formula: Formula, variables: Union[List[int], Set[int]]
+) -> Optional[Assignment]:
     """
     Solve SAT problem using brute force enumeration with early termination
-    
+
     Args:
         formula: Boolean formula in CNF form (list of clauses)
         variables: List or set of variables in the formula
-    
+
     Returns:
         dict: Solution mapping variables to boolean values if satisfiable
         None: If formula is unsatisfiable
@@ -25,7 +27,6 @@ def solve_sat_brute_force(formula: Formula, variables: Union[List[int], Set[int]
     # Convert variables to sorted list for consistent iteration
     variables = sorted(set(variables))
     num_vars = len(variables)
-    var_to_index = {var: idx for idx, var in enumerate(variables)}
 
     # Pre-process formula for faster access
     pos_occurrences: Dict[int, List[int]] = {var: [] for var in variables}
@@ -66,9 +67,14 @@ def solve_sat_brute_force(formula: Formula, variables: Union[List[int], Set[int]
     return None
 
 
-def check_range(start: int, end: int, formula: Formula, variables: List[int],
-                pos_occurrences: Dict[int, List[int]],
-                neg_occurrences: Dict[int, List[int]]) -> Optional[Assignment]:
+def check_range(
+    start: int,
+    end: int,
+    formula: Formula,
+    variables: List[int],
+    pos_occurrences: Dict[int, List[int]],
+    neg_occurrences: Dict[int, List[int]]
+) -> Optional[Assignment]:
     """Helper function to check a range of assignments"""
     num_vars = len(variables)
     for i in range(start, end):
@@ -92,8 +98,11 @@ def check_range(start: int, end: int, formula: Formula, variables: List[int],
     return None
 
 
-def solve_sat_brute_force_parallel(formula: Formula, variables: Union[List[int], Set[int]],
-                                   num_processes: Optional[int] = None) -> Optional[Assignment]:
+def solve_sat_brute_force_parallel(
+    formula: Formula,
+    variables: Union[List[int], Set[int]],
+    num_processes: Optional[int] = None
+) -> Optional[Assignment]:
     """
     Parallel version of SAT solver using brute force enumeration
     """
@@ -118,9 +127,17 @@ def solve_sat_brute_force_parallel(formula: Formula, variables: Union[List[int],
 
     # Split work into chunks
     chunk_size = ceil(total_assignments / num_processes)
-    ranges = [(i * chunk_size, min((i + 1) * chunk_size, total_assignments),
-               formula, variables, pos_occurrences, neg_occurrences)
-              for i in range(num_processes)]
+    ranges = [
+        (
+            i * chunk_size,
+            min((i + 1) * chunk_size, total_assignments),
+            formula,
+            variables,
+            pos_occurrences,
+            neg_occurrences
+        )
+        for i in range(num_processes)
+    ]
 
     # Create pool and run parallel search
     with mp.Pool(num_processes) as pool:
@@ -137,11 +154,11 @@ def solve_sat_brute_force_parallel(formula: Formula, variables: Union[List[int],
 def evaluate(formula: Formula, assignment: Assignment) -> bool:
     """
     Evaluate a boolean formula under a given assignment
-    
+
     Args:
         formula: Boolean formula in CNF form
         assignment: Dictionary mapping variables to boolean values
-        
+
     Returns:
         bool: True if formula is satisfied, False otherwise
     """
@@ -187,7 +204,7 @@ def test() -> None:
 
         if result_par is not None:
             print(f"Verification: {evaluate(formula, result_par)}")
-        print(f"Time taken: {par_time:.4f} seconds")  # Fixed: using par_time instead of undefined end_time
+        print(f"Time taken: {par_time:.4f} seconds")
 
 
 if __name__ == "__main__":

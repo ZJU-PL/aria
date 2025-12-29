@@ -1,10 +1,11 @@
 """
 Dtree
 """
-from typing import List, Optional, Dict, Set
+from typing import List, Optional, Dict
 
 
 class Node:
+    """Represents a node in a decision tree (dtree)."""
     def __init__(self, node_id: Optional[int] = None, left_child: Optional['Node'] = None,
                  right_child: Optional['Node'] = None, clause: Optional[List[int]] = None) -> None:
         """
@@ -56,12 +57,11 @@ class Node:
         """Check if this is a full binary tree."""
         if self.is_leaf():
             return True
-        elif self.left_child is None and self.right_child is not None:
+        if self.left_child is None and self.right_child is not None:
             return False
-        elif self.left_child is not None and self.right_child is None:
+        if self.left_child is not None and self.right_child is None:
             return False
-        else:
-            return self.left_child.is_full_binary() and self.right_child.is_full_binary()
+        return self.left_child.is_full_binary() and self.right_child.is_full_binary()
 
     def get_counter(self) -> Dict[int, int]:
         """
@@ -88,9 +88,9 @@ class Node:
         """
         counter = self.get_counter()
         sep_counter = {s: 0 for s in self.separators}
-        for key in counter.keys():
+        for key, count in counter.items():
             if abs(key) in self.separators:
-                sep_counter[abs(key)] += counter[key]
+                sep_counter[abs(key)] += count
         sort_counter = sorted(sep_counter, key=sep_counter.get, reverse=True)
         # print(sep_counter)
         return sort_counter[0]
@@ -106,14 +106,10 @@ class Node:
         Returns:
             Updated list of leaf node IDs
         """
-        out = None
-        if output_file is not None:
-            out = open(output_file, 'a')
-
         if self.is_leaf():
             if output_file is not None:
-                out.write('L {0}\n'.format(self.node_id))
-                out.close()
+                with open(output_file, 'a', encoding='utf-8') as out:
+                    out.write(f'L {self.node_id}\n')
             else:
                 print('L ', self.node_id)
             leaf.append(self.node_id)
@@ -127,14 +123,15 @@ class Node:
             if self.right_child.node_id in leaf:
                 right_child_pos = leaf.index(self.right_child.node_id)
             if output_file is not None:
-                out.write('I {0} {1}\n'.format(left_child_pos, right_child_pos))
-                out.close()
+                with open(output_file, 'a', encoding='utf-8') as out:
+                    out.write(f'I {left_child_pos} {right_child_pos}\n')
             else:
                 print('I ', left_child_pos, right_child_pos)
         return leaf
 
 
 class Dtree_Compiler:
+    """Compiler for constructing decision trees from CNF formulas."""
     def __init__(self, clausal_form: List[List[int]]) -> None:
         """
         Initialize Dtree compiler.
@@ -159,11 +156,15 @@ class Dtree_Compiler:
         if len(list_tree) == 1:
             composed_node = list_tree[0]
         elif len(list_tree) == 2:
-            composed_node = Node(node_id=self.node_id, left_child=list_tree[0], right_child=list_tree[1])
+            composed_node = Node(
+                node_id=self.node_id, left_child=list_tree[0],
+                right_child=list_tree[1])
             self.node_id += 1
         else:
             right_composed_node = self.compose(list_tree[1:])
-            composed_node = Node(node_id=self.node_id, left_child=list_tree[0], right_child=right_composed_node)
+            composed_node = Node(
+                node_id=self.node_id, left_child=list_tree[0],
+                right_child=right_composed_node)
             self.node_id += 1
         return composed_node
 
@@ -184,13 +185,13 @@ class Dtree_Compiler:
             sigma.append(leaf)
 
         for lit in ordering:
-            T: List[Node] = []
+            t_nodes: List[Node] = []
             for node in sigma:
                 if lit in node.atoms:
-                    T.append(node)
-            if len(T) > 0:
-                composed_node = self.compose(T)
-                sigma = list(set(sigma) ^ set(T))
+                    t_nodes.append(node)
+            if len(t_nodes) > 0:
+                composed_node = self.compose(t_nodes)
+                sigma = list(set(sigma) ^ set(t_nodes))
                 sigma.append(composed_node)
 
         return self.compose(sigma)

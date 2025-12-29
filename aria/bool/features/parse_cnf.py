@@ -7,11 +7,12 @@ from pysat.formula import CNF
 
 def parse_cnf_file(cnf_path: str) -> Tuple[List[List[int]], int, int]:
     """
-    Parse number of variables, number of clauses and the clauses from a standard .cnf file
-    :param cnf_path:
+    Parse number of variables, number of clauses and the clauses from a
+    standard .cnf file
+    :param cnf_path: Path to the CNF file
     :return: clauses, number of clauses, and number of variables
     """
-    with open(cnf_path) as f:
+    with open(cnf_path, encoding="utf-8") as f:
         clauses_list = []
         c = 0
         v = 0
@@ -30,6 +31,11 @@ def parse_cnf_file(cnf_path: str) -> Tuple[List[List[int]], int, int]:
 
 
 def parse_cnf_string(cnf_str: str) -> Tuple[List[List[int]], int, int]:
+    """
+    Parse CNF from a string.
+    :param cnf_str: CNF file content as string
+    :return: clauses, number of clauses, and number of variables
+    """
     clauses_list = []
     c = 0
     v = 0
@@ -45,7 +51,14 @@ def parse_cnf_string(cnf_str: str) -> Tuple[List[List[int]], int, int]:
     return clauses_list, c, v
 
 
-def parse_cnf_numeric_clauses(clauses: List[List[int]]) -> Tuple[List[List[int]], int, int]:
+def parse_cnf_numeric_clauses(
+    clauses: List[List[int]]
+) -> Tuple[List[List[int]], int, int]:
+    """
+    Parse CNF from numeric clauses list.
+    :param clauses: List of clauses as lists of integers
+    :return: clauses, number of clauses, and number of variables
+    """
     clauses_list = []
     c = 0
     v = 0
@@ -55,6 +68,11 @@ def parse_cnf_numeric_clauses(clauses: List[List[int]]) -> Tuple[List[List[int]]
 
 
 def parse_pysat_cnf(cnf: CNF) -> Tuple[List[List[int]], int, int]:
+    """
+    Parse CNF from pysat CNF object.
+    :param cnf: pysat CNF object
+    :return: clauses, number of clauses, and number of variables
+    """
     clauses_list = []
     c = 0
     v = 0

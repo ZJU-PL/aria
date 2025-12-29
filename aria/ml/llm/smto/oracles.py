@@ -2,10 +2,11 @@
 Oracle type definitions and data structures for SMTO.
 """
 
-from typing import Dict, List, Optional, Callable, Any
-import z3
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import Dict, List, Optional, Callable, Any
+
+import z3
 
 
 class OracleType(Enum):
@@ -47,11 +48,11 @@ class WhiteboxOracleInfo(OracleInfo):
     binary_code: Optional[bytes] = None  # Component binary code
     external_knowledge: Optional[List[str]] = None  # Additional information (forums, papers, etc.)
     symbolic_model: Optional[str] = None  # Symbolic model derived from analysis
-    
+
     def __post_init__(self):
         # Set oracle type to whitebox
         self.oracle_type = OracleType.WHITEBOX
-        
+
         # Initialize external knowledge if None
         if self.external_knowledge is None:
-            self.external_knowledge = [] 
+            self.external_knowledge = []

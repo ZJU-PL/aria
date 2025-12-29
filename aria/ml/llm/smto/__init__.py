@@ -9,10 +9,10 @@ Related: "Satisfiability and Synthesis Modulo Oracles" [Polgreen/Reynolds/Seshia
 """
 
 # Import main solver
-from aria.llm.smto.smto import OraxSolver
+from aria.ml.llm.smto.smto import OraxSolver
 
 # Import oracle definitions
-from aria.llm.smto.oracles import (
+from aria.ml.llm.smto.oracles import (
     OracleInfo,
     WhiteboxOracleInfo,
     OracleType,
@@ -20,19 +20,19 @@ from aria.llm.smto.oracles import (
 )
 
 # Import utility classes
-from aria.llm.smto.utils import OracleCache, ExplanationLogger
+from aria.ml.llm.smto.utils import OracleCache, ExplanationLogger
 
 __all__ = [
     # Main solver
     "OraxSolver",
-    
+
     # Oracle definitions
     "OracleInfo",
     "WhiteboxOracleInfo",
     "OracleType",
     "OracleAnalysisMode",
-    
+
     # Utility classes
     "OracleCache",
     "ExplanationLogger"
-] 
+]

@@ -6,35 +6,43 @@ Prompts for LLM-based Craig interpolant generation.
 3. CoT
 """
 from typing import List
+
 import z3
 from z3.z3util import get_vars
 
 
-def _common_symbols(asA: List[z3.ExprRef], asB: List[z3.ExprRef]) -> List[str]:
-    get_names = lambda forms: {v.decl().name() for e in forms for v in get_vars(e)}
-    return sorted(get_names(asA) & get_names(asB))
+def _common_symbols(formulas_a: List[z3.ExprRef], formulas_b: List[z3.ExprRef]) -> List[str]:
+    """Extract common symbols between two sets of formulas."""
+    def get_names(forms):
+        return {v.decl().name() for e in forms for v in get_vars(e)}
+    return sorted(get_names(formulas_a) & get_names(formulas_b))
 
 
-def mk_interpolant_prompt(A: List[z3.ExprRef], B: List[z3.ExprRef]) -> str:
-    """Generate a basic prompt for LLM to create a Craig interpolant between sets A and B."""
-    A_text = "\n".join(f"(assert {e.sexpr()})" for e in A)
-    B_text = "\n".join(f"(assert {e.sexpr()})" for e in B)
-    commons = ", ".join(_common_symbols(A, B))
+def mk_interpolant_prompt(
+    formulas_a: List[z3.ExprRef], formulas_b: List[z3.ExprRef]
+) -> str:
+    """Generate a basic prompt for LLM to create a Craig interpolant."""
+    a_text = "\n".join(f"(assert {e.sexpr()})" for e in formulas_a)
+    b_text = "\n".join(f"(assert {e.sexpr()})" for e in formulas_b)
+    commons = ", ".join(_common_symbols(formulas_a, formulas_b))
     return f"""Generate a Craig interpolant I between sets A and B.
 Requirements: A⟹I valid, I∧B unsat, use only shared symbols: {commons}
 Return ONLY the S-expression, no explanations.
 
-A: (set-logic ALL)\n{A_text}
-B: (set-logic ALL)\n{B_text}"""
+A: (set-logic ALL)\n{a_text}
+B: (set-logic ALL)\n{b_text}"""
 
 
-def mk_interpolant_cot_prompt(A: List[z3.ExprRef], B: List[z3.ExprRef]) -> str:
+def mk_interpolant_cot_prompt(
+    formulas_a: List[z3.ExprRef], formulas_b: List[z3.ExprRef]
+) -> str:
     """Generate a Chain-of-Thought prompt for LLM to create a Craig interpolant.
-    TODO: for CoT, shoud we just add an additional sentence 'think step-by-step' or guide the steps such as the ones in the current prompt?
+    TODO: for CoT, should we just add an additional sentence 'think step-by-step'
+    or guide the steps such as the ones in the current prompt?
     """
-    A_text = "\n".join(f"(assert {e.sexpr()})" for e in A)
-    B_text = "\n".join(f"(assert {e.sexpr()})" for e in B)
-    commons = ", ".join(_common_symbols(A, B))
+    a_text = "\n".join(f"(assert {e.sexpr()})" for e in formulas_a)
+    b_text = "\n".join(f"(assert {e.sexpr()})" for e in formulas_b)
+    commons = ", ".join(_common_symbols(formulas_a, formulas_b))
     return f"""Generate a Craig interpolant I between sets A and B using step-by-step reasoning.
 
 Requirements:
@@ -60,11 +68,13 @@ Step 4: Verification: [check the requirements]
 Step 5: Interpolant: [provide the S-expression]"""
 
 
-def mk_interpolant_fewshot_prompt(A: List[z3.ExprRef], B: List[z3.ExprRef]) -> str:
+def mk_interpolant_fewshot_prompt(
+    formulas_a: List[z3.ExprRef], formulas_b: List[z3.ExprRef]
+) -> str:
     """Generate a few-shot prompt with examples for Craig interpolant generation."""
-    A_text = "\n".join(f"(assert {e.sexpr()})" for e in A)
-    B_text = "\n".join(f"(assert {e.sexpr()})" for e in B)
-    commons = ", ".join(_common_symbols(A, B))
+    a_text = "\n".join(f"(assert {e.sexpr()})" for e in formulas_a)
+    b_text = "\n".join(f"(assert {e.sexpr()})" for e in formulas_b)
+    commons = ", ".join(_common_symbols(formulas_a, formulas_b))
 
     return f"""Generate a Craig interpolant I between sets A and B.
 
@@ -87,18 +97,20 @@ Interpolant: (<= x 5)
 Reasoning: A says 0 < x < 10, B says x < 0 or x > 5. The interpolant x ≤ 5 captures the overlap.
 
 Now solve:
-A: (set-logic ALL)\n{A_text}
-B: (set-logic ALL)\n{B_text}
+A: (set-logic ALL)\n{a_text}
+B: (set-logic ALL)\n{b_text}
 Interpolant:"""
 
 
-def mk_interpolant_structured_prompt(A: List[z3.ExprRef], B: List[z3.ExprRef]) -> str:
+def mk_interpolant_structured_prompt(
+    formulas_a: List[z3.ExprRef], formulas_b: List[z3.ExprRef]
+) -> str:
     """Generate a structured prompt with detailed analysis sections.
     TODO: What is the point of this prompt?... add a few related papers...
     """
-    A_text = "\n".join(f"(assert {e.sexpr()})" for e in A)
-    B_text = "\n".join(f"(assert {e.sexpr()})" for e in B)
-    commons = ", ".join(_common_symbols(A, B))
+    a_text = "\n".join(f"(assert {e.sexpr()})" for e in formulas_a)
+    b_text = "\n".join(f"(assert {e.sexpr()})" for e in formulas_b)
+    commons = ", ".join(_common_symbols(formulas_a, formulas_b))
 
     return f"""# Craig Interpolant Generation
 
@@ -114,13 +126,13 @@ Find an interpolant I between formula sets A and B such that:
 ## Formula Set A
 ```smt2
 (set-logic ALL)
-{A_text}
+{a_text}
 ```
 
 ## Formula Set B
 ```smt2
 (set-logic ALL)
-{B_text}
+{b_text}
 ```
 
 ## Analysis Framework
@@ -150,25 +162,28 @@ Find an interpolant I between formula sets A and B such that:
 Provide the interpolant as an SMT-LIB expression:"""
 
 
-def mk_interpolant_prompt_with_type(A: List[z3.ExprRef], B: List[z3.ExprRef], prompt_type: str = "basic") -> str:
+def mk_interpolant_prompt_with_type(
+    formulas_a: List[z3.ExprRef], formulas_b: List[z3.ExprRef],
+    prompt_type: str = "basic"
+) -> str:
     """Generate interpolant prompt with specified type.
 
     Args:
-        A: List of Z3 expressions for formula set A
-        B: List of Z3 expressions for formula set B
+        formulas_a: List of Z3 expressions for formula set A
+        formulas_b: List of Z3 expressions for formula set B
         prompt_type: Type of prompt ("basic", "cot", "fewshot", "structured")
 
     Returns:
         Formatted prompt string
     """
     if prompt_type == "cot":
-        return mk_interpolant_cot_prompt(A, B)
-    elif prompt_type == "fewshot":
-        return mk_interpolant_fewshot_prompt(A, B)
-    elif prompt_type == "structured":
-        return mk_interpolant_structured_prompt(A, B)
-    else:  # default to basic
-        return mk_interpolant_prompt(A, B)
+        return mk_interpolant_cot_prompt(formulas_a, formulas_b)
+    if prompt_type == "fewshot":
+        return mk_interpolant_fewshot_prompt(formulas_a, formulas_b)
+    if prompt_type == "structured":
+        return mk_interpolant_structured_prompt(formulas_a, formulas_b)
+    # default to basic
+    return mk_interpolant_prompt(formulas_a, formulas_b)
 
 
 def get_available_prompt_types() -> List[str]:

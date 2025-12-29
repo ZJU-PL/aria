@@ -3,7 +3,6 @@ Using pySMT to compute propositional itp
 """
 
 import z3
-from pysmt.shortcuts import binary_interpolant, sequence_interpolant
 from pysmt.shortcuts import Solver, Interpolator
 from pysmt.shortcuts import Symbol
 from pysmt.typing import BOOL
@@ -12,6 +11,12 @@ from aria.utils.z3_expr_utils import get_variables
 
 
 def to_pysmt_fml(fml: z3.ExprRef):
+    """
+    Convert a Z3 expression to a pySMT formula.
+
+    :param fml: Z3 expression to convert
+    :return: Tuple of (pySMT variables, pySMT formula)
+    """
     # the following two lines are just for "fixing" some warnings
     # zvs = z3.z3util.get_vars(fml) # can be slow
     zvs = get_variables(fml)
@@ -22,7 +27,13 @@ def to_pysmt_fml(fml: z3.ExprRef):
 
 
 def pysmt_binary_itp(fml_a: z3.ExprRef, fml_b: z3.ExprRef) -> z3.ExprRef:
-    """ Use pysmt to compute the binary interpolant and return a z3 expr"""
+    """
+    Use pySMT to compute the binary interpolant and return a Z3 expression.
+
+    :param fml_a: First formula
+    :param fml_b: Second formula
+    :return: Binary interpolant as a Z3 expression
+    """
     _, pysmt_fml_a = to_pysmt_fml(fml_a)
     _, pysmt_fml_b = to_pysmt_fml(fml_b)
 
@@ -30,17 +41,6 @@ def pysmt_binary_itp(fml_a: z3.ExprRef, fml_b: z3.ExprRef) -> z3.ExprRef:
     res = itp.binary_interpolant(pysmt_fml_a, pysmt_fml_b)
     return Solver(name='z3').converter.convert(res)
 
-
-"""
-def pysmt_sequence_itp(formulas: [z3.ExprRef]):
-    pysmt_formulas = []
-    for fml in formulas:
-        _, pysmt_fml_a = to_pysmt_fml(fml)
-        pysmt_formulas.append(pysmt_fml_a)
-
-    itp = sequence_interpolant(pysmt_formulas)
-    return itp
-"""
 
 def demo_pysmt_itp():
     x, y, z = z3.Bools("x y z")
