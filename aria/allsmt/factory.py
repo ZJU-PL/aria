@@ -31,7 +31,7 @@ class AllSMTSolverFactory:
         cls._solvers[name.lower()] = solver_class
 
     @classmethod
-    def create(cls, name: str, **kwargs) -> AllSMTSolver:
+    def create(cls, name: str, **kwargs: Any) -> AllSMTSolver:
         """
         Create an instance of the specified solver.
 
@@ -86,7 +86,7 @@ except ImportError:
     pass
 
 
-def create_allsmt_solver(name: str = "z3", **kwargs) -> AllSMTSolver:
+def create_allsmt_solver(name: str = "z3", **kwargs: Any) -> AllSMTSolver:
     """
     Convenience function to create an AllSMT solver instance.
 
@@ -101,7 +101,7 @@ def create_allsmt_solver(name: str = "z3", **kwargs) -> AllSMTSolver:
 
 
 # For backward compatibility, but will be deprecated in future versions
-def create_solver(name: str = "z3", **kwargs) -> AllSMTSolver:
+def create_solver(name: str = "z3", **kwargs: Any) -> AllSMTSolver:
     """
     Convenience function to create an AllSMT solver instance.
 

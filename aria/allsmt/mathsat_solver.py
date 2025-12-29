@@ -39,7 +39,9 @@ class MathSATAllSMTSolver(AllSMTSolver[MathSATModel]):
         if not mathsat_path:
             try:
                 from aria.global_params import global_config
-                self._mathsat_path = global_config.get_solver_path("mathsat")
+                path = global_config.get_solver_path("mathsat")
+                if path:
+                    self._mathsat_path = path
             except (ImportError, AttributeError):
                 self._mathsat_path = "mathsat"  # Default to 'mathsat' command
 

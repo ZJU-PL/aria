@@ -274,9 +274,9 @@ def get_vars(formula: BoolRef) -> List[BoolRef]:
     """
     vars_set: Set[BoolRef] = set()
 
-    def collect_vars(expr: BoolRef) -> None:
+    def collect_vars(expr: ExprRef) -> None:
         if is_const(expr) and expr.decl().kind() == Z3_OP_UNINTERPRETED and expr.sort() == BoolSort():
-            vars_set.add(expr)
+            vars_set.add(expr)  # type: ignore
         for child in expr.children():
             collect_vars(child)
 
