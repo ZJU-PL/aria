@@ -32,8 +32,8 @@ Z3Expr = z3.ExprRef
 
 
 def _parse_smt2_asserts(smt2_text: SMTText) -> List[Z3Expr]:
-    solver = z3.Solver()
     """Parse SMT2 text into Z3 expressions."""
+    solver = z3.Solver()
     for attempt in [smt2_text, f"(assert {smt2_text})\n"]:
         try:
             parsed = z3.parse_smt2_string(f"(set-logic ALL)\n{attempt}")
@@ -45,7 +45,9 @@ def _parse_smt2_asserts(smt2_text: SMTText) -> List[Z3Expr]:
     raise z3.Z3Exception("Failed to parse SMT2 text")
 
 
-def _to_asserts(formulas: Union[Sequence[Union[SMTText, Z3Expr]], SMTText, Z3Expr]) -> List[Z3Expr]:
+def _to_asserts(
+    formulas: Union[Sequence[Union[SMTText, Z3Expr]], SMTText, Z3Expr]
+) -> List[Z3Expr]:
     """Convert formulas to Z3 expressions."""
     if not isinstance(formulas, (list, tuple)):
         formulas = [formulas]
@@ -60,15 +62,17 @@ def _to_asserts(formulas: Union[Sequence[Union[SMTText, Z3Expr]], SMTText, Z3Exp
 class InterpolantResult:
     """Result of interpolant generation."""
     interpolant: Optional[Z3Expr]
-    valid_A_implies_I: bool
-    unsat_I_and_B: bool
+    valid_A_implies_I: bool  # pylint: disable=invalid-name
+    unsat_I_and_B: bool  # pylint: disable=invalid-name
     raw_text: str
 
 
 class LLMInterpolantGenerator:
     """Generate Craig interpolants using LLM."""
-    def __init__(self, model_name: str = os.environ.get("ARIA_LLM_MODEL", "glm-4-flash"),
-                 temperature: float = 0.2, prompt_type: str = "basic") -> None:
+    def __init__(self,
+                 model_name: str = os.environ.get("ARIA_LLM_MODEL", "glm-4-flash"),
+                 temperature: float = 0.2,
+                 prompt_type: str = "basic") -> None:
         log_dir = os.environ.get("ARIA_LOG_DIR", ".aria_logs")
         os.makedirs(log_dir, exist_ok=True)
         logger = Logger(os.path.join(log_dir, "interpolant_llm.log"))
@@ -161,7 +165,7 @@ def main():
         res = gen.generate(formulas_a, formulas_b)
         print("Interpolant:", res.raw_text)
         print(
-            "A => I:", res.valid_A_implies_I,
+            "A => I:", res.valid_A_implies_I,  # noqa: E501
             "; I & B unsat:", res.unsat_I_and_B
         )
 

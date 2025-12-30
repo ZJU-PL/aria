@@ -4,13 +4,13 @@ D. Eppstein, September 2005, rewritten May 2007 per arxiv:0705.1025.
 """
 
 
-import aria.utils.pads.BFS as BFS
-import aria.utils.pads.Medium as Medium
-from aria.utils.pads.Bipartite import isBipartite
-from aria.utils.pads.UnionFind import UnionFind
-from aria.utils.pads.StrongConnectivity import StronglyConnectedComponents
-from aria.utils.pads.Graphs import isUndirected
 import unittest
+
+from aria.utils.pads import BFS, Medium
+from aria.utils.pads.Bipartite import isBipartite
+from aria.utils.pads.Graphs import isUndirected
+from aria.utils.pads.StrongConnectivity import StronglyConnectedComponents
+from aria.utils.pads.UnionFind import UnionFind
 
 
 def PartialCubeEdgeLabeling(G):

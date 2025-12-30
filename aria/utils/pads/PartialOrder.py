@@ -5,8 +5,9 @@ D. Eppstein, July 2006.
 
 
 import unittest
-from aria.utils.pads.DFS import preorder,postorder
-import aria.utils.pads.BipartiteMatching as BipartiteMatching
+
+from aria.utils.pads import BipartiteMatching
+from aria.utils.pads.DFS import postorder, preorder
 
 
 def isTopologicalOrder(G,L):

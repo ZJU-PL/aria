@@ -24,7 +24,8 @@ def HamiltonianCycles(G):
     # In the copied graph G, G[v][w] is True when vw is an original edge
     # of the input, and False when it was produced by a contraction.
     if not G or not isUndirected(G) or maxDegree(G) > 3:
-        raise ValueError("HamiltonianCycles input must be undirected degree three graph")
+        raise ValueError(
+            "HamiltonianCycles input must be undirected degree three graph")
     if minDegree(G) < 2:
         return
     G = copyGraph(G,map_to_constant(True))

@@ -3,9 +3,9 @@ D. Eppstein, May 2004.
 """
 
 import unittest
+
+from aria.utils.pads import DFS, Graphs
 from aria.utils.pads.Biconnectivity import BiconnectedComponents
-import aria.utils.pads.Graphs as Graphs
-import aria.utils.pads.DFS as DFS
 
 class NonBipartite(Exception):
     pass

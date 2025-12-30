@@ -16,9 +16,9 @@ def z3_value_to_python(z3_val) -> Any:
     """Convert a Z3 value to its corresponding Python value."""
     if z3.is_int_value(z3_val):
         return z3_val.as_long()
-    if z3.is_real_value(z3_val):
+    if z3.is_real_value(z3_val):  # pylint: disable=no-member
         return float(z3_val.as_fraction())
-    if z3.is_bool_value(z3_val):
+    if z3.is_bool_value(z3_val):  # pylint: disable=no-member
         return z3.is_true(z3_val)
     if z3.is_string_value(z3_val):
         return z3_val.as_string()
@@ -34,7 +34,7 @@ def z3_value_to_python(z3_val) -> Any:
             return float(z3_val.as_fraction())
         except Exception:
             return str(z3_val)
-    if z3.is_array_value(z3_val):
+    if z3.is_array_value(z3_val):  # pylint: disable=no-member
         # For arrays, this is complex as we need to handle the array structure
         # For now, return a simplified representation
         # A full implementation would need to handle array indexing and values
@@ -95,7 +95,8 @@ def values_equal(val1, val2) -> bool:
     if z3.is_fp_value(val1) and z3.is_fp_value(val2):
         # For floating points, use fpEQ for proper NaN handling
         return z3.fpEQ(val1, val2)
-    if z3.is_array_value(val1) and z3.is_array_value(val2):
+    if (z3.is_array_value(val1) and  # pylint: disable=no-member
+            z3.is_array_value(val2)):  # pylint: disable=no-member
         # For arrays, this would need more sophisticated comparison
         # For now, use string comparison as a fallback
         return str(val1) == str(val2)

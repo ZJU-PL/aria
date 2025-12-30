@@ -4,7 +4,7 @@ with significant additional changes by D. Eppstein.
 """
 
 
-class UnionFind(object):
+class UnionFind:
     """Union-find data structure.
 
     Each unionFind instance X maintains a family of disjoint sets of
@@ -26,18 +26,18 @@ class UnionFind(object):
         self.weights = {}
         self.parents = {}
 
-    def __getitem__(self, object):
+    def __getitem__(self, item):
         """Find and return the name of the set containing the object."""
 
         # check for previously unknown object
-        if object not in self.parents:
-            self.parents[object] = object
-            self.weights[object] = 1
-            return object
+        if item not in self.parents:
+            self.parents[item] = item
+            self.weights[item] = 1
+            return item
 
         # find path of objects leading to the root
-        path = [object]
-        root = self.parents[object]
+        path = [item]
+        root = self.parents[item]
         while root != path[-1]:
             path.append(root)
             root = self.parents[root]
@@ -54,7 +54,7 @@ class UnionFind(object):
     def union(self, *objects):
         """Find the sets containing the objects and merge them all."""
         roots = [self[x] for x in objects]
-        heaviest = max([(self.weights[r],r) for r in roots])[1]
+        heaviest = max((self.weights[r], r) for r in roots)[1]
         for r in roots:
             if r != heaviest:
                 self.weights[heaviest] += self.weights[r]

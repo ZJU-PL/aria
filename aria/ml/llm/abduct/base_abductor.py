@@ -26,7 +26,7 @@ class LLMAbductor:
         prompt = create_basic_prompt(problem)
         llm_response = ""
 
-        for attempt in range(self.max_attempts):
+        for _ in range(self.max_attempts):
             try:
                 llm_response = self._invoke_llm(prompt)
                 smt_string = extract_smt_from_llm_response(llm_response)
@@ -37,7 +37,9 @@ class LLMAbductor:
                 if hypothesis is None:
                     continue
 
-                is_consistent, is_sufficient = validate_hypothesis(problem, hypothesis)
+                is_consistent, is_sufficient = validate_hypothesis(
+                    problem, hypothesis
+                )
                 result = AbductionResult(
                     problem=problem,
                     hypothesis=hypothesis,
@@ -63,7 +65,10 @@ class LLMAbductor:
         return (result if 'result' in locals() else
                 AbductionResult(
                     problem=problem,
-                    error="Failed to generate a valid hypothesis after multiple attempts",
+                    error=(
+                        "Failed to generate a valid hypothesis after "
+                        "multiple attempts"
+                    ),
                     llm_response=llm_response,
                     prompt=prompt,
                     execution_time=time.time() - start_time

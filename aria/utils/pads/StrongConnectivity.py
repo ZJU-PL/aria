@@ -4,7 +4,8 @@ D. Eppstein, July 2005.
 """
 
 import unittest
-import aria.utils.pads.DFS as DFS
+
+from aria.utils.pads import DFS
 
 
 class StronglyConnectedComponents(DFS.Searcher):

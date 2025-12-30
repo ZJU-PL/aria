@@ -1,7 +1,10 @@
 import argparse
-import os, sys
+import os
+import sys
 
-def implies (A, B): return (not A) or B
+
+def implies(a_val, b_val):
+    return (not a_val) or b_val
 
 class Config:
     def __init__(self, args) -> None:
@@ -13,15 +16,16 @@ class Config:
     def check(self):
         if hasattr(self, 'mode'):
             if self.mode not in ['build', 'eval', 'predict', 'train']:
-                if self.mode.split(".")[-1] == "smt2":
+                if self.mode.rsplit(".", maxsplit=1)[-1] == "smt2":
                     self.benchmark = self.mode
                     self.mode = 'predict'
-        assert self.ml_core in ['torch', 'scikit', 'xgboost']
+        assert hasattr(self, 'ml_core') and self.ml_core in ['torch', 'scikit', 'xgboost']
 
     def __str__(self) -> str:
         return str(self.__dict__)
 
-    __repr__ = __str__ 
+    __repr__ = __str__
+
 parser = argparse.ArgumentParser()
 bin_file = sys.argv[0].split('/')[-1]
 

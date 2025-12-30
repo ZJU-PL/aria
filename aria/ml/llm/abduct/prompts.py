@@ -11,7 +11,7 @@ from aria.ml.llm.abduct.data_structures import AbductionProblem, AbductionIterat
 
 def create_basic_prompt(problem: AbductionProblem) -> str:
     """Build a basic instruction prompt for generating abductive hypotheses."""
-    return f"""You are an expert in logical abduction and SMT.
+    return f"""You are an expert in logical abduction and SMT.  # noqa: E501
 
 Problem in SMT-LIB2 format:
 ```
@@ -39,7 +39,9 @@ def create_feedback_prompt(
 ) -> str:
     """Build a feedback-augmented prompt for iterative abduction."""
     last_iteration = previous_iterations[-1]
-    ce_formatted = "\n".join([f"{var} = {value}" for var, value in last_counterexample.items()])
+    ce_formatted = "\n".join(
+        [f"{var} = {value}" for var, value in last_counterexample.items()]
+    )
 
     if not last_iteration.is_consistent:
         issue = "inconsistent with the premise"
@@ -66,7 +68,8 @@ def create_feedback_prompt(
 {problem.to_smt2_string()}
 ```
 
-Goal: Find ψ such that (premise ∧ ψ) is satisfiable and implies: {problem.conclusion}
+Goal: Find ψ such that (premise ∧ ψ) is satisfiable and implies: \
+{problem.conclusion}
 
 Your previous attempt: {last_iteration.hypothesis}
 Issue: Your hypothesis is {issue}.

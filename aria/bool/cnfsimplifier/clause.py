@@ -2,7 +2,7 @@
 Clause
 """
 import uuid
-from typing import List, Set, Optional, Union, Any
+from typing import List, Set, Union
 
 from .variable import Variable
 
@@ -15,7 +15,6 @@ class Clause:
     variable_list: List[Variable]  # 变量列表
     literals_set: Set[int]        # 文字集合
     id: str                      # 唯一标识符
-    __size: int                  # 变量列表大小
     __tautology: bool           # 是否为重言式
 
     def __init__(self, variable_list: List[Union[Variable, int, float]]) -> None:
@@ -32,7 +31,6 @@ class Clause:
             variable_list = [Variable(int(var)) for var in variable_list]
 
         self.variable_list = variable_list  # type: List[Variable]
-        self.__size = len(self.variable_list)
         self.id = create_id()
 
         self.literals_set = set()  # type: Set[int]
@@ -82,18 +80,20 @@ class Clause:
         if isinstance(lit, int):
             lit = Variable(lit)
         self.variable_list.append(lit)
-        self.size = len(self.variable_list)
         self.literals_set.add(lit.variable_value)
         self.__tautology = self.__update_tautology(lit)
 
     def get_diff(self, other_clause: 'Clause') -> List[Variable]:
         """
-        Get the difference between two literal sets, this literal set and the other literal set
+        Get the difference between two literal sets, this literal set and
+        the other literal set
         :complexity: O(n) where n is the size of the sets
         :param other_clause: the other clause
-        :return: a list of Variables that is the difference between the two literals set.
+        :return: a list of Variables that is the difference between the
+                 two literals set.
         """
-        return [Variable(var) for var in self.literals_set.difference(other_clause.literals_set)]
+        diff_set = self.literals_set.difference(other_clause.literals_set)
+        return [Variable(var) for var in diff_set]
 
     def get_resolvent(self, other_clause: 'Clause', lit: Variable) -> 'Clause':
         """
@@ -103,10 +103,12 @@ class Clause:
         :param lit: literal to get the resolvent based on it
         :return: return a new clause, the resolvent clause
         """
-        if other_clause == self \
-                or not other_clause.is_literal_value_present(-lit.variable_value) \
-                or not self.is_literal_value_present(lit.variable_value):
-            raise Exception("")
+        if (other_clause == self
+                or not other_clause.is_literal_value_present(-lit.variable_value)
+                or not self.is_literal_value_present(lit.variable_value)):
+            raise ValueError(
+                "Cannot compute resolvent: invalid clause or literal"
+            )
 
         self_set = self.literals_set.copy()
         other_set = other_clause.literals_set.copy()
@@ -188,7 +190,8 @@ class Clause:
     def get_literals_sub_sets(self):
         """
         Get all literals sub sets excluding the empty set
-        :complexity: this is done in O(n2^n), where n is the number of literals in the clause
+        :complexity: this is done in O(n2^n), where n is the number of
+                     literals in the clause
         :return: all sub sets
         """
 
@@ -260,8 +263,6 @@ class Clause:
 
                         if dif:
                             lit = dif[0].copy()
-                        else:
-                            lit = lit
 
                         c_hla.add_literal(lit)
 

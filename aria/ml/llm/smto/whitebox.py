@@ -19,14 +19,18 @@ class WhiteboxAnalyzer:
     def analyze_oracle(self, oracle_info: WhiteboxOracleInfo) -> Optional[str]:
         """Analyze a whitebox oracle and derive a symbolic model (string)."""
         if self.explanation_callback:
-            self.explanation_callback(f"Analyzing whitebox oracle '{oracle_info.name}' "
-                                     f"using {oracle_info.analysis_mode.value} mode")
+            self.explanation_callback(
+                f"Analyzing whitebox oracle '{oracle_info.name}' "
+                f"using {oracle_info.analysis_mode.value} mode"
+            )
 
         prompt = self._build_analysis_prompt(oracle_info)
 
         try:
             original_system_role = self.llm.systemRole
-            self.llm.systemRole = "You are an expert in software analysis and formal methods."
+            self.llm.systemRole = (
+                "You are an expert in software analysis and formal methods."
+            )
 
             symbolic_model, _, _ = self.llm.infer(prompt, is_measure_cost=False)
 
@@ -35,23 +39,31 @@ class WhiteboxAnalyzer:
             oracle_info.symbolic_model = symbolic_model.strip()
 
             if self.explanation_callback:
-                self.explanation_callback(f"Successfully derived symbolic model for '{oracle_info.name}'")
+                self.explanation_callback(
+                    f"Successfully derived symbolic model for '{oracle_info.name}'"
+                )
 
             return symbolic_model.strip()
 
         except Exception as e:
             if self.explanation_callback:
-                self.explanation_callback(f"Failed to analyze whitebox oracle '{oracle_info.name}': {str(e)}")
+                self.explanation_callback(
+                    f"Failed to analyze whitebox oracle '{oracle_info.name}': "
+                    f"{str(e)}"
+                )
             return None
 
     def _build_analysis_prompt(self, oracle_info: WhiteboxOracleInfo) -> str:
         """Build analysis prompt for a whitebox oracle."""
         examples_text = "\n".join(
-            [f"Input: {ex['input']}\nOutput: {ex['output']}" for ex in oracle_info.examples]
+            [
+                f"Input: {ex['input']}\nOutput: {ex['output']}"
+                for ex in oracle_info.examples
+            ]
         )
         sections: list[str] = [
             ("As an expert in software analysis, create a precise symbolic model "
-             "for the following component:"),
+             "for the following component:"),  # noqa: E501
             f"Component name: {oracle_info.name}",
             f"Input types: {[str(t) for t in oracle_info.input_types]}",
             f"Output type: {str(oracle_info.output_type)}",
@@ -116,7 +128,7 @@ class ModelEvaluator:
 
             if self.explanation_callback:
                 self.explanation_callback(
-                    "Direct Z3 evaluation failed, falling back to LLM evaluation"
+                    "Direct Z3 evaluation failed, falling back to LLM evaluation"  # noqa: E501
                 )
 
             return self._evaluate_with_llm(oracle_info, inputs)
@@ -152,7 +164,8 @@ class ModelEvaluator:
                     # For floating points, create FP variable with appropriate sort
                     z3_vars[var_name] = z3.FP(var_name, input_type)
                 elif z3.is_array_sort(input_type):
-                    # For arrays, create Array variable with appropriate domain and range
+                    # For arrays, create Array variable with appropriate domain
+                    # and range
                     z3_vars[var_name] = z3.Array(
                         var_name, input_type.domain(), input_type.range()
                     )
@@ -179,11 +192,23 @@ class ModelEvaluator:
                     elif z3.is_bv_sort(input_type):
                         # For bit-vectors, handle different value types
                         if isinstance(value, int):
-                            solver.add(z3_vars[var_name] == z3.BitVecVal(value, input_type.size()))
+                            solver.add(
+                                z3_vars[var_name] == z3.BitVecVal(
+                                    value, input_type.size()
+                                )
+                            )
                         elif isinstance(value, str) and value.startswith('#b'):
-                            solver.add(z3_vars[var_name] == z3.BitVecVal(value, input_type.size()))
+                            solver.add(
+                                z3_vars[var_name] == z3.BitVecVal(
+                                    value, input_type.size()
+                                )
+                            )
                         else:
-                            solver.add(z3_vars[var_name] == z3.BitVecVal(int(value), input_type.size()))
+                            solver.add(
+                                z3_vars[var_name] == z3.BitVecVal(
+                                    int(value), input_type.size()
+                                )
+                            )
                     elif z3.is_fp_sort(input_type):
                         # For floating points
                         if isinstance(value, float):
@@ -224,7 +249,8 @@ class ModelEvaluator:
             else:
                 return None
 
-            # Placeholder: parsing model_str into Z3 constraints is not implemented
+            # Placeholder: parsing model_str into Z3 constraints is not
+            # implemented
             return None
 
         except Exception as e:
@@ -236,15 +262,13 @@ class ModelEvaluator:
                           oracle_info: WhiteboxOracleInfo,
                           inputs: Dict[str, Any]) -> Optional[Any]:
         """Evaluate symbolic model using LLM. Return parsed result or None."""
-        prompt = f"""Based on the following symbolic model for function '{oracle_info.name}':
-
-{oracle_info.symbolic_model}
-
-Evaluate this model with these input values:
-{inputs}
-
-Return only the resulting output value, with no additional text.
-"""
+        prompt = (
+            f"Based on the following symbolic model for function "
+            f"'{oracle_info.name}':\n\n"
+            f"{oracle_info.symbolic_model}\n\n"
+            f"Evaluate this model with these input values:\n{inputs}\n\n"
+            f"Return only the resulting output value, with no additional text.\n"
+        )
         try:
             original_system_role = self.llm.systemRole
             self.llm.systemRole = "You are a precise formula evaluator."

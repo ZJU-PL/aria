@@ -1,4 +1,4 @@
-
+# pylint: disable=invalid-name
 from abc import ABC, abstractmethod
 from typing import Dict
 from aria.ml.llm.llmtool.LLM_utils import *
@@ -45,14 +45,14 @@ class LLMTool(ABC):
         self.output_token_cost = 0
         self.total_query_num = 0
 
-    def invoke(self, input: LLMToolInput) -> LLMToolOutput:
+    def invoke(self, input_data: LLMToolInput) -> LLMToolOutput:  # pylint: disable=redefined-builtin
         class_name = type(self).__name__
         self.logger.print_console(f"The LLM Tool {class_name} is invoked.")
-        if input in self.cache:
+        if input_data in self.cache:
             self.logger.print_log("Cache hit.")
-            return self.cache[input]
+            return self.cache[input_data]
 
-        prompt = self._get_prompt(input)
+        prompt = self._get_prompt(input_data)
         self.logger.print_log("Prompt:", "\n", prompt)
 
         single_query_num = 0
@@ -67,22 +67,22 @@ class LLMTool(ABC):
             self.logger.print_log("Response:", "\n", response)
             self.input_token_cost += input_token_cost
             self.output_token_cost += output_token_cost
-            output = self._parse_response(response, input)
+            output = self._parse_response(response, input_data)
 
             if output is not None:
                 break
 
         self.total_query_num += single_query_num
         if output is not None:
-            self.cache[input] = output
+            self.cache[input_data] = output
         return output
 
     @abstractmethod
-    def _get_prompt(self, input: LLMToolInput) -> str:
+    def _get_prompt(self, input_data: LLMToolInput) -> str:  # pylint: disable=redefined-builtin
         pass
 
     @abstractmethod
     def _parse_response(
-        self, response: str, input: LLMToolInput = None
+        self, response: str, input_data: LLMToolInput = None  # pylint: disable=redefined-builtin
     ) -> LLMToolOutput:
         pass

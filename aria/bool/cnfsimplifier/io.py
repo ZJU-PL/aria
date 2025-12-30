@@ -1,11 +1,11 @@
 # coding: utf-8
 from typing import List
 
+from pysat.formula import CNF
+
 from .clause import Clause
 from .cnf import Cnf
 from .variable import Variable
-
-from pysat.formula import CNF
 
 
 class PySATCNFReader:

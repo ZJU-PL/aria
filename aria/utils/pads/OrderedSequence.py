@@ -20,17 +20,27 @@ class SimpleOrderedSequence(Sequence):
     to use this data structure only for sequences of very few items.
     """
 
-    def __init__(self,iterable=[],key=None):
+    def __init__(self, iterable=None, key=None):
         """The only additional data we maintain over a vanilla Sequence
         is a dictionary self._tag mapping sequence items to integers,
         such that an item is earlier than another iff its tag is smaller.
         """
         self._tag = {}
-        Sequence.__init__(self,iterable,key=key)
+        if iterable is None:
+            iterable = []
+        Sequence.__init__(self, iterable, key=key)
 
-    def __lt__(self, x, y):
-        """Compare the positions of x and y in the sequence."""
-        return self._tag[self.key(x)] < self._tag[self.key(y)]
+    def compare(self, x, y):
+        """Compare the positions of x and y in the sequence.
+        Returns -1 if x < y, 0 if x == y, 1 if x > y.
+        """
+        tag_x = self._tag[self.key(x)]
+        tag_y = self._tag[self.key(y)]
+        if tag_x < tag_y:
+            return -1
+        if tag_x > tag_y:
+            return 1
+        return 0
 
     def append(self,x):
         """Add x to the end of the sequence."""
@@ -42,22 +52,22 @@ class SimpleOrderedSequence(Sequence):
 
     def insertAfter(self,x,y):
         """Add y after x and compute a tag for it."""
-        Sequence.insertAfter(self,x,y)
+        Sequence.insertAfter(self, x, y)
         x = self.key(x)
         y = self.key(y)
-        next = self._next[y]
-        if next == self._first:
+        next_item = self._next[y]
+        if next_item == self._first:
             nexttag = sys.maxsize
         else:
-            nexttag = self._tag[next]
+            nexttag = self._tag[next_item]
         xtag = self._tag[x]
         self._tag[y] = xtag + (nexttag - xtag + 1)//2
         if self._tag[y] == nexttag:
             self.rebalance(y)
 
-    def insertBefore(self,x,y):
+    def insertBefore(self, x, y):
         """Add y before x in the sequence."""
-        Sequence.insertBefore(self,x,y)
+        Sequence.insertBefore(self, x, y)
         x = self.key(x)
         y = self.key(y)
         if self._first == y:

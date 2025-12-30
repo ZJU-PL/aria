@@ -92,8 +92,8 @@ def cnf_asymmetric_subsumption_elimination(cnf: 'Cnf') -> 'Cnf':
 
 def explicits(cnf: 'Cnf') -> 'Cnf':
     """
-    The explicits function takes a CNF object as an argument and returns the same CNF with
-    the following transformations applied:
+    The explicits function takes a CNF object as an argument and returns
+    the same CNF with the following transformations applied:
 
     :param cnf: Store the cnf formula
     :return: The cnf after performing all the functions
@@ -106,11 +106,12 @@ def explicits(cnf: 'Cnf') -> 'Cnf':
 
 def hiddens(cnf: 'Cnf') -> 'Cnf':
     """
-    The hiddens function takes a CNF object as input and returns a new CNF object
-    with the following transformations applied:
+    The hiddens function takes a CNF object as input and returns a new CNF
+    object with the following transformations applied:
 
     :param cnf: Store the cnf formula
-    :return: A new cnf object that has been optimized by the 3 hidden elimination methods
+    :return: A new cnf object that has been optimized by the 3 hidden
+             elimination methods
     """
     cnf = cnf.hidden_subsumption_elimination()
     cnf = cnf.hidden_tautology_elimination()

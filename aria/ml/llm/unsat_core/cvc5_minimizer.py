@@ -3,13 +3,15 @@
 import re
 import time
 
-import cvc5
+try:
+    import cvc5  # pylint: disable=import-error
+except ImportError:
+    cvc5 = None  # type: ignore
 
 
 class OutputFormatError(Exception):
     """Exception raised when GPT-x's response does not conform to prompt instructions.
     """
-    pass
 
 
 def extract_output_constraints(response):
@@ -28,7 +30,10 @@ def extract_output_constraints(response):
     response = response.replace("\n", "<nl>")
     all_outputs = re.findall("<OUTPUT>(.*?)</OUTPUT>", response)
     if len(all_outputs) != 1:
-        raise OutputFormatError(f"Only 1 output should be returned, {len(all_outputs)} were returned instead.")
+        raise OutputFormatError(
+            f"Only 1 output should be returned, {len(all_outputs)} were "
+            f"returned instead."
+        )
     output = all_outputs[0]
     output_constraints = re.findall("<c>(.*?)</c>", output)
     if len(output_constraints) == 0:
@@ -44,10 +49,11 @@ def build_smt2_formula_from_string_constraints(
     Arguments:
         constraints (list): Constraint subset from GPT-x's response in string format.
         all_constraints (list): Complete list of constraints in string format.
-        all_smt2_constraints (list): Complete list of constraints in SMT2-Lib format.
-            There is one-to-one correspondence with constraints in ``all_constraints``.
-        placeholder (str): SMT2-Lib input file string placeholder, where all assertions
-            are represented by "<ASSERT>" keyword.
+        all_smt2_constraints (list): Complete list of constraints in SMT2-Lib
+            format. There is one-to-one correspondence with constraints in
+            ``all_constraints``.
+        placeholder (str): SMT2-Lib input file string placeholder, where all
+            assertions are represented by "<ASSERT>" keyword.
 
     Returns:
         smt2_formula (str): SMT2-Lib input format string, where assertions corresponding
@@ -181,7 +187,5 @@ def compute_time_for_mus(constraints, placeholder):
 
     solver.getUnsatCore()
     unsat_core_end_time = time.time()
-    mus_time = "{:.3f}".format(
-        (unsat_core_end_time - unsat_check_start_time) * 1000
-    )
+    mus_time = f"{(unsat_core_end_time - unsat_check_start_time) * 1000:.3f}"
     return mus_time

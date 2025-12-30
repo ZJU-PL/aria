@@ -27,25 +27,32 @@ def run_genetic_algorithm(args):
     """Run the genetic algorithm with specified parameters."""
     print("=== Z3 Tactic Optimization - Genetic Algorithm ===\n")
 
-    mode_name = "binary Z3" if args.mode == EvaluationMode.BINARY_Z3 else "Python API"
+    mode_name = ("binary Z3" if args.mode == EvaluationMode.BINARY_Z3
+                 else "Python API")
     os.environ["Z3_EVALUATION_MODE"] = args.mode
     print(f"Using {mode_name} evaluation mode")
-    print(f"Population: {args.population}, Generations: {args.generations}, Timeout: {args.timeout}s\n")
+    print(f"Population: {args.population}, Generations: {args.generations}, "
+          f"Timeout: {args.timeout}s\n")
 
     ga = GA(population_size=args.population)
 
     try:
         results = ga.run_evolution(
-            generations=args.generations, mode=args.mode, smtlib_file=args.smtlib_file,
-            timeout=args.timeout, output_dir=args.output_dir, save_interval=args.save_interval
+            generations=args.generations, mode=args.mode,
+            smtlib_file=args.smtlib_file, timeout=args.timeout,
+            output_dir=args.output_dir, save_interval=args.save_interval
         )
 
         print("\n=== Evolution Complete ===")
-        print(f"Generations: {results['generations_run']}, Best fitness: {results['final_stats']['best_fitness']}")
+        best_fitness = results['final_stats']['best_fitness']
+        print(f"Generations: {results['generations_run']}, "
+              f"Best fitness: {best_fitness}")
 
         if results['best_sequence']:
-            print(f"\nBest tactic sequence:\n{results['best_sequence'].to_string()}")
-            print(f"\nSMT-LIB2 format:\n{results['best_sequence'].to_smtlib_apply()}")
+            print(f"\nBest tactic sequence:\n"
+                  f"{results['best_sequence'].to_string()}")
+            print(f"\nSMT-LIB2 format:\n"
+                  f"{results['best_sequence'].to_smtlib_apply()}")
 
     except KeyboardInterrupt:
         print("\n\nInterrupted by user. Saving current best results...")
@@ -66,18 +73,28 @@ def main():
     parser = argparse.ArgumentParser(
         description="Z3 Tactic Optimization using Genetic Algorithm",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="Examples:\n  python main.py --mode binary\n  python main.py --generations 50\n  python main.py --demo"
+        epilog=("Examples:\n  python main.py --mode binary\n"
+                "  python main.py --generations 50\n"
+                "  python main.py --demo")
     )
 
-    parser.add_argument('--mode', choices=[EvaluationMode.PYTHON_API, EvaluationMode.BINARY_Z3],
-                       default=EvaluationMode.PYTHON_API, help='Evaluation mode (default: python_api)')
-    parser.add_argument('--population', '-p', type=int, default=64, help='Population size (default: 64)')
-    parser.add_argument('--generations', '-g', type=int, default=128, help='Generations (default: 128)')
-    parser.add_argument('--timeout', '-t', type=int, default=8, help='Timeout in seconds (default: 8)')
+    parser.add_argument(
+        '--mode', choices=[EvaluationMode.PYTHON_API, EvaluationMode.BINARY_Z3],
+        default=EvaluationMode.PYTHON_API,
+        help='Evaluation mode (default: python_api)')
+    parser.add_argument('--population', '-p', type=int, default=64,
+                       help='Population size (default: 64)')
+    parser.add_argument('--generations', '-g', type=int, default=128,
+                       help='Generations (default: 128)')
+    parser.add_argument('--timeout', '-t', type=int, default=8,
+                       help='Timeout in seconds (default: 8)')
     parser.add_argument('--smtlib-file', help='SMT-LIB2 file for evaluation')
-    parser.add_argument('--output-dir', '-o', default='.', help='Output directory (default: .)')
-    parser.add_argument('--save-interval', type=int, default=10, help='Save elite every N generations (default: 10)')
-    parser.add_argument('--demo', action='store_true', help='Show demo instead of running GA')
+    parser.add_argument('--output-dir', '-o', default='.',
+                       help='Output directory (default: .)')
+    parser.add_argument('--save-interval', type=int, default=10,
+                       help='Save elite every N generations (default: 10)')
+    parser.add_argument('--demo', action='store_true',
+                       help='Show demo instead of running GA')
 
     args = parser.parse_args()
 

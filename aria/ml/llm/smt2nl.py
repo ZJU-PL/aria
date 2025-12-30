@@ -62,8 +62,9 @@ class SMT2NLConverter:
 
             # Strings
             'str.len': 'length', 'str.++': 'concat', 'str.at': 'charAt',
-            'str.substr': 'substring', 'str.contains': 'contains', 'str.prefixof': 'prefixOf',
-            'str.suffixof': 'suffixOf', 'str.indexof': 'indexOf', 'str.replace': 'replace',
+            'str.substr': 'substring', 'str.contains': 'contains',
+            'str.prefixof': 'prefixOf', 'str.suffixof': 'suffixOf',
+            'str.indexof': 'indexOf', 'str.replace': 'replace',
             'str.to_re': 'toRegex', 'str.in_re': 'matches', 're.++': 'reConcat',
             're.*': 'star', 're.+': 'plus', 're.opt': 'optional', 're.union': 'union',
             're.inter': 'intersect', 're.comp': 'complement',
@@ -225,8 +226,11 @@ class SMT2NLConverter:
             else_expr = self.convert_expr(args[2])
             return f"({cond} ? {then_expr} : {else_expr})"
         if op in ['forall', 'exists'] and len(args) >= 2:
-            vars_text = ", ".join(f"{v[0]}:{v[1]}" for v in args[0] if len(v) >= 2)
-            return f"{'∀' if op == 'forall' else '∃'}{vars_text}. {self.convert_expr(args[1])}"
+            vars_text = ", ".join(
+                f"{v[0]}:{v[1]}" for v in args[0] if len(v) >= 2
+            )
+            quantifier = '∀' if op == 'forall' else '∃'
+            return f"{quantifier}{vars_text}. {self.convert_expr(args[1])}"
 
         # Extract bit-vector sizes
         if op.startswith('(_ ') and op.endswith(')'):
@@ -346,7 +350,9 @@ class SMT2NLConverter:
                     depth += 1 if tokens[i] == '(' else -1 if tokens[i] == ')' else 0
                     i += 1
                 if depth != 0:
-                    raise SMT2NLParseError("Unbalanced parentheses while splitting expressions")
+                    raise SMT2NLParseError(
+                        "Unbalanced parentheses while splitting expressions"
+                    )
                 expr_text = ' '.join(tokens[start:i])
                 exprs.append(self.convert_expr(self.parse_sexpr(expr_text)))
             else:

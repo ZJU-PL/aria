@@ -8,7 +8,8 @@ def basic_qe():
     try:
         r = qelim_exists_lme(f, [x])
         print(f"QE: {r}")
-    except: print("QE failed")
+    except Exception:
+        print("QE failed")
 
 def lra_qe():
     x, y, z = z3.Reals('x y z')
@@ -16,7 +17,8 @@ def lra_qe():
     try:
         r = qelim_exists_lme(f, [x])
         print(f"LRA QE: {r}")
-    except: print("LRA QE failed")
+    except Exception:
+        print("LRA QE failed")
 
 def z3_qe():
     x, y = z3.Reals('x y')
@@ -26,8 +28,10 @@ def z3_qe():
 
 def main():
     print("QE Examples\n" + "="*20)
-    basic_qe(); lra_qe(); z3_qe()
+    basic_qe()
+    lra_qe()
+    z3_qe()
     print("Done!")
 
 if __name__ == "__main__":
-    main() 
+    main()

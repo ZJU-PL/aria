@@ -21,13 +21,14 @@ D. Eppstein, May 2007.
 """
 
 
-import aria.utils.pads.BFS as BFS
-import aria.utils.pads.DFS as DFS
-from aria.utils.pads.Graphs import isUndirected
 import unittest
 
+from aria.utils.pads import BFS, DFS
+from aria.utils.pads.Graphs import isUndirected
 
-class MediumError(ValueError): pass
+
+class MediumError(ValueError):
+    pass
 
 class Medium:
     """
@@ -61,7 +62,7 @@ class Medium:
 
     def __getitem__(self,S):
         """Construct dict mapping tokens to actions from state S."""
-        return dict([(t,self.action(S,t)) for t in self.tokens()])
+        return {t: self.action(S, t) for t in self.tokens()}
 
     def __call__(self,S,t):
         """Apply token t to state S."""
@@ -78,8 +79,8 @@ class ExplicitMedium(Medium):
 
     def __init__(self,M):
         """Form ExplicitMedium from any other kind of medium."""
-        self._reverse = dict([(t,M.reverse(t)) for t in M.tokens()])
-        self._action = dict([(S,M[S]) for S in M])
+        self._reverse = {t: M.reverse(t) for t in M.tokens()}
+        self._action = {S: M[S] for S in M}
 
     # Basic classes needed to define any medium
 
@@ -151,8 +152,7 @@ class BitvectorMedium(Medium):
             V = S &~ mask
         if V in self._states:
             return V
-        else:
-            return S
+        return S
 
 
 def StateTransitionGraph(M):
@@ -161,13 +161,13 @@ def StateTransitionGraph(M):
     If s is a state of M, G[s] will provide a dictionary mapping
     the neighbors of s to the actions that produced those neighbors.
     """
-    G = dict([(S,{}) for S in M])
+    G = {S: {} for S in M}
     for S in M:
         for t in M.tokens():
             St = M(S,t)
             if St != S:
                 if St in G[S]:
-                    raise MediumError("multiple adjacency from %s to %s" % (S,St))
+                    raise MediumError(f"multiple adjacency from {S} to {St}")
                 G[S][St] = t
     return G
 
@@ -183,13 +183,13 @@ class LabeledGraphMedium(Medium):
     def __init__(self,G):
         if not isUndirected(G):
             raise MediumError("not an undirected graph")
-        self._action = dict([(v,{}) for v in G])
+        self._action = {v: {} for v in G}
         self._reverse = {}
         for v in G:
             for w in G[v]:
                 t = G[v][w]
                 if t in self._action[v]:
-                    raise MediumError("multiple edges for state %s and token %s" % (v,t))
+                    raise MediumError(f"multiple edges for state {v} and token {t}")
                 self._action[v][t] = w
                 if t not in self._reverse:
                     rt = G[w][v]
@@ -234,7 +234,7 @@ def RoutingTable(M):
 
     # find list of tokens that lead to the initial state
     activeTokens = set()
-    for LG in BFS.BreadthFirstLevels(G,initialState):
+    for LG in BFS.BreadthFirstLevels(G, initialState):
         for v in LG:
             for w in LG[v]:
                 activeTokens.add(G[w][v])
@@ -245,7 +245,7 @@ def RoutingTable(M):
     inactivated = object()  # flag object to mark inactive tokens
 
     # rest of data structure: point from states to list and list to states
-    activeForState = dict([(S,-1) for S in M])
+    activeForState = {S: -1 for S in M}
     statesForPos = [[] for i in activeTokens]
 
     def scan(S):
@@ -254,7 +254,7 @@ def RoutingTable(M):
         while True:
             i += 1
             if i >= len(activeTokens):
-                raise MediumError("no active token from %s to %s" %(S,current))
+                raise MediumError(f"no active token from {S} to {current}")
             if activeTokens[i] != inactivated and M(S,activeTokens[i]) != S:
                 activeForState[S] = i
                 statesForPos[i].append(S)

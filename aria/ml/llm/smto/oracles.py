@@ -36,7 +36,7 @@ class OracleInfo:
     examples: List[Dict]  # List of input-output examples
     oracle_type: OracleType = OracleType.LLM
     function: Optional[Callable] = None  # Optional direct implementation
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)  # noqa: E501
 
 
 @dataclass

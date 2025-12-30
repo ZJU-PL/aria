@@ -6,7 +6,8 @@ D. Eppstein, November 2003.
 """
 
 
-class PartitionError(Exception): pass
+class PartitionError(Exception):
+    pass
 
 
 class PartitionRefinement:
@@ -20,8 +21,8 @@ class PartitionRefinement:
         items.  Initially, all items belong to the same subset.
         """
         S = set(items)
-        self._sets = {id(S):S}
-        self._partition = dict([(x,S) for x in S])
+        self._sets = {id(S): S}
+        self._partition = {x: S for x in S}
 
     def __getitem__(self,element):
         """Return the set that contains the given element."""
@@ -29,20 +30,20 @@ class PartitionRefinement:
 
     def __iter__(self):
         """Loop through the sets in the partition."""
-        return self._sets.values()
+        return iter(self._sets.values())
 
     def __len__(self):
         """Return the number of sets in the partition."""
         return len(self._sets)
 
-    def add(self,element,set):
+    def add(self, element, subset):
         """Add a new element to the given partition subset."""
-        if id(set) not in self._sets:
+        if id(subset) not in self._sets:
             raise PartitionError("Set does not belong to the partition")
         if element in self._partition:
             raise PartitionError("Element already belongs to the partition")
-        set.add(element)
-        self._partition[element] = set
+        subset.add(element)
+        self._partition[element] = subset
 
     def remove(self,element):
         """Remove the given element from its partition subset."""
@@ -63,7 +64,7 @@ class PartitionRefinement:
         for x in S:
             if x in self._partition:
                 Ax = self._partition[x]
-                hit.setdefault(id(Ax),set()).add(x)
+                hit.setdefault(id(Ax), set()).add(x)
         for A,AS in hit.items():
             A = self._sets[A]
             if AS != A:
@@ -76,9 +77,9 @@ class PartitionRefinement:
 
     def freeze(self):
         """Make all sets in S immutable."""
-        for S in self._sets.values():
-            I = frozenset(S)
+        for subset in list(self._sets.values()):
+            I = frozenset(subset)
             for x in I:
                 self._partition[x] = I
             self._sets[id(I)] = I
-            del self._sets[id(S)]
+            del self._sets[id(subset)]

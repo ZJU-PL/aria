@@ -5,8 +5,8 @@ consecutive edges have the same label.
 D. Eppstein, July 2005.
 """
 
+from aria.utils.pads import DFS
 from aria.utils.pads.StrongConnectivity import StronglyConnectedComponents
-import aria.utils.pads.DFS as DFS
 
 
 class NonrepetitiveGraph:

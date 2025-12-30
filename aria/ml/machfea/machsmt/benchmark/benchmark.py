@@ -2,12 +2,13 @@ import os
 import time
 from collections.abc import Iterable
 
+from func_timeout import func_timeout, FunctionTimedOut
+
 from machsmt.util import die, warning
 from .tokenize_sexpr import SExprTokenizer
 from ..smtlib import grammatical_construct_list
 from ..features import bonus_features
 from ..config import args
-from func_timeout import func_timeout, FunctionTimedOut
 
 keyword_to_index = dict((grammatical_construct_list[i], i) for i in range(
     len(grammatical_construct_list)))
@@ -21,7 +22,7 @@ class Benchmark:
         self.logic = 'UNPARSED'
         self.parsed = False
         self.total_feature_time = 0.0
-
+        self.tokens = None
         self.solvers = {}
         self.scores = {}
 
@@ -38,7 +39,7 @@ class Benchmark:
     def get_score(self, solver):
         return self.scores[solver.get_name()]
 
-    def get_logic(self): 
+    def get_logic(self):
         return self.logic
 
     # Compute Features up to a timeout
@@ -47,8 +48,9 @@ class Benchmark:
 
         self.compute_core_features()
 
-        if False and args.semantic:
-            self.compute_semantic_features()
+        # Semantic features disabled for now
+        # if args.semantic:
+        #     self.compute_semantic_features()
 
         self.total_feature_time = time.time() - start
 
@@ -72,19 +74,23 @@ class Benchmark:
                     die(f"parsing error on: {self.path} {str(type(cur))}")
 
         try:
-            func_timeout(timeout=args.feature_timeout,
+            timeout_val = getattr(args, 'feature_timeout', 10)
+            func_timeout(timeout=timeout_val,
                          func=count_occurrences,
                          args=(self.tokens, self.features))
         except FunctionTimedOut:
+            timeout_val = getattr(args, 'feature_timeout', 10)
             warning(
-                f'Timeout after {args.feature_timeout} seconds of compute_core_features on {self}')
+                f'Timeout after {timeout_val} seconds of '
+                f'compute_core_features on {self}')
             self.features[-2] = 1
         except RecursionError:
             print(f"Recurrsion Error on :{self}")
 
     def compute_semantic_features(self):
         assert hasattr(self, 'tokens')
-        timeout = (args.feature_timeout / 2.0) / len(bonus_features)
+        timeout_val = getattr(args, 'feature_timeout', 10)
+        timeout = (timeout_val / 2.0) / len(bonus_features)
         for feat in bonus_features:
             try:
                 ret = func_timeout(timeout=timeout,
@@ -102,8 +108,9 @@ class Benchmark:
                         self.features.append(-1.0)
                 else:
                     self.features.append(-1.0)
-                warning('Timeout after {} seconds of {} on {}'.format(
-                    timeout, feat.__name__, self.path))
+                warning(
+                    f'Timeout after {timeout} seconds of '
+                    f'{feat.__name__} on {self.path}')
 
     # Get and if necessary, compute features.
     def get_features(self):
@@ -111,7 +118,7 @@ class Benchmark:
 
     def parse(self):
         assert not hasattr(self, 'tokens')
-        self.tokens = [sexpr for sexpr in SExprTokenizer(self.path)]
+        self.tokens = list(SExprTokenizer(self.path))
         self.logic = 'UNSET_LOGIC'
         for sexpr in self.tokens:
             if len(sexpr) >= 2 and sexpr[0] == 'set-logic':
@@ -121,10 +128,11 @@ class Benchmark:
         del self.tokens
         assert not hasattr(self, 'tokens')
 
-    def __str__(self): 
-        return f"Benchmark(self.path={self.path}, len(self.solvers)={len(self.solvers)}, self.logic={self.logic})"
+    def __str__(self):
+        return (f"Benchmark(self.path={self.path}, "
+                f"len(self.solvers)={len(self.solvers)}, "
+                f"self.logic={self.logic})")
     __repr__ = __str__
 
     def __hash__(self):
         return hash(str(self))
-        

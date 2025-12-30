@@ -22,10 +22,7 @@ def feature_adder_chains(tokens):
 
     # Traverse adders only, appends adder leafs to to_visit stack.
     def traverse_adders(adder, lets, chains, to_visit, lets_visit_cache):
-        visited = dict()
-        visit = []
-        visit.append(adder)
-        num_adds = 0
+        visit = [adder]
         while visit:
             cur = visit.pop()
             if isinstance(cur, str) and \
@@ -43,10 +40,13 @@ def feature_adder_chains(tokens):
                     # up-traversal
                     elif chains[cur] == 0:
                         chains[cur] = 1
-                        for c in cur[1:]:
-                            c = lets.get(c, c)
-                            if c in chains:
-                                chains[cur] += chains[c]
+                        # Extract nested logic to reduce nesting
+                        nested_chains = sum(
+                            chains.get(lets.get(c, c), 0)
+                            for c in cur[1:]
+                            if lets.get(c, c) in chains
+                        )
+                        chains[cur] += nested_chains
                 else:
                     to_visit.extend(cur)
 

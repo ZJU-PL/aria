@@ -46,9 +46,9 @@ def test_genetic_algorithm():
     try:
         for gen in range(2):
             print(f"Generation {gen + 1}:")
-            for tactics in ga._population:
+            for tactics in ga.get_population():
                 tactics.fitness = random.uniform(0.1, 10.0)
-                ga._new.append(tactics)
+                ga.get_new_individuals().append(tactics)
 
             best = ga.get_best_sequence()
             if best:

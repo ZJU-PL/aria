@@ -77,7 +77,9 @@ def extract_smt_from_llm_response(response: str) -> str:
     return ""
 
 
-def parse_smt2_string(smt_string: str, problem: Optional['AbductionProblem'] = None) -> Optional[z3.ExprRef]:
+def parse_smt2_string(
+    smt_string: str, problem: Optional['AbductionProblem'] = None
+) -> Optional[z3.ExprRef]:
     """
     Parse an SMT-LIB2 expression string into a Z3 expression.
 

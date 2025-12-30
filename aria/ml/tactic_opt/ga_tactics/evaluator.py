@@ -79,20 +79,23 @@ class TacticEvaluator:
 
     def _evaluate_python_api(self, tactic_seq, smtlib_file=None, timeout=8):
         """Evaluate using Z3 Python API."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.tactics', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.tactics',
+                                        delete=False, encoding='utf-8') as f:
             f.write(tactic_seq.to_string())
             tactics_file = f.name
-        return self._run_z3_timed(f"timeout {timeout}s ./run-tests *".split(), tactics_file)
+        cmd = f"timeout {timeout}s ./run-tests *".split()
+        return self._run_z3_timed(cmd, tactics_file)
 
     def _evaluate_binary_z3(self, tactic_seq, smtlib_file=None, timeout=8):
         """Evaluate using binary Z3 executable."""
         if not smtlib_file or not os.path.exists(smtlib_file):
             return self._evaluate_simple_formula(tactic_seq, timeout)
 
-        with open(smtlib_file, 'r') as f:
+        with open(smtlib_file, 'r', encoding='utf-8') as f:
             content = self._replace_check_sat_with_apply(f.read(), tactic_seq)
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.smt2', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.smt2',
+                                        delete=False, encoding='utf-8') as f:
             f.write(content)
             temp_file = f.name
 
@@ -100,11 +103,13 @@ class TacticEvaluator:
 
     def _evaluate_simple_formula(self, tactic_seq, timeout=8):
         """Evaluate on simple test formula."""
-        content = "(set-logic QF_LIA)\n(declare-const x Int)\n(declare-const y Int)\n"
+        content = ("(set-logic QF_LIA)\n(declare-const x Int)\n"
+                  "(declare-const y Int)\n")
         content += "(assert (and (> x 0) (> y 0) (= (+ x y) 10)))\n"
         content += tactic_seq.to_smtlib_apply() + "\n"
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.smt2', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.smt2',
+                                       delete=False, encoding='utf-8') as f:
             f.write(content)
             temp_file = f.name
 
@@ -135,7 +140,8 @@ def evaluate_tactic_fitness(tactic_seq, test_files=None, mode=None, timeout=8):
     if not test_files:
         for dir_path in ["benchmarks/smtlib2", "benchmarks"]:
             if os.path.exists(dir_path):
-                test_files = [os.path.join(dir_path, f) for f in os.listdir(dir_path)[:5]
+                test_files = [os.path.join(dir_path, f)
+                             for f in os.listdir(dir_path)[:5]
                              if f.endswith('.smt2')]
                 if test_files:
                     break
@@ -154,4 +160,6 @@ def evaluate_tactic_fitness(tactic_seq, test_files=None, mode=None, timeout=8):
             except Exception:
                 continue
 
-    return TacticEvaluator.PENALTY if successful_runs == 0 else total_time / successful_runs
+    if successful_runs == 0:
+        return TacticEvaluator.PENALTY
+    return total_time / successful_runs

@@ -40,7 +40,7 @@ class OraxSolver:
                  system_role: str = (
                      "You are a experienced programmer and good at understanding "
                      "programs written in mainstream programming languages."
-                 )):
+                 )):  # noqa: E501
         """
         Initialize Orax solver
 
@@ -131,20 +131,27 @@ class OraxSolver:
 
             model = self.solver.model()
 
-            model_dict = {str(decl()): str(model[decl]) for decl in model.decls()}
-            self._add_explanation(f"Candidate model found: {model_dict}", level="detailed")
+            model_dict = {
+                str(decl()): str(model[decl]) for decl in model.decls()
+            }
+            self._add_explanation(
+                f"Candidate model found: {model_dict}", level="detailed"
+            )
 
             is_valid = self._validate_model_with_oracles(model)
 
             if is_valid:
-                self._add_explanation("Valid model found satisfying all oracle constraints")
+                self._add_explanation(
+                    "Valid model found satisfying all oracle constraints"
+                )
                 return model
 
             # Add learned constraints from oracle feedback
             self._add_oracle_constraints(model)
 
             self._add_explanation(
-                "Model validation failed, adding oracle constraints and trying again"
+                "Model validation failed, adding oracle constraints and "
+                "trying again"
             )
 
         self._add_explanation("Maximum iterations reached without finding valid model")
@@ -152,7 +159,7 @@ class OraxSolver:
 
     def _validate_model_with_oracles(self, model: z3.ModelRef) -> bool:
         """Validate model against all registered oracles."""
-        for _oracle_name, oracle_info in self.oracles.items():
+        for oracle_info in self.oracles.values():
             if not self._validate_oracle_calls(model, oracle_info):
                 return False
         return True
@@ -164,7 +171,10 @@ class OraxSolver:
             oracle_result = self._query_oracle(oracle_info, call_inputs)
 
             if oracle_result is None:
-                self._add_explanation(f"Oracle {oracle_info.name} failed to produce result for {call_inputs}")
+                self._add_explanation(
+                    f"Oracle {oracle_info.name} failed to produce result for "
+                    f"{call_inputs}"
+                )
                 return False
 
             model_result = self._get_model_result(model, oracle_info.name, call_inputs)
@@ -183,7 +193,10 @@ class OraxSolver:
         cache_key = generate_cache_key(oracle_info.name, inputs)
 
         if self.cache.contains(cache_key):
-            self._add_explanation(f"Using cached result for {oracle_info.name}{inputs}", level="detailed")
+            self._add_explanation(
+                f"Using cached result for {oracle_info.name}{inputs}",
+                level="detailed"
+            )
             return self.cache.get(cache_key)
 
         result = None
@@ -202,7 +215,9 @@ class OraxSolver:
             else:
                 result = self._query_llm_oracle(oracle_info, inputs)
         elif oracle_info.oracle_type == OracleType.EXTERNAL:
-            raise NotImplementedError("External oracle type not yet implemented")
+            raise NotImplementedError(
+                "External oracle type not yet implemented"
+            )
         else:
             raise ValueError(f"Unsupported oracle type: {oracle_info.oracle_type}")
 
@@ -211,16 +226,20 @@ class OraxSolver:
 
         return result
 
-    def _query_llm_oracle(self, oracle_info: OracleInfo, inputs: Dict[str, Any]) -> Optional[Any]:
+    def _query_llm_oracle(self, oracle_info: OracleInfo,
+                          inputs: Dict[str, Any]) -> Optional[Any]:
         """Query LLM to simulate oracle function."""
         examples_text = "\n".join(
-            [f"Input: {ex['input']}\nOutput: {ex['output']}" for ex in oracle_info.examples]
+            [
+                f"Input: {ex['input']}\nOutput: {ex['output']}"
+                for ex in oracle_info.examples
+            ]
         )
         prompt = (
             f"Act as the following function:\n{oracle_info.description}\n\n"
             f"Examples:\n{examples_text}\n\n"
             f"Now, given the input: {inputs}\nWhat is the output?"
-        )  # noqa: E501
+        )
 
         try:
             original_system_role = self.llm.systemRole
@@ -235,7 +254,8 @@ class OraxSolver:
             self._add_explanation(f"LLM query failed: {e}")
             return None
 
-    def _parse_llm_response(self, response: str, output_type: z3.SortRef) -> Optional[Any]:
+    def _parse_llm_response(self, response: str,
+                           output_type: z3.SortRef) -> Optional[Any]:
         """Parse LLM response according to expected output type."""
         try:
             response = response.strip()
@@ -287,9 +307,12 @@ class OraxSolver:
         """Find all applications of an oracle function in the model."""
         return [inputs for inputs, _ in self._iter_oracle_applications(model, oracle_name)]
 
-    def _get_model_result(self, model: z3.ModelRef, oracle_name: str, inputs: Dict[str, Any]) -> Optional[Any]:
+    def _get_model_result(self, model: z3.ModelRef, oracle_name: str,
+                         inputs: Dict[str, Any]) -> Optional[Any]:
         """Get the result of an oracle function application from the model."""
-        for decl_inputs, decl in self._iter_oracle_applications(model, oracle_name):
+        for decl_inputs, decl in self._iter_oracle_applications(
+            model, oracle_name
+        ):
             if decl_inputs == inputs:
                 return z3_value_to_python(model.eval(decl(), True))
         return None

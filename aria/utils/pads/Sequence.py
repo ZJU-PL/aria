@@ -5,10 +5,8 @@ D. Eppstein, November 2003.
 """
 
 
-import math
-import sys
-
-class SequenceError(Exception): pass
+class SequenceError(Exception):
+    pass
 
 class Sequence:
     """Maintain a sequence of items subject to insertions and removals.
@@ -16,7 +14,7 @@ class Sequence:
     takes time proportional to the index.
     """
 
-    def __init__(self, iterable=[], key=None):
+    def __init__(self, iterable=None, key=None):
         """We represent the sequence as a doubly-linked circular linked list,
         stored in two dictionaries, self._next and self._prev.  We also store
         a pointer self._first to the first item in the sequence.  If key is
@@ -28,6 +26,8 @@ class Sequence:
         self._next = {}
         self._prev = {}
         self._first = None
+        if iterable is None:
+            iterable = []
         for x in iterable:
             self.append(x)
 
@@ -93,10 +93,11 @@ class Sequence:
         """Remove x from the sequence."""
         x = self.key(x)
         prev = self._prev[x]
-        self._next[prev] = next = self._next[x]
-        self._prev[next] = prev
+        next_item = self._next[x]
+        self._next[prev] = next_item
+        self._prev[next_item] = prev
         if x == self._first:
-            self._first = next
+            self._first = next_item
         del self._next[x], self._prev[x]
 
     def insertAfter(self,x,y):

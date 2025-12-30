@@ -1,7 +1,6 @@
 """
 Variable
 """
-from typing import Union
 
 
 class Variable:

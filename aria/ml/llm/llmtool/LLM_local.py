@@ -1,18 +1,24 @@
+# pylint: disable=invalid-name
 """
 Calling local LLMs
   - vLLM
   - sglang
   - LMStudio
 """
-import json
-import os
-import time
 import concurrent.futures
-from typing import Tuple, Optional, Any
-from aria.ml.llm.llmtool.logger import Logger
 import importlib
-from openai import OpenAI
-import tiktoken
+from typing import Tuple, Optional, Any
+
+try:
+    from openai import OpenAI  # pylint: disable=import-error
+except ImportError:
+    OpenAI = None  # type: ignore
+try:
+    import tiktoken  # pylint: disable=import-error
+except ImportError:
+    tiktoken = None  # type: ignore
+
+from aria.ml.llm.llmtool.logger import Logger
 
 
 class LLMLocal:
@@ -22,16 +28,21 @@ class LLMLocal:
         offline_model_name: str,
         logger: Logger,
         temperature: float = 0.0,
-        system_role: str = "You are an experienced programmer and good at understanding programs written in mainstream programming languages.",
+        system_role: str = (
+            "You are an experienced programmer and good at understanding "
+            "programs written in mainstream programming languages."
+        ),
         max_output_length: int = 4096,
-        provider: str = "lm-studio" # vllm, sglang, lm-studio, etc.
+        provider: str = "lm-studio"  # vllm, sglang, lm-studio, etc.
     ) -> None:
         self.offline_model_name = offline_model_name
         self.temperature = temperature
-        self.systemRole = system_role
+        self.systemRole = system_role  # pylint: disable=invalid-name
         self.logger = logger
         self.max_output_length = max_output_length
         self.provider = provider
+        if tiktoken is None:
+            raise ImportError("tiktoken is required for LLMLocal")
         self.encoding = tiktoken.encoding_for_model("gpt-3.5-turbo-0125")
 
     def infer(

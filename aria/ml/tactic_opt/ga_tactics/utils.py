@@ -7,7 +7,7 @@ from .models import CustomJsonEncoder, TacticSeq
 
 def load_tactic_sequence(filename):
     """Load a tactic sequence from JSON file."""
-    with open(filename, "r") as f:
+    with open(filename, "r", encoding="utf-8") as f:
         data = json.load(f)
 
     tactics_list = [t.get("name") for t in data.get("tactics", []) if t.get("name")]
@@ -18,5 +18,5 @@ def load_tactic_sequence(filename):
 
 def save_tactic_sequence(tactic_seq, filename):
     """Save a tactic sequence to JSON file."""
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         json.dump(tactic_seq, f, cls=CustomJsonEncoder, indent=2)

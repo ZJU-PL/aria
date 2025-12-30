@@ -69,6 +69,6 @@ class Logger:
                 self.logger.addHandler(self.console_handler)
             message = " ".join(map(str, args))
             self.logger.info(message)
-            # Remove the console handler after logging so that default logging goes only to file
+            # Remove the console handler after logging so that default logging
+            # goes only to file
             self.logger.removeHandler(self.console_handler)
-            

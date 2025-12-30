@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 
 import argparse
-import pdb
 
 
 class SExprTokenizer:
     def __init__(self, infile):
-        self.file = open(infile, 'r')
+        self.file = open(infile, 'r', encoding='utf-8')
 
     def __iter__(self):
         return self
@@ -119,8 +118,9 @@ class SExprTokenizer:
         return None
 
     def __del__(self):
-        self.file.close()
-        
+        if hasattr(self, 'file') and self.file:
+            self.file.close()
+
 def main():
 
     ap = argparse.ArgumentParser()

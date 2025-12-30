@@ -1,8 +1,9 @@
 """
 CNF
 """
-from .clause import Clause
 from typing import List
+
+from .clause import Clause
 
 
 class Cnf:
@@ -38,9 +39,10 @@ class Cnf:
         """
         :return: number of literals
         """
-        total_set = set()
-        for clause in self.get_clauses():
-            total_set = total_set.union(set([abs(clause) for clause in clause.literals_set]))
+        total_set = {
+            abs(lit) for clause in self.get_clauses()
+            for lit in clause.literals_set
+        }
         return len(total_set)
 
     def copy(self) -> 'Cnf':
@@ -49,7 +51,9 @@ class Cnf:
         :complexity: O(c*l)
         :return: copy of the cnf
         """
-        new_clause_list = Cnf([clause.copy_with_new_id() for clause in self.clause_list])
+        new_clause_list = Cnf([
+            clause.copy_with_new_id() for clause in self.clause_list
+        ])
         return new_clause_list
 
     def get_number_of_clauses(self) -> int:
@@ -74,7 +78,9 @@ class Cnf:
         :return: add a new clause
         """
         if not isinstance(clause, Clause):
-            raise Exception("Expected type Clause, and got %s" % type(clause))
+            raise TypeError(
+                f"Expected type Clause, and got {type(clause)}"
+            )
 
         self.clause_list.append(clause)
 

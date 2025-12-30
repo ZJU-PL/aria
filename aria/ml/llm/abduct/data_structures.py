@@ -1,8 +1,10 @@
 """Data structures for LLM-based abduction."""
 
-import z3
 from typing import List, Dict, Any, Optional
 from dataclasses import dataclass, field
+
+import z3
+
 from aria.utils.z3_expr_utils import get_variables
 
 
@@ -16,7 +18,9 @@ class AbductionProblem:
 
     def __post_init__(self):
         if not self.variables:
-            self.variables = list(set(get_variables(self.premise) + get_variables(self.conclusion)))
+            premise_vars = get_variables(self.premise)
+            conclusion_vars = get_variables(self.conclusion)
+            self.variables = list(set(premise_vars + conclusion_vars))
         if self.domain_constraints is None:
             self.domain_constraints = z3.BoolVal(True)
 

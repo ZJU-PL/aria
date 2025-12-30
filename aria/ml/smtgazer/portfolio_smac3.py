@@ -18,17 +18,11 @@ Author: SMTgazer Team
 Publication: ASE 2025
 """
 
-from ConfigSpace import Configuration, ConfigurationSpace, Float, Categorical
-import numpy as np
-from smac import HyperparameterOptimizationFacade, Scenario
-
-from os import system
-import time
-import os
-import sys
-from collections import deque
 import json
-from copy import deepcopy
+import sys
+
+from ConfigSpace import Configuration, ConfigurationSpace, Float, Categorical
+from smac import HyperparameterOptimizationFacade, Scenario
 
 # Global configuration variables (parsed from command line arguments)
 x1 = 0      # Timeout for solver 1 (seconds)
@@ -43,8 +37,10 @@ seed = ""   # Random seed for reproducible optimization
 w1 = 0.5    # SMAC3 weight parameter 1
 w2 = 0.5    # SMAC3 weight parameter 2
 start_idx = 0  # Cross-validation fold start index
+cluster = 0    # Cluster ID for optimization (default value)
+
 # Parse command line arguments for SMAC3 configuration
-for i in range(len(sys.argv)-1):
+for i in range(len(sys.argv) - 1):
     if sys.argv[i] == '-t1':
         x1 = float(sys.argv[i+1])      # Timeout for first solver
     elif sys.argv[i] == '-t2':
@@ -61,7 +57,6 @@ for i in range(len(sys.argv)-1):
         s4 = int(sys.argv[i+1])       # Index of fourth solver
     elif sys.argv[i] == '-cluster':
         cluster = int(sys.argv[i+1])   # Cluster ID for optimization
-
     elif sys.argv[i] == '-dataset':
         dataset = str(sys.argv[i+1])   # Dataset name
     elif sys.argv[i] == '-seed':
@@ -74,7 +69,7 @@ for i in range(len(sys.argv)-1):
 # Calculate fourth timeout to ensure total = 1200 seconds
 x4 = 1200 - x1 - x2 - x3
 w2 = 1 - w1  # Complementary weight parameter
-def train(config: Configuration, seed: int = 0) -> float:
+def train(config: Configuration, seed_val: int = 0) -> float:
     """
     SMAC3 objective function for optimizing solver timeout configurations.
 
@@ -84,8 +79,9 @@ def train(config: Configuration, seed: int = 0) -> float:
     either it solves the problem or its timeout expires.
 
     Args:
-        config (Configuration): SMAC3 configuration containing timeout and solver parameters
-        seed (int): Random seed for reproducible evaluation
+        config (Configuration): SMAC3 configuration containing timeout and
+            solver parameters
+        seed_val (int): Random seed for reproducible evaluation
 
     Returns:
         float: Total PAR2 time (lower is better) for the given configuration
@@ -99,29 +95,30 @@ def train(config: Configuration, seed: int = 0) -> float:
        - If all solvers fail, add penalty (2400s)
     4. Return total PAR2 time across all problems
     """
-    # Extract parameters from SMAC3 configuration
-    dataset = config['dataset']
-    cluster = config['cluster']
     import random
-    SEED = 1
-    random.seed(SEED)
+    # Extract parameters from SMAC3 configuration
+    dataset_name = config['dataset']
+    cluster_id = config['cluster']
+    random_seed = 1
+    random.seed(random_seed)
     # Handle dataset name variations
-    if dataset == "ELA":
-        dataset = "Equality+LinearArith"
+    if dataset_name == "ELA":
+        dataset_name = "Equality+LinearArith"
 
     # Map dataset names to data directory names
-    if dataset == "Equality+LinearArith":
+    if dataset_name == "Equality+LinearArith":
         dataplace = "ELA"
-    elif dataset == "QF_Bitvec":
+    elif dataset_name == "QF_Bitvec":
         dataplace = "QFBV"
-    elif dataset == "QF_NonLinearIntArith":
+    elif dataset_name == "QF_NonLinearIntArith":
         dataplace = "QFNIA"
     else:
-        dataplace = dataset
+        dataplace = dataset_name
 
     # Construct file paths for cluster assignments and training data
-    tc = f"tmp/machfea_infer_result_{dataset}_train_feature_train_{config['seed']}.json"
-    td = f"data/{dataset}Labels.json"
+    tc = (f"tmp/machfea_infer_result_{dataset_name}_train_feature_train_"
+          f"{config['seed']}.json")
+    td = f"data/{dataset_name}Labels.json"
 
     # Load training data and cluster assignments
     with open(td, 'r', encoding='UTF-8') as f:
@@ -158,44 +155,47 @@ def train(config: Configuration, seed: int = 0) -> float:
     key_set = []
 
     for problem_name in full_key_set:
-        # Check if problem belongs to target cluster using multiple possible key formats
+        # Check if problem belongs to target cluster using multiple formats
         if (problem_name in train_cluster_dict.keys() and
-            train_cluster_dict[problem_name] == cluster):
+                train_cluster_dict[problem_name] == cluster_id):
             key_set.append(problem_name)
-        elif (f"./infer_result/{dataset}/_data_sibly_sibyl_data_{dataset}_{dataset}_" +
-              problem_name.replace("/", "_") + ".json" in train_cluster_dict.keys() and
-              train_cluster_dict[f"./infer_result/{dataset}/_data_sibly_sibyl_data_{dataset}_{dataset}_" +
-              problem_name.replace("/", "_") + ".json"] == cluster):
+        key_alt1 = (f"./infer_result/{dataset_name}/_data_sibly_sibyl_data_"
+                    f"{dataset_name}_{dataset_name}_" +
+                    problem_name.replace("/", "_") + ".json")
+        if (key_alt1 in train_cluster_dict.keys() and
+                train_cluster_dict[key_alt1] == cluster_id):
             key_set.append(problem_name)
-        elif (f"./infer_result/{dataplace}/_data_sibly_sibyl_data_Comp_non-incremental_" +
-              problem_name.replace("/", "_") + ".json" in train_cluster_dict.keys() and
-              train_cluster_dict[f"./infer_result/{dataplace}/_data_sibly_sibyl_data_Comp_non-incremental_" +
-              problem_name.replace("/", "_") + ".json"] == cluster):
+        key_alt2 = (f"./infer_result/{dataplace}/_data_sibly_sibyl_data_"
+                    f"Comp_non-incremental_" +
+                    problem_name.replace("/", "_") + ".json")
+        if (key_alt2 in train_cluster_dict.keys() and
+                train_cluster_dict[key_alt2] == cluster_id):
             key_set.append(problem_name)
 
-    print(f"Problems in cluster {cluster}: {len(key_set)}")
+    print(f"Problems in cluster {cluster_id}: {len(key_set)}")
     # Shuffle problems for random evaluation order
     random.shuffle(key_set)
 
     # Set up cross-validation folds (5-fold by default)
-    idxs = [i for i in range(len(key_set))]
+    idxs = list(range(len(key_set)))
     if config['si'] != -1:
         si = int(config['si'])
         # Use 80% of data for training, 20% for validation
         idxs = []
-        for i in range(len(key_set)):
-            if i < int(len(key_set)*(0.2*si)) or i >= int(len(key_set)*(0.2*(si+1))):
-                idxs.append(i)
+        for idx in range(len(key_set)):
+            start_bound = int(len(key_set) * (0.2 * si))
+            end_bound = int(len(key_set) * (0.2 * (si + 1)))
+            if idx < start_bound or idx >= end_bound:
+                idxs.append(idx)
     print(f"Evaluation set size: {len(idxs)} problems")
-    # Evaluate portfolio configuration on each problem in the evaluation set
+    # Evaluate portfolio configuration on each problem in evaluation set
     for problem_idx in idxs:
         tmp_time = 0
         par2list = train_set[key_set[problem_idx]]  # PAR2 scores for all solvers
         solved = False
 
         # Try each solver in sequence until one solves the problem
-        for solver_pos in range(len(output_idx)):
-            solver_idx = output_idx[solver_pos]
+        for solver_pos, solver_idx in enumerate(output_idx):
             solver_timeout = final_config[solver_pos]
 
             # Check if this solver can solve the problem within its timeout
@@ -203,8 +203,8 @@ def train(config: Configuration, seed: int = 0) -> float:
                 # Solver succeeded - add its actual runtime
                 tmp_time += par2list[solver_idx]
                 # Add time spent waiting for previous solvers
-                for prev_solver in range(solver_pos):
-                    tmp_time += final_config[prev_solver]
+                for prev_solver_pos in range(solver_pos):
+                    tmp_time += final_config[prev_solver_pos]
                 total_time += tmp_time
                 solved = True
                 break
@@ -250,14 +250,14 @@ incumbent = smac.optimize()
 
 # Extract and display the optimal timeout configuration found by SMAC3
 output_idx = []
-if cs['s1'] != -1:
-    output_idx.append(cs['s1'])
-if cs['s2'] != -1:
-    output_idx.append(cs['s2'])
-if cs['s3'] != -1:
-    output_idx.append(cs['s3'])
-if cs['s4'] != -1:
-    output_idx.append(cs['s4'])
+if incumbent['s1'] != -1:
+    output_idx.append(int(incumbent['s1']))
+if incumbent['s2'] != -1:
+    output_idx.append(int(incumbent['s2']))
+if incumbent['s3'] != -1:
+    output_idx.append(int(incumbent['s3']))
+if incumbent['s4'] != -1:
+    output_idx.append(int(incumbent['s4']))
 
 # Normalize final timeout configuration to sum to 1200 seconds
 tmp = [incumbent['t1'], incumbent['t2'], incumbent['t3'], incumbent['t4']]

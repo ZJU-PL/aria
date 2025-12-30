@@ -27,7 +27,7 @@ def mk_interpolant_prompt(
     commons = ", ".join(_common_symbols(formulas_a, formulas_b))
     return f"""Generate a Craig interpolant I between sets A and B.
 Requirements: A⟹I valid, I∧B unsat, use only shared symbols: {commons}
-Return ONLY the S-expression, no explanations.
+Return ONLY the S-expression, no explanations.  # noqa: E501
 
 A: (set-logic ALL)\n{a_text}
 B: (set-logic ALL)\n{b_text}"""
@@ -39,11 +39,12 @@ def mk_interpolant_cot_prompt(
     """Generate a Chain-of-Thought prompt for LLM to create a Craig interpolant.
     TODO: for CoT, should we just add an additional sentence 'think step-by-step'
     or guide the steps such as the ones in the current prompt?
-    """
+    """  # noqa: E501
     a_text = "\n".join(f"(assert {e.sexpr()})" for e in formulas_a)
     b_text = "\n".join(f"(assert {e.sexpr()})" for e in formulas_b)
     commons = ", ".join(_common_symbols(formulas_a, formulas_b))
-    return f"""Generate a Craig interpolant I between sets A and B using step-by-step reasoning.
+    return f"""Generate a Craig interpolant I between sets A and B using \
+step-by-step reasoning.  # noqa: E501
 
 Requirements:
 - A⟹I must be valid (A implies I)
@@ -57,8 +58,8 @@ Step-by-step approach:
 4. Verify that A⟹I and I∧B is unsat
 5. Express I using only shared symbols
 
-A: (set-logic ALL)\n{A_text}
-B: (set-logic ALL)\n{B_text}
+A: (set-logic ALL)\n{a_text}
+B: (set-logic ALL)\n{b_text}
 
 Reasoning:
 Step 1: A asserts: [analyze A's constraints on shared variables]
@@ -87,7 +88,8 @@ A: (assert (> x 5))
 B: (assert (< x 3))
 Shared symbols: x
 Interpolant: (<= x 5)
-Reasoning: A says x > 5, B says x < 3. The interpolant x ≤ 5 is implied by A and contradicts B.
+Reasoning: A says x > 5, B says x < 3. The interpolant x ≤ 5 is implied by \
+A and contradicts B.  # noqa: E501
 
 Example 2:
 A: (assert (and (> x 0) (< x 10)))
@@ -163,7 +165,8 @@ Provide the interpolant as an SMT-LIB expression:"""
 
 
 def mk_interpolant_prompt_with_type(
-    formulas_a: List[z3.ExprRef], formulas_b: List[z3.ExprRef],
+    formulas_a: List[z3.ExprRef],
+    formulas_b: List[z3.ExprRef],
     prompt_type: str = "basic"
 ) -> str:
     """Generate interpolant prompt with specified type.
@@ -194,9 +197,19 @@ def get_available_prompt_types() -> List[str]:
 def get_prompt_description(prompt_type: str) -> str:
     """Get description of a specific prompt type."""
     descriptions = {
-        "basic": "Simple, direct prompt asking for interpolant with minimal instructions",
-        "cot": "Chain-of-Thought prompt with step-by-step reasoning framework",
-        "fewshot": "Few-shot learning prompt with concrete examples and solutions",
-        "structured": "Highly structured prompt with detailed analysis sections and markdown formatting"
+        "basic": (
+            "Simple, direct prompt asking for interpolant with minimal "
+            "instructions"
+        ),
+        "cot": (
+            "Chain-of-Thought prompt with step-by-step reasoning framework"
+        ),
+        "fewshot": (
+            "Few-shot learning prompt with concrete examples and solutions"
+        ),
+        "structured": (
+            "Highly structured prompt with detailed analysis sections and "
+            "markdown formatting"
+        )
     }
     return descriptions.get(prompt_type, "Unknown prompt type")

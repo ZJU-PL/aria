@@ -1,5 +1,5 @@
 import sys
-import warnings
+
 from ..config import args
 
 
@@ -9,5 +9,5 @@ def die(err_msg):
 
 def warning(err_msg):
     print(f"[machsmt] warning: {err_msg}")
-    if args.wall:
+    if getattr(args, 'wall', False):
         sys.exit(1)

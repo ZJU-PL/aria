@@ -1,13 +1,21 @@
-import json
-import os
-import time
+# pylint: disable=invalid-name
 import concurrent.futures
-from typing import Tuple
 import importlib
-from typing import Optional, Any
-from openai import OpenAI
-from zhipuai import ZhipuAI
-import tiktoken
+from typing import Tuple, Optional, Any
+
+try:
+    from openai import OpenAI  # pylint: disable=import-error
+except ImportError:
+    OpenAI = None  # type: ignore
+try:
+    from zhipuai import ZhipuAI  # pylint: disable=import-error
+except ImportError:
+    ZhipuAI = None  # type: ignore
+try:
+    import tiktoken  # pylint: disable=import-error
+except ImportError:
+    tiktoken = None  # type: ignore
+
 from aria.ml.llm.llmtool.logger import Logger
 
 
@@ -21,7 +29,8 @@ def _optional_import(module_name: str, from_name: str = None) -> Optional[Any]:
     except ImportError:
         return None
 
-# Import optional dependencies (FIXME: should we do this? Just installing the dependencies should be easy...)
+# Import optional dependencies
+# FIXME: should we do this? Just installing the dependencies should be easy...
 genai = _optional_import("google.generativeai")
 anthropic = _optional_import("anthropic", "Anthropic")
 
@@ -29,9 +38,12 @@ anthropic = _optional_import("anthropic", "Anthropic")
 class LLM:
     """Multi-provider LLM inference: Gemini, OpenAI, DeepSeek, Claude, GLM"""
 
-    def __init__(self, online_model_name: str, logger: Logger, temperature: float = 0.0,
+    def __init__(self, online_model_name: str, logger: Logger,
+                 temperature: float = 0.0,
                  system_role="You are an experienced programmer.") -> None:
         self.online_model_name = online_model_name
+        if tiktoken is None:
+            raise ImportError("tiktoken is required for LLM")
         self.encoding = tiktoken.encoding_for_model(
             "gpt-3.5-turbo-0125"
         )  # We only use gpt-3.5 to measure token cost

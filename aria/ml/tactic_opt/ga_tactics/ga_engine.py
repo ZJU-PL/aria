@@ -19,14 +19,17 @@ class GA:
     def __init__(self, population_size=None, retain_percentage=None):
         if population_size is not None:
             self._population_size = population_size
-            self._retain_size = int(retain_percentage * population_size) + 1 if retain_percentage else self._retain_size
+            if retain_percentage:
+                self._retain_size = int(retain_percentage * population_size) + 1
         if retain_percentage is not None:
             self._retain_percentage = retain_percentage
             self._retain_size = int(retain_percentage * self._population_size) + 1
 
-        self._population = [TacticSeq.random().mutate() for _ in range(self._population_size)]
+        self._population = [TacticSeq.random().mutate()
+                           for _ in range(self._population_size)]
         self._new = []
         self._retained = []
+        self._generation = 0
 
     def evaluate(self, mode=None, smtlib_file=None, timeout=8):
         """Evaluate fitness of all individuals in the current population."""
@@ -39,10 +42,10 @@ class GA:
         """Helper to save sequences to files."""
         os.makedirs(output_dir, exist_ok=True)
         results_file = os.path.join(output_dir, f"{prefix}.{suffix}")
-        with open(results_file, "w") as results:
+        with open(results_file, "w", encoding="utf-8") as results:
             for i, tactics in enumerate(sequences):
                 tactic_file = os.path.join(output_dir, f"{prefix}.{suffix}.{i}")
-                with open(tactic_file, "w") as f:
+                with open(tactic_file, "w", encoding="utf-8") as f:
                     json.dump(tactics, f, cls=CustomJsonEncoder, indent=2)
                 results.write(f"{i}: {tactics.fitness}\n")
 
@@ -61,17 +64,28 @@ class GA:
         self._new = sorted(self._new, key=lambda e: e.fitness)
         self._population, self._retained = [], self._new[:self._retain_size]
 
-        PENALTY = 4294967295
+        penalty = 4294967295
         while len(self._population) < self._population_size:
-            i1, i2 = self._rand.randint(0, len(self._new) - 1), self._rand.randint(0, len(self._new) - 1)
-            if i1 != i2 and self._new[i1].fitness != PENALTY and self._new[i2].fitness != PENALTY:
-                self._population.append(TacticSeq.crossover(self._new[i1], self._new[i2]).mutate())
+            i1 = self._rand.randint(0, len(self._new) - 1)
+            i2 = self._rand.randint(0, len(self._new) - 1)
+            if (i1 != i2 and self._new[i1].fitness != penalty and
+                    self._new[i2].fitness != penalty):
+                self._population.append(
+                    TacticSeq.crossover(self._new[i1], self._new[i2]).mutate())
         self._new = []
 
     def get_best_sequence(self):
         """Get the best tactic sequence from the current population."""
         all_individuals = self._new + self._retained
         return min(all_individuals, key=lambda x: x.fitness) if all_individuals else None
+
+    def get_population(self):
+        """Get the current population (for testing purposes)."""
+        return self._population
+
+    def get_new_individuals(self):
+        """Get newly evaluated individuals (for testing purposes)."""
+        return self._new
 
     def get_population_stats(self):
         """Get statistics about the current population."""
@@ -87,14 +101,15 @@ class GA:
             'elite_count': len(self._retained)
         }
 
-    def run_generation(self, mode=None, smtlib_file=None, timeout=8, output_dir="."):
+    def run_generation(self, mode=None, smtlib_file=None, timeout=8,
+                       output_dir="."):
         """Run one complete generation of the genetic algorithm."""
         self.evaluate(mode, smtlib_file, timeout)
         self.dump_results(output_dir)
         stats_before = self.get_population_stats()
         self.repopulate()
         return {
-            'generation': getattr(self, '_generation', 0) + 1,
+            'generation': self._generation + 1,
             'before_repopulation': stats_before,
             'after_repopulation': self.get_population_stats(),
             'best_sequence': self.get_best_sequence()
@@ -106,8 +121,11 @@ class GA:
         self._generation = 0
         for gen in range(generations):
             self._generation = gen + 1
-            gen_stats = self.run_generation(mode, smtlib_file, timeout, output_dir)
-            print(f"Generation {gen + 1}: Best fitness = {gen_stats['before_repopulation']['best_fitness']}")
+            gen_stats = self.run_generation(mode=mode, smtlib_file=smtlib_file,
+                                            timeout=timeout,
+                                            output_dir=output_dir)
+            best_fitness = gen_stats['before_repopulation']['best_fitness']
+            print(f"Generation {gen + 1}: Best fitness = {best_fitness}")
             if (gen + 1) % save_interval == 0:
                 self.save_retained_elite(output_dir, f"z3_gen{gen + 1}")
 

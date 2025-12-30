@@ -24,11 +24,11 @@ def LexBFS(G):
     P = PartitionRefinement(G)
     S = Sequence(P, key=id)
     while S:
-        set = S[0]
-        v = arbitrary_item(set)
+        current_set = S[0]
+        v = arbitrary_item(current_set)
         yield v
         P.remove(v)
-        if not set:
-            S.remove(set)
+        if not current_set:
+            S.remove(current_set)
         for new,old in P.refine(G[v]):
             S.insertBefore(old,new)

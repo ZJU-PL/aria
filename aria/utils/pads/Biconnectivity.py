@@ -4,11 +4,11 @@ D. Eppstein, April 2004.
 """
 
 import unittest
-from aria.utils.pads.Graphs import isUndirected
-from aria.utils.pads.Util import arbitrary_item
-from aria.utils.pads.PartialOrder import TopologicalOrder
 
-import aria.utils.pads.DFS as DFS
+from aria.utils.pads import DFS
+from aria.utils.pads.Graphs import isUndirected
+from aria.utils.pads.PartialOrder import TopologicalOrder
+from aria.utils.pads.Util import arbitrary_item
 
 disconnected = object() # flag for BiconnectedComponents
 

@@ -1,7 +1,10 @@
 """
 Validate the unsat core returned by the cvc5_minimizer.
 """
-import cvc5
+try:
+    import cvc5  # pylint: disable=import-error
+except ImportError:
+    cvc5 = None  # type: ignore
 
 from aria.ml.llm.unsat_core.cvc5_minimizer import (
     build_smt2_formula_from_string_constraints,
@@ -37,10 +40,11 @@ class UNSATVerifier:
         Arguments:
             constraints (list): Constraint subset from GPT-x's response in string format.
             all_constraints (list): Complete list of constraints in string format.
-            all_smt2_constraints (list): Complete list of constraints in SMT2-Lib format.
-                There is one-to-one correspondence with constraints in ``all_constraints``.
-            placeholder (str): SMT2-Lib input file string placeholder, where all assertions
-                are represented by "<ASSERT>" keyword.
+            all_smt2_constraints (list): Complete list of constraints in SMT2-Lib
+                format. There is one-to-one correspondence with constraints in
+                ``all_constraints``.
+            placeholder (str): SMT2-Lib input file string placeholder, where all
+                assertions are represented by "<ASSERT>" keyword.
 
         Returns:
             (bool): ``True``, if unsatisfiable, else ``False``.
@@ -94,10 +98,11 @@ class MUSVerifier:
         Arguments:
             constraints (list): Constraint subset from GPT-x's response in string format.
             all_constraints (list): Complete list of constraints in string format.
-            all_smt2_constraints (list): Complete list of constraints in SMT2-Lib format.
-                There is one-to-one correspondence with constraints in ``all_constraints``.
-            placeholder (str): SMT2-Lib input file string placeholder, where all assertions
-                are represented by "<ASSERT>" keyword.
+            all_smt2_constraints (list): Complete list of constraints in SMT2-Lib
+                format. There is one-to-one correspondence with constraints in
+                ``all_constraints``.
+            placeholder (str): SMT2-Lib input file string placeholder, where all
+                assertions are represented by "<ASSERT>" keyword.
 
         Returns:
             (bool): ``True``, if MUS, else ``False``.
