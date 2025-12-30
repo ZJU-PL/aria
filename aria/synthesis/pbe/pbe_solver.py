@@ -5,9 +5,9 @@ input-output examples using version space algebra.
 """
 
 import time
-from typing import List, Dict, Any, Optional, Tuple, Set
+from typing import List, Dict, Any, Optional
 from .vsa import VSAlgebra, VersionSpace
-from .expressions import Expression, Theory, Variable
+from .expressions import Expression
 from .expression_generators import (
     generate_expressions_for_theory,
     get_theory_from_variables
@@ -27,10 +27,9 @@ class SynthesisResult:
     def __str__(self) -> str:
         if self.success and self.expression:
             return f"Synthesis successful: {self.expression}"
-        elif self.success and self.version_space:
+        if self.success and self.version_space:
             return f"Synthesis found {len(self.version_space)} possible programs"
-        else:
-            return f"Synthesis failed: {self.message}"
+        return f"Synthesis failed: {self.message}"
 
 
 class PBESolver:
@@ -59,7 +58,8 @@ class PBESolver:
         # Generate initial version space
         try:
             expressions = generate_expressions_for_theory(
-                theory, variables, max_depth=self.max_expression_depth
+                theory, variables,
+                max_depth=self.max_expression_depth
             )
         except Exception as e:
             return SynthesisResult(False, message=f"Failed to generate expressions: {e}")
@@ -107,13 +107,12 @@ class PBESolver:
 
             if counterexample_result.success:
                 return counterexample_result
-            else:
-                # Return the version space if we can't find a unique solution
-                return SynthesisResult(
-                    True,
-                    version_space=current_vs,
-                    message=f"Found {len(current_vs)} possible programs"
-                )
+            # Return the version space if we can't find a unique solution
+            return SynthesisResult(
+                True,
+                version_space=current_vs,
+                message=f"Found {len(current_vs)} possible programs"
+            )
 
         # We have a unique solution
         unique_expr = list(current_vs.expressions)[0]

@@ -5,7 +5,7 @@ in different theories (LIA, BV, String).
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Set, Union
+from typing import Any, Dict, List, Set
 from enum import Enum
 
 
@@ -24,11 +24,11 @@ class Expression(ABC):
 
     @abstractmethod
     def __str__(self) -> str:
-        pass
+        """Return string representation of the expression."""
 
     @abstractmethod
     def __eq__(self, other) -> bool:
-        pass
+        """Check equality with another expression."""
 
     @abstractmethod
     def __hash__(self) -> int:
@@ -57,7 +57,8 @@ class Variable(Expression):
         return self.name
 
     def __eq__(self, other) -> bool:
-        return isinstance(other, Variable) and self.name == other.name and self.theory == other.theory
+        return (isinstance(other, Variable) and
+                self.name == other.name and self.theory == other.theory)
 
     def __hash__(self) -> int:
         return hash((self.name, self.theory))
@@ -85,7 +86,8 @@ class Constant(Expression):
             return str(self.value)
 
     def __eq__(self, other) -> bool:
-        return isinstance(other, Constant) and self.value == other.value and self.theory == other.theory
+        return (isinstance(other, Constant) and
+                self.value == other.value and self.theory == other.theory)
 
     def __hash__(self) -> int:
         return hash((self.value, self.theory))
@@ -165,41 +167,44 @@ class BinaryExpr(Expression):
                 return left_val - right_val
             elif self.op == BinaryOp.MUL:
                 return left_val * right_val
-            elif self.op == BinaryOp.DIV:
-                return left_val // right_val if isinstance(left_val, int) and isinstance(right_val, int) else 0
-            elif self.op == BinaryOp.MOD:
+            if self.op == BinaryOp.DIV:
+                if isinstance(left_val, int) and isinstance(right_val, int):
+                    return left_val // right_val
+                return 0
+            if self.op == BinaryOp.MOD:
                 return left_val % right_val if right_val != 0 else 0
-            elif self.op == BinaryOp.EQ:
+            if self.op == BinaryOp.EQ:
                 return left_val == right_val
-            elif self.op == BinaryOp.NEQ:
+            if self.op == BinaryOp.NEQ:
                 return left_val != right_val
-            elif self.op == BinaryOp.LT:
+            if self.op == BinaryOp.LT:
                 return left_val < right_val
-            elif self.op == BinaryOp.LE:
+            if self.op == BinaryOp.LE:
                 return left_val <= right_val
-            elif self.op == BinaryOp.GT:
+            if self.op == BinaryOp.GT:
                 return left_val > right_val
-            elif self.op == BinaryOp.GE:
+            if self.op == BinaryOp.GE:
                 return left_val >= right_val
 
-        elif self.theory == Theory.BV:
+        if self.theory == Theory.BV:
             if self.op == BinaryOp.BVAND:
                 return left_val & right_val
-            elif self.op == BinaryOp.BVOR:
+            if self.op == BinaryOp.BVOR:
                 return left_val | right_val
-            elif self.op == BinaryOp.BVXOR:
+            if self.op == BinaryOp.BVXOR:
                 return left_val ^ right_val
-            elif self.op == BinaryOp.BVSLL:
+            if self.op == BinaryOp.BVSLL:
                 return left_val << right_val
-            elif self.op == BinaryOp.BVSLR:
+            if self.op == BinaryOp.BVSLR:
                 return left_val >> right_val
-            elif self.op == BinaryOp.BVSRA:
-                return left_val >> right_val  # In Python, >> is arithmetic shift for positive numbers
+            if self.op == BinaryOp.BVSRA:
+                # In Python, >> is arithmetic shift for positive numbers
+                return left_val >> right_val
 
-        elif self.theory == Theory.STRING:
+        if self.theory == Theory.STRING:
             if self.op == BinaryOp.CONCAT:
                 return str(left_val) + str(right_val)
-            elif self.op == BinaryOp.EQ:
+            if self.op == BinaryOp.EQ:
                 return str(left_val) == str(right_val)
 
         return False
@@ -298,7 +303,9 @@ def length(expr: Expression) -> UnaryExpr:
 class IfExpr(Expression):
     """Conditional expression (if-then-else)."""
 
-    def __init__(self, condition: Expression, then_expr: Expression, else_expr: Expression):
+    def __init__(
+            self, condition: Expression, then_expr: Expression,
+            else_expr: Expression):
         super().__init__(then_expr.theory)
         self.condition = condition
         self.then_expr = then_expr
@@ -306,7 +313,9 @@ class IfExpr(Expression):
 
         # Validate theory compatibility
         if then_expr.theory != else_expr.theory:
-            raise ValueError(f"Theory mismatch in then/else: {then_expr.theory} vs {else_expr.theory}")
+            raise ValueError(
+                f"Theory mismatch in then/else: {then_expr.theory} "
+                f"vs {else_expr.theory}")
 
     def __str__(self) -> str:
         return f"(if {self.condition} then {self.then_expr} else {self.else_expr})"
@@ -328,20 +337,16 @@ class IfExpr(Expression):
             # For LIA, condition should be boolean (non-zero = true)
             if condition_val != 0:
                 return self.then_expr.evaluate(assignment)
-            else:
-                return self.else_expr.evaluate(assignment)
-        elif self.condition.theory == Theory.BV:
+            return self.else_expr.evaluate(assignment)
+        if self.condition.theory == Theory.BV:
             # For BV, condition should be non-zero
             if condition_val != 0:
                 return self.then_expr.evaluate(assignment)
-            else:
-                return self.else_expr.evaluate(assignment)
-        else:
-            # Default behavior
-            if condition_val:
-                return self.then_expr.evaluate(assignment)
-            else:
-                return self.else_expr.evaluate(assignment)
+            return self.else_expr.evaluate(assignment)
+        # Default behavior
+        if condition_val:
+            return self.then_expr.evaluate(assignment)
+        return self.else_expr.evaluate(assignment)
 
     def get_variables(self) -> Set[str]:
         return (self.condition.get_variables() |
@@ -352,8 +357,9 @@ class IfExpr(Expression):
 class LoopExpr(Expression):
     """Loop expression (for loops with fixed iterations)."""
 
-    def __init__(self, variable: str, start: Expression, end: Expression,
-                 body: Expression, theory: Theory):
+    def __init__(
+            self, variable: str, start: Expression, end: Expression,
+            body: Expression, theory: Theory):
         super().__init__(theory)
         self.variable = variable
         self.start = start
@@ -390,8 +396,11 @@ class LoopExpr(Expression):
         return result
 
     def get_variables(self) -> Set[str]:
-        variables = self.start.get_variables() | self.end.get_variables() | self.body.get_variables()
-        variables.discard(self.variable)  # Remove loop variable from outer scope
+        variables = (self.start.get_variables() |
+                     self.end.get_variables() |
+                     self.body.get_variables())
+        # Remove loop variable from outer scope
+        variables.discard(self.variable)
         return variables
 
 
@@ -429,12 +438,12 @@ class FunctionCallExpr(Expression):
             arg1_val = self.args[0].evaluate(assignment)
             arg2_val = self.args[1].evaluate(assignment)
             return max(arg1_val, arg2_val)
-        elif self.function_name == "str_substring" and len(self.args) == 3:
+        if self.function_name == "str_substring" and len(self.args) == 3:
             # str_substring(str, start, length)
             s = str(self.args[0].evaluate(assignment))
-            start = int(self.args[1].evaluate(assignment))
-            length = int(self.args[2].evaluate(assignment))
-            return s[start:start+length]
+            start_idx = int(self.args[1].evaluate(assignment))
+            substr_length = int(self.args[2].evaluate(assignment))
+            return s[start_idx:start_idx + substr_length]
         elif self.function_name == "str_indexof" and len(self.args) == 2:
             # str_indexof(str, substr)
             s = str(self.args[0].evaluate(assignment))
@@ -456,8 +465,9 @@ def if_expr(condition: Expression, then_expr: Expression, else_expr: Expression)
     return IfExpr(condition, then_expr, else_expr)
 
 
-def for_loop(variable: str, start: Expression, end: Expression,
-             body: Expression, theory: Theory) -> LoopExpr:
+def for_loop(
+        variable: str, start: Expression, end: Expression,
+        body: Expression, theory: Theory) -> LoopExpr:
     """Create a for loop expression."""
     return LoopExpr(variable, start, end, body, theory)
 

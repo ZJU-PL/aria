@@ -5,13 +5,16 @@ FIXME: by LLM, to check if this is correct
 """
 import logging
 import time
-from typing import List, Tuple
+from typing import List
 
 import z3
 
 from aria.optimization.omtbv.bv_opt_qsmt import bv_opt_with_qsmt
 from aria.optimization.omtbv.bv_opt_maxsat import bv_opt_with_maxsat
-from aria.optimization.omtbv.bv_opt_iterative_search import bv_opt_with_linear_search, bv_opt_with_binary_search
+from aria.optimization.omtbv.bv_opt_iterative_search import (
+    bv_opt_with_binary_search,
+    bv_opt_with_linear_search,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -48,11 +51,13 @@ def _parse_smtlib_value(result: str) -> int:
     raise ValueError(f"No valid SMT-LIB value found in: {result}")
 
 
-def solve_boxed_sequential(formula: z3.BoolRef,
-                         objectives: List[z3.ExprRef],
-                         minimize: bool = False,
-                         engine: str = "qsmt",
-                         solver_name: str = "z3") -> List[int]:
+def solve_boxed_sequential(
+    formula: z3.BoolRef,
+    objectives: List[z3.ExprRef],
+    minimize: bool = False,
+    engine: str = "qsmt",
+    solver_name: str = "z3",
+) -> List[int]:
     """
     Solve multiple objectives sequentially using boxed optimization strategy.
 
@@ -70,30 +75,50 @@ def solve_boxed_sequential(formula: z3.BoolRef,
     current_formula = formula
 
     for i, obj in enumerate(objectives):
-        logger.info(f"Optimizing objective {i+1}/{len(objectives)}: {obj}")
+        logger.info(
+            "Optimizing objective %d/%d: %s",
+            i + 1,
+            len(objectives),
+            obj,
+        )
         start_time = time.time()
 
         # Select optimization method based on engine
         if engine == "qsmt":
-            result = bv_opt_with_qsmt(current_formula, obj, minimize, solver_name)
+            result = bv_opt_with_qsmt(
+                current_formula, obj, minimize, solver_name
+            )
         elif engine == "maxsat":
-            result = bv_opt_with_maxsat(current_formula, obj, minimize, solver_name)
+            result = bv_opt_with_maxsat(
+                current_formula, obj, minimize, solver_name
+            )
         elif engine == "iter":
             if solver_name.endswith("-ls"):
                 solver_type = solver_name.split('-')[0]
-                result = bv_opt_with_linear_search(current_formula, obj, minimize, solver_type)
+                result = bv_opt_with_linear_search(
+                    current_formula, obj, minimize, solver_type
+                )
             elif solver_name.endswith("-bs"):
                 solver_type = solver_name.split('-')[0]
-                result = bv_opt_with_binary_search(current_formula, obj, minimize, solver_type)
+                result = bv_opt_with_binary_search(
+                    current_formula, obj, minimize, solver_type
+                )
             else:
-                raise ValueError(f"Invalid solver name for iterative engine: {solver_name}")
+                raise ValueError(
+                    f"Invalid solver name for iterative engine: {solver_name}"
+                )
         else:
             raise ValueError(f"Unsupported engine: {engine}")
 
-        logger.info(f"Objective {i+1} optimization completed in {time.time() - start_time:.2f}s")
+        elapsed = time.time() - start_time
+        logger.info(
+            "Objective %d optimization completed in %.2fs",
+            i + 1,
+            elapsed,
+        )
 
         if result is None or result == "unknown":
-            logger.warning(f"Could not optimize objective {i+1}")
+            logger.warning("Could not optimize objective %d", i + 1)
             results.append(None)
             continue
 
@@ -107,10 +132,12 @@ def solve_boxed_sequential(formula: z3.BoolRef,
                     # Add constraint to maintain this objective's value
                     current_formula = z3.And(current_formula, obj == value)
                 except (ValueError, IndexError) as e:
-                    logger.error(f"Could not parse result: {result} ({e})")
+                    logger.error(
+                        "Could not parse result: %s (%s)", result, e
+                    )
                     results.append(None)
             else:
-                logger.warning(f"Unexpected result format: {result}")
+                logger.warning("Unexpected result format: %s", result)
                 results.append(None)
         else:
             # Numeric result

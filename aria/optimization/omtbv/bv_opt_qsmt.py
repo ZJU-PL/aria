@@ -42,7 +42,8 @@ def bv_opt_with_qsmt(
 
     Note:
         Currently all objectives are converted to "maximize" internally.
-        TODO: Consider distinguishing between unsigned and signed comparisons (bvule vs <).
+        TODO: Consider distinguishing between unsigned and signed
+        comparisons (bvule vs <).
     """
     objname = obj
     all_vars = get_expr_vars(fml)
@@ -55,13 +56,15 @@ def bv_opt_with_qsmt(
     new_fml = z3.substitute(fml, (obj, obj_misc))
 
     if minimize:
-        # Minimize: for all other values, if they satisfy the formula, then obj <= that value
+        # Minimize: for all other values, if they satisfy the formula,
+        # then obj <= that value
         qfml = z3.And(
             fml,
             z3.ForAll([obj_misc], z3.Implies(new_fml, z3.ULE(obj, obj_misc)))
         )
     else:
-        # Maximize: for all other values, if they satisfy the formula, then that value <= obj
+        # Maximize: for all other values, if they satisfy the formula,
+        # then that value <= obj
         qfml = z3.And(
             fml,
             z3.ForAll([obj_misc], z3.Implies(new_fml, z3.ULE(obj_misc, obj)))
@@ -70,9 +73,12 @@ def bv_opt_with_qsmt(
     logger.debug("Quantified formula: %s", qfml)
 
     if z3.is_bv(obj):
-        return solve_with_bin_smt("BV", qfml=qfml, obj_name=obj.sexpr(), solver_name=solver_name)
-    else:
-        return solve_with_bin_smt("ALL", qfml=qfml, obj_name=obj.sexpr(), solver_name=solver_name)
+        return solve_with_bin_smt(
+            "BV", qfml=qfml, obj_name=obj.sexpr(), solver_name=solver_name
+        )
+    return solve_with_bin_smt(
+        "ALL", qfml=qfml, obj_name=obj.sexpr(), solver_name=solver_name
+    )
 
 
 def demo_qsmt() -> None:

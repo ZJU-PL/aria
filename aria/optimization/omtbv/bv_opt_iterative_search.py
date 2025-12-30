@@ -31,11 +31,15 @@ def bv_opt_with_linear_search(
 ) -> Union[int, str]:
     """Linear search-based OMT for bit-vectors."""
     obj, fml = _preprocess_objective(z3_fml, z3_obj)
-    logger.info("Linear search %simization", "min" if minimize else "max")  # noqa: W1203
+    logger.info(
+        "Linear search %simization", "min" if minimize else "max"  # noqa: W1203
+    )
 
     with Solver(name=solver_name) as solver:
         solver.add_assertion(fml)
-        return _minimize_linear_search(solver, obj) if minimize else _maximize_linear_search(solver, obj)
+        if minimize:
+            return _minimize_linear_search(solver, obj)
+        return _maximize_linear_search(solver, obj)
 
 
 def bv_opt_with_binary_search(
@@ -48,7 +52,9 @@ def bv_opt_with_binary_search(
     obj, fml = _preprocess_objective(z3_fml, z3_obj)
     bv_width = obj.bv_width()
     max_bv = (1 << bv_width) - 1
-    logger.info("Binary search %simization", "min" if minimize else "max")
+    logger.info(
+        "Binary search %simization", "min" if minimize else "max"  # noqa: W1203
+    )
 
     with Solver(name=solver_name) as solver:
         solver.add_assertion(fml)
@@ -65,7 +71,9 @@ def _minimize_linear_search(solver: Solver, obj: Any) -> int:
         iteration += 1
         lower = solver.get_model().get_value(obj)
         solver.add_assertion(BVULT(obj, lower))
-    logger.info("Minimized in %d iterations: %d", iteration, int(lower.constant_value()))
+    logger.info(
+        "Minimized in %d iterations: %d", iteration, int(lower.constant_value())
+    )
     return int(lower.constant_value())
 
 
@@ -110,7 +118,9 @@ def _minimize_binary_search(solver: Solver, obj: Any, bv_width: int, max_bv: int
             cur_max = int(lower.constant_value()) - 1
         solver.pop()
 
-    logger.info("Minimized in %d iterations: %d", iteration, int(lower.constant_value()))
+    logger.info(
+        "Minimized in %d iterations: %d", iteration, int(lower.constant_value())
+    )
     return int(lower.constant_value())
 
 
@@ -138,7 +148,9 @@ def _maximize_binary_search(solver: Solver, obj: Any, bv_width: int, max_bv: int
             cur_min = int(upper.constant_value()) + 1
         solver.pop()
 
-    logger.info("Maximized in %d iterations: %d", iteration, int(upper.constant_value()))
+    logger.info(
+        "Maximized in %d iterations: %d", iteration, int(upper.constant_value())
+    )
     return int(upper.constant_value())
 
 

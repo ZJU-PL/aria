@@ -141,7 +141,9 @@ class BitBlastOMTBVSolver:
             objvars = get_expr_vars(obj)
             for v in objvars:
                 if v not in self.vars:
-                    raise ValueError(f"{obj} contains a variable not in the hard formula")
+                    raise ValueError(
+                        f"{obj} contains a variable not in the hard formula"
+                    )
             # Create a new variable to represent obj (a term, e.g., x + y)
             objname = z3.BitVec(str(obj), objvars[0].sort().size())
             self.fml = z3.And(self.fml, objname == obj)
@@ -198,7 +200,9 @@ class BitBlastOMTBVSolver:
         maxsat_sol = MaxSATSolver(wcnf)
         maxsat_sol.set_maxsat_engine(self.engine)
 
-        return self._solve_with_engine(maxsat_sol, opt_obj_str, total_score, bool_vars, is_signed)
+        return self._solve_with_engine(
+            maxsat_sol, opt_obj_str, total_score, bool_vars, is_signed
+        )
 
     def _solve_with_engine(
         self,
@@ -207,7 +211,7 @@ class BitBlastOMTBVSolver:
         total_score: int,
         bool_vars: List[str],
         is_signed: bool,
-    ) -> int:
+    ) -> int:  # pylint: disable=too-many-positional-arguments
         """Solve MaxSAT using the configured engine.
 
         Args:
@@ -229,13 +233,16 @@ class BitBlastOMTBVSolver:
         maxsat_sol.set_maxsat_engine("FM")
         return self._solve_weighted(maxsat_sol, obj_str, total_score)
 
-    def _solve_weighted(self, maxsat_sol: MaxSATSolver, obj_str: str, total_score: int) -> int:
+    def _solve_weighted(
+        self, maxsat_sol: MaxSATSolver, obj_str: str, total_score: int
+    ) -> int:
         """Solve using weighted MaxSAT (FM or RC2)."""
         start = time.time()
         maxsat_result = maxsat_sol.solve()
         cost = maxsat_result.cost
         result = total_score - cost
-        # If we maximized ~obj for minimization, result is ~min_value, so compute ~result
+        # If we maximized ~obj for minimization, result is ~min_value,
+        # so compute ~result
         if obj_str.startswith("not_"):
             bv_width = len(self.bv2bool[obj_str[4:]])  # Remove "not_" prefix
             mask = (1 << bv_width) - 1

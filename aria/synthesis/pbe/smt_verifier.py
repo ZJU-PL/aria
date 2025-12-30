@@ -8,7 +8,7 @@ from typing import Dict, Any, List, Optional
 
 import z3
 
-from .expressions import Expression, Theory, Variable
+from .expressions import Expression, Theory
 from .expression_to_smt import SMTConverter, expression_to_smt
 
 
@@ -41,7 +41,8 @@ class SMTVerifier:
                     var_smt = self.converter.variable_map.get(var_name)
                     if var_smt is None:
                         # Variable not yet in context, create it
-                        var_smt = self._create_variable(var_name, expr.theory, var_types)
+                        var_smt = self._create_variable(
+                            var_name, expr.theory, var_types)
                         self.converter.variable_map[var_name] = var_smt
 
                     constraints.append(var_smt == value)
@@ -105,9 +106,10 @@ class SMTVerifier:
                 if len(smt_expressions) >= 2:
                     # At least two expressions must differ
                     diff_constraints = []
-                    for i in range(len(smt_expressions)):
+                    for i, expr1 in enumerate(smt_expressions):
                         for j in range(i+1, len(smt_expressions)):
-                            diff_constraints.append(smt_expressions[i] != smt_expressions[j])
+                            expr2 = smt_expressions[j]
+                            diff_constraints.append(expr1 != expr2)
 
                     # Require at least one difference
                     self.solver.add(z3.Or(diff_constraints))
@@ -144,7 +146,7 @@ class SMTVerifier:
                         try:
                             output = expr.evaluate(counterexample)
                             outputs.append(output)
-                        except:
+                        except (KeyError, TypeError, ZeroDivisionError):
                             continue
 
                     if len(set(outputs)) > 1:  # Different outputs
@@ -167,13 +169,12 @@ class SMTVerifier:
 
         if theory == Theory.LIA:
             return z3.Int(var_name, self.converter.context)
-        elif theory == Theory.BV:
+        if theory == Theory.BV:
             bitwidth = var_types.get(var_name, 32)
             return z3.BitVec(var_name, bitwidth, self.converter.context)
-        elif theory == Theory.STRING:
+        if theory == Theory.STRING:
             return z3.String(var_name, self.converter.context)
-        else:
-            raise ValueError(f"Unsupported theory: {theory}")
+        raise ValueError(f"Unsupported theory: {theory}")
 
     def prove_equivalence(self, expr1: Expression, expr2: Expression,
                          var_types: Dict[str, str] = None) -> bool:
@@ -188,7 +189,7 @@ class SMTVerifier:
 
             result = self.solver.check()
 
-            is_equivalent = (result == z3.unsat)
+            is_equivalent = result == z3.unsat
             self.solver.pop()
 
             return is_equivalent
@@ -197,7 +198,9 @@ class SMTVerifier:
             print(f"SMT equivalence check failed: {e}")
             return False
 
-    def get_smt_formula(self, expr: Expression, var_types: Dict[str, str] = None) -> str:
+    def get_smt_formula(
+            self, expr: Expression,
+            var_types: Dict[str, str] = None) -> str:
         """Get SMT-LIB format string for an expression."""
         smt_expr = expression_to_smt(expr, var_types)
         return smt_expr.sexpr()

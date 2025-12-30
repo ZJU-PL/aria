@@ -15,15 +15,19 @@ def _ensure_get_objectives(script: str) -> str:
         return script
     # Try to insert before (get-model) if present, otherwise append.
     if "(get-model)" in script:
-        return script.replace("(get-model)", "(get-objectives)\n(get-model)", 1)
+        replacement = "(get-objectives)\n(get-model)"
+        return script.replace("(get-model)", replacement, 1)
     return script + "\n(get-objectives)\n"
 
 
-def solve_boxed_z3(file_path: str, objective_order: Optional[List[str]] = None) -> List[int]:
+def solve_boxed_z3(
+    file_path: str, objective_order: Optional[List[str]] = None
+) -> List[int]:
     """Solve boxed optimization problems using the Z3 CLI and parse objectives.
 
     Args:
-        file_path: Path to an SMT-LIB2 file containing asserts and maximize/minimize commands.
+        file_path: Path to an SMT-LIB2 file containing asserts and
+                   maximize/minimize commands.
         objective_order: Optional explicit ordering of objective variable names.
 
     Returns:

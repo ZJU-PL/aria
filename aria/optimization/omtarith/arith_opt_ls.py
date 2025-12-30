@@ -2,16 +2,23 @@
 Local search for optimization of linear arithmetic.
 """
 
-import z3
 import logging
 import random
+
+import z3
 
 # Import utility function from the utils module
 from aria.utils.z3_expr_utils import get_expr_vars
 
 logger = logging.getLogger(__name__)
 
-def _arith_opt_with_ls_impl(fml: z3.ExprRef, obj: z3.ExprRef, minimize: bool, solver_name: str, max_iterations: int = 1000):
+def _arith_opt_with_ls_impl(
+    fml: z3.ExprRef,
+    obj: z3.ExprRef,
+    minimize: bool,
+    solver_name: str,
+    max_iterations: int = 1000
+):
     """
     Local search for optimization of linear arithmetic (implementation).
 
@@ -25,8 +32,8 @@ def _arith_opt_with_ls_impl(fml: z3.ExprRef, obj: z3.ExprRef, minimize: bool, so
     Returns:
         String representation of the optimal value found
     """
-    logger.debug(f"Starting local search optimization with {solver_name}")
-    logger.debug(f"Direction: {'minimize' if minimize else 'maximize'}")
+    logger.debug("Starting local search optimization with %s", solver_name)
+    logger.debug("Direction: %s", 'minimize' if minimize else 'maximize')
 
     # First check if the constraints are satisfiable
     solver = z3.Solver()
@@ -40,7 +47,7 @@ def _arith_opt_with_ls_impl(fml: z3.ExprRef, obj: z3.ExprRef, minimize: bool, so
     current_model = solver.model()
     current_obj_value = current_model.eval(obj, model_completion=True)
 
-    logger.debug(f"Initial objective value: {current_obj_value}")
+    logger.debug("Initial objective value: %s", current_obj_value)
 
     # Get all variables in the formula and objective
     all_vars = set()
@@ -50,7 +57,7 @@ def _arith_opt_with_ls_impl(fml: z3.ExprRef, obj: z3.ExprRef, minimize: bool, so
     # Filter to only arithmetic variables (Int/Real)
     arith_vars = [var for var in all_vars if z3.is_int(var) or z3.is_real(var)]
 
-    logger.debug(f"Found {len(arith_vars)} arithmetic variables")
+    logger.debug("Found %d arithmetic variables", len(arith_vars))
 
     # Initialize best solution
     best_model = current_model
@@ -62,12 +69,13 @@ def _arith_opt_with_ls_impl(fml: z3.ExprRef, obj: z3.ExprRef, minimize: bool, so
     for restart in range(restart_attempts):
         if restart > 0:
             # Generate a new starting point by randomizing variables
-            logger.debug(f"Restart {restart}: Trying new starting point")
+            logger.debug("Restart %d: Trying new starting point", restart)
             temp_solver = z3.Solver()
             temp_solver.add(fml)
 
             # Add random constraints to get different starting points
-            for var in arith_vars[:min(3, len(arith_vars))]:  # Limit to avoid over-constraining
+            # Limit to avoid over-constraining
+            for var in arith_vars[:min(3, len(arith_vars))]:
                 if z3.is_int(var):
                     random_val = random.randint(-50, 50)
                     temp_solver.push()
@@ -76,8 +84,7 @@ def _arith_opt_with_ls_impl(fml: z3.ExprRef, obj: z3.ExprRef, minimize: bool, so
                         current_model = temp_solver.model()
                         temp_solver.pop()
                         break
-                    else:
-                        temp_solver.pop()
+                    temp_solver.pop()
                 elif z3.is_real(var):
                     random_val = random.uniform(-50.0, 50.0)
                     temp_solver.push()
@@ -86,8 +93,7 @@ def _arith_opt_with_ls_impl(fml: z3.ExprRef, obj: z3.ExprRef, minimize: bool, so
                         current_model = temp_solver.model()
                         temp_solver.pop()
                         break
-                    else:
-                        temp_solver.pop()
+                    temp_solver.pop()
 
         # Main local search loop
         improved_overall = True
@@ -124,7 +130,9 @@ def _arith_opt_with_ls_impl(fml: z3.ExprRef, obj: z3.ExprRef, minimize: bool, so
                     else:
                         # For reals, adaptive fractional offsets
                         base_steps = [-3.0, -2.0, -1.0, -0.5, 0.5, 1.0, 2.0, 3.0]
-                        large_steps = [-10.0, -5.0, 5.0, 10.0] if iteration < 10 else []
+                        large_steps = (
+                            [-10.0, -5.0, 5.0, 10.0] if iteration < 10 else []
+                        )
                         offsets = base_steps + large_steps
 
                         try:
@@ -133,8 +141,13 @@ def _arith_opt_with_ls_impl(fml: z3.ExprRef, obj: z3.ExprRef, minimize: bool, so
                                 base_val = float(num) / float(den)
                             else:
                                 base_val = float(str(current_value))
-                            candidates = [base_val + offset for offset in offsets]
-                        except (AttributeError, ValueError, TypeError, ZeroDivisionError):
+                            candidates = [
+                                base_val + offset for offset in offsets
+                            ]
+                        except (
+                            AttributeError, ValueError, TypeError,
+                            ZeroDivisionError
+                        ):
                             # If conversion fails, skip this variable
                             continue
 
@@ -159,16 +172,24 @@ def _arith_opt_with_ls_impl(fml: z3.ExprRef, obj: z3.ExprRef, minimize: bool, so
                             is_better = False
                             try:
                                 if minimize:
-                                    if z3.is_int(obj) or z3.is_int_value(new_obj_value):
-                                        is_better = new_obj_value.as_long() < local_best_value.as_long()
+                                    if (z3.is_int(obj) or
+                                            z3.is_int_value(new_obj_value)):
+                                        is_better = (
+                                            new_obj_value.as_long() <
+                                            local_best_value.as_long()
+                                        )
                                     else:
                                         # Handle real values
                                         new_val = float(str(new_obj_value))
                                         best_val = float(str(local_best_value))
                                         is_better = new_val < best_val
                                 else:
-                                    if z3.is_int(obj) or z3.is_int_value(new_obj_value):
-                                        is_better = new_obj_value.as_long() > local_best_value.as_long()
+                                    if (z3.is_int(obj) or
+                                            z3.is_int_value(new_obj_value)):
+                                        is_better = (
+                                            new_obj_value.as_long() >
+                                            local_best_value.as_long()
+                                        )
                                     else:
                                         # Handle real values
                                         new_val = float(str(new_obj_value))
@@ -182,7 +203,11 @@ def _arith_opt_with_ls_impl(fml: z3.ExprRef, obj: z3.ExprRef, minimize: bool, so
                                 current_model = new_model
                                 local_best_value = new_obj_value
                                 improved_overall = True
-                                logger.debug(f"Restart {restart}, Iteration {iteration}: Improved objective to {local_best_value}")
+                                logger.debug(
+                                    "Restart %d, Iteration %d: "
+                                    "Improved objective to %s",
+                                    restart, iteration, local_best_value
+                                )
                                 break
 
                     # If we found improvement for this variable, move to next iteration
@@ -190,22 +215,30 @@ def _arith_opt_with_ls_impl(fml: z3.ExprRef, obj: z3.ExprRef, minimize: bool, so
                         break
 
                 except Exception as e:
-                    logger.debug(f"Error processing variable {var}: {e}")
+                    logger.debug("Error processing variable %s: %s", var, e)
                     continue
 
         # Update global best if this restart found a better solution
         try:
             is_global_better = False
             if minimize:
-                if z3.is_int(obj) or z3.is_int_value(local_best_value):
-                    is_global_better = local_best_value.as_long() < best_obj_value.as_long()
+                if (z3.is_int(obj) or
+                        z3.is_int_value(local_best_value)):
+                    is_global_better = (
+                        local_best_value.as_long() <
+                        best_obj_value.as_long()
+                    )
                 else:
                     new_val = float(str(local_best_value))
                     best_val = float(str(best_obj_value))
                     is_global_better = new_val < best_val
             else:
-                if z3.is_int(obj) or z3.is_int_value(local_best_value):
-                    is_global_better = local_best_value.as_long() > best_obj_value.as_long()
+                if (z3.is_int(obj) or
+                        z3.is_int_value(local_best_value)):
+                    is_global_better = (
+                        local_best_value.as_long() >
+                        best_obj_value.as_long()
+                    )
                 else:
                     new_val = float(str(local_best_value))
                     best_val = float(str(best_obj_value))
@@ -214,13 +247,16 @@ def _arith_opt_with_ls_impl(fml: z3.ExprRef, obj: z3.ExprRef, minimize: bool, so
             if is_global_better:
                 best_model = current_model
                 best_obj_value = local_best_value
-                logger.debug(f"Restart {restart}: New global best: {best_obj_value}")
+                logger.debug(
+                    "Restart %d: New global best: %s",
+                    restart, best_obj_value
+                )
         except (AttributeError, ValueError, TypeError):
             # If comparison fails, keep previous best
             pass
 
-    logger.info(f"Local search completed after {restart_attempts} restarts")
-    logger.info(f"Final objective value: {best_obj_value}")
+    logger.info("Local search completed after %d restarts", restart_attempts)
+    logger.info("Final objective value: %s", best_obj_value)
 
     # Return the optimal value as a string
     return str(best_obj_value)
@@ -255,7 +291,9 @@ def arith_opt_with_ls(fml: z3.ExprRef, obj: z3.ExprRef, minimize: bool, solver_n
         >>> x, y = z3.Ints('x y')
         >>> constraints = z3.And(x >= 0, y >= 0, x + y >= 5)
         >>> objective = x + y
-        >>> result = arith_opt_with_ls(constraints, objective, minimize=True, solver_name="z3")
+        >>> result = arith_opt_with_ls(
+        ...     constraints, objective, minimize=True, solver_name="z3"
+        ... )
         >>> print(result)  # Should print "5"
     """
     return _arith_opt_with_ls_impl(fml, obj, minimize, solver_name, max_iterations=1000)

@@ -4,10 +4,11 @@ This module provides functions to generate possible expressions
 for LIA, BV, and String theories.
 """
 
-from typing import List, Set, Dict, Any
+from typing import List, Dict, Any
 from .expressions import (
     Expression, Theory, Variable, Constant, BinaryExpr, UnaryExpr,
-    BinaryOp, UnaryOp, IfExpr, FunctionCallExpr, var, const, add, sub, mul, eq, lt, concat, bv_and, length
+    BinaryOp, UnaryOp, IfExpr, FunctionCallExpr, var, const, add, sub,
+    mul, eq, lt, concat, bv_and, length
 )
 
 
@@ -31,7 +32,8 @@ def generate_lia_expressions(variables: List[str], max_depth: int = 3) -> List[E
     # Unary operations (at depth 1)
     if max_depth >= 1:
         base_exprs = [var(v, Theory.LIA) for v in variables] + [
-            const(0, Theory.LIA), const(1, Theory.LIA), const(2, Theory.LIA)
+            const(0, Theory.LIA), const(1, Theory.LIA),
+            const(2, Theory.LIA)
         ]
 
         for expr in base_exprs:
@@ -40,7 +42,8 @@ def generate_lia_expressions(variables: List[str], max_depth: int = 3) -> List[E
     # Binary operations (at depth 2+)
     if max_depth >= 2:
         base_exprs = [var(v, Theory.LIA) for v in variables] + [
-            const(0, Theory.LIA), const(1, Theory.LIA), const(2, Theory.LIA), const(10, Theory.LIA)
+            const(0, Theory.LIA), const(1, Theory.LIA),
+            const(2, Theory.LIA), const(10, Theory.LIA)
         ]
 
         for left in base_exprs:
@@ -48,7 +51,8 @@ def generate_lia_expressions(variables: List[str], max_depth: int = 3) -> List[E
                 expressions.append(add(left, right))
                 expressions.append(sub(left, right))
                 expressions.append(mul(left, right))
-                if right != const(0, Theory.LIA):  # Avoid division by zero in generator
+                # Avoid division by zero in generator
+                if right != const(0, Theory.LIA):
                     expressions.append(BinaryExpr(left, BinaryOp.DIV, right))
                     expressions.append(BinaryExpr(left, BinaryOp.MOD, right))
                 expressions.append(eq(left, right))
@@ -57,7 +61,8 @@ def generate_lia_expressions(variables: List[str], max_depth: int = 3) -> List[E
     # Advanced expressions (conditionals, functions) - depth 3+
     if max_depth >= 3:
         base_exprs = [var(v, Theory.LIA) for v in variables] + [
-            const(0, Theory.LIA), const(1, Theory.LIA), const(2, Theory.LIA), const(10, Theory.LIA)
+            const(0, Theory.LIA), const(1, Theory.LIA),
+            const(2, Theory.LIA), const(10, Theory.LIA)
         ]
 
         # Simple conditionals
@@ -74,8 +79,10 @@ def generate_lia_expressions(variables: List[str], max_depth: int = 3) -> List[E
             expressions.append(FunctionCallExpr("abs", [expr], Theory.LIA))
             if len(base_exprs) >= 2:
                 for expr2 in base_exprs:
-                    expressions.append(FunctionCallExpr("min", [expr, expr2], Theory.LIA))
-                    expressions.append(FunctionCallExpr("max", [expr, expr2], Theory.LIA))
+                    expressions.append(
+                        FunctionCallExpr("min", [expr, expr2], Theory.LIA))
+                    expressions.append(
+                        FunctionCallExpr("max", [expr, expr2], Theory.LIA))
 
     # Remove duplicates
     seen = set()
@@ -89,7 +96,9 @@ def generate_lia_expressions(variables: List[str], max_depth: int = 3) -> List[E
     return unique_expressions
 
 
-def generate_bv_expressions(variables: List[str], bitwidth: int = 8, max_depth: int = 3) -> List[Expression]:
+def generate_bv_expressions(
+        variables: List[str], bitwidth: int = 8,
+        max_depth: int = 3) -> List[Expression]:
     """Generate bitvector expressions up to max_depth with advanced constructs."""
     expressions = []
 
@@ -109,7 +118,8 @@ def generate_bv_expressions(variables: List[str], bitwidth: int = 8, max_depth: 
     # Unary operations (at depth 1)
     if max_depth >= 1:
         base_exprs = [var(v, Theory.BV) for v in variables] + [
-            const(0, Theory.BV), const(1, Theory.BV), const(0xFF, Theory.BV)
+            const(0, Theory.BV), const(1, Theory.BV),
+            const(0xFF, Theory.BV)
         ]
 
         for expr in base_exprs:
@@ -118,7 +128,8 @@ def generate_bv_expressions(variables: List[str], bitwidth: int = 8, max_depth: 
     # Binary operations (at depth 2+)
     if max_depth >= 2:
         base_exprs = [var(v, Theory.BV) for v in variables] + [
-            const(0, Theory.BV), const(1, Theory.BV), const(0xFF, Theory.BV), const(0xF0, Theory.BV)
+            const(0, Theory.BV), const(1, Theory.BV),
+            const(0xFF, Theory.BV), const(0xF0, Theory.BV)
         ]
 
         for left in base_exprs:
@@ -133,7 +144,8 @@ def generate_bv_expressions(variables: List[str], bitwidth: int = 8, max_depth: 
     # Advanced expressions (conditionals) - depth 3+
     if max_depth >= 3:
         base_exprs = [var(v, Theory.BV) for v in variables] + [
-            const(0, Theory.BV), const(1, Theory.BV), const(0xFF, Theory.BV), const(0xF0, Theory.BV)
+            const(0, Theory.BV), const(1, Theory.BV),
+            const(0xFF, Theory.BV), const(0xF0, Theory.BV)
         ]
 
         # Simple conditionals for BV
@@ -157,7 +169,9 @@ def generate_bv_expressions(variables: List[str], bitwidth: int = 8, max_depth: 
     return unique_expressions
 
 
-def generate_string_expressions(variables: List[str], max_depth: int = 3) -> List[Expression]:
+def generate_string_expressions(
+        variables: List[str],
+        max_depth: int = 3) -> List[Expression]:
     """Generate string expressions up to max_depth."""
     expressions = []
 
@@ -178,7 +192,8 @@ def generate_string_expressions(variables: List[str], max_depth: int = 3) -> Lis
     # Unary operations (at depth 1)
     if max_depth >= 1:
         base_exprs = [var(v, Theory.STRING) for v in variables] + [
-            const("", Theory.STRING), const("a", Theory.STRING), const("abc", Theory.STRING)
+            const("", Theory.STRING), const("a", Theory.STRING),
+            const("abc", Theory.STRING)
         ]
 
         for expr in base_exprs:
@@ -187,8 +202,9 @@ def generate_string_expressions(variables: List[str], max_depth: int = 3) -> Lis
     # Binary operations (at depth 2+)
     if max_depth >= 2:
         base_exprs = [var(v, Theory.STRING) for v in variables] + [
-            const("", Theory.STRING), const("a", Theory.STRING), const("b", Theory.STRING),
-            const("abc", Theory.STRING), const("0", Theory.STRING), const("1", Theory.STRING)
+            const("", Theory.STRING), const("a", Theory.STRING),
+            const("b", Theory.STRING), const("abc", Theory.STRING),
+            const("0", Theory.STRING), const("1", Theory.STRING)
         ]
 
         for left in base_exprs:
@@ -199,8 +215,9 @@ def generate_string_expressions(variables: List[str], max_depth: int = 3) -> Lis
     # Advanced expressions (conditionals, functions) - depth 3+
     if max_depth >= 3:
         base_exprs = [var(v, Theory.STRING) for v in variables] + [
-            const("", Theory.STRING), const("a", Theory.STRING), const("b", Theory.STRING),
-            const("abc", Theory.STRING), const("0", Theory.STRING), const("1", Theory.STRING)
+            const("", Theory.STRING), const("a", Theory.STRING),
+            const("b", Theory.STRING), const("abc", Theory.STRING),
+            const("0", Theory.STRING), const("1", Theory.STRING)
         ]
 
         # Simple conditionals for String
@@ -214,8 +231,16 @@ def generate_string_expressions(variables: List[str], max_depth: int = 3) -> Lis
 
         # Function calls for strings
         for expr in base_exprs:
-            expressions.append(FunctionCallExpr("str_substring", [expr, const(0, Theory.STRING), const(1, Theory.STRING)], Theory.STRING))
-            expressions.append(FunctionCallExpr("str_indexof", [expr, const("a", Theory.STRING)], Theory.STRING))
+            expressions.append(
+                FunctionCallExpr(
+                    "str_substring",
+                    [expr, const(0, Theory.STRING), const(1, Theory.STRING)],
+                    Theory.STRING))
+            expressions.append(
+                FunctionCallExpr(
+                    "str_indexof",
+                    [expr, const("a", Theory.STRING)],
+                    Theory.STRING))
 
     # Remove duplicates
     seen = set()
@@ -229,16 +254,17 @@ def generate_string_expressions(variables: List[str], max_depth: int = 3) -> Lis
     return unique_expressions
 
 
-def generate_expressions_for_theory(theory: Theory, variables: List[str], **kwargs) -> List[Expression]:
+def generate_expressions_for_theory(
+        theory: Theory, variables: List[str],
+        **kwargs) -> List[Expression]:
     """Generate expressions for a given theory."""
     if theory == Theory.LIA:
         return generate_lia_expressions(variables, **kwargs)
-    elif theory == Theory.BV:
+    if theory == Theory.BV:
         return generate_bv_expressions(variables, **kwargs)
-    elif theory == Theory.STRING:
+    if theory == Theory.STRING:
         return generate_string_expressions(variables, **kwargs)
-    else:
-        raise ValueError(f"Unsupported theory: {theory}")
+    raise ValueError(f"Unsupported theory: {theory}")
 
 
 def get_theory_from_variables(variables: List[Dict[str, Any]]) -> Theory:

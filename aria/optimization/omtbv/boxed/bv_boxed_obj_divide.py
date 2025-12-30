@@ -23,7 +23,10 @@ import os
 import re
 import z3
 
-from aria.optimization.omtbv.bv_opt_iterative_search import bv_opt_with_binary_search, bv_opt_with_linear_search
+from aria.optimization.omtbv.bv_opt_iterative_search import (
+    bv_opt_with_binary_search,
+    bv_opt_with_linear_search,
+)
 from aria.optimization.omtbv.bv_opt_qsmt import bv_opt_with_qsmt
 from aria.optimization.omtbv.bv_opt_maxsat import bv_opt_with_maxsat
 
@@ -49,7 +52,7 @@ def parse_smt2_value_output(output: str) -> Optional[int]:
     try:
         if value_str.startswith('#x'):
             return int(value_str[2:], 16)
-        elif value_str.startswith('#b'):
+        if value_str.startswith('#b'):
             return int(value_str[2:], 2)
         return int(value_str)
     except (ValueError, AttributeError):
@@ -62,9 +65,19 @@ class ObjectiveResult:
     status: SolverStatus
     solve_time: float
 
-def solve_objective(complete_smt2: str, obj_id: int, minimize: bool, engine: str,
-                   solver_name: str, result_queue: Queue, error_queue: Queue):
-    """Worker function to solve a single objective. SMT2 string must contain (assert (= obj_var <expr>))."""
+def solve_objective(  # pylint: disable=too-many-positional-arguments
+    complete_smt2: str,
+    obj_id: int,
+    minimize: bool,
+    engine: str,
+    solver_name: str,
+    result_queue: Queue,
+    error_queue: Queue,
+):
+    """Worker function to solve a single objective.
+
+    SMT2 string must contain (assert (= obj_var <expr>)).
+    """
     try:
         formula_vec = z3.parse_smt2_string(complete_smt2)
         obj = None
@@ -86,6 +99,7 @@ def solve_objective(complete_smt2: str, obj_id: int, minimize: bool, engine: str
         formula = z3.And(other_assertions) if other_assertions else z3.BoolVal(True)
         start_time = time.time()
 
+        result = None
         if engine == "qsmt":
             result = bv_opt_with_qsmt(formula, obj, minimize, solver_name)
         elif engine == "maxsat":
@@ -93,16 +107,19 @@ def solve_objective(complete_smt2: str, obj_id: int, minimize: bool, engine: str
         elif engine == "iter":
             solver_type = solver_name.split('-')[0]
             if solver_name.endswith("-ls"):
-                result = bv_opt_with_linear_search(formula, obj, minimize, solver_type)
+                result = bv_opt_with_linear_search(
+                    formula, obj, minimize, solver_type
+                )
             elif solver_name.endswith("-bs"):
-                result = bv_opt_with_binary_search(formula, obj, minimize, solver_type)
-        else:
-            result = None
+                result = bv_opt_with_binary_search(
+                    formula, obj, minimize, solver_type
+                )
 
         solve_time = time.time() - start_time
 
         if result is None or result == "unknown":
-            status, value = SolverStatus.ERROR, None
+            status = SolverStatus.ERROR
+            value = None
         else:
             status = SolverStatus.COMPLETED
             if isinstance(result, str):
@@ -119,12 +136,14 @@ def solve_objective(complete_smt2: str, obj_id: int, minimize: bool, engine: str
     except Exception as e:
         error_queue.put((obj_id, str(e)))
 
-def solve_boxed_parallel(formula: z3.BoolRef,
-                        objectives: List[z3.ExprRef],
-                        minimize: bool = False,
-                        engine: str = "qsmt",
-                        solver_name: str = "z3",
-                        timeout: float = 3600) -> List[Optional[int]]:
+def solve_boxed_parallel(  # pylint: disable=too-many-positional-arguments
+    formula: z3.BoolRef,
+    objectives: List[z3.ExprRef],
+    minimize: bool = False,
+    engine: str = "qsmt",
+    solver_name: str = "z3",
+    timeout: float = 3600,
+) -> List[Optional[int]]:
     """
     Solve multiple objectives in parallel using divide-and-conquer strategy
 
@@ -152,7 +171,11 @@ def solve_boxed_parallel(formula: z3.BoolRef,
 
     for i, obj in enumerate(objectives):
         lines = base_smt2.split('\n')
-        insert_idx = next((idx for idx, line in enumerate(lines) if line.strip().startswith("(assert")), len(lines))
+        insert_idx = next(
+            (idx for idx, line in enumerate(lines)
+             if line.strip().startswith("(assert")),
+            len(lines),
+        )
         sort_str = obj.sort().sexpr()
         lines.insert(insert_idx, f"(declare-const obj_var {sort_str})")
         lines.insert(insert_idx + 1, f"(assert (= obj_var {obj.sexpr()}))")
@@ -177,14 +200,18 @@ def solve_boxed_parallel(formula: z3.BoolRef,
                 result = result_queue.get_nowait()
                 results[result.objective_id] = result.value
                 completed += 1
-                logger.info(f"Objective {result.objective_id} completed in {result.solve_time:.2f}s "
-                          f"with value {result.value}")
+                logger.info(
+                    "Objective %d completed in %.2fs with value %s",
+                    result.objective_id,
+                    result.solve_time,
+                    result.value,
+                )
             except mp.queues.Empty:
                 pass
 
             try:
                 obj_id, error_msg = error_queue.get_nowait()
-                logger.error(f"Error in objective {obj_id}: {error_msg}")
+                logger.error("Error in objective %d: %s", obj_id, error_msg)
                 completed += 1
             except mp.queues.Empty:
                 pass

@@ -79,7 +79,9 @@ def _solve_direct_lp(
     # Extract solution
     if pulp.LpStatus[lp_prob.status] == "Optimal":
         value = float(pulp.value(lp_prob.objective))
-        model: Dict[str, float] = {var.name: float(var.value()) for var in lp_prob.variables()}
+        model: Dict[str, float] = {
+            var.name: float(var.value()) for var in lp_prob.variables()
+        }
         return value, model
     return None, None
 
@@ -101,7 +103,8 @@ def _solve_iterative_lp(
     for clause in dnf_clauses:
         value, model = _solve_direct_lp(clause, obj, minimize, solver_name)
         if value is not None:
-            if (minimize and value < best_value) or (not minimize and value > best_value):
+            if ((minimize and value < best_value) or
+                    (not minimize and value > best_value)):
                 best_value = value
                 best_model = model
 
@@ -110,14 +113,15 @@ def _solve_iterative_lp(
 
 def _is_linear_term(expr: z3.ExprRef) -> bool:
     """Check if an expression is linear (constant or variable or linear combination)."""
-    if z3.is_const(expr) or z3.is_int_value(expr) or z3.is_real_value(expr):
+    if (z3.is_const(expr) or z3.is_int_value(expr) or
+            z3.is_rational_value(expr)):
         return True
 
     if z3.is_mul(expr):
         # For multiplication, at most one term can be a variable
         var_count = 0
         for arg in expr.children():
-            if not (z3.is_int_value(arg) or z3.is_real_value(arg)):
+            if not (z3.is_int_value(arg) or z3.is_rational_value(arg)):
                 var_count += 1
             if var_count > 1:
                 return False
@@ -149,7 +153,8 @@ class ConvexityChecker:
             return False  # Disjunctions make problem non-convex
 
         # Handle comparison operators
-        if z3.is_eq(expr) or z3.is_le(expr) or z3.is_lt(expr) or z3.is_ge(expr) or z3.is_gt(expr):
+        if (z3.is_eq(expr) or z3.is_le(expr) or z3.is_lt(expr) or
+                z3.is_ge(expr) or z3.is_gt(expr)):
             # Check if both sides of comparison are linear
             return all(_is_linear_term(arg) for arg in expr.children())
 
@@ -239,7 +244,7 @@ def _convert_to_dnf(fml: z3.ExprRef) -> List[z3.ExprRef]:
     # Convert the result into a list of disjuncts
     dnf_clauses = []
     for subgoal in result:
-        conjunction = z3.And([expr for expr in subgoal])
+        conjunction = z3.And(list(subgoal))
         dnf_clauses.append(conjunction)
 
     return dnf_clauses

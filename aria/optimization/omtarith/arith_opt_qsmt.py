@@ -51,13 +51,12 @@ def arith_opt_with_qsmt(
             obj_name=obj.sexpr(),
             solver_name=solver_name
         )
-    else:
-        return solve_with_bin_smt(
-            "LRA",
-            qfml=qfml,
-            obj_name=obj.sexpr(),
-            solver_name=solver_name
-        )
+    return solve_with_bin_smt(
+        "LRA",
+        qfml=qfml,
+        obj_name=obj.sexpr(),
+        solver_name=solver_name
+    )
 
 
 def demo_qsmt() -> None:

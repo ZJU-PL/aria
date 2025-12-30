@@ -82,13 +82,13 @@ def cnf_from_z3(constraint_file: str) -> Optional[str]:
     z3_path = os.path.join(path, 'z3', 'build', 'z3')
     try:
         command = [z3_path, "opt.priority=box", constraint_file]
-        result = subprocess.run(
+        process_result = subprocess.run(
             command,
             capture_output=True,
             text=True,
             check=True
         )
-        return result.stdout
+        return process_result.stdout
     except subprocess.CalledProcessError as e:
         logger.error("Error running Z3: %s", e)
         return None
@@ -190,7 +190,8 @@ def res_z3_trans(r_z3: str, objective_order: Optional[List[str]] = None) -> List
     objective_values: Dict[str, int] = {}
 
     model_re = re.compile(
-        r"\(define-fun\s+(?P<name>\S+)\s+\(\)\s+\(_\s*BitVec\s+\d+\)\s+#x(?P<value>[0-9A-Fa-f]+)\)"
+        r"\(define-fun\s+(?P<name>\S+)\s+\(\)\s+\(_\s*BitVec\s+\d+\)\s+"
+        r"#x(?P<value>[0-9A-Fa-f]+)\)"
     )
     objective_re = re.compile(r"\(\s*(?P<name>[^\s\)]+)\s+(?P<value>\d+)\s*\)")
 
@@ -229,9 +230,12 @@ def res_z3_trans(r_z3: str, objective_order: Optional[List[str]] = None) -> List
                 objective_values[name] = int(value_hex, 16)
             continue
 
-        # Multi-line (define-fun ...) blocks: capture the name first, then parse the value line.
+        # Multi-line (define-fun ...) blocks: capture the name first,
+        # then parse the value line.
         if line.startswith("(define-fun"):
-            pattern = r"\(define-fun\s+(?P<name>\S+)\s+\(\)\s+\(_\s*BitVec\s+\d+\)"
+            pattern = (
+                r"\(define-fun\s+(?P<name>\S+)\s+\(\)\s+\(_\s*BitVec\s+\d+\)"
+            )
             pending_match = re.match(pattern, line)
             if pending_match:
                 pending_define = pending_match.group("name")
