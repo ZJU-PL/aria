@@ -4,8 +4,12 @@ Perform bit-blasting and keep tracking of the relation of
 bit-vector variables and Boolean variables.
 
 Revision history:
-- Removed projection logic: Eliminated the complex proj_last parameter and related projection code that was unused and added unnecessary complexity. (FIXME: in some context, we may need the projection logic...)
-- Streamlined DIMACS conversion: Simplified both to_dimacs() and to_dimacs_numeric() functions by removing projection logic and unnecessary parameters.
+- Removed projection logic: Eliminated the complex proj_last parameter
+  and related projection code that was unused and added unnecessary
+  complexity. (FIXME: in some context, we may need the projection logic...)
+- Streamlined DIMACS conversion: Simplified both to_dimacs() and
+  to_dimacs_numeric() functions by removing projection logic and
+  unnecessary parameters.
 """
 from typing import List, Dict, Tuple
 

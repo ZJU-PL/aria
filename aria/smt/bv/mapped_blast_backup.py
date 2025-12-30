@@ -79,7 +79,9 @@ def to_dimacs(cnf, table, proj_last) -> Tuple[List[str], List[str]]:
         clauses = []
         for clause in cnf_clauses:
             int_clause = [int(x) for x in clause.split(" ")[:-1]]
-            proj_clause = [proj_id_last(x, projection_scope, n_vars) for x in int_clause]
+            proj_clause = [
+                proj_id_last(x, projection_scope, n_vars) for x in int_clause
+            ]
             # proj_clause.append(0)  # TODO: append 0 or not
             str_clause = " ".join([str(x) for x in proj_clause])
             clauses.append(str_clause)
@@ -87,7 +89,8 @@ def to_dimacs(cnf, table, proj_last) -> Tuple[List[str], List[str]]:
         cnf_clauses = clauses
         cnf_header = [
             f"p cnf {len(table)} {len(cnf_clauses)}",
-            # "cr {}".format(" ".join([str(x) for x in range(n_vars - projection_scope + 1, n_vars + 1)]))
+            # "cr {}".format(" ".join([str(x) for x in
+            # range(n_vars - projection_scope + 1, n_vars + 1)]))
         ]
     else:
         cnf_header = [
@@ -130,7 +133,9 @@ def to_dimacs_numeric(cnf, table, proj_last):
         clauses = []
         for clause in cnf_clauses:
             int_clause = clause
-            proj_clause = [proj_id_last(x, projection_scope, n_vars) for x in int_clause]
+            proj_clause = [
+                proj_id_last(x, projection_scope, n_vars) for x in int_clause
+            ]
             clauses.append(proj_clause)
         cnf_clauses = clauses
         cnf_header = ["p"]  # FIXME
@@ -191,7 +196,7 @@ def dimacs_visitor(exp, table):
             table[name] = id_var
         yield str(id_var)
         return
-    elif z3.is_not(exp):
+    if z3.is_not(exp):
         assert len(exp.children()) == 1
         ch = exp.children()[0]
         for var in dimacs_visitor(ch, table):
@@ -226,7 +231,7 @@ def dimacs_visitor_numeric(exp, table):
             table[name] = id_var
         yield id_var
         return
-    elif z3.is_not(exp):
+    if z3.is_not(exp):
         assert len(exp.children()) == 1
         ch = exp.children()[0]
         for var in dimacs_visitor_numeric(ch, table):
@@ -322,6 +327,7 @@ def translate_smt2formula_to_cnf_file(formula: z3.ExprRef, output_file: str):
     """
     projection_last = ''
     projection_last = projection_last and projection_last.lower() != "false"
+    import sys
     blasted, id_table, bv2bool = bitblast(formula)
     header, clauses = to_dimacs(blasted, id_table, projection_last)
     saved_stdout = sys.stdout

@@ -41,7 +41,10 @@ class BooleanInterpolant:
                 break
 
     @staticmethod
-    def compute_itp(fml_a: z3.ExprRef, fml_b: z3.ExprRef, var_list: List[z3.ExprRef]) -> List[z3.ExprRef]:
+    def compute_itp(
+        fml_a: z3.ExprRef, fml_b: z3.ExprRef,
+        var_list: List[z3.ExprRef]
+    ) -> List[z3.ExprRef]:
         solver_a = z3.SolverFor("QF_FD")
         solver_a.add(fml_a)
         solver_b = z3.SolverFor("QF_FD")
@@ -67,7 +70,8 @@ class BVInterpolant:
         """"
         :param fml: a formula
         :param cared_bv_vars: the cared list of bit-vector variables (for ITP)
-        :return: the corresponding cared list of Boolean variables and the blasted clauses
+        :return: the corresponding cared list of Boolean variables and
+                 the blasted clauses
         """
         # print(fml)
         bv2bool, id_table, header, clauses = translate_smt2formula_to_cnf(fml)
@@ -101,7 +105,10 @@ class BVInterpolant:
 
         return cared_bool_vars_numeric, clauses_numeric
 
-    def to_z3_clauses(self, prefix: str, cared_bool_vars: List[int], numeric_clauses: List[List[int]]):
+    def to_z3_clauses(
+        self, prefix: str, cared_bool_vars: List[int],
+        numeric_clauses: List[List[int]]
+    ):
         """
         :param prefix: to distinguish the fml_a and fml_b in interpolant generation
         :param cared_bool_vars: to label the common variables of fml_a and fml_b
@@ -134,9 +141,12 @@ class BVInterpolant:
 
     def compute_itp(self, fml_a: z3.BoolRef, fml_b: z3.BoolRef, cared_vars: List[z3.ExprRef]):
         """
-        The compute_itp function computes the interpolant between two formulas.
-        :param fml_a: Specify the formulas that are used to generate interpolants
-        :param fml_b: Specify the formulas that are used to generate interpolants
+        The compute_itp function computes the interpolant between two
+        formulas.
+        :param fml_a: Specify the formulas that are used to generate
+                     interpolants
+        :param fml_b: Specify the formulas that are used to generate
+                     interpolants
         :param cared_vars:List[z3.ExprRef]: Specify the variables
         :return: The interpolant
         """

@@ -84,7 +84,8 @@ class QFAUFBVSolver:
                     push_ite_bv=False, local_ctx=True,
                     local_ctx_limit=10000000
                 ),
-                # 'bvarray2uf',  # this tactic is dangerous (it only handles specific arrays)
+                # 'bvarray2uf',  # this tactic is dangerous
+                # (it only handles specific arrays)
                 'max-bv-sharing',
                 'ackermannize_bv',
                 z3.If(z3.Probe('is-qfbv'),

@@ -133,8 +133,9 @@ class QFBVSolver:
     def solve_qfbv(self, fml: z3.ExprRef):
         """
         Check the satisfiability of a given bit-vector formula using Z3 and pySAT.
-        This function first translates the bit-vector formula into a SAT formula using Z3,
-        and then solves the translated SAT formula using pySAT.
+        This function first translates the bit-vector formula into a SAT
+        formula using Z3, and then solves the translated SAT formula
+        using pySAT.
         TODO: add an option that uses Yices2 to perform bit-blasting
         :param fml: The bit-vector formula to be checked for satisfiability.
         :type fml: z3.ExprRef
@@ -206,8 +207,9 @@ class QFBVSolver:
     def bit_blast(self):
         """
         The bit_blast function converts a bit-vector formula to Boolean logic.
-        It sets the `bv2bool` and `bool2id` class attributes as the mapping from BV variables to boolean expressions
-        and the mapping from boolean expressions to numerical IDs, respectively.
+        It sets the `bv2bool` and `bool2id` class attributes as the
+        mapping from BV variables to boolean expressions and the mapping
+        from boolean expressions to numerical IDs, respectively.
         """
         logger.debug("Start translating to CNF...")
         # NOTICE: can be slow
@@ -242,30 +244,29 @@ class QFBVSolver:
                 self.model = bool_model
                 return SolverResult.SAT
                 # The following code is for building the bit-vector model
-                bv_model = {}
-                if not self.signed: # unsigned
-                    for bv_var in self.bv2bool:
-                        bool_vars = self.bv2bool[bv_var]
-                        start = self.bool2id[bool_vars[0]]  # start ID
-                        bv_val = 0
-                        for i in range(len(bool_vars)):
-                            if bool_model[i + start - 1] > 0:
-                                bv_val += 2 ** i
-                        bv_model[bv_var] = bv_val
-                else: # signed
-                    # FIXME: the following seems to be wrong
-                    for bv_var in self.bv2bool:
-                        bool_vars = self.bv2bool[bv_var]
-                        start = self.bool2id[bool_vars[0]]  # start ID
-                        bv_val = 0
-                        for i in range(len(bool_vars) - 1):
-                            if bool_model[i + start - 1] > 0:
-                                bv_val += 2 ** i
-                        if bool_model[len(bool_vars) - 1 + start - 1] > 0:
-                            bv_val = -bv_val
-                        bv_model[bv_var] = bv_val
-                # TODO: map back to bit-vector model
-                self.model = bv_model
-                print(bv_model)
+                # (currently unreachable, kept for reference)
+                # bv_model = {}
+                # if not self.signed:  # unsigned
+                #     for bv_var, bool_vars in self.bv2bool.items():
+                #         start = self.bool2id[bool_vars[0]]  # start ID
+                #         bv_val = 0
+                #         for i in range(len(bool_vars)):
+                #             if bool_model[i + start - 1] > 0:
+                #                 bv_val += 2 ** i
+                #         bv_model[bv_var] = bv_val
+                # else:  # signed
+                #     # FIXME: the following seems to be wrong
+                #     for bv_var, bool_vars in self.bv2bool.items():
+                #         start = self.bool2id[bool_vars[0]]  # start ID
+                #         bv_val = 0
+                #         for i in range(len(bool_vars) - 1):
+                #             if bool_model[i + start - 1] > 0:
+                #                 bv_val += 2 ** i
+                #         if bool_model[len(bool_vars) - 1 + start - 1] > 0:
+                #             bv_val = -bv_val
+                #         bv_model[bv_var] = bv_val
+                # # TODO: map back to bit-vector model
+                # self.model = bv_model
+                # print(bv_model)
         except Exception as ex:
             print(ex)
