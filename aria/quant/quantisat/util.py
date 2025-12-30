@@ -20,13 +20,13 @@ class Result(Enum):
     PARSING_ERROR = 5
 
 
-def set_timeout(callable: Callable, timeout: int, *args, **kwargs) -> sp.Basic:
+def set_timeout(func: Callable, timeout: int, *args, **kwargs) -> sp.Basic:
     """
     Set a timeout for a callable.
 
     Parameters
     ----------
-    callable : Callable
+    func : Callable
         The callable to be executed.
     timeout : int
         The timeout in seconds.
@@ -47,13 +47,14 @@ def set_timeout(callable: Callable, timeout: int, *args, **kwargs) -> sp.Basic:
     """
     def timeout_handler(signum, frame):
         raise TimeoutError(
-            f'The operation {callable.__name__} timed out after {timeout} seconds.')
+            f'The operation {func.__name__} timed out after '
+            f'{timeout} seconds.')
 
     signal.signal(signal.SIGALRM, timeout_handler)
     signal.alarm(timeout)
 
     try:
-        return callable(*args, **kwargs)
+        return func(*args, **kwargs)
     finally:
         signal.alarm(0)
 
@@ -72,10 +73,14 @@ def to_smt(constraint: sp.Basic) -> str:
         The SMT2 string representing the constraint.
     """
     if isinstance(constraint, Exists):
-        return f'(exists ({" ".join([f"({to_smt(var)} Real)" for var in constraint.variables])}) {to_smt(constraint.formula)})'
+        var_str = " ".join([f"({to_smt(var)} Real)"
+                           for var in constraint.variables])
+        return f'(exists ({var_str}) {to_smt(constraint.formula)})'
     if isinstance(constraint, ForAll):
-        return f'(forall ({" ".join([f"({to_smt(var)} Real)" for var in constraint.variables])}) {to_smt(constraint.formula)})'
-    elif constraint.is_Relational:
+        var_str = " ".join([f"({to_smt(var)} Real)"
+                           for var in constraint.variables])
+        return f'(forall ({var_str}) {to_smt(constraint.formula)})'
+    if constraint.is_Relational:
         assert len(
             constraint.args) == 2, f'Expected 2 arguments, got {len(constraint.args)}'
         arg_pair = f'{to_smt(constraint.lhs)} {to_smt(constraint.rhs)}'
@@ -88,13 +93,14 @@ def to_smt(constraint: sp.Basic) -> str:
             return f'({constraint.rel_op} {arg_pair})'
         warn(f'Unsupported relational operator: {constraint.rel_op}')
         return f'({constraint.rel_op} {arg_pair})'
-    elif constraint.is_Add:
+    if constraint.is_Add:
         return f'(+ {" ".join([to_smt(arg) for arg in constraint.args])})'
-    elif constraint.is_Mul:
+    if constraint.is_Mul:
         return f'(* {" ".join([to_smt(arg) for arg in constraint.args])})'
-    elif constraint.is_Pow:
-        return f'(* {" ".join([to_smt(constraint.base)] * int(constraint.exp))})'
-    elif constraint.is_Function and constraint.is_Boolean:
+    if constraint.is_Pow:
+        base_str = to_smt(constraint.base)
+        return f'(* {" ".join([base_str] * int(constraint.exp))})'
+    if constraint.is_Function and constraint.is_Boolean:
         f = str(constraint.func).lower()
         if f == 'and':
             assert len(
@@ -126,28 +132,32 @@ def to_smt(constraint: sp.Basic) -> str:
             assert len(
                 constraint.args) == 2, f'Expected 2 arguments, got {len(constraint.args)}'
             # return f'(=> {to_smt(constraint.args[0])} {to_smt(constraint.args[1])})'
-            return f'(or {to_smt(sp.Not(constraint.args[0]))} {to_smt(constraint.args[1])})'
-        else:
-            warn(f'Unsupported function: {f}')
-            return f'({str(constraint.func).lower()} {" ".join([to_smt(arg) for arg in constraint.args])})'
-    elif constraint.is_Function:
+            not_arg0 = to_smt(sp.Not(constraint.args[0]))
+            return f'(or {not_arg0} {to_smt(constraint.args[1])})'
+        warn(f'Unsupported function: {f}')
+        func_str = str(constraint.func).lower()
+        args_str = " ".join([to_smt(arg) for arg in constraint.args])
+        return f'({func_str} {args_str})'
+    if constraint.is_Function:
         # Non-boolean functions (e.g. skolem functions)
         if len(constraint.args) == 0:
             return str(constraint.func)
-        return f'({str(constraint.func)} {" ".join([to_smt(arg) for arg in constraint.args])})'
-    elif isinstance(constraint, sp.UnevaluatedExpr):
+        func_str = str(constraint.func)
+        args_str = " ".join([to_smt(arg) for arg in constraint.args])
+        return f'({func_str} {args_str})'
+    if isinstance(constraint, sp.UnevaluatedExpr):
         return to_smt(constraint.args[0])
-    elif constraint.is_Symbol:
+    if constraint.is_Symbol:
         return str(constraint)
-    elif constraint.is_Number:
+    if constraint.is_Number:
         return str(float(constraint))
-    elif constraint == sp.true:
+    if constraint == sp.true:
         return '(<= 0.0 1.0)'
-    elif constraint == sp.false:
+    if constraint == sp.false:
         return '(<= 1.0 0.0)'
-    else:
-        raise ValueError(
-            f'Unsupported constraint type: {type(constraint)}\n\tFor constraint: {constraint}')
+    raise ValueError(
+        f'Unsupported constraint type: {type(constraint)}\n\t'
+        f'For constraint: {constraint}')
 
 
 def split(a, n):

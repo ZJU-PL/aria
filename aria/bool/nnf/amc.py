@@ -26,7 +26,7 @@ __all__ = (
 )
 
 
-def eval(
+def amc_eval(  # pylint: disable=too-many-positional-arguments
         node: NNF,
         add: t.Callable[[T, T], T],
         mul: t.Callable[[T, T], T],
@@ -48,9 +48,9 @@ def eval(
     def do_eval(node: NNF) -> T:
         if node == true:
             return mul_neut
-        elif node == false:
+        if node == false:
             return add_neut
-        elif isinstance(node, Var):
+        if isinstance(node, Var):
             return labeling(node)
         assert isinstance(node, Internal)
         if len(node.children) == 1:
@@ -71,33 +71,36 @@ def eval(
     return do_eval(node)
 
 
+# Alias for backward compatibility
+eval = amc_eval  # pylint: disable=redefined-builtin
+
+
 def _prob_label(probs: t.Dict[Name, float]) -> t.Callable[[Var], float]:
     """Generate a labeling function for probabilities from a dictionary."""
     def label(leaf: Var) -> float:
         if leaf.true:
             return probs[leaf.name]
-        else:
-            return 1.0 - probs[leaf.name]
+        return 1.0 - probs[leaf.name]
 
     return label
 
 
-def SAT(node: NNF) -> bool:
+def SAT(node: NNF) -> bool:  # pylint: disable=invalid-name
     """Determine whether a DNNF sentence is satisfiable."""
-    return eval(node, operator.or_, operator.and_, False, True,
-                lambda leaf: True)
+    return amc_eval(node, operator.or_, operator.and_, False, True,
+                    lambda leaf: True)
 
 
-def NUM_SAT(node: NNF) -> int:
+def NUM_SAT(node: NNF) -> int:  # pylint: disable=invalid-name
     """Determine the number of models that satisfy a sd-DNNF sentence."""
     # General ×
     # Non-idempotent +
     # Non-neutral +
     # = sd-DNNF
-    return eval(node, operator.add, operator.mul, 0, 1, lambda leaf: 1)
+    return amc_eval(node, operator.add, operator.mul, 0, 1, lambda leaf: 1)
 
 
-def WMC(node: NNF, weights: t.Callable[[Var], float]) -> float:
+def WMC(node: NNF, weights: t.Callable[[Var], float]) -> float:  # pylint: disable=invalid-name
     """Model counting of sd-DNNF sentences, weighted by variables.
 
     :param node: The sentence to measure.
@@ -107,10 +110,10 @@ def WMC(node: NNF, weights: t.Callable[[Var], float]) -> float:
     # Non-idempotent +
     # Non-neutral +
     # = sd-DNNF
-    return eval(node, operator.add, operator.mul, 0.0, 1.0, weights)
+    return amc_eval(node, operator.add, operator.mul, 0.0, 1.0, weights)
 
 
-def PROB(node: NNF, probs: t.Dict[Name, float]) -> float:
+def PROB(node: NNF, probs: t.Dict[Name, float]) -> float:  # pylint: disable=invalid-name
     """Model counting of d-DNNF sentences, weighted by probabilities.
 
     :param node: The sentence to measure.
@@ -120,13 +123,13 @@ def PROB(node: NNF, probs: t.Dict[Name, float]) -> float:
     # Non-idempotent +
     # Neutral +
     # = d-DNNF
-    return eval(node, operator.add, operator.mul, 0.0, 1.0, _prob_label(probs))
+    return amc_eval(node, operator.add, operator.mul, 0.0, 1.0, _prob_label(probs))
 
 
 GradProb = t.Tuple[float, float]
 
 
-def GRAD(
+def GRAD(  # pylint: disable=invalid-name
         node: NNF,
         probs: t.Dict[Name, float],
         k: t.Optional[Name] = None
@@ -155,26 +158,23 @@ def GRAD(
         if var.true:
             if var.name == k:
                 return probs[var.name], 1
-            else:
-                return probs[var.name], 0
-        else:
-            if var.name == k:
-                return 1 - probs[var.name], -1
-            else:
-                return 1 - probs[var.name], 0
+            return probs[var.name], 0
+        if var.name == k:
+            return 1 - probs[var.name], -1
+        return 1 - probs[var.name], 0
 
-    return eval(node, add, mul, (0.0, 0.0), (1.0, 0.0), label)
+    return amc_eval(node, add, mul, (0.0, 0.0), (1.0, 0.0), label)
 
 
-def MPE(node: NNF, probs: t.Dict[Name, float]) -> float:
+def MPE(node: NNF, probs: t.Dict[Name, float]) -> float:  # pylint: disable=invalid-name
     # General ×
     # Non-neutral +
     # Idempotent +
     # = s-DNNF
-    return eval(node, max, operator.mul, 0.0, 1.0, _prob_label(probs))
+    return amc_eval(node, max, operator.mul, 0.0, 1.0, _prob_label(probs))
 
 
-def reduce(
+def reduce(  # pylint: disable=too-many-positional-arguments
         node: NNF,
         add_key: t.Optional[t.Callable[[T], t.Any]],
         mul: t.Callable[[T, T], T],
@@ -211,7 +211,7 @@ def reduce(
 
     @memoize
     def eval_(node: NNF) -> T:
-        return eval(node, add, mul, add_neut, mul_neut, labeling)
+        return amc_eval(node, add, mul, add_neut, mul_neut, labeling)
 
     @memoize
     def reduce_(node: NNF) -> NNF:
@@ -226,10 +226,9 @@ def reduce(
                 elif value == best:
                     candidates.append(child)
             return Or(reduce_(candidate) for candidate in candidates)
-        elif isinstance(node, And):
+        if isinstance(node, And):
             return And(reduce_(child) for child in node.children)
-        else:
-            return node
+        return node
 
     return reduce_(node)
 

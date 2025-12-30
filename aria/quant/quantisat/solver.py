@@ -100,13 +100,14 @@ class Solver(ABC):
 
     def solve(self) -> Tuple[Result, Dict, float]:
         """
-        Solve the converted formula. If the formula is correct, the model is returned.
+        Solve the converted formula. If the formula is correct, the model is
+        returned.
 
         Returns
         -------
         Tuple[Result, Dict, float]
-            A tuple with the result of the solver and the model (if the formula is correct)
-            and the time the solver needed.
+            A tuple with the result of the solver and the model
+            (if the formula is correct) and the time the solver needed.
         """
         if self.smt2_pos is None:
             raise ValueError('The formula has not been converted yet.')
@@ -169,8 +170,10 @@ class MultiQuantiSAT(Solver):
         Parameters
         ----------
         args : dict
-            Dictionary with the arguments needed by the QuantiSAT solver (except for config).
+            Dictionary with the arguments needed by the QuantiSAT solver
+            (except for config).
         """
+        super().__init__(args)
         self.configs = {'configs/farkas-z3.json': [0, 1],
                         'configs/handelman-z3.json': [0, 1, 2],
                         'configs/putinar-z3.json': [0, 1, 2]}
@@ -182,8 +185,11 @@ class MultiQuantiSAT(Solver):
 
         self.solvers = [QuantiSAT({**args, **config})
                         for config in config_args]
+        self.pos_system = None
+        self.neg_system = None
 
-    def convert(self, pos_system: List[Quantifier], neg_system: List[Quantifier]):
+    def convert(self, pos_system: List[Quantifier],
+                neg_system: List[Quantifier]):
         """
         Simply store the positive and negated system for later use.
 
@@ -212,8 +218,8 @@ class MultiQuantiSAT(Solver):
         Returns
         -------
         Tuple[Result, Dict, float]
-            A tuple with the result of the solver and the model (if the formula is correct)
-            and the time the solver needed.
+            A tuple with the result of the solver and the model
+            (if the formula is correct) and the time the solver needed.
         """
         results = []
         for solver in self.solvers:
@@ -344,7 +350,8 @@ class Skolem(Solver):
         Returns
         -------
         Tuple[Result, Dict]
-            A tuple with the result of the solver and the model (if the formula is correct).
+            A tuple with the result of the solver and the model
+            (if the formula is correct).
         """
         if self.backend == SolverBackend.Z3:
             return z3_call(smt2, self.timeout)

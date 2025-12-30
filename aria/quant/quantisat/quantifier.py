@@ -22,7 +22,6 @@ class Quantifier(ABC):
         Quantifier
             The negated quantified expression.
         """
-        pass
 
     @abstractmethod
     def subs(self, *args, **kwargs) -> Quantifier:
@@ -34,7 +33,6 @@ class Quantifier(ABC):
         Quantifier
             The quantifier with the substituted ground expression.
         """
-        pass
 
     @abstractmethod
     def copy(self) -> Quantifier:
@@ -46,7 +44,6 @@ class Quantifier(ABC):
         Quantifier
             The copied quantifier.
         """
-        pass
 
     @abstractmethod
     def count_quantified_vars(self) -> Tuple[int, int]:
@@ -58,7 +55,6 @@ class Quantifier(ABC):
         Tuple[int, int]
             The number of forall and exists variables.
         """
-        pass
 
     @abstractmethod
     def count_quantifier_depth(self) -> int:
@@ -70,7 +66,6 @@ class Quantifier(ABC):
         int
             The quantifier depth.
         """
-        pass
 
     @property
     @abstractmethod
@@ -83,14 +78,12 @@ class Quantifier(ABC):
         List[sp.Symbol]
             The free symbols.
         """
-        pass
 
     @abstractmethod
     def set_ground_formula(self, value):
         """
         Set a new ground formula.
         """
-        pass
 
 
 class ForAll(Quantifier):
@@ -118,8 +111,7 @@ class ForAll(Quantifier):
     def negate(self):
         if isinstance(self.formula, Quantifier):
             return Exists(self.variables, self.formula.negate())
-        else:
-            return Exists(self.variables, sp.Not(self.formula))
+        return Exists(self.variables, sp.Not(self.formula))
 
     def subs(self, *args, **kwargs):
         return ForAll(self.variables, self.formula.subs(*args, **kwargs))
@@ -140,10 +132,9 @@ class ForAll(Quantifier):
     def count_quantifier_depth(self):
         if isinstance(self.formula, Exists):
             return 1 + self.formula.count_quantifier_depth()
-        elif isinstance(self.formula, ForAll):
+        if isinstance(self.formula, ForAll):
             return self.formula.count_quantifier_depth()
-        else:
-            return 1
+        return 1
 
     @property
     def free_symbols(self):
@@ -186,8 +177,7 @@ class Exists(Quantifier):
     def negate(self):
         if isinstance(self.formula, Quantifier):
             return ForAll(self.variables, self.formula.negate())
-        else:
-            return ForAll(self.variables, sp.Not(self.formula))
+        return ForAll(self.variables, sp.Not(self.formula))
 
     def subs(self, *args, **kwargs):
         return Exists(self.variables, self.formula.subs(*args, **kwargs))
@@ -208,10 +198,9 @@ class Exists(Quantifier):
     def count_quantifier_depth(self):
         if isinstance(self.formula, ForAll):
             return 1 + self.formula.count_quantifier_depth()
-        elif isinstance(self.formula, Exists):
+        if isinstance(self.formula, Exists):
             return self.formula.count_quantifier_depth()
-        else:
-            return 1
+        return 1
 
     @property
     def free_symbols(self):

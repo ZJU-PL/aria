@@ -5,7 +5,8 @@ from typing import Dict, List, Tuple
 
 import sympy as sp
 
-from aria.quant.quantisat.expression import get_function_expression, get_polynomial_expression
+from aria.quant.quantisat.expression import (
+    get_function_expression, get_polynomial_expression)
 from aria.quant.quantisat.quantifier import Exists, ForAll, Quantifier
 from aria.quant.quantisat.util import to_smt
 
@@ -67,7 +68,8 @@ class Converter:
         assertions = []
 
         for quantified_formula in constraint_system:
-            this_forall_quant_vars, this_exists_quant_vars, this_ground_formula, this_assertion = self.extract(
+            (this_forall_quant_vars, this_exists_quant_vars,
+             this_ground_formula, this_assertion) = self.extract(
                 quantified_formula)
 
             forall_quant_vars.update(this_forall_quant_vars)
@@ -81,11 +83,15 @@ class Converter:
             assertions.append(this_assertion)
 
         if self.degree is not None:
-            transform = {var: get_polynomial_expression(f"a_{i}", preceding_vars, self.degree) for i, (
-                var, preceding_vars) in enumerate(exists_quant_vars.items())}
+            transform = {
+                var: get_polynomial_expression(
+                    f"a_{i}", preceding_vars, self.degree)
+                for i, (var, preceding_vars)
+                in enumerate(exists_quant_vars.items())}
         else:
-            transform = {var: get_function_expression(
-                var, preceding_vars) for var, preceding_vars in exists_quant_vars.items()}
+            transform = {
+                var: get_function_expression(var, preceding_vars)
+                for var, preceding_vars in exists_quant_vars.items()}
 
         for i, this_ground_formula in enumerate(ground_formulas):
 
@@ -98,7 +104,11 @@ class Converter:
 
         return smt2
 
-    def generate_smt2(self, exists_quant_vars: Dict[sp.Symbol, List[sp.Symbol]], forall_quant_vars: List[sp.Symbol], assertions: List[sp.Basic], ground_formulas: List[sp.Basic]) -> str:
+    def generate_smt2(
+            self, exists_quant_vars: Dict[sp.Symbol, List[sp.Symbol]],
+            forall_quant_vars: List[sp.Symbol],
+            assertions: List[sp.Basic],
+            ground_formulas: List[sp.Basic]) -> str:
         """
         Generate an SMT2 formula from the extracted information of the quantified formulas.
 
@@ -129,9 +139,10 @@ class Converter:
             for var in free_vars:
                 smt_lines.append(f'(declare-const {var.name} Real)')
         else:
-            for exists_var, predecessor, in exists_quant_vars.items():
+            for exists_var, predecessor in exists_quant_vars.items():
+                real_types = " ".join(["Real"] * len(predecessor))
                 smt_lines.append(
-                    f'(declare-fun {exists_var.name} ({" ".join(["Real"] * len(predecessor))}) Real)')
+                    f'(declare-fun {exists_var.name} ({real_types}) Real)')
 
         forall_vars = [f'({var.name} Real)' for var in forall_quant_vars]
         forall_vars = f"({' '.join(forall_vars)})"
@@ -149,7 +160,10 @@ class Converter:
 
         return '\n'.join(smt_lines)
 
-    def extract(self, quantified_formula: Quantifier) -> Tuple[List[sp.Symbol], Dict[sp.Symbol, List[sp.Symbol]], sp.Basic, sp.Basic]:
+    def extract(
+            self, quantified_formula: Quantifier
+    ) -> Tuple[List[sp.Symbol], Dict[sp.Symbol, List[sp.Symbol]],
+               sp.Basic, sp.Basic]:
         """
         Extract information from a quantified formula such that we can construct constraints from it.
 

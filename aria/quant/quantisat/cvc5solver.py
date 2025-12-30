@@ -19,7 +19,8 @@ def cvc5_call(formula: str, timeout: int) -> Tuple[bool, Dict[str, float]]:
     Returns
     -------
     bool
-        The result of the check. True if satisfiable, False if unsatisfiable, None if unknown.
+        The result of the check. True if satisfiable, False if unsatisfiable,
+        None if unknown.
     Dict[str, float]
         The model.
     """
@@ -28,7 +29,9 @@ def cvc5_call(formula: str, timeout: int) -> Tuple[bool, Dict[str, float]]:
     formula = re.sub(r'(?<!\w)-(\d+(\.\d+)?)', r'(- \g<1>)', formula)
     print(formula)
 
-    with subprocess.Popen(['cvc5', '--lang=smt2', '--produce-models', f'--tlimit={timeout * 1000}'],
+    cmd = ['cvc5', '--lang=smt2', '--produce-models',
+           f'--tlimit={timeout * 1000}']
+    with subprocess.Popen(cmd,
                           stdin=subprocess.PIPE,
                           stdout=subprocess.PIPE,
                           stderr=subprocess.PIPE) as process:

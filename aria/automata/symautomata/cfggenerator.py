@@ -80,9 +80,10 @@ class CNFGenerator:  # pylint: disable=too-many-instance-attributes
         while f:
             f = 0
             self.unitary = {rule for rule in self.grammar_rules if
-                    (isinstance(rule[1], six.string_types) and
-                     rule[1] in self.grammar_nonterminals) or
-                    (len(rule[1]) == 1 and rule[1][0] in self.grammar_nonterminals)])
+                            (isinstance(rule[1], six.string_types) and
+                             rule[1] in self.grammar_nonterminals) or
+                            (not isinstance(rule[1], six.string_types) and
+                             len(rule[1]) == 1 and rule[1][0] in self.grammar_nonterminals)}
 
             for u in self.unitary:
                 if isinstance(u[1], six.string_types):

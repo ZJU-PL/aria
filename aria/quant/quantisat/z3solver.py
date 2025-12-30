@@ -18,7 +18,8 @@ def z3_call(formula: str, timeout: int) -> Tuple[bool, Dict[str, float]]:
     Returns
     -------
     bool
-        The result of the check. True if satisfiable, False if unsatisfiable, None if unknown.
+        The result of the check. True if satisfiable, False if unsatisfiable,
+        None if unknown.
     Dict[str, float]
         The model (if satisfiable).
     """

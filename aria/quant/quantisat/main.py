@@ -52,10 +52,11 @@ class Experiment:
     2. Convert the formula (replace quantifiers with Skolem functions).
     3. Solve the formula.
 
-    A formula is solved correctly, if either the input formula or the negated formula is satisfiable.
+    A formula is solved correctly, if either the input formula or the negated
+    formula is satisfiable.
     """
 
-    def __init__(self, solver_type, args):
+    def __init__(self, solver_type, experiment_args):
         """
         Initialize the experiment with the given solver type and arguments.
 
@@ -63,15 +64,21 @@ class Experiment:
         ----------
         solver_type : SolverType
             The solver type to be used.
-        args : argparse.Namespace
+        experiment_args : argparse.Namespace
             The arguments of the experiment.
         """
         self.solver_type = solver_type
-        self.file_pos = args.file_pos
-        self.file_neg = args.file_neg
-        self.verbose = args.verbose
-        self.timeout = args.timeout
-        self.args = args
+        self.file_pos = experiment_args.file_pos
+        self.file_neg = experiment_args.file_neg
+        self.verbose = experiment_args.verbose
+        self.timeout = experiment_args.timeout
+        self.args = experiment_args
+        self.current_result = None
+        self.current_conversion_time = None
+        self.current_solving_time = None
+        self.num_forall_vars = None
+        self.num_exists_vars = None
+        self.num_switches = None
 
     def run(self):
         """
@@ -102,17 +109,20 @@ class Experiment:
                     print(f"{var}: {value}")
 
         print('CSV:')
-        print(f'{os.path.basename(self.file_pos)},{self.current_result.name},{self.current_conversion_time},{self.current_solving_time},{self.num_forall_vars},{self.num_exists_vars},{self.num_switches}')
+        csv_line = (
+            f'{os.path.basename(self.file_pos)},'
+            f'{self.current_result.name},'
+            f'{self.current_conversion_time},'
+            f'{self.current_solving_time},'
+            f'{self.num_forall_vars},'
+            f'{self.num_exists_vars},'
+            f'{self.num_switches}')
+        print(csv_line)
 
     def __main(self):
         """
         Helper function to run the experiment.
         """
-        self.current_result = None
-        self.current_conversion_time = None
-        self.current_solving_time = None
-        self.num_forall_vars, self.num_exists_vars, self.num_switches = None, None, None
-
         constraint_system = parse_file(self.file_pos)
         neg_constraint_system = parse_file(self.file_neg)
 
@@ -121,15 +131,19 @@ class Experiment:
             warn("Parsing error")
             return None
 
-        per_formula_quantifier_counts = [quantified_formula.count_quantified_vars(
-        ) for quantified_formula in constraint_system]
-        per_formula_switches = [quantified_formula.count_quantifier_depth(
-        ) for quantified_formula in constraint_system]
+        per_formula_quantifier_counts = [
+            quantified_formula.count_quantified_vars()
+            for quantified_formula in constraint_system]
+        per_formula_switches = [
+            quantified_formula.count_quantifier_depth()
+            for quantified_formula in constraint_system]
 
         self.num_forall_vars = max(
-            [num_forall_vars for num_forall_vars, _ in per_formula_quantifier_counts])
+            num_forall_vars
+            for num_forall_vars, _ in per_formula_quantifier_counts)
         self.num_exists_vars = max(
-            [num_exists_vars for _, num_exists_vars in per_formula_quantifier_counts])
+            num_exists_vars
+            for _, num_exists_vars in per_formula_quantifier_counts)
         self.num_switches = max(per_formula_switches)
 
         args_dict = vars(self.args)
@@ -148,17 +162,17 @@ class Experiment:
             solver.print()
 
         try:
-            self.current_result, model, self.current_solving_time = solver.solve()
+            self.current_result, model, self.current_solving_time = (
+                solver.solve())
             if self.current_result == Result.CORRECT:
                 return True, model
-            elif self.current_result == Result.INCORRECT:
+            if self.current_result == Result.INCORRECT:
                 return False, None
-            elif self.current_result == Result.SOLVER_TIMEOUT:
+            if self.current_result == Result.SOLVER_TIMEOUT:
                 return None
         except TimeoutError:
             self.current_result = Result.SOLVER_TIMEOUT
             self.current_solving_time = None
-            pass
         return None
 
     def __get_result_message(self):
@@ -178,7 +192,8 @@ class Experiment:
                 return 'The formula could not be parsed.'
             case _:
                 raise ValueError(
-                    'The experiment needs to be run before getting the result message.')
+                    'The experiment needs to be run before getting the '
+                    'result message.')
 
 
 if __name__ == '__main__':
@@ -194,14 +209,22 @@ if __name__ == '__main__':
                         help='The configuration file for PolyHorn.')
     parser.add_argument('--degree', type=int, default=1,
                         help='The degree of the templates to be used.')
-    parser.add_argument('--use-template', action='store_true',
-                        help='Use the template for the Skolem function. (Only used for Skolem)')
-    parser.add_argument('--solver', type=lambda v: SolverType[v], default=SolverType.QUANTISAT, choices=list(SolverType),
-                        help='The solver to be used.')
-    parser.add_argument('--verbose', type=lambda v: Verbosity[v], default=Verbosity.RESULT_ONLY, choices=list(Verbosity),
-                        help='The verbosity level of the output.')
-    parser.add_argument('--backend', type=lambda v: SolverBackend[v], default=SolverBackend.Z3, choices=list(SolverBackend),
-                        help='The backend to be used for the Skolem solver.')
+    parser.add_argument(
+        '--use-template', action='store_true',
+        help='Use the template for the Skolem function. '
+        '(Only used for Skolem)')
+    parser.add_argument(
+        '--solver', type=lambda v: SolverType[v],
+        default=SolverType.QUANTISAT, choices=list(SolverType),
+        help='The solver to be used.')
+    parser.add_argument(
+        '--verbose', type=lambda v: Verbosity[v],
+        default=Verbosity.RESULT_ONLY, choices=list(Verbosity),
+        help='The verbosity level of the output.')
+    parser.add_argument(
+        '--backend', type=lambda v: SolverBackend[v],
+        default=SolverBackend.Z3, choices=list(SolverBackend),
+        help='The backend to be used for the Skolem solver.')
     parser.add_argument('--timeout', type=int, default=15,
                         help='The timeout for the SMT solver. Default is 15s.')
     args = parser.parse_args()

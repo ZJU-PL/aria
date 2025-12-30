@@ -25,7 +25,8 @@ def get_function_expression(name: str, parameters: List[sp.Symbol]) -> sp.Expr:
     return sp.Function(name)(*parameters)
 
 
-def get_polynomial_expression(coeffs_name: str, variables: List[sp.Symbol], degree: int) -> sp.Expr:
+def get_polynomial_expression(
+        coeffs_name: str, variables: List[sp.Symbol], degree: int) -> sp.Expr:
     """
     Get a polynomial expression over the given variables with the given degree.
     Coefficients are named with the given name and indexed for unique identification.
@@ -46,7 +47,7 @@ def get_polynomial_expression(coeffs_name: str, variables: List[sp.Symbol], degr
     """
     monomials = get_all_monomials(variables, degree)
     coeffs = [sp.Symbol(f'{coeffs_name}_{i}') for i in range(len(monomials))]
-    return sum([coeff * monomial for coeff, monomial in zip(coeffs, monomials)])
+    return sum(coeff * monomial for coeff, monomial in zip(coeffs, monomials))
 
 
 def get_all_monomials(variables: List[sp.Symbol], degree: int) -> List[sp.Expr]:
