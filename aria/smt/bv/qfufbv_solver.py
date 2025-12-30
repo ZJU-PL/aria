@@ -43,8 +43,12 @@ class QFUFBVSolver:
                                      z3.With('solve-eqs'),
                                      'elim-uncnstr',
                                      'reduce-bv-size',
-                                     z3.With('simplify', som=True, pull_cheap_ite=True, push_ite_bv=False,
-                                             local_ctx=True, local_ctx_limit=10000000),
+                                     z3.With(
+                                         'simplify', som=True,
+                                         pull_cheap_ite=True, push_ite_bv=False,
+                                         local_ctx=True,
+                                         local_ctx_limit=10000000
+                                     ),
                                      # 'max-bv-sharing',
                                      'ackermannize_bv',
                                      z3.If(z3.Probe('is-qfbv'),
@@ -59,7 +63,7 @@ class QFUFBVSolver:
 
         if z3.is_false(after_simp):
             return SolverResult.UNSAT
-        elif z3.is_true(after_simp):
+        if z3.is_true(after_simp):
             return SolverResult.SAT
 
         g_probe = z3.Goal()
@@ -67,12 +71,15 @@ class QFUFBVSolver:
         is_bool = z3.Probe('is-propositional')
         if is_bool(g_probe) == 1.0:
             to_cnf_impl = z3.AndThen('simplify', 'tseitin-cnf')
-            to_cnf = z3.With(to_cnf_impl, elim_and=True, push_ite_bv=True, blast_distinct=True)
+            to_cnf = z3.With(
+                to_cnf_impl, elim_and=True, push_ite_bv=True,
+                blast_distinct=True
+            )
             blasted = to_cnf(after_simp).as_expr()
 
             if z3.is_false(blasted):
                 return SolverResult.UNSAT
-            elif z3.is_true(blasted):
+            if z3.is_true(blasted):
                 return SolverResult.SAT
 
             g_to_dimacs = z3.Goal()
@@ -83,9 +90,8 @@ class QFUFBVSolver:
             if aux.solve():
                 return SolverResult.SAT
             return SolverResult.UNSAT
-        else:
-            # sol = z3.Tactic('smt').solver()
-            return self.solve_qfufbv_via_z3(after_simp)
+        # sol = z3.Tactic('smt').solver()
+        return self.solve_qfufbv_via_z3(after_simp)
 
     def solve_qfufbv_via_z3(self, fml: z3.ExprRef):
         sol = z3.SolverFor("QF_UFBV")
@@ -93,10 +99,9 @@ class QFUFBVSolver:
         res = sol.check()
         if res == z3.sat:
             return SolverResult.SAT
-        elif res == z3.unsat:
+        if res == z3.unsat:
             return SolverResult.UNSAT
-        else:
-            return SolverResult.UNKNOWN
+        return SolverResult.UNKNOWN
 
 
 def demo_qfufbv():

@@ -167,7 +167,8 @@ def build_formula(sexps: List[Sexp]) -> ParsedFormula:  # pylint: disable=too-ma
             body = sx[2]
             new_env = env.copy()
             for pair in bindings:
-                if not (isinstance(pair, list) and len(pair) == 2 and isinstance(pair[0], str)):
+                if not (isinstance(pair, list) and len(pair) == 2 and
+                        isinstance(pair[0], str)):
                     raise FFParserError("malformed let binding")
                 new_env[pair[0]] = interp(pair[1], env)
             return interp(body, new_env)
@@ -194,9 +195,11 @@ def build_formula(sexps: List[Sexp]) -> ParsedFormula:  # pylint: disable=too-ma
             # Extract status from (set-info :status 'unsat) or (set-info :status 'sat)
             if len(top) >= 3 and top[1] == ':status':
                 status_val = top[2]
-                # Handle quoted symbols - tokenizer produces "'unsat'" as a single token
+                # Handle quoted symbols - tokenizer produces "'unsat'" as a
+                # single token
                 if isinstance(status_val, str):
-                    # Remove surrounding quotes if present (both single and double quotes)
+                    # Remove surrounding quotes if present
+                    # (both single and double quotes)
                     status_val = status_val.strip("'\"").strip()
                     if status_val in ('sat', 'unsat'):
                         expected_status = status_val
@@ -205,7 +208,8 @@ def build_formula(sexps: List[Sexp]) -> ParsedFormula:  # pylint: disable=too-ma
             # (define-sort F () (_ FiniteField 5))
             name = top[1]
             sort_body = top[3]
-            if isinstance(sort_body, list) and sort_body[0]=='_' and sort_body[1]=='FiniteField':
+            if (isinstance(sort_body, list) and sort_body[0] == '_' and
+                    sort_body[1] == 'FiniteField'):
                 mod = int(sort_body[2])
                 sort_alias[name] = mod
                 ensure_p(mod)

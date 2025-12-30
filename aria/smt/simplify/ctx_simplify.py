@@ -1,8 +1,9 @@
 """
 Performing contextual simplification
 """
+from typing import Dict, Set, Generator, List
+
 import z3
-from typing import Dict, Set, Any, Generator, List
 
 
 def subterms(t: z3.ExprRef) -> Set[z3.ExprRef]:
@@ -16,10 +17,9 @@ def subterms(t: z3.ExprRef) -> Set[z3.ExprRef]:
                     continue
                 seen[ch] = True
                 yield ch
-                for sub in subterms_rec(ch):
-                    yield sub
+                yield from subterms_rec(ch)
 
-    return {s for s in subterms_rec(t)}
+    return set(subterms_rec(t))
 
 
 def are_equal(s: z3.Solver, t1: z3.ExprRef, t2: z3.ExprRef) -> bool:

@@ -4,6 +4,11 @@ try:
 except ImportError:
     EncodedCNF = None
 
+try:
+    from pysat.solvers import Minisat22
+except ImportError:
+    Minisat22 = None
+
 
 def minisat22_satisfiable(expr, all_models=False, minimal=False):
     """Check satisfiability using MiniSat22 solver."""
@@ -11,12 +16,13 @@ def minisat22_satisfiable(expr, all_models=False, minimal=False):
     if EncodedCNF is None:
         raise ImportError("sympy.assumptions.cnf.EncodedCNF is not available")
 
+    if Minisat22 is None:
+        raise ImportError("pysat.solvers.Minisat22 is not available")
+
     if not isinstance(expr, EncodedCNF):
         exprs = EncodedCNF()
         exprs.add_prop(expr)
         expr = exprs
-
-    from pysat.solvers import Minisat22  # noqa: E402
 
     # Return UNSAT when False (encoded as 0) is present in the CNF
     if {0} in expr.data:
@@ -48,6 +54,5 @@ def minisat22_satisfiable(expr, all_models=False, minimal=False):
             satisfiable = True
         if not satisfiable:
             yield False
-        return
 
     return _gen(r)

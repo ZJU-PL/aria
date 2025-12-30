@@ -76,18 +76,23 @@ def run_demo(solver_type: str = "bv"):
         print("Model:", solver.model())
 
 
-def solve_in_subprocess(file_path: str, solver_type: str, timeout: float = 5.0) -> tuple[str, str]:
+def solve_in_subprocess(
+    file_path: str, solver_type: str, timeout: float = 5.0
+) -> tuple[str, str]:
     """Solve a formula in a subprocess with timeout.
 
     Returns:
-        (result, error_message) where result is "sat", "unsat", "unknown", "timeout", or "error"
+        (result, error_message) where result is "sat", "unsat", "unknown",
+        "timeout", or "error"
     """
     import os as _os_module  # pylint: disable=import-outside-toplevel
     script_path = pathlib.Path(__file__).resolve()
-    # Ensure subprocess can find aria by setting PYTHONPATH (same calculation as __main__)
+    # Ensure subprocess can find aria by setting PYTHONPATH
+    # (same calculation as __main__)
     env = _os_module.environ.copy()
     script_dir = script_path.parent
-    root_dir = script_dir.parent.parent.parent  # Go up 3 levels: smt/ff -> smt -> aria -> root
+    # Go up 3 levels: smt/ff -> smt -> aria -> root
+    root_dir = script_dir.parent.parent.parent
     pythonpath = env.get("PYTHONPATH", "")
     if pythonpath:
         env["PYTHONPATH"] = f"{root_dir}{_os_module.pathsep}{pythonpath}"
@@ -178,21 +183,26 @@ def regress(dir_path: str, solver_type: str = "bv", timeout: float = 5.0) -> Non
             if has_timeout:
                 stats["timeouts"] += 1
 
-            ok_bv = verdict_bv != "timeout" and (verdict_bv == expect or expect in ("unknown",))
-            ok_int = verdict_int != "timeout" and (verdict_int == expect or expect in ("unknown",))
+            ok_bv = (verdict_bv != "timeout" and
+                     (verdict_bv == expect or expect in ("unknown",)))
+            ok_int = (verdict_int != "timeout" and
+                      (verdict_int == expect or expect in ("unknown",)))
             passed = ok_bv and ok_int
 
             stats["passed" if passed else "failed"] += 1
             agree = verdict_bv == verdict_int
-            print(f"{fn.name:<50}  expect={expect:7}  bv={verdict_bv:7}  int={verdict_int:7}  "
+            print(f"{fn.name:<50}  expect={expect:7}  "
+                  f"bv={verdict_bv:7}  int={verdict_int:7}  "
                   f"{'✓' if passed else '✗'}  agree={'✓' if agree else '✗'}")
         else:
             verdict, _ = solve_in_subprocess(file_path, solver_type, timeout)
             if verdict == "timeout":
                 stats["timeouts"] += 1
-            passed = verdict != "timeout" and (verdict == expect or expect in ("unknown",))
+            passed = (verdict != "timeout" and
+                      (verdict == expect or expect in ("unknown",)))
             stats["passed" if passed else "failed"] += 1
-            print(f"{fn.name:<50}  expect={expect:7}  got={verdict:7}  {'✓' if passed else '✗'}")
+            print(f"{fn.name:<50}  expect={expect:7}  got={verdict:7}  "
+                  f"{'✓' if passed else '✗'}")
 
     # Summary
     print("\n" + "=" * 70)

@@ -12,7 +12,7 @@ import subprocess
 import sys
 import tempfile
 import traceback
-import z3
+
 import aria.smt.fp.smt2coral.converter as Converter
 import aria.smt.fp.smt2coral.driver_util as DriverUtil
 import aria.smt.fp.smt2coral.util as Util
@@ -61,7 +61,7 @@ def main(args):
         constraint, err = Util.parse(pargs.query_file)
         if err is not None:
             # Parser failure
-            _logger.error('Parser failure: {}'.format(err))
+            _logger.error('Parser failure: %s', err)
             return 1
         constraints = Util.split_bool_and(constraint)
 
@@ -70,7 +70,7 @@ def main(args):
         try:
             constraints = printer.print_constraints(constraints)
         except Converter.CoralPrinterException as e:
-            _logger.error('{}: {}'.format(type(e).__name__, e))
+            _logger.error('%s: %s', type(e).__name__, e)
             _logger.debug(traceback.format_exc())
             pargs.output.write('unknown\n')
             return 1
@@ -78,7 +78,7 @@ def main(args):
         # Invoke coral
         coral_jar = os.path.join(os.path.dirname(__file__), 'coral.jar')
         if not os.path.exists(coral_jar):
-            _logger.error('Cannot find "{}"'.format(coral_jar))
+            _logger.error('Cannot find "%s"', coral_jar)
             return 1
 
         starting_seed = pargs.seed
@@ -127,7 +127,7 @@ def run_coral(coral_jar, constraints, seed, unhandled_args, pargs):
         '--seed={}'.format(seed),
     ])
 
-    _logger.debug('Invoking: {}'.format(pprint.pformat(cmd_line)))
+    _logger.debug('Invoking: %s', pprint.pformat(cmd_line))
 
     # Write stdout to tempfile so we can parse its output
     with tempfile.TemporaryFile() as stdout:
@@ -149,7 +149,7 @@ def parse_coral_output(stdout, dump_output):
         line_as_str = l.decode()
         lines.append(line_as_str)
     if dump_output:
-        _logger.info('Coral output:\n{}'.format(pprint.pformat(lines)))
+        _logger.info('Coral output:\n%s', pprint.pformat(lines))
 
     # Walk past parameter dump and get satisfiability response
     num_eq_encounter = 0
@@ -167,18 +167,16 @@ def parse_coral_output(stdout, dump_output):
         _logger.error('Failed to find required output line')
         return None
 
-    _logger.debug('Line to parse is \"{}\"'.format(line_to_parse))
+    _logger.debug('Line to parse is "%s"', line_to_parse)
     if line_to_parse.startswith('SOLVED'):
         # Satisfiable
         return True
-    elif line_to_parse.startswith('NOT SOLVED'):
+    if line_to_parse.startswith('NOT SOLVED'):
         # Unsat?
         # Not sure, for now just pretend like it's unknown
         return None
-    else:
-        # Unknown
-        _logger.error('Unrecognised response from coral: \"{}\"'.format(line_to_parse))
-        return None
+    # Unknown
+    _logger.error('Unrecognised response from coral: "%s"', line_to_parse)
     return None
 
 

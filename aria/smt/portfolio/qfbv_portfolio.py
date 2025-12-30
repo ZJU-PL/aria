@@ -12,7 +12,6 @@ import os
 import sys
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Optional
 
 import z3
 from pysat.formula import CNF
@@ -49,7 +48,7 @@ class SolverConfig:
         'cd', 'cd15', 'gc3', 'gc4', 'g3', 'g4',
         'lgl', 'mcb', 'mpl', 'mg3', 'mc', 'm22'
     ]
-    
+
     Z3_PREAMBLES = [
         z3.AndThen(
             z3.With('simplify', flat_and_or=False),
@@ -57,8 +56,8 @@ class SolverConfig:
             z3.Tactic('elim-uncnstr'),
             z3.With('solve-eqs', solve_eqs_max_occs=2),
             z3.Tactic('reduce-bv-size'),
-            z3.With('simplify', 
-                   som=True, 
+            z3.With('simplify',
+                   som=True,
                    pull_cheap_ite=True,
                    push_ite_bv=False,
                    local_ctx=True,
@@ -99,24 +98,24 @@ class SolverConfig:
 
 class SATSolver:
     """Handles SAT solving operations."""
-    
+
     @staticmethod
     def solve_sat(solver_name: str, cnf: CNF, result_queue: multiprocessing.Queue) -> None:
         """Solves SAT problem using specified solver."""
         try:
             with Solver(name=solver_name, bootstrap_with=cnf) as solver:
-                logger.info(f"Solving with {solver_name}")
+                logger.info("Solving with %s", solver_name)
                 result = SolverResult.SAT if solver.solve() else SolverResult.UNSAT
                 result_queue.put(result)
-        except Exception as e:
-            logger.error(f"Error in {solver_name}: {str(e)}")
+        except (ValueError, RuntimeError, OSError) as e:
+            logger.error("Error in %s: %s", solver_name, str(e))
             result_queue.put(SolverResult.UNKNOWN)
 
     @staticmethod
     def preprocess_and_solve_sat(fml, qfbv_preamble, result_queue: multiprocessing.Queue) -> None:
         """Preprocesses and solves SAT problem."""
         try:
-            qfbv_tactic = z3.With(qfbv_preamble, 
+            qfbv_tactic = z3.With(qfbv_preamble,
                                  elim_and=True,
                                  push_ite_bv=True,
                                  blast_distinct=True)
@@ -125,7 +124,7 @@ class SATSolver:
             if z3.is_true(after_simp):
                 result_queue.put(SolverResult.SAT)
                 return
-            elif z3.is_false(after_simp):
+            if z3.is_false(after_simp):
                 result_queue.put(SolverResult.UNSAT)
                 return
 
@@ -133,34 +132,33 @@ class SATSolver:
             g.add(after_simp)
             cnf = CNF(from_string=g.dimacs())
 
-            with multiprocessing.Manager() as manager:
-                queue = multiprocessing.Queue()
-                processes = []
-                
-                for solver in SolverConfig.SAT_SOLVERS:
-                    p = multiprocessing.Process(
-                        target=SATSolver.solve_sat,
-                        args=(solver, cnf, queue)
-                    )
-                    processes.append(p)
-                    p.start()
+            queue = multiprocessing.Queue()
+            processes = []
 
-                try:
-                    result = queue.get(timeout=300)  # 5 minute timeout
-                    result_queue.put(result)
-                except Exception:
-                    result_queue.put(SolverResult.UNKNOWN)
-                finally:
-                    for p in processes:
-                        p.terminate()
+            for solver in SolverConfig.SAT_SOLVERS:
+                p = multiprocessing.Process(
+                    target=SATSolver.solve_sat,
+                    args=(solver, cnf, queue)
+                )
+                processes.append(p)
+                p.start()
 
-        except Exception as e:
-            logger.error(f"Error in preprocessing: {str(e)}")
+            try:
+                result = queue.get(timeout=300)  # 5 minute timeout
+                result_queue.put(result)
+            except (TimeoutError, OSError):
+                result_queue.put(SolverResult.UNKNOWN)
+            finally:
+                for p in processes:
+                    p.terminate()
+
+        except (ValueError, RuntimeError, z3.Z3Exception) as e:
+            logger.error("Error in preprocessing: %s", str(e))
             result_queue.put(SolverResult.UNKNOWN)
 
 class FormulaParser:
     """Handles SMT formula parsing and solving."""
-    
+
     @staticmethod
     def solve(file_name: str) -> SolverResult:
         """Main solving routine."""
@@ -169,41 +167,40 @@ class FormulaParser:
             fml = fml_vec[0] if len(fml_vec) == 1 else z3.And(fml_vec)
             print(fml)
 
-            with multiprocessing.Manager() as manager:
-                result_queue = multiprocessing.Queue()
-                processes = []
+            result_queue = multiprocessing.Queue()
+            processes = []
 
-                # Start preprocessing processes
-                for preamble in SolverConfig.Z3_PREAMBLES:
-                    p = multiprocessing.Process(
-                        target=SATSolver.preprocess_and_solve_sat,
-                        args=(fml, preamble, result_queue)
-                    )
-                    processes.append(p)
-                    p.start()
-
-                # Start Z3 solver process
+            # Start preprocessing processes
+            for preamble in SolverConfig.Z3_PREAMBLES:
                 p = multiprocessing.Process(
-                    target=lambda: result_queue.put(
-                        SolverResult(z3.Solver().check(fml).__str__())
-                    )
+                    target=SATSolver.preprocess_and_solve_sat,
+                    args=(fml, preamble, result_queue)
                 )
                 processes.append(p)
                 p.start()
 
-                try:
-                    result = result_queue.get(timeout=600)  # 10 minute timeout
-                except Exception as ex:
-                    print(ex)
-                    result = SolverResult.UNKNOWN
-                finally:
-                    for p in processes:
-                        p.terminate()
+            # Start Z3 solver process
+            p = multiprocessing.Process(
+                target=lambda: result_queue.put(
+                    SolverResult(str(z3.Solver().check(fml)))
+                )
+            )
+            processes.append(p)
+            p.start()
 
-                return result
+            try:
+                result = result_queue.get(timeout=600)  # 10 minute timeout
+            except (TimeoutError, OSError) as ex:
+                print(ex)
+                result = SolverResult.UNKNOWN
+            finally:
+                for p in processes:
+                    p.terminate()
 
-        except Exception as e:
-            logger.error(f"Error solving formula: {str(e)}")
+            return result
+
+        except (ValueError, RuntimeError, z3.Z3Exception, OSError) as e:
+            logger.error("Error solving formula: %s", str(e))
             return SolverResult.UNKNOWN
 
 def main():
@@ -213,7 +210,7 @@ def main():
     args = parser.parse_args()
 
     try:
-        with open(os.path.join(args.request_directory, "input.json")) as f:
+        with open(os.path.join(args.request_directory, "input.json"), encoding='utf-8') as f:
             input_json = json.load(f)
 
         formula_file = input_json.get("formula_file")
@@ -221,7 +218,7 @@ def main():
             raise ValueError("No formula file specified in input.json")
 
         result = FormulaParser.solve(formula_file)
-        
+
         solver_output = {
             "return_code": result.return_code,
             "artifacts": {
@@ -231,13 +228,13 @@ def main():
         }
 
         output_path = os.path.join(args.request_directory, "solver_out.json")
-        with open(output_path, "w") as f:
+        with open(output_path, "w", encoding='utf-8') as f:
             json.dump(solver_output, f, indent=2)
 
-        logger.info(f"Result: {result.value} (code: {result.return_code})")
+        logger.info("Result: %s (code: %s)", result.value, result.return_code)
 
-    except Exception as e:
-        logger.error(f"Fatal error: {str(e)}")
+    except (ValueError, FileNotFoundError, json.JSONDecodeError, OSError) as e:
+        logger.error("Fatal error: %s", str(e))
         sys.exit(1)
 
 if __name__ == "__main__":

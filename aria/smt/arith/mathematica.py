@@ -7,8 +7,6 @@ import logging
 
 from fractions import Fraction
 
-from concurrent.futures import TimeoutError
-
 try:
     import wolframclient
     from wolframclient.evaluation import WolframLanguageSession
@@ -18,31 +16,31 @@ except Exception:
     pass
 
 from pysmt.exceptions import SolverAPINotFound
-from pysmt.logics import QF_NRA, QF_LRA, NRA, LRA
-from pysmt import typing as types
+from pysmt.logics import QF_NRA, NRA, LRA
 from pysmt.solvers.solver import Solver, Converter, SolverOptions
 from pysmt.solvers.qelim import QuantifierEliminator
 
 from pysmt.solvers.eager import EagerModel
 from pysmt.walkers import DagWalker
-from pysmt.constants import is_pysmt_fraction, is_pysmt_integer
+from pysmt.constants import is_pysmt_fraction
 from pysmt.decorators import clear_pending_pop, catch_conversion_error
 
 from pysmt.exceptions import (PysmtException, ConvertExpressionError,
-                                                            PysmtValueError, PysmtTypeError)
-from pysmt.oracles import get_logic
+                              PysmtTypeError)
 from pysmt.typing import REAL
 from pysmt.shortcuts import (
     get_env, TRUE, FALSE,
-    Real, Symbol, Pow
+    Real
 )
 
 class OutOfTimeSolverError(PysmtException):
     """Exception raised when solver runs out of time budget."""
 
     def __init__(self, budget):
-        PysmtException.__init__(self,
-                               f"The solver used already a maximum budget ({budget})")
+        PysmtException.__init__(
+            self,
+            f"The solver used already a maximum budget ({budget})"
+        )
 
 
 def has_kernel():
@@ -60,7 +58,8 @@ def exit_callback_print_time(solver, outstream):
         if solver.options.budget_time != 0:
             outstream.write(f"Mathematica time: {solver.used_time}\n")
         else:
-            outstream.write(f"Mathematica time (no budget): {solver.session.evaluate(wl.TimeUsed())}\n")
+            time_used = solver.session.evaluate(wl.TimeUsed())
+            outstream.write(f"Mathematica time (no budget): {time_used}\n")
 
 
 class MathematicaSession():
@@ -140,6 +139,7 @@ class MathematicaSolver(Solver):
         self.reset_assertions()
 
         self._exit_callback = None
+        self.latest_model = None
 
         self.session = MathematicaSession.get_session()
 
@@ -195,7 +195,7 @@ class MathematicaSolver(Solver):
                 raise OutOfTimeSolverError(budget_time)
 
             logging.debug("Dummy command...")
-            timing = self.session.evaluate(wl.TimeUsed())
+            self.session.evaluate(wl.TimeUsed())
             logging.debug("Dummy command done...")
 
             timed_eval_cmd = wl.TimeConstrained(reduce_cmd, wlexpr(str(remaining_time)))
@@ -376,15 +376,17 @@ class MathematicaConverter(Converter, DagWalker):
 
     @staticmethod
     def powertotimes(term, args):
-        # issue - mathematica returns negative powers for variables
-        # we would need to pre-process mathematica result to
-        # - remove the variables from the denominators
-        # - add a condition forcing the denominator to be non-zero (a new conjunction)
-        #   - Mathematica usually already has such condition in the formula
+        """Convert power operator (not implemented).
 
-        raise NotImplementedError("Conversion of Pow operator from mathematica not supported ")
-
-        # return Pow(term, args[0])
+        Issue - mathematica returns negative powers for variables
+        we would need to pre-process mathematica result to
+        - remove the variables from the denominators
+        - add a condition forcing the denominator to be non-zero (a new conjunction)
+          - Mathematica usually already has such condition in the formula
+        """
+        raise NotImplementedError(
+            "Conversion of Pow operator from mathematica not supported"
+        )
 
     def sanitize(self, identifier):
         """ Just returns the identifier removing special characters """
@@ -437,7 +439,8 @@ class MathematicaConverter(Converter, DagWalker):
 
     def _back_adapter(self, op):
         """Create a function that for the given op.
-            This is used in the construction of back_fun, to simplify the code.
+
+        This is used in the construction of back_fun, to simplify the code.
         """
         def back_apply(term, args):
             return op(*args)
@@ -532,7 +535,7 @@ class MathematicaConverter(Converter, DagWalker):
 
     def walk_symbol(self, formula, **kwargs):
         """Convert a symbol to Mathematica representation."""
-        # TODO check the type!
+        # TODO: check the type!
         if not formula.is_symbol():
             raise PysmtTypeError(f"Trying to declare as a variable something "
                                  f"that is not a symbol: {formula}")
@@ -587,56 +590,56 @@ class MathematicaConverter(Converter, DagWalker):
         """Convert a bitvector constant (not supported)."""
         raise ConvertExpressionError(f"BV constants ({formula}) are not allowed!")
 
-    def walk_plus(self, formula, args, **kwargs):
+    def walk_plus(self, formula, args, **kwargs):  # noqa: ARG002
         """Convert addition to Mathematica Plus."""
         return wl.Plus(*args)
 
-    def walk_minus(self, formula, args, **kwargs):
+    def walk_minus(self, formula, args, **kwargs):  # noqa: ARG002
         """Convert subtraction to Mathematica."""
         assert len(args) == 2
         return wl.Plus(args[0], wl.Minus(args[1]))
 
-    def walk_times(self, formula, args, **kwargs):
+    def walk_times(self, formula, args, **kwargs):  # noqa: ARG002
         """Convert multiplication to Mathematica Times."""
         return wl.Times(*args)
 
-    def walk_div(self, formula, args, **kwargs):
+    def walk_div(self, formula, args, **kwargs):  # noqa: ARG002
         """Convert division to Mathematica Divide."""
         return wl.Divide(args[0], args[1])
 
-    def walk_equals(self, formula, args, **kwargs):
+    def walk_equals(self, formula, args, **kwargs):  # noqa: ARG002
         """Convert equality to Mathematica Equal."""
         return wl.Equal(args[0], args[1])
 
-    def walk_le(self, formula, args, **kwargs):
+    def walk_le(self, formula, args, **kwargs):  # noqa: ARG002
         """Convert less-or-equal to Mathematica LessEqual."""
         return wl.LessEqual(args[0], args[1])
 
-    def walk_lt(self, formula, args, **kwargs):
+    def walk_lt(self, formula, args, **kwargs):  # noqa: ARG002
         """Convert less-than to Mathematica Less."""
         return wl.Less(args[0], args[1])
 
-    def walk_and(self, formula, args, **kwargs):
+    def walk_and(self, formula, args, **kwargs):  # noqa: ARG002
         """Convert conjunction to Mathematica And."""
         return wl.And(*args)
 
-    def walk_or(self, formula, args, **kwargs):
+    def walk_or(self, formula, args, **kwargs):  # noqa: ARG002
         """Convert disjunction to Mathematica Or."""
         return wl.Or(*args)
 
-    def walk_not(self, formula, args, **kwargs):
+    def walk_not(self, formula, args, **kwargs):  # noqa: ARG002
         """Convert negation to Mathematica Not."""
         return wl.Not(args[0])
 
-    def walk_iff(self, formula, args, **kwargs):
+    def walk_iff(self, formula, args, **kwargs):  # noqa: ARG002
         """Convert if-and-only-if to Mathematica Equivalent."""
         return wl.Equivalent(args[0], args[1])
 
-    def walk_implies(self, formula, args, **kwargs):
+    def walk_implies(self, formula, args, **kwargs):  # noqa: ARG002
         """Convert implication to Mathematica Implies."""
         return wl.Implies(args[0], args[1])
 
-    def walk_ite(self, formula, args, **kwargs):
+    def walk_ite(self, formula, args, **kwargs):  # noqa: ARG002
         """Convert if-then-else to Mathematica representation."""
         i = args[0]
         t = args[1]
@@ -647,12 +650,15 @@ class MathematicaConverter(Converter, DagWalker):
             th = self.walk_implies(impl, [i, t])
             nif = self.mgr.Not(formula.arg(1))
             ni = self.walk_not(nif, [i])
-            el = self.walk_implies(self.mgr.Implies(nif, formula.arg(2)), [ni, e])
+            el = self.walk_implies(
+                self.mgr.Implies(nif, formula.arg(2)), [ni, e]
+            )
             return wl.And(th, el)
-        raise ConvertExpressionError(f"Trying to convert a non-boolean "
-                                     f"ITE statement ({formula})")
+        raise ConvertExpressionError(
+            f"Trying to convert a non-boolean ITE statement ({formula})"
+        )
 
-    def walk_exists(self, formula, args, **kwargs):
+    def walk_exists(self, formula, args, **kwargs):  # noqa: ARG002
         """Convert existential quantifier to Mathematica Exists."""
         assert len(args) == 1
         sf = args[0]
@@ -661,7 +667,7 @@ class MathematicaConverter(Converter, DagWalker):
             return sf
         return wl.Exists(varset, sf)
 
-    def walk_forall(self, formula, args, **kwargs):
+    def walk_forall(self, formula, args, **kwargs):  # noqa: ARG002
         """Convert universal quantifier to Mathematica ForAll."""
         assert len(args) == 1
         sf = args[0]
@@ -670,13 +676,17 @@ class MathematicaConverter(Converter, DagWalker):
             return sf
         return wl.ForAll(varset, sf)
 
-    def walk_function(self, formula, args, **kwargs):
+    def walk_function(self, formula, args, **kwargs):  # noqa: ARG002
         """Convert uninterpreted function (not supported)."""
-        raise ConvertExpressionError(f"Uninterpreted functions ({formula}) are not allowed!")
+        raise ConvertExpressionError(
+            f"Uninterpreted functions ({formula}) are not allowed!"
+        )
 
-    def walk_toreal(self, formula, args, **kwargs):
+    def walk_toreal(self, formula, args, **kwargs):  # noqa: ARG002
         """Convert toreal operator (not supported)."""
-        raise ConvertExpressionError(f"toreal operator ({formula}) are not allowed!")
+        raise ConvertExpressionError(
+            f"toreal operator ({formula}) are not allowed!"
+        )
 # EOC MathematicaConverter
 
 
@@ -684,11 +694,12 @@ def get_mathematica(env=get_env(), budget_time=0, exit_callback=None):
     """Get a Mathematica solver instance."""
     try:
         import wolframclient  # noqa: F401
-    except Exception as exc:
+    except ImportError as exc:
         raise SolverAPINotFound from exc
 
-    solver = MathematicaSolver(env, QF_NRA,
-                                solver_options={"budget_time": budget_time})
+    solver = MathematicaSolver(
+        env, QF_NRA, solver_options={"budget_time": budget_time}
+    )
 
     if exit_callback is not None:
         solver.set_exit_callback(exit_callback)

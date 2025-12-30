@@ -1,6 +1,7 @@
 """Class describing an interpolant."""
 
 import copy
+import sys
 
 from z3 import (
     And,
@@ -110,7 +111,7 @@ class Interpolant:
         # Check satisfiability
         return getModel(s) is not None
 
-    def _interpolate(self, lvars, left, rvars, right, x_vars, unfold, direction):
+    def _interpolate(self, lvars, left, rvars, right, x_vars, unfold, direction):  # pylint: disable=too-many-positional-arguments
         """
         Call spacer to get the interpolant between 'left' and 'right'.
 
@@ -141,17 +142,33 @@ class Interpolant:
 
             # Sum the unfoldings with x_vars and add to left side
             sum_left, xleft, fleft = self._get_unfoldings("Lx", unfold)
-            unfold_func = (lambda a, b: a + b) if direction == "left" else (lambda a, b: a - b)
-            left = And([left] + [fleft] + [xx_vars[i] == unfold_func(x_vars[i], sum_left[i]) for i in range(n)])
+            if direction == "left":
+                unfold_func = lambda a, b: a + b
+            else:
+                unfold_func = lambda a, b: a - b
+            left_terms = [
+                xx_vars[i] == unfold_func(x_vars[i], sum_left[i])
+                for i in range(n)
+            ]
+            left = And([left] + [fleft] + left_terms)
 
             # Sum the unfoldings with x_vars and add to right side
             sum_right, xright, fright = self._get_unfoldings("Lx", unfold)
-            unfold_func = (lambda a, b: a + b) if direction == "right" else (lambda a, b: a - b)
-            right = And([right] + [fright] + [xx_vars[i] == unfold_func(x_vars[i], sum_right[i]) for i in range(n)])
+            if direction == "right":
+                unfold_func = lambda a, b: a + b
+            else:
+                unfold_func = lambda a, b: a - b
+            right_terms = [
+                xx_vars[i] == unfold_func(x_vars[i], sum_right[i])
+                for i in range(n)
+            ]
+            right = And([right] + [fright] + right_terms)
 
             # Add new variables to var list
-            lvars += x_vars + xleft + [b for b in self.b_func.args if b not in self.sls.set_vars]
-            rvars += x_vars + xright + [b for b in self.b_func.args if b not in self.sls.set_vars]
+            b_left = [b for b in self.b_func.args if b not in self.sls.set_vars]
+            b_right = [b for b in self.b_func.args if b not in self.sls.set_vars]
+            lvars += x_vars + xleft + b_left
+            rvars += x_vars + xright + b_right
 
             # Set input vector to the new vector we created
             x_vars = xx_vars
@@ -160,8 +177,12 @@ class Interpolant:
         non_negativity_left = [x >= 0 for x in x_vars + lvars]
         non_negativity_right = [x >= 0 for x in x_vars + rvars]
         i_func = Function('I', [IntSort()] * n + [BoolSort()])
-        s.add(ForAll(x_vars + lvars, Implies(And(non_negativity_left + [left]), i_func(x_vars))))
-        s.add(ForAll(x_vars + rvars, Implies(And([i_func(x_vars)] + non_negativity_right + [right]), False)))
+        left_chc = Implies(And(non_negativity_left + [left]), i_func(x_vars))
+        s.add(ForAll(x_vars + lvars, left_chc))
+        right_chc = Implies(
+            And([i_func(x_vars)] + non_negativity_right + [right]), False
+        )
+        s.add(ForAll(x_vars + rvars, right_chc))
 
         # Check satisfiability (satisfiable inputs will sometimes fail to find
         # an interpolant with unfoldings. In this case the algorithm should
@@ -176,7 +197,7 @@ class Interpolant:
                 if unfold:
                     return None
                 print("error: interpolant.py: unsat interpolant")
-                exit(1)
+                sys.exit(1)
 
         # If spacer wasn't able to compute an interpolant, then we can't add
         # one on this iteration
@@ -214,8 +235,13 @@ class Interpolant:
         sum_vars = [Sum([xs_vars[i][j] for i in range(steps)]) for j in range(n)]
         fml = True
         for i in range(steps):
-            fml = Or(And([x == 0 for x_var in xs_vars[:i+1] for x in x_var]), And(self.b_func(xs_vars[i]), fml))
-        return sum_vars, [x for x_var in xs_vars for x in x_var], fml
+            zero_terms = [
+                x == 0 for x_var in xs_vars[:i+1] for x in x_var
+            ]
+            b_func_term = self.b_func(xs_vars[i])
+            fml = Or(And(zero_terms), And(b_func_term, fml))
+        all_vars = [x for x_var in xs_vars for x in x_var]
+        return sum_vars, all_vars, fml
 
     def add_forward_interpolant(self, unfold=0):
         """
@@ -225,7 +251,7 @@ class Interpolant:
             unfold: Number of unfoldings (default: 0)
         """
         # Get B star and vars
-        lambdas, star = self.sls.starU()
+        lambdas, star = self.sls.star_u()
 
         # Interpolate and add result
         avars = [a for a in self.a_func.args if a not in self.sls.set_vars]
@@ -243,7 +269,7 @@ class Interpolant:
             unfold: Number of unfoldings (default: 0)
         """
         # Get B star and vars
-        lambdas, star = self.sls.starU()
+        lambdas, star = self.sls.star_u()
 
         # Interpolate and add negated result
         avars = [a for a in self.a_func.args if a not in self.sls.set_vars]

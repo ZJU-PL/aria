@@ -1,9 +1,8 @@
 # coding: utf-8
 """
 Perform bit-blasting and keep tracking of the relation of
-bit-vector varables and Boolean-variables
+bit-vector variables and Boolean-variables
 """
-import sys
 from typing import List, Dict, Tuple
 
 import z3
@@ -69,7 +68,8 @@ def to_dimacs(cnf, table, proj_last) -> Tuple[List[str], List[str]]:
     projection_scope = len(table)
 
     for clause_expr in cnf:
-        assert z3.is_or(clause_expr) or z3.is_not(clause_expr) or is_literal(clause_expr)
+        assert (z3.is_or(clause_expr) or z3.is_not(clause_expr) or
+                is_literal(clause_expr))
         dimacs_clause = list(dimacs_visitor(clause_expr, table))
         # dimacs_clause.append('0')  # TODO: append 0 or not
         cnf_clauses.append(" ".join(dimacs_clause))
@@ -86,12 +86,12 @@ def to_dimacs(cnf, table, proj_last) -> Tuple[List[str], List[str]]:
 
         cnf_clauses = clauses
         cnf_header = [
-            "p cnf {} {}".format(len(table), len(cnf_clauses)),
+            f"p cnf {len(table)} {len(cnf_clauses)}",
             # "cr {}".format(" ".join([str(x) for x in range(n_vars - projection_scope + 1, n_vars + 1)]))
         ]
     else:
         cnf_header = [
-            "p cnf {} {}".format(len(table), len(cnf_clauses)),
+            f"p cnf {len(table)} {len(cnf_clauses)}",
             # "cr {}".format(" ".join([str(x) for x in range(1, projection_scope + 1)]))
         ]
     return cnf_header, cnf_clauses
@@ -120,7 +120,8 @@ def to_dimacs_numeric(cnf, table, proj_last):
             dimacs_clause_numeric = [1, -1]
             cnf_clauses.append(dimacs_clause_numeric)
             continue
-        assert z3.is_or(clause_expr) or z3.is_not(clause_expr) or is_literal(clause_expr)
+        assert (z3.is_or(clause_expr) or z3.is_not(clause_expr) or
+                is_literal(clause_expr))
         dimacs_clause_numeric = list(dimacs_visitor_numeric(clause_expr, table))
         cnf_clauses.append(dimacs_clause_numeric)
 
@@ -158,7 +159,10 @@ def map_bitvector(input_vars):
             bool_vars = []
             for x in range(size):
                 extracted_bool = z3.Bool(name + "!" + str(x))
-                clause = extracted_bool == (z3.Extract(x, x, var) == z3.BitVecVal(1, 1))  # why adding this
+                # why adding this
+                clause = extracted_bool == (
+                    z3.Extract(x, x, var) == z3.BitVecVal(1, 1)
+                )
                 mapped_vars.append(extracted_bool)
                 clauses.append(clause)
                 bool_vars.append(name + "!" + str(x))
@@ -195,14 +199,13 @@ def dimacs_visitor(exp, table):
         return
     elif z3.is_or(exp):
         for ch in exp.children():
-            for var in dimacs_visitor(ch, table):
-                yield var
+            yield from dimacs_visitor(ch, table)
         return
     else:
         if z3.is_true(exp):
             return  # correct?
         # elif is_false(e): return ??
-        raise Exception("Unhandled type: ", exp)
+        raise ValueError(f"Unhandled type: {exp}")
 
 
 def dimacs_visitor_numeric(exp, table):
@@ -231,11 +234,10 @@ def dimacs_visitor_numeric(exp, table):
         return
     elif z3.is_or(exp):
         for ch in exp.children():
-            for var in dimacs_visitor_numeric(ch, table):
-                yield var
+            yield from dimacs_visitor_numeric(ch, table)
         return
     else:
-        raise Exception("Unhandled type: ", exp)
+        raise ValueError(f"Unhandled type: {exp}")
 
 
 def collect_vars(exp, seen=None):
@@ -258,16 +260,16 @@ def collect_vars(exp, seen=None):
         yield exp
     elif z3.is_app(exp):
         for ch in exp.children():
-            for exp in collect_vars(ch, seen):
-                yield exp
+            yield from collect_vars(ch, seen)
         return
     elif z3.is_quantifier(exp):
-        for exp in collect_vars(exp.body(), seen):
-            yield exp
+        yield from collect_vars(exp.body(), seen)
         return
 
 
-def translate_smt2formula_to_cnf(formula: z3.ExprRef) -> Tuple[Dict[str, list], Dict[str, int], List[str], List[str]]:
+def translate_smt2formula_to_cnf(
+    formula: z3.ExprRef
+) -> Tuple[Dict[str, list], Dict[str, int], List[str], List[str]]:
     """
     Translate a SMT2 formula to CNF format.
     Args:
@@ -282,15 +284,17 @@ def translate_smt2formula_to_cnf(formula: z3.ExprRef) -> Tuple[Dict[str, list], 
     projection_last = projection_last and projection_last.lower() != "false"
     # print("Generating DIMACS with projection...")
     blasted, id_table, bv2bool = bitblast(formula)
-    # FIXME: if formula is very simple, the "simplify" tactic may convert it to "False",
-    #   However it seems that cnf tactic needs "simplify" to perform some normalization
-    #   Maybe we need to turn the parameters of "simplify"?
+    # FIXME: if formula is very simple, the "simplify" tactic may convert
+    #   it to "False", However it seems that cnf tactic needs "simplify"
+    #   to perform some normalization. Maybe we need to turn the parameters
+    #   of "simplify"?
     header, clauses = to_dimacs(blasted, id_table, projection_last)
     return bv2bool, id_table, header, clauses
 
 
-def translate_smt2formula_to_numeric_clauses(formula: z3.ExprRef) -> Tuple[
-    Dict[str, list], Dict[str, int], List[str], List[int]]:
+def translate_smt2formula_to_numeric_clauses(
+    formula: z3.ExprRef
+) -> Tuple[Dict[str, list], Dict[str, int], List[str], List[int]]:
     """
     Translate a SMT2 formula to CNF format.
     Args:
@@ -321,7 +325,7 @@ def translate_smt2formula_to_cnf_file(formula: z3.ExprRef, output_file: str):
     blasted, id_table, bv2bool = bitblast(formula)
     header, clauses = to_dimacs(blasted, id_table, projection_last)
     saved_stdout = sys.stdout
-    with open(output_file, 'w+') as file:
+    with open(output_file, 'w+', encoding='utf-8') as file:
         sys.stdout = file
         print('\n'.join(header))
         print('\n'.join(clauses))

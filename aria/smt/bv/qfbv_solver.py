@@ -5,7 +5,7 @@ Flattening-based QF_BV solver
 import logging
 # import sys
 import time
-from typing import Dict, List, Any, Optional, Union
+from typing import Dict, List, Any, Optional
 
 import z3
 from pysat.formula import CNF
@@ -46,9 +46,13 @@ class QFBVSolver:
     sat_engine: str = 'mgh'
 
     def __init__(self) -> None:
-        self.fml: Optional[z3.ExprRef] = None  # z3.ExpeRef (not used for now!)
-        self.bv2bool: Dict[z3.ExprRef, List[z3.ExprRef]] = {}  # map a bit-vector variable to a list of Boolean variables [ordered by bit?]
-        self.bool2id: Dict[z3.ExprRef, int] = {}  # map a Boolean variable to its internal ID in pysat
+        # z3.ExpeRef (not used for now!)
+        self.fml: Optional[z3.ExprRef] = None
+        # map a bit-vector variable to a list of Boolean variables
+        # [ordered by bit?]
+        self.bv2bool: Dict[z3.ExprRef, List[z3.ExprRef]] = {}
+        # map a Boolean variable to its internal ID in pysat
+        self.bool2id: Dict[z3.ExprRef, int] = {}
         # self.vars = []
         self.verbose: int = 0
         self.signed: bool = False
@@ -70,30 +74,40 @@ class QFBVSolver:
         Check the satisfiability of a given bit-vector formula using Z3 and pySAT.
         (This function uses more lighweight pre-processing than solve_qfbv)
         """
-        qfbv_preamble = \
-            z3.AndThen(z3.With('simplify', flat_and_or=False),
-                       z3.With('propagate-values', flat_and_or=False),
-                       z3.With('solve-eqs', solve_eqs_max_occs=2),
-                       z3.Tactic('elim-uncnstr'),
-                       # z3.Tactic('reduce-bv-size'),
-                       z3.With('simplify', som=True, pull_cheap_ite=True, push_ite_bv=False, local_ctx=True,
-                               local_ctx_limit=10000000, flat=True, hoist_mul=False, flat_and_or=False),
-                       z3.Tactic('max-bv-sharing'),
-                       # z3.Tactic('ackermannize_bv'),
-                       z3.Tactic('bit-blast'),
-                       z3.With('simplify', local_ctx=True, flat=False, flat_and_or=False),
-                       # With('solve-eqs', local_ctx=True, flat=False, flat_and_or=False),
-                       'aig',
-                       z3.Tactic('tseitin-cnf'),
-                       # z3.Tactic('sat')
-                       )
-        qfbv_light_tactic = z3.With(qfbv_preamble, elim_and=True, push_ite_bv=True, blast_distinct=True)
+        qfbv_preamble = z3.AndThen(
+            z3.With('simplify', flat_and_or=False),
+            z3.With('propagate-values', flat_and_or=False),
+            z3.With('solve-eqs', solve_eqs_max_occs=2),
+            z3.Tactic('elim-uncnstr'),
+            # z3.Tactic('reduce-bv-size'),
+            z3.With(
+                'simplify', som=True, pull_cheap_ite=True,
+                push_ite_bv=False, local_ctx=True,
+                local_ctx_limit=10000000, flat=True,
+                hoist_mul=False, flat_and_or=False
+            ),
+            z3.Tactic('max-bv-sharing'),
+            # z3.Tactic('ackermannize_bv'),
+            z3.Tactic('bit-blast'),
+            z3.With(
+                'simplify', local_ctx=True, flat=False,
+                flat_and_or=False
+            ),
+            # With('solve-eqs', local_ctx=True, flat=False, flat_and_or=False),
+            'aig',
+            z3.Tactic('tseitin-cnf'),
+            # z3.Tactic('sat')
+        )
+        qfbv_light_tactic = z3.With(
+            qfbv_preamble, elim_and=True, push_ite_bv=True,
+            blast_distinct=True
+        )
 
         after_simp = qfbv_light_tactic(fml).as_expr()
         # print(after_simp)
         if z3.is_false(after_simp):
             return SolverResult.UNSAT
-        elif z3.is_true(after_simp):
+        if z3.is_true(after_simp):
             return SolverResult.SAT
         # print(".....")
         goal = z3.Goal()
@@ -112,10 +126,9 @@ class QFBVSolver:
         res = sol.check()
         if res == z3.sat:
             return SolverResult.SAT
-        elif res == z3.unsat:
+        if res == z3.unsat:
             return SolverResult.UNSAT
-        else:
-            return SolverResult.UNKNOWN
+        return SolverResult.UNKNOWN
 
     def solve_qfbv(self, fml: z3.ExprRef):
         """
@@ -128,30 +141,44 @@ class QFBVSolver:
         :return: SolverResult.SAT if the formula is satisfiable, SolverResult.UNSAT otherwise.
         :rtype: SolverResult
         """
-        qfbv_preamble = z3.AndThen(z3.With('simplify', flat_and_or=False),
-                                   z3.With('propagate-values', flat_and_or=False),
-                                   z3.Tactic('elim-uncnstr'),
-                                   z3.With('solve-eqs', solve_eqs_max_occs=2),
-                                   z3.Tactic('reduce-bv-size'),
-                                   z3.With('simplify', som=True, pull_cheap_ite=True, push_ite_bv=False, local_ctx=True,
-                                           local_ctx_limit=10000000, flat=True, hoist_mul=False, flat_and_or=False),
-                                   z3.With('simplify', hoist_mul=False, som=False, flat_and_or=False),
-                                   'max-bv-sharing',
-                                   'ackermannize_bv',
-                                   'bit-blast',
-                                   z3.With('simplify', local_ctx=True, flat=False, flat_and_or=False),
-                                   # z3.With('solve-eqs', solve_eqs_max_occs=2),
-                                   'aig',
-                                   'tseitin-cnf',
-                                   # z3.Tactic('sat')
-                                   )
-        qfbv_tactic = z3.With(qfbv_preamble, elim_and=True, push_ite_bv=True, blast_distinct=True)
+        qfbv_preamble = z3.AndThen(
+            z3.With('simplify', flat_and_or=False),
+            z3.With('propagate-values', flat_and_or=False),
+            z3.Tactic('elim-uncnstr'),
+            z3.With('solve-eqs', solve_eqs_max_occs=2),
+            z3.Tactic('reduce-bv-size'),
+            z3.With(
+                'simplify', som=True, pull_cheap_ite=True,
+                push_ite_bv=False, local_ctx=True,
+                local_ctx_limit=10000000, flat=True,
+                hoist_mul=False, flat_and_or=False
+            ),
+            z3.With(
+                'simplify', hoist_mul=False, som=False,
+                flat_and_or=False
+            ),
+            'max-bv-sharing',
+            'ackermannize_bv',
+            'bit-blast',
+            z3.With(
+                'simplify', local_ctx=True, flat=False,
+                flat_and_or=False
+            ),
+            # z3.With('solve-eqs', solve_eqs_max_occs=2),
+            'aig',
+            'tseitin-cnf',
+            # z3.Tactic('sat')
+        )
+        qfbv_tactic = z3.With(
+            qfbv_preamble, elim_and=True, push_ite_bv=True,
+            blast_distinct=True
+        )
 
         after_simp = qfbv_tactic(fml).as_expr()
         # print(after_simp)
         if z3.is_false(after_simp):
             return SolverResult.UNSAT
-        elif z3.is_true(after_simp):
+        if z3.is_true(after_simp):
             return SolverResult.SAT
         # print(".....")
         g = z3.Goal()
@@ -187,8 +214,8 @@ class QFBVSolver:
         bv2bool, id_table, header, clauses = translate_smt2formula_to_cnf(self.fml)
         self.bv2bool = bv2bool
         self.bool2id = id_table
-        logger.debug("  from bv to bools: {}".format(self.bv2bool))
-        logger.debug("  from bool to pysat id: {}".format(self.bool2id))
+        logger.debug("  from bv to bools: %s", self.bv2bool)
+        logger.debug("  from bool to pysat id: %s", self.bool2id)
 
         clauses_numeric = []
         for cls in clauses:
@@ -211,10 +238,9 @@ class QFBVSolver:
                     return SolverResult.UNSAT
                 # TODO: figure out what is the order of the vars in the boolean model
                 bool_model = solver.get_model()
-                logger.debug("SAT solving time: {}".format(time.time() - start_time))
+                logger.debug("SAT solving time: %s", time.time() - start_time)
                 self.model = bool_model
                 return SolverResult.SAT
-                """
                 # The following code is for building the bit-vector model
                 bv_model = {}
                 if not self.signed: # unsigned
@@ -241,6 +267,5 @@ class QFBVSolver:
                 # TODO: map back to bit-vector model
                 self.model = bv_model
                 print(bv_model)
-                """
         except Exception as ex:
             print(ex)

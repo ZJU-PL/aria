@@ -7,12 +7,13 @@ in Scalable Static Analysis" by Isil Dillig, Thomas Dillig, Alex Aiken (SAS 2010
 FIXME: by LLM. Very likely buggy (to debug..)
 """
 
-import unittest
 import logging
-from typing import Optional, List, Set, Dict
-from dataclasses import dataclass
-from z3 import *
 import time
+import unittest
+from dataclasses import dataclass
+from typing import Dict, List, Optional, Set
+
+from z3 import *
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -29,7 +30,7 @@ class SimplificationError(Exception):
     pass
 
 
-class TimeoutError(SimplificationError):
+class SimplificationTimeoutError(SimplificationError):
     """Raised when solver timeout occurs."""
     pass
 
@@ -55,11 +56,11 @@ class SimplificationCache:
         self.cache: Dict[str, bool] = {}
         self.max_size = max_size
 
-    def get(self, expr: ExprRef) -> Optional[bool]:
+    def get(self, expr: z3.ExprRef) -> Optional[bool]:
         key = expr.sexpr()
         return self.cache.get(key)
 
-    def put(self, expr: ExprRef, result: bool):
+    def put(self, expr: z3.ExprRef, result: bool):
         if len(self.cache) >= self.max_size:
             # Simple LRU: just clear half the cache
             keys = list(self.cache.keys())

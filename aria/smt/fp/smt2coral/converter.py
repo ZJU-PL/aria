@@ -14,24 +14,24 @@ class CoralPrinterException(Exception):
 
 class CoralPrinterUnsupportedOperation(CoralPrinterException):
     def __init__(self, op):
-        super().__init__('Unsupported operation:{}'.format(op))
+        super().__init__(f'Unsupported operation:{op}')
 
 
 class CoralPrinterUnsupportedRoundingMode(CoralPrinterException):
     def __init__(self, rm):
-        super().__init__('Unsupported rounding mode:{}'.format(rm))
+        super().__init__(f'Unsupported rounding mode:{rm}')
 
 
 class CoralPrinterUnsupportedSort(CoralPrinterException):
     def __init__(self, s):
-        super().__init__('Unsupported sort:{}'.format(s))
+        super().__init__(f'Unsupported sort:{s}')
 
 
 class CoralPrinter(Util.Z3ExprDispatcher):
     def __init__(self):
         super().__init__()
         self.sio = io.StringIO('')
-        self.symbol_table = dict()
+        self.symbol_table = {}
         self._unsound_translation_occured = False
 
     def translation_was_sound(self):
@@ -39,7 +39,7 @@ class CoralPrinter(Util.Z3ExprDispatcher):
 
     def _unsound_translation(self, op):
         self._unsound_translation_occured = True
-        _logger.warning('Unsound translation for {} operation'.format(op))
+        _logger.warning('Unsound translation for %s operation', op)
 
     def print_constraints(self, constraints):
         assert isinstance(constraints, list)
@@ -54,7 +54,7 @@ class CoralPrinter(Util.Z3ExprDispatcher):
     def reset(self):
         self.sio.close()
         self.sio = io.StringIO('')
-        self.symbol_table = dict()
+        self.symbol_table = {}
         self._unsound_translation_occured = False
 
     def print_constraint(self, constraint):
@@ -122,8 +122,8 @@ class CoralPrinter(Util.Z3ExprDispatcher):
             _logger.warning('Emitting BVAR, coral will likely crash on this')
             self.sio.write('BVAR({})'.format(escaped_name))
         elif sort.kind() == z3.Z3_BV_SORT:
-            raise NotImplementedError('BitVector variable')
             self._check_bv_sort(e)
+            raise NotImplementedError('BitVector variable')
         elif sort.kind() == z3.Z3_FLOATING_POINT_SORT:
             self._check_fp_sort(e)
             if self._is_float32_sort(sort):
@@ -200,9 +200,9 @@ class CoralPrinter(Util.Z3ExprDispatcher):
             self.visit(e.arg(1))
             self.sio.write('))')
         elif sort.kind() == z3.Z3_BV_SORT:
-            raise NotImplementedError('BitVector equal')
             self._check_bv_sort(e.arg(0))
             self._check_bv_sort(e.arg(1))
+            raise NotImplementedError('BitVector equal')
         elif sort.kind() == z3.Z3_FLOATING_POINT_SORT:
             self._check_fp_sort(e.arg(0))
             # Either FEQ or both args are NaN
@@ -336,10 +336,9 @@ class CoralPrinter(Util.Z3ExprDispatcher):
                     else:
                         self.sio.write('Infinity)')
                     return
-                else:
-                    # NaN
-                    self.sio.write('NaN)')
-                    return
+                # NaN
+                self.sio.write('NaN)')
+                return
 
             # Normal or subnormal number
             if sign_bit_bn == 1:
@@ -352,7 +351,7 @@ class CoralPrinter(Util.Z3ExprDispatcher):
 
             self.sio.write('0x')
             # Infer integer bit of signficand from exponent
-            is_subnormal_or_zero = (exp_bits_bn == 0)
+            is_subnormal_or_zero = exp_bits_bn == 0
             if is_subnormal_or_zero:
                 self.sio.write('0.')
             else:
@@ -360,7 +359,7 @@ class CoralPrinter(Util.Z3ExprDispatcher):
 
             # Write out signficand out in hex
             # NOTE: need 6 hex digits
-            significand_as_hex_str = "{0:06x}".format(significand_bits_bn)
+            significand_as_hex_str = f"{significand_bits_bn:06x}"
             assert len(significand_as_hex_str) == 6
             self.sio.write(significand_as_hex_str)
 
@@ -383,10 +382,9 @@ class CoralPrinter(Util.Z3ExprDispatcher):
                     else:
                         self.sio.write('Infinity)')
                     return
-                else:
-                    # NaN
-                    self.sio.write('NaN)')
-                    return
+                # NaN
+                self.sio.write('NaN)')
+                return
 
             # Normal or subnormal number
             if sign_bit_bn == 1:
@@ -399,7 +397,7 @@ class CoralPrinter(Util.Z3ExprDispatcher):
 
             self.sio.write('0x')
             # Infer integer bit of signficand from exponent
-            is_subnormal_or_zero = (exp_bits_bn == 0)
+            is_subnormal_or_zero = exp_bits_bn == 0
             if is_subnormal_or_zero:
                 self.sio.write('0.')
             else:
@@ -407,7 +405,7 @@ class CoralPrinter(Util.Z3ExprDispatcher):
 
             # Write out signficand out in hex
             # NOTE: need 13 hex digits
-            significand_as_hex_str = "{0:013x}".format(significand_bits_bn)
+            significand_as_hex_str = f"{significand_bits_bn:013x}"
             assert len(significand_as_hex_str) == 13
             self.sio.write(significand_as_hex_str)
 
@@ -619,14 +617,13 @@ class CoralPrinter(Util.Z3ExprDispatcher):
                 exp=z3.BitVecVal(0x1, 8),
                 sig=z3.BitVecVal(0x0, 23)
             )
-        elif self._is_float64_sort(sort):
+        if self._is_float64_sort(sort):
             return z3.fpFP(
                 sgn=z3.BitVecVal(0, 1),
                 exp=z3.BitVecVal(0x1, 11),
                 sig=z3.BitVecVal(0x0, 52)
             )
-        else:
-            raise CoralPrinterUnsupportedSort(sort)
+        raise CoralPrinterUnsupportedSort(sort)
 
     def _get_largest_negative_normal_for(self, sort):
         if self._is_float32_sort(sort):
@@ -635,14 +632,13 @@ class CoralPrinter(Util.Z3ExprDispatcher):
                 exp=z3.BitVecVal(0x1, 8),
                 sig=z3.BitVecVal(0x0, 23)
             )
-        elif self._is_float64_sort(sort):
+        if self._is_float64_sort(sort):
             return z3.fpFP(
                 sgn=z3.BitVecVal(1, 1),
                 exp=z3.BitVecVal(0x1, 11),
                 sig=z3.BitVecVal(0x0, 52)
             )
-        else:
-            raise CoralPrinterUnsupportedSort(sort)
+        raise CoralPrinterUnsupportedSort(sort)
 
     def visit_float_is_normal(self, e):
         arg = e.arg(0)
@@ -726,8 +722,10 @@ class CoralPrinter(Util.Z3ExprDispatcher):
         elif e.num_args() == 2:
             # First arg is rounding mode
             from_sort = e.arg(1).sort()
+        else:
+            from_sort = None
         # FIXME: Coral does support conversion between "int" and "double"
         # but doesn't seem to support anything else. For now just report
         # that this isn't supported.
         raise CoralPrinterUnsupportedOperation(
-            'Converting {} to {}'.format(from_sort, to_sort))
+            f'Converting {from_sort} to {to_sort}')

@@ -11,8 +11,7 @@ from typing import Dict, List, Set, Tuple, Optional, Callable, TypeVar, Generic,
 from dataclasses import dataclass
 from enum import Enum
 
-from aria.srk.syntax import Context, Symbol, Expression, Type, mk_true, mk_and, mk_leq, mk_geq, mk_var, mk_const, mk_symbol, mk_eq
-from aria.srk.srkZ3 import Z3Result, optimize_box
+from aria.srk.syntax import Context, Symbol, Expression, Type
 from aria.srk.interval import Interval
 
 
@@ -516,7 +515,7 @@ def forward_invariants_ivl(ts: TransitionSystem[T],
     # For now, return true for each loop header as a safe approximation
     for header in loop_headers:
         # Safe over-approximation: true invariant at each loop header
-        invariants.append((header, mk_true))
+        invariants.append((header, mk_true()))
 
     return invariants
 
@@ -558,7 +557,7 @@ def _find_loop_headers(ts: TransitionSystem[T], entry: int) -> Set[int]:
     return loop_headers
 
 
-def forward_invariants_ivl_pa(pre_invariants: List[Expression],
+def forward_invariants_ivl_pa(_pre_invariants: List[Expression],
                              ts: TransitionSystem[T],
                              entry: int) -> List[Tuple[int, Expression]]:
     """Compute interval-and-predicate invariants.

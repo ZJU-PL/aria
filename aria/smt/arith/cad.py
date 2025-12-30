@@ -29,7 +29,10 @@ Cylindrical algebraic decomposition in Python
 # over the reals. This has not been implemented yet. To current knowledge,
 # only Mathematica and QEPCAD do. That step is quite complicated.
 
-The main interface is `solve_poly_system_cad` which takes a list of polynomials and a list of variables. The other functions are all background to this. By default, it returns a single satisfying point, if it exists, otherwise an empty list.
+The main interface is `solve_poly_system_cad` which takes a list of
+polynomials and a list of variables. The other functions are all background
+to this. By default, it returns a single satisfying point, if it exists,
+otherwise an empty list.
 
 >>> import cad
 >>> from sympy.abc import x,y,z
@@ -289,7 +292,7 @@ def subresultant_polynomials(f, g, mvar):
     for i, poly in enumerate(subres_polys):
         try:
             subres_polys[i] = expand(poly)
-        except Exception:
+        except (ValueError, TypeError, AttributeError):
             continue
 
     return subres_polys
@@ -343,12 +346,12 @@ def subresultant_coefficients(f, g, mvar):
 # returns them sorted
 # not a public function!
 def get_nice_roots(poly):
-
+    """Get real roots of a polynomial, numeric if not algebraic."""
     # its a constant
     try:
         if poly.is_number:
             return []
-    except Exception:
+    except (AttributeError, TypeError):
         return []
 
     factors = factor_list(poly)[1]  # the 0th is just a number
@@ -379,6 +382,7 @@ def get_nice_roots(poly):
 
 
 def get_sample_point(left, right):
+    """Get a sample point in the interval (left, right)."""
     left, right = S(left), S(right)
     # Edge case check
     if left == right:
@@ -426,7 +430,7 @@ def get_sample_point(left, right):
 def simplify_alg_sub(poly, point):
     """Simplify polynomial substitution with algebraic numbers."""
     alg_points = [p for p in point.values() if S(p).has(ComplexRootOf)]
-    if len(alg_points) == 0:
+    if not alg_points:
         return poly.subs(point)
     return poly.as_poly(domain=QQ.algebraic_field(*alg_points)).subs(point)
 
@@ -527,10 +531,10 @@ def projtwo(poly_set, mvar):
     for i, f in enumerate(poly_set):
         # impose "linear ordering"
         for g in poly_set[i+1:]:
-            for f_ in red_set(f, mvar):
+            for f_red in red_set(f, mvar):
                 proj_set.update(
-                    subresultant_coefficients(f_, g, mvar)
-                    )
+                    subresultant_coefficients(f_red, g, mvar)
+                )
 
     return proj_set
 

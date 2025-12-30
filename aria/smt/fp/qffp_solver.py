@@ -17,8 +17,9 @@ logger = logging.getLogger(__name__)
 
 class QFFPSolver:
     """
-    This class is used to check the satisfiability of QF_FP formulas. It uses various tactics from Z3
-    to translate the formula to CNF and then use PySAT to solve it.
+    This class is used to check the satisfiability of QF_FP formulas.
+    It uses various tactics from Z3 to translate the formula to CNF
+    and then use PySAT to solve it.
     """
     sat_engine = 'mgh'
 
@@ -73,7 +74,8 @@ class QFFPSolver:
                                    )
 
         try:
-            # qffp_blast = z3.With(qffp_preamble, elim_and=True, push_ite_bv=True, blast_distinct=True)
+            # qffp_blast = z3.With(qffp_preamble, elim_and=True,
+            #                      push_ite_bv=True, blast_distinct=True)
             qffp_blast = qffp_preamble
             after_simp = qffp_blast(fml).as_expr()
             if z3.is_false(after_simp):
@@ -85,16 +87,19 @@ class QFFPSolver:
             g_probe.add(after_simp)
             is_bool = z3.Probe('is-propositional')
             if is_bool(g_probe) == 1.0:
-                to_cnf_impl = z3.AndThen(z3.With('simplify', local_ctx=True, flat=False, flat_and_or=False),
-                                         'aig',
-                                         'tseitin-cnf')
-                # o_cnf = z3.With(to_cnf_impl, elim_and=True, push_ite_bv=True, blast_distinct=True)
+                to_cnf_impl = z3.AndThen(
+                    z3.With('simplify', local_ctx=True, flat=False,
+                            flat_and_or=False),
+                    'aig',
+                    'tseitin-cnf')
+                # o_cnf = z3.With(to_cnf_impl, elim_and=True,
+                #                 push_ite_bv=True, blast_distinct=True)
                 to_cnf = to_cnf_impl
                 blasted = to_cnf(after_simp).as_expr()
 
                 if z3.is_false(blasted):
                     return SolverResult.UNSAT
-                elif z3.is_true(blasted):
+                if z3.is_true(blasted):
                     return SolverResult.SAT
 
                 g_to_dimacs = z3.Goal()
@@ -105,17 +110,15 @@ class QFFPSolver:
                 if aux.solve():
                     return SolverResult.SAT
                 return SolverResult.UNSAT
-            else:
-                # sol = z3.Tactic('smt').solver()
-                sol = z3.SolverFor("QF_FP")
-                sol.add(after_simp)
-                res = sol.check()
-                if res == z3.sat:
-                    return SolverResult.SAT
-                elif res == z3.unsat:
-                    return SolverResult.UNSAT
-                else:
-                    return SolverResult.UNKNOWN
+            # sol = z3.Tactic('smt').solver()
+            sol = z3.SolverFor("QF_FP")
+            sol.add(after_simp)
+            res = sol.check()
+            if res == z3.sat:
+                return SolverResult.SAT
+            if res == z3.unsat:
+                return SolverResult.UNSAT
+            return SolverResult.UNKNOWN
 
         except Exception as ex:
             print("ERROR")
@@ -132,10 +135,9 @@ class QFFPSolver:
         res = sol.check()
         if res == z3.sat:
             return SolverResult.SAT
-        elif res == z3.unsat:
+        if res == z3.unsat:
             return SolverResult.UNSAT
-        else:
-            return SolverResult.UNKNOWN
+        return SolverResult.UNKNOWN
 
 
 def demo_qffp():

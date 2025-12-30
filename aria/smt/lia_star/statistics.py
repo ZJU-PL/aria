@@ -5,6 +5,8 @@ This module contains global variables used to track various performance metrics
 and statistics during the execution of the LIA* solving process. These statistics
 help in analyzing solver performance and debugging.
 """
+# pylint: disable=invalid-name
+# Module-level variables (not constants) - naming follows lowercase convention
 
 # Problem characteristics
 problem_size = 0  # Number of variables/constraints in the input problem

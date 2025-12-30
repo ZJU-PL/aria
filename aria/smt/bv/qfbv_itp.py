@@ -8,7 +8,7 @@ from typing import List
 
 import z3
 
-from aria.smt.bv import translate_smt2formula_to_cnf
+from aria.smt.bv.mapped_blast import translate_smt2formula_to_cnf
 
 logger = logging.getLogger(__name__)
 
@@ -24,8 +24,7 @@ class BooleanInterpolant:
     def mk_lit(m: z3.ModelRef, x: z3.ExprRef):
         if z3.is_true(m.eval(x)):
             return x
-        else:
-            return z3.Not(x)
+        return z3.Not(x)
 
     @staticmethod
     def pogo(fml_a: z3.Solver, fml_b: z3.Solver, xs: List[z3.ExprRef]):
@@ -87,7 +86,7 @@ class BVInterpolant:
                 if not self.common_bool_vars_created:
                     # create the common Boolean variables when translating fml_a!
                     # we should keep the mapping!
-                    z3_var = z3.Bool("c{}".format(self.common_bool_vars_index))
+                    z3_var = z3.Bool(f"c{self.common_bool_vars_index}")
                     self.common_bool_vars.append(z3_var)
                     self.common_bool_vars_index += 1
 
@@ -121,7 +120,7 @@ class BVInterpolant:
                 else:
                     if numeric_var not in cared_bool_vars:
                         # create new Boolean vars
-                        z3_var = z3.Bool("{0}{1}".format(prefix, numeric_var))
+                        z3_var = z3.Bool(f"{prefix}{numeric_var}")
                         int2var[numeric_var] = z3_var
                     else:
                         # should look up self.common_bool_vars (created earlier)
@@ -155,7 +154,9 @@ class BVInterpolant:
             # for debugging
             assert is_inconsistent(z3_bool_fml_a, z3_bool_fml_b)
 
-            itp = z3.Or(list(BooleanInterpolant.compute_itp(z3_bool_fml_a, z3_bool_fml_b, self.common_bool_vars)))
+            itp = z3.Or(list(BooleanInterpolant.compute_itp(
+                z3_bool_fml_a, z3_bool_fml_b, self.common_bool_vars
+            )))
             print("interpolant: ", z3.simplify(itp))
             print(self.common_vars2bool)
         else:

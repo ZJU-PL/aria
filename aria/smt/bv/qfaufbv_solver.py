@@ -64,7 +64,7 @@ class QFAUFBVSolver:
         Returns:
             SolverResult: The result of the solver (SAT, UNSAT, or UNKNOWN).
         """
-        self.check_sat(fml)
+        return self.check_sat(fml)
 
     def check_sat(self, fml) -> SolverResult:
         """Check satisfiability of an formula"""
@@ -79,8 +79,11 @@ class QFAUFBVSolver:
                 'solve-eqs',
                 'elim-uncnstr',
                 'reduce-bv-size',
-                z3.With('simplify', som=True, pull_cheap_ite=True, push_ite_bv=False,
-                        local_ctx=True, local_ctx_limit=10000000),
+                z3.With(
+                    'simplify', som=True, pull_cheap_ite=True,
+                    push_ite_bv=False, local_ctx=True,
+                    local_ctx_limit=10000000
+                ),
                 # 'bvarray2uf',  # this tactic is dangerous (it only handles specific arrays)
                 'max-bv-sharing',
                 'ackermannize_bv',
@@ -96,7 +99,7 @@ class QFAUFBVSolver:
         logger.debug("Simplified!...")
         if z3.is_false(after_simp):
             return SolverResult.UNSAT
-        elif z3.is_true(after_simp):
+        if z3.is_true(after_simp):
             return SolverResult.SAT
 
         g_probe = z3.Goal()
@@ -104,11 +107,14 @@ class QFAUFBVSolver:
         is_bool = z3.Probe('is-propositional')
         if is_bool(g_probe) == 1.0:
             to_cnf_impl = z3.AndThen('simplify', 'tseitin-cnf')
-            to_cnf = z3.With(to_cnf_impl, elim_and=True, push_ite_bv=True, blast_distinct=True)
+            to_cnf = z3.With(
+                to_cnf_impl, elim_and=True, push_ite_bv=True,
+                blast_distinct=True
+            )
             blasted = to_cnf(after_simp).as_expr()
             if z3.is_false(blasted):
                 return SolverResult.UNSAT
-            elif z3.is_true(blasted):
+            if z3.is_true(blasted):
                 return SolverResult.SAT
             g_to_dimacs = z3.Goal()
             g_to_dimacs.add(blasted)
@@ -129,10 +135,9 @@ class QFAUFBVSolver:
         res = sol.check()
         if res == z3.sat:
             return SolverResult.SAT
-        elif res == z3.unsat:
+        if res == z3.unsat:
             return SolverResult.UNSAT
-        else:
-            return SolverResult.UNKNOWN
+        return SolverResult.UNKNOWN
 
 
 def demo_qfaufbv():

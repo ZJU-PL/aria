@@ -33,23 +33,23 @@ def test_ls_and_sls_basic():
     assert isinstance(sls, semilinear.SLS)
     assert sls.size() >= 1
 
-# Test LS.linearCombination
+# Test LS.linear_combination
 
 def test_ls_linear_combination():
     phi = lambda X: And([x >= 0 for x in X])
     ls = semilinear.LS([0, 0], [[1, 0], [0, 1]], phi)
-    L, LC = ls.linearCombination('l')
+    L, LC = ls.linear_combination('l')
     assert len(L) == 2
     assert len(LC) == 2
 
-# Test SLS.star and SLS.starU
+# Test SLS.star and SLS.star_u
 
 def test_sls_star():
     phi = lambda X: And([x >= 0 for x in X])
     sls = semilinear.SLS(phi, [Int('x'), Int('y')], 2)
     star_formula = sls.star([Int('x'), Int('y')])
     assert isinstance(star_formula, ExprRef)
-    vars, fmls = sls.starU([Int('x'), Int('y')])
+    vars, fmls = sls.star_u([Int('x'), Int('y')])
     assert isinstance(vars, list)
     assert isinstance(fmls, list)
 

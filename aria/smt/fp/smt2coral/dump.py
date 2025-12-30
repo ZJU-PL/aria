@@ -8,10 +8,10 @@ import argparse
 import logging
 import sys
 import traceback
-import z3
-from smt2coral import Converter
-from smt2coral import DriverUtil
-from smt2coral import Util
+
+import aria.smt.fp.smt2coral.converter as Converter
+import aria.smt.fp.smt2coral.driver_util as DriverUtil
+import aria.smt.fp.smt2coral.util as Util
 
 _logger = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ def main(args):
     constraint, err = Util.parse(pargs.query_file)
     if err is not None:
         # Parser failure
-        _logger.error('Parser failure: {}'.format(err))
+        _logger.error('Parser failure: %s', err)
         return 1
     constraints = Util.split_bool_and(constraint)
 
@@ -45,7 +45,7 @@ def main(args):
     try:
         pargs.output.write(printer.print_constraints(constraints))
     except Converter.CoralPrinterException as e:
-        _logger.error('{}: {}'.format(type(e).__name__, e))
+        _logger.error('%s: %s', type(e).__name__, e)
         _logger.debug(traceback.format_exc())
         return 1
     pargs.output.write('\n')

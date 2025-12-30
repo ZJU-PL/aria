@@ -18,7 +18,7 @@ def main():
     prog_desc = (
         'Runs lia_star_solver.py on all bapa benchmarks, with the given options, '
         'and writes runtime statistics to txt and csv files'
-    )
+    )  # noqa: E501
     p = argparse.ArgumentParser(description=prog_desc)
     p.add_argument('outfile', metavar='FILENAME_NO_EXT', type=str,
                    help='name of the output file to write statistics to (omit extension)')
@@ -96,7 +96,9 @@ def main():
                     try:
 
                         # Attempt to run command
-                        res = subprocess.check_output(cmd, stderr=subprocess.STDOUT, timeout=timeout)
+                        res = subprocess.check_output(
+                            cmd, stderr=subprocess.STDOUT, timeout=timeout
+                        )
                         output_lines = res.decode("utf-8").split("\n")
                         output = output_lines[3]
 
@@ -119,7 +121,9 @@ def main():
                         output = "timeout"
 
                     # Write sat or unsat and time taken to file
-                    outfile.write(f"{d}/{f}".ljust(27) + f" : {output.rjust(7)} : {end - start}\n")
+                    file_line = f"{d}/{f}".ljust(27)
+                    result_line = f" : {output.rjust(7)} : {end - start}\n"
+                    outfile.write(file_line + result_line)
                     outfile.flush()
 
                     # Write stats to csv file

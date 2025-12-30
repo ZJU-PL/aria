@@ -1,5 +1,6 @@
 """
-Converting QF_BV to SAT without tracking mappings between BV variables and SAT variables.
+Converting QF_BV to SAT without tracking mappings between BV variables
+and SAT variables.
 """
 
 import z3
@@ -23,16 +24,16 @@ def qfbv_to_sat(fml: z3.ExprRef, solver_name: str = "minisat22") -> SolverResult
     """Convert a QF_BV formula to SAT and solve it."""
     if not isinstance(fml, z3.ExprRef):
         raise ValueError("Input must be a Z3 expression")
-    
+
     if not all(z3.is_bv(arg) for arg in get_variables(fml)):
         raise ValueError("Formula must contain only bit-vector operations")
 
     try:
         after_simp = qfbv_tactic(fml).as_expr()
-        
+
         if z3.is_false(after_simp):
             return SolverResult.UNSAT
-        elif z3.is_true(after_simp):
+        if z3.is_true(after_simp):
             return SolverResult.SAT
 
         g = z3.Goal()
@@ -43,7 +44,7 @@ def qfbv_to_sat(fml: z3.ExprRef, solver_name: str = "minisat22") -> SolverResult
             return SolverResult.SAT if aux.solve() else SolverResult.UNSAT
 
     except Exception as e:
-        raise RuntimeError(f"Conversion/solving failed: {str(e)}")
+        raise RuntimeError(f"Conversion/solving failed: {str(e)}") from e
 
 
 def demo() -> None:

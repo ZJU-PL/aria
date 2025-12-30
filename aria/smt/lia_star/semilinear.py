@@ -1,43 +1,48 @@
 # Classes for linear and semi-linear sets
 
-from aria.smt.lia_star.lia_star_solver import getModel
-import aria.smt.lia_star.statistics
 import itertools
 import time
-from z3 import *
+
+from z3 import And, Exists, Implies, Int, IntVector, Not, Solver, Sum
+
+from aria.smt.lia_star.lia_star_utils import getModel
+import aria.smt.lia_star.statistics
 
 # Check if V < U
-def vecLess(V, U):
-    return all([(0 <= v and v <= u) or (0 >= v and v >= u) for v, u in zip(V, U)])
+def vec_less(vec_v, vec_u):  # pylint: disable=invalid-name
+    """Check if vec_v < vec_u component-wise."""
+    return all((0 <= v <= u) or (0 >= v >= u) for v, u in zip(vec_v, vec_u))
 
 # Subtract U from V
-def vecSub(V, U):
-    return [v - u for v, u in zip(V, U)]
+def vec_sub(vec_v, vec_u):  # pylint: disable=invalid-name
+    """Subtract vec_u from vec_v component-wise."""
+    return [v - u for v, u in zip(vec_v, vec_u)]
 
 # Class describing a linear set
-class LS:
+class LS:  # pylint: disable=invalid-name
 
     # 'a' is the shift vector
-    # 'B' is the set of basis vectors which can be linearly combined
-    def __init__(self, a, B, phi):
+    # 'basis' is the set of basis vectors which can be linearly combined
+    def __init__(self, a, basis, phi):  # pylint: disable=invalid-name
         self.a = a
-        self.B = B
+        self.B = basis  # pylint: disable=invalid-name
         self.phi = phi
 
     # String rep
     def __repr__(self):
-        return "{}".format([self.a, self.B])
+        return f"{[self.a, self.B]}"
 
     # Remove any duplicates from B
-    def removeDuplicates(self):
+    def remove_duplicates(self):  # pylint: disable=invalid-name
+        """Remove duplicate basis vectors."""
         self.B.sort()
-        self.B = list(b for b, _ in itertools.groupby(self.B))
+        self.B = [b for b, _ in itertools.groupby(self.B)]
 
     # lambda, lambda*B
-    def linearCombination(self, name):
-
+    def linear_combination(self, name):  # pylint: disable=invalid-name
+        """Compute linear combination lambda*B."""
         # All zeroes returned in the case of empty basis
-        if self.B == []:
+        if not self.B:
             return ([], [0] * len(self.a))
 
         # Transpose the basis so that it is a list of rows, instead of a list of vectors:
@@ -45,92 +50,103 @@ class LS:
         transposed_basis = list(map(list, zip(*self.B)))
 
         # Make lambdas
-        L = IntVector(name, len(self.B))
+        lambdas = IntVector(name, len(self.B))  # pylint: disable=invalid-name
 
         # Linear combination with lambdas as coefficients
-        LC = [Sum([l*v for v, l in list(zip(V, L))]) for V in transposed_basis]
-        return L, LC
+        linear_combo = [  # pylint: disable=invalid-name
+            Sum([l*v for v, l in zip(row, lambdas)]) for row in transposed_basis
+        ]
+        return lambdas, linear_combo
 
     # If possible without losing info, decreases the offset of a linear set
-    def shiftDown(self):
-
+    def shift_down(self):  # pylint: disable=invalid-name
+        """Decrease the offset of a linear set if possible."""
         # Each b in B must be less than a to be considered
-        a, B = self.a, self.B
-        for b in B:
-            if vecLess(b, a):
+        a = self.a
+        basis = self.B
+        for b in basis:
+            if vec_less(b, a):
 
                 # Solver and quantifiers
                 s = Solver()
-                L, LC = self.linearCombination('l1')
-                non_negativity = [x >= 0 for x in L]
+                lambdas, linear_combo = self.linear_combination('l1')
+                non_negativity = [x >= 0 for x in lambdas]
 
                 # Assemble input
-                input = [ai - bi + lci for (ai, bi, lci) in list(zip(a, b, LC))]
+                input_vec = [  # pylint: disable=invalid-name
+                    ai - bi + lci for (ai, bi, lci) in zip(a, b, linear_combo)
+                ]
 
                 # Check sat
-                s.add(non_negativity + [Not(self.phi(input))])
-                if None != getModel(s):
-                   continue
+                s.add(non_negativity + [Not(self.phi(input_vec))])
+                if getModel(s) is not None:
+                    continue
 
                 # Replace
-                self.a = vecSub(a, b)
+                self.a = vec_sub(a, b)
                 aria.smt.lia_star.statistics.shiftdowns += 1
                 return True
         return False
 
     # If possible without losing info, decreases a basis vector in a linear set
-    def offsetDown(self):
-
+    def offset_down(self):  # pylint: disable=invalid-name
+        """Decrease a basis vector in a linear set if possible."""
         # Compare two b's in B, look for b2 <= b1
-        a, B = self.a, self.B
-        r = range(len(B))
+        a = self.a
+        basis = self.B
+        r = range(len(basis))
         for i, j in itertools.product(r, r):
-            if i == j: continue
+            if i == j:
+                continue
 
-            b1, b2 = B[i], B[j]
-            if vecLess(b2, b1):
+            b1, b2 = basis[i], basis[j]
+            if vec_less(b2, b1):
 
                 # Basis to compare to
-                B_new = list(B)
-                B_new[i] = vecSub(b1, b2)
-                new_set = LS(a, B_new, self.phi)
+                basis_new = list(basis)  # pylint: disable=invalid-name
+                basis_new[i] = vec_sub(b1, b2)
+                new_set = LS(a, basis_new, self.phi)
 
                 # Solver and quantifiers
                 s = Solver()
-                L, LC = new_set.linearCombination('l1')
-                non_negativity = [x >= 0 for x in L]
+                lambdas, linear_combo = new_set.linear_combination('l1')
+                non_negativity = [x >= 0 for x in lambdas]
 
                 # Assemble input
-                input = [ai + lci for (ai, lci) in list(zip(a, LC))]
+                input_vec = [  # pylint: disable=invalid-name
+                    ai + lci for (ai, lci) in zip(a, linear_combo)
+                ]
 
                 # Check sat
-                s.add(non_negativity + [Not(self.phi(input))])
-                if None != getModel(s):
-                   continue
+                s.add(non_negativity + [Not(self.phi(input_vec))])
+                if getModel(s) is not None:
+                    continue
 
                 # Replace
-                self.B = B_new
+                self.B = basis_new
                 aria.smt.lia_star.statistics.offsets += 1
                 return True
         return False
 
     # Get the star of a single linear set and offset
     def star(self, mu, name):
-
+        """Get the star of a single linear set."""
         # Linear combination
-        L, LC = self.linearCombination(name)
+        lambdas, linear_combo = self.linear_combination(name)
 
         # mu == 0 implies L == 0 and non-negativity
-        fmls = [l >= 0 for l in L] + [mu >= 0]
-        if L:
-            fmls.append(Implies(mu == 0, And([l == 0 for l in L])))
+        fmls = [l >= 0 for l in lambdas] + [mu >= 0]
+        if lambdas:
+            fmls.append(Implies(mu == 0, And([l == 0 for l in lambdas])))
 
         # Add offset vector to linear combination
-        LC = [mu*ai + lci for (ai, lci) in list(zip(self.a, LC))]
-        return L + [mu], LC, fmls
+        linear_combo = [
+            mu*ai + lci for (ai, lci) in zip(self.a, linear_combo)
+        ]
+        return lambdas + [mu], linear_combo, fmls
 
 # Class describing a semi-linear set
-class SLS:
+class SLS:  # pylint: disable=invalid-name
 
     # 'sets' is a list of all linear sets in the sls.
     # 'phi' is the original LIA formula, a function that returns a Z3 expression
@@ -143,94 +159,100 @@ class SLS:
 
     # Merges two compatible linear sets into one
     def _merge(self, i, j):
+        """Merge two compatible linear sets into one."""
         if i == j:
             return False
 
         # a2 must be <= a1
-        S1, S2 = self.sets[i], self.sets[j]
-        a1, a2 = S1.a, S2.a
-        if not vecLess(a2, a1):
+        set1, set2 = self.sets[i], self.sets[j]  # pylint: disable=invalid-name
+        a1, a2 = set1.a, set2.a  # pylint: disable=invalid-name
+        if not vec_less(a2, a1):
             return False
 
         # Solver and quantifiers
         s = Solver()
-        L1, LC1 = S1.linearCombination('l1')
-        L2, LC2 = S2.linearCombination('l2')
-        L3 = Int('l3')
-        non_negativity = [x >= 0 for x in L1 + L2 + [L3]]
+        lambdas1, linear_combo1 = set1.linear_combination('l1')  # pylint: disable=invalid-name
+        lambdas2, linear_combo2 = set2.linear_combination('l2')  # pylint: disable=invalid-name
+        lambda3 = Int('l3')  # pylint: disable=invalid-name
+        non_negativity = [x >= 0 for x in lambdas1 + lambdas2 + [lambda3]]
 
         # Assembling input to phi
-        input = [a2i + lc1i + lc2i + L3*(a1i - a2i) for (a1i, a2i, lc1i, lc2i) in list(zip(a1, a2, LC1, LC2))]
+        input_vec = [  # pylint: disable=invalid-name
+            a2i + lc1i + lc2i + lambda3*(a1i - a2i)
+            for (a1i, a2i, lc1i, lc2i) in zip(a1, a2, linear_combo1, linear_combo2)
+        ]
 
         # Check sat
-        s.add(non_negativity + [Not(self.phi(input))])
-        if None != getModel(s):
-           return False
+        s.add(non_negativity + [Not(self.phi(input_vec))])
+        if getModel(s) is not None:
+            return False
 
         # Assemble new linear set and remove old ones
-        new_set = LS(a2, S1.B + S2.B + [vecSub(a1, a2)], self.phi)
-        del self.sets[max(i,j)]
-        del self.sets[min(i,j)]
+        new_set = LS(a2, set1.B + set2.B + [vec_sub(a1, a2)], self.phi)
+        del self.sets[max(i, j)]
+        del self.sets[min(i, j)]
         self.sets.append(new_set)
         aria.smt.lia_star.statistics.merges += 1
         return True
 
     # Getter for the final semilinear set once the algorithm is done
-    def getSLS(self):
+    def get_sls(self):  # pylint: disable=invalid-name
+        """Get the semilinear set."""
         return self.sets
 
     # Number of vectors in the SLS
     def size(self):
-        return sum([1 + len(ls.B) for ls in self.sets])
+        """Get the size of the SLS."""
+        return sum(1 + len(ls.B) for ls in self.sets)
 
     # Let self.sets = { (a_1, B_1), ..., (a_n, B_n) }
     # Exists mu_i, lambda_i .
     #      X = Sum_i mu_i*a_i + lambda_i*B_i
     #      And_i mu_i >= 0 & lambda_i >= 0 & (mu_i = 0 => lambda_i = 0)
     # where mu_i, lambda_i are variables
-    def starU(self, X=None):
-
+    def star_u(self, x_vars=None):  # pylint: disable=invalid-name
+        """Get unquantified star representation."""
         # Default args
-        if not X:
-            X = self.set_vars
+        if not x_vars:
+            x_vars = self.set_vars
 
         # Setup
-        vars = []
+        var_list = []
         fmls = []
-        sum = X
+        sum_vec = x_vars  # pylint: disable=invalid-name
         mus = IntVector("mu", len(self.sets))
 
         # Accumulate sum for each set and add quantified variables as we go
-        for i in range(len(self.sets)):
+        for i, ls in enumerate(self.sets):
 
             # Get star of this set
-            ls = self.sets[i]
-            vs, s, fs = ls.star(mus[i], "l{}".format(i))
+            vs, s, fs = ls.star(mus[i], f"l{i}")
 
             # Cut linear combination to relevant projection
-            s = s[:len(X)]
+            s = s[:len(x_vars)]
 
             # Assemble sum
-            assert(len(sum) == len(s))
-            sum = [sum[j] - s[j] for j in range(len(sum))]
+            assert len(sum_vec) == len(s)
+            sum_vec = [sum_vec[j] - s[j] for j in range(len(sum_vec))]
 
             # Add variables
-            vars += vs
+            var_list += vs
             fmls += fs
 
         # Add summation
-        fmls += [x == 0 for x in sum]
-        return vars, fmls
+        fmls += [x == 0 for x in sum_vec]
+        return var_list, fmls
 
     # Add existential quantifier to star so it can be safely used in other formulas
-    def star(self, X=None):
-
+    def star(self, x_vars=None):
+        """Get quantified star representation."""
         # Quantify an unquantified star
-        vars, fmls = self.starU(X)
-        return Exists(vars, And(fmls))
+        var_list, fmls = self.star_u(x_vars)
+        return Exists(var_list, And(fmls))
 
     # Attempt to apply merge, shiftDown, and offsetDown to reduce the size of the SLS
     def reduce(self):
+        """Reduce the size of the SLS."""
         start = time.time()
 
         # Look for pairs of sets we can merge together
@@ -244,10 +266,12 @@ class SLS:
                     break
 
         # Try to decrease shifts and offsets
-        for S in self.sets:
-            while S.shiftDown(): pass
-            while S.offsetDown(): pass
-            S.removeDuplicates()
+        for linear_set in self.sets:
+            while linear_set.shift_down():
+                pass
+            while linear_set.offset_down():
+                pass
+            linear_set.remove_duplicates()
 
         end = time.time()
         aria.smt.lia_star.statistics.reduction_time += end - start
@@ -255,20 +279,21 @@ class SLS:
     # Add a new vector to the semi-linear set and return True
     # or return False if a vector cannot be added
     def augment(self):
+        """Add a new vector to the semi-linear set."""
         start = time.time()
 
         # Find non-negative X that satisfies phi and isn't reached by the current underapproximation
         s = Solver()
-        X = IntVector('x', self.dim)
-        s.add([x >= 0 for x in X])
-        s.add(self.phi(X))
-        s.add(Not(self.star(X)))
+        x_vec = IntVector('x', self.dim)  # pylint: disable=invalid-name
+        s.add([x >= 0 for x in x_vec])
+        s.add(self.phi(x_vec))
+        s.add(Not(self.star(x_vec)))
 
         # Get model and add new linear set to sls
-        new_vec = getModel(s, X)
+        new_vec = getModel(s, x_vec)
         end = time.time()
         aria.smt.lia_star.statistics.augment_time += end - start
-        if new_vec != None:
+        if new_vec is not None:
             self.sets.append(LS(new_vec, [], self.phi))
             return True
         return False

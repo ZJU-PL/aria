@@ -5,7 +5,7 @@ import logging
 _logger = logging.getLogger(__name__)
 
 
-def parserAddLoggerArg(parser):
+def parser_add_logger_arg(parser):
     assert isinstance(parser, argparse.ArgumentParser)
     parser.add_argument("-l", "--log-level", type=str, default="info",
                         dest="log_level",
@@ -19,38 +19,47 @@ def parserAddLoggerArg(parser):
                         dest='log_only_file',
                         action='store_true',
                         default=False,
-                        help='Only log to file specified by --log-file and not the console')
+                        help='Only log to file specified by --log-file '
+                             'and not the console')
     parser.add_argument("--log-show-src-locs",
-        dest="log_show_source_locations",
-        action='store_true',
-        default=False,
-        help='Include source locations in log'
-    )
-    return
+                        dest="log_show_source_locations",
+                        action='store_true',
+                        default=False,
+                        help='Include source locations in log'
+                        )
 
 
-def handleLoggerArgs(pargs, parser):
+# Backward compatibility
+parserAddLoggerArg = parser_add_logger_arg
+
+
+def handle_logger_args(pargs, parser):
     assert isinstance(pargs, argparse.Namespace)
     assert isinstance(parser, argparse.ArgumentParser)
-    logLevel = getattr(logging, pargs.log_level.upper(), None)
-    if logLevel == logging.DEBUG:
-        logFormat = ('%(levelname)s:%(threadName)s: %(filename)s:%(lineno)d '
-                     '%(funcName)s()  : %(message)s')
+    log_level = getattr(logging, pargs.log_level.upper(), None)
+    if log_level == logging.DEBUG:
+        log_format = ('%(levelname)s:%(threadName)s: %(filename)s:%(lineno)d '
+                      '%(funcName)s()  : %(message)s')
     else:
         if pargs.log_show_source_locations:
-            logFormat = '%(levelname)s:%(threadName)s %(filename)s:%(lineno)d : %(message)s'
+            log_format = ('%(levelname)s:%(threadName)s '
+                         '%(filename)s:%(lineno)d : %(message)s')
         else:
-            logFormat = '%(levelname)s:%(threadName)s: %(message)s'
+            log_format = '%(levelname)s:%(threadName)s: %(message)s'
 
     if not pargs.log_only_file:
         # Add default console level with appropriate formatting and level.
-        logging.basicConfig(level=logLevel, format=logFormat)
+        logging.basicConfig(level=log_level, format=log_format)
     else:
         if pargs.log_file is None:
             parser.error('--log-file-only must be used with --log-file')
-        logging.getLogger().setLevel(logLevel)
+        logging.getLogger().setLevel(log_level)
     if pargs.log_file is not None:
         file_handler = logging.FileHandler(pargs.log_file)
-        log_formatter = logging.Formatter(logFormat)
+        log_formatter = logging.Formatter(log_format)
         file_handler.setFormatter(log_formatter)
         logging.getLogger().addHandler(file_handler)
+
+
+# Backward compatibility
+handleLoggerArgs = handle_logger_args
