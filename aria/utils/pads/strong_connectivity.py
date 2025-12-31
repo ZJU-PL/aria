@@ -43,8 +43,8 @@ class StronglyConnectedComponents(DFS.Searcher):
     def _component(self,vertices):
         """Make a new SCC."""
         vertices = set(vertices)
-        induced = dict([(v,set([w for w in self._graph[v] if w in vertices]))
-                        for v in vertices])
+        induced = {v: {w for w in self._graph[v] if w in vertices}
+                   for v in vertices}
         self._components.append(induced)
 
     def preorder(self,parent,child):
@@ -69,7 +69,7 @@ class StronglyConnectedComponents(DFS.Searcher):
         else:
             self._low[parent] = min(self._low[parent],self._low[child])
 
-# If run as "python StrongConnectivity.py", run tests on various small graphs
+# If run as "python strong_connectivity.py", run tests on various small graphs
 # and check that the correct results are obtained.
 
 class StrongConnectivityTest(unittest.TestCase):
@@ -81,7 +81,7 @@ class StrongConnectivityTest(unittest.TestCase):
 
     knownpairs = [(G1,C1),(G2,C2)]
 
-    def testStronglyConnectedComponents(self):
+    def test_strongly_connected_components(self):
         """Check known graph/component pairs."""
         for (graph,expectedoutput) in self.knownpairs:
             output = [list(C) for C in StronglyConnectedComponents(graph)]
@@ -90,14 +90,14 @@ class StrongConnectivityTest(unittest.TestCase):
             output.sort()
             self.assertEqual(output,expectedoutput)
 
-    def testSubgraph(self):
+    def test_subgraph(self):
         """Check that each SCC is an induced subgraph."""
         for (graph,expectedoutput) in self.knownpairs:
             components = StronglyConnectedComponents(graph)
-            for C in components:
-                for v in C:
+            for comp in components:
+                for v in comp:
                     for w in graph:
-                        self.assertEqual(w in graph[v] and w in C, w in C[v])
+                        self.assertEqual(w in graph[v] and w in comp, w in comp[v])
 
 if __name__ == "__main__":
     unittest.main()

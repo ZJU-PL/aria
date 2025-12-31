@@ -26,24 +26,28 @@ to the reduced set satisfies a k-1 of the original soft constraints.
 
 """
 
-from z3 import *
+from z3 import (
+    Bool, BoolVal, Not, Or, And, Reals, Solver, sat, unsat, is_true, eq
+)
 
 
 def main():
     x, y = Reals('x y')
-    soft_constraints = [x > 2, x < 1, x < 0, Or(x + y > 0, y < 0), Or(y >= 0, x >= 0), Or(y < 0, x < 0),
-                        Or(y > 0, x < 0)]
+    soft_constraints = [
+        x > 2, x < 1, x < 0, Or(x + y > 0, y < 0),
+        Or(y >= 0, x >= 0), Or(y < 0, x < 0), Or(y > 0, x < 0)
+    ]
     hard_constraints = BoolVal(True)
     solver = MSSSolver(hard_constraints, soft_constraints)
     for lits in enumerate_sets(solver):
-        print("%s" % lits)
+        print(f"{lits}")
 
 
 def enumerate_sets(solver):
     while True:
         if sat == solver.s.check():
-            MSS = solver.grow()
-            yield MSS
+            mss_result = solver.grow()
+            yield mss_result
         else:
             break
 
@@ -57,18 +61,25 @@ class MSSSolver:
         self.n = len(soft)
         self.soft = soft
         self.s.add(hard)
-        self.soft_vars = set([self.c_var(i) for i in range(self.n)])
-        self.orig_soft_vars = set([self.c_var(i) for i in range(self.n)])
+        self.soft_vars = {self.c_var(i) for i in range(self.n)}
+        self.orig_soft_vars = {self.c_var(i) for i in range(self.n)}
         self.s.add([(self.c_var(i) == soft[i]) for i in range(self.n)])
+        # Initialize attributes that may be set later
+        self.model = None
+        self.unknown = set()
+        self.mss = []
+        self.mcs = []
+        self.nmcs = []
+        self.mcs_explain = {}
 
     def c_var(self, i):
         if i not in self.varcache:
-            v = Bool(str(self.soft[abs(i)]))
-            self.idcache[v] = abs(i)
+            var = Bool(str(self.soft[abs(i)]))
+            self.idcache[var] = abs(i)
             if i >= 0:
-                self.varcache[i] = v
+                self.varcache[i] = var
             else:
-                self.varcache[i] = Not(v)
+                self.varcache[i] = Not(var)
         return self.varcache[i]
 
     # Retrieve the latest model
@@ -89,21 +100,21 @@ class MSSSolver:
     #  for formula 'fml' and return the name.
 
     def add_def(self, fml):
-        name = Bool("%s" % fml)
+        name = Bool(f"{fml}")
         self.s.add(name == fml)
         return name
 
-    # replace Fs := f0, f1, f2, .. by
+    # replace fs := f0, f1, f2, .. by
     # Or(f1, f0), Or(f2, And(f1, f0)), Or(f3, And(f2, And(f1, f0))), ...
 
-    def relax_core(self, Fs):
-        assert (Fs <= self.soft_vars)
+    def relax_core(self, fs):
+        assert fs <= self.soft_vars
         prefix = BoolVal(True)
-        self.soft_vars -= Fs
-        Fs = [f for f in Fs]
-        for i in range(len(Fs) - 1):
-            prefix = self.add_def(And(Fs[i], prefix))
-            self.soft_vars.add(self.add_def(Or(prefix, Fs[i + 1])))
+        self.soft_vars -= fs
+        fs_list = list(fs)
+        for i in range(len(fs_list) - 1):
+            prefix = self.add_def(And(fs_list[i], prefix))
+            self.soft_vars.add(self.add_def(Or(prefix, fs_list[i + 1])))
 
     # Resolve literals from the core that
     # are 'explained', e.g., implied by
@@ -148,13 +159,14 @@ class MSSSolver:
                 self.nmcs.append(Not(x))
                 cores += [core]
             else:
-                print("solver returned %s" % is_sat)
-                exit()
+                print(f"solver returned {is_sat}")
+                import sys
+                sys.exit()
         mss = [x for x in self.orig_soft_vars if is_true(self.model[x])]
         mcs = [x for x in self.orig_soft_vars if not is_true(self.model[x])]
         self.s.add(Or(mcs))
-        core_literals = set([])
-        cores.sort(key=lambda element: len(element))
+        core_literals = set()
+        cores.sort(key=len)
         for core in cores:
             if len(core & core_literals) == 0:
                 self.relax_core(core)

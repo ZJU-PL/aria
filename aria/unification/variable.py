@@ -12,9 +12,9 @@ _glv = _global_logic_variables
 class LVarType(ABCMeta):
     """Metaclass for logic variable type checking."""
 
-    def __instancecheck__(self, o: Any) -> bool:  # noqa: ARG004
+    def __instancecheck__(cls, o: Any) -> bool:  # noqa: ARG004
         with suppress(TypeError):
-            return issubclass(type(o), (Var, LVarType)) or o in _glv
+            return issubclass(type(o), (Var, LVarType)) or o in _glv  # noqa: ARG001
 
 
 class Var(metaclass=LVarType):
@@ -89,7 +89,7 @@ def isvar(o: Any) -> bool:
 
 
 @contextmanager
-def variables(*variables: Any) -> Iterator[None]:  # noqa: A001
+def variables(*vars_list: Any) -> Iterator[None]:  # noqa: A001
     """Create a context manager within which arbitrary objects can be logic variables.
 
     >>> with variables(1):
@@ -112,7 +112,7 @@ def variables(*variables: Any) -> Iterator[None]:  # noqa: A001
     {'x': 1}
     """
     old_global_logic_variables = _global_logic_variables.copy()
-    _global_logic_variables.update(set(variables))
+    _global_logic_variables.update(set(vars_list))
     try:
         yield
     finally:

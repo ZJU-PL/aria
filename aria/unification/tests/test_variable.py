@@ -1,4 +1,4 @@
-from aria.unification.variable import Var, isvar, var, variables, vars
+from aria.unification.variable import Var, isvar, var, variables, vars  # noqa: A001
 
 
 def test_isvar():

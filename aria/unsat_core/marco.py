@@ -16,8 +16,9 @@ The algorithm that we describe next represents the essence of the core extractio
 procedure by Liffiton and Malik and independently by Previti and Marques-Silva:
  Enumerating Infeasibility: Finding Multiple MUSes Quickly
  Mark H. Liffiton and Ammar Malik
- in Proc. 10th International Conference on Integration of Artificial Intelligence (AI)
- and Operations Research (OR) techniques in Constraint Programming (CPAIOR-2013), 160-175, May 2013.
+ in Proc. 10th International Conference on Integration of
+ Artificial Intelligence (AI) and Operations Research (OR) techniques in
+ Constraint Programming (CPAIOR-2013), 160-175, May 2013.
 
 Partial MUS Enumeration
  Alessandro Previti, Joao Marques-Silva in Proc. AAAI-2013 July 2013
@@ -29,13 +30,14 @@ a simplification of one of the versions available from his Marco Polo Web site.
 It illustrates the following features of Z3's Python-based API:
    1. Using assumptions to track unsatisfiable cores.
    2. Using multiple solvers and passing constraints between them.
-   3. Calling the C-based API from Python. Not all API functions are supported over the
-      Python wrappers. This example shows how to get a unique integer identifier of an AST,
-      which can be used as a key in a hash-table.
+   3. Calling the C-based API from Python. Not all API functions are
+      supported over the Python wrappers. This example shows how to get a
+      unique integer identifier of an AST, which can be used as a key in a
+      hash-table.
 
 Idea of the Algorithm
-The main idea of the algorithm is to maintain two logical contexts and exchange information
-between them:
+The main idea of the algorithm is to maintain two logical contexts and
+exchange information between them:
 
     1. The MapSolver is used to enumerate sets of clauses that are not
        already supersets of an existing unsatisfiable core and not already
@@ -59,7 +61,7 @@ between them:
 """
 
 from z3 import (
-    Bool, Not, Or, Solver, Real, Reals, sat, unsat, is_false
+    Bool, Not, Or, Solver, Reals, sat, unsat, is_false
 )
 
 

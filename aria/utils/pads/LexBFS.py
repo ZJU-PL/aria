@@ -6,29 +6,28 @@ http://www.cs.colostate.edu/~rmm/lexbfs.ps
 
 D. Eppstein, November 2003.
 """
-
-
+# pylint: disable=invalid-name
 
 from aria.utils.pads.PartitionRefinement import PartitionRefinement
 from aria.utils.pads.Sequence import Sequence
 from aria.utils.pads.Util import arbitrary_item
 
 
-def LexBFS(G):
+def lex_bfs(graph):
     """Find lexicographic breadth-first-search traversal order of a graph.
-    G should be represented in such a way that "for v in G" loops through
-    the vertices, and "G[v]" produces a sequence of the neighbors of v; for
-    instance, G may be a dictionary mapping each vertex to its neighbor set.
-    Running time is O(n+m) and additional space usage over G is O(n).
+    graph should be represented in such a way that "for v in graph" loops through
+    the vertices, and "graph[v]" produces a sequence of the neighbors of v; for
+    instance, graph may be a dictionary mapping each vertex to its neighbor set.
+    Running time is O(n+m) and additional space usage over graph is O(n).
     """
-    P = PartitionRefinement(G)
-    S = Sequence(P, key=id)
-    while S:
-        current_set = S[0]
+    partition = PartitionRefinement(graph)
+    sequence = Sequence(partition, key=id)
+    while sequence:
+        current_set = sequence[0]
         v = arbitrary_item(current_set)
         yield v
-        P.remove(v)
+        partition.remove(v)
         if not current_set:
-            S.remove(current_set)
-        for new,old in P.refine(G[v]):
-            S.insertBefore(old,new)
+            sequence.remove(current_set)
+        for new, old in partition.refine(graph[v]):
+            sequence.insertBefore(old, new)

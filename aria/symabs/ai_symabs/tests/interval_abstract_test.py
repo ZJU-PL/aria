@@ -27,8 +27,8 @@ def test_single_interval_comparisons():
         assert not interval <= bottom
 
     # Non-containing intervals should be incomparable.
-    assert not (Interval(5, 100) <= Interval(6, 101))
-    assert not (Interval(5, 100) >= Interval(6, 101))
+    assert Interval(5, 100) > Interval(6, 101)
+    assert Interval(5, 100) < Interval(6, 101)
 
 
 def test_interval_state_creation_query():
@@ -101,15 +101,15 @@ def test_interval_state_ineq():
     })
 
     assert state1 <= state2
-    assert not (state2 <= state1)
-    assert not (state1 <= state3)
-    assert not (state3 <= state1)
-    assert not (state2 <= state3)
+    assert state2 > state1
+    assert state1 > state3
+    assert state3 > state1
+    assert state2 > state3
     assert state3 <= state2
 
     assert state2 >= state1
-    assert not (state1 >= state2)
-    assert not (state3 >= state1)
-    assert not (state1 >= state3)
-    assert not (state3 >= state2)
+    assert state1 < state2
+    assert state3 < state1
+    assert state1 < state3
+    assert state3 < state2
     assert state2 >= state3

@@ -4,7 +4,7 @@ independent set for bipartite graphs.
 D. Eppstein, April 2002.
 """
 
-from aria.utils.pads.StrongConnectivity import StronglyConnectedComponents
+from aria.utils.pads.strong_connectivity import StronglyConnectedComponents
 
 
 def matching(graph):
@@ -79,7 +79,8 @@ def matching(graph):
                             return True
             return False
 
-        for v in unmatched: recurse(v)
+        for v in unmatched:
+            recurse(v)
 
 def imperfections(graph):
     """

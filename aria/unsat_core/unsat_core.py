@@ -143,9 +143,11 @@ class UnsatCoreComputer:
 
         return UnsatCoreResult(cores=cores, is_minimal=True)
 
-    def _run_musx(self, constraints: List[Any],
-                  solver_factory: Callable[[], Any],  # noqa: ARG002
-                  timeout: Optional[int] = None, **kwargs) -> UnsatCoreResult:  # noqa: ARG002
+    def _run_musx(
+        self, constraints: List[Any],
+        solver_factory: Callable[[], Any],  # noqa: ARG002
+        timeout: Optional[int] = None, **kwargs  # noqa: ARG002
+    ) -> UnsatCoreResult:
         """Run MUSX algorithm to compute unsat core."""
         from pysat.formula import CNF  # noqa: PLC0415
 
@@ -191,9 +193,11 @@ class UnsatCoreComputer:
 
         return UnsatCoreResult(cores=[core_indices], is_minimal=True)
 
-    def _run_optux(self, constraints: List[Any],
-                   solver_factory: Callable[[], Any],  # noqa: ARG002
-                   timeout: Optional[int] = None, **kwargs) -> UnsatCoreResult:  # noqa: ARG002
+    def _run_optux(
+        self, constraints: List[Any],
+        solver_factory: Callable[[], Any],  # noqa: ARG002
+        timeout: Optional[int] = None, **kwargs  # noqa: ARG002
+    ) -> UnsatCoreResult:
         """Run OptUx algorithm to compute unsat core."""
         from pysat.formula import WCNF  # noqa: PLC0415
 

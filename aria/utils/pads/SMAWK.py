@@ -34,7 +34,8 @@ def ConcaveMinima(RowIndices,ColIndices,Matrix):
     """
 
     # Base case of recursion
-    if not ColIndices: return {}
+    if not ColIndices:
+        return {}
 
     # Reduce phase: make number of rows at most equal to number of cols
     stack = []
@@ -154,7 +155,8 @@ class OnlineConcaveMinima:
                     self._values.append(minima[col][0])
                     self._indices.append(minima[col][1])
                 elif minima[col][0] < self._values[col]:
-                    self._values[col],self._indices[col] = minima[col]
+                    self._values[col] = minima[col][0]
+                    self._indices[col] = minima[col][1]
             self._finished = i
             return
 

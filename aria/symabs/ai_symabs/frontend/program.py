@@ -18,7 +18,8 @@ class Program:
         support.
         """
         program_lines: List[str] = [
-            line.strip() for line in program.split("\n") if line.strip()]
+            line.strip() for line in program.split("\n") if line.strip()
+        ]
         program_statements: List[List[str]] = [line.split(" ") for line in program_lines]
 
         # (inout, op, in)

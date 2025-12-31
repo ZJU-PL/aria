@@ -25,7 +25,13 @@ class ActorRef:
         """Fire-and-forget send."""
         self._mailbox.put((message, None))
 
-    def ask(self, message: Any, timeout: Optional[float] = None, *, raise_on_error: bool = True) -> Any:
+    def ask(
+        self,
+        message: Any,
+        timeout: Optional[float] = None,
+        *,
+        raise_on_error: bool = True,
+    ) -> Any:
         """Send and wait for a reply, raising on timeout."""
         reply_q: "queue.Queue[Any]" = queue.Queue(maxsize=1)
         self._mailbox.put((message, reply_q))
@@ -46,6 +52,7 @@ class ActorHandle:
     def stop(self, timeout: Optional[float] = 1.0) -> None:
         self.stop_event.set()
         # poke mailbox to unblock
+        # pylint: disable=protected-access
         self.ref._mailbox.put((None, None))
         self.thread.join(timeout=timeout)
 
@@ -105,7 +112,9 @@ class ActorSystem:
     def __init__(self) -> None:
         self._actors: list[ActorHandle] = []
 
-    def spawn(self, handler: Callable[[Any], Any], *, name: Optional[str] = None) -> ActorRef:
+    def spawn(
+        self, handler: Callable[[Any], Any], *, name: Optional[str] = None
+    ) -> ActorRef:
         h = spawn(handler, name=name)
         self._actors.append(h)
         return h.ref

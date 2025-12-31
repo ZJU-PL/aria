@@ -3,7 +3,7 @@ D. Eppstein, April 2004.
 """
 
 import unittest
-from aria.utils.pads.Graphs import isUndirected, maxDegree, minDegree, copyGraph
+from aria.utils.pads.Graphs import is_undirected, max_degree, min_degree, copy_graph
 from aria.utils.pads.Biconnectivity import isBiconnected
 from aria.utils.pads.CardinalityMatching import matching
 from aria.utils.pads.Util import arbitrary_item, map_to_constant
@@ -23,12 +23,12 @@ def HamiltonianCycles(G):
     # Check input and copy it so we can modify the copy.
     # In the copied graph G, G[v][w] is True when vw is an original edge
     # of the input, and False when it was produced by a contraction.
-    if not G or not isUndirected(G) or maxDegree(G) > 3:
+    if not G or not is_undirected(G) or max_degree(G) > 3:
         raise ValueError(
             "HamiltonianCycles input must be undirected degree three graph")
-    if minDegree(G) < 2:
+    if min_degree(G) < 2:
         return
-    G = copyGraph(G,map_to_constant(True))
+    G = copy_graph(G,map_to_constant(True))
 
     # Subgraph of forced edges in the input
     forced_in_input = dict([(v,{}) for v in G])
@@ -155,7 +155,7 @@ def HamiltonianCycles(G):
             if u in G[w]:
                 if len(G[u]) < 3:
                     return len(G) == 3  # deg=2 only ok if 3 verts left
-                x = [y for y in G[u] if y != v and y != w][0]
+                x = [y for y in G[u] if y not in (v, w)][0]
                 if not force(u,x):
                     return False
         return True

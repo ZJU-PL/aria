@@ -5,7 +5,7 @@ from toolz import first, groupby
 
 from aria.unification.core import reify, unify
 from aria.unification.utils import _toposort, freeze
-from aria.unification.variable import isvar, Var
+from aria.unification.variable import isvar
 
 
 class Dispatcher:
@@ -34,7 +34,7 @@ class Dispatcher:
         for signature in self.ordering:
             if len(signature) != n:
                 continue
-            s = unify(frozen_args, signature)
+            s = unify(frozen_args, signature)  # pylint: disable=no-value-for-parameter
             if s is not False:
                 result = self.funcs[signature]
                 return result, s
@@ -105,7 +105,7 @@ def supercedes(a: Any, b: Any) -> bool:
     """Check if ``a`` is a more specific match than ``b``."""
     if isvar(b) and not isvar(a):
         return True
-    s = unify(a, b)
+    s = unify(a, b)  # pylint: disable=no-value-for-parameter
     if s is False:
         return False
     s = {k: v for k, v in s.items() if not isvar(k) or not isvar(v)}
@@ -122,7 +122,7 @@ def edge(a: Any, b: Any, tie_breaker: Callable = hash) -> bool:
     Tie broken by tie_breaker, defaults to ``hash``
     """
     if supercedes(a, b):
-        if supercedes(b, a):
+        if supercedes(b, a):  # pylint: disable=arguments-out-of-order
             return tie_breaker(a) > tie_breaker(b)
         return True
     return False

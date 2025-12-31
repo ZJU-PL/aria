@@ -23,7 +23,9 @@ class PythonProgram:
         self.source = source
         self.cfg, self.variables = build_python_cfg(source)
 
-    def transform(self, domain: ConjunctiveDomain, input_state: AbstractState) -> AbstractState:
+    def transform(
+        self, domain: ConjunctiveDomain, input_state: AbstractState
+    ) -> AbstractState:
         """Run abstract interpretation from the given input abstract state."""
         missing = set(self.variables) - set(domain.variables)  # type: ignore[attr-defined]
         if missing:

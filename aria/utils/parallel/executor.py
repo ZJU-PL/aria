@@ -17,7 +17,18 @@ from concurrent.futures import (
 import logging
 import time
 from dataclasses import dataclass
-from typing import Callable, Iterable, List, Optional, Sequence, Tuple, TypeVar, Union, Any, Dict
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 
 T = TypeVar("T")
@@ -52,22 +63,27 @@ class ParallelExecutor:
             self._pool: PoolKind = ThreadPoolExecutor(max_workers=self.max_workers)
         else:
             self._pool = ProcessPoolExecutor(
-                max_workers=self.max_workers, initializer=self.initializer, initargs=self.initargs
+                max_workers=self.max_workers,
+                initializer=self.initializer,
+                initargs=self.initargs,
             )
 
     def submit(self, fn: Callable[..., R], *args: Any, **kwargs: Any):
         if self.log_events:
             # Use a top-level wrapper to remain picklable for processes
+            logger_name = self.logger.name if self.logger else None
             return self._pool.submit(
-                _execute_with_logging, fn, args, kwargs, self.logger.name if self.logger else None
+                _execute_with_logging, fn, args, kwargs, logger_name
             )
         return self._pool.submit(fn, *args, **kwargs)
 
     def map(self, fn: Callable[[T], R], items: Iterable[T]) -> List[R]:
         return list(self._pool.map(fn, items))
 
-    def shutdown(self, wait: bool = True, cancel_futures: bool = False) -> None:
-        self._pool.shutdown(wait=wait, cancel_futures=cancel_futures)
+    def shutdown(
+        self, wait_for_completion: bool = True, cancel_futures: bool = False
+    ) -> None:
+        self._pool.shutdown(wait=wait_for_completion, cancel_futures=cancel_futures)
 
     def run(
         self,
@@ -189,8 +205,10 @@ def _gather_results(
     """Collect results with robust handling for exceptions and timeouts.
 
     - Preserves submission order
-    - On exception: optionally cancels remaining futures and re-raises (or returns exceptions)
-    - On timeout: cancels remaining futures; optionally signals to kill pool by raising TimeoutError
+    - On exception: optionally cancels remaining futures and re-raises
+      (or returns exceptions)
+    - On timeout: cancels remaining futures; optionally signals to kill pool
+      by raising TimeoutError
     """
     results: Dict[int, Any] = {}
     pending: Dict[Any, int] = {f: idx for idx, f in enumerate(futures)}

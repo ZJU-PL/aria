@@ -5,8 +5,10 @@ This module provides specialized support for multi-objective optimization
 using the SYMBA algorithm.
 """
 
-import z3
 from typing import List, Tuple
+
+import z3
+
 from .symba import SYMBA, SYMBAState
 
 
@@ -86,7 +88,7 @@ class MultiSYMBA:
                         if values_j[k] < values_i[k]:  # model_j is better for objective k
                             dominated = False
                             break
-                        elif values_j[k] > values_i[k]:  # model_j is worse for objective k
+                        if values_j[k] > values_i[k]:  # model_j is worse for objective k
                             strictly_better = True
 
                     if dominated and strictly_better:
@@ -160,7 +162,7 @@ class MultiSYMBA:
                 if values2[i] < values1[i]:  # model2 is better for objective i
                     dominates = False
                     break
-                elif values2[i] > values1[i]:  # model1 is better for objective i
+                if values2[i] > values1[i]:  # model1 is better for objective i
                     strictly_better = True
 
             return dominates and strictly_better

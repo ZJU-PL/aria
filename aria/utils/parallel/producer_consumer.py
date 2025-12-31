@@ -20,7 +20,10 @@ def producer_consumer(
     kind: str = "threads",
     queue_size: int = 256,
 ) -> List[R]:
-    """Run a producer feeding a pool of consumers; return results in completion order."""
+    """Run a producer feeding a pool of consumers.
+
+    Returns results in completion order.
+    """
     q: queue.Queue = queue.Queue(maxsize=queue_size)
     results: List[R] = []
     results_lock = threading.Lock()

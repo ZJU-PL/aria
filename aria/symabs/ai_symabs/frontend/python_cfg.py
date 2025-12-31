@@ -100,7 +100,9 @@ class _CFGBuilder:
                 op_str = ">>"
             else:
                 raise ValueError(f"Unsupported binary op: {op}")
-            return BinOp(op_str, self._parse_expr(node.left), self._parse_expr(node.right))
+            return BinOp(
+                op_str, self._parse_expr(node.left), self._parse_expr(node.right)
+            )
         if isinstance(node, ast.BoolOp):
             if isinstance(node.op, ast.And):
                 op_str = "and"
@@ -123,7 +125,8 @@ class _CFGBuilder:
             op_str = _cmp_to_str(node.ops[0])
             return Compare(
                 self._parse_expr(node.left), op_str,
-                self._parse_expr(node.comparators[0]))
+                self._parse_expr(node.comparators[0])
+            )
         raise ValueError(f"Unsupported expression node: {ast.dump(node)}")
 
     # --- statement lowering ---------------------------------------------
@@ -151,7 +154,9 @@ class _CFGBuilder:
             self.variables.add(target)
             op = stmt.op
             op_str = _aug_to_str(op)
-            block.add_statement(AssignStmt(target, op_str, self._parse_expr(stmt.value)))
+            block.add_statement(
+                AssignStmt(target, op_str, self._parse_expr(stmt.value))
+            )
             return [block.block_id]
 
         if isinstance(stmt, ast.If):
@@ -233,7 +238,9 @@ class _CFGBuilder:
         cond_expr = _range_condition(target_name, stop_expr, step_expr, step_const)
         body_entry = self._new_block()
         after_loop = self._new_block()
-        cond_block.terminator = Branch(cond_expr, body_entry.block_id, after_loop.block_id)
+        cond_block.terminator = Branch(
+            cond_expr, body_entry.block_id, after_loop.block_id
+        )
 
         body_exits = self._build_body(stmt.body, [body_entry.block_id])
 
@@ -241,7 +248,9 @@ class _CFGBuilder:
         increment_op = "+=" if (step_const is None or step_const > 0) else "-="
         increment_expr = step_expr if increment_op == "+=" else Const(abs(step_const))
         for b in body_exits:
-            self.blocks[b].add_statement(AssignStmt(target_name, increment_op, increment_expr))
+            self.blocks[b].add_statement(
+                AssignStmt(target_name, increment_op, increment_expr)
+            )
             self._set_goto(b, cond_block.block_id)
 
         return [after_loop.block_id]
@@ -293,7 +302,9 @@ def _maybe_const_int(expr: Expr) -> Optional[int]:
     return None
 
 
-def _range_condition(var: str, stop: Expr, step: Expr, step_const: Optional[int]) -> Expr:
+def _range_condition(
+    var: str, stop: Expr, step: Expr, step_const: Optional[int]
+) -> Expr:
     var_expr = Var(var)
     stop_cmp_lt = Compare(var_expr, "<", stop)
     stop_cmp_gt = Compare(var_expr, ">", stop)

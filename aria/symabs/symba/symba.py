@@ -4,15 +4,17 @@ SYMBA: Symbolic Optimization with SMT Solvers
 This module implements the SYMBA algorithm for optimizing objective functions
 in linear real arithmetic using SMT solvers as black boxes.
 
-Based on the paper "Symbolic Optimization with SMT Solvers" by Li, Albarghouthi, Kincaid, Gurinkel, and Chechik.
+Based on the paper "Symbolic Optimization with SMT Solvers" by Li, Albarghouthi,
+Kincaid, Gurinkel, and Chechik.
 """
 
-import z3
-from typing import List, Tuple, Optional, Set, Dict
+import logging
+import time
 from dataclasses import dataclass, field
 from enum import Enum
-import time
-import logging
+from typing import Dict, List, Optional, Tuple
+
+import z3
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -205,9 +207,10 @@ class SYMBA:
                 pass
 
         if form_T_constraints:
-            return z3.And(form_T_constraints) if len(form_T_constraints) > 1 else form_T_constraints[0]
-        else:
-            return z3.BoolVal(True)  # No constraints means everything is allowed
+            return (z3.And(form_T_constraints)
+                    if len(form_T_constraints) > 1
+                    else form_T_constraints[0])
+        return z3.BoolVal(True)  # No constraints means everything is allowed
 
     def _is_equality_constraint(self, expr: z3.ExprRef) -> bool:
         """Check if expression is an equality constraint (obj == val)"""
@@ -220,10 +223,9 @@ class SYMBA:
         if left in self.objectives and right.is_int() and right.is_numeral():
             return left, right.as_long()
         # Check if right is an objective and left is a constant
-        elif right in self.objectives and left.is_int() and left.is_numeral():
+        if right in self.objectives and left.is_int() and left.is_numeral():
             return right, left.as_long()
-        else:
-            return None, None
+        return None, None
 
     def _apply_global_push(self) -> Optional[z3.ModelRef]:
         """
@@ -474,8 +476,8 @@ class SYMBA:
             The final SYMBA state containing the results
         """
         logger.info("Starting SYMBA optimization")
-        logger.info(f"Formula: {self.formula}")
-        logger.info(f"Objectives: {self.objectives}")
+        logger.info("Formula: %s", self.formula)
+        logger.info("Objectives: %s", self.objectives)
 
         start_time = time.time()
 
@@ -485,9 +487,9 @@ class SYMBA:
 
         while not self._should_terminate() and iteration < max_iterations:
             iteration += 1
-            logger.debug(f"Iteration {iteration}")
-            logger.debug(f"Current state: U={self.state.U}, O={self.state.O}")
-            logger.debug(f"Models found: {len(self.state.M)}")
+            logger.debug("Iteration %d", iteration)
+            logger.debug("Current state: U=%s, O=%s", self.state.U, self.state.O)
+            logger.debug("Models found: %d", len(self.state.M))
 
             rules_applied = False
 
@@ -503,20 +505,22 @@ class SYMBA:
                 for i in range(len(self.objectives)):
                     # Try UNBOUNDED for each objective
                     if self._apply_unbounded(i):
-                        logger.debug(f"Applied UNBOUNDED rule for objective {i}")
+                        logger.debug("Applied UNBOUNDED rule for objective %d", i)
                         self.stats['rules_applied'][InferenceRule.UNBOUNDED] += 1
                         rules_applied = True
                         break
 
                     # Try UNBOUNDED-FAIL for each objective
                     if self._apply_unbounded_fail(i):
-                        logger.debug(f"Applied UNBOUNDED-FAIL rule for objective {i}")
+                        logger.debug(
+                            "Applied UNBOUNDED-FAIL rule for objective %d", i
+                        )
                         self.stats['rules_applied'][InferenceRule.UNBOUNDED_FAIL] += 1
                         rules_applied = True
 
                         # After UNBOUNDED-FAIL, try BOUNDED
                         if self._apply_bounded(i):
-                            logger.debug(f"Applied BOUNDED rule for objective {i}")
+                            logger.debug("Applied BOUNDED rule for objective %d", i)
                             self.stats['rules_applied'][InferenceRule.BOUNDED] += 1
                         break
 
@@ -528,11 +532,17 @@ class SYMBA:
         self.stats['total_time'] = total_time
 
         if iteration >= max_iterations:
-            logger.warning(f"SYMBA reached maximum iterations ({max_iterations}), terminating")
+            logger.warning(
+                "SYMBA reached maximum iterations (%d), terminating",
+                max_iterations
+            )
 
-        logger.info(f"SYMBA completed in {total_time:.2f}s with {self.stats['smt_queries']} SMT queries")
-        logger.info(f"Rules applied: {self.stats['rules_applied']}")
-        logger.info(f"Final bounds: {self.get_optimal_values()}")
+        logger.info(
+            "SYMBA completed in %.2fs with %d SMT queries",
+            total_time, self.stats['smt_queries']
+        )
+        logger.info("Rules applied: %s", self.stats['rules_applied'])
+        logger.info("Final bounds: %s", self.get_optimal_values())
 
         return self.state
 

@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import z3
 
-from aria.symabs.rangeset.range_set_abstraction import minimum, maximum, range_abstraction, set_abstraction
+from aria.symabs.rangeset.range_set_abstraction import (
+    minimum, maximum, range_abstraction, set_abstraction
+)
 
 
 def demo_unsigned():

@@ -12,13 +12,13 @@ import z3
 def optimize(fml: z3.ExprRef, obj: z3.ExprRef, minimize=False, timeout: int = 0):
     """
     The optimize function takes in a formula, an objective function, and whether the
-     objective is to be minimized. It then adds the formula to a z3 solver object and sets
-    its timeout if one was specified. It then maximizes/minimizes
+     objective is to be minimized. It then adds the formula to a z3 solver object and
+    sets its timeout if one was specified. It then maximizes/minimizes
     the given objective function depending on what was specified.
 
     :param fml:z3.ExprRef: Pass the formula
     :param obj:z3.ExprRef: Specify the objective function
-    :param minimize: Specify whether we want to maximize or minimize the objective function
+    :param minimize: Specify whether we want to maximize or minimize the objective
     :param timeout:int: Set a timeout for the optimization
     :return: The value of the objective, or None if unsatisfiable
     """
@@ -59,10 +59,12 @@ def box_optimize(fml: z3.ExprRef, minimize: List, maximize: List, timeout: int =
     raise ValueError("box_optimize: No solution found or timeout")
 
 
-def maxsmt(hard: z3.BoolRef, soft: List[z3.BoolRef], weight: List[int], timeout=0) -> int:
+def maxsmt(hard: z3.BoolRef, soft: List[z3.BoolRef], weight: List[int],
+           timeout=0) -> int:
     """
     Solving MaxSMT instances
-    :return:  sum of weight for unsatisfied soft clauses (following the MaxSAT literature?)
+    :return:  sum of weight for unsatisfied soft clauses
+    (following the MaxSAT literature?)
     """
     cost = 0
     s = z3.Optimize()

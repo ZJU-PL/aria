@@ -91,7 +91,9 @@ class LIRASymbolicAbstraction:
             multi_queries = []
             for var in self.vars:
                 multi_queries.append(var)
-            self.interval_abs_as_fml = z3.simplify(self.omt_engine.min_max_many(multi_queries))
+            self.interval_abs_as_fml = z3.simplify(
+                self.omt_engine.min_max_many(multi_queries)
+            )
         else:
             cnts = []
             for var in self.vars:
@@ -115,7 +117,9 @@ class LIRASymbolicAbstraction:
             for v1, v2 in zones:
                 multi_queries.append(v1 - v2)
 
-            self.zone_abs_as_fml = z3.simplify(self.omt_engine.min_max_many(multi_queries))
+            self.zone_abs_as_fml = z3.simplify(
+                self.omt_engine.min_max_many(multi_queries)
+            )
         else:
             zone_cnts = []
             objs = []
@@ -141,7 +145,9 @@ class LIRASymbolicAbstraction:
                 multi_queries.append(v1 - v2)
                 multi_queries.append(v1 + v2)
 
-            self.octagon_abs_as_fml = z3.simplify(self.omt_engine.min_max_many(multi_queries))
+            self.octagon_abs_as_fml = z3.simplify(
+                self.omt_engine.min_max_many(multi_queries)
+            )
         else:
             oct_cnts = []
             objs = []

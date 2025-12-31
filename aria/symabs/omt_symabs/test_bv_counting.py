@@ -33,7 +33,7 @@ def count_bv_models(formula):
         Number of satisfying assignments
     """
     all_vars = get_variables(formula)
-    solution_count = 0
+    solution_count_var = 0
 
     # Generate all possible assignments for each variable
     ranges = [range(2 ** var.sort().size()) for var in all_vars]
@@ -41,9 +41,9 @@ def count_bv_models(formula):
     # Check each assignment
     for assignment in itertools.product(*ranges):
         if check_candidate_model(formula, all_vars, assignment):
-            solution_count += 1
+            solution_count_var += 1
 
-    return solution_count
+    return solution_count_var
 
 
 if __name__ == "__main__":
@@ -53,8 +53,8 @@ if __name__ == "__main__":
     test_formula = z3.And(z3.UGT(x, 2), z3.UGT(y, 1))
 
     time_start = time.process_time()
-    solution_count = count_bv_models(test_formula)
+    SOLUTION_COUNT = count_bv_models(test_formula)
     elapsed = time.process_time() - time_start
 
     print(f"Time: {elapsed:.4f}s")
-    print(f"Total solutions: {solution_count}")
+    print(f"Total solutions: {SOLUTION_COUNT}")

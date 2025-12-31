@@ -139,9 +139,10 @@ class BVSymbolicAbstraction:
         """
 
         n_queries = len(multi_queries)
-        timeout = n_queries * self.single_query_timeout * 2  # is this reasonable?
+        timeout = n_queries * self.single_query_timeout * 2
         min_res, max_res = box_optimize(
-            self.formula, minimize=multi_queries, maximize=multi_queries, timeout=timeout
+            self.formula, minimize=multi_queries, maximize=multi_queries,
+            timeout=timeout
         )
         # TODO: the res of handler.xx() is not a BitVec val, but Int?
         # TODO: what if it is a value large than the biggest integer of the size
@@ -154,9 +155,13 @@ class BVSymbolicAbstraction:
             vmax_bvval = z3.BitVecVal(vmax.as_long(), query.sort().size())
             # print(self.vars[i].sort(), vmin.sort(), vmax.sort())
             if self.signed:
-                cnts.append(z3.And(query >= vmin_bvval, query <= vmax_bvval))
+                cnts.append(
+                    z3.And(query >= vmin_bvval, query <= vmax_bvval)
+                )
             else:
-                cnts.append(z3.And(z3.UGE(query, vmin_bvval), z3.ULE(query, vmax_bvval)))
+                cnts.append(
+                    z3.And(z3.UGE(query, vmin_bvval), z3.ULE(query, vmax_bvval))
+                )
         return z3.And(cnts)
 
     def interval_abs(self):
@@ -169,7 +174,9 @@ class BVSymbolicAbstraction:
         if self.compact_opt:
             # Use multi-query optimization for better performance
             multi_queries = list(self.vars)
-            self.interval_abs_as_fml = self.min_max_many(multi_queries)
+            self.interval_abs_as_fml = self.min_max_many(
+                multi_queries
+            )
         else:
             # Compute intervals one variable at a time
             constraints = []
@@ -181,7 +188,9 @@ class BVSymbolicAbstraction:
                 if self.signed:
                     constraint = z3.And(var >= vmin, var <= vmax)
                 else:
-                    constraint = z3.And(z3.UGE(var, vmin), z3.ULE(var, vmax))
+                    constraint = z3.And(
+                        z3.UGE(var, vmin), z3.ULE(var, vmax)
+                    )
                 constraints.append(constraint)
             self.interval_abs_as_fml = z3.And(constraints)
         # Preserve boolean variables in abstraction
@@ -214,7 +223,9 @@ class BVSymbolicAbstraction:
                     if self.obj_no_overflow:
                         wrap_around_cnts.append(z3.BVSubNoOverflow(v1, v2))
                     if self.obj_no_underflow:
-                        wrap_around_cnts.append(z3.BVSubNoUnderflow(v1, v2, signed=self.signed))
+                        wrap_around_cnts.append(
+                            z3.BVSubNoUnderflow(v1, v2, signed=self.signed)
+                        )
 
             if len(wrap_around_cnts) > 1:
                 self.formula = z3.And(self.formula, z3.And(wrap_around_cnts))
@@ -234,7 +245,9 @@ class BVSymbolicAbstraction:
                     if self.obj_no_overflow:
                         wrap_around_cnts.append(z3.BVSubNoOverflow(v1, v2))
                     if self.obj_no_underflow:
-                        wrap_around_cnts.append(z3.BVSubNoUnderflow(v1, v2, signed=self.signed))
+                        wrap_around_cnts.append(
+                            z3.BVSubNoUnderflow(v1, v2, signed=self.signed)
+                        )
 
             if len(wrap_around_cnts) > 1:
                 self.formula = z3.And(self.formula, z3.And(wrap_around_cnts))
@@ -246,7 +259,9 @@ class BVSymbolicAbstraction:
                 if self.signed:
                     zone_cnts.append(z3.And(exp >= exmin, exp <= exmax))
                 else:
-                    zone_cnts.append(z3.And(z3.UGE(exp, exmin), z3.ULE(exp, exmax)))
+                    zone_cnts.append(
+                        z3.And(z3.UGE(exp, exmin), z3.ULE(exp, exmax))
+                    )
 
             self.zone_abs_as_fml = z3.And(zone_cnts)
         # Preserve boolean variables in abstraction
@@ -281,9 +296,13 @@ class BVSymbolicAbstraction:
                     multi_queries.append(v1 + v2)
                     if self.obj_no_overflow:
                         wrap_around_cnts.append(z3.BVSubNoOverflow(v1, v2))
-                        wrap_around_cnts.append(z3.BVAddNoOverflow(v1, v2, signed=self.signed))
+                        wrap_around_cnts.append(
+                            z3.BVAddNoOverflow(v1, v2, signed=self.signed)
+                        )
                     if self.obj_no_underflow:
-                        wrap_around_cnts.append(z3.BVSubNoUnderflow(v1, v2, signed=self.signed))
+                        wrap_around_cnts.append(
+                            z3.BVSubNoUnderflow(v1, v2, signed=self.signed)
+                        )
                         wrap_around_cnts.append(z3.BVAddNoUnderflow(v1, v2))
 
             if len(wrap_around_cnts) > 1:
@@ -305,9 +324,13 @@ class BVSymbolicAbstraction:
                     objs.append(v1 + v2)
                     if self.obj_no_overflow:
                         wrap_around_cnts.append(z3.BVSubNoOverflow(v1, v2))
-                        wrap_around_cnts.append(z3.BVAddNoOverflow(v1, v2, signed=self.signed))
+                        wrap_around_cnts.append(
+                            z3.BVAddNoOverflow(v1, v2, signed=self.signed)
+                        )
                     if self.obj_no_underflow:
-                        wrap_around_cnts.append(z3.BVSubNoUnderflow(v1, v2, signed=self.signed))
+                        wrap_around_cnts.append(
+                            z3.BVSubNoUnderflow(v1, v2, signed=self.signed)
+                        )
                         wrap_around_cnts.append(z3.BVAddNoUnderflow(v1, v2))
 
             if len(wrap_around_cnts) > 1:
@@ -319,7 +342,9 @@ class BVSymbolicAbstraction:
                 if self.signed:
                     oct_cnts.append(z3.And(exp >= exmin, exp <= exmax))
                 else:
-                    oct_cnts.append(z3.And(z3.UGE(exp, exmin), z3.ULE(exp, exmax)))
+                    oct_cnts.append(
+                        z3.And(z3.UGE(exp, exmin), z3.ULE(exp, exmax))
+                    )
 
             self.octagon_abs_as_fml = z3.And(oct_cnts)
         # Preserve boolean variables in abstraction
@@ -353,7 +378,12 @@ class BVSymbolicAbstraction:
                 if sol.check() == z3.unsat:
                     cnts.append(z3.Extract(i, i, var) == 0)
                     continue
-                cnts.append(z3.Or(z3.Extract(i, i, var) == 0, z3.Extract(i, i, var) == 1))
+                cnts.append(
+                    z3.Or(
+                        z3.Extract(i, i, var) == 0,
+                        z3.Extract(i, i, var) == 1
+                    )
+                )
         self.bitwise_abs_as_fml = z3.And(cnts)
         # Preserve boolean variables in abstraction
         self.bitwise_abs_as_fml = z3.And(

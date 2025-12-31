@@ -5,7 +5,9 @@ Test module for LIRA symbolic abstraction functionality.
 import z3
 from aria.tests.formula_generator import FormulaGenerator
 # from aria.tests.grammar_gene import generate_from_grammar_as_str
-from aria.symabs.omt_symabs.lira_symbolic_abstraction import LIRASymbolicAbstraction, OMTEngineType
+from aria.symabs.omt_symabs.lira_symbolic_abstraction import (
+    LIRASymbolicAbstraction, OMTEngineType
+)
 
 
 def is_sat(e):

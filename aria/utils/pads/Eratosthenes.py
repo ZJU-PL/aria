@@ -26,7 +26,7 @@ We also include a variant of the sieve that produces a list of all
 integers, with their factorizations, and an application of this
 variant in the generation of practical numbers.
 """
-
+# pylint: disable=invalid-name
 import unittest
 
 def primes():
@@ -36,36 +36,42 @@ def primes():
     # Generate recursively the sequence of primes up to sqrt(n).
     # Each p from the sequence is used to initiate sieving at p*p.
     roots = primes()
-    root = next(roots)
+    try:
+        root = next(roots)
+    except StopIteration:
+        return
     square = root*root
 
     # The main sieving loop.
     # We use a hash table D such that D[n]=2p for p a prime factor of n.
     # Each prime p up to sqrt(n) appears once as a value in D, and is
     # moved to successive odd multiples of p as the sieve progresses.
-    D = {}
+    sieve_dict = {}
     n = 3
     while True:
         if n >= square:     # Time to include another square?
-            D[square] = root+root
-            root = next(roots)
+            sieve_dict[square] = root+root
+            try:
+                root = next(roots)
+            except StopIteration:
+                return
             square = root*root
 
-        if n not in D:      # Not witnessed, must be prime.
+        if n not in sieve_dict:      # Not witnessed, must be prime.
             yield n
         else:               # Move witness p to next free multiple.
-            p = D[n]
+            p = sieve_dict[n]
             q = n+p
-            while q in D:
+            while q in sieve_dict:
                 q += p
-            del D[n]
-            D[q] = p
+            del sieve_dict[n]
+            sieve_dict[q] = p
         n += 2              # Move on to next odd number.
 
-def FactoredIntegers():
+def factored_integers():
     """
-    Generate pairs n,F where F is the prime factorization of n.
-    F is represented as a dictionary in which each prime factor of n
+    Generate pairs n,fact where fact is the prime factorization of n.
+    fact is represented as a dictionary in which each prime factor of n
     is a key and the exponent of that prime is the corresponding value.
     """
     yield 1,{}
@@ -73,60 +79,60 @@ def FactoredIntegers():
     factorization = {}
     while True:
         if i not in factorization:  # prime
-            F = {i:1}
-            yield i,F
-            factorization[2*i] = F
+            fact = {i:1}
+            yield i,fact
+            factorization[2*i] = fact
         elif len(factorization[i]) == 1:    # prime power
-            p,x = list(factorization[i].items())[0]
-            F = {p:x+1}
-            yield i,F
-            factorization[2*i] = F
-            factorization.setdefault(i+p**x,{})[p] = x
+            p,exp = list(factorization[i].items())[0]
+            fact = {p:exp+1}
+            yield i,fact
+            factorization[2*i] = fact
+            factorization.setdefault(i+p**exp,{})[p] = exp
             del factorization[i]
         else:
             yield i,factorization[i]
-            for p,x in factorization[i].items():
-                q = p**x
+            for p,exp in factorization[i].items():
+                q = p**exp
                 iq = i+q
                 if iq in factorization and p in factorization[iq]:
-                    iq += p**x  # skip higher power of p
-                factorization.setdefault(iq,{})[p] = x
+                    iq += p**exp  # skip higher power of p
+                factorization.setdefault(iq,{})[p] = exp
             del factorization[i]
         i += 1
 
-def isPracticalFactorization(f):
-    """Test whether f is the factorization of a practical number."""
-    f = list(f.items())
-    f.sort()
+def is_practical_factorization(fact):
+    """Test whether fact is the factorization of a practical number."""
+    fact_list = list(fact.items())
+    fact_list.sort()
     sigma = 1
-    for p,x in f:
+    for p,exp in fact_list:
         if sigma < p - 1:
             return False
-        sigma *= (p**(x+1)-1)//(p-1)
+        sigma *= (p**(exp+1)-1)//(p-1)
     return True
 
-def PracticalNumbers():
+def practical_numbers():
     """Generate the sequence of practical (or panarithmic) numbers."""
-    for x,f in FactoredIntegers():
-        if isPracticalFactorization(f):
-            yield x
+    for num,fact in factored_integers():
+        if is_practical_factorization(fact):
+            yield num
 
 # If run standalone, perform unit tests
 class SieveTest(unittest.TestCase):
-    def testPrime(self):
+    def test_prime(self):
         """Test that the first few primes are generated correctly."""
-        G = primes()
+        prime_gen = primes()
         for p in [2,3,5,7,11,13,17,19,23,29,31,37]:
-            self.assertEqual(p,next(G))
+            self.assertEqual(p,next(prime_gen))
 
-    def testPractical(self):
+    def test_practical(self):
         """Test that the first few practical nos are generated correctly."""
-        G = PracticalNumbers()
+        practical_gen = practical_numbers()
         for p in [1,2,4,6,8,12,16,18,20,24,28,30,32,36]:
-            self.assertEqual(p,next(G))
+            self.assertEqual(p,next(practical_gen))
 
 if __name__ == "__main__":
     unittest.main()
 
-for x in PracticalNumbers():
-    print(x)
+for practical_num in practical_numbers():
+    print(practical_num)

@@ -663,7 +663,7 @@ if __name__ == '__main__':
     adapt, cover, dcalls, exhaust, minz, trim, to_enum, solver, puresat, \
         unsorted, verbose, files = parse_options()
 
-        if files:
+    if files:
             # reading standard CNF, WCNF, or (W)CNF+
             if re.search(r'cnf[p|+]?(\.(gz|bz2|lzma|xz))?$', files[0]):
                 if re.search(

@@ -143,7 +143,9 @@ class AbstractionAnalyzer:
             logger.info("model count failed")
             sys.exit(1)
 
-    def compute_false_positives(self, abs_formula: ExprRef) -> Tuple[bool, float, float]:
+    def compute_false_positives(
+        self, abs_formula: ExprRef
+    ) -> Tuple[bool, float, float]:
         """Compute false positive rate for an abstraction"""
         solver = z3.Solver()
         solver.add(abs_formula)
@@ -248,9 +250,12 @@ class AbstractionAnalyzer:
                     results.bitwise_fp_count = fp_count
 
             for d1, f1, d2, f2 in [
-                ("Interval", self.sa.interval_abs_as_fml, "Zone", self.sa.zone_abs_as_fml),
-                ("Interval", self.sa.interval_abs_as_fml, "Octagon", self.sa.octagon_abs_as_fml),
-                ("Interval", self.sa.interval_abs_as_fml, "Bitwise", self.sa.bitwise_abs_as_fml)
+                ("Interval", self.sa.interval_abs_as_fml, "Zone",
+                 self.sa.zone_abs_as_fml),
+                ("Interval", self.sa.interval_abs_as_fml, "Octagon",
+                 self.sa.octagon_abs_as_fml),
+                ("Interval", self.sa.interval_abs_as_fml, "Bitwise",
+                 self.sa.bitwise_abs_as_fml)
             ]:
                 mc = BVModelCounter()
                 mc.init_from_fml(z3.And(f1, f2))

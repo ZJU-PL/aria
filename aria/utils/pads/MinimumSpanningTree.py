@@ -4,7 +4,7 @@
 
 from aria.utils.pads.UnionFind import UnionFind
 
-def MinimumSpanningTree(G):
+def minimum_spanning_tree(graph):
     """
     Return the minimum spanning tree of an undirected graph G.
     G should be represented in such a way that G[u][v] gives the
@@ -18,9 +18,9 @@ def MinimumSpanningTree(G):
     # part (the sort) is sped up by being built in to Python.
     subtrees = UnionFind()
     tree = []
-    edges = [(G[u][v],u,v) for u in G for v in G[u]]
+    edges = [(graph[u][v],u,v) for u in graph for v in graph[u]]
     edges.sort()
-    for W,u,v in edges:
+    for weight,u,v in edges:
         if subtrees[u] != subtrees[v]:
             tree.append((u,v))
             subtrees.union(u,v)

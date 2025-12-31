@@ -48,7 +48,7 @@ class RegularLanguage:
         return self.recognizer.minimize() == other.recognizer.minimize()
 
     def __ne__(self,other):
-        return not (self == other)
+        return not self == other
 
     def __le__(self,other):
         return not(self &~ other)

@@ -14,7 +14,7 @@ skip_benchmarks = True
 try:
     import pytest_benchmark  # noqa: F401
     skip_benchmarks = False
-except ImportError:
+except ImportError:  # noqa: S110
     pass
 
 nesting_sizes = [10, 35, 300]
@@ -30,7 +30,7 @@ def unify_stack(u, v, s):
     if isvar(u):
         return assoc(s, u, v)
     if isvar(v):
-        return assoc(s, v, u)
+        return assoc(s, v, u)  # pylint: disable=arguments-out-of-order
 
     if isinstance(u, (tuple, list)) and type(u) == type(v):
         for i_u, i_v in zip(u, v):

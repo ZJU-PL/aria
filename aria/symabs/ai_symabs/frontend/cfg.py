@@ -198,7 +198,9 @@ def expr_to_z3(expr: Expr, env: Dict[str, z3.ArithRef]) -> z3.ExprRef:
 
 
 # === Transfer functions ====================================================
-def _apply_assignment(domain: ConjunctiveDomain, state: AbstractState, stmt: AssignStmt) -> AbstractState:
+def _apply_assignment(
+    domain: ConjunctiveDomain, state: AbstractState, stmt: AssignStmt
+) -> AbstractState:
     """Apply a single assignment to an abstract state."""
     translation = {name: f"{name}'" for name in domain.variables}  # type: ignore[attr-defined]
     post_domain = domain.translate(translation)
@@ -255,19 +257,25 @@ def _apply_assignment(domain: ConjunctiveDomain, state: AbstractState, stmt: Ass
     )  # type: ignore[attr-defined]
 
 
-def _apply_block(domain: ConjunctiveDomain, state: AbstractState, block: BasicBlock) -> AbstractState:
+def _apply_block(
+    domain: ConjunctiveDomain, state: AbstractState, block: BasicBlock
+) -> AbstractState:
     new_state = state
     for stmt in block.statements:
         new_state = _apply_assignment(domain, new_state, stmt)
     return new_state
 
 
-def _refine(domain: ConjunctiveDomain, state: AbstractState, constraint: z3.ExprRef) -> AbstractState:
+def _refine(
+    domain: ConjunctiveDomain, state: AbstractState, constraint: z3.ExprRef
+) -> AbstractState:
     phi = domain.logic_and([domain.gamma_hat(state), constraint])
     return bilateral(domain, phi)
 
 
-def analyze_cfg(cfg: CFG, domain: ConjunctiveDomain, input_state: AbstractState) -> AbstractState:
+def analyze_cfg(
+    cfg: CFG, domain: ConjunctiveDomain, input_state: AbstractState
+) -> AbstractState:
     """Run abstract interpretation over the CFG and return join of exit states."""
     states: Dict[str, AbstractState] = {cfg.entry: input_state}
     worklist: deque[str] = deque([cfg.entry])
@@ -312,6 +320,6 @@ def _propagate(
         worklist.append(target)
         return
     joined = domain.join([states[target], candidate])
-    if not (joined <= states[target]):  # type: ignore[operator]
+    if joined > states[target]:  # type: ignore[operator]
         states[target] = joined
         worklist.append(target)

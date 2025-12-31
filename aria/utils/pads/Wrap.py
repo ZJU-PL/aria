@@ -46,7 +46,8 @@ def wrap(text,                  # string to be wrapped
     # Below this definition we will set up cost[i] to be the
     # total penalty of all lines up to a break prior to word i.
     def penalty(i,j):
-        if j > len(words): return -i    # concave flag for out of bounds
+        if j > len(words):
+            return -i    # concave flag for out of bounds
         total = cost.value(i) + nlinepenalty
         prevmeasure = i and words[i-1][2]
         linemeasure = words[j-1][2] - prevmeasure

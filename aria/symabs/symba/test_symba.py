@@ -1,8 +1,10 @@
 """Test cases for SYMBA implementation."""
 
-import z3
-import sys
 import os
+import sys
+
+import z3
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 from aria.symabs.symba import SYMBA, MultiSYMBA
 

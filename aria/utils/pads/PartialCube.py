@@ -7,9 +7,9 @@ D. Eppstein, September 2005, rewritten May 2007 per arxiv:0705.1025.
 import unittest
 
 from aria.utils.pads import BFS, Medium
-from aria.utils.pads.Bipartite import isBipartite
-from aria.utils.pads.Graphs import isUndirected
-from aria.utils.pads.StrongConnectivity import StronglyConnectedComponents
+from aria.utils.pads.Bipartite import is_bipartite
+from aria.utils.pads.Graphs import is_undirected
+from aria.utils.pads.strong_connectivity import StronglyConnectedComponents
 from aria.utils.pads.UnionFind import UnionFind
 
 
@@ -29,7 +29,7 @@ def PartialCubeEdgeLabeling(G):
     """
 
     # Some simple sanity checks
-    if not isUndirected(G):
+    if not is_undirected(G):
         raise Medium.MediumError("graph is not undirected")
     L = list(StronglyConnectedComponents(G))
     if len(L) != 1:
@@ -53,7 +53,7 @@ def PartialCubeEdgeLabeling(G):
 
     # Main contraction loop in place of the original algorithm's recursion
     while len(CG) > 1:
-        if not isBipartite(CG):
+        if not is_bipartite(CG):
             raise Medium.MediumError("graph is not bipartite")
 
         # Find max degree vertex in G, and update label limit
@@ -72,7 +72,7 @@ def PartialCubeEdgeLabeling(G):
             i += 1
 
         # Breadth first search to propagate bitvectors to the rest of the graph
-        for LG in BFS.BreadthFirstLevels(CG,root):
+        for LG in BFS.breadth_first_levels(CG,root):
             for v in LG:
                 for w in LG[v]:
                     bitvec[w] |= bitvec[v]

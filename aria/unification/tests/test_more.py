@@ -6,7 +6,7 @@ from aria.unification.core import _reify, _unify, reify, stream_eval, unify
 from aria.unification.more import _reify_object, _unify_object, unifiable
 
 
-class Foo(object):
+class Foo:
     def __init__(self, a, b):
         self.a = a
         self.b = b
@@ -15,7 +15,7 @@ class Foo(object):
         return type(self) == type(other) and (self.a, self.b) == (other.a, other.b)
 
 
-class Bar(object):
+class Bar:
     def __init__(self, c):
         self.c = c
 
@@ -33,9 +33,9 @@ def test_unify_object():
 def test_unify_nonstandard_object():
     _unify.add((ast.AST, ast.AST, Mapping), _unify_object)
     x = var()
-    assert unify(ast.Num(n=1), ast.Num(n=1), {}) == {}
-    assert unify(ast.Num(n=1), ast.Num(n=2), {}) is False
-    assert unify(ast.Num(n=1), ast.Num(n=x), {}) == {x: 1}
+    assert unify(ast.Num(n=1), ast.Num(n=1), {}) == {}  # noqa: W4904
+    assert unify(ast.Num(n=1), ast.Num(n=2), {}) is False  # noqa: W4904
+    assert unify(ast.Num(n=1), ast.Num(n=x), {}) == {x: 1}  # noqa: W4904
 
 
 def test_reify_object():
@@ -51,13 +51,13 @@ def test_reify_object():
 def test_reify_nonstandard_object():
     _reify.add((ast.AST, Mapping), _reify_object)
     x = var()
-    assert reify(ast.Num(n=1), {}).n == 1
-    assert reify(ast.Num(n=x), {}).n == x
-    assert reify(ast.Num(n=x), {x: 2}).n == 2
+    assert reify(ast.Num(n=1), {}).n == 1  # noqa: W4904
+    assert reify(ast.Num(n=x), {}).n == x  # noqa: W4904
+    assert reify(ast.Num(n=x), {x: 2}).n == 2  # noqa: W4904
 
 
 def test_reify_slots():
-    class SlotsObject(object):
+    class SlotsObject:
         __slots__ = ["myattr"]
 
         def __init__(self, myattr):
@@ -91,7 +91,7 @@ def test_objects_full():
 
 
 @unifiable
-class A(object):
+class A:
     def __init__(self, a, b):
         self.a = a
         self.b = b
@@ -109,7 +109,7 @@ def test_unifiable_dict():
 
 
 @unifiable
-class Aslot(object):
+class Aslot:
     __slots__ = ("a", "b")
 
     def __init__(self, a, b):

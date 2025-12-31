@@ -97,7 +97,7 @@ class Tag(pretty.PrettyRepr):
         return type(self) == type(other) and self.val == other.val
 
     def __ne__(self, other):
-        return not (self == other)
+        return not self == other
 
     def __hash__(self):
         return hash(type(self)) ^ hash(self.val)

@@ -10,7 +10,10 @@ R = TypeVar("R")
 
 
 def fork_join(
-    tasks: Sequence[Callable[[], R]], *, kind: str = "threads", max_workers: Optional[int] = None
+    tasks: Sequence[Callable[[], R]],
+    *,
+    kind: str = "threads",
+    max_workers: Optional[int] = None,
 ) -> List[R]:
     """Run independent callables in parallel and join their results in order."""
     with ParallelExecutor(kind=kind, max_workers=max_workers) as ex:

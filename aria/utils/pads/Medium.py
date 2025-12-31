@@ -24,7 +24,7 @@ D. Eppstein, May 2007.
 import unittest
 
 from aria.utils.pads import BFS, DFS
-from aria.utils.pads.Graphs import isUndirected
+from aria.utils.pads.Graphs import is_undirected
 
 
 class MediumError(ValueError):
@@ -181,7 +181,7 @@ class LabeledGraphMedium(Medium):
     in a medium with the same behavior as M itself.
     """
     def __init__(self,G):
-        if not isUndirected(G):
+        if not is_undirected(G):
             raise MediumError("not an undirected graph")
         self._action = {v: {} for v in G}
         self._reverse = {}
@@ -230,11 +230,12 @@ def RoutingTable(M):
     recognize that the input is not a medium, we raise MediumError.
     """
     G = StateTransitionGraph(M)
-    current = initialState = next(iter(M))
+    initialState = next(iter(M))
+    current = initialState
 
     # find list of tokens that lead to the initial state
     activeTokens = set()
-    for LG in BFS.BreadthFirstLevels(G, initialState):
+    for LG in BFS.breadth_first_levels(G, initialState):
         for v in LG:
             for w in LG[v]:
                 activeTokens.add(G[w][v])

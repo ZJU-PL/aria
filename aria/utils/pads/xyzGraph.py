@@ -11,9 +11,9 @@ D. Eppstein, June 2006.
 """
 
 
-from aria.utils.pads.Graphs import isUndirected
-from aria.utils.pads.PartialOrder import TopologicalOrder
-from aria.utils.pads.StrongConnectivity import StronglyConnectedComponents
+from aria.utils.pads.Graphs import is_undirected
+from aria.utils.pads.PartialOrder import topological_order
+from aria.utils.pads.strong_connectivity import StronglyConnectedComponents
 from aria.utils.pads.Biconnectivity import stOrientation
 # sets.Set is deprecated in Python 3, use built-in set instead
 import unittest
@@ -25,13 +25,13 @@ def CubicMatchPartitions(G):
     This function generates a sequence of such representations.
     """
 
-    if not isUndirected(G):
+    if not is_undirected(G):
         raise ValueError("CubicMatchPartitions: graph is not undirected")
     for v in G:
         if len(G[v]) != 3:
             raise ValueError("CubicMatchPartitions: graph is not cubic")
     ST = stOrientation(G)
-    L = TopologicalOrder(ST)
+    L = topological_order(ST)
     for B in range(1<<(len(L)//2 - 1)):
         # Here with a bitstring representing the sequence of choices
         out = {}
@@ -47,7 +47,7 @@ def CubicMatchPartitions(G):
             if len(set(usedpos)) != len(usedpos):
                 # two edges in with same index, doesn't form matching
                 break
-            elif len(source) == 0:
+            if len(source) == 0:
                 # start vertex, choose one orientation
                 adjlist = list(ST[v])
             elif len(source) == 1:

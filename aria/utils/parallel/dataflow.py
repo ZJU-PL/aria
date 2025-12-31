@@ -9,7 +9,7 @@ import logging
 import queue
 import threading
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List
 
 from .executor import ParallelExecutor
 
@@ -79,7 +79,9 @@ class Dataflow:
                         try:
                             res = ex.run(n.func, [item])[0]
                         except Exception as exc:
-                            self._logger.exception("dataflow node failed name=%s err=%s", n.name, exc)
+                            self._logger.exception(
+                                "dataflow node failed name=%s err=%s", n.name, exc
+                            )
                             continue
                         for oq in out_qs:
                             oq.put(res)

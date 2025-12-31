@@ -99,15 +99,15 @@
 from __future__ import print_function
 import getopt
 import os
-from pysat.formula import CNFPlus, WCNFPlus, CNF
-from pysat.solvers import Solver, SolverNames
 import re
 import sys
+from pysat.formula import CNFPlus, WCNFPlus, CNF
+from pysat.solvers import Solver, SolverNames
 
 
 #
 # ==============================================================================
-class MUSX(object):
+class MUSX:
     """
         MUS eXtractor using the deletion-based algorithm. The algorithm is
         described in [1]_ (also see the module description above). Essentially,
@@ -130,37 +130,43 @@ class MUSX(object):
         :type verbosity: int
     """
 
-    def __init__(self, formula, solver='m22', verbosity=1):
+    def __init__(self, formula_obj, solver='m22', verbosity=1):
         """
             Constructor.
         """
 
-        topv, self.verbose = formula.nv, verbosity
+        topv, self.verbose = formula_obj.nv, verbosity
 
         # clause selectors and a mapping from selectors to clause ids
         self.sels, self.vmap = [], {}
 
         # to deal with a CNF* formula, we create its weighted version
-        if isinstance(formula, CNF):
-            formula = formula.weighted()
+        if isinstance(formula_obj, CNF):
+            formula_obj = formula_obj.weighted()
 
         # constructing the oracle
-        self.oracle = Solver(name=solver, bootstrap_with=formula.hard,
+        self.oracle = Solver(name=solver, bootstrap_with=formula_obj.hard,
                              use_timer=True)
 
-        if isinstance(formula, WCNFPlus) and formula.atms:
+        if isinstance(formula_obj, WCNFPlus) and formula_obj.atms:
             # we are using CaDiCaL195 and it can use external linear engine
-            if solver in SolverNames.cadical195:
-                self.oracle.activate_atmost()
+            cadical195 = getattr(SolverNames, 'cadical195', [])
+            if (hasattr(SolverNames, 'cadical195') and
+                    solver in cadical195):
+                # CaDiCaL195 supports activate_atmost
+                if hasattr(self.oracle, 'activate_atmost'):
+                    self.oracle.activate_atmost()
 
-            assert self.oracle.supports_atmost(), ('{0} does not support native cardinality constraints. Make sure you'
-                                                   ' use the right type of formula.').format(solver)
+            error_msg = (f'{solver} does not support native cardinality '
+                         'constraints. Make sure you use the right type of '
+                         'formula.')
+            assert self.oracle.supports_atmost(), error_msg
 
-            for atm in formula.atms:
+            for atm in formula_obj.atms:
                 self.oracle.add_atmost(*atm)
 
         # relaxing soft clauses and adding them to the oracle
-        for i, cl in enumerate(formula.soft):
+        for i, cl in enumerate(formula_obj.soft):
             topv += 1
 
             self.sels.append(topv)
@@ -208,13 +214,15 @@ class MUSX(object):
             approx = sorted(self.oracle.get_core())
 
             if self.verbose:
-                print('c MUS approx:', ' '.join([str(self.vmap[sel] + 1) for sel in approx]), '0')
+                approx_str = ' '.join([str(self.vmap[sel] + 1) for sel in approx])
+                print(f'c MUS approx: {approx_str} 0')
 
             # iterate over clauses in the approximation and try to delete them
             mus = self._compute(approx)
 
             # return an MUS
             return list(map(lambda x: self.vmap[x] + 1, mus))
+        return None
 
     def _compute(self, approx):
         """
@@ -251,16 +259,16 @@ class MUSX(object):
             sel, clid = approx[i], self.vmap[approx[i]]
 
             if self.verbose > 1:
-                print('c testing clid: {0}'.format(clid), end='')
+                print(f'c testing clid: {clid}', end='')
 
             if self.oracle.solve(assumptions=to_test):
                 if self.verbose > 1:
-                    print(' -> sat (keeping {0})'.format(clid))
+                    print(f' -> sat (keeping {clid})')
 
                 i += 1
             else:
                 if self.verbose > 1:
-                    print(' -> unsat (removing {0})'.format(clid))
+                    print(f' -> unsat (removing {clid})')
 
                 approx = to_test
 
@@ -300,7 +308,7 @@ def parse_options():
         elif opt in ('-v', '--verbose'):
             verbose += 1
         else:
-            assert False, 'Unhandled option: {0} {1}'.format(opt, arg)
+            assert False, f'Unhandled option: {opt} {arg}'
 
     return solver, verbose, args
 
@@ -316,14 +324,16 @@ def usage():
     print('Options:')
     print('        -h, --help')
     print('        -s, --solver     SAT solver to use')
-    print('                         Available values: cd15, cd19, g3, lgl, mcb, mcm, mpl, m22, mc, mgh (default: m22)')
+    solver_list = 'cd15, cd19, g3, lgl, mcb, mcm, mpl, m22, mc, mgh'
+    print(f'                         Available values: {solver_list} '
+          '(default: m22)')
     print('        -v, --verbose    Be verbose')
 
 
 #
 # ==============================================================================
 if __name__ == '__main__':
-    solver, verbose, files = parse_options()
+    solver_name, verbosity, files = parse_options()
 
     if files:
         # parsing the input formula
@@ -332,13 +342,13 @@ if __name__ == '__main__':
         else:  # expecting '*.cnf[,p,+].*'
             formula = CNFPlus(from_file=files[0])
 
-        with MUSX(formula, solver=solver, verbosity=verbose) as musx:
-            mus = musx.compute()
+        with MUSX(formula, solver=solver_name, verbosity=verbosity) as musx:
+            mus_result = musx.compute()
 
-            if mus:
-                if verbose:
-                    print('c nof soft: {0}'.format(len(formula.soft)))
-                    print('c MUS size: {0}'.format(len(mus)))
+            if mus_result:
+                if verbosity:
+                    print(f'c nof soft: {len(formula.soft)}')
+                    print(f'c MUS size: {len(mus_result)}')
 
-                print('v', ' '.join([str(clid) for clid in mus]), '0')
-                print('c oracle time: {0:.4f}'.format(musx.oracle_time()))
+                print('v', ' '.join([str(clid) for clid in mus_result]), '0')
+                print(f'c oracle time: {musx.oracle_time():.4f}')

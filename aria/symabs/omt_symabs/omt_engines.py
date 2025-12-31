@@ -81,7 +81,8 @@ class OMTEngine:
     def opt_with_qsat(self, exp: z3.ExprRef, minimize: bool) -> Any:
         """
         Quantified Satisfaction based OMT
-        TODO: currently only works when exp is a variable (need to handle a term)? how to handle unbounded objectives? (seems not work??)
+        TODO: currently only works when exp is a variable (need to handle a
+        term)? how to handle unbounded objectives? (seems not work??)
         """
         if z3.is_real(exp):
             exp_misc = z3.Real(str(exp) + "_m")
@@ -90,7 +91,10 @@ class OMTEngine:
         s = z3.Solver()
         new_fml = z3.substitute(self.formula, (exp, exp_misc))
         if minimize:
-            qfml = z3.And(self.formula, z3.ForAll([exp_misc], z3.Implies(new_fml, exp <= exp_misc)))
+            qfml = z3.And(
+                self.formula,
+                z3.ForAll([exp_misc], z3.Implies(new_fml, exp <= exp_misc))
+            )
         else:
             # TODO: why not working when x can be +oo????
             qfml = z3.And(
@@ -204,7 +208,8 @@ class OMTEngine:
                 str_vmax = str(vmax)
                 print("vmin: ", str(vmin))
                 print("vmax: ", str(vmax))
-                # FIXME: how to efficiently identify oo and epsilon (the following is ugly)
+                # FIXME: how to efficiently identify oo and epsilon
+                # (the following is ugly)
                 if "oo" not in str_vmin:
                     if "eps" in str_vmin:
                         cnts.append(query > z3.RealVal(vmin.children()[0]))

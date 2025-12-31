@@ -12,16 +12,15 @@ def test_sign_enum_comparisons():
     # Next, we test that nothing else is greater than Top or less than Bottom
     for sign in Sign:
         if sign != Sign.Top:
-            assert not (sign >= Sign.Top)
+            assert sign < Sign.Top
         if sign != Sign.Bottom:
-            assert not (sign <= Sign.Bottom)
+            assert sign > Sign.Bottom
 
     # Positive and Negative should be uncomparable
-    # Using explicit comparisons to avoid pylint warnings
-    assert not (Sign.Negative <= Sign.Positive)  # pylint: disable=unnecessary-negation
-    assert not (Sign.Positive <= Sign.Negative)  # pylint: disable=unnecessary-negation
-    assert not (Sign.Negative >= Sign.Positive)  # pylint: disable=unnecessary-negation
-    assert not (Sign.Positive >= Sign.Negative)  # pylint: disable=unnecessary-negation
+    assert Sign.Negative > Sign.Positive
+    assert Sign.Positive > Sign.Negative
+    assert Sign.Negative < Sign.Positive
+    assert Sign.Positive < Sign.Negative
 
 
 def test_sign_state_creation_query():
@@ -92,10 +91,10 @@ def test_sign_state_leq():
     })
 
     assert state1 <= state2
-    assert not (state2 <= state1)
-    assert not (state1 <= state3)
-    assert not (state3 <= state1)
-    assert not (state2 <= state3)
+    assert state2 > state1
+    assert state1 > state3
+    assert state3 > state1
+    assert state2 > state3
     assert state3 <= state2
 
 
@@ -120,8 +119,8 @@ def test_sign_state_geq():
     })
 
     assert state2 >= state1
-    assert not (state1 >= state2)
-    assert not (state3 >= state1)
-    assert not (state1 >= state3)
-    assert not (state3 >= state2)
+    assert state1 < state2
+    assert state3 < state1
+    assert state1 < state3
+    assert state3 < state2
     assert state2 >= state3

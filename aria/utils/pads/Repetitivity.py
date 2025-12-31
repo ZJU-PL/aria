@@ -6,7 +6,7 @@ D. Eppstein, July 2005.
 """
 
 from aria.utils.pads import DFS
-from aria.utils.pads.StrongConnectivity import StronglyConnectedComponents
+from aria.utils.pads.strong_connectivity import StronglyConnectedComponents
 
 
 class NonrepetitiveGraph:

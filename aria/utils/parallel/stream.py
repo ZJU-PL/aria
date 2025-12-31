@@ -21,11 +21,16 @@ class Stream(Iterable[T]):
     def __iter__(self) -> Iterator[T]:
         yield from self.source
 
-    def map(self, fn: Callable[[T], R], *, kind: str = "threads", max_workers: Optional[int] = None) -> "Stream[R]":
+    def map(
+        self,
+        fn: Callable[[T], R],
+        *,
+        kind: str = "threads",
+        max_workers: Optional[int] = None,
+    ) -> "Stream[R]":
         def gen() -> Iterator[R]:
             with ParallelExecutor(kind=kind, max_workers=max_workers) as ex:
-                for res in ex.run(fn, self.source):
-                    yield res
+                yield from ex.run(fn, self.source)
         return Stream(gen())
 
     def filter(self, pred: Callable[[T], bool]) -> "Stream[T]":

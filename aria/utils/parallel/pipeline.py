@@ -6,7 +6,7 @@ import logging
 import queue
 import threading
 from dataclasses import dataclass
-from typing import Any, Callable, Iterable, List, Optional, Sequence
+from typing import Any, Callable, Iterable, List, Sequence
 
 from ._shared import END_SENTINEL
 from .executor import ParallelExecutor
@@ -73,8 +73,10 @@ def pipeline(
                     for fut in done:
                         try:
                             out_queue.put(fut.result())
-                        except Exception as exc:  # pragma: no cover - logged, not raised
-                            logger.error("pipeline stage failure idx=%s err=%s", stage_idx, exc)
+                        except Exception as exc:  # pragma: no cover
+                            logger.error(
+                                "pipeline stage failure idx=%s err=%s", stage_idx, exc
+                            )
                         pending.remove(fut)
                 out_queue.put(END_SENTINEL)
 

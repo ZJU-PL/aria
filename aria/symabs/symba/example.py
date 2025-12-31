@@ -5,9 +5,10 @@ This script demonstrates how to use the SYMBA algorithm for optimizing
 objective functions in linear real arithmetic using SMT solvers.
 """
 
-import z3
-import sys
 import os
+import sys
+
+import z3
 
 # Add the parent directory to the path to import aria modules
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))

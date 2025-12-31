@@ -6,8 +6,8 @@ D. Eppstein, April 2004.
 import unittest
 
 from aria.utils.pads import DFS
-from aria.utils.pads.Graphs import isUndirected
-from aria.utils.pads.PartialOrder import TopologicalOrder
+from aria.utils.pads.Graphs import is_undirected
+from aria.utils.pads.PartialOrder import topological_order
 
 disconnected = object() # flag for BiconnectedComponents
 
@@ -22,7 +22,7 @@ class BiconnectedComponents(DFS.Searcher):
 
     def __init__(self,G):
         """Search for biconnected components of graph G."""
-        if not isUndirected(G):
+        if not is_undirected(G):
             raise ValueError("BiconnectedComponents: input not undirected graph")
 
         # set up data structures for DFS
@@ -93,7 +93,7 @@ class BiconnectivityTester(DFS.Searcher):
 
     def __init__(self,G):
         """Search for biconnected components of graph G."""
-        if not isUndirected(G):
+        if not is_undirected(G):
             raise NotBiconnected
         self._dfsnumber = {}
         self._low = {}
@@ -103,7 +103,7 @@ class BiconnectivityTester(DFS.Searcher):
     def preorder(self,parent,child):
         if parent == child and self._rootedge:
             raise NotBiconnected    # two roots, not even connected
-        elif not self._rootedge and parent != child:
+        if not self._rootedge and parent != child:
             self._rootedge = (parent,child)
         self._low[child] = self._dfsnumber[child] = len(self._dfsnumber)
 
@@ -113,7 +113,7 @@ class BiconnectivityTester(DFS.Searcher):
     def postorder(self,parent,child):
         if self._low[child] != self._dfsnumber[parent]:
             self._low[parent] = min(self._low[parent],self._low[child])
-        elif (parent,child) == self._rootedge:
+        if (parent,child) == self._rootedge:
             pass                    # end of first component, >1 vertices
         elif parent != child:
             raise NotBiconnected    # articulation point
@@ -137,7 +137,7 @@ class stOrienter(DFS.Searcher):
 
     def __init__(self,G):
         """Relate edges for st-orientation."""
-        if not isUndirected(G):
+        if not is_undirected(G):
             raise ValueError("stOrienter: input not undirected graph")
 
         # set up data structures for DFS
@@ -251,7 +251,7 @@ class BiconnectivityTest(unittest.TestCase):
 
     def testSTOrientation(self):
         STO = stOrientation(self.G1)
-        L = list(TopologicalOrder(STO))
+        L = list(topological_order(STO))
         indegree = dict([(v,0) for v in self.G1])
         for v in L:
             for w in STO[v]:

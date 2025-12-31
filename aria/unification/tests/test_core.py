@@ -3,10 +3,14 @@ import sys
 from collections import OrderedDict
 from types import MappingProxyType
 
-import pytest
-
 from aria.unification.tests.utils import gen_long_chain
-from aria.unification.variable import Var, isvar, var, variables, vars as vars_  # noqa: F401
+from aria.unification.variable import (  # noqa: F401
+    Var,
+    isvar,
+    var,
+    variables,
+    vars as vars_,
+)
 from aria.unification.core import assoc, isground, reify, unground_lvars, unify
 from aria.unification.utils import freeze
 
@@ -19,11 +23,11 @@ def test_assoc():
     assert assoc(d, "a", 0) == {"a": 0, 2: 2}
     assert d == {"a": 1, 2: 2}
 
-    def assoc_OrderedDict(s, u, v):
+    def assoc_ordered_dict(s, u, v):  # noqa: N802
         s[u] = v
         return s
 
-    assoc.add((OrderedDict, object, object), assoc_OrderedDict)
+    assoc.add((OrderedDict, object, object), assoc_ordered_dict)
 
     x = var()
     d2 = OrderedDict(d)
@@ -43,7 +47,7 @@ def test_reify():
     assert reify(z, MappingProxyType(s)) == (1, 2)
 
 
-def test_reify_Mapping():
+def test_reify_mapping():  # noqa: N802
     x, y = var(), var()
     s = {x: 2, y: 4}
     e = [(1, x), (3, {5: y})]
@@ -52,7 +56,7 @@ def test_reify_Mapping():
     assert reify(OrderedDict(e), s) == OrderedDict(expected_res)
 
 
-def test_reify_Set():
+def test_reify_set():  # noqa: N802
     x, y = var(), var()
     assert reify({1, 2, x, y}, {x: 3}) == {1, 2, 3, y}
     assert reify(frozenset({1, 2, x, y}), {x: 3}) == frozenset({1, 2, 3, y})
@@ -111,9 +115,9 @@ def test_unify_slice():
 
 def test_unify_iter():
     x = var()
-    assert unify([1], (1,)) is False
-    assert unify((i for i in [1, 2]), [1, 2]) is False
-    assert unify(iter([1, x]), iter([1, 2])) == {x: 2}
+    assert unify([1], (1,)) is False  # pylint: disable=no-value-for-parameter
+    assert unify((i for i in [1, 2]), [1, 2]) is False  # pylint: disable=no-value-for-parameter
+    assert unify(iter([1, x]), iter([1, 2])) == {x: 2}  # pylint: disable=no-value-for-parameter
 
 
 def test_unify_seq():
@@ -215,8 +219,6 @@ def test_unground_lvars():
 
 
 def test_reify_recursion_limit():
-    import platform
-
     a_lv = var()
 
     b, _ = gen_long_chain(a_lv, 10)
@@ -231,7 +233,8 @@ def test_reify_recursion_limit():
         recursion_limit = max(100, r_limit // 2)  # Safe value
         sys.setrecursionlimit(recursion_limit)
 
-        b, _ = gen_long_chain(a_lv, recursion_limit * 2)  # Generate longer chain than the limit
+        # Generate longer chain than the limit
+        b, _ = gen_long_chain(a_lv, recursion_limit * 2)
 
         # Try in a separate function to reduce call stack depth
         def do_reify():

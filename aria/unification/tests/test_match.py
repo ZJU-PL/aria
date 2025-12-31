@@ -1,6 +1,12 @@
 from pytest import mark, raises
 
-from aria.unification.match import Dispatcher, VarDispatcher, match, ordering, supercedes
+from aria.unification.match import (
+    Dispatcher,
+    VarDispatcher,
+    match,
+    ordering,
+    supercedes,
+)
 from aria.unification.variable import var
 
 
@@ -24,7 +30,7 @@ def mul(x, y):
     return x * y
 
 
-def foo(*args):
+def foo(*args):  # noqa: N802
     return args
 
 
@@ -64,7 +70,7 @@ def test_dict():
 
     d.add(({"x": x, "key": 1},), identity)
 
-    d({"x": 1, "key": 1}) == {"x": 1, "key": 1}
+    assert d({"x": 1, "key": 1}) == {"x": 1, "key": 1}
 
 
 def test_ordering():
@@ -73,7 +79,7 @@ def test_ordering():
     o = ordering([(1,), (x,), (2,), (y,), (x, x), (1, x), (x, 1), (1, 2)])
 
     for a, b in zip(o, o[1:]):
-        assert supercedes(a, b) or not supercedes(b, a)
+        assert supercedes(a, b) or not supercedes(b, a)  # pylint: disable=arguments-out-of-order
 
 
 def test_raises_error():
@@ -87,11 +93,11 @@ def test_register():
     d = Dispatcher("d")
 
     @d.register(1)
-    def f(x):
+    def f(x):  # noqa: F811
         return 10
 
     @d.register(2)
-    def f(x):
+    def f(x):  # noqa: F811
         return 20
 
     assert d(1) == 10
@@ -102,15 +108,15 @@ def test_dispatcher():
     x = var("x")
 
     @match(1)
-    def fib(x):
+    def fib(x):  # noqa: F811
         return 1
 
     @match(0)
-    def fib(x):
+    def fib(x):  # noqa: F811
         return 0
 
     @match(x)
-    def fib(n):
+    def fib(n):  # noqa: F811
         return fib(n - 1) + fib(n - 2)
 
     assert [fib(i) for i in range(10)] == [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
@@ -136,7 +142,7 @@ def test_supercedes_more():
     assert supercedes((1, x), (x, x))
 
 
-def test_VarDispatcher():
+def test_var_dispatcher():  # noqa: N802
     d = VarDispatcher("d")
     x, y, z = var("x"), var("y"), var("z")
 
@@ -147,7 +153,7 @@ def test_VarDispatcher():
     assert d(1, 2) == (2, 1)
 
     @d.register((1, z), 2)
-    def foo(z):
+    def foo_func(z):  # noqa: N802
         return z
 
     assert d((1, 3), 2) == 3

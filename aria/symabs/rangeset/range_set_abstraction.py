@@ -27,7 +27,10 @@ def _from_python_int(v: int, width: int) -> z3.BitVecNumRef:
 
 
 def _assume_and_check(s: z3.Solver, assumptions: List[z3.ExprRef]) -> z3.CheckSatResult:
-    s.push(); s.add(*assumptions); res = s.check(); s.pop()
+    s.push()
+    s.add(*assumptions)
+    res = s.check()
+    s.pop()
     return res
 
 
@@ -214,7 +217,8 @@ def set_abstraction(
         # Alternate and flip search space: restrict to complement by toggling fml
         p_add = not p_add
         current_fml = z3.Not(current_fml)
-        remaining = remaining - 1 if remaining is not None and remaining > 0 else remaining
+        if remaining is not None and remaining > 0:
+            remaining = remaining - 1
 
         # Narrow bounds for next iteration
         if p_add:
@@ -228,7 +232,7 @@ def set_abstraction(
         else:
             # After an addition, try to look outside the just-added block by
             # splitting, but for simplicity we keep global bounds.
-            pass
+            pass  # noqa: S110
 
     # Merge adjacent intervals
     S = _intervals_normalize(S)

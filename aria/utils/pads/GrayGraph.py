@@ -21,7 +21,7 @@ class GrayGraphTest(unittest.TestCase):
     def testBipartite(self):
         """The Gray Graph is bipartite."""
         from . import Bipartite
-        self.assertEqual(Bipartite.isBipartite(GrayGraph),True)
+        self.assertEqual(Bipartite.is_bipartite(GrayGraph), True)
 
     def testPartialCube(self):
         """The Gray Graph is (sadly) not a partial cube."""

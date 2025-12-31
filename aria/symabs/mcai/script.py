@@ -39,7 +39,9 @@ def run_examples(output_directory: str) -> None:
                 os.system(cmd)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Generate examples for the MCAI project.")
+    parser = argparse.ArgumentParser(
+        description="Generate examples for the MCAI project."
+    )
     parser.add_argument(
         "-n", "--num",
         type=int,

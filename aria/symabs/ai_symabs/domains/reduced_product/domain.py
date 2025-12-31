@@ -37,10 +37,14 @@ class ReducedProductDomain(Z3VariablesDomain):
     def gamma_hat(self, alpha: ReducedProductAbstractState) -> z3.ExprRef:
         """Returns a formula describing the same states as alpha.
         """
-        return z3.And(self.domain_A.gamma_hat(alpha.state_A),
-                      self.domain_B.gamma_hat(alpha.state_B))
+        return z3.And(
+            self.domain_A.gamma_hat(alpha.state_A),
+            self.domain_B.gamma_hat(alpha.state_B)
+        )
 
-    def join(self, elements: List[ReducedProductAbstractState]) -> ReducedProductAbstractState:
+    def join(
+        self, elements: List[ReducedProductAbstractState]
+    ) -> ReducedProductAbstractState:
         """Returns the join of a set of abstract states.
 
         join([ alpha_1, alpha_2, ..., alpha_n ]) is the smallest alpha
@@ -78,8 +82,9 @@ class ReducedProductDomain(Z3VariablesDomain):
         return met
 
     def abstract_consequence(
-            self, lower: ReducedProductAbstractState,
-            upper: ReducedProductAbstractState) -> ReducedProductAbstractState:
+        self, lower: ReducedProductAbstractState,
+        upper: ReducedProductAbstractState
+    ) -> ReducedProductAbstractState:
         """Returns the "abstract consequence" of lower and upper.
 
         The abstract consequence must be a superset of lower and *NOT* a
