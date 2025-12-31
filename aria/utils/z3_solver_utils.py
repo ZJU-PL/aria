@@ -4,7 +4,8 @@ A few APIs that (typically) require SMT solving
 - **is_entail**: decide whether a entails b or not (i.e., b is a consequence of a)
 - **is_sat**: decide satisfiability of phi
 - **is_equiv**: decide equivalence between a and b
-- **compact_check**: given a precond G and a set of cnts: f1, f2,..., fn, decide if the following cnts are satisfiable: And(G, f1), And(G, f2), ..., And(G, fn)
+- **compact_check**: given a precond G and a set of cnts: f1, f2,..., fn,
+  decide if the following cnts are satisfiable: And(G, f1), And(G, f2), ..., And(G, fn)
 - **prime_implicant**: find a subset ps' of ps such that /\\ ps => e
 - **to_dnf**: convert a formula to DNF
 - **exclusive_to_dnf**: convert a formula to DNF
@@ -24,8 +25,7 @@ def is_valid(phi: z3.ExprRef) -> bool:
     s.add(z3.Not(phi))
     if s.check() == z3.sat:
         return False
-    else:
-        return True
+    return True
 
 
 def is_entail(a: z3.ExprRef, b: z3.ExprRef) -> bool:
@@ -34,8 +34,7 @@ def is_entail(a: z3.ExprRef, b: z3.ExprRef) -> bool:
     s.add(z3.Not(z3.Implies(a, b)))
     if s.check() == z3.sat:
         return False
-    else:
-        return True
+    return True
 
 
 def is_sat(phi: z3.ExprRef) -> bool:
@@ -55,11 +54,12 @@ def is_equiv(a: z3.ExprRef, b: z3.ExprRef) -> bool:
 def compact_check_misc(precond, cnt_list, res_label):
     """
     TODO: In our settings, as long as there is one unsat, we can stop
-      However, this algorithm stops until "all the remaining ones are UNSAT (which can have one of more instances)"
+      However, this algorithm stops until "all the remaining ones are
+      UNSAT (which can have one of more instances)"
     """
     f = z3.BoolVal(False)
-    for i in range(len(res_label)):
-        if res_label[i] == 2:
+    for i, label in enumerate(res_label):
+        if label == 2:
             f = z3.Or(f, cnt_list[i])
     if z3.is_false(f):
         return
@@ -70,14 +70,14 @@ def compact_check_misc(precond, cnt_list, res_label):
     sol.add(g)
     s_res = sol.check()
     if s_res == z3.unsat:
-        for i in range(len(res_label)):
-            if res_label[i] == 2:
+        for i, label in enumerate(res_label):
+            if label == 2:
                 res_label[i] = 0
     elif s_res == z3.sat:
         m = sol.model()
         # models.append(m)  # counterexample
-        for i in range(len(res_label)):
-            if res_label[i] == 2 and z3.is_true(m.eval(cnt_list[i], True)):
+        for i, label in enumerate(res_label):
+            if label == 2 and z3.is_true(m.eval(cnt_list[i], True)):
                 res_label[i] = 1
     else:
         return
@@ -122,7 +122,7 @@ def prime_implicant(ps: List[z3.ExprRef], expr: z3.ExprRef):
         bs.append(bp)
         s.add(z3.Implies(bp, p))
         i = i + 1
-    assert (s.check(bs) == z3.unsat)
+    assert s.check(bs) == z3.unsat
     # only take predicates in unsat core
     res = [btop[x] for x in s.unsat_core()]
     return res
@@ -204,7 +204,8 @@ def get_models(f: z3.BoolRef, k: int):
     If f cannot be solved, returns None
     If f is satisfiable, returns the first k models
     Note that if f is a tautology, e.g. True, then the result is []
-    Based on http://stackoverflow.com/questions/11867611/z3py-checking-all-solutions-for-equation
+    Based on http://stackoverflow.com/questions/11867611/
+    z3py-checking-all-solutions-for-equation
     EXAMPLES:
     >>> from z3 import *
     >>> x, y = Ints('x y')
@@ -247,10 +248,9 @@ def get_models(f: z3.BoolRef, k: int):
 
     if s.check() == z3.unknown:
         return None
-    elif s.check() == z3.unsat and i == 0:
+    if s.check() == z3.unsat and i == 0:
         return False
-    else:
-        return models
+    return models
 
 
 if __name__ == "__main__":

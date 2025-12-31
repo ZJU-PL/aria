@@ -24,7 +24,6 @@ class SExprParser:
     """
     A class for parsing and manipulating S-expressions.
     """
-    
     @dataclass
     class ParseError(Exception):
         """Exception raised for S-expression parsing errors."""
@@ -79,7 +78,11 @@ class SExprParser:
         try:
             result, remaining = cls._parse_tokens(tokens, 0)
             if remaining:
-                raise cls.ParseError("Unexpected trailing tokens", len(tokens) - len(remaining), expression)
+                raise cls.ParseError(
+                    "Unexpected trailing tokens",
+                    len(tokens) - len(remaining),
+                    expression
+                )
             return result
         except (IndexError, ValueError) as e:
             raise cls.ParseError(str(e), len(tokens), expression)
@@ -111,11 +114,10 @@ class SExprParser:
                 raise ValueError("Missing closing parenthesis")
             return lst, remaining[1:]  # Skip closing paren
 
-        elif token == ')':
+        if token == ')':
             raise ValueError("Unexpected closing parenthesis")
 
-        else:
-            return cls.parse_atom(token), remaining
+        return cls.parse_atom(token), remaining
 
     @staticmethod
     def parse_atom(token: str) -> Atom:
@@ -163,10 +165,9 @@ class SExprParser:
         """
         if isinstance(expr, list):
             return f"({' '.join(SExprParser.sexpr_to_string(e) for e in expr)})"
-        elif isinstance(expr, (int, float)):
+        if isinstance(expr, (int, float)):
             return str(expr)
-        else:
-            return str(expr)
+        return str(expr)
 
     @classmethod
     def sexpr_to_json(cls, expr: SExpr) -> str:
@@ -174,22 +175,22 @@ class SExprParser:
         Convert an S-expression to a JSON string.
         """
         return json.dumps(expr)
-    
+
     @classmethod
     def sexpr_from_json(cls, json_str: str) -> SExpr:
         """
         Convert a JSON string into an S-expression.
-        
+
         Args:
             json_str: A JSON string representing an S-expression
-        
+
         Returns:
             The parsed S-expression data structure
-            
+
         Raises:
             ValueError: If the JSON string is invalid or cannot be parsed
             TypeError: If the parsed JSON doesn't match the SExpr type structure
-            
+
         Example:
             >>> SExprParser.sexpr_from_json('["+", 1, ["*", 2, 3]]')
             ['+', 1, ['*', 2, 3]]
@@ -200,26 +201,28 @@ class SExprParser:
             cls._validate_sexpr(parsed)
             return parsed
         except json.JSONDecodeError as e:
-            raise ValueError(f"Invalid JSON string: {e}")
-    
+            raise ValueError(f"Invalid JSON string: {e}") from e
+
     @classmethod
     def _validate_sexpr(cls, expr) -> None:
         """
         Validate that a parsed object conforms to the SExpr type structure.
-        
+
         Args:
             expr: The object to validate
-            
+
         Raises:
             TypeError: If the object doesn't match the SExpr type structure
         """
         if isinstance(expr, (int, float, str)):
             # Atoms are valid SExpr values
             return
-        elif isinstance(expr, list):
+        if isinstance(expr, list):
             # Recursively validate each element in the list
             for item in expr:
                 cls._validate_sexpr(item)
-        else:
-            raise TypeError(f"Invalid SExpr type: {type(expr)}. Expected int, float, str, or list.")
-
+            return
+        raise TypeError(
+            f"Invalid SExpr type: {type(expr)}. "
+            f"Expected int, float, str, or list."
+        )

@@ -1,30 +1,4 @@
 """
-Some APIs/functions for playing with Z3 exper
-
-- get_variables
-- get_atoms
-- to_smtlib2
-- is_function_symbol
-- get_function_symbols
-- skolemize
-- big_and
-- big_or
-- negate
-- is_expr_var
-- is_expr_val
-- is_term
-- is_atom
-- is_pos_lit
-- is_neg_lit
-- is_lit
-
-- create_function_body_str
-- z3_string_decoder
-- z3_value_to_python
-- get_z3_logic
-"""
-
-"""
 Utility functions for working with Z3 expressions, formulas, and solvers.
 
 This module provides helper functions for analyzing Z3 expressions, manipulating
@@ -72,9 +46,8 @@ Classes:
 - FormulaInfo: Analyze and extract information from Z3 formulas
 """
 
-from typing import List, Set, Union, Tuple, Iterator
+from typing import List, Set, Tuple, Iterator
 import z3
-from z3.z3util import get_vars
 
 
 def get_expr_vars(exp) -> List[z3.ExprRef]:
@@ -116,8 +89,9 @@ def get_variables(exp: z3.ExprRef) -> List[z3.ExprRef]:
 def get_atoms(expr: z3.BoolRef) -> Set[z3.BoolRef]:
     """Get all atomic predicates in a Z3 formula.
 
-    This function extracts all atomic boolean predicates from a Z3 formula by first converting it
-    to Negation Normal Form (NNF) and then recursively traversing the formula structure.
+    This function extracts all atomic boolean predicates from a Z3 formula
+    by first converting it to Negation Normal Form (NNF) and then recursively
+    traversing the formula structure.
 
     Args:
         expr (z3.BoolRef): A Z3 boolean formula
@@ -136,9 +110,11 @@ def get_atoms(expr: z3.BoolRef) -> Set[z3.BoolRef]:
         {x > 1, Not(x == 2), y < 0}
 
     Notes:
-        - The function first converts the input formula to NNF using Z3's 'nnf' tactic
+        - The function first converts the input formula to NNF using Z3's
+          'nnf' tactic
         - Atomic predicates include arithmetic comparisons and their negations
-        - The function handles AND/OR operations by recursively processing their children
+        - The function handles AND/OR operations by recursively processing
+          their children
     """
     a_set = set()
 
@@ -151,7 +127,7 @@ def get_atoms(expr: z3.BoolRef) -> Set[z3.BoolRef]:
             for e_ in exp.children():
                 get_preds_(e_)
             return
-        assert (z3.is_bool(exp))
+        assert z3.is_bool(exp)
         a_set.add(exp)
 
     # convert to NNF and then look for preds
@@ -203,11 +179,13 @@ def get_function_symbols(exp: z3.ExprRef) -> Set[z3.FuncDeclRef]:
 def skolemize(exp: z3.ExprRef) -> z3.ExprRef:
     """To Skolem normal form?
     About Skolemization: https://en.wikipedia.org/wiki/Skolemization
-    In short, Skolemization is a process of removing existential quantifiers from a formula.
+    In short, Skolemization is a process of removing existential quantifiers
+    from a formula.
     Rules:
     - ∃x. φ(x) → φ(c) where c is a new Skolem constant.
     - ∀x. ∃y. φ(x,y) → ∀x. φ(x,f(x)) where f is a new Skolem function.
-    In the second rule, f is a new function introduced for the existential quantifier
+    In the second rule, f is a new function introduced for the existential
+    quantifier
     """
     goal = z3.Goal()
     goal.add(exp)
@@ -223,24 +201,27 @@ def z3_quantifier_alternations(e: z3.ExprRef) -> Iterator[Tuple[z3.SortRef, z3.S
     This function identifies quantifier alternations by:
     1. Skolemizing the input expression (removing existential quantifiers)
     2. Finding all function symbols introduced during skolemization
-    3. For each Skolem function, yielding (domain_sort, range_sort) pairs for each argument
+    3. For each Skolem function, yielding (domain_sort, range_sort) pairs
+       for each argument
 
-    The Skolem functions represent existential quantifiers that depend on universal quantifiers,
-    indicating quantifier alternations in the original formula.
+    The Skolem functions represent existential quantifiers that depend on
+    universal quantifiers, indicating quantifier alternations in the original
+    formula.
 
     Args:
         e: A Z3 expression to analyze for quantifier alternations
 
     Yields:
-        Tuple[z3.SortRef, z3.SortRef]: Pairs of (domain_sort, range_sort) for each
-        argument position of each Skolem function found in the skolemized expression.
-        Each pair represents a quantifier alternation where the domain sort corresponds
-        to the universal quantifier and the range sort corresponds to the existential quantifier.
+        Tuple[z3.SortRef, z3.SortRef]: Pairs of (domain_sort, range_sort) for
+        each argument position of each Skolem function found in the skolemized
+        expression. Each pair represents a quantifier alternation where the
+        domain sort corresponds to the universal quantifier and the range sort
+        corresponds to the existential quantifier.
 
     Example:
-        For formula ∀x. ∃y. P(x, y), skolemization introduces a function f(x) where
-        f has domain sort matching x and range sort matching y, indicating a
-        ∀∃ alternation.
+        For formula ∀x. ∃y. P(x, y), skolemization introduces a function f(x)
+        where f has domain sort matching x and range sort matching y, indicating
+        a ∀∃ alternation.
     """
     skolemized = skolemize(e)
     for fsym in get_function_symbols(skolemized):
@@ -410,7 +391,8 @@ def is_lit(exp) -> bool:
 
 def create_function_body_str(funcname: str, varlist: List, body: z3.ExprRef) -> [str]:
     """
-    Creates a string representation of a function body which can be used to define a new function in SMT-LIB2 format.
+    Creates a string representation of a function body which can be used to
+    define a new function in SMT-LIB2 format.
 
     Parameters:
     -----------
@@ -427,14 +409,14 @@ def create_function_body_str(funcname: str, varlist: List, body: z3.ExprRef) -> 
         A string representation of the function body in SMT-LIB2 format.
     """
     res = []
-    target = "(define-fun {} (".format(funcname)
-    for i in range(len(varlist)):
-        target += "({} {}) ".format(str(varlist[i]), varlist[i].sort().sexpr())
-    target += ") Bool {})".format(body.sexpr())  # return value
+    target = f"(define-fun {funcname} ("
+    for i, var in enumerate(varlist):
+        target += f"({var} {var.sort().sexpr()}) "
+    target += f") Bool {body.sexpr()})"  # return value
     res.append(target)
 
     for var in varlist:
-        res.append("(declare-const {} {})".format(var, var.sort().sexpr()))
+        res.append(f"(declare-const {var} {var.sort().sexpr()})")
     return res
 
 
@@ -448,13 +430,13 @@ def z3_string_decoder(z3str: z3.StringVal) -> str:
     assert solver.check() == z3.sat
 
     model = solver.model()
-    assert model[length].is_int()
-    num_chars = model[length].as_long()
+    assert model[length].is_int()  # type: ignore[attr-defined]
+    num_chars = model[length].as_long()  # type: ignore[attr-defined]
 
     solver.push()
     char_bvs = []
     for i in range(num_chars):
-        char_bvs.append(z3.BitVec("ch_%d" % i, 8))
+        char_bvs.append(z3.BitVec(f"ch_{i}", 8))
         solver.add(z3.Unit(char_bvs[i]) == z3.SubString(tmp_string, i, 1))
 
     assert solver.check() == z3.sat
@@ -467,18 +449,17 @@ def z3_value_to_python(value) -> any:
     """Convert a Z3 value to a python value"""
     if z3.is_true(value):
         return True
-    elif z3.is_false(value):
+    if z3.is_false(value):
         return False
-    elif z3.is_int_value(value):
+    if z3.is_int_value(value):
         return value.as_long()
-    elif z3.is_rational_value(value):
+    if z3.is_rational_value(value):
         return float(value.numerator_as_long()) / float(value.denominator_as_long())
-    elif z3.is_string_value(value):
+    if z3.is_string_value(value):
         return z3_string_decoder(value)
-    elif z3.is_algebraic_value(value):
+    if z3.is_algebraic_value(value):
         raise NotImplementedError()
-    else:
-        raise NotImplementedError()
+    raise NotImplementedError()
 
 
 class FormulaInfo:
@@ -523,9 +504,9 @@ class FormulaInfo:
         try:
             if theory_name.lower() == 'array':
                 return self.apply_probe('has-arrays')
-            elif theory_name.lower() == 'fp':
+            if theory_name.lower() == 'fp':
                 return self.apply_probe('has-fp')
-            elif theory_name.lower() == 'string':
+            if theory_name.lower() == 'string':
                 # Probe for string-related functions or constants
                 result = False
                 goal = z3.Goal()
@@ -533,10 +514,10 @@ class FormulaInfo:
                 string_indicators = ['str.', 'seq.', 'string']
                 sexpr = goal.sexpr()
                 return any(indicator in sexpr for indicator in string_indicators)
-            elif theory_name.lower() == 'bv':
-                return self.apply_probe('has-bit2bool') or self.apply_probe('is-qfbv')
-            else:
-                return False
+            if theory_name.lower() == 'bv':
+                return (self.apply_probe('has-bit2bool') or
+                        self.apply_probe('is-qfbv'))
+            return False
         except Exception:
             return False
 
@@ -664,13 +645,13 @@ class FormulaInfo:
                 else:
                     theories = non_arith
 
-                self._logic = logic_str + "".join(theories)
+                self._logic = logic_str + "".join(theories)  # noqa: C0301
 
             return self._logic
 
         except Exception as ex:
             import logging
-            logging.warning(f"Error determining SMT logic: {ex}")
+            logging.warning("Error determining SMT logic: %s", ex)
             self._logic = "ALL"
             return self._logic
 
@@ -678,8 +659,8 @@ class FormulaInfo:
 def get_z3_logic(fml: z3.ExprRef) -> str:
     """Determine the SMT-LIB2 logic fragment that best describes a Z3 expression.
 
-    This function is a convenient wrapper around FormulaInfo.get_logic() that takes a Z3
-    expression and returns the appropriate SMT-LIB2 logic name.
+    This function is a convenient wrapper around FormulaInfo.get_logic() that
+    takes a Z3 expression and returns the appropriate SMT-LIB2 logic name.
 
     The logic name follows SMT-LIB2 conventions:
     - Prefix QF_ for quantifier-free formulas
@@ -712,7 +693,7 @@ def get_z3_logic(fml: z3.ExprRef) -> str:
         return fml_info.get_logic()
     except Exception as ex:
         import logging
-        logging.warning(f"Error determining logic for expression: {ex}")
+        logging.warning("Error determining logic for expression: %s", ex)
         return "ALL"  # Default to most general logic if detection fails
 
 
@@ -778,8 +759,6 @@ def eval_predicates(model: z3.ModelRef, predicates: List[z3.BoolRef]) -> List[z3
             res.append(pred)
         elif z3.is_false(model.eval(pred)):
             res.append(negate(pred))
-        else:
-            pass
     return res
 
 
@@ -787,10 +766,6 @@ if __name__ == "__main__":
     import doctest
 
     doctest.testmod()
-
-if __name__ == "__main__":
-    import doctest
-
 
     # Additional test cases for new get_z3_logic functionality
     def additional_tests():
@@ -844,7 +819,5 @@ if __name__ == "__main__":
         >>> get_z3_logic(z3.And(arr[x] == y, s1 == s2))
         'QF_ALIAS'
         """
-        pass
-
 
     doctest.testmod()

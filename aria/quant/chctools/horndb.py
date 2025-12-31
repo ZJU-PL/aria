@@ -1,6 +1,6 @@
 import io
 import sys
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import pysmt.environment  # type: ignore
 import pysmt.solvers.z3 as pyz3  # type: ignore
@@ -11,7 +11,7 @@ from pysmt.smtlib.parser import SmtLibZ3Parser, Tokenizer  # type: ignore
 def ground_quantifier(qexpr: z3.QuantifierRef) -> Tuple[z3.ExprRef, List[z3.ExprRef]]:
     body = qexpr.body()
 
-    var_list = list()
+    var_list = []
     for i in reversed(range(qexpr.num_vars())):
         vi_name = qexpr.var_name(i)
         vi_sort = qexpr.var_sort(i)
@@ -42,7 +42,7 @@ def find_all_uninterp_consts(formula: z3.ExprRef, res: List[z3.FuncDeclRef]) -> 
             res.append(t.decl())
 
 
-class HornRule(object):
+class HornRule:
     def __init__(self, formula: z3.ExprRef):
         self._ctx = formula.ctx
         self._formula = formula
@@ -57,7 +57,7 @@ class HornRule(object):
         if not self.has_formula():
             return
 
-        rels = list()
+        rels = []
         find_all_uninterp_consts(self._formula, rels)
         self._rels = frozenset(rels)
         body = self._formula
@@ -81,8 +81,7 @@ class HornRule(object):
         if len(body) > 0:
             self._body = body
 
-        for i in range(len(body)):
-            f = body[i]
+        for i, f in enumerate(body):
             if z3.is_app(f) and f.decl() in self._rels:
                 self._uninterp_sz += 1
             else:
@@ -219,8 +218,11 @@ class HornRule(object):
         return self._ctx
 
 
-class HornRelation(object):
-    def __init__(self, fdecl: z3.FuncDeclRef, env: Optional[pysmt.environment.Environment] = None):
+class HornRelation:
+    def __init__(
+        self, fdecl: z3.FuncDeclRef,
+        env: Optional[pysmt.environment.Environment] = None
+    ):
         self._fdecl = fdecl
         self._sig: List[z3.ExprRef] = []
         self._pysmt_sig: List[Any] = []
@@ -250,11 +252,11 @@ class HornRelation(object):
 
     def _mk_arg_name(self, i: int) -> str:
         # can be arbitrary convenient name
-        return "{}_{}_n".format(self.name(), i)
+        return f"{self.name()}_{i}_n"
 
     def _mk_lemma_arg_name(self, i: int) -> str:
         # must match name used in the lemma
-        return "{}_{}_n".format(self.name(), i)
+        return f"{self.name()}_{i}_n"
 
     def name(self) -> str:
         return str(self._fdecl.name())
@@ -263,8 +265,6 @@ class HornRelation(object):
         return repr(self)
 
     def __repr__(self) -> str:
-        import io
-
         out = io.StringIO()
         out.write(str(self.name()))
         out.write("(")
@@ -292,7 +292,7 @@ class HornRelation(object):
         return self._fdecl.ctx
 
 
-class HornClauseDb(object):
+class HornClauseDb:
     def __init__(
         self,
         name: str = "horn",
@@ -305,7 +305,7 @@ class HornClauseDb(object):
         self._rules: List[HornRule] = []
         self._queries: List[HornRule] = []
         self._rels_set: frozenset = frozenset()
-        self._rels: Dict[str, HornRelation] = dict()
+        self._rels: Dict[str, HornRelation] = {}
         self._sealed: bool = True
         self._fp: Optional[z3.Fixedpoint] = None
         self._env = env
@@ -329,7 +329,7 @@ class HornClauseDb(object):
         return self._rels_set
 
     def has_rel(self, rel_name: str) -> bool:
-        return rel_name in self._rels.keys()
+        return rel_name in self._rels
 
     def get_rel(self, rel_name: str) -> 'HornRelation':
         return self._rels[rel_name]
@@ -344,7 +344,7 @@ class HornClauseDb(object):
         if self._sealed:
             return
 
-        rels = list()
+        rels = []
         for r in self._rules:
             rels.extend(r.used_rels())
         for q in self._queries:
@@ -416,15 +416,15 @@ class HornClauseDb(object):
         return self._ctx
 
 
-class FolModel(object):
+class FolModel:
     def __init__(self) -> None:
-        self._fn_interps: Dict[str, z3.LambdaRef] = dict()
+        self._fn_interps: Dict[str, z3.LambdaRef] = {}
 
     def add_fn(self, name: str, lmbd):
         self._fn_interps[name] = lmbd
 
     def has_interp(self, name: str) -> bool:
-        return name in self._fn_interps.keys()
+        return name in self._fn_interps
 
     def __setitem__(self, key: str, val) -> None:
         self.add_fn(key, val)

@@ -17,7 +17,7 @@ def pushed_solver(solver) -> ContextManager:
     print s
     """
 
-    class PushSolverContextManager(object):
+    class PushSolverContextManager:
         def __init__(self, solver):
             self.solver = solver
 

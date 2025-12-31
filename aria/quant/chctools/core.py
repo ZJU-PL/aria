@@ -9,24 +9,22 @@ def str2bool(v: "bool | str") -> bool:
         return v
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
         return True
-    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+    if v.lower() in ('no', 'false', 'f', 'n', '0'):
         return False
-    else:
-        raise argparse.ArgumentTypeError('Boolean value expected.')
+    raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
 def add_bool_argument(
     parser: argparse.ArgumentParser,
     name: str,
     default: bool = False,
-    help: Optional[str] = None,
+    help: Optional[str] = None,  # pylint: disable=redefined-builtin
     dest: Optional[str] = None,
     **kwargs: Any,
 ) -> None:
     """
     Add boolean option that can be turned on and off
     """
-    import argparse
     dest_name = dest if dest is not None else name
     mutex_group = parser.add_mutually_exclusive_group(required=False)
     mutex_group.add_argument('--' + name, dest=dest_name, type=str2bool,
@@ -36,12 +34,12 @@ def add_bool_argument(
                              type=lambda v: not (str2bool(v)),
                              nargs='?', const=False,
                              help=argparse.SUPPRESS, **kwargs)
-    parser.set_defaults(dest_name=default)
+    parser.set_defaults(**{dest_name: default})
 
 
 def add_help_arg(ap: argparse.ArgumentParser) -> None:
     ap.add_argument('-h', '--help', action='help',
-                    help='Print this message and exit')
+                    help='Print this message and exit')  # pylint: disable=redefined-builtin
 
 
 def add_in_args(ap: argparse.ArgumentParser) -> argparse.ArgumentParser:
@@ -66,17 +64,24 @@ def add_tmp_dir_args(ap: argparse.ArgumentParser) -> argparse.ArgumentParser:
     return ap
 
 
-class CliCmd(object):
-    def __init__(self, name: str = '', help: str = '', allow_extra: bool = False) -> None:
+class CliCmd:
+    def __init__(
+        self, name: str = '', help_str: str = '', allow_extra: bool = False
+    ) -> None:  # pylint: disable=redefined-builtin
         self.name: str = name
-        self.help: str = help
+        self.help: str = help_str  # pylint: disable=redefined-builtin
         self.allow_extra: bool = allow_extra
 
     def mk_arg_parser(self, argp: argparse.ArgumentParser) -> argparse.ArgumentParser:
         add_help_arg(argp)
         return argp
 
-    def run(self, args: Optional[argparse.Namespace] = None, extra: List[str] = []) -> int:
+    def run(
+        self, args: Optional[argparse.Namespace] = None,
+        extra: Optional[List[str]] = None
+    ) -> int:
+        if extra is None:
+            extra = []
         return 0
 
     def name_out_file(
@@ -91,7 +96,6 @@ class CliCmd(object):
         return out_file
 
     def main(self, argv: List[str]) -> int:
-        import argparse
         ap = argparse.ArgumentParser(prog=self.name,
                                      description=self.help,
                                      add_help=False)

@@ -8,7 +8,6 @@ import unittest
 from aria.utils.pads import DFS
 from aria.utils.pads.Graphs import isUndirected
 from aria.utils.pads.PartialOrder import TopologicalOrder
-from aria.utils.pads.Util import arbitrary_item
 
 disconnected = object() # flag for BiconnectedComponents
 

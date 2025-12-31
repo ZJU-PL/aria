@@ -14,12 +14,13 @@ class Config:
         self.check()
 
     def check(self):
-        if hasattr(self, 'mode'):
-            if self.mode not in ['build', 'eval', 'predict', 'train']:
-                if self.mode.rsplit(".", maxsplit=1)[-1] == "smt2":
+        if hasattr(self, 'mode'):  # pylint: disable=access-member-before-definition
+            if self.mode not in ['build', 'eval', 'predict', 'train']:  # pylint: disable=access-member-before-definition
+                if self.mode.rsplit(".", maxsplit=1)[-1] == "smt2":  # pylint: disable=access-member-before-definition
                     self.benchmark = self.mode
                     self.mode = 'predict'
-        assert hasattr(self, 'ml_core') and self.ml_core in ['torch', 'scikit', 'xgboost']
+        assert (hasattr(self, 'ml_core') and
+                self.ml_core in ['torch', 'scikit', 'xgboost'])  # pylint: disable=no-member
 
     def __str__(self) -> str:
         return str(self.__dict__)

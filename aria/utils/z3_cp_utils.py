@@ -99,12 +99,18 @@
 # See also my Z3 page: http://hakank.org/z3/
 #
 #
+# pylint: disable=redefined-outer-name
 from __future__ import print_function
 
-from typing import List, Dict, Tuple, Any, Union, Optional
-from z3 import *
 import uuid
-import time
+
+from typing import List, Dict, Tuple, Any, Union
+
+from z3 import (
+    Solver, ModelRef, ArithRef, ArrayRef, ExprRef, Int, Real, IntVector,
+    RealVector, Array, IntSort, RealSort, Or, And, Implies, Distinct, Sum,
+    If, sat
+)
 
 def getNewId() -> int:
   return uuid.uuid4().int
@@ -126,7 +132,7 @@ def makeIntVarVals(sol: Solver, name: str, vals: List[int]) -> ArithRef:
 
 #  creates [ Int() for i in range(size)] with a domains
 def makeIntVars(sol: Solver, name: str, size: int, min_val: Union[int, float], max_val: Union[int, float]) -> List[ArithRef]:
-    a = [Int("%s_%i" % (name,i)) for i in range(size)]
+    a = [Int(f"{name}_{i}") for i in range(size)]
     [sol.add(a[i] >= min_val, a[i] <= max_val) for i in range(size)]
     return a
 
@@ -163,7 +169,7 @@ def makeRealVar(sol: Solver, name: str, min_val: Union[int, float], max_val: Uni
 
 #  creates [ Real() for i in range(size)] with a domains
 def makeRealVars(sol: Solver, name: str, size: int, min_val: Union[int, float], max_val: Union[int, float]) -> List[ArithRef]:
-    a = [Real("%s_%i" % (name,i)) for i in range(size)]
+    a = [Real(f"{name}_{i}") for i in range(size)]
     [sol.add(a[i] >= min_val, a[i] <= max_val) for i in range(size)]
     return a
 
@@ -382,8 +388,8 @@ def scalar_product2(sol: Solver, a: List[Union[int, float]], x: List[ArithRef]) 
 #
 def circuit(sol: Solver, x: ArrayRef, z: Union[ArrayRef, List[ArithRef]], n: int) -> None:
 
-    sol.add(Distinct([x[i] for i in range(n)])),
-    sol.add(Distinct([z[i] for i in range(n)])),
+    sol.add(Distinct([x[i] for i in range(n)]))
+    sol.add(Distinct([z[i] for i in range(n)]))
 
     #
     # The main constraint is that z[i] must not be 0
@@ -413,8 +419,8 @@ def circuit2(sol: Solver, x: List[ArithRef], z: List[ArithRef], n: int) -> None:
     Same as circuit() but don't require that x and z are arrays.
     """
 
-    sol.add(Distinct([x[i] for i in range(n)])),
-    sol.add(Distinct([z[i] for i in range(n)])),
+    sol.add(Distinct([x[i] for i in range(n)]))
+    sol.add(Distinct([z[i] for i in range(n)]))
 
     #
     # The main constraint is that z[i] must not be 0
@@ -456,7 +462,7 @@ def maximum(sol: Solver, v: ArithRef, x: List[ArithRef]) -> None:
 
 # v == maximum2(sol,x): v is the maximum value of x
 def maximum2(sol: Solver, x: List[ArithRef]) -> ArithRef:
-  v = Int("v_%i"% uuid.uuid4().int)
+  v = Int(f"v_{uuid.uuid4().int}")
   sol.add(Or([v == x[i] for i in range(len(x))])) # v is an element in x)
   for i in range(len(x)):
     sol.add(v >= x[i]) # and it's the greatest
@@ -471,7 +477,7 @@ def minimum(sol: Solver, v: ArithRef, x: List[ArithRef]) -> None:
 
 # v == minimum2(sol,x): v is the minimum value of x
 def minimum2(sol: Solver, x: List[ArithRef]) -> ArithRef:
-  v = Int("v_%i"% uuid.uuid4().int)
+  v = Int(f"v_{uuid.uuid4().int}")
   sol.add(Or([v == x[i] for i in range(len(x))])) # min is an element in x)
   for i in range(len(x)):
     sol.add(v <= x[i]) # and it's the smallest
@@ -479,12 +485,12 @@ def minimum2(sol: Solver, x: List[ArithRef]) -> ArithRef:
 
 
 # absolute value of x
-def Abs(x: ArithRef) -> ArithRef:
-    return If(x >= 0,x,-x)
+def abs_value(x: ArithRef) -> ArithRef:
+    return If(x >= 0, x, -x)
 
 # converts a number (s) <-> an array of integers (t) in the specific base.
 # See toNum.py
-def toNum(sol: Solver, t: List[ArithRef], s: ArithRef, base: int) -> None:
+def to_num(sol: Solver, t: List[ArithRef], s: ArithRef, base: int) -> None:
   tlen = len(t)
   sol.add(s == Sum([(base ** (tlen - i - 1)) * t[i] for i in range(tlen)]))
 
@@ -493,7 +499,7 @@ def toNum(sol: Solver, t: List[ArithRef], s: ArithRef, base: int) -> None:
 # returns array of the selected entries and the sum of the selected values
 def subset_sum(sol: Solver, values: List[int], total: ArithRef) -> Tuple[List[ArithRef], ArithRef]:
   n = len(values)
-  x = [makeIntVar(sol,"x_%i"%i,0,n) for i in range(n)]
+  x = [makeIntVar(sol, f"x_{i}", 0, n) for i in range(n)]
   ss = makeIntVar(sol,"ss", 0, n)
 
   sol.add(ss == Sum([x[i] for i in range(n)]))
@@ -531,7 +537,7 @@ def no_overlap(sol: Solver, s1: ArithRef, d1: Union[int, ArithRef], s2: ArithRef
 def sliding_sum(sol: Solver, low: int, up: int, seq: int, x: List[ArithRef]) -> None:
   vlen = len(x)
   for i in range(vlen-seq+1):
-    s = makeIntVar(sol, "s_%i"%i,low,up)
+    s = makeIntVar(sol, f"s_{i}", low, up)
     sol.add(s == Sum([x[j] for j in range(i,i+seq)]))
 
 # bin_packing
@@ -568,6 +574,7 @@ def bin_packing(sol: Solver, capacity: Union[int, ArithRef], bins: List[ArithRef
 #       which is the lower/upper limits of s (the start_times).
 #       Which makes it slower...
 #
+# pylint: disable=too-many-positional-arguments
 def cumulative(sol: Solver, s: List[ArithRef], d: List[int], r: List[int], b: Union[int, ArithRef], times_min: int, times_max1: int) -> None:
 
   tasks = [i for i in range(len(s)) if r[i] > 0 and d[i] > 0]
@@ -620,6 +627,7 @@ def global_contiguity(sol: Solver, x: List[ArithRef], start: ArithRef, end: Arit
 # F : accepting states
 # x_len: length of x [when using Array we cannot extract the length]
 #
+# pylint: disable=too-many-positional-arguments,invalid-name
 def regular(sol: Solver, x: Union[ArrayRef, List[ArithRef]], Q: int, S: int, d: List[List[int]], q0: int, F: List[int], x_len: int) -> None:
 
   assert Q > 0, 'regular: "Q" must be greater than zero'
@@ -642,7 +650,7 @@ def regular(sol: Solver, x: Union[ArrayRef, List[ArithRef]], Q: int, S: int, d: 
     d2.append(row)
 
   d2_flatten = [d2[i][j] for i in range(Q + 1) for j in range(S)]
-  d2_flatten_a = makeIntArray(sol,"d2_flatten_a_%i"%uuid.uuid4().int,len(d2_flatten),min(d2_flatten),max(d2_flatten))
+  d2_flatten_a = makeIntArray(sol, f"d2_flatten_a_{uuid.uuid4().int}", len(d2_flatten), min(d2_flatten), max(d2_flatten))
   for i in range(len(d2_flatten)):
      sol.add(d2_flatten[i] == d2_flatten_a[i])
 
@@ -655,7 +663,7 @@ def regular(sol: Solver, x: Union[ArrayRef, List[ArithRef]], Q: int, S: int, d: 
   # n = len(x)
   n = x_len
 
-  a = [makeIntVar(sol,'a[%i]_%i' % (i,uuid.uuid4().int), 0, Q + 1) for i in range(m, n + 1)]
+  a = [makeIntVar(sol, f'a[{i}]_{uuid.uuid4().int}', 0, Q + 1) for i in range(m, n + 1)]
 
   # Check that the final state is in F
   member_of(sol,a[-1],F)
@@ -670,6 +678,7 @@ def regular(sol: Solver, x: Union[ArrayRef, List[ArithRef]], Q: int, S: int, d: 
     sol.add(a[i + 1] == d2_flatten_a[(a[i] * S) + (x[i] - 1)])
 
 
+# pylint: disable=too-many-positional-arguments,invalid-name
 def regular2(sol: Solver, x: List[ArithRef], Q: int, S: int, d: List[List[int]], q0: int, F: List[int], x_len: int) -> None:
   """
   This is the same as regular() but without the Array.
@@ -708,7 +717,7 @@ def regular2(sol: Solver, x: List[ArithRef], Q: int, S: int, d: List[List[int]],
   # n = len(x)
   n = x_len
 
-  a = [makeIntVar(sol,'a[%i]_%i' % (i,uuid.uuid4().int), 0, Q + 1) for i in range(m, n + 1)]
+  a = [makeIntVar(sol, f'a[{i}]_{uuid.uuid4().int}', 0, Q + 1) for i in range(m, n + 1)]
 
   # Check that the final state is in F
   member_of(sol,a[-1],F)
@@ -784,7 +793,7 @@ def clique(sol: Solver, g: List[List[int]], clique: List[ArithRef], card: ArithR
 def all_min_dist(sol: Solver, min_dist: int, x: List[ArithRef], n: int) -> None:
   for i in range(n):
     for j in range(i):
-      sol.add(Abs(x[i]-x[j]) >= min_dist)
+      sol.add(abs_value(x[i]-x[j]) >= min_dist)
 
 #
 # Ensure that all elements in xs + cst are distinct
@@ -807,7 +816,7 @@ def _count_a_in_b(sol: Solver, ass: List[ArithRef], bss: List[ArithRef]) -> None
 
 # all pairs must be different
 def all_different_pairs(sol: Solver, a: Dict[Tuple[int, int], ArithRef], s: int) -> None:
-    sol.add(Distinct([p for p in pairs(sol,a,s)]))
+    sol.add(Distinct(list(pairs(sol, a, s))))
 
 # the pairs are in increasing order
 def increasing_pairs(sol: Solver, a: Dict[Tuple[int, int], ArithRef], s: int) -> None:
@@ -891,68 +900,68 @@ def arith_relop(sol: Solver, a: ArithRef, t: int, b: Union[int, ArithRef]) -> No
 
 # Some experiments
 if __name__ == "__main__":
-    sol = Solver()
-    n = 5
-    # x = IntVector("x",n)
-    # for i in range(n):
-    #     sol.add(x[i]>=0, x[i] <= n)
-    x = makeIntVector(sol,"x",n,0,n)
+    test_sol = Solver()
+    test_n = 5
+    # test_x = IntVector("x",test_n)
+    # for test_i in range(test_n):
+    #     test_sol.add(test_x[test_i]>=0, test_x[test_i] <= test_n)
+    test_x = makeIntVector(test_sol, "x", test_n, 0, test_n)
     # sol.add(Distinct(x))
     # all_different_except_0(sol,x)
     # all_different(sol,x)
 
-    increasing(sol,x)
-    # increasing_strict(sol,x)
-    # decreasing(sol,x)
-    # decreasing_strict(sol,x)
+    increasing(test_sol, test_x)
+    # increasing_strict(test_sol,test_x)
+    # decreasing(test_sol,test_x)
+    # decreasing_strict(test_sol,test_x)
 
     # exactly twp 0s
-    # count(sol,0,x,2)
+    # count(test_sol,0,test_x,2)
 
     # count the number of 0's
-    c = Int("c")
-    sol.add(c >= 0, c <= n)
-    count(sol,0,x,c) # simple example
+    test_c = Int("c")
+    test_sol.add(test_c >= 0, test_c <= test_n)
+    count(test_sol, 0, test_x, test_c)  # simple example
 
     # Here we also let the value free (i.e. not just checking 0)
-    # So we count the number of all values 1..n
-    # v = Int(v)
-    # sol.add(v >= 0, v <= n)
-    # count(sol,v,x,c)
+    # So we count the number of all values 1..test_n
+    # test_v = Int(test_v)
+    # test_sol.add(test_v >= 0, test_v <= test_n)
+    # count(test_sol,test_v,test_x,test_c)
 
-    gcc = IntVector("gcc",n+1)
-    for i in range(n):
-        sol.add(gcc[i] >= 0, gcc[i] <= n+1)
-    # for i in [i for i in range(n)]:
-    #     nn = Int("nn")
-    #     # sol.add(nn>=0, nn<=n+1)
-    #     count(sol,i,x,gcc[i])
-    #     # sol.add(gcc[i] == nn)
-    global_cardinality_count(sol,[i for i in range(0,n+1)], x, gcc)
+    test_gcc = IntVector("gcc", test_n+1)
+    for test_i in range(test_n):
+        test_sol.add(test_gcc[test_i] >= 0, test_gcc[test_i] <= test_n+1)
+    # for test_i in [test_i for test_i in range(test_n)]:
+    #     test_nn = Int("nn")
+    #     # test_sol.add(test_nn>=0, test_nn<=test_n+1)
+    #     count(test_sol,test_i,test_x,test_gcc[test_i])
+    #     # test_sol.add(test_gcc[test_i] == test_nn)
+    global_cardinality_count(test_sol, list(range(0, test_n+1)), test_x, test_gcc)
 
     # enfore that we should have 2 0s
-    # sol.add(gcc[0] == 1)
+    # test_sol.add(test_gcc[0] == 1)
 
-    at_most(sol,2,x,2)
-    at_least(sol,2,x,2)
+    at_most(test_sol, 2, test_x, 2)
+    at_least(test_sol, 2, test_x, 2)
 
     num_solutions = 0
-    print(sol.check())
-    while sol.check() == sat:
+    print(test_sol.check())
+    while test_sol.check() == sat:
         num_solutions = num_solutions + 1
-        mod = sol.model()
-        ss = [mod.eval(x[i]) for i in range(n)]
-        cc = mod.eval(c)
-        # vv = m.eval(v)
-        gccs = ([mod.eval(gcc[i]) for i in range(n)])
-        # print(ss, " #0s: ", mod.eval(cc), " v:", m.eval(v))
-        print(ss, " #0s: ", mod.eval(cc), " gcc:", gccs)
-        sol.add(
+        test_mod = test_sol.model()
+        test_ss = [test_mod.eval(test_x[test_i]) for test_i in range(test_n)]
+        test_cc = test_mod.eval(test_c)
+        # test_vv = test_m.eval(test_v)
+        test_gccs = ([test_mod.eval(test_gcc[test_i]) for test_i in range(test_n)])
+        # print(test_ss, " #0s: ", test_mod.eval(test_cc), " test_v:", test_m.eval(test_v))
+        print(test_ss, " #0s: ", test_mod.eval(test_cc), " gcc:", test_gccs)
+        test_sol.add(
             Or(
-            Or([x[i] != ss[i] for i in range(n)]),
-            cc != c
-            , Or([gcc[i] != gccs[i] for i in range(n)]),
-            #, vv != v
+            Or([test_x[test_i] != test_ss[test_i] for test_i in range(test_n)]),
+            test_cc != test_c
+            , Or([test_gcc[test_i] != test_gccs[test_i] for test_i in range(test_n)]),
+            #, test_vv != test_v
             )
             )
 

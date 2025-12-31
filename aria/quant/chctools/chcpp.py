@@ -19,7 +19,7 @@ def pp_chc_as_rules(db, out: TextIO) -> None:
     out.write(fp.sexpr())
     for q in db.get_queries():
         fml = q.mk_query()
-        out.write('(query {})\n'.format(fml.sexpr()))
+        out.write(f'(query {fml.sexpr()})\n')
 
 
 def pp_chc_as_smt(db, out: TextIO) -> None:
@@ -29,7 +29,7 @@ def pp_chc_as_smt(db, out: TextIO) -> None:
     out.write(fp.sexpr())
     for q in db.get_queries():
         fml = q.mk_formula()
-        out.write('(assert {})\n'.format(fml.sexpr()))
+        out.write(f'(assert {fml.sexpr()})\n')
     out.write('(check-sat)\n')
 
 
@@ -55,7 +55,7 @@ class ChcPpCmd(CliCmd):
 
     def run(self, args, extra):
         db = load_horn_db_from_file(args.in_file)
-        with open(args.out_file, 'w') as out:
+        with open(args.out_file, 'w', encoding='utf-8') as out:
             pp_chc(db, out, fmt=args.format)
 
         return 0

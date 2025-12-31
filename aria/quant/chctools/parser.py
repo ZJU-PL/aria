@@ -12,7 +12,7 @@ from pysmt.smtlib.parser import SmtLibZ3Parser, SmtLibCommand
 Rule = collections.namedtuple('Rule', ['formula', 'is_query'])
 
 
-class ChcRulesSmtLibParser(SmtLibZ3Parser):
+class ChcRulesSmtLibParser(SmtLibZ3Parser):  # pylint: disable=abstract-method
     def __init__(self, env=None, interactive: bool = False):
         super().__init__(env, interactive)
 
@@ -106,7 +106,7 @@ class ChcRulesSmtLibParser(SmtLibZ3Parser):
 
         for cmd in self.get_command_generator(script):
             # Simply skip declarations and other commands...
-            if type(cmd) == Rule:
+            if isinstance(cmd, Rule):
                 if cmd.is_query:
                     queries.append(cmd.formula)
                 else:
@@ -116,7 +116,7 @@ class ChcRulesSmtLibParser(SmtLibZ3Parser):
 
 
 def main() -> int:
-    with open(sys.argv[1], 'r') as script:
+    with open(sys.argv[1], 'r', encoding='utf-8') as script:
         parser = ChcRulesSmtLibParser()
         try:
             r, q = parser.get_chc(script)

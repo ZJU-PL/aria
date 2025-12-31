@@ -2,24 +2,29 @@
 
 - powerset: computes the powerset of a given set
 - filldedent: dedents a string and fills it with the given width
-- strlines: returns a cut-and-pastable string that, when printed, is equivalent to the input.
-- rawlines: returns a cut-and-pastable string that, when printed, is equivalent to the input.
-- debug_decorator: if ARIA_DEBUG is True, it will print a nice execution tree with arguments and results of all decorated functions, else do nothing.
+- strlines: returns a cut-and-pastable string that, when printed, is
+  equivalent to the input.
+- rawlines: returns a cut-and-pastable string that, when printed, is
+  equivalent to the input.
+- debug_decorator: if ARIA_DEBUG is True, it will print a nice execution
+  tree with arguments and results of all decorated functions, else do
+  nothing.
 - debug: Print ``*args`` if ARIA_DEBUG is True, else do nothing.
 - func_name: Return function name of `x` (if defined) else the `type(x)`.
-- _replace: Return a function that can make the replacements, given in ``reps``, on a string.
-- replace: Return ``string`` with all keys in ``reps`` replaced with their corresponding values, longer strings first, irrespective of the order they are given.
+- _replace: Return a function that can make the replacements, given in
+  ``reps``, on a string.
+- replace: Return ``string`` with all keys in ``reps`` replaced with
+  their corresponding values, longer strings first, irrespective of the
+  order they are given.
 """
 
 from __future__ import annotations
 
-import os
 import re as _re
-import shutil
 import struct
 import sys
 from textwrap import fill, dedent
-from typing import Callable, Dict, List, Optional, Union
+from typing import List
 import itertools
 import subprocess
 import threading
@@ -183,22 +188,20 @@ def rawlines(s):
                 rv.append(repr(li))
 
         return '(\n    %s\n)' % '\n    '.join(rv)
-    else:
-        rv = '\n    '.join(lines)
-        if triple[0]:
-            return f'dedent("""\\\n    {rv}""")'
-        else:
-            return f"dedent('''\\\n    {rv}''')"
+    rv = '\n    '.join(lines)
+    if triple[0]:
+        return f'dedent("""\\\n    {rv}""")'
+    return f"dedent('''\\\n    {rv}''')"
 
 
 # System architecture information
 ARCH = f"{struct.calcsize('P') * 8}-bit"
 
-# XXX: PyPy does not support hash randomization
+# Note: PyPy does not support hash randomization
 HASH_RANDOMIZATION = getattr(sys.flags, 'hash_randomization', False)
 
 _debug_tmp: List[str] = []
-_debug_iter = 0
+_DEBUG_ITER = 0
 
 
 def debug_decorator(func):
@@ -212,10 +215,10 @@ def debug_decorator(func):
 
     def maketree(f, *args, **kw):
         global _debug_tmp
-        global _debug_iter
+        global _DEBUG_ITER
         oldtmp = _debug_tmp
         _debug_tmp = []
-        _debug_iter += 1
+        _DEBUG_ITER += 1
 
         def tree(subtrees):
             def indent(s, variant=1):
@@ -238,13 +241,13 @@ def debug_decorator(func):
 
         r = f(*args, **kw)
 
-        _debug_iter -= 1
+        _DEBUG_ITER -= 1
         s = f"{f.__name__}{args} = {r}\n"
         if _debug_tmp:
             s += tree(_debug_tmp)
         _debug_tmp = oldtmp
         _debug_tmp.append(s)
-        if _debug_iter == 0:
+        if _DEBUG_ITER == 0:
             print(_debug_tmp[0])
             _debug_tmp = []
         return r
@@ -261,7 +264,7 @@ def debug(*args):
     """
     from aria import ARIA_DEBUG
     if ARIA_DEBUG:
-            print(*args, file=sys.stderr)
+        print(*args, file=sys.stderr)
 
 
 def debugf(string, args):
@@ -366,7 +369,8 @@ def replace(string, *reps):
     References
     ==========
 
-    .. [1] https://stackoverflow.com/questions/6116978/how-to-replace-multiple-substrings-of-a-string
+    .. [1] https://stackoverflow.com/questions/6116978/
+           how-to-replace-multiple-substrings-of-a-string
     """
     if len(reps) == 1:
         kv = reps[0]
@@ -470,7 +474,8 @@ def run_external_tool(cmd, input_content=None, timeout=300, delete_input=True):
     Run an external command with optional input file content and timeout.
     Returns (success, stdout, stderr). Cleans up temp file if needed.
     """
-    import tempfile, os
+    import os
+    import tempfile
     is_timeout = [False]
     input_file = None
     try:
@@ -490,12 +495,17 @@ def run_external_tool(cmd, input_content=None, timeout=300, delete_input=True):
             text=True
         )
         timer = None
-        if timeout > 0:
-            timer = threading.Timer(timeout, lambda: (process.terminate(), is_timeout.__setitem__(0, True)))
-            timer.start()
-        stdout, stderr = process.communicate()
-        if timer:
-            timer.cancel()
+        try:
+            if timeout > 0:
+                timer = threading.Timer(
+                    timeout,
+                    lambda: (process.terminate(), is_timeout.__setitem__(0, True))
+                )
+                timer.start()
+            stdout, stderr = process.communicate()
+        finally:
+            if timer:
+                timer.cancel()
         if input_file and delete_input:
             try:
                 os.unlink(input_file)

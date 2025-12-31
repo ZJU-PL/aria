@@ -25,7 +25,8 @@ def eval_predicates(m: ModelRef, predicates: List[BoolRef]) -> List[ExprRef]:
     It returns the set of predicates that are true in m, or false if they are not.
 
     :param m: ModelRef: Evaluate the predicates in the list of predicates
-    :param predicates: List[BoolRef]: Specify the set of predicates that we want to evaluate
+    :param predicates: List[BoolRef]: Specify the set of predicates that we want
+        to evaluate
     :return: A list of predicates that are true in the model m
     """
     res: List[ExprRef] = []
@@ -78,12 +79,14 @@ def check_entailment(antecedent: BoolRef, consequent: BoolRef) -> bool:
 
 
 def predicate_abstraction(fml: ExprRef, predicates: List[ExprRef]) -> ExprRef:
-    """Compute the strongest necessary condition of fml that is the Boolean combination of preds
+    """Compute the strongest necessary condition of fml that is the Boolean
+    combination of preds
 
     Following CAV'06 paper "SMT Techniques for Fast Predicate Abstraction"
     (at least from my understanding...)
 
-    TODO: indeed, the algorithm in the paper relies on the ``all-sat'' feature of MathSAT.
+    TODO: indeed, the algorithm in the paper relies on the ``all-sat''
+     feature of MathSAT.
      So, the following code does not strictly follow the paper.
     """
     s = z3.Solver()
@@ -91,9 +94,11 @@ def predicate_abstraction(fml: ExprRef, predicates: List[ExprRef]) -> ExprRef:
     res: List[ExprRef] = []
     while s.check() == z3.sat:
         m = s.model()
-        # i.e., compute a prime/minimal implicant (using the agove prime_implicant function)
+        # i.e., compute a prime/minimal implicant (using the agove
+        # prime_implicant function)
         projs = z3.And(eval_predicates(m, predicates))
-        # projs = prime_implicant(projs, fml) # this is for further possible optimization
+        # projs = prime_implicant(projs, fml) # this is for further possible
+        # optimization
         # print(projs)
         res.append(projs)
         s.add(negate(projs))

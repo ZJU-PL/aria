@@ -2,7 +2,7 @@ import os
 import time
 from collections.abc import Iterable
 
-from func_timeout import func_timeout, FunctionTimedOut
+from func_timeout import func_timeout, FunctionTimedOut  # pylint: disable=import-error
 
 from machsmt.util import die, warning
 from .tokenize_sexpr import SExprTokenizer
@@ -101,7 +101,9 @@ class Benchmark:
                         self.features.append(float(r))
                 else:
                     self.features.append(float(ret))
-            except (FunctionTimedOut, RecursionError): ## Current Crash on RecursionError ##'/home/joe/Desktop/smt-lib/non-incremental/AUFBV/20210301-Alive2-partial-undef/gcc/305_gcc.smt2'
+            except (FunctionTimedOut, RecursionError):
+                # Current Crash on RecursionError
+                # '/home/joe/Desktop/smt-lib/non-incremental/AUFBV/20210301-Alive2-partial-undef/gcc/305_gcc.smt2'
                 ret = feat([])
                 if isinstance(ret, Iterable):
                     for r in ret:

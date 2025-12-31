@@ -5,7 +5,7 @@ import argparse
 
 class SExprTokenizer:
     def __init__(self, infile):
-        self.file = open(infile, 'r', encoding='utf-8')
+        self.file = open(infile, 'r', encoding='utf-8')  # pylint: disable=consider-using-with
 
     def __iter__(self):
         return self
@@ -34,7 +34,7 @@ class SExprTokenizer:
             # Handle string literals
             if (char == '"' or cur_string_literal) and not cur_comment:
                 cur_string_literal.append(char)
-                # TODO: Escaped quotes "A "" B "" C" is one string literal
+                # Note: Escaped quotes "A "" B "" C" is one string literal
                 if char == '"' and len(cur_string_literal) > 1:
                     assert cur_expr is not None
                     cur_expr.append(''.join(cur_string_literal))

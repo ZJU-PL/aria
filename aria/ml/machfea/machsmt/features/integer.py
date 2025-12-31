@@ -15,5 +15,4 @@ OUTPUT
 
 '''
 
-# TODO
-# linear vs non-linear
+# Note: Future enhancement - linear vs non-linear

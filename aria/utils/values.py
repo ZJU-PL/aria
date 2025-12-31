@@ -1,23 +1,26 @@
 """Utils for manipulating values (especially BV and FP)
-  - bool_to_BitVec: Convert a boolean expression to a 1-bit bitvector.
+  - bool_to_bit_vec: Convert a boolean expression to a 1-bit bitvector.
   - bv_log2: Compute the floor of log2 of a bitvector value.
   - zext_or_trunc: Zero-extend or truncate a bitvector to a target width.
   - ctlz: Count leading zeros in a bitvector.
   - cttz: Count trailing zeros in a bitvector.
-  - ComputeNumSignBits: Compute the number of consecutive sign bits in a bitvector.
-  - fpUEQ: Unordered floating-point equality.
-  - fpMod: Floating-point modulo operation.
-  - fpMod_using_fpRem: Implement fpMod using fpRem.
-  - fpRem_trampoline: Trampoline to Z3's fpRem.
+  - compute_num_sign_bits: Compute the number of consecutive sign bits in a
+    bitvector.
+  - fp_ueq: Unordered floating-point equality.
+  - fp_mod: Floating-point modulo operation.
+  - fp_mod_using_fp_rem: Implement fp_mod using fp_rem.
+  - fp_rem_trampoline: Trampoline to Z3's fp_rem.
   - set_bit: Set the index:th bit of v to x, and return the new value.
   - twos_complement: Returns the 2-complemented value of val assuming bits word width
-  - convert_smtlib_models_to_python_value: For converting SMT-LIB models to Python values
+  - convert_smtlib_models_to_python_value: For converting SMT-LIB models to
+    Python values
   - zero_extension: Set the rest of bits on the left to 0.
   - one_extension: Set the rest of bits on the left to 1.
   - sign_extension: Set the rest of bits on the left to the value of the sign bit.
   - right_zero_extension: Set the rest of bits on the right to 0.
   - right_one_extension: Set the rest of bits on the right to 1.
-  - right_sign_extension: Set the rest of bits on the right to the value of the sign bit.
+  - right_sign_extension: Set the rest of bits on the right to the value of
+    the sign bit.
   - absolute_value_bv: Absolute value for bitvector encoding.
 """
 
@@ -27,207 +30,211 @@ from z3 import BitVecVal, Concat, Extract
 
 # Regular expression for extracting values from SMT-LIB strings
 RE_GET_EXPR_VALUE_ALL = re.compile(
-    r"\(([a-zA-Z0-9_]*)[ \n\s]*(#b[0-1]*|#x[0-9a-fA-F]*|[(]?_ bv[0-9]* [0-9]*|true|false|[-+]?[0-9]+|[-+]?[0-9]*\.[0-9]+|\"[^\"]*\")\)"
+    r"\(([a-zA-Z0-9_]*)[ \n\s]*(#b[0-1]*|#x[0-9a-fA-F]*|[(]?_ bv[0-9]* "
+    r"[0-9]*|true|false|[-+]?[0-9]+|[-+]?[0-9]*\.[0-9]+|\"[^\"]*\")\)"
 )
 
-def bool_to_BitVec(b):
-  """Convert a boolean expression to a 1-bit bitvector.
+def bool_to_bit_vec(b):
+    """Convert a boolean expression to a 1-bit bitvector.
 
-  Args:
-      b: Z3 boolean expression
+    Args:
+        b: Z3 boolean expression
 
-  Returns:
-      1-bit bitvector: 1 if b is true, 0 if b is false
-  """
-  return z3.If(b, z3.BitVecVal(1, 1), z3.BitVecVal(0, 1))
+    Returns:
+        1-bit bitvector: 1 if b is true, 0 if b is false
+    """
+    return z3.If(b, z3.BitVecVal(1, 1), z3.BitVecVal(0, 1))
 
 def bv_log2(bitwidth, v):
-  """Compute the floor of log2 of a bitvector value.
+    """Compute the floor of log2 of a bitvector value.
 
-  Args:
-      bitwidth: Width of the output bitvector
-      v: Input bitvector value
+    Args:
+        bitwidth: Width of the output bitvector
+        v: Input bitvector value
 
-  Returns:
-      Bitvector of specified bitwidth representing floor(log2(v))
-  """
-  def rec(h, l):
-    if h <= l:
-      return z3.BitVecVal(l, bitwidth)
-    mid = l+int((h-l)/2)
-    return z3.If(z3.Extract(h,mid+1,v) != 0, rec(h, mid+1), rec(mid, l))
-  return rec(v.size()-1, 0)
+    Returns:
+        Bitvector of specified bitwidth representing floor(log2(v))
+    """
+    def rec(h, l):
+        if h <= l:
+            return z3.BitVecVal(l, bitwidth)
+        mid = l+int((h-l)/2)
+        return z3.If(z3.Extract(h,mid+1,v) != 0, rec(h, mid+1), rec(mid, l))
+    return rec(v.size()-1, 0)
 
 
 def zext_or_trunc(v, src, tgt):
-  """Zero-extend or truncate a bitvector to a target width.
+    """Zero-extend or truncate a bitvector to a target width.
 
-  Args:
-      v: Input bitvector
-      src: Source bitwidth
-      tgt: Target bitwidth
+    Args:
+        v: Input bitvector
+        src: Source bitwidth
+        tgt: Target bitwidth
 
-  Returns:
-      Bitvector of target width (zero-extended if tgt > src, truncated if tgt < src)
-  """
-  if tgt == src:
-    return v
-  if tgt > src:
-    return z3.ZeroExt(tgt - src, v)
+    Returns:
+        Bitvector of target width (zero-extended if tgt > src,
+        truncated if tgt < src)
+    """
+    if tgt == src:
+        return v
+    if tgt > src:
+        return z3.ZeroExt(tgt - src, v)
 
-  return z3.Extract(tgt-1, 0, v)
+    return z3.Extract(tgt-1, 0, v)
 
 
 def ctlz(output_width, v):
-  """Count leading zeros in a bitvector.
+    """Count leading zeros in a bitvector.
 
-  Args:
-      output_width: Width of the output bitvector
-      v: Input bitvector
+    Args:
+        output_width: Width of the output bitvector
+        v: Input bitvector
 
-  Returns:
-      Bitvector representing the number of leading zeros in v
-  """
-  size = v.size()
-  def rec(i):
-    if i < 0:
-      return z3.BitVecVal(size, output_width)
-    return z3.If(z3.Extract(i,i,v) == z3.BitVecVal(1, 1),
-              z3.BitVecVal(size-1-i, output_width),
-              rec(i-1))
-  return rec(size-1)
+    Returns:
+        Bitvector representing the number of leading zeros in v
+    """
+    size = v.size()
+    def rec(i):
+        if i < 0:
+            return z3.BitVecVal(size, output_width)
+        return z3.If(z3.Extract(i,i,v) == z3.BitVecVal(1, 1),
+                      z3.BitVecVal(size-1-i, output_width),
+                      rec(i-1))
+    return rec(size-1)
 
 
 def cttz(output_width, v):
-  """Count trailing zeros in a bitvector.
+    """Count trailing zeros in a bitvector.
 
-  Args:
-      output_width: Width of the output bitvector
-      v: Input bitvector
+    Args:
+        output_width: Width of the output bitvector
+        v: Input bitvector
 
-  Returns:
-      Bitvector representing the number of trailing zeros in v
-  """
-  size = v.size()
-  def rec(i):
-    if i == size:
-      return z3.BitVecVal(size, output_width)
-    return z3.If(z3.Extract(i,i,v) == z3.BitVecVal(1, 1),
-              z3.BitVecVal(i, output_width),
-              rec(i+1))
-  return rec(0)
+    Returns:
+        Bitvector representing the number of trailing zeros in v
+    """
+    size = v.size()
+    def rec(i):
+        if i == size:
+            return z3.BitVecVal(size, output_width)
+        return z3.If(z3.Extract(i,i,v) == z3.BitVecVal(1, 1),
+                      z3.BitVecVal(i, output_width),
+                      rec(i+1))
+    return rec(0)
 
-def ComputeNumSignBits(bitwidth, v):
-  """Compute the number of consecutive sign bits in a bitvector.
+def compute_num_sign_bits(bitwidth, v):
+    """Compute the number of consecutive sign bits in a bitvector.
 
-  This counts how many leading bits match the sign bit (the most significant bit).
+    This counts how many leading bits match the sign bit (the most
+    significant bit).
 
-  Args:
-      bitwidth: Width of the output bitvector
-      v: Input bitvector
+    Args:
+        bitwidth: Width of the output bitvector
+        v: Input bitvector
 
-  Returns:
-      Bitvector representing the number of consecutive sign bits
-  """
-  size = v.size()
-  size1 = size - 1
-  sign = z3.Extract(size1, size1, v)
+    Returns:
+        Bitvector representing the number of consecutive sign bits
+    """
+    size = v.size()
+    size1 = size - 1
+    sign = z3.Extract(size1, size1, v)
 
-  def rec(i):
-    if i < 0:
-      return z3.BitVecVal(size, bitwidth)
-    return z3.If(z3.Extract(i,i,v) == sign,
-              rec(i-1),
-              z3.BitVecVal(size1-i, bitwidth))
-  return rec(size - 2)
+    def rec(i):
+        if i < 0:
+            return z3.BitVecVal(size, bitwidth)
+        return z3.If(z3.Extract(i,i,v) == sign,
+                      rec(i-1),
+                      z3.BitVecVal(size1-i, bitwidth))
+    return rec(size - 2)
 
-def fpUEQ(x, y):
-  """Unordered floating-point equality.
+def fp_ueq(x, y):
+    """Unordered floating-point equality.
 
-  Returns true if x == y or either operand is NaN.
+    Returns true if x == y or either operand is NaN.
 
-  Args:
-      x: First floating-point value
-      y: Second floating-point value
+    Args:
+        x: First floating-point value
+        y: Second floating-point value
 
-  Returns:
-      Boolean expression representing unordered equality
-  """
-  return z3.Or(z3.fpEQ(x,y), z3.fpIsNaN(x), z3.fpIsNaN(y))
+    Returns:
+        Boolean expression representing unordered equality
+    """
+    return z3.Or(z3.fpEQ(x,y), z3.fpIsNaN(x), z3.fpIsNaN(y))
 
 
 # Z3 4.4 incorrectly implemented fpRem as fpMod, where fpMod(x,y) has the same
 # sign as x. In particular fpMod(3,2) = 1, but fpRem(3,2) = -1.
-def detect_fpMod():
-  """Determine whether Z3's fpRem is correct, and set fpMod accordingly.
-  """
-  import logging
-  log = logging.getLogger(__name__)
-  log.debug('Setting fpMod')
+def detect_fp_mod():
+    """Determine whether Z3's fpRem is correct, and set fp_mod accordingly.
+    """
+    import logging
+    log = logging.getLogger(__name__)
+    log.debug('Setting fp_mod')
 
-  if z3.is_true(z3.simplify(z3.FPVal(3, z3.Float32()) % 2 < 0)):
-    log.debug('Correct fpRem detected')
-    fpMod.__code__ = fpMod_using_fpRem.__code__
-  else:
-    log.debug('fpRem = fpMod')
-    fpMod.__code__ = fpRem_trampoline.__code__
+    if z3.is_true(z3.simplify(z3.FPVal(3, z3.Float32()) % 2 < 0)):
+        log.debug('Correct fpRem detected')
+        fp_mod.__code__ = fp_mod_using_fp_rem.__code__
+    else:
+        log.debug('fpRem = fpMod')
+        fp_mod.__code__ = fp_rem_trampoline.__code__
 
 
-# Wait until fpMod is called, then determine which implementation it should
+# Wait until fp_mod is called, then determine which implementation it should
 # have. Subsequent calls will use that implementation directly.
-def fpMod(x, y, ctx=None):
-  """Floating-point modulo operation.
+def fp_mod(x, y, ctx=None):
+    """Floating-point modulo operation.
 
-  Lazily determines the correct implementation based on Z3's behavior,
-  then uses that implementation for subsequent calls.
+    Lazily determines the correct implementation based on Z3's behavior,
+    then uses that implementation for subsequent calls.
 
-  Args:
-      x: Dividend
-      y: Divisor
-      ctx: Optional Z3 context
+    Args:
+        x: Dividend
+        y: Divisor
+        ctx: Optional Z3 context
 
-  Returns:
-      Floating-point remainder with sign matching x
-  """
-  detect_fpMod()
-  return fpMod(x, y, ctx)
+    Returns:
+        Floating-point remainder with sign matching x
+    """
+    detect_fp_mod()
+    return fp_mod(x, y, ctx)
 
 # It would be great if this had a less complicated implementation
-def fpMod_using_fpRem(x, y, ctx=None):
-  """Implement fpMod using fpRem.
+def fp_mod_using_fp_rem(x, y, ctx=None):
+    """Implement fp_mod using fpRem.
 
-  Used when Z3's fpRem is correct. This converts fpRem to fpMod semantics.
+    Used when Z3's fpRem is correct. This converts fpRem to fp_mod semantics.
 
-  Args:
-      x: Dividend
-      y: Divisor
-      ctx: Optional Z3 context
+    Args:
+        x: Dividend
+        y: Divisor
+        ctx: Optional Z3 context
 
-  Returns:
-      Floating-point modulo with sign matching x
-  """
-  y = z3.fpAbs(y)
-  z = z3.fpRem(z3.fpAbs(x), y, ctx)
-  r = z3.If(z3.fpIsNegative(z), z + y, z, ctx) # does rounding mode matter here?
-  return z3.If(
-    z3.Not(z3.fpIsNegative(x) == z3.fpIsNegative(r), ctx), z3.fpNeg(r), r, ctx)
+    Returns:
+        Floating-point modulo with sign matching x
+    """
+    y = z3.fpAbs(y)
+    z = z3.fpRem(z3.fpAbs(x), y, ctx)
+    r = z3.If(z3.fpIsNegative(z), z + y, z, ctx)  # rounding mode?
+    return z3.If(
+        z3.Not(z3.fpIsNegative(x) == z3.fpIsNegative(r), ctx),
+        z3.fpNeg(r), r, ctx)
 
 # synonym for fpRem, but located in this module (i.e., same globals in scope)
-def fpRem_trampoline(x, y, ctx=None):
-  """Trampoline to Z3's fpRem.
+def fp_rem_trampoline(x, y, ctx=None):
+    """Trampoline to Z3's fpRem.
 
-  Used when Z3's fpRem is actually fpMod. This is a synonym for fpRem
-  located in this module so it has the same globals in scope.
+    Used when Z3's fpRem is actually fpMod. This is a synonym for fpRem
+    located in this module so it has the same globals in scope.
 
-  Args:
-      x: Dividend
-      y: Divisor
-      ctx: Optional Z3 context (unused)
+    Args:
+        x: Dividend
+        y: Divisor
+        ctx: Optional Z3 context (unused)
 
-  Returns:
-      Result of Z3's fpRem operation
-  """
-  return z3.fpRem(x, y)
+    Returns:
+        Result of Z3's fpRem operation
+    """
+    return z3.fpRem(x, y)
 
 
 # Bit Operations

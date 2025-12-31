@@ -62,19 +62,17 @@ def run_seed(seed_val, category_key):
     print(output)
 
 if __name__ == '__main__':
-    """
-    Main execution: Run SMTgazer across multiple SMT logic categories in parallel.
-
-    This script processes the following SMT categories:
-    - Equality+LinearArith: Equality and linear arithmetic problems
-    - QF_NonLinearIntArith: Quantifier-free nonlinear integer arithmetic
-    - QF_Bitvec: Quantifier-free bit-vector problems
-    - SyGuS: Syntax-guided synthesis problems
-    - BMC: Bounded model checking problems
-    - SymEx: Symbolic execution problems
-
-    Uses multiprocessing with 10 parallel processes for efficiency.
-    """
+    # Main execution: Run SMTgazer across multiple SMT logic categories in parallel.
+    #
+    # This script processes the following SMT categories:
+    # - Equality+LinearArith: Equality and linear arithmetic problems
+    # - QF_NonLinearIntArith: Quantifier-free nonlinear integer arithmetic
+    # - QF_Bitvec: Quantifier-free bit-vector problems
+    # - SyGuS: Syntax-guided synthesis problems
+    # - BMC: Bounded model checking problems
+    # - SymEx: Symbolic execution problems
+    #
+    # Uses multiprocessing with 10 parallel processes for efficiency.
     # Define the SMT logic categories to process
     key_set = [
         'Equality+LinearArith',    # Simple arithmetic and equality logic
@@ -86,16 +84,11 @@ if __name__ == '__main__':
     ]
 
     # Create process pool for parallel execution
-    p = Pool(processes=10)
-
-    # Process each SMT category in parallel
-    for key in key_set:
-        print(f"Processing SMT category: {key}")
-        # Create partial function with fixed category parameter
-        partial_run_seed = partial(run_seed, category_key=key)
-        # Map function across all seeds for this category
-        p.map(partial_run_seed, seed)
-
-    # Clean up multiprocessing resources
-    p.close()
-    p.join()
+    with Pool(processes=10) as p:
+        # Process each SMT category in parallel
+        for key in key_set:
+            print(f"Processing SMT category: {key}")
+            # Create partial function with fixed category parameter
+            partial_run_seed = partial(run_seed, category_key=key)
+            # Map function across all seeds for this category
+            p.map(partial_run_seed, seed)

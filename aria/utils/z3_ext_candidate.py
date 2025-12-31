@@ -4,10 +4,14 @@ Some APIs/functions for playing with Z3 expr (cont.)
 - absolute_value_bv: Compute absolute value for bitvectors
 - absolute_value_int: Compute absolute value for integers
 - ground_quantifier: Extract body and variables from a single quantifier
-- ground_quantifier_all: Extract body and variables from nested quantifiers (preserves quantifier structure)
-- reconstruct_quantified_formula: Reconstruct a quantified formula from its body and quantifier info
-- native_to_dnf: Convert a Z3 expression to DNF (may have limitations for complex expressions)
-- to_dnf_boolean: Convert a boolean Z3 expression to DNF (more reliable for boolean expressions)
+- ground_quantifier_all: Extract body and variables from nested quantifiers
+  (preserves quantifier structure)
+- reconstruct_quantified_formula: Reconstruct a quantified formula from its
+  body and quantifier info
+- native_to_dnf: Convert a Z3 expression to DNF (may have limitations for
+  complex expressions)
+- to_dnf_boolean: Convert a boolean Z3 expression to DNF (more reliable for
+  boolean expressions)
 """
 import z3
 
@@ -19,7 +23,7 @@ def ground_quantifier(qexpr):
     the quantifier is at the outermost level of the formula.
     """
     body = qexpr.body()
-    var_list = list()
+    var_list = []
     for i in range(qexpr.num_vars()):
         vi_name = qexpr.var_name(i)
         vi_sort = qexpr.var_sort(i)
@@ -115,7 +119,7 @@ def reconstruct_quantified_formula(body, quantifier_info):
     return result
 
 
-def to_dnf_boolean(expr):
+def to_dnf_boolean(expr):  # pylint: disable=too-many-return-statements
     """
     Convert a boolean Z3 expression to DNF (Disjunctive Normal Form).
 
@@ -248,7 +252,9 @@ def test_quant():
     a, b, c, d = z3.Ints("a b c d")
 
     complex_fml = z3.And(x > a, y < b, z == c, d >= 0)
-    complex_qfml = z3.ForAll([x, a], z3.Exists([y, b], z3.ForAll([z, c, d], complex_fml)))
+    complex_qfml = z3.ForAll(
+        [x, a], z3.Exists([y, b], z3.ForAll([z, c, d], complex_fml))
+    )
 
     print("Original formula:")
     print(complex_qfml)
@@ -318,24 +324,34 @@ def test_quant():
     # Another example: Swapping quantifiers
     print("\nSwapping quantifiers:")
     # Swap ForAll and Exists
-    swapped_quant_info = [(not is_forall, vars_list) for is_forall, vars_list in quant_info]
+    swapped_quant_info = [
+        (not is_forall, vars_list) for is_forall, vars_list in quant_info
+    ]
     print("Swapped quantifier info:", swapped_quant_info)
 
     # Reconstruct with swapped quantifiers
     swapped_formula = reconstruct_quantified_formula(body, swapped_quant_info)
     print("Formula with swapped quantifiers:", swapped_formula)
 
-    print("\nNote: The ground_quantifier_all function preserves the quantifier structure")
-    print("and logical meaning of formulas, even if the syntactic representation might differ.")
+    print(
+        "\nNote: The ground_quantifier_all function preserves the quantifier "
+        "structure and logical meaning of formulas, even if the syntactic "
+        "representation might differ."
+    )
 
 
 def test_dnf():
     x, y, z = z3.Ints("x y z")
-    fml = z3.Xor(z3.Or(x > 3, y + z < 100), z3.And(x < 100, y == 3), z3.Or(x + y < 100, y - z > 3))
+    fml = z3.Xor(
+        z3.Or(x > 3, y + z < 100),
+        z3.And(x < 100, y == 3),
+        z3.Or(x + y < 100, y - z > 3),
+    )
     cnf_fml = z3.Then("simplify", "tseitin-cnf")(fml).as_expr()
     print(cnf_fml)
-    # FIXME: this triggers an assertion error in prime_implicant
-    # maybe caused by skelom constant(but the algo should be independent of the form)
+    # Note: This triggers an assertion error in prime_implicant.
+    # Maybe caused by skolem constant (but the algo should be independent
+    # of the form).
     # print(exclusive_to_dnf(cnf_fml))
 
 

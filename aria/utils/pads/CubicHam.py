@@ -3,7 +3,7 @@ D. Eppstein, April 2004.
 """
 
 import unittest
-from aria.utils.pads.Graphs import *
+from aria.utils.pads.Graphs import isUndirected, maxDegree, minDegree, copyGraph
 from aria.utils.pads.Biconnectivity import isBiconnected
 from aria.utils.pads.CardinalityMatching import matching
 from aria.utils.pads.Util import arbitrary_item, map_to_constant

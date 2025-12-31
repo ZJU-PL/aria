@@ -1,9 +1,9 @@
 """
 SMAC3 Integration for SMTgazer Portfolio Optimization
 
-This module integrates SMAC3 (Sequential Model-based Algorithm Configuration) with SMTgazer
-to optimize solver timeout configurations within each problem cluster. SMAC3 uses Bayesian
-optimization to find optimal timeout distributions for solver portfolios.
+This module integrates SMAC3 (Sequential Model-based Algorithm Configuration) with
+SMTgazer to optimize solver timeout configurations within each problem cluster. SMAC3
+uses Bayesian optimization to find optimal timeout distributions for solver portfolios.
 
 Key Features:
 - ConfigSpace for defining search space of timeout configurations
@@ -11,18 +11,21 @@ Key Features:
 - Cross-validation support for robust performance evaluation
 - Integration with SMTgazer's clustering and solver selection
 
-The optimization searches for optimal timeout distributions (t1, t2, t3, t4) that sum to 1200s
-and are allocated across the selected solvers in the portfolio.
+The optimization searches for optimal timeout distributions (t1, t2, t3, t4) that sum
+to 1200s and are allocated across the selected solvers in the portfolio.
 
 Author: SMTgazer Team
 Publication: ASE 2025
 """
+# pylint: disable=redefined-outer-name
 
 import json
 import sys
 
+# pylint: disable=import-error
 from ConfigSpace import Configuration, ConfigurationSpace, Float, Categorical
 from smac import HyperparameterOptimizationFacade, Scenario
+# pylint: enable=import-error
 
 # Global configuration variables (parsed from command line arguments)
 x1 = 0      # Timeout for solver 1 (seconds)

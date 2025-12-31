@@ -38,8 +38,8 @@ def LongestIncreasingSubsequence(S):
 
     output = [head[-1]]
     pair = tail[-1]
-    while pair:
-        x,pair = pair
+    while pair is not None:
+        x, pair = pair
         output.append(x)
 
     output.reverse()

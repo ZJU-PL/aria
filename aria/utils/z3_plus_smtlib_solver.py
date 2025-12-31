@@ -1,8 +1,11 @@
 """
-Call other SMT solvers to manipulate Z3's expr (e.g., quantifier elimination, abduction, etc.)
+Call other SMT solvers to manipulate Z3's expr (e.g., quantifier elimination,
+abduction, etc.)
 
-Use z3 as the default solve for handling "normal queries" (e.g., sat, equiv, entail, etc, but use cvc5 and other solvers for specific queries, e.g.,
-  - binary interpolant (cvc5, SMTInterpol, mathsat), sequence interpolant (SMTInterpol)
+Use z3 as the default solve for handling "normal queries" (e.g., sat, equiv,
+entail, etc, but use cvc5 and other solvers for specific queries, e.g.,
+  - binary interpolant (cvc5, SMTInterpol, mathsat), sequence interpolant
+    (SMTInterpol)
   - non-linear interpolant (Yices2)
   - abduction (cvc5)
   - quantifier elimination (cvc5, z3,..)
@@ -66,42 +69,47 @@ def solve_with_bin_solver(cmd, timeout=300):
     """
     Solve a Z3 expression with an external binary solver
     """
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
-    is_timeout = [False]
-    timer = Timer(timeout, terminate, args=[p, is_timeout])
-    timer.start()
-    out = p.stdout.readlines()
-    out = ' '.join([str(element.decode('UTF-8')) for element in out])
-    p.stdout.close()
-    timer.cancel()
-    if p.poll() is None:
-        p.terminate()
-    if is_timeout[0]:
-        return "timeout"
-    return out
+    with subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                          stderr=subprocess.STDOUT) as p:
+        is_timeout = [False]
+        timer = Timer(timeout, terminate, args=[p, is_timeout])
+        timer.start()
+        out = p.stdout.readlines()
+        out = ' '.join([str(element.decode('UTF-8')) for element in out])
+        timer.cancel()
+        if p.poll() is None:
+            p.terminate()
+        if is_timeout[0]:
+            return "timeout"
+        return out
 
 
 class Z3SolverPlus(z3.Solver):
 
     def __init__(self, debug=False):
-        super(Z3SolverPlus, self).__init__()
+        super().__init__()
 
         self.debug = debug
-        
+
         # Get CVC5 path from global config
         cvc5_path = global_config.get_solver_path("cvc5")
         if not cvc5_path:
-            logger.warning("CVC5 not found in global config. Using 'cvc5' command from PATH.")
+            logger.warning(
+                "CVC5 not found in global config. "
+                "Using 'cvc5' command from PATH."
+            )
             cvc5_path = "cvc5"
-        
+
         # Use CVC5 path from global_params
         # abductve inference
         self.abduction_solver = f"{cvc5_path} --produce-abducts -q"
         # quantifier elimination
         self.binary_qe_solver = f"{cvc5_path} -q --produce-models"
-        # binary interpolant (NOTE: cvc5 uses the original definition of interpolant)
-        self.binary_interpol_solver = f"{cvc5_path} --produce-interpols=default -q"
+        # binary interpolant (NOTE: cvc5 uses the original definition of
+        # interpolant)
+        self.binary_interpol_solver = (
+            f"{cvc5_path} --produce-interpols=default -q"
+        )
         # sequence interpolant
         self.sequence_interpol_solver = None
         # implicant/implicate
@@ -115,11 +123,14 @@ class Z3SolverPlus(z3.Solver):
         # all-sat
         self.all_sat_solver = "optimathsat -model_generation=true"
 
-    def binary_interpolant(self, pre: z3.BoolRef, post: z3.BoolRef, logic=None):
+    def binary_interpolant(self, pre: z3.BoolRef, post: z3.BoolRef,
+                           logic=None):
         """
         Binary interpolant
-        - It seems that cvc5's interpolant follows the original definition, i.e., A |= I, I |= B
-        - Need to use different strategies when using other solvers (e.g., using pysmt's APIs)
+        - It seems that cvc5's interpolant follows the original definition,
+          i.e., A |= I, I |= B
+        - Need to use different strategies when using other solvers
+          (e.g., using pysmt's APIs)
 
         Example from cvc5
         (set-logic LIA)
@@ -135,15 +146,16 @@ class Z3SolverPlus(z3.Solver):
         for line in unify_solver.to_smt2().split("\n"):
             if line.startswith("(as"):
                 break
-            signature += "{}\n".format(line)
-        itp_cmd = "(get-interpol A {})".format(post.sexpr())
+            signature += f"{line}\n"
+        itp_cmd = f"(get-interpol A {post.sexpr()})"
 
         smtlib = SmtlibProc(self.binary_interpol_solver, debug=self.debug)
         smtlib.start()
         try:
-            if logic: smtlib.send("(set-logic {})".format(logic))
+            if logic:
+                smtlib.send(f"(set-logic {logic})")
             smtlib.send(signature)
-            smtlib.send("(assert {})\n".format(pre.sexpr()))
+            smtlib.send(f"(assert {pre.sexpr()})\n")
             smtlib.send(itp_cmd)
             itp = smtlib.recv()
             if "error" in itp or "none" in itp:
@@ -159,13 +171,13 @@ class Z3SolverPlus(z3.Solver):
     def sequence_interpolant(self):
         """
         Sequence interpolant
-        - Need to use different strategies when using other solvers (e.g., using pysmt's APIs)
+        - Need to use different strategies when using other solvers
+          (e.g., using pysmt's APIs)
         """
         smtlib = SmtlibProc(self.sequence_interpol_solver, debug=self.debug)
         smtlib.start()
         # FIXME here
         smtlib.stop()
-        return
 
     def check_external(self, fml: z3.ExprRef):
         """
@@ -191,11 +203,12 @@ class Z3SolverPlus(z3.Solver):
         for line in self.to_smt2().split("\n"):
             if line.startswith("(as"):
                 break
-            signature += "{}\n".format(line)
-        qe_cmd = "(get-qe {})".format(qfml.sexpr())
+            signature += f"{line}\n"
+        qe_cmd = f"(get-qe {qfml.sexpr()})"
         smtlib = SmtlibProc(self.binary_qe_solver, debug=self.debug)
         smtlib.start()
-        if logic: smtlib.send("(set-logic {})".format(logic))
+        if logic:
+            smtlib.send(f"(set-logic {logic})")
         smtlib.send(signature)
         smtlib.send(qe_cmd)
         qe_res = smtlib.recv()
@@ -204,7 +217,9 @@ class Z3SolverPlus(z3.Solver):
             # we need another approach for labeling the status
             ret = z3.BoolVal(False)
         else:
-            ret = z3.And(z3.parse_smt2_string(signature + "(assert {})".format(qe_res)))
+            ret = z3.And(z3.parse_smt2_string(
+                signature + f"(assert {qe_res})"
+            ))
         smtlib.stop()
         return ret
 
@@ -220,13 +235,14 @@ class Z3SolverPlus(z3.Solver):
         for line in unify_solver.to_smt2().split("\n"):
             if line.startswith("(as"):
                 break
-            signature += "{}\n".format(line)
+            signature += f"{line}\n"
         smtlib = SmtlibProc(self.abduction_solver, debug=self.debug)
         smtlib.start()
-        if logic: smtlib.send("(set-logic {})".format(logic))
+        if logic:
+            smtlib.send(f"(set-logic {logic})")
         smtlib.send(signature)
-        smtlib.send("(assert {})\n".format(pre.sexpr()))
-        abd_cmd = "(get-abduct A {})".format(post.sexpr())
+        smtlib.send(f"(assert {pre.sexpr()})\n")
+        abd_cmd = f"(get-abduct A {post.sexpr()})"
         smtlib.send(abd_cmd)
         abd = smtlib.recv()
         if "error" in abd or "none" in abd:
@@ -237,23 +253,22 @@ class Z3SolverPlus(z3.Solver):
         smtlib.stop()
         return ret
 
-    def sygus(self, funcs: List[z3.FuncDeclRef], cnts: List[z3.BoolRef], all_vars: List[z3.ExprRef], grammar=None,
-              logic=None,
-              pbe=False):
+    def sygus(self, funcs: List[z3.FuncDeclRef], cnts: List[z3.BoolRef],
+              all_vars: List[z3.ExprRef], grammar=None, logic=None, pbe=False):
         """
         SyGuS with CVC5
         """
-        cmds = ["(set-logic {})".format(logic)]
+        cmds = [f"(set-logic {logic})"]
         for func in funcs:
-            target = "(synth-fun {} (".format(func.name())
+            target = f"(synth-fun {func.name()} ("
             for i in range(func.arity()):
-                target += "({} {}) ".format(str(all_vars[i]), func.domain(i).sexpr())
-            target += ") {})".format(func.range().sexpr())  # return value
+                target += f"({all_vars[i]} {func.domain(i).sexpr()}) "
+            target += f") {func.range().sexpr()})"  # return value
             cmds.append(target)
         for v in all_vars:
-            cmds.append("(declare-var {} {})".format(v, v.sort().sexpr()))
+            cmds.append(f"(declare-var {v} {v.sort().sexpr()})")
         for c in cnts:
-            cmds.append("(constraint {})".format(c.sexpr()))
+            cmds.append(f"(constraint {c.sexpr()})")
         cnt = "\n".join(cmds)
         sygus_cmd = self.sygus_solver
         if logic == "BV":
@@ -298,7 +313,8 @@ class Z3SolverPlus(z3.Solver):
 
         smtlib = SmtlibProc(self.omt_solver, debug=self.debug)
         smtlib.start()
-        if logic: smtlib.send("(set-logic {0})".format(logic))
+        if logic:
+            smtlib.send(f"(set-logic {logic})")
         smtlib.send(s.sexpr())  # interesting API sexpr()...
         smtlib.recv()
         smtlib.send("(get-objectives)")
@@ -307,15 +323,16 @@ class Z3SolverPlus(z3.Solver):
 
         # TODO: I only tried optimathsat
         if minimize:
-            cnt = "(assert (>= {}))".format(res.split("\n")[1][2:-1])
+            cnt = f"(assert (>= {res.split(chr(10))[1][2:-1]}))"
         else:
-            cnt = "(assert (<= {}))".format(res.split("\n")[1][2:-1])
+            cnt = f"(assert (<= {res.split(chr(10))[1][2:-1]}))"
 
         # print(res)
         # print(z3.And(z3.parse_smt2_string("\n".join(signature_vec) + cnt)))
         return z3.And(z3.parse_smt2_string("\n".join(signature_vec) + cnt))
 
-    def compute_min_max(self, fml: z3.ExprRef, minimize: List, maximize: List, logic=None):
+    def compute_min_max(self, fml: z3.ExprRef, minimize: List,
+                        maximize: List, logic=None):
         s = z3.Optimize()
         s.add(fml)
 
@@ -331,13 +348,18 @@ class Z3SolverPlus(z3.Solver):
             signature_vec.append("(declare-const oo Real)")
             signature_vec.append("(declare-const epsilon Real)")
 
-        for e in minimize: s.minimize(e)
-        for e in maximize: s.maximize(e)
+        for e in minimize:
+            s.minimize(e)
+        for e in maximize:
+            s.maximize(e)
 
         # print(s.sexpr())
-        smtlib = SmtlibProc(self.omt_solver + " -opt.priority=box", debug=self.debug)
+        smtlib = SmtlibProc(
+            self.omt_solver + " -opt.priority=box", debug=self.debug
+        )
         smtlib.start()
-        if logic: smtlib.send("(set-logic {})".format(logic))
+        if logic:
+            smtlib.send(f"(set-logic {logic})")
         # print(s.sexpr())
         smtlib.send(s.sexpr())
         smtlib.recv()
@@ -345,26 +367,26 @@ class Z3SolverPlus(z3.Solver):
         res = smtlib.recv()
         smtlib.stop()
         # to z3 expr
-        """
-        E.g., res =
-        (objectives
-         (x (- oo))   ; min
-         (y (- oo))   ; min
-         (x 2)        ; max
-         (y 7)        ; max
-        )
-        the result should be And(x >= -oo, y >= -oo, x <= 2, y <= 7)
-        """
+        # E.g., res =
+        # (objectives
+        #  (x (- oo))   ; min
+        #  (y (- oo))   ; min
+        #  (x 2)        ; max
+        #  (y 7)        ; max
+        # )
+        # the result should be And(x >= -oo, y >= -oo, x <= 2, y <= 7)
         asserts = []
         res_values = res.split("\n")[1:-1]
-        for i in range(len(res_values)):
+        for i, res_val in enumerate(res_values):
             # TODO: I only tried optimathsat
             if i < int(len(res_values) / 2):
-                asserts.append("(assert (>= {}))".format(res_values[i][2:-1]))
+                asserts.append(f"(assert (>= {res_val[2:-1]}))")
             else:
-                asserts.append("(assert (<= {}))".format(res_values[i][2:-1]))
+                asserts.append(f"(assert (<= {res_val[2:-1]}))")
         # print(asserts)
-        return z3.And(z3.parse_smt2_string("\n".join(signature_vec) + "\n".join(asserts)))
+        return z3.And(z3.parse_smt2_string(
+            "\n".join(signature_vec) + "\n".join(asserts)
+        ))
 
     def all_sat(self, fml: z3.ExprRef, bools: List[z3.ExprRef]):
         """
@@ -393,6 +415,6 @@ class Z3SolverPlus(z3.Solver):
         s = z3.Optimize()
         s.add(fml)
         cmd.append(s.sexpr())
-        cmd.append("(check-allsat {})\n".format(" ".join([str(b) for b in bools])))
+        cmd.append(f"(check-allsat {' '.join([str(b) for b in bools])})\n")
         res = solve_with_bin_solver(cmd)
         return res

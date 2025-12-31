@@ -16,8 +16,6 @@ Author: SMTgazer Team
 Publication: ASE 2025
 """
 
-import json
-
 from machsmt import Benchmark, args
 
 if __name__ == '__main__':
@@ -31,12 +29,12 @@ if __name__ == '__main__':
     feature = benchmark.get_features()
 
     # Clean benchmark name for output
-    benchmarkname = args.benchmark.replace("../data/", '').replace("/", "_")
+    benchmark_name = args.benchmark.replace("../data/", '').replace("/", "_")
 
     # Prepare feature dictionary
     fea = {}
-    fea[benchmarkname] = feature
+    fea[benchmark_name] = feature
 
     # Output feature vector and benchmark name
     print(feature)
-    print(f"{benchmarkname}.json")
+    print(f"{benchmark_name}.json")

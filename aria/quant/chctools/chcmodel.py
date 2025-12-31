@@ -14,9 +14,9 @@ from .solver_utils import pushed_solver
 log = logging.getLogger(__name__)
 
 
-def define_fun_to_lambda(env: Any, cmd: SmtLibCommand):
+def define_fun_to_lambda(env: Any, cmd_val: SmtLibCommand):
     converter = pyz3.Z3Converter(env, z3.get_ctx(None))
-    name, params, ret_sort, body = cmd.args
+    name, params, ret_sort, body = cmd_val.args
     zparams = [converter.convert(p) for p in params]
     zbody = converter.convert(body)
     res = z3.Lambda(zparams, zbody)
@@ -24,19 +24,19 @@ def define_fun_to_lambda(env: Any, cmd: SmtLibCommand):
 
 
 def load_model_from_file(fname: str) -> FolModel:
-    log.info('Loading model file {}'.format(fname))
+    log.info('Loading model file %s', fname)
     model = FolModel()
-    with open(fname, 'r') as script:
+    with open(fname, 'r', encoding='utf-8') as script:
         parser = SmtLibZ3Parser()
-        for cmd in parser.get_command_generator(script):
-            if type(cmd) == SmtLibCommand and cmd.name == 'define-fun':
-                name = cmd.args[0]
-                lmbd = define_fun_to_lambda(parser.env, cmd)
+        for cmd_val in parser.get_command_generator(script):
+            if isinstance(cmd_val, SmtLibCommand) and cmd_val.name == 'define-fun':
+                name = cmd_val.args[0]
+                lmbd = define_fun_to_lambda(parser.env, cmd_val)
                 model[name] = lmbd
     return model
 
 
-class ModelValidator(object):
+class ModelValidator:
     def __init__(self, db, model: FolModel) -> None:
         self._db = db
         self._model = model
@@ -76,7 +76,7 @@ class ModelValidator(object):
             v = self._validate_rule(r)
             res = res and v
         for q in self._db.get_queries():
-            v = self._validate_rule(r)
+            v = self._validate_rule(q)
             res = res and v
         return res
 
@@ -87,8 +87,11 @@ class ChcModelCmd(CliCmd):
 
     def mk_arg_parser(self, ap):
         ap = super().mk_arg_parser(ap)
-        ap.add_argument('-m', dest='model_file',
-                        metavar='FILE', help='Model in SMT2 format', default='model.smt2')
+        ap.add_argument(
+            '-m', dest='model_file',
+            metavar='FILE', help='Model in SMT2 format',
+            default='model.smt2'
+        )
         add_bool_argument(ap, "simplify-queries", dest='simple_q',
                           default=False, help='Automatically simplify queries')
         ap.add_argument('in_file', metavar='FILE', help='Input file')
@@ -100,7 +103,7 @@ class ChcModelCmd(CliCmd):
         model = load_model_from_file(args.model_file)
         validator = ModelValidator(db, model)
         res = validator.validate()
-        return 0 if res else 1;
+        return 0 if res else 1
 
 
 if __name__ == '__main__':

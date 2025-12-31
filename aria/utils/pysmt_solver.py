@@ -47,7 +47,7 @@ def to_pysmt_vars(z3vars: [z3.ExprRef]):
 class PySMTSolver(z3.Solver):
 
     def __init__(self, debug=False):
-        super(PySMTSolver, self).__init__()
+        super().__init__()
 
     @staticmethod
     def convert(zf: z3.ExprRef):
@@ -109,26 +109,34 @@ class PySMTSolver(z3.Solver):
             solver.add_assertion(pysmt_fml)
             iteration = 0
             while solver.solve():
-                partial_model = [EqualsOrIff(k, solver.get_value(k)) for k in pysmt_var_keys]
+                partial_model = [
+                    EqualsOrIff(k, solver.get_value(k))
+                    for k in pysmt_var_keys
+                ]
                 print(partial_model)
                 solver.add_assertion(Not(And(partial_model)))
                 iteration += 1
-                if iteration >= bound: break
+                if iteration >= bound:
+                    break
 
-    def binary_interpolant(self, fml_a: z3.BoolRef, fml_b: z3.BoolRef, solver_name="z3", logic=None):
+    def binary_interpolant(self, formula_a: z3.BoolRef, formula_b: z3.BoolRef,
+                           solver_name="z3", logic=None):
         """ Binary interpolant"""
-        _, pysmt_fml_a = PySMTSolver.convert(fml_a)
-        _, pysmt_fml_b = PySMTSolver.convert(fml_b)
+        _, pysmt_fml_a = PySMTSolver.convert(formula_a)
+        _, pysmt_fml_b = PySMTSolver.convert(formula_b)
 
-        itp = binary_interpolant(pysmt_fml_a, pysmt_fml_b, solver_name=solver_name, logic=logic)
+        itp = binary_interpolant(
+            pysmt_fml_a, pysmt_fml_b,
+            solver_name=solver_name, logic=logic
+        )
         return Solver(name='z3').converter.convert(itp)
 
     def sequence_interpolant(self, formulas: [z3.ExprRef]):
         """Sequence interpolant"""
         pysmt_formulas = []
-        for fml in formulas:
-            _, pysmt_fml_a = PySMTSolver.convert(fml)
-            pysmt_formulas.append(pysmt_fml_a)
+        for formula in formulas:
+            _, pysmt_fml = PySMTSolver.convert(formula)
+            pysmt_formulas.append(pysmt_fml)
 
         seq_itp = sequence_interpolant(pysmt_formulas)
         z3_seq_itp = []
@@ -136,15 +144,16 @@ class PySMTSolver(z3.Solver):
             z3_seq_itp.append(Solver(name='z3').converter.convert(cnt))
         return z3_seq_itp
 
-    def efsmt(self, evars: [z3.ExprRef], uvars: [z3.ExprRef], z3fml: z3.ExprRef, logic=QF_BV, maxloops=None,
+    def efsmt(self, evars: [z3.ExprRef], uvars: [z3.ExprRef],
+              z3fml: z3.ExprRef, *, logic=QF_BV, maxloops=None,
               esolver_name="z3", fsolver_name="z3",
               verbose=False):
         """Solves exists x. forall y. phi(x, y)"""
 
         _, phi = PySMTSolver.convert(z3fml)
-        y = to_pysmt_vars(uvars)  # universally quantified
-        y = set(y)
-        x = phi.get_free_variables() - y
+        u_vars = to_pysmt_vars(uvars)  # universally quantified
+        u_vars_set = set(u_vars)
+        e_vars = phi.get_free_variables() - u_vars_set
 
         with Solver(logic=logic, name=esolver_name) as esolver:
             esolver.add_assertion(Bool(True))
@@ -157,21 +166,21 @@ class PySMTSolver(z3.Solver):
                 if not eres:
                     result = "unsat"
                     break
-                else:
-                    tau = {v: esolver.get_value(v) for v in x}
-                    sub_phi = phi.substitute(tau).simplify()
-                    if verbose: print("%d: Tau = %s" % (loops, tau))
+                tau = {v: esolver.get_value(v) for v in e_vars}
+                sub_phi = phi.substitute(tau).simplify()
+                if verbose:
+                    print(f"{loops}: Tau = {tau}")
 
-                    fmodel = get_model(Not(sub_phi),
-                                       logic=logic, solver_name=fsolver_name)
-                    if fmodel is None:
-                        result = "sat"
-                        break
-                    else:
-                        sigma = {v: fmodel[v] for v in y}
-                        sub_phi = phi.substitute(sigma).simplify()
-                        if verbose: print("%d: Sigma = %s" % (loops, sigma))
-                        esolver.add_assertion(sub_phi)
+                fmodel = get_model(Not(sub_phi),
+                                   logic=logic, solver_name=fsolver_name)
+                if fmodel is None:
+                    result = "sat"
+                    break
+                sigma = {v: fmodel[v] for v in u_vars_set}
+                sub_phi = phi.substitute(sigma).simplify()
+                if verbose:
+                    print(f"{loops}: Sigma = {sigma}")
+                esolver.add_assertion(sub_phi)
             return result
 
 

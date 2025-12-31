@@ -10,9 +10,9 @@ from .horndb import load_horn_db_from_file  # type: ignore
 
 def parse_z3_arg(s: str) -> Tuple[str, object]:
     k, v = s.split("=")
-    if v == "false" or v == "False":
+    if v in ("false", "False"):
         v = False
-    elif v == "true" or v == "True":
+    elif v in ("true", "True"):
         v = True
     elif v.isnumeric():
         v = int(v)
@@ -22,7 +22,7 @@ def parse_z3_arg(s: str) -> Tuple[str, object]:
 def parse_yaml_options(fname: str):
     import yaml
 
-    with open(fname) as f:
+    with open(fname, encoding='utf-8') as f:
         data = yaml.load(f, Loader=yaml.SafeLoader)
 
         if "spacer_opts" in data:
@@ -69,17 +69,17 @@ def chc_solve_with_fp(db, args, opts: Dict[str, object]):
 
 
 def chc_solve_with_cli(fname: str, args, opts: Dict[str, object]) -> None:
-    cmd = [args.z3]
+    cmd_list = [args.z3]
 
     if args.verbose > 0:
-        cmd.append("-v:{}".format(args.verbose))
+        cmd_list.append(f"-v:{args.verbose}")
     for tr in args.tr:
-        cmd.append("-tr:{}".format(args.tr))
+        cmd_list.append(f"-tr:{tr}")
 
     def bool2str(v):
         if v is True:
             return "true"
-        elif v is False:
+        if v is False:
             return "false"
         return str(v)
 
@@ -92,11 +92,11 @@ def chc_solve_with_cli(fname: str, args, opts: Dict[str, object]) -> None:
         opts["spacer.trace_file"] = args.spctr
 
     for k, v in opts.items():
-        cmd.append("fp.{}={}".format(k, bool2str(v)))
+        cmd_list.append(f"fp.{k}={bool2str(v)}")
 
-    cmd.append(fname)
+    cmd_list.append(fname)
     # do not actually run, just print the command line
-    print(" ".join(cmd))
+    print(" ".join(cmd_list))
 
 
 class ChcSolveCmd(CliCmd):
@@ -139,7 +139,7 @@ class ChcSolveCmd(CliCmd):
         return ap
 
     def run(self, args, extra):
-        opts = dict()
+        opts = {}
         if args.yaml is not None:
             opts = parse_yaml_options(args.yaml)
         for a in extra:

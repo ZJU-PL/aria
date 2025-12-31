@@ -4,6 +4,8 @@ from multiprocessing import Pool
 import json
 import numpy as np
 
+# pylint: disable=redefined-outer-name,duplicate-code
+
 seed = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 
@@ -55,8 +57,8 @@ def run_seed(seed_val, category_key):
     else:
         dataplace = dataset_name
     total_time = 0
-    for problem_idx in range(len(key_set)):
-        par2list = test_set[key_set[problem_idx]]
+    for problem_idx, problem_key in enumerate(key_set):
+        par2list = test_set[problem_key]
         idx = np.argmin(par2list)
 
         if par2list[idx] == 2400:
@@ -64,10 +66,10 @@ def run_seed(seed_val, category_key):
 
         key_alt1 = (f"./infer_result/{dataset_name}/_data_sibly_sibyl_data_"
                     f"{dataset_name}_{dataset_name}_" +
-                    key_set[problem_idx].replace("/", "_") + ".json")
+                    problem_key.replace("/", "_") + ".json")
         key_alt2 = (f"./infer_result/{dataplace}/_data_sibly_sibyl_data_"
                     f"Comp_non-incremental_" +
-                    key_set[problem_idx].replace("/", "_") + ".json")
+                    problem_key.replace("/", "_") + ".json")
 
         if key_alt1 in test_dict.keys():
             portfolio_result = test_dict[key_alt1]

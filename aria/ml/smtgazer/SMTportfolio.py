@@ -1,7 +1,8 @@
 """
 SMTgazer: Machine Learning-Based SMT Solver Portfolio System
 
-This module implements SMTgazer, an effective algorithm scheduling method for SMT solving.
+This module implements SMTgazer, an effective algorithm scheduling method for
+SMT solving.
 SMTgazer uses machine learning techniques to automatically select optimal combinations
 of SMT solvers for different problem categories and instances.
 
@@ -18,7 +19,7 @@ The system works in two phases:
 Author: SMTgazer Team
 Publication: ASE 2025
 """
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name,redefined-outer-name
 
 import json
 import os
@@ -28,10 +29,12 @@ from multiprocessing import Pool
 from os import popen
 
 import numpy as np
+# pylint: disable=import-error
 from pyclustering.cluster.center_initializer import (
     kmeans_plusplus_initializer
 )
 from pyclustering.cluster.xmeans import xmeans
+# pylint: enable=import-error
 
 def normalize(tf, seed_val):
     """
@@ -68,8 +71,8 @@ def normalize(tf, seed_val):
 
     # Calculate normalization ranges (avoid division by zero)
     sub_vals = max_vals - min_vals
-    for idx in range(len(sub_vals)):
-        if sub_vals[idx] == 0:
+    for idx, val in enumerate(sub_vals):
+        if val == 0:
             sub_vals[idx] = 1  # Set to 1 if max == min for this feature
 
     # Apply min-max normalization: (x - min) / (max - min)
@@ -177,7 +180,7 @@ def cluster(tfnorm, seed_val=0, cluster_num=20):
         json.dump(cluster_center, f)
 
 def get_test_portfolio(tfnorm, cluster_portfolio, solver_list, dataset_name,
-                       seed_val, outputfile=""):
+                       seed_val, outputfile=""):  # pylint: disable=too-many-positional-arguments
     """
     Generate test portfolios by classifying new problems into learned clusters.
 
@@ -305,7 +308,7 @@ def run_seed3(sf, seed_val, start_idx):
 
 def get_portfolio_3(solver_list, td, tc, tlim, tcenter, dataset_name,
                     outputfile="", portfolio_size=4, cluster_num=20,
-                    seed_val=0, timelimit=1200):
+                    seed_val=0, timelimit=1200):  # pylint: disable=too-many-positional-arguments
     """
     Optimize solver portfolios for each cluster using SMAC3 algorithm.
 
@@ -361,6 +364,7 @@ def get_portfolio_3(solver_list, td, tc, tlim, tcenter, dataset_name,
     final_portfolio = {}
 
     # Optimize portfolio for each cluster independently
+    # pylint: disable=too-many-nested-blocks
     for cluster_id in range(cluster_num):
         print(f"Optimizing portfolio for cluster {cluster_id}")
         print(f"Available solvers: {solver_list}")
@@ -515,22 +519,20 @@ def get_portfolio_3(solver_list, td, tc, tlim, tcenter, dataset_name,
         json.dump(output_dict, f)
 
 if __name__ == '__main__':
-    """
-    Main execution entry point for SMTgazer training and inference.
-
-    Usage:
-        python SMTportfolio.py train [options]  - Train portfolios for dataset
-        python SMTportfolio.py infer [options]  - Apply trained portfolios
-
-    Command line arguments:
-        -train_features: Path to training feature file
-        -train_data: Path to training PAR2 data file
-        -seed: Random seed for reproducibility
-        -cluster_num: Maximum number of clusters
-        -solverdict: Path to solver configuration file
-        -dataset: Dataset name (e.g., "Equality+LinearArith")
-        -clusterPortfolio: Path to trained portfolio file (for inference)
-    """
+    # Main execution entry point for SMTgazer training and inference.
+    #
+    # Usage:
+    #     python SMTportfolio.py train [options]  - Train portfolios for dataset
+    #     python SMTportfolio.py infer [options]  - Apply trained portfolios
+    #
+    # Command line arguments:
+    #     -train_features: Path to training feature file
+    #     -train_data: Path to training PAR2 data file
+    #     -seed: Random seed for reproducibility
+    #     -cluster_num: Maximum number of clusters
+    #     -solverdict: Path to solver configuration file
+    #     -dataset: Dataset name (e.g., "Equality+LinearArith")
+    #     -clusterPortfolio: Path to trained portfolio file (for inference)
     work_type = 'infer'  # Default to inference mode
 
     # Parse command line arguments

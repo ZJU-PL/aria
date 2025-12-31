@@ -380,7 +380,7 @@ def readUndirectedGraph(arg):
 			return readSparse6(line)
 
 	# LEDA.GRAPH
-	leda = ledaLines(lines)
+	leda = list(ledaLines(lines))
 	if leda and leda[0] == 'LEDA.GRAPH':
 		return readLeda(leda)
 

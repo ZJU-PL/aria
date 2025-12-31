@@ -52,13 +52,11 @@ Sexp = Union[Comment, str, SList]
 def subst(assignment: Mapping[str, Sexp], e: Sexp) -> Sexp:
     if isinstance(e, Comment):
         return e
-    elif isinstance(e, str):
+    if isinstance(e, str):
         if e in assignment:
             return assignment[e]
-        else:
-            return e
-    else:
-        return SList([subst(assignment, x) for x in e.contents])
+        return e
+    return SList([subst(assignment, x) for x in e.contents])
 
 
 def symbols_used(e: Sexp, into: Optional[Set[str]] = None) -> Set[str]:
@@ -66,13 +64,12 @@ def symbols_used(e: Sexp, into: Optional[Set[str]] = None) -> Set[str]:
         into = set()
     if isinstance(e, Comment):
         return into
-    elif isinstance(e, str):
+    if isinstance(e, str):
         into.add(e)
         return into
-    else:
-        for x in e.contents:
-            symbols_used(x, into=into)
-        return into
+    for x in e.contents:
+        symbols_used(x, into=into)
+    return into
 
 
 @dataclass
@@ -94,7 +91,7 @@ token_specification = [
     ('RPAREN', r'\)'),
     ('BLANK', r'[ \t\n]+')
 ]
-tok_regex = re.compile('|'.join('(?P<%s>%s)' % pair for pair in token_specification))
+tok_regex = re.compile('|'.join(f'(?P<{pair[0]}>{pair[1]})' for pair in token_specification))
 
 @dataclass
 class SexpLexer:
@@ -211,17 +208,16 @@ class SexpParser:
                     else:
                         self.stack[-1].append(prev)
 
-def get_parser(input: str) -> SexpParser:
-    return SexpParser(SexpLexer(CharBuffer(input)))
+def get_parser(input_str: str) -> SexpParser:
+    return SexpParser(SexpLexer(CharBuffer(input_str)))
 
-def parse(input: str) -> Iterable[Sexp]:
-    for sexp in get_parser(input).parse():
+def parse(input_str: str) -> Iterable[Sexp]:
+    for sexp in get_parser(input_str).parse():
         if isinstance(sexp, EOF):
             return
-        else:
-            yield sexp
+        yield sexp
 
-def parse_one(input: str) -> Sexp:
-    l = list(parse(input))
+def parse_one(input_str: str) -> Sexp:
+    l = list(parse(input_str))
     assert len(l) == 1
     return l[0]

@@ -17,9 +17,9 @@ import os
 import sys
 from functools import partial
 from multiprocessing import Pool
+from os import popen  # pylint: disable=no-name-in-module
 
 import numpy as np
-from os import popen  # pylint: disable=no-name-in-module
 
 # Seed for reproducible feature extraction
 seed = [0]
@@ -118,7 +118,8 @@ if __name__ == '__main__':
                 problem_name = result[-1]  # Last line contains benchmark name
 
                 # Parse feature vector string into list of floats
-                feature_str = feature_line.replace('[', '').replace(']', '').replace(' ', '')
+                feature_str = (feature_line.replace('[', '')
+                               .replace(']', '').replace(' ', ''))
                 feature_vector = list(map(float, feature_str.split(',')))
                 fea_dict[problem_name] = feature_vector
 
