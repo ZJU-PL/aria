@@ -118,14 +118,12 @@
   <h1>Source code for aria.automata.symautomata.cfggenerator</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;This modules generates a string from a CFG&quot;&quot;&quot;</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">string</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">six</span>
-
 
 
 <div class="viewcode-block" id="CNFGenerator">
 <a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.cfggenerator.CNFGenerator">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">CNFGenerator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">CNFGenerator</span><span class="p">:</span>  <span class="c1"># pylint: disable=too-many-instance-attributes</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Use Chomsky to transform to CNF&quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grammar_rules</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse input grammar rules&quot;&quot;&quot;</span>
@@ -135,45 +133,41 @@
                 <span class="n">rule</span> <span class="o">=</span> <span class="n">grammar_rule</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">rule</span> <span class="o">=</span> <span class="n">grammar_rule</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;Split the rules based on : character&quot;&quot;&quot;</span>
+            <span class="c1"># Split the rules based on : character</span>
             <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">rule</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">m</span><span class="p">:</span>
                 <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">start</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span>
+            <span class="n">left_hand_side</span> <span class="o">=</span> <span class="n">rule</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">m</span><span class="o">.</span><span class="n">start</span><span class="p">()]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">end</span><span class="p">()</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">rule</span><span class="p">):</span>
+                <span class="k">return</span>
+            <span class="n">rest</span> <span class="o">=</span> <span class="n">rule</span><span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">end</span><span class="p">():]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">rest</span> <span class="o">==</span> <span class="s2">&quot;[]&quot;</span><span class="p">:</span>
+                <span class="c1"># Empty right hand side</span>
+                <span class="k">pass</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">start</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="k">return</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">left_hand_side</span> <span class="o">=</span> <span class="n">rule</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">m</span><span class="o">.</span><span class="n">start</span><span class="p">()]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-                <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">end</span><span class="p">()</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">rule</span><span class="p">):</span>
-                    <span class="k">return</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">rest</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="n">rule</span><span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">end</span><span class="p">():])</span>
-                    <span class="k">if</span> <span class="n">rest</span> <span class="o">==</span> <span class="s2">&quot;[]&quot;</span><span class="p">:</span>
-                        <span class="n">right_hand_side</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">combined_rulesets</span> <span class="o">=</span> <span class="n">rest</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;|&quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">combined_rulesets</span><span class="p">:</span>
+                    <span class="n">split_i</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">split_i</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">parsed_grammar</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">left_hand_side</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">split_i</span><span class="p">)))</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="n">combined_rulesets</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">rest</span><span class="p">,</span> <span class="s2">&quot;|&quot;</span><span class="p">)</span>
-                        <span class="n">right_hand_side</span> <span class="o">=</span> <span class="p">[]</span>
-                        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">combined_rulesets</span><span class="p">:</span>
-                            <span class="n">l</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-                            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                                <span class="n">l</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
-                            <span class="k">else</span><span class="p">:</span>
-                                <span class="n">l</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                            <span class="n">parsed_grammar</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">left_hand_side</span><span class="p">,</span> <span class="n">l</span><span class="p">))</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Assing the parsed rules as the new grammar rules&quot;&quot;&quot;</span>
+                        <span class="n">parsed_grammar</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">left_hand_side</span><span class="p">,</span> <span class="n">split_i</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="c1"># Assign the parsed rules as the new grammar rules</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span> <span class="o">=</span> <span class="n">parsed_grammar</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">grammar_terminals_map</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">grammar_nonterminals_map</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">new_grammar_nonterminals</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">init_symbol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;The grammar rules can be used to obtain the nonterminals&quot;&quot;&quot;</span>
+        <span class="c1"># The grammar rules can be used to obtain the nonterminals</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">grammar_nonterminals</span> <span class="o">=</span> <span class="p">{</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">}</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;The nonterminals can be used to distinguish the terminals&quot;&quot;&quot;</span>
+        <span class="c1"># The nonterminals can be used to distinguish the terminals</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">grammar_terminals</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">rule</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">:</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot; Each rule can be a symbol ot a set of symbols</span>
-<span class="sd">                If rule is a non terminal symbol, add it to the grammar terminals</span>
-<span class="sd">                If rule is a set of symbols, add each non terminal symbol to the grammar terminals&quot;&quot;&quot;</span>
+            <span class="c1"># Each rule can be a symbol or a set of symbols</span>
+            <span class="c1"># If rule is a non terminal symbol, add it to the grammar terminals</span>
+            <span class="c1"># If rule is a set of symbols, add each non terminal symbol to the grammar terminals</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rule</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">rule</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_nonterminals</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">grammar_terminals</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">rule</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
@@ -186,7 +180,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">grammar_nonterminals_map</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">rule_index</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span><span class="n">rule_index</span><span class="p">}</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">grammar_nonterminals_map</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">rule_index</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">rule_index</span><span class="p">)</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a reverse map from symbols to rules for both terminals and nonterminals&quot;&quot;&quot;</span>
+        <span class="c1"># Create a reverse map from symbols to rules for both terminals and nonterminals</span>
         <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_terminals</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">rule_index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">)):</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">rule_index</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">a</span><span class="p">:</span>
@@ -199,16 +193,17 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">grammar_nonterminals_map</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">rule_index</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span><span class="n">rule_index</span><span class="p">}</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">grammar_nonterminals_map</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">rule_index</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">rule_index</span><span class="p">)</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Remove all unitary rules&quot;&quot;&quot;</span>
+        <span class="c1"># Remove all unitary rules</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">unitary</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">f</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="k">while</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">f</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">unitary</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">rule</span> <span class="k">for</span> <span class="n">rule</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span> <span class="k">if</span>
-                    <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">rule</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="ow">and</span>
-                     <span class="n">rule</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_nonterminals</span><span class="p">)</span> <span class="ow">or</span>
-                    <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rule</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">rule</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_nonterminals</span><span class="p">)])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">unitary</span> <span class="o">=</span> <span class="p">{</span><span class="n">rule</span> <span class="k">for</span> <span class="n">rule</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span> <span class="k">if</span>
+                            <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">rule</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="ow">and</span>
+                             <span class="n">rule</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_nonterminals</span><span class="p">)</span> <span class="ow">or</span>
+                            <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rule</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="ow">and</span>
+                             <span class="nb">len</span><span class="p">(</span><span class="n">rule</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">rule</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_nonterminals</span><span class="p">)}</span>
 
             <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">unitary</span><span class="p">:</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">u</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>

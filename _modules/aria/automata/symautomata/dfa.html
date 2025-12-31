@@ -118,12 +118,13 @@
   <h1>Source code for aria.automata.symautomata.dfa</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;This module contains the DFA implementation&quot;&quot;&quot;</span>
 <span class="c1"># !/usr/bin/python</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">importlib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.alphabet</span><span class="w"> </span><span class="kn">import</span> <span class="n">createalphabet</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">operator</span><span class="w"> </span><span class="kn">import</span> <span class="n">attrgetter</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">importlib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">importlib.util</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">operator</span><span class="w"> </span><span class="kn">import</span> <span class="n">attrgetter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.alphabet</span><span class="w"> </span><span class="kn">import</span> <span class="n">createalphabet</span>
 
 
 <div class="viewcode-block" id="bfs">
@@ -175,16 +176,16 @@
         <span class="c1">#importlib.util.find_spec(&#39;openfst_python&#39;)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;OK&#39;</span><span class="p">)</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.pywrapfstdfa</span><span class="w"> </span><span class="kn">import</span> <span class="n">PywrapfstDFA</span><span class="p">,</span> <span class="n">TropicalWeight</span>
-        <span class="c1">#import openfst_python as fst</span>
-        <span class="kn">import</span><span class="w"> </span><span class="nn">pywrapfst</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fst</span>
 
 
         <span class="k">class</span><span class="w"> </span><span class="nc">DFA</span><span class="p">(</span><span class="n">PywrapfstDFA</span><span class="p">):</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;The DFA class implemented using openFst library&quot;&quot;&quot;</span>
 
-            <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alphabet</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">createalphabet</span><span class="p">()):</span>
+            <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alphabet</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">alphabet</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">alphabet</span> <span class="o">=</span> <span class="n">createalphabet</span><span class="p">()</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span> <span class="o">=</span> <span class="n">alphabet</span>
-                <span class="nb">super</span><span class="p">(</span><span class="n">DFA</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">alphabet</span><span class="p">)</span>
+                <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">alphabet</span><span class="p">)</span>
 
             <span class="k">def</span><span class="w"> </span><span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;DFA&#39;</span><span class="p">:</span>
                 <span class="n">mma</span> <span class="o">=</span> <span class="n">DFA</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">)</span>
@@ -208,8 +209,7 @@
                     <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">initialstates</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">bfs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initialstates</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="kc">None</span>
+                <span class="k">return</span> <span class="kc">None</span>
 
             <span class="k">def</span><span class="w"> </span><span class="nf">diff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_mm</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;DFA&#39;</span><span class="p">:</span>
 <span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
@@ -234,7 +234,8 @@
 <span class="sd">                Returns:</span>
 <span class="sd">                    str: A regex approximation</span>
 <span class="sd">                &quot;&quot;&quot;</span>
-                <span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.regex</span><span class="w"> </span><span class="kn">import</span> <span class="n">Regex</span>
+                <span class="c1"># Import here to avoid circular import</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.regex</span><span class="w"> </span><span class="kn">import</span> <span class="n">Regex</span>  <span class="c1"># pylint: disable=import-outside-toplevel</span>
                 <span class="n">converter</span> <span class="o">=</span> <span class="n">Regex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">converter</span><span class="o">.</span><span class="n">get_regex</span><span class="p">()</span>
 
@@ -249,9 +250,11 @@
 
         <span class="k">class</span><span class="w"> </span><span class="nc">DFA</span><span class="p">(</span><span class="n">FstDFA</span><span class="p">):</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;The DFA class implemented using openFst library&quot;&quot;&quot;</span>
-            <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alphabet</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">createalphabet</span><span class="p">()):</span>
+            <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alphabet</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">alphabet</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">alphabet</span> <span class="o">=</span> <span class="n">createalphabet</span><span class="p">()</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span> <span class="o">=</span> <span class="n">alphabet</span>
-                <span class="nb">super</span><span class="p">(</span><span class="n">DFA</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">alphabet</span><span class="p">)</span>
+                <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">alphabet</span><span class="p">)</span>
 
             <span class="k">def</span><span class="w"> </span><span class="nf">shortest_string</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
@@ -267,8 +270,7 @@
                     <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">initialstates</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">bfs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initialstates</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="kc">None</span>
+                <span class="k">return</span> <span class="kc">None</span>
 
             <span class="k">def</span><span class="w"> </span><span class="nf">diff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_mm</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;DFA&#39;</span><span class="p">:</span>
 <span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
@@ -293,7 +295,8 @@
 <span class="sd">                Returns:</span>
 <span class="sd">                    str: A regex approximation</span>
 <span class="sd">                &quot;&quot;&quot;</span>
-                <span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.regex</span><span class="w"> </span><span class="kn">import</span> <span class="n">Regex</span>
+                <span class="c1"># Import here to avoid circular import</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.regex</span><span class="w"> </span><span class="kn">import</span> <span class="n">Regex</span>  <span class="c1"># pylint: disable=import-outside-toplevel</span>
                 <span class="n">converter</span> <span class="o">=</span> <span class="n">Regex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">converter</span><span class="o">.</span><span class="n">get_regex</span><span class="p">()</span>
 
@@ -305,9 +308,11 @@
         <span class="k">class</span><span class="w"> </span><span class="nc">DFA</span><span class="p">(</span><span class="n">PythonDFA</span><span class="p">):</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;The DFA class implemented using python&quot;&quot;&quot;</span>
 
-            <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alphabet</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">createalphabet</span><span class="p">()):</span>
+            <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alphabet</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">alphabet</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">alphabet</span> <span class="o">=</span> <span class="n">createalphabet</span><span class="p">()</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span> <span class="o">=</span> <span class="n">alphabet</span>
-                <span class="nb">super</span><span class="p">(</span><span class="n">DFA</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">alphabet</span><span class="p">)</span>
+                <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">alphabet</span><span class="p">)</span>
 
             <span class="k">def</span><span class="w"> </span><span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;DFA&#39;</span><span class="p">:</span>
                 <span class="n">mma</span> <span class="o">=</span> <span class="n">DFA</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">)</span>
@@ -331,8 +336,7 @@
                     <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">initialstates</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">bfs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initialstates</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="kc">None</span>
+                <span class="k">return</span> <span class="kc">None</span>
 
             <span class="k">def</span><span class="w"> </span><span class="nf">diff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_mm</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;DFA&#39;</span><span class="p">:</span>
 <span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
@@ -357,7 +361,8 @@
 <span class="sd">                Returns:</span>
 <span class="sd">                    str: A regex approximation</span>
 <span class="sd">                &quot;&quot;&quot;</span>
-                <span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.regex</span><span class="w"> </span><span class="kn">import</span> <span class="n">Regex</span>
+                <span class="c1"># Import here to avoid circular import</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.regex</span><span class="w"> </span><span class="kn">import</span> <span class="n">Regex</span>  <span class="c1"># pylint: disable=import-outside-toplevel</span>
                 <span class="n">converter</span> <span class="o">=</span> <span class="n">Regex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">converter</span><span class="o">.</span><span class="n">get_regex</span><span class="p">()</span>
 </pre></div>
