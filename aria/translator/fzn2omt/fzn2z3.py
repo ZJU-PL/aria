@@ -47,6 +47,7 @@ def zthree(config, solver_config=None):
 ########################
 ########################
 
+
 def zthree_solve(config, solver_config=None):
     """Solves a FlatZinc model with Z3.
 
@@ -73,13 +74,18 @@ def zthree_solve(config, solver_config=None):
             args.extend(solver_config)
 
         with io.open(output_trace, "w", newline=None) as out_f:
-            result = subprocess.run(args, universal_newlines=True, stderr=subprocess.PIPE,
-                                    stdout=out_f, check=True)
+            result = subprocess.run(
+                args,
+                universal_newlines=True,
+                stderr=subprocess.PIPE,
+                stdout=out_f,
+                check=True,
+            )
 
             # 4. display any error
             if result.returncode:
                 with io.open(output_trace, "r", newline=None) as in_f:
-                    print(in_f.read(), file=sys.stderr, end='')
+                    print(in_f.read(), file=sys.stderr, end="")
                 sys.exit(1)
 
         # 5. extract status
@@ -97,11 +103,13 @@ def zthree_solve_cmdline_args(config):
     """Determines the command-line arguments for the Z3 call."""
     assert config.smt2
 
-    args = [binary_filename(),
-            config.smt2,
-            "model.completion=true",
-            "model.user_functions=false",
-            "dump_models=true"]
+    args = [
+        binary_filename(),
+        config.smt2,
+        "model.completion=true",
+        "model.user_functions=false",
+        "dump_models=true",
+    ]
 
     return args
 
@@ -117,7 +125,7 @@ def zthree_extract_search_status(tracefile):
         uns_regex = re.compile(rb"^unsat\r?$", re.MULTILINE)
         sat_regex = re.compile(rb"^sat\r?$", re.MULTILINE)
 
-        with io.open(tracefile, 'r', newline=None) as fd_trace:
+        with io.open(tracefile, "r", newline=None) as fd_trace:
             with mmap.mmap(fd_trace.fileno(), 0, access=mmap.ACCESS_READ) as output:
 
                 uns_match = re.search(uns_regex, output)
@@ -139,13 +147,17 @@ def zthree_extract_models(tracefile):
     """Extract and returns all models contained
     in the given tracefile."""
 
-    regex = re.compile((rb"\(define-fun (.*) \(\) (Int|Bool|Real|\(_ BitVec [0-9]+\))"
-                        rb"\r?\n +(.*)\)"))
+    regex = re.compile(
+        (
+            rb"\(define-fun (.*) \(\) (Int|Bool|Real|\(_ BitVec [0-9]+\))"
+            rb"\r?\n +(.*)\)"
+        )
+    )
 
     models = []
 
     if not common.is_file_empty(tracefile):
-        with io.open(tracefile, 'r', newline=None) as fd_trace:
+        with io.open(tracefile, "r", newline=None) as fd_trace:
             with mmap.mmap(fd_trace.fileno(), 0, access=mmap.ACCESS_READ) as output:
                 model = {}
                 for match in re.finditer(regex, output):
@@ -172,6 +184,7 @@ def zthree_extract_models(tracefile):
 ###########################
 ###########################
 
+
 def zthree_compile(config):
     """Compiles a FlatZinc model in SMT-LIB format."""
     assert common.is_binary_in_path(binary_filename())
@@ -181,7 +194,7 @@ def zthree_compile(config):
     optimathsat_config.infinite_precision = True  # always override!
     optimathsat_config.compile_raw = True
 
-    if not hasattr(optimathsat_config, 'ovars'):
+    if not hasattr(optimathsat_config, "ovars"):
         optimathsat_config.ovars = None
 
     fzn2optimathsat.optimathsat(optimathsat_config)
@@ -189,14 +202,18 @@ def zthree_compile(config):
     make_smtlib_compatible_with_zthree(config, optimathsat_config)
 
 
-def make_smtlib_compatible_with_zthree(config, optimathsat_config):  # pylint: disable=R0912
+def make_smtlib_compatible_with_zthree(
+    config, optimathsat_config
+):  # pylint: disable=R0912
     """Modifies SMT-LIB file with Z3-specific syntax."""
     tmp_file_name = None
 
-    with io.open(config.smt2, 'rt', newline=None) as in_f:
+    with io.open(config.smt2, "rt", newline=None) as in_f:
         with mmap.mmap(in_f.fileno(), 0, access=mmap.ACCESS_READ) as formula:
 
-            with tempfile.NamedTemporaryFile(mode="w+t", delete=False, newline='') as out_f:
+            with tempfile.NamedTemporaryFile(
+                mode="w+t", delete=False, newline=""
+            ) as out_f:
                 tmp_file_name = out_f.name
 
                 # Consume first two lines
@@ -204,8 +221,9 @@ def make_smtlib_compatible_with_zthree(config, optimathsat_config):  # pylint: d
                 out_f.write(formula.readline().decode("utf-8"))
 
                 # Print header
-                for header_line in common.get_smtlib_header_lines(optimathsat_config,
-                                                                  "z3"):
+                for header_line in common.get_smtlib_header_lines(
+                    optimathsat_config, "z3"
+                ):
                     out_f.write(header_line)
 
                 # Consume third line
@@ -217,7 +235,9 @@ def make_smtlib_compatible_with_zthree(config, optimathsat_config):  # pylint: d
                 # Print config
                 out_f.write("(set-option :produce-models true)\n")
                 if config.random_seed:
-                    out_f.write("(set-option :random-seed {})\n".format(config.random_seed))
+                    out_f.write(
+                        "(set-option :random-seed {})\n".format(config.random_seed)
+                    )
                 if config.bv_enc:
                     out_f.write("(set-option :pp.bv-literals false)\n")
 
@@ -228,8 +248,10 @@ def make_smtlib_compatible_with_zthree(config, optimathsat_config):  # pylint: d
 
                     if obj:
                         if config.bv_enc:
-                            regex = re.compile(rb" %b \(\) \(_ BitVec ([0-9]+)\)"
-                                               % obj.term.encode("utf-8"))
+                            regex = re.compile(
+                                rb" %b \(\) \(_ BitVec ([0-9]+)\)"
+                                % obj.term.encode("utf-8")
+                            )
                             match = re.search(regex, formula)
                             if match:
                                 obj.bv_width = int(match.group(1))
@@ -240,7 +262,7 @@ def make_smtlib_compatible_with_zthree(config, optimathsat_config):  # pylint: d
                         continue
                     else:
                         if config.bv_enc:
-                            line = line.replace(b'_ to_bv ', b'_ int2bv ')
+                            line = line.replace(b"_ to_bv ", b"_ int2bv ")
                             line = common.replace_sbv_to_int(config, line)
                         out_f.write(line.decode("utf-8"))
 
@@ -275,10 +297,10 @@ def zthree_bv_objective_to_str(obj):
     """Yields Z3's command to optimize a BV goal."""
     assert obj.bv_width
 
-    mask = "#b1" \
-           + "0" * (obj.bv_width - 1)
+    mask = "#b1" + "0" * (obj.bv_width - 1)
     ubv_goal = "(bvor (bvand {0} (bvnot {1})) (bvand (bvnot {0}) {1}))".format(
-        mask, obj.term)
+        mask, obj.term
+    )
     direction = "minimize" if obj.minimize else "maximize"
 
     yield "({} {})\n".format(direction, ubv_goal)
@@ -296,25 +318,33 @@ def zthree_nira_objective_to_str(obj):
 #####################
 #####################
 
+
 def zthree_parse_cmdline_options():
     """parses and returns input parameters."""
-    parser = argparse.ArgumentParser(description=("A tool for solving FlatZinc "
-                                                  "problems with Z3."),
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=("A tool for solving FlatZinc " "problems with Z3."),
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
 
     main_group = parser.add_argument_group("Main Options")
 
-    main_group.add_argument("model", metavar="<model>.fzn",
-                            type=argparse.FileType('r'),
-                            help="The FlatZinc model",
-                            action=common.check_file_ext('fzn'))
+    main_group.add_argument(
+        "model",
+        metavar="<model>.fzn",
+        type=argparse.FileType("r"),
+        help="The FlatZinc model",
+        action=common.check_file_ext("fzn"),
+    )
 
-    main_group.add_argument("--smt2", "--output-smt2-to-file",
-                            metavar="<filename>.smt2",
-                            type=argparse.FileType('w'),
-                            action=common.check_file_ext('smt2'),
-                            help="Filename for the generated SMT-LIB output",
-                            default=None)
+    main_group.add_argument(
+        "--smt2",
+        "--output-smt2-to-file",
+        metavar="<filename>.smt2",
+        type=argparse.FileType("w"),
+        action=common.check_file_ext("smt2"),
+        help="Filename for the generated SMT-LIB output",
+        default=None,
+    )
 
     ###################
     # ENCODING config #
@@ -323,14 +353,25 @@ def zthree_parse_cmdline_options():
     enc_group = parser.add_argument_group("Encoding Options")
 
     group = enc_group.add_mutually_exclusive_group()
-    group.add_argument("--bv-enc", help="Encode ints with the SMT-LIB Bit-Vector type.",
-                       action="store_true", default=False)
-    group.add_argument("--int-enc", help="Encode ints with the SMT-LIB Int type.",
-                       action="store_true", default=True)
+    group.add_argument(
+        "--bv-enc",
+        help="Encode ints with the SMT-LIB Bit-Vector type.",
+        action="store_true",
+        default=False,
+    )
+    group.add_argument(
+        "--int-enc",
+        help="Encode ints with the SMT-LIB Int type.",
+        action="store_true",
+        default=True,
+    )
 
-    enc_group.add_argument("--cardinality-networks",
-                           help="Enable cardinality networks (when applicable).",
-                           action="store_true", default=False)
+    enc_group.add_argument(
+        "--cardinality-networks",
+        help="Enable cardinality networks (when applicable).",
+        action="store_true",
+        default=False,
+    )
 
     ##################
     # SEARCH config #
@@ -339,9 +380,14 @@ def zthree_parse_cmdline_options():
     search_group = parser.add_argument_group("Search Options")
 
     # Random Seed
-    search_group.add_argument("--random-seed", "-r",
-                              help="Set seed for pseudo-random number generators.",
-                              metavar="N", type=int, default=None)
+    search_group.add_argument(
+        "--random-seed",
+        "-r",
+        help="Set seed for pseudo-random number generators.",
+        metavar="N",
+        type=int,
+        default=None,
+    )
 
     ##################
     # MODEL PRINTING #
@@ -349,16 +395,27 @@ def zthree_parse_cmdline_options():
 
     model_group = parser.add_argument_group("Model Options")
 
-    model_group.add_argument("--infinite-precision",
-                             help=("Print infinite-precision rational numbers "
-                                   "as fractions. Overrides --finite-precision."),
-                             action="store_true", default=False)
-    model_group.add_argument("--finite-precision",
-                             help=("Print infinite-precision rational numbers "
-                                   "as finite precision decimals using the specified "
-                                   "precision level. Must be larger or equal 2."),
-                             action=common.check_finite_precision(),
-                             metavar="prec", type=int, default=32)
+    model_group.add_argument(
+        "--infinite-precision",
+        help=(
+            "Print infinite-precision rational numbers "
+            "as fractions. Overrides --finite-precision."
+        ),
+        action="store_true",
+        default=False,
+    )
+    model_group.add_argument(
+        "--finite-precision",
+        help=(
+            "Print infinite-precision rational numbers "
+            "as finite precision decimals using the specified "
+            "precision level. Must be larger or equal 2."
+        ),
+        action=common.check_finite_precision(),
+        metavar="prec",
+        type=int,
+        default=32,
+    )
 
     ###################
     # IGNORED config #
@@ -367,14 +424,24 @@ def zthree_parse_cmdline_options():
     ignore_group = parser.add_argument_group("Ignored Options")
 
     # Ignored config
-    ignore_group.add_argument("--free-search", "-f",
-                              help=("No need to follow search specification. "
-                                    "(Z3 ignores all search specifications)"),
-                              action="store_true", default=True)
-    ignore_group.add_argument("--num-threads", "-p",
-                              help=("Number of threads. "
-                                    "(Z3 is single threaded)"),
-                              metavar="N", type=int, default=1)
+    ignore_group.add_argument(
+        "--free-search",
+        "-f",
+        help=(
+            "No need to follow search specification. "
+            "(Z3 ignores all search specifications)"
+        ),
+        action="store_true",
+        default=True,
+    )
+    ignore_group.add_argument(
+        "--num-threads",
+        "-p",
+        help=("Number of threads. " "(Z3 is single threaded)"),
+        metavar="N",
+        type=int,
+        default=1,
+    )
 
     # parse
     config, solver_config = parser.parse_known_args()
@@ -382,8 +449,7 @@ def zthree_parse_cmdline_options():
     config.int_enc = not config.bv_enc
     config.get_model = True
 
-    if config.finite_precision and \
-            config.finite_precision >= 2:
+    if config.finite_precision and config.finite_precision >= 2:
         config.float_fmt = "%.{}g".format(config.finite_precision)
     else:
         config.float_fmt = "%g"
@@ -396,6 +462,7 @@ def zthree_parse_cmdline_options():
 ### MAIN ###
 ############
 ############
+
 
 def main():
     """The main entry point of this program."""

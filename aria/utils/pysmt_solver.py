@@ -7,6 +7,7 @@ from typing import Any
 import z3
 from pysmt.logics import QF_BV  # AUTO
 from pysmt.oracles import get_logic, QuantifierOracle
+
 # from pysmt.smtlib.parser import SmtLibParser
 # from pysmt.exceptions import SolverReturnedUnknownResultError
 from pysmt.shortcuts import Bool, get_model, Not, Solver
@@ -15,6 +16,7 @@ from pysmt.shortcuts import Portfolio
 from pysmt.shortcuts import Symbol, And
 from pysmt.shortcuts import binary_interpolant, sequence_interpolant
 from pysmt.typing import INT, REAL, BVType, BOOL
+
 # BV1, BV8, BV16, BV32, BV64, BV128
 
 from aria.utils.z3_expr_utils import get_variables
@@ -23,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 # NOTE: both pysmt and z3 have a class "Solver"
+
 
 def is_qfree(formula: Any) -> bool:
     return QuantifierOracle().is_qf(formula)  # type: ignore
@@ -56,7 +59,7 @@ class PySMTSolver(z3.Solver):
         """
         zvs = get_variables(zf)
         pysmt_vars = to_pysmt_vars(zvs)
-        z3s = Solver(name='z3')
+        z3s = Solver(name="z3")
         pysmt_fml = z3s.converter.back(zf)
         return pysmt_vars, pysmt_fml
 
@@ -85,13 +88,18 @@ class PySMTSolver(z3.Solver):
         pysmt_vars, pysmt_fml = PySMTSolver.convert(z3fml)
         f_logic = get_logic(pysmt_fml)
 
-        with Portfolio([("msat", {"random_seed": 1}),
-                        ("msat", {"random_seed": 17}),
-                        ("msat", {"random_seed": 42}),
-                        "cvc4", "yices"],
-                       logic=f_logic,
-                       incremental=False,
-                       generate_models=False) as solver:
+        with Portfolio(
+            [
+                ("msat", {"random_seed": 1}),
+                ("msat", {"random_seed": 17}),
+                ("msat", {"random_seed": 42}),
+                "cvc4",
+                "yices",
+            ],
+            logic=f_logic,
+            incremental=False,
+            generate_models=False,
+        ) as solver:
             solver.add_assertion(pysmt_fml)
             res = solver.solve()
             if res:
@@ -110,8 +118,7 @@ class PySMTSolver(z3.Solver):
             iteration = 0
             while solver.solve():
                 partial_model = [
-                    EqualsOrIff(k, solver.get_value(k))
-                    for k in pysmt_var_keys
+                    EqualsOrIff(k, solver.get_value(k)) for k in pysmt_var_keys
                 ]
                 print(partial_model)
                 solver.add_assertion(Not(And(partial_model)))
@@ -119,17 +126,17 @@ class PySMTSolver(z3.Solver):
                 if iteration >= bound:
                     break
 
-    def binary_interpolant(self, formula_a: z3.BoolRef, formula_b: z3.BoolRef,
-                           solver_name="z3", logic=None):
-        """ Binary interpolant"""
+    def binary_interpolant(
+        self, formula_a: z3.BoolRef, formula_b: z3.BoolRef, solver_name="z3", logic=None
+    ):
+        """Binary interpolant"""
         _, pysmt_fml_a = PySMTSolver.convert(formula_a)
         _, pysmt_fml_b = PySMTSolver.convert(formula_b)
 
         itp = binary_interpolant(
-            pysmt_fml_a, pysmt_fml_b,
-            solver_name=solver_name, logic=logic
+            pysmt_fml_a, pysmt_fml_b, solver_name=solver_name, logic=logic
         )
-        return Solver(name='z3').converter.convert(itp)
+        return Solver(name="z3").converter.convert(itp)
 
     def sequence_interpolant(self, formulas: [z3.ExprRef]):
         """Sequence interpolant"""
@@ -141,13 +148,21 @@ class PySMTSolver(z3.Solver):
         seq_itp = sequence_interpolant(pysmt_formulas)
         z3_seq_itp = []
         for cnt in seq_itp:
-            z3_seq_itp.append(Solver(name='z3').converter.convert(cnt))
+            z3_seq_itp.append(Solver(name="z3").converter.convert(cnt))
         return z3_seq_itp
 
-    def efsmt(self, evars: [z3.ExprRef], uvars: [z3.ExprRef],
-              z3fml: z3.ExprRef, *, logic=QF_BV, maxloops=None,
-              esolver_name="z3", fsolver_name="z3",
-              verbose=False):
+    def efsmt(
+        self,
+        evars: [z3.ExprRef],
+        uvars: [z3.ExprRef],
+        z3fml: z3.ExprRef,
+        *,
+        logic=QF_BV,
+        maxloops=None,
+        esolver_name="z3",
+        fsolver_name="z3",
+        verbose=False,
+    ):
         """Solves exists x. forall y. phi(x, y)"""
 
         _, phi = PySMTSolver.convert(z3fml)
@@ -171,8 +186,7 @@ class PySMTSolver(z3.Solver):
                 if verbose:
                     print(f"{loops}: Tau = {tau}")
 
-                fmodel = get_model(Not(sub_phi),
-                                   logic=logic, solver_name=fsolver_name)
+                fmodel = get_model(Not(sub_phi), logic=logic, solver_name=fsolver_name)
                 if fmodel is None:
                     result = "sat"
                     break

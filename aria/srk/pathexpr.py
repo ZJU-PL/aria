@@ -17,29 +17,40 @@ Path expressions support operations like:
 """
 
 from __future__ import annotations
-from typing import TypeVar, Generic, Union, Dict, Any, Callable, Optional, Protocol, Set, Tuple, IO
+from typing import (
+    TypeVar,
+    Generic,
+    Union,
+    Dict,
+    Any,
+    Callable,
+    Optional,
+    Protocol,
+    Set,
+    Tuple,
+    IO,
+)
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
 import hashlib
 import weakref
 
 # Type variables
-A = TypeVar('A')  # Algebra result type
-B = TypeVar('B')  # Omega algebra result type
-T = TypeVar('T')  # Path expression type
+A = TypeVar("A")  # Algebra result type
+B = TypeVar("B")  # Omega algebra result type
+T = TypeVar("T")  # Path expression type
 
 # Forward declarations for recursive types
-PathExpr = 'PathExpr'
-OmegaPathExpr = 'OmegaPathExpr'
+PathExpr = "PathExpr"
+OmegaPathExpr = "OmegaPathExpr"
 
 
 @dataclass(frozen=True)
 class PathExpr:
     """Hash-consed path expression node."""
+
     tag: int
-    obj: Union[
-        'Edge', 'Mul', 'Add', 'Star', 'One', 'Zero', 'Omega', 'Segment'
-    ]
+    obj: Union["Edge", "Mul", "Add", "Star", "One", "Zero", "Omega", "Segment"]
 
     def __hash__(self) -> int:
         return hash((type(self.obj), self.obj))
@@ -47,12 +58,12 @@ class PathExpr:
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, PathExpr):
             return False
-        return (self.obj == other.obj and
-                type(self.obj) == type(other.obj))
+        return self.obj == other.obj and type(self.obj) == type(other.obj)
 
 
 class Edge:
     """Edge constructor for path expressions."""
+
     def __init__(self, src: int, tgt: int):
         self.src = src
         self.tgt = tgt
@@ -71,6 +82,7 @@ class Edge:
 
 class Mul:
     """Multiplication (concatenation) constructor."""
+
     def __init__(self, left: PathExpr, right: PathExpr):
         self.left = left
         self.right = right
@@ -89,6 +101,7 @@ class Mul:
 
 class Add:
     """Addition (union) constructor."""
+
     def __init__(self, left: PathExpr, right: PathExpr):
         self.left = left
         self.right = right
@@ -107,6 +120,7 @@ class Add:
 
 class Star:
     """Kleene star constructor."""
+
     def __init__(self, expr: PathExpr):
         self.expr = expr
 
@@ -124,6 +138,7 @@ class Star:
 
 class Omega:
     """Omega (infinite repetition) constructor."""
+
     def __init__(self, expr: PathExpr):
         self.expr = expr
 
@@ -141,6 +156,7 @@ class Omega:
 
 class Segment:
     """Segment (grouping) constructor."""
+
     def __init__(self, expr: PathExpr):
         self.expr = expr
 
@@ -158,6 +174,7 @@ class Segment:
 
 class One:
     """One (empty path) constructor."""
+
     def __repr__(self) -> str:
         return "One"
 
@@ -170,6 +187,7 @@ class One:
 
 class Zero:
     """Zero (empty set) constructor."""
+
     def __repr__(self) -> str:
         return "Zero"
 
@@ -243,36 +261,36 @@ class PathExprContext:
 # Type definitions for algebras
 class OpenPathExpr:
     """Union type for open path expressions in algebras."""
+
     pass
 
 
 class OpenNestedPathExpr:
     """Union type for open nested path expressions in algebras."""
+
     pass
 
 
 class OpenOmegaPathExpr:
     """Union type for open omega path expressions in algebras."""
+
     pass
 
 
 # Algebra type definitions
-Algebra = Callable[[Union[
-    'EdgeAlg', 'MulAlg', 'AddAlg', 'StarAlg', 'OneAlg', 'ZeroAlg'
-]], A]
+Algebra = Callable[
+    [Union["EdgeAlg", "MulAlg", "AddAlg", "StarAlg", "OneAlg", "ZeroAlg"]], A
+]
 
-NestedAlgebra = Callable[[Union[
-    'SegmentAlg', OpenPathExpr
-]], A]
+NestedAlgebra = Callable[[Union["SegmentAlg", OpenPathExpr]], A]
 
-OmegaAlgebra = Callable[[Union[
-    'OmegaAlg', 'OmegaMulAlg', 'OmegaAddAlg'
-]], B]
+OmegaAlgebra = Callable[[Union["OmegaAlg", "OmegaMulAlg", "OmegaAddAlg"]], B]
 
 
 @dataclass
 class EdgeAlg:
     """Edge case for algebras."""
+
     src: int
     tgt: int
 
@@ -280,6 +298,7 @@ class EdgeAlg:
 @dataclass
 class MulAlg:
     """Multiplication case for algebras."""
+
     left: A
     right: A
 
@@ -287,6 +306,7 @@ class MulAlg:
 @dataclass
 class AddAlg:
     """Addition case for algebras."""
+
     left: A
     right: A
 
@@ -294,36 +314,42 @@ class AddAlg:
 @dataclass
 class StarAlg:
     """Star case for algebras."""
+
     expr: A
 
 
 @dataclass
 class OneAlg:
     """One case for algebras."""
+
     pass
 
 
 @dataclass
 class ZeroAlg:
     """Zero case for algebras."""
+
     pass
 
 
 @dataclass
 class SegmentAlg:
     """Segment case for nested algebras."""
+
     expr: A
 
 
 @dataclass
 class OmegaAlg:
     """Omega case for omega algebras."""
+
     expr: A
 
 
 @dataclass
 class OmegaMulAlg:
     """Omega multiplication case for omega algebras."""
+
     left: A
     right: B
 
@@ -331,6 +357,7 @@ class OmegaMulAlg:
 @dataclass
 class OmegaAddAlg:
     """Omega addition case for omega algebras."""
+
     left: B
     right: B
 
@@ -364,9 +391,11 @@ def mk_mul(context: PathExprContext, left: PathExpr, right: PathExpr) -> PathExp
     # Additional simplification rules
     if isinstance(left.obj, Mul) and isinstance(right.obj, Mul):
         # (a * b) * (c * d) = a * b * c * d
-        return mk_mul(context,
-                     mk_mul(context, left.obj.left, left.obj.right),
-                     mk_mul(context, right.obj.left, right.obj.right))
+        return mk_mul(
+            context,
+            mk_mul(context, left.obj.left, left.obj.right),
+            mk_mul(context, right.obj.left, right.obj.right),
+        )
 
     return context.hashcons(Mul(left, right))
 
@@ -447,9 +476,9 @@ def promote_omega(expr: PathExpr) -> PathExpr:
     return expr
 
 
-def destruct_flat(expr: PathExpr) -> Union[
-    EdgeAlg, MulAlg, AddAlg, StarAlg, OneAlg, ZeroAlg, OmegaAlg, SegmentAlg
-]:
+def destruct_flat(
+    expr: PathExpr,
+) -> Union[EdgeAlg, MulAlg, AddAlg, StarAlg, OneAlg, ZeroAlg, OmegaAlg, SegmentAlg]:
     """Destruct a flat path expression for pattern matching."""
     obj = expr.obj
 
@@ -480,25 +509,39 @@ def pp_expr(expr: PathExpr) -> str:
     if isinstance(flat, EdgeAlg):
         return f"{flat.src}->{flat.tgt}"
     elif isinstance(flat, MulAlg):
-        left_str = pp_expr(flat.left) if isinstance(flat.left, PathExpr) else str(flat.left)
-        right_str = pp_expr(flat.right) if isinstance(flat.right, PathExpr) else str(flat.right)
+        left_str = (
+            pp_expr(flat.left) if isinstance(flat.left, PathExpr) else str(flat.left)
+        )
+        right_str = (
+            pp_expr(flat.right) if isinstance(flat.right, PathExpr) else str(flat.right)
+        )
         return f"({left_str} {right_str})"
     elif isinstance(flat, AddAlg):
-        left_str = pp_expr(flat.left) if isinstance(flat.left, PathExpr) else str(flat.left)
-        right_str = pp_expr(flat.right) if isinstance(flat.right, PathExpr) else str(flat.right)
+        left_str = (
+            pp_expr(flat.left) if isinstance(flat.left, PathExpr) else str(flat.left)
+        )
+        right_str = (
+            pp_expr(flat.right) if isinstance(flat.right, PathExpr) else str(flat.right)
+        )
         return f"({left_str} + {right_str})"
     elif isinstance(flat, StarAlg):
-        inner_str = pp_expr(flat.expr) if isinstance(flat.expr, PathExpr) else str(flat.expr)
+        inner_str = (
+            pp_expr(flat.expr) if isinstance(flat.expr, PathExpr) else str(flat.expr)
+        )
         return f"({inner_str})*"
     elif isinstance(flat, OmegaAlg):
-        inner_str = pp_expr(flat.expr) if isinstance(flat.expr, PathExpr) else str(flat.expr)
+        inner_str = (
+            pp_expr(flat.expr) if isinstance(flat.expr, PathExpr) else str(flat.expr)
+        )
         return f"({inner_str})ω"
     elif isinstance(flat, OneAlg):
         return "1"
     elif isinstance(flat, ZeroAlg):
         return "0"
     elif isinstance(flat, SegmentAlg):
-        inner_str = pp_expr(flat.expr) if isinstance(flat.expr, PathExpr) else str(flat.expr)
+        inner_str = (
+            pp_expr(flat.expr) if isinstance(flat.expr, PathExpr) else str(flat.expr)
+        )
         return f"[{inner_str}]"
     else:
         return str(flat)
@@ -524,12 +567,16 @@ def mk_context(size: int = 991) -> PathExprContext:
     return PathExprContext(size)
 
 
-def mk_omega_table(table: PathExprTable, size: int = 991) -> Tuple[PathExprTable, OmegaPathExprTable]:
+def mk_omega_table(
+    table: PathExprTable, size: int = 991
+) -> Tuple[PathExprTable, OmegaPathExprTable]:
     """Create a new omega memoization table."""
     return (table, OmegaPathExprTable(size))
 
 
-def eval(algebra: Algebra[A], expr: PathExpr, table: Optional[PathExprTable] = None) -> A:
+def eval(
+    algebra: Algebra[A], expr: PathExpr, table: Optional[PathExprTable] = None
+) -> A:
     """Evaluate a path expression using the given algebra."""
     if table is None:
         table = mk_table()
@@ -562,7 +609,9 @@ def eval(algebra: Algebra[A], expr: PathExpr, table: Optional[PathExprTable] = N
             inner_val = eval_rec(obj.expr)
             result = algebra(SegmentAlg(inner_val))
         else:
-            raise ValueError(f"Cannot evaluate path expression type {type(e.obj).__name__}: {e}")
+            raise ValueError(
+                f"Cannot evaluate path expression type {type(e.obj).__name__}: {e}"
+            )
 
         table.put(e, result)
         return result
@@ -570,7 +619,11 @@ def eval(algebra: Algebra[A], expr: PathExpr, table: Optional[PathExprTable] = N
     return eval_rec(expr)
 
 
-def eval_nested(nested_algebra: NestedAlgebra[A], expr: PathExpr, table: Optional[PathExprTable] = None) -> A:
+def eval_nested(
+    nested_algebra: NestedAlgebra[A],
+    expr: PathExpr,
+    table: Optional[PathExprTable] = None,
+) -> A:
     """Evaluate a nested path expression using the given nested algebra."""
     if table is None:
         table = mk_table()
@@ -615,7 +668,7 @@ def eval_omega(
     algebra: NestedAlgebra[A],
     omega_algebra: OmegaAlgebra[A, B],
     expr: PathExpr,
-    table: Optional[Tuple[PathExprTable, OmegaPathExprTable]] = None
+    table: Optional[Tuple[PathExprTable, OmegaPathExprTable]] = None,
 ) -> B:
     """Evaluate an omega path expression using the given algebras."""
     if table is None:
@@ -728,7 +781,9 @@ def first(expr: PathExpr) -> Set[Tuple[int, int]]:
         return set()
 
 
-def derivative(context: PathExprContext, edge: Tuple[int, int], expr: PathExpr) -> PathExpr:
+def derivative(
+    context: PathExprContext, edge: Tuple[int, int], expr: PathExpr
+) -> PathExpr:
     """Compute the derivative of a path expression with respect to an edge."""
     src, tgt = edge
     obj = expr.obj

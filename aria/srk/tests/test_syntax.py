@@ -5,9 +5,28 @@ Tests for the syntax module.
 import unittest
 from fractions import Fraction
 from aria.srk.syntax import (
-    Context, Symbol, Type, ExpressionBuilder,
-    Var, Const, Add, Mul, Eq, Lt, Leq, And, Or, Not, TrueExpr, FalseExpr,
-    make_context, make_expression_builder, mk_var, mk_const, mk_eq, mk_true
+    Context,
+    Symbol,
+    Type,
+    ExpressionBuilder,
+    Var,
+    Const,
+    Add,
+    Mul,
+    Eq,
+    Lt,
+    Leq,
+    And,
+    Or,
+    Not,
+    TrueExpr,
+    FalseExpr,
+    make_context,
+    make_expression_builder,
+    mk_var,
+    mk_const,
+    mk_eq,
+    mk_true,
 )
 
 
@@ -150,5 +169,5 @@ class TestConvenienceFunctions(unittest.TestCase):
         self.assertIsInstance(eq, Eq)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

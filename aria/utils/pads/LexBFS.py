@@ -6,6 +6,7 @@ http://www.cs.colostate.edu/~rmm/lexbfs.ps
 
 D. Eppstein, November 2003.
 """
+
 # pylint: disable=invalid-name
 
 from aria.utils.pads.PartitionRefinement import PartitionRefinement

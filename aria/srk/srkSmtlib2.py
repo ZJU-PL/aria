@@ -17,45 +17,175 @@ from aria.srk import qQ
 
 # SMT-LIB 2 keywords and reserved words
 SMTLIB2_KEYWORDS = {
-    'declare-fun', 'declare-const', 'define-fun', 'define-fun-rec',
-    'define-funs-rec', 'define-sort', 'declare-datatypes', 'declare-codatatypes',
-    'declare-datatype', 'declare-codatatype', 'define-datatypes', 'define-codatatypes',
-    'set-logic', 'set-option', 'set-info', 'get-assertions', 'get-assignment',
-    'get-proof', 'get-unsat-assumptions', 'get-unsat-core', 'get-model',
-    'get-value', 'get-option', 'get-info', 'push', 'pop', 'assert',
-    'check-sat', 'check-sat-assuming', 'exit', 'reset', 'reset-assertions',
-    'echo', 'declare-sort', 'declare-const', 'declare-fun', 'define-fun',
-    'define-fun-rec', 'define-funs-rec', 'define-sort', 'declare-datatypes',
-    'declare-codatatypes', 'declare-datatype', 'declare-codatatype',
-    'define-datatypes', 'define-codatatypes', 'set-logic', 'set-option',
-    'set-info', 'get-assertions', 'get-assignment', 'get-proof',
-    'get-unsat-assumptions', 'get-unsat-core', 'get-model', 'get-value',
-    'get-option', 'get-info', 'push', 'pop', 'assert', 'check-sat',
-    'check-sat-assuming', 'exit', 'reset', 'reset-assertions', 'echo',
-    'declare-sort', 'declare-const', 'declare-fun', 'define-fun',
-    'define-fun-rec', 'define-funs-rec', 'define-sort', 'declare-datatypes',
-    'declare-codatatypes', 'declare-datatype', 'declare-codatatype',
-    'define-datatypes', 'define-codatatypes', 'set-logic', 'set-option',
-    'set-info', 'get-assertions', 'get-assignment', 'get-proof',
-    'get-unsat-assumptions', 'get-unsat-core', 'get-model', 'get-value',
-    'get-option', 'get-info', 'push', 'pop', 'assert', 'check-sat',
-    'check-sat-assuming', 'exit', 'reset', 'reset-assertions', 'echo',
-    'declare-sort', 'declare-const', 'declare-fun', 'define-fun',
-    'define-fun-rec', 'define-funs-rec', 'define-sort', 'declare-datatypes',
-    'declare-codatatypes', 'declare-datatype', 'declare-codatatype',
-    'define-datatypes', 'define-codatatypes', 'set-logic', 'set-option',
-    'set-info', 'get-assertions', 'get-assignment', 'get-proof',
-    'get-unsat-assumptions', 'get-unsat-core', 'get-model', 'get-value',
-    'get-option', 'get-info', 'push', 'pop', 'assert', 'check-sat',
-    'check-sat-assuming', 'exit', 'reset', 'reset-assertions', 'echo',
-    'declare-sort', 'declare-const', 'declare-fun', 'define-fun',
-    'define-fun-rec', 'define-funs-rec', 'define-sort', 'declare-datatypes',
-    'declare-codatatypes', 'declare-datatype', 'declare-codatatype',
-    'define-datatypes', 'define-codatatypes', 'set-logic', 'set-option',
-    'set-info', 'get-assertions', 'get-assignment', 'get-proof',
-    'get-unsat-assumptions', 'get-unsat-core', 'get-model', 'get-value',
-    'get-option', 'get-info', 'push', 'pop', 'assert', 'check-sat',
-    'check-sat-assuming', 'exit', 'reset', 'reset-assertions', 'echo'
+    "declare-fun",
+    "declare-const",
+    "define-fun",
+    "define-fun-rec",
+    "define-funs-rec",
+    "define-sort",
+    "declare-datatypes",
+    "declare-codatatypes",
+    "declare-datatype",
+    "declare-codatatype",
+    "define-datatypes",
+    "define-codatatypes",
+    "set-logic",
+    "set-option",
+    "set-info",
+    "get-assertions",
+    "get-assignment",
+    "get-proof",
+    "get-unsat-assumptions",
+    "get-unsat-core",
+    "get-model",
+    "get-value",
+    "get-option",
+    "get-info",
+    "push",
+    "pop",
+    "assert",
+    "check-sat",
+    "check-sat-assuming",
+    "exit",
+    "reset",
+    "reset-assertions",
+    "echo",
+    "declare-sort",
+    "declare-const",
+    "declare-fun",
+    "define-fun",
+    "define-fun-rec",
+    "define-funs-rec",
+    "define-sort",
+    "declare-datatypes",
+    "declare-codatatypes",
+    "declare-datatype",
+    "declare-codatatype",
+    "define-datatypes",
+    "define-codatatypes",
+    "set-logic",
+    "set-option",
+    "set-info",
+    "get-assertions",
+    "get-assignment",
+    "get-proof",
+    "get-unsat-assumptions",
+    "get-unsat-core",
+    "get-model",
+    "get-value",
+    "get-option",
+    "get-info",
+    "push",
+    "pop",
+    "assert",
+    "check-sat",
+    "check-sat-assuming",
+    "exit",
+    "reset",
+    "reset-assertions",
+    "echo",
+    "declare-sort",
+    "declare-const",
+    "declare-fun",
+    "define-fun",
+    "define-fun-rec",
+    "define-funs-rec",
+    "define-sort",
+    "declare-datatypes",
+    "declare-codatatypes",
+    "declare-datatype",
+    "declare-codatatype",
+    "define-datatypes",
+    "define-codatatypes",
+    "set-logic",
+    "set-option",
+    "set-info",
+    "get-assertions",
+    "get-assignment",
+    "get-proof",
+    "get-unsat-assumptions",
+    "get-unsat-core",
+    "get-model",
+    "get-value",
+    "get-option",
+    "get-info",
+    "push",
+    "pop",
+    "assert",
+    "check-sat",
+    "check-sat-assuming",
+    "exit",
+    "reset",
+    "reset-assertions",
+    "echo",
+    "declare-sort",
+    "declare-const",
+    "declare-fun",
+    "define-fun",
+    "define-fun-rec",
+    "define-funs-rec",
+    "define-sort",
+    "declare-datatypes",
+    "declare-codatatypes",
+    "declare-datatype",
+    "declare-codatatype",
+    "define-datatypes",
+    "define-codatatypes",
+    "set-logic",
+    "set-option",
+    "set-info",
+    "get-assertions",
+    "get-assignment",
+    "get-proof",
+    "get-unsat-assumptions",
+    "get-unsat-core",
+    "get-model",
+    "get-value",
+    "get-option",
+    "get-info",
+    "push",
+    "pop",
+    "assert",
+    "check-sat",
+    "check-sat-assuming",
+    "exit",
+    "reset",
+    "reset-assertions",
+    "echo",
+    "declare-sort",
+    "declare-const",
+    "declare-fun",
+    "define-fun",
+    "define-fun-rec",
+    "define-funs-rec",
+    "define-sort",
+    "declare-datatypes",
+    "declare-codatatypes",
+    "declare-datatype",
+    "declare-codatatype",
+    "define-datatypes",
+    "define-codatatypes",
+    "set-logic",
+    "set-option",
+    "set-info",
+    "get-assertions",
+    "get-assignment",
+    "get-proof",
+    "get-unsat-assumptions",
+    "get-unsat-core",
+    "get-model",
+    "get-value",
+    "get-option",
+    "get-info",
+    "push",
+    "pop",
+    "assert",
+    "check-sat",
+    "check-sat-assuming",
+    "exit",
+    "reset",
+    "reset-assertions",
+    "echo",
 }
 
 
@@ -77,7 +207,7 @@ class SMTLib2Parser:
             char = text[i]
 
             # Handle parentheses
-            if char in '()':
+            if char in "()":
                 if current:
                     tokens.append(current)
                     current = ""
@@ -96,16 +226,16 @@ class SMTLib2Parser:
                 while j < len(text) and text[j] != '"':
                     j += 1
                 if j < len(text):
-                    tokens.append('"' + text[i+1:j] + '"')
+                    tokens.append('"' + text[i + 1 : j] + '"')
                     i = j
                 else:
                     current += char
 
             # Handle comments
-            elif char == ';' and current == "":
+            elif char == ";" and current == "":
                 # Comment - skip to end of line
                 j = i + 1
-                while j < len(text) and text[j] != '\n':
+                while j < len(text) and text[j] != "\n":
                     j += 1
                 i = j - 1
 
@@ -138,9 +268,9 @@ class SMTLib2Parser:
         paren_depth = 0
 
         while i < len(tokens):
-            if tokens[i] == '(':
+            if tokens[i] == "(":
                 paren_depth += 1
-            elif tokens[i] == ')':
+            elif tokens[i] == ")":
                 paren_depth -= 1
                 if paren_depth == 0:
                     # Found the matching closing paren
@@ -162,14 +292,14 @@ class SMTLib2Parser:
         i = 0
 
         while i < len(tokens):
-            if tokens[i] == '(':
+            if tokens[i] == "(":
                 # Find the matching closing paren for this nested expression
                 nested_end = self._find_matching_paren(tokens, i)
                 if nested_end == -1:
                     raise ValueError("Unmatched parentheses in nested expression")
 
                 # Parse the nested expression
-                nested_tokens = tokens[i:nested_end+1]
+                nested_tokens = tokens[i : nested_end + 1]
                 nested_expr = self.parse_expression(nested_tokens)
                 content.append(nested_expr)
                 i = nested_end + 1
@@ -186,9 +316,9 @@ class SMTLib2Parser:
         i = start
 
         while i < len(tokens):
-            if tokens[i] == '(':
+            if tokens[i] == "(":
                 paren_depth += 1
-            elif tokens[i] == ')':
+            elif tokens[i] == ")":
                 paren_depth -= 1
                 if paren_depth == 0:
                     return i
@@ -224,7 +354,9 @@ class SMTLib2Parser:
 
         return Model(functions, sorts)
 
-    def _parse_model_element(self, elem: SExpr, functions: List[Any], sorts: List[Any]) -> None:
+    def _parse_model_element(
+        self, elem: SExpr, functions: List[Any], sorts: List[Any]
+    ) -> None:
         """Parse a single element from the model (define-fun, etc.)."""
         if not isinstance(elem.content, list) or len(elem.content) < 2:
             return
@@ -258,14 +390,20 @@ class SMTLib2Parser:
         if isinstance(param_list, SExpr) and isinstance(param_list.content, list):
             # Handle parameter list - each parameter is (name type)
             for param_spec in param_list.content:
-                if isinstance(param_spec, SExpr) and isinstance(param_spec.content, list):
+                if isinstance(param_spec, SExpr) and isinstance(
+                    param_spec.content, list
+                ):
                     # Parameter specification: (name type)
                     if len(param_spec.content) >= 2:
-                        param_name = param_spec.content[0]  # Should be the parameter name
-                        param_type = param_spec.content[1]  # Should be the parameter type
+                        param_name = param_spec.content[
+                            0
+                        ]  # Should be the parameter name
+                        param_type = param_spec.content[
+                            1
+                        ]  # Should be the parameter type
                         if isinstance(param_name, str):
                             params.append((param_name, self._parse_sort(param_type)))
-                elif isinstance(param_spec, str) and param_spec == '(':
+                elif isinstance(param_spec, str) and param_spec == "(":
                     # Empty parameter list case
                     pass
 
@@ -278,10 +416,7 @@ class SMTLib2Parser:
         # Create function definition
         if return_type and body:
             func_def = FunctionDefinition(
-                name=func_name,
-                parameters=params,
-                return_type=return_type,
-                body=body
+                name=func_name, parameters=params, return_type=return_type, body=body
             )
             functions.append(func_def)
 
@@ -415,17 +550,23 @@ class SMTLib2Printer:
 
     def print_quantified_term(self, qterm: QuantifiedTerm) -> str:
         """Print a quantified term."""
-        vars_str = " ".join(f"({var} {self.print_sort(sort)})" for var, sort in qterm.variables)
+        vars_str = " ".join(
+            f"({var} {self.print_sort(sort)})" for var, sort in qterm.variables
+        )
         return f"({qterm.quantifier} ({vars_str}) {self.print_term(qterm.body)})"
 
     def print_let_term(self, lterm: LetTerm) -> str:
         """Print a let term."""
-        bindings_str = " ".join(f"({var} {self.print_term(term)})" for var, term in lterm.bindings)
+        bindings_str = " ".join(
+            f"({var} {self.print_term(term)})" for var, term in lterm.bindings
+        )
         return f"(let ({bindings_str}) {self.print_term(lterm.body)})"
 
     def print_lambda_term(self, lterm: LambdaTerm) -> str:
         """Print a lambda term."""
-        vars_str = " ".join(f"({var} {self.print_sort(sort)})" for var, sort in lterm.variables)
+        vars_str = " ".join(
+            f"({var} {self.print_sort(sort)})" for var, sort in lterm.variables
+        )
         return f"(lambda ({vars_str}) {self.print_term(lterm.body)})"
 
     def print_model(self, model: Model) -> str:
@@ -438,8 +579,8 @@ def parse_smtlib2_expression(text: str, context: Context) -> SExpr:
     parser = SMTLib2Parser(context)
     tokens = parser.tokenize(text)
     # Add the outer parentheses if not present
-    if not tokens or tokens[0] != '(':
-        tokens = ['('] + tokens + [')']
+    if not tokens or tokens[0] != "(":
+        tokens = ["("] + tokens + [")"]
     return parser.parse_expression(tokens)
 
 

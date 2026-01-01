@@ -3,6 +3,7 @@
 Provides a minimal Stream abstraction that can map/filter/batch and consume
 using thread or process executors.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -31,6 +32,7 @@ class Stream(Iterable[T]):
         def gen() -> Iterator[R]:
             with ParallelExecutor(kind=kind, max_workers=max_workers) as ex:
                 yield from ex.run(fn, self.source)
+
         return Stream(gen())
 
     def filter(self, pred: Callable[[T], bool]) -> "Stream[T]":
@@ -46,6 +48,7 @@ class Stream(Iterable[T]):
                     buf.clear()
             if buf:
                 yield tuple(buf)
+
         return Stream(gen())
 
     def collect(self) -> List[T]:

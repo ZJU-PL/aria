@@ -60,17 +60,20 @@ exchange information between them:
        of atoms maximally to a satisfying set.
 """
 
-from z3 import (
-    Bool, Not, Or, Solver, Reals, sat, unsat, is_false
-)
+from z3 import Bool, Not, Or, Solver, Reals, sat, unsat, is_false
 
 
 def main():
     """Main function for testing MARCO algorithm."""
-    x, y = Reals('x y')
+    x, y = Reals("x y")
     constraints = [
-        x > 2, x < 1, x < 0, Or(x + y > 0, y < 0),
-        Or(y >= 0, x >= 0), Or(y < 0, x < 0), Or(y > 0, x < 0)
+        x > 2,
+        x < 1,
+        x < 0,
+        Or(x + y > 0, y < 0),
+        Or(y >= 0, x >= 0),
+        Or(y < 0, x < 0),
+        Or(y > 0, x < 0),
     ]
     csolver = SubsetSolver(constraints)
     msolver = MapSolver(n=csolver.n)
@@ -82,6 +85,7 @@ def main():
 def get_id(x):
     """Get unique integer identifier for a Z3 AST."""
     from z3 import Z3_get_ast_id
+
     return Z3_get_ast_id(x.ctx.ref(), x.as_ast())
 
 
@@ -99,6 +103,7 @@ class SubsetSolver:
         self.constraints = constraints
         self.n = len(constraints)
         from z3 import Implies
+
         for i in range(self.n):
             self.s.add(Implies(self.c_var(i), constraints[i]))
 
@@ -159,8 +164,8 @@ class MapSolver:
 
     def __init__(self, n):
         """Initialization.
-              Args:
-             n: The number of constraints to map.
+         Args:
+        n: The number of constraints to map.
         """
         self.solver = Solver()
         self.n = n
@@ -168,8 +173,8 @@ class MapSolver:
 
     def next_seed(self):
         """Get the seed from the current model, if there is one.
-             Returns:
-             A seed as an array of 0-based constraint indexes.
+        Returns:
+        A seed as an array of 0-based constraint indexes.
         """
         if self.solver.check() == unsat:
             return None

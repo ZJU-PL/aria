@@ -7,8 +7,10 @@ import unittest
 from aria.utils.pads import DFS, Graphs
 from aria.utils.pads.Biconnectivity import BiconnectedComponents
 
+
 class NonBipartite(Exception):
     pass
+
 
 def two_color(graph):
     """
@@ -24,6 +26,7 @@ def two_color(graph):
             raise NonBipartite
     return color
 
+
 def bipartition(graph):
     """
     Find a bipartition of graph, if one exists.
@@ -35,6 +38,7 @@ def bipartition(graph):
         if color_val:
             yield v
 
+
 def is_bipartite(graph):
     """
     Return True if graph is bipartite, False otherwise.
@@ -45,6 +49,7 @@ def is_bipartite(graph):
     except NonBipartite:
         return False
 
+
 def bipartite_orientation(graph, adjacency_list_type=set):
     """
     Given an undirected bipartite graph, return a directed graph in which
@@ -54,20 +59,24 @@ def bipartite_orientation(graph, adjacency_list_type=set):
     bipartition_vertices = bipartition(graph)
     return {v: adjacency_list_type(iter(graph[v])) for v in bipartition_vertices}
 
+
 def odd_core(graph):
     """
     Subgraph of vertices and edges that participate in odd cycles.
     Aka, the union of nonbipartite biconnected components.
     """
-    return Graphs.union(*[C for C in BiconnectedComponents(graph)
-                          if not is_bipartite(C)])
+    return Graphs.union(
+        *[C for C in BiconnectedComponents(graph) if not is_bipartite(C)]
+    )
+
 
 # If run as "python Bipartite.py", run tests on various small graphs
 # and check that the correct results are obtained.
 
+
 class BipartitenessTest(unittest.TestCase):
     def cycle(self, n):
-        return {i: [(i-1) % n, (i+1) % n] for i in range(n)}
+        return {i: [(i - 1) % n, (i + 1) % n] for i in range(n)}
 
     def test_even_cycles(self):
         for i in range(4, 12, 2):
@@ -76,6 +85,7 @@ class BipartitenessTest(unittest.TestCase):
     def test_odd_cycles(self):
         for i in range(3, 12, 2):
             self.assertEqual(is_bipartite(self.cycle(i)), False)
+
 
 if __name__ == "__main__":
     unittest.main()

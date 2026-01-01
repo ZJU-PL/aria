@@ -103,7 +103,7 @@ class TestCommands(unittest.TestCase):
         """Set up test fixtures."""
         self.cli = BigtopCLI()
 
-    @patch('sys.stdout', new_callable=StringIO)
+    @patch("sys.stdout", new_callable=StringIO)
     def test_simsat_command(self, mock_stdout):
         """Test simsat command."""
         # This is a smoke test since it depends on SMT solver
@@ -115,7 +115,7 @@ class TestCommands(unittest.TestCase):
             # If SMT dependencies aren't available, that's okay
             pass
 
-    @patch('sys.stdout', new_callable=StringIO)
+    @patch("sys.stdout", new_callable=StringIO)
     def test_nlsat_command(self, mock_stdout):
         """Test nlsat command."""
         # This delegates to simsat for now
@@ -127,7 +127,7 @@ class TestCommands(unittest.TestCase):
             # If SMT dependencies aren't available, that's okay
             pass
 
-    @patch('sys.stdout', new_callable=StringIO)
+    @patch("sys.stdout", new_callable=StringIO)
     def test_convex_hull_command(self, mock_stdout):
         """Test convex hull command."""
         try:
@@ -138,7 +138,7 @@ class TestCommands(unittest.TestCase):
             # If polyhedron dependencies aren't available, that's okay
             pass
 
-    @patch('sys.stdout', new_callable=StringIO)
+    @patch("sys.stdout", new_callable=StringIO)
     def test_wedge_hull_command(self, mock_stdout):
         """Test wedge hull command."""
         try:
@@ -149,7 +149,7 @@ class TestCommands(unittest.TestCase):
             # If dependencies aren't available, that's okay
             pass
 
-    @patch('sys.stdout', new_callable=StringIO)
+    @patch("sys.stdout", new_callable=StringIO)
     def test_affine_hull_command(self, mock_stdout):
         """Test affine hull command."""
         try:
@@ -161,7 +161,7 @@ class TestCommands(unittest.TestCase):
             # If dependencies aren't available, that's okay
             pass
 
-    @patch('sys.stdout', new_callable=StringIO)
+    @patch("sys.stdout", new_callable=StringIO)
     def test_quantifier_elimination_command(self, mock_stdout):
         """Test quantifier elimination command."""
         try:
@@ -172,7 +172,7 @@ class TestCommands(unittest.TestCase):
             # If dependencies aren't available, that's okay
             pass
 
-    @patch('sys.stdout', new_callable=StringIO)
+    @patch("sys.stdout", new_callable=StringIO)
     def test_statistics_command(self, mock_stdout):
         """Test statistics command."""
         try:
@@ -183,7 +183,7 @@ class TestCommands(unittest.TestCase):
             # If dependencies aren't available, that's okay
             pass
 
-    @patch('sys.stdout', new_callable=StringIO)
+    @patch("sys.stdout", new_callable=StringIO)
     def test_random_command(self, mock_stdout):
         """Test random formula generation."""
         try:
@@ -198,20 +198,20 @@ class TestCommands(unittest.TestCase):
 class TestMainFunction(unittest.TestCase):
     """Test main function and argument parsing."""
 
-    @patch('sys.stdout', new_callable=StringIO)
+    @patch("sys.stdout", new_callable=StringIO)
     def test_main_no_args(self, mock_stdout):
         """Test main function with no arguments."""
-        with patch('sys.argv', ['bigtop']):
+        with patch("sys.argv", ["bigtop"]):
             result = main([])
             self.assertEqual(result, 0)
             # Should show help when no args provided
 
-    @patch('sys.stdout', new_callable=StringIO)
+    @patch("sys.stdout", new_callable=StringIO)
     def test_main_simsat_command(self, mock_stdout):
         """Test main function with simsat command."""
-        with patch('sys.argv', ['bigtop', '--simsat', 'x > 0']):
+        with patch("sys.argv", ["bigtop", "--simsat", "x > 0"]):
             try:
-                result = main(['--simsat', 'x > 0'])
+                result = main(["--simsat", "x > 0"])
                 self.assertEqual(result, 0)
             except SystemExit:
                 # argparse calls sys.exit(0) on success
@@ -220,12 +220,12 @@ class TestMainFunction(unittest.TestCase):
                 # If SMT dependencies aren't available, that's okay
                 pass
 
-    @patch('sys.stdout', new_callable=StringIO)
+    @patch("sys.stdout", new_callable=StringIO)
     def test_main_random_command(self, mock_stdout):
         """Test main function with random command."""
-        with patch('sys.argv', ['bigtop', '--random', '2', '3']):
+        with patch("sys.argv", ["bigtop", "--random", "2", "3"]):
             try:
-                result = main(['--random', '2', '3'])
+                result = main(["--random", "2", "3"])
                 self.assertEqual(result, 0)
             except SystemExit:
                 # argparse calls sys.exit(0) on success
@@ -234,12 +234,12 @@ class TestMainFunction(unittest.TestCase):
                 # If dependencies aren't available, that's okay
                 pass
 
-    @patch('sys.stderr', new_callable=StringIO)
+    @patch("sys.stderr", new_callable=StringIO)
     def test_main_invalid_args(self, mock_stderr):
         """Test main function with invalid arguments."""
-        with patch('sys.argv', ['bigtop', '--invalid-command']):
+        with patch("sys.argv", ["bigtop", "--invalid-command"]):
             try:
-                result = main(['--invalid-command'])
+                result = main(["--invalid-command"])
                 self.assertEqual(result, 1)
             except SystemExit:
                 # argparse calls sys.exit(1) on error
@@ -259,7 +259,7 @@ class TestIntegration(unittest.TestCase):
 
         # Test that we can parse arguments
         try:
-            args = parser.parse_args(['--random', '2', '3'])
+            args = parser.parse_args(["--random", "2", "3"])
             self.assertEqual(args.random, [2, 3])
         except Exception:
             # Argument parsing might depend on specific argparse version
@@ -271,9 +271,14 @@ class TestIntegration(unittest.TestCase):
 
         # Check that all expected command methods exist
         expected_methods = [
-            'cmd_simsat', 'cmd_nlsat', 'cmd_convex_hull',
-            'cmd_wedge_hull', 'cmd_affine_hull',
-            'cmd_quantifier_elimination', 'cmd_statistics', 'cmd_random'
+            "cmd_simsat",
+            "cmd_nlsat",
+            "cmd_convex_hull",
+            "cmd_wedge_hull",
+            "cmd_affine_hull",
+            "cmd_quantifier_elimination",
+            "cmd_statistics",
+            "cmd_random",
         ]
 
         for method_name in expected_methods:
@@ -288,7 +293,7 @@ class TestErrorHandling(unittest.TestCase):
         """Set up test fixtures."""
         self.cli = BigtopCLI()
 
-    @patch('sys.stderr', new_callable=StringIO)
+    @patch("sys.stderr", new_callable=StringIO)
     def test_parse_formula_error_handling(self, mock_stderr):
         """Test error handling in formula parsing."""
         # Test with malformed formula
@@ -299,7 +304,7 @@ class TestErrorHandling(unittest.TestCase):
         error_output = mock_stderr.getvalue()
         self.assertIn("Cannot parse formula", error_output)
 
-    @patch('sys.stderr', new_callable=StringIO)
+    @patch("sys.stderr", new_callable=StringIO)
     def test_comparison_parsing_error_handling(self, mock_stderr):
         """Test error handling in comparison parsing."""
         # Test with invalid terms
@@ -309,7 +314,7 @@ class TestErrorHandling(unittest.TestCase):
         error_output = mock_stderr.getvalue()
         self.assertIn("Cannot parse term", error_output)
 
-    @patch('sys.stderr', new_callable=StringIO)
+    @patch("sys.stderr", new_callable=StringIO)
     def test_term_parsing_error_handling(self, mock_stderr):
         """Test error handling in term parsing."""
         # Test with invalid term
@@ -320,5 +325,5 @@ class TestErrorHandling(unittest.TestCase):
         self.assertIn("Cannot parse term", error_output)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

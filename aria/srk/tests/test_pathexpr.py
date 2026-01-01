@@ -4,9 +4,24 @@ Tests for the path expression module.
 
 import unittest
 from aria.srk.pathexpr import (
-    PathExprContext, mk_context, mk_table, mk_one, mk_zero, mk_edge,
-    mk_mul, mk_add, mk_star, mk_omega, mk_segment, accept_epsilon,
-    first, derivative, show, EdgeAlg, OneAlg, ZeroAlg
+    PathExprContext,
+    mk_context,
+    mk_table,
+    mk_one,
+    mk_zero,
+    mk_edge,
+    mk_mul,
+    mk_add,
+    mk_star,
+    mk_omega,
+    mk_segment,
+    accept_epsilon,
+    first,
+    derivative,
+    show,
+    EdgeAlg,
+    OneAlg,
+    ZeroAlg,
 )
 
 
@@ -141,5 +156,5 @@ class TestPathExpressions(unittest.TestCase):
         self.assertNotEqual(expr, mk_zero(self.context))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

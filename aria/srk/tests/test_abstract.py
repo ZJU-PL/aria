@@ -6,8 +6,14 @@ import unittest
 from fractions import Fraction
 from aria.srk.syntax import Context, Symbol, Type
 from aria.srk.abstract import (
-    AbstractValue, SignDomain, AffineRelation, AffineDomain,
-    ProductDomain, sign_domain, affine_domain, product_domain
+    AbstractValue,
+    SignDomain,
+    AffineRelation,
+    AffineDomain,
+    ProductDomain,
+    sign_domain,
+    affine_domain,
+    product_domain,
 )
 
 
@@ -221,5 +227,5 @@ class TestProductDomain(unittest.TestCase):
         self.assertGreater(len(formulas), 0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

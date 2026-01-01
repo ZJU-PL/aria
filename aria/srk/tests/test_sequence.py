@@ -4,8 +4,11 @@ Tests for the sequence analysis module.
 
 import unittest
 from aria.srk.sequence import (
-    UltimatelyPeriodicSequence, SequenceAnalyzer,
-    fibonacci_sequence, arithmetic_sequence, geometric_sequence
+    UltimatelyPeriodicSequence,
+    SequenceAnalyzer,
+    fibonacci_sequence,
+    arithmetic_sequence,
+    geometric_sequence,
 )
 
 
@@ -94,7 +97,9 @@ class TestUltimatelyPeriodicSequence(unittest.TestCase):
 
         concatenated = seq1 + seq2
         self.assertEqual(concatenated.transient, (1, 2, 5, 6))
-        self.assertEqual(concatenated.periodic, (3, 4))  # Uses first sequence's periodic
+        self.assertEqual(
+            concatenated.periodic, (3, 4)
+        )  # Uses first sequence's periodic
 
 
 class TestSequenceAnalyzer(unittest.TestCase):
@@ -173,5 +178,5 @@ class TestUtilityFunctions(unittest.TestCase):
         self.assertEqual(fib[8], 34)  # First periodic element
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

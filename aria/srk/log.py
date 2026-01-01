@@ -28,7 +28,7 @@ class SRKLogger:
 
         # Create formatter
         formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         )
         handler.setFormatter(formatter)
 
@@ -80,7 +80,7 @@ class LogContext:
 
     def __enter__(self):
         # Store old context and set new context
-        self.old_context = getattr(self.logger.logger, '_context', {})
+        self.old_context = getattr(self.logger.logger, "_context", {})
         self.logger.logger._context = self.context
         return self
 
@@ -89,29 +89,35 @@ class LogContext:
         self.logger.logger._context = self.old_context
 
 
-def log_function_call(func_name: str, logger: SRKLogger, args: tuple = (), kwargs: dict = None):
+def log_function_call(
+    func_name: str, logger: SRKLogger, args: tuple = (), kwargs: dict = None
+):
     """Log a function call."""
     kwargs = kwargs or {}
-    logger.debug(f"Calling {func_name}", extra={
-        'function': func_name,
-        'args': args,
-        'kwargs': kwargs
-    })
+    logger.debug(
+        f"Calling {func_name}",
+        extra={"function": func_name, "args": args, "kwargs": kwargs},
+    )
 
 
-def log_function_result(func_name: str, logger: SRKLogger, result: Any, error: Optional[Exception] = None):
+def log_function_result(
+    func_name: str, logger: SRKLogger, result: Any, error: Optional[Exception] = None
+):
     """Log a function result."""
     if error:
-        logger.error(f"Function {func_name} failed", extra={
-            'function': func_name,
-            'error': str(error),
-            'error_type': type(error).__name__
-        })
+        logger.error(
+            f"Function {func_name} failed",
+            extra={
+                "function": func_name,
+                "error": str(error),
+                "error_type": type(error).__name__,
+            },
+        )
     else:
-        logger.debug(f"Function {func_name} completed", extra={
-            'function': func_name,
-            'result_type': type(result).__name__
-        })
+        logger.debug(
+            f"Function {func_name} completed",
+            extra={"function": func_name, "result_type": type(result).__name__},
+        )
 
 
 @contextmanager
@@ -125,10 +131,10 @@ def log_performance(logger: SRKLogger, operation: str):
     finally:
         end_time = time.time()
         duration = end_time - start_time
-        logger.debug(f"Operation {operation} completed", extra={
-            'operation': operation,
-            'duration': duration
-        })
+        logger.debug(
+            f"Operation {operation} completed",
+            extra={"operation": operation, "duration": duration},
+        )
 
 
 def configure_logging(level: str = "INFO", format_string: Optional[str] = None):
@@ -137,9 +143,18 @@ def configure_logging(level: str = "INFO", format_string: Optional[str] = None):
 
     # Update all SRK loggers
     for logger_name in [
-        'srk.syntax', 'srk.polynomial', 'srk.smt', 'srk.abstract',
-        'srk.linear', 'srk.interval', 'srk.iteration', 'srk.quantifier',
-        'srk.interpretation', 'srk.transition', 'srk.wedge', 'srk.termination'
+        "srk.syntax",
+        "srk.polynomial",
+        "srk.smt",
+        "srk.abstract",
+        "srk.linear",
+        "srk.interval",
+        "srk.iteration",
+        "srk.quantifier",
+        "srk.interpretation",
+        "srk.transition",
+        "srk.wedge",
+        "srk.termination",
     ]:
         logger = logging.getLogger(logger_name)
         logger.setLevel(numeric_level)
@@ -147,7 +162,7 @@ def configure_logging(level: str = "INFO", format_string: Optional[str] = None):
         # Update handlers
         for handler in logger.handlers:
             handler.setLevel(numeric_level)
-            if format_string and hasattr(handler, 'formatter'):
+            if format_string and hasattr(handler, "formatter"):
                 formatter = logging.Formatter(format_string)
                 handler.setFormatter(formatter)
 
@@ -172,12 +187,12 @@ class PerformanceMonitor:
     def record_operation(self, operation: str, duration: float) -> None:
         """Record an operation's duration."""
         if operation not in self.metrics:
-            self.metrics[operation] = {'count': 0, 'total_time': 0, 'avg_time': 0}
+            self.metrics[operation] = {"count": 0, "total_time": 0, "avg_time": 0}
 
         metrics = self.metrics[operation]
-        metrics['count'] += 1
-        metrics['total_time'] += duration
-        metrics['avg_time'] = metrics['total_time'] / metrics['count']
+        metrics["count"] += 1
+        metrics["total_time"] += duration
+        metrics["avg_time"] = metrics["total_time"] / metrics["count"]
 
     def get_stats(self) -> Dict[str, Dict[str, float]]:
         """Get performance statistics."""
@@ -214,29 +229,35 @@ def log_expression_creation(expr_type: str, logger: SRKLogger):
 
 def log_smt_query(query_type: str, formula_count: int, logger: SRKLogger):
     """Log SMT query."""
-    logger.debug(f"SMT query: {query_type}", extra={
-        'query_type': query_type,
-        'formula_count': formula_count
-    })
+    logger.debug(
+        f"SMT query: {query_type}",
+        extra={"query_type": query_type, "formula_count": formula_count},
+    )
 
 
-def log_polynomial_operation(op: str, poly1_size: int, poly2_size: int, result_size: int, logger: SRKLogger):
+def log_polynomial_operation(
+    op: str, poly1_size: int, poly2_size: int, result_size: int, logger: SRKLogger
+):
     """Log polynomial operation."""
-    logger.debug(f"Polynomial {op}", extra={
-        'operation': op,
-        'input1_size': poly1_size,
-        'input2_size': poly2_size,
-        'result_size': result_size
-    })
+    logger.debug(
+        f"Polynomial {op}",
+        extra={
+            "operation": op,
+            "input1_size": poly1_size,
+            "input2_size": poly2_size,
+            "result_size": result_size,
+        },
+    )
 
 
-def log_cache_operation(cache_type: str, operation: str, key_size: int, logger: SRKLogger):
+def log_cache_operation(
+    cache_type: str, operation: str, key_size: int, logger: SRKLogger
+):
     """Log cache operation."""
-    logger.debug(f"Cache {operation}", extra={
-        'cache_type': cache_type,
-        'operation': operation,
-        'key_size': key_size
-    })
+    logger.debug(
+        f"Cache {operation}",
+        extra={"cache_type": cache_type, "operation": operation, "key_size": key_size},
+    )
 
 
 # Convenience functions for getting loggers

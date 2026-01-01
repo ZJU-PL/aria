@@ -4,8 +4,17 @@ Tests for the feature tree module.
 
 import unittest
 from aria.srk.featureTree import (
-    FeatureTree, FeatureVector, empty, of_list, insert, find_leq,
-    find_leq_map, remove, rebalance, enum, features
+    FeatureTree,
+    FeatureVector,
+    empty,
+    of_list,
+    insert,
+    find_leq,
+    find_leq_map,
+    remove,
+    rebalance,
+    enum,
+    features,
 )
 
 
@@ -13,6 +22,7 @@ class TestFeatureTree(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
+
         # Feature function that extracts coordinates
         def coord_features(obj):
             return [obj[0], obj[1]]
@@ -139,6 +149,7 @@ class TestFeatureTree(unittest.TestCase):
 
     def test_complex_feature_vectors(self):
         """Test with feature vectors of different lengths."""
+
         # Feature function that returns vectors of different lengths
         def variable_features(obj):
             if obj[0] == 1:
@@ -154,5 +165,5 @@ class TestFeatureTree(unittest.TestCase):
         self.assertEqual(len(all_elements), 3)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

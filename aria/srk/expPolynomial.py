@@ -29,16 +29,19 @@ class ExpPolynomial:
         self.exponential_part = exponential_part
 
     @staticmethod
-    def scalar(coeff: Fraction) -> 'ExpPolynomial':
+    def scalar(coeff: Fraction) -> "ExpPolynomial":
         """Create an exponential polynomial from a scalar coefficient."""
         from .polynomial import constant
+
         return ExpPolynomial(constant(coeff), Fraction(1))
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, ExpPolynomial):
             return False
-        return (self.polynomial_part == other.polynomial_part and
-                self.exponential_part == other.exponential_part)
+        return (
+            self.polynomial_part == other.polynomial_part
+            and self.exponential_part == other.exponential_part
+        )
 
     def __hash__(self) -> int:
         return hash((self.polynomial_part, self.exponential_part))
@@ -64,7 +67,9 @@ class ExpPolynomial:
 
     def evaluate(self, x: int) -> Fraction:
         """Evaluate the exponential polynomial at integer x."""
-        base_value = self.exponential_part ** x if self.exponential_part != 0 else Fraction(1)
+        base_value = (
+            self.exponential_part**x if self.exponential_part != 0 else Fraction(1)
+        )
         poly_value = self.polynomial_part.evaluate({0: Fraction(x)})
         return base_value * poly_value
 
@@ -74,7 +79,9 @@ class ExpPolynomial:
         # This is a simplified implementation
         return self  # Placeholder
 
-    def solve_recurrence(self, initial: Fraction = Fraction(0), multiplier: Fraction = Fraction(1)) -> ExpPolynomial:
+    def solve_recurrence(
+        self, initial: Fraction = Fraction(0), multiplier: Fraction = Fraction(1)
+    ) -> ExpPolynomial:
         """Solve the recurrence g(n+1) = multiplier * g(n) + f(n)."""
         # This would solve the recurrence relation
         # For now, return a placeholder
@@ -100,16 +107,16 @@ class ExpPolynomial:
             return f"({self.polynomial_part}) * λ^{self.exponential_part}"
 
     @staticmethod
-    def zero() -> 'ExpPolynomial':
+    def zero() -> "ExpPolynomial":
         """Create zero exponential polynomial."""
         return ExpPolynomial(Polynomial(), Fraction(0))
 
     @staticmethod
-    def one() -> 'ExpPolynomial':
+    def one() -> "ExpPolynomial":
         """Create unit exponential polynomial."""
         return ExpPolynomial(Polynomial(), Fraction(0))
 
-    def flatten(self, period: List['ExpPolynomial']) -> 'ExpPolynomial':
+    def flatten(self, period: List["ExpPolynomial"]) -> "ExpPolynomial":
         """Flatten periodic exponential polynomials."""
         # This is a simplified implementation
         # In the OCaml version, this handles ultimately periodic sequences
@@ -120,21 +127,23 @@ class ExpPolynomial:
         return period[0] if period else ExpPolynomial.zero()
 
     @staticmethod
-    def eval(ep: 'ExpPolynomial', k: int) -> Fraction:
+    def eval(ep: "ExpPolynomial", k: int) -> Fraction:
         """Evaluate exponential polynomial at point k."""
         return ep.evaluate(k)
 
     @staticmethod
-    def mul(ep1: 'ExpPolynomial', ep2: 'ExpPolynomial') -> 'ExpPolynomial':
+    def mul(ep1: "ExpPolynomial", ep2: "ExpPolynomial") -> "ExpPolynomial":
         """Multiply two exponential polynomials."""
         return ep1 * ep2
 
     @staticmethod
-    def add(ep1: 'ExpPolynomial', ep2: 'ExpPolynomial') -> 'ExpPolynomial':
+    def add(ep1: "ExpPolynomial", ep2: "ExpPolynomial") -> "ExpPolynomial":
         """Add two exponential polynomials."""
         return ep1 + ep2
 
-    def make(transient: List[Fraction], periodic: List['ExpPolynomial']) -> 'ExpPolynomial':
+    def make(
+        transient: List[Fraction], periodic: List["ExpPolynomial"]
+    ) -> "ExpPolynomial":
         """Create ultimately periodic exponential polynomial."""
         # Simplified implementation - in OCaml this creates a UP from transient and periodic parts
         if not periodic:
@@ -147,13 +156,15 @@ class ExpPolynomial:
         """Get period length."""
         return 1  # Simplified
 
-    def compose_left_affine(self, a: int, b: int) -> 'ExpPolynomial':
+    def compose_left_affine(self, a: int, b: int) -> "ExpPolynomial":
         """Compose with affine function: λx. f(ax + b)."""
         # This is a complex operation for exponential polynomials
         # Placeholder implementation
         return self
 
-    def solve_rec(self, initial: Fraction = Fraction(0), lambda_val: Fraction = Fraction(1)) -> 'ExpPolynomial':
+    def solve_rec(
+        self, initial: Fraction = Fraction(0), lambda_val: Fraction = Fraction(1)
+    ) -> "ExpPolynomial":
         """Solve recurrence g(n+1) = λ*g(n) + f(n)."""
         # This would solve the recurrence relation
         # For now, return a placeholder
@@ -190,7 +201,9 @@ class ExpPolynomialVector:
         """Multiply by scalar."""
         result = {}
         for dim, comp in self.components.items():
-            result[dim] = ExpPolynomial(comp.polynomial_part * scalar, comp.exponential_part)
+            result[dim] = ExpPolynomial(
+                comp.polynomial_part * scalar, comp.exponential_part
+            )
 
         return ExpPolynomialVector(result)
 
@@ -239,8 +252,12 @@ class ExpPolynomialMatrix:
                 dot_product = ExpPolynomial(Polynomial(), Fraction(0))
 
                 for i in range(len(other.rows)):
-                    coeff_self = row.components.get(i, ExpPolynomial(Polynomial(), Fraction(0)))
-                    coeff_other = other.rows[i].components.get(j, ExpPolynomial(Polynomial(), Fraction(0)))
+                    coeff_self = row.components.get(
+                        i, ExpPolynomial(Polynomial(), Fraction(0))
+                    )
+                    coeff_other = other.rows[i].components.get(
+                        j, ExpPolynomial(Polynomial(), Fraction(0))
+                    )
                     dot_product = dot_product + (coeff_self * coeff_other)
 
                 result_row[j] = dot_product
@@ -262,18 +279,21 @@ def zero_exp_polynomial() -> ExpPolynomial:
 def one_exp_polynomial() -> ExpPolynomial:
     """Create the constant 1 exponential polynomial."""
     from aria.srk.polynomial import Monomial
+
     return ExpPolynomial(Polynomial({Monomial(()): Fraction(1)}), Fraction(0))
 
 
 def constant_exp_polynomial(c: Fraction) -> ExpPolynomial:
     """Create a constant exponential polynomial."""
     from aria.srk.polynomial import Monomial
+
     return ExpPolynomial(Polynomial({Monomial(()): c}), Fraction(0))
 
 
 def variable_exp_polynomial() -> ExpPolynomial:
     """Create the variable x exponential polynomial."""
     from aria.srk.polynomial import Monomial
+
     return ExpPolynomial(Polynomial({Monomial([1]): Fraction(1)}), Fraction(0))
 
 
@@ -308,14 +328,18 @@ def exp_polynomial_summation(ep: ExpPolynomial) -> ExpPolynomial:
     return ep.summation()
 
 
-def exp_polynomial_solve_recurrence(ep: ExpPolynomial,
-                                   initial: Fraction = Fraction(0),
-                                   multiplier: Fraction = Fraction(1)) -> ExpPolynomial:
+def exp_polynomial_solve_recurrence(
+    ep: ExpPolynomial,
+    initial: Fraction = Fraction(0),
+    multiplier: Fraction = Fraction(1),
+) -> ExpPolynomial:
     """Solve a recurrence relation."""
     return ep.solve_recurrence(initial, multiplier)
 
 
-def exp_polynomial_compose_left_affine(ep: ExpPolynomial, a: int, b: int) -> ExpPolynomial:
+def exp_polynomial_compose_left_affine(
+    ep: ExpPolynomial, a: int, b: int
+) -> ExpPolynomial:
     """Compose with affine function."""
     return ep.compose_left_affine(a, b)
 
@@ -339,7 +363,9 @@ def exp_polynomial_matrix_from_qqmatrix(matrix: QQMatrix) -> ExpPolynomialMatrix
     return ExpPolynomialMatrix(rows)
 
 
-def exp_polynomial_exponentiate_rational(matrix: QQMatrix) -> Optional[ExpPolynomialMatrix]:
+def exp_polynomial_exponentiate_rational(
+    matrix: QQMatrix,
+) -> Optional[ExpPolynomialMatrix]:
     """Symbolically exponentiate a matrix with rational eigenvalues."""
     # This is a complex operation that would require eigenvalue computation
     # For now, return None to indicate irrational eigenvalues
@@ -353,7 +379,9 @@ def exp_polynomial_enum(ep: ExpPolynomial) -> Iterator[Tuple[Polynomial, Fractio
     yield (ep.polynomial_part, ep.exponential_part)
 
 
-def exp_polynomial_to_term(context: Context, variable: ArithExpression, ep: ExpPolynomial) -> ArithExpression:
+def exp_polynomial_to_term(
+    context: Context, variable: ArithExpression, ep: ExpPolynomial
+) -> ArithExpression:
     """Convert exponential polynomial to arithmetic term."""
     return ep.to_term(context, variable)
 

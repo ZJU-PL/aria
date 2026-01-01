@@ -21,7 +21,18 @@ Example:
 """
 
 from __future__ import annotations
-from typing import Dict, List, Set, Tuple, Optional, Union, Any, Iterator, Callable, overload
+from typing import (
+    Dict,
+    List,
+    Set,
+    Tuple,
+    Optional,
+    Union,
+    Any,
+    Iterator,
+    Callable,
+    overload,
+)
 from fractions import Fraction
 from dataclasses import dataclass, field
 from enum import Enum
@@ -31,8 +42,19 @@ import math
 # Optional SymPy integration for advanced polynomial operations
 try:
     import sympy as sp
-    from sympy import symbols, Poly, degree, LC, LT, gcd, factor, resultant, discriminant
+    from sympy import (
+        symbols,
+        Poly,
+        degree,
+        LC,
+        LT,
+        gcd,
+        factor,
+        resultant,
+        discriminant,
+    )
     from sympy.polys import groebner
+
     HAS_SYMPY = True
 except ImportError as e:
     HAS_SYMPY = False
@@ -61,6 +83,7 @@ class MonomialOrder(Enum):
         >>> # LEX: x^2*y > x*y^2 (x^2*y comes after x*y^2 lexicographically)
         >>> # DEGLEX: x^2*y == x*y^2 (both degree 3, tie broken by lex)
     """
+
     LEX = "lex"  # Lexicographic
     DEGLEX = "deglex"  # Degree then lexicographic
     DEGREVLEX = "degrevlex"  # Degree then reverse lexicographic
@@ -114,7 +137,7 @@ class Monomial:
         if any(exp < 0 for exp in exponents):
             raise ValueError("Monomial exponents must be non-negative")
 
-        object.__setattr__(self, 'exponents', exponents)
+        object.__setattr__(self, "exponents", exponents)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Monomial):
@@ -389,7 +412,9 @@ class Polynomial:
 
         return result
 
-    def __truediv__(self, other: Union[Polynomial, Fraction, Monomial]) -> Optional[Polynomial]:
+    def __truediv__(
+        self, other: Union[Polynomial, Fraction, Monomial]
+    ) -> Optional[Polynomial]:
         """Divide polynomial by scalar, monomial, or polynomial."""
         if isinstance(other, (int, Fraction)):
             if other == 0:
@@ -483,7 +508,9 @@ class Polynomial:
             return -1
         return max(m.degree() for m in self.terms.keys())
 
-    def leading_term(self, order: Optional[MonomialOrder] = None) -> Optional[Tuple[Fraction, Monomial]]:
+    def leading_term(
+        self, order: Optional[MonomialOrder] = None
+    ) -> Optional[Tuple[Fraction, Monomial]]:
         """Get the leading term according to the given order (or default order).
 
         Args:
@@ -507,7 +534,10 @@ class Polynomial:
         ordering = MonomialOrdering(num_vars, order)
 
         # Find the maximum monomial according to the ordering
-        max_monom = max(self.terms.keys(), key=lambda m: ordering.compare(m, Monomial((0,) * num_vars)))
+        max_monom = max(
+            self.terms.keys(),
+            key=lambda m: ordering.compare(m, Monomial((0,) * num_vars)),
+        )
 
         return self.terms[max_monom], max_monom
 
@@ -556,7 +586,11 @@ class Polynomial:
         gcd = coeffs[0]
 
         for coeff in coeffs[1:]:
-            gcd = math.gcd(gcd, coeff) if hasattr(math, 'gcd') else self._gcd_rational(gcd, coeff)
+            gcd = (
+                math.gcd(gcd, coeff)
+                if hasattr(math, "gcd")
+                else self._gcd_rational(gcd, coeff)
+            )
 
         return gcd
 
@@ -608,7 +642,9 @@ class Polynomial:
                     max_vars = max(max_vars, len(sub_monom.exponents))
 
             # Extend monomials to have the right number of variables
-            extended_monom = Monomial(list(monom.exponents) + [0] * (max_vars - len(monom.exponents)))
+            extended_monom = Monomial(
+                list(monom.exponents) + [0] * (max_vars - len(monom.exponents))
+            )
             term = Polynomial({extended_monom: coeff})
 
             for i, exp in enumerate(monom.exponents):
@@ -618,7 +654,10 @@ class Polynomial:
                         # Extend substitution polynomials to have enough variables
                         extended_subs = {}
                         for sub_monom, sub_coeff in var_poly.terms.items():
-                            extended_sub_monom = Monomial(list(sub_monom.exponents) + [0] * (max_vars - len(sub_monom.exponents)))
+                            extended_sub_monom = Monomial(
+                                list(sub_monom.exponents)
+                                + [0] * (max_vars - len(sub_monom.exponents))
+                            )
                             extended_subs[extended_sub_monom] = sub_coeff
 
                         var_poly = Polynomial(extended_subs)
@@ -630,7 +669,9 @@ class Polynomial:
                         term = term * var_term
                     else:
                         # Keep variable as is (extend to max_vars)
-                        var_monom = Monomial([1 if j == i else 0 for j in range(max_vars)])
+                        var_monom = Monomial(
+                            [1 if j == i else 0 for j in range(max_vars)]
+                        )
                         var_term = Polynomial({var_monom: Fraction(1)})
                         for _ in range(exp - 1):
                             var_term = var_term * var_term
@@ -645,9 +686,9 @@ class Polynomial:
             return "0"
 
         terms_str = []
-        for monom, coeff in sorted(self.terms.items(),
-                                 key=lambda x: x[0],
-                                 reverse=True):  # Sort by monomial for consistent output
+        for monom, coeff in sorted(
+            self.terms.items(), key=lambda x: x[0], reverse=True
+        ):  # Sort by monomial for consistent output
             if coeff == 1 and monom != Monomial((0,) * len(monom.exponents)):
                 terms_str.append(str(monom))
             elif coeff == -1 and monom != Monomial((0,) * len(monom.exponents)):
@@ -661,23 +702,25 @@ class Polynomial:
         return f"Polynomial({dict(self.terms)})"
 
     @staticmethod
-    def scalar(k: Fraction) -> 'Polynomial':
+    def scalar(k: Fraction) -> "Polynomial":
         """Create a scalar polynomial."""
         if k == 0:
             return Polynomial()
         return Polynomial({Monomial((0,)): k})
 
     @staticmethod
-    def zero() -> 'Polynomial':
+    def zero() -> "Polynomial":
         """Create zero polynomial."""
         return Polynomial()
 
     @staticmethod
-    def one() -> 'Polynomial':
+    def one() -> "Polynomial":
         """Create one polynomial."""
         return Polynomial({Monomial((0,)): Fraction(1)})
 
-    def add_term(self, coeff: Fraction, monom: Monomial, other: 'Polynomial') -> 'Polynomial':
+    def add_term(
+        self, coeff: Fraction, monom: Monomial, other: "Polynomial"
+    ) -> "Polynomial":
         """Add a term to another polynomial."""
         result = Polynomial(other.terms.copy())
         result.terms[monom] = result.terms.get(monom, Fraction(0)) + coeff
@@ -687,18 +730,18 @@ class Polynomial:
             del result.terms[key]
         return result
 
-    def scalar_mul(self, scalar: Fraction) -> 'Polynomial':
+    def scalar_mul(self, scalar: Fraction) -> "Polynomial":
         """Multiply polynomial by scalar."""
         if scalar == 0:
             return Polynomial()
         return Polynomial({m: c * scalar for m, c in self.terms.items()})
 
-    def negate(self) -> 'Polynomial':
+    def negate(self) -> "Polynomial":
         """Negate the polynomial."""
         return Polynomial({m: -c for m, c in self.terms.items()})
 
     @staticmethod
-    def of_dim(dim: int, num_vars: int) -> 'Polynomial':
+    def of_dim(dim: int, num_vars: int) -> "Polynomial":
         """Create a polynomial representing the variable at given dimension.
 
         Args:
@@ -744,13 +787,13 @@ class Polynomial:
             raise ImportError("SymPy is not available")
 
         if self.is_zero():
-            return sp.Poly(0, *sp.symbols(f'x:{self.num_variables()}'))
+            return sp.Poly(0, *sp.symbols(f"x:{self.num_variables()}"))
 
         # Get number of variables
         num_vars = self.num_variables()
 
         # Create SymPy symbols
-        sympy_vars = sp.symbols(f'x:{num_vars}')
+        sympy_vars = sp.symbols(f"x:{num_vars}")
 
         # Convert terms to SymPy expression
         expr = 0
@@ -764,7 +807,7 @@ class Polynomial:
         return sp.Poly(expr, sympy_vars)
 
     @classmethod
-    def from_sympy(cls, sympy_poly: Any) -> 'Polynomial':
+    def from_sympy(cls, sympy_poly: Any) -> "Polynomial":
         """Create a Polynomial from a SymPy polynomial.
 
         Args:
@@ -798,7 +841,7 @@ class Polynomial:
 
         return cls(terms)
 
-    def factor(self) -> 'Polynomial':
+    def factor(self) -> "Polynomial":
         """Factor the polynomial if SymPy is available.
 
         Returns:
@@ -818,7 +861,7 @@ class Polynomial:
             # If factoring fails, return original
             return self
 
-    def gcd(self, other: 'Polynomial') -> 'Polynomial':
+    def gcd(self, other: "Polynomial") -> "Polynomial":
         """Compute GCD of two polynomials using SymPy if available.
 
         Args:
@@ -842,7 +885,7 @@ class Polynomial:
             # Fallback to simple coefficient GCD if SymPy fails
             return self._coefficient_gcd(other)
 
-    def _coefficient_gcd(self, other: 'Polynomial') -> 'Polynomial':
+    def _coefficient_gcd(self, other: "Polynomial") -> "Polynomial":
         """Compute GCD of coefficients only."""
         if self.is_zero() or other.is_zero():
             return Polynomial()
@@ -860,7 +903,7 @@ class Polynomial:
 
         return Polynomial({Monomial((0,) * self.num_variables()): gcd_val})
 
-    def resultant(self, other: 'Polynomial') -> Fraction:
+    def resultant(self, other: "Polynomial") -> Fraction:
         """Compute the resultant of two polynomials using SymPy if available.
 
         Args:
@@ -907,17 +950,19 @@ class Polynomial:
         return len(list(self.terms.keys())[0].exponents)
 
     @staticmethod
-    def term_of(srk, ctx_of_int, poly: 'Polynomial'):
+    def term_of(srk, ctx_of_int, poly: "Polynomial"):
         """Convert polynomial to a term (placeholder implementation)."""
         # This is a simplified implementation
         # In practice, this would need to create actual SRK terms
         from .syntax import mk_var, Type
+
         return mk_var(0, Type.INT)  # Placeholder
 
 
 # Compatibility alias for SRK interface
 class QQ:
     """Rational numbers (fractions)."""
+
     @staticmethod
     def zero():
         return Fraction(0)
@@ -1090,7 +1135,9 @@ def variable(index: int, num_vars: int) -> Polynomial:
         ValueError: If index is out of range.
     """
     if not 0 <= index < num_vars:
-        raise ValueError(f"Variable index {index} out of range for {num_vars} variables")
+        raise ValueError(
+            f"Variable index {index} out of range for {num_vars} variables"
+        )
     exponents = [0] * num_vars
     exponents[index] = 1
     return Polynomial({Monomial(exponents): Fraction(1)})
@@ -1156,7 +1203,9 @@ class RewriteSystem:
                             # Add replacement terms
                             for rm, rc in replacement.terms.items():
                                 new_monom = quotient * rm
-                                new_terms[new_monom] = new_terms.get(new_monom, Fraction(0)) + rc
+                                new_terms[new_monom] = (
+                                    new_terms.get(new_monom, Fraction(0)) + rc
+                                )
                             rewritten = True
                         else:
                             new_terms[m] = c
@@ -1219,7 +1268,9 @@ def groebner_basis(polys: List[Polynomial], order: MonomialOrder) -> RewriteSyst
         return _groebner_basis_simplified(polys, order)
 
 
-def _groebner_basis_simplified(polys: List[Polynomial], order: MonomialOrder) -> RewriteSystem:
+def _groebner_basis_simplified(
+    polys: List[Polynomial], order: MonomialOrder
+) -> RewriteSystem:
     """Simplified Groebner basis implementation using basic Buchberger's algorithm."""
     # This is a basic implementation of Buchberger's algorithm.
     # For production use, the SymPy implementation is recommended.
@@ -1277,7 +1328,9 @@ def _groebner_basis_simplified(polys: List[Polynomial], order: MonomialOrder) ->
     return RewriteSystem(rules)
 
 
-def _s_polynomial(p1: Polynomial, p2: Polynomial, order: MonomialOrder) -> Optional[Polynomial]:
+def _s_polynomial(
+    p1: Polynomial, p2: Polynomial, order: MonomialOrder
+) -> Optional[Polynomial]:
     """Compute S-polynomial of two polynomials."""
     if p1.is_zero() or p2.is_zero():
         return None
@@ -1297,7 +1350,9 @@ def _s_polynomial(p1: Polynomial, p2: Polynomial, order: MonomialOrder) -> Optio
     return term1 - term2
 
 
-def _reduce_polynomial(poly: Polynomial, basis: List[Polynomial], order: MonomialOrder) -> Polynomial:
+def _reduce_polynomial(
+    poly: Polynomial, basis: List[Polynomial], order: MonomialOrder
+) -> Polynomial:
     """Reduce polynomial with respect to a basis using multivariate division."""
     if poly.is_zero():
         return poly
@@ -1337,10 +1392,10 @@ def _reduce_polynomial(poly: Polynomial, basis: List[Polynomial], order: Monomia
 def _sympy_order(order: MonomialOrder) -> str:
     """Convert our monomial order to SymPy order."""
     if order == MonomialOrder.LEX:
-        return 'lex'
+        return "lex"
     elif order == MonomialOrder.DEGLEX:
-        return 'deglex'
+        return "deglex"
     elif order == MonomialOrder.DEGREVLEX:
-        return 'degrevlex'
+        return "degrevlex"
     else:
-        return 'deglex'  # Default
+        return "deglex"  # Default

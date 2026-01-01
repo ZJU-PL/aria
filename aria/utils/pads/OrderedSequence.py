@@ -42,15 +42,15 @@ class SimpleOrderedSequence(Sequence):
             return 1
         return 0
 
-    def append(self,x):
+    def append(self, x):
         """Add x to the end of the sequence."""
         if not self._next:  # add to empty sequence
-            Sequence.append(self,x)
-            self._tag[self.key(x)] = sys.maxsize//2
+            Sequence.append(self, x)
+            self._tag[self.key(x)] = sys.maxsize // 2
         else:
-            self.insertAfter(self._prev[self._first],x)
+            self.insertAfter(self._prev[self._first], x)
 
-    def insertAfter(self,x,y):
+    def insertAfter(self, x, y):
         """Add y after x and compute a tag for it."""
         Sequence.insertAfter(self, x, y)
         x = self.key(x)
@@ -61,7 +61,7 @@ class SimpleOrderedSequence(Sequence):
         else:
             nexttag = self._tag[next_item]
         xtag = self._tag[x]
-        self._tag[y] = xtag + (nexttag - xtag + 1)//2
+        self._tag[y] = xtag + (nexttag - xtag + 1) // 2
         if self._tag[y] == nexttag:
             self.rebalance(y)
 
@@ -71,17 +71,18 @@ class SimpleOrderedSequence(Sequence):
         x = self.key(x)
         y = self.key(y)
         if self._first == y:
-            self._tag[y] = self._tag[x]//2
+            self._tag[y] = self._tag[x] // 2
             if self._tag[y] == self._tag[x]:
                 self.rebalance(y)
 
-    def rebalance(self,x):
+    def rebalance(self, x):
         """Clean up after x and its successor's tags collide."""
         base = 0
-        increment = sys.maxsize//len(self)
+        increment = sys.maxsize // len(self)
         for y in self:
             self._tag[y] = base
             base += increment
+
 
 class LogarithmicOrderedSequence(SimpleOrderedSequence):
     """Maintain a sequence of items subject to insertions, removals,
@@ -93,7 +94,7 @@ class LogarithmicOrderedSequence(SimpleOrderedSequence):
     the amortized time per insertion in an n-item list is O(log n).
     """
 
-    def rebalance(self,x):
+    def rebalance(self, x):
         """Clean up after x and its successor's tags collide.
 
         At each iteration of the rebalancing algorithm, we look at
@@ -115,18 +116,19 @@ class LogarithmicOrderedSequence(SimpleOrderedSequence):
         threshhold = 1.0
         first = last = x
         nItems = 1
-        multiplier = 2/(2*len(self))**(1/30.)
+        multiplier = 2 / (2 * len(self)) ** (1 / 30.0)
         while 1:
-            while first != self._first and \
-                    self._tag[self._prev[first]] &~ mask == base:
+            while first != self._first and self._tag[self._prev[first]] & ~mask == base:
                 first = self._prev[first]
                 nItems += 1
-            while self._next[last] != self._first and \
-                    self._tag[self._next[last]] &~ mask == base:
+            while (
+                self._next[last] != self._first
+                and self._tag[self._next[last]] & ~mask == base
+            ):
                 last = self._next[last]
                 nItems += 1
-            increment = (mask+1)//nItems
-            if increment >= threshhold:     # found rebalanceable range
+            increment = (mask + 1) // nItems
+            if increment >= threshhold:  # found rebalanceable range
                 item = first
                 while item != last:
                     self._tag[item] = base
@@ -134,6 +136,6 @@ class LogarithmicOrderedSequence(SimpleOrderedSequence):
                     base += increment
                 self._tag[last] = base
                 return
-            mask = (mask << 1) + 1          # expand to next power of two
-            base = base &~ mask
+            mask = (mask << 1) + 1  # expand to next power of two
+            base = base & ~mask
             threshhold *= multiplier

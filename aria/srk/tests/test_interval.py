@@ -118,5 +118,5 @@ class TestInterval(unittest.TestCase):
         self.assertTrue(result2.is_bottom())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

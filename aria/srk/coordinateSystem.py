@@ -15,7 +15,22 @@ import functools
 import logging
 
 # Import from other SRK modules
-from aria.srk.syntax import Context, Symbol, Expression, Type, mk_const, mk_real, mk_add, mk_mul, mk_div, mk_mod, mk_floor, mk_app, typ_symbol, Var
+from aria.srk.syntax import (
+    Context,
+    Symbol,
+    Expression,
+    Type,
+    mk_const,
+    mk_real,
+    mk_add,
+    mk_mul,
+    mk_div,
+    mk_mod,
+    mk_floor,
+    mk_app,
+    typ_symbol,
+    Var,
+)
 from aria.srk.linear import QQVector
 from aria.srk.polynomial import Polynomial, Monomial
 from aria.srk.qQ import QQ
@@ -26,12 +41,14 @@ logger = logging.getLogger(__name__)
 
 class TermType(Enum):
     """Types of terms in coordinate systems."""
+
     TY_INT = "int"
     TY_REAL = "real"
 
 
 class CSTermType(Enum):
     """Coordinate system term types - corresponds to OCaml cs_term variants."""
+
     MUL = "Mul"
     INV = "Inv"
     MOD = "Mod"
@@ -52,6 +69,7 @@ class CSTerm(Hashable):
     - Floor of V.t
     - App of symbol * (V.t list)
     """
+
     term_type: CSTermType
     vectors: Tuple[QQVector, ...] = field(default_factory=tuple, hash=False)
     func: Optional[Symbol] = field(default=None, hash=False)
@@ -75,7 +93,7 @@ class CSTerm(Hashable):
             if self.func is None:
                 raise ValueError("App requires a function symbol")
             if not self.args:  # For backwards compatibility, also check args
-                object.__setattr__(self, 'args', self.vectors)
+                object.__setattr__(self, "args", self.vectors)
         elif self.term_type in [CSTermType.ONE, CSTermType.ZERO]:
             if len(self.vectors) != 0:
                 raise ValueError("One/Zero should not have vectors")
@@ -85,15 +103,29 @@ class CSTerm(Hashable):
     def __hash__(self):
         # Custom hash that matches OCaml's hash function
         if self.term_type == CSTermType.MUL:
-            return hash((0, tuple(self.vectors[0].entries.items()), tuple(self.vectors[1].entries.items())))
+            return hash(
+                (
+                    0,
+                    tuple(self.vectors[0].entries.items()),
+                    tuple(self.vectors[1].entries.items()),
+                )
+            )
         elif self.term_type == CSTermType.INV:
             return hash((1, tuple(self.vectors[0].entries.items())))
         elif self.term_type == CSTermType.MOD:
-            return hash((2, tuple(self.vectors[0].entries.items()), tuple(self.vectors[1].entries.items())))
+            return hash(
+                (
+                    2,
+                    tuple(self.vectors[0].entries.items()),
+                    tuple(self.vectors[1].entries.items()),
+                )
+            )
         elif self.term_type == CSTermType.FLOOR:
             return hash((3, tuple(self.vectors[0].entries.items())))
         elif self.term_type == CSTermType.APP:
-            return hash((4, self.func, tuple(tuple(v.entries.items()) for v in self.args)))
+            return hash(
+                (4, self.func, tuple(tuple(v.entries.items()) for v in self.args))
+            )
         elif self.term_type == CSTermType.ONE:
             return hash(5)
         elif self.term_type == CSTermType.ZERO:
@@ -102,37 +134,37 @@ class CSTerm(Hashable):
             raise ValueError(f"Unknown term type: {self.term_type}")
 
     @classmethod
-    def mul(cls, x: QQVector, y: QQVector) -> 'CSTerm':
+    def mul(cls, x: QQVector, y: QQVector) -> "CSTerm":
         """Create a multiplication term: x * y"""
         return cls(CSTermType.MUL, (x, y))
 
     @classmethod
-    def inv(cls, x: QQVector) -> 'CSTerm':
+    def inv(cls, x: QQVector) -> "CSTerm":
         """Create an inverse term: 1/x"""
         return cls(CSTermType.INV, (x,))
 
     @classmethod
-    def mod(cls, x: QQVector, y: QQVector) -> 'CSTerm':
+    def mod(cls, x: QQVector, y: QQVector) -> "CSTerm":
         """Create a modulo term: x mod y"""
         return cls(CSTermType.MOD, (x, y))
 
     @classmethod
-    def floor(cls, x: QQVector) -> 'CSTerm':
+    def floor(cls, x: QQVector) -> "CSTerm":
         """Create a floor term: floor(x)"""
         return cls(CSTermType.FLOOR, (x,))
 
     @classmethod
-    def app(cls, func: Symbol, args: Tuple[QQVector, ...]) -> 'CSTerm':
+    def app(cls, func: Symbol, args: Tuple[QQVector, ...]) -> "CSTerm":
         """Create a function application term: func(args...)"""
         return cls(CSTermType.APP, args, func)
 
     @classmethod
-    def one(cls) -> 'CSTerm':
+    def one(cls) -> "CSTerm":
         """Create a one (constant 1) term."""
         return cls(CSTermType.ONE)
 
     @classmethod
-    def zero(cls) -> 'CSTerm':
+    def zero(cls) -> "CSTerm":
         """Create a zero (constant 0) term."""
         return cls(CSTermType.ZERO)
 
@@ -173,7 +205,7 @@ class CoordinateSystem:
         """Number of real dimensions."""
         return sum(1 for _, _, typ in self.id_def if typ == TermType.TY_REAL)
 
-    def copy(self) -> 'CoordinateSystem':
+    def copy(self) -> "CoordinateSystem":
         """Create a copy of the coordinate system."""
         new_cs = CoordinateSystem(self.context)
         new_cs.term_id = self.term_id.copy()
@@ -232,7 +264,11 @@ class CoordinateSystem:
 
         elif term.term_type in [CSTermType.ONE, CSTermType.ZERO]:
             # Constants have level 0
-            typ = TermType.TY_REAL if term.term_type == CSTermType.ONE else TermType.TY_INT
+            typ = (
+                TermType.TY_REAL
+                if term.term_type == CSTermType.ONE
+                else TermType.TY_INT
+            )
             level = 0
 
         else:
@@ -424,7 +460,9 @@ class CoordinateSystem:
             else:
                 # For multiple multiplication: arg1 * arg2 * ... * argn
                 # We need to chain the multiplications properly
-                arg_vectors = [self._vec_of_term_recursive(arg, admit) for arg in term.args]
+                arg_vectors = [
+                    self._vec_of_term_recursive(arg, admit) for arg in term.args
+                ]
 
                 # Start with the first argument
                 result_vec = arg_vectors[0]
@@ -447,7 +485,9 @@ class CoordinateSystem:
             coord_id = self.admit_cs_term(cs_term)
             return QQVector({coord_id: QQ.one()})
 
-        raise KeyError(f"Cannot convert term to vector: {term} (unsupported expression type: {type(term)})")
+        raise KeyError(
+            f"Cannot convert term to vector: {term} (unsupported expression type: {type(term)})"
+        )
 
     def _cs_term_id(self, cs_term: CSTerm, admit: bool) -> int:
         """Get or admit a coordinate system term ID."""
@@ -582,7 +622,10 @@ class CoordinateSystem:
         """Get the type of a polynomial."""
         is_integral = True
         for coeff, monomial in poly.entries.items():
-            if not coeff.is_integer() or self.type_of_monomial(monomial) != TermType.TY_INT:
+            if (
+                not coeff.is_integer()
+                or self.type_of_monomial(monomial) != TermType.TY_INT
+            ):
                 is_integral = False
                 break
         return TermType.TY_INT if is_integral else TermType.TY_REAL

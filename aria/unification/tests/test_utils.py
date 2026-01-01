@@ -1,4 +1,5 @@
 """Tests for unification utilities."""
+
 from aria.unification.utils import freeze, transitive_get
 from aria.unification.variable import var
 

@@ -11,7 +11,14 @@ import sys
 import argparse
 import random
 
-from aria.srk.syntax import Context, Symbol, Type, ExpressionBuilder, mk_symbol, mk_const
+from aria.srk.syntax import (
+    Context,
+    Symbol,
+    Type,
+    ExpressionBuilder,
+    mk_symbol,
+    mk_const,
+)
 from aria.srk.smt import SMTInterface, SMTResult
 from aria.srk.srkSimplify import Simplifier, make_simplifier
 from aria.srk.abstract import SignDomain, AbstractValue
@@ -44,58 +51,57 @@ Examples:
   bigtop -qe "∃x. x > 0 ∧ x < 1"
   bigtop -stats "x > 0 ∧ y < 1"
   bigtop -random 3 2
-            """
+            """,
         )
 
         parser.add_argument(
-            "-simsat", "--simsat",
-            help="Check satisfiability using simplex"
+            "-simsat", "--simsat", help="Check satisfiability using simplex"
         )
 
         parser.add_argument(
-            "-nlsat", "--nlsat",
-            help="Check satisfiability using non-linear solver"
+            "-nlsat", "--nlsat", help="Check satisfiability using non-linear solver"
         )
 
         parser.add_argument(
-            "-convex-hull", "--convex-hull",
+            "-convex-hull",
+            "--convex-hull",
             nargs="+",
-            help="Compute convex hull of constraints"
+            help="Compute convex hull of constraints",
         )
 
         parser.add_argument(
-            "-wedge-hull", "--wedge-hull",
+            "-wedge-hull",
+            "--wedge-hull",
             nargs="+",
-            help="Compute wedge hull of constraints"
+            help="Compute wedge hull of constraints",
         )
 
         parser.add_argument(
-            "-affine-hull", "--affine-hull",
+            "-affine-hull",
+            "--affine-hull",
             nargs="+",
-            help="Compute affine hull of constraints"
+            help="Compute affine hull of constraints",
         )
 
         parser.add_argument(
-            "-qe", "--quantifier-elimination",
-            help="Eliminate quantifiers from formula"
+            "-qe", "--quantifier-elimination", help="Eliminate quantifiers from formula"
         )
 
         parser.add_argument(
-            "-stats", "--statistics",
-            help="Show statistics for formula"
+            "-stats", "--statistics", help="Show statistics for formula"
         )
 
         parser.add_argument(
-            "-random", "--random",
-            nargs=2, type=int,
+            "-random",
+            "--random",
+            nargs=2,
+            type=int,
             metavar=("NUM_VARS", "DEPTH"),
-            help="Generate random formula with NUM_VARS variables and given DEPTH"
+            help="Generate random formula with NUM_VARS variables and given DEPTH",
         )
 
         parser.add_argument(
-            "-v", "--verbose",
-            action="store_true",
-            help="Verbose output"
+            "-v", "--verbose", action="store_true", help="Verbose output"
         )
 
         return parser
@@ -153,7 +159,9 @@ Examples:
             elif op == "lt":
                 return self.builder.mk_lt(left_expr, right_expr)  # x < 0
             elif op == "geq":
-                return self.builder.mk_leq(right_expr, left_expr)  # x >= 0 becomes 0 <= x
+                return self.builder.mk_leq(
+                    right_expr, left_expr
+                )  # x >= 0 becomes 0 <= x
             elif op == "leq":
                 return self.builder.mk_leq(left_expr, right_expr)  # x <= 0
 
@@ -168,11 +176,11 @@ Examples:
         term = term.strip()
 
         # Handle constants
-        if term.isdigit() or (term.startswith('-') and term[1:].isdigit()):
+        if term.isdigit() or (term.startswith("-") and term[1:].isdigit()):
             # Create a constant symbol for the integer
             const_symbol = self.context.mk_symbol(f"const_{term}", Type.INT)
             return self.builder.mk_const(const_symbol)
-        elif term.replace('.', '').replace('-', '').isdigit():
+        elif term.replace(".", "").replace("-", "").isdigit():
             # Handle floats
             const_symbol = self.context.mk_symbol(f"const_{term}", Type.REAL)
             return self.builder.mk_const(const_symbol)
@@ -260,7 +268,9 @@ Examples:
 
         # Check if formula starts with quantifier
         if formula_str.startswith("∃") or formula_str.startswith("forall"):
-            print("Quantifier found - elimination not fully implemented in this version")
+            print(
+                "Quantifier found - elimination not fully implemented in this version"
+            )
         else:
             print("No quantifiers detected")
 
@@ -282,7 +292,7 @@ Examples:
         print(f"Generating random formula with {num_vars} variables, depth {depth}")
 
         # Simple random formula generation
-        variables = [chr(ord('a') + i) for i in range(num_vars)]
+        variables = [chr(ord("a") + i) for i in range(num_vars)]
 
         # Generate a simple random expression
         if num_vars > 0:

@@ -25,9 +25,11 @@ from . import coordinateSystem as CS
 
 logger = logging.getLogger(__name__)
 
+
 # Simplified integer operations for VAS
 class ZZ:
     """Simplified integer type for VAS operations."""
+
     @staticmethod
     def zero():
         return linear.QQVector.zero()
@@ -48,24 +50,36 @@ class ZZ:
     def coeff(dim, vec):
         return linear.QQVector.coeff(dim, vec)
 
+
 @dataclass(frozen=True)
 class Transformer:
     """Represents an affine transition: X' = a ⊙ X + b (diagonal a with 0/1)."""
+
     a: linear.QQVector  # diagonal mask (each entry must be 0 or 1)
     b: linear.QQVector  # translation vector
 
     def __post_init__(self):
         # Validate that all coefficients of a are in {0, 1}
         from fractions import Fraction
-        invalid = [val for val in self.a.entries.values() if val not in (Fraction(0), Fraction(1))]
+
+        invalid = [
+            val
+            for val in self.a.entries.values()
+            if val not in (Fraction(0), Fraction(1))
+        ]
         if invalid:
             raise ValueError("Transformer 'a' must contain only 0/1 coefficients")
 
     def apply(self, state: linear.QQVector) -> linear.QQVector:
         """Apply this transformer to a state vector: x' = a_i*x_i + b_i per dimension."""
         from fractions import Fraction
+
         result_entries = {}
-        all_dims = set(state.entries.keys()) | set(self.a.entries.keys()) | set(self.b.entries.keys())
+        all_dims = (
+            set(state.entries.keys())
+            | set(self.a.entries.keys())
+            | set(self.b.entries.keys())
+        )
 
         for dim in all_dims:
             ai = self.a.get(dim, Fraction(0))
@@ -126,20 +140,22 @@ class Transformer:
     def __repr__(self):
         return f"Transformer(a={self.a}, b={self.b})"
 
+
 class VAS:
     """Vector Addition System - a set of transformers"""
+
     def __init__(self, transformers: Set[Transformer]):
         self.transformers = transformers
 
     def is_empty(self) -> bool:
         return len(self.transformers) == 0
 
-    def add(self, transformer: Transformer) -> 'VAS':
+    def add(self, transformer: Transformer) -> "VAS":
         new_transformers = self.transformers.copy()
         new_transformers.add(transformer)
         return VAS(new_transformers)
 
-    def union(self, other: 'VAS') -> 'VAS':
+    def union(self, other: "VAS") -> "VAS":
         new_transformers = self.transformers.copy()
         new_transformers.update(other.transformers)
         return VAS(new_transformers)
@@ -193,21 +209,23 @@ class VAS:
         return result
 
     @staticmethod
-    def empty() -> 'VAS':
+    def empty() -> "VAS":
         return VAS(set())
 
     @staticmethod
-    def singleton(transformer: Transformer) -> 'VAS':
+    def singleton(transformer: Transformer) -> "VAS":
         return VAS({transformer})
 
     @staticmethod
-    def from_transformers(transformers: List[Transformer]) -> 'VAS':
+    def from_transformers(transformers: List[Transformer]) -> "VAS":
         """Create VAS from a list of transformers."""
         return VAS(set(transformers))
+
 
 @dataclass
 class VASAbstraction:
     """VAS abstraction containing transformers and simulation matrices"""
+
     v: VAS
     s_lst: List[linear.QQMatrix]
 
@@ -215,25 +233,32 @@ class VASAbstraction:
         return self.v.is_empty() and len(self.s_lst) == 0
 
     @staticmethod
-    def top() -> 'VASAbstraction':
+    def top() -> "VASAbstraction":
         """Top element (most permissive abstraction)"""
         return VASAbstraction(VAS.empty(), [])
 
     @staticmethod
-    def bottom(tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol]]) -> 'VASAbstraction':
+    def bottom(
+        tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol]],
+    ) -> "VASAbstraction":
         """Bottom element for given transition symbols"""
         # Create simulation matrix with 1 row for each symbol
-        sim = linear.QQMatrix.of_rows([
-            linear.QQVector.of_term(linear.QQ.one(), linear.Linear.dim_of_sym(x))
-            for _, x in tr_symbols
-        ])
+        sim = linear.QQMatrix.of_rows(
+            [
+                linear.QQVector.of_term(linear.QQ.one(), linear.Linear.dim_of_sym(x))
+                for _, x in tr_symbols
+            ]
+        )
         return VASAbstraction(VAS.empty(), [sim])
+
 
 class VASContext:
     """Context for VAS operations"""
+
     def __init__(self, srk_context: syntax.Context):
         self.srk = srk_context
         self.log = logging.getLogger(f"srk.vas.{id(self)}")
+
 
 def unify_matrices(matrices: List[linear.QQMatrix]) -> linear.QQMatrix:
     """Stack matrices vertically to form a single matrix"""
@@ -247,8 +272,10 @@ def unify_matrices(matrices: List[linear.QQMatrix]) -> linear.QQMatrix:
 
     return linear.QQMatrix.of_rows(rows)
 
-def unify2_matrices_vectors(matrices: List[linear.QQMatrix],
-                           vectors: List[linear.QQVector]) -> Tuple[linear.QQMatrix, linear.QQVector]:
+
+def unify2_matrices_vectors(
+    matrices: List[linear.QQMatrix], vectors: List[linear.QQVector]
+) -> Tuple[linear.QQMatrix, linear.QQVector]:
     """Unify matrices and vectors together"""
     if len(matrices) != len(vectors):
         raise ValueError("Must have same number of matrices and vectors")
@@ -259,25 +286,35 @@ def unify2_matrices_vectors(matrices: List[linear.QQMatrix],
     for matrix, vector in zip(matrices, vectors):
         # Add matrix rows to accumulator
         for i, (_, row) in enumerate(linear.QQMatrix.rowsi(matrix)):
-            acc_matrix = linear.QQMatrix.add_row(len(linear.QQMatrix.rowsi(acc_matrix)), row, acc_matrix)
+            acc_matrix = linear.QQMatrix.add_row(
+                len(linear.QQMatrix.rowsi(acc_matrix)), row, acc_matrix
+            )
             # Add corresponding vector coefficient
             coeff = linear.QQVector.coeff(i, vector)
-            acc_vector = linear.QQVector.add_term(coeff, len(linear.QQMatrix.rowsi(acc_matrix)) - 1, acc_vector)
+            acc_vector = linear.QQVector.add_term(
+                coeff, len(linear.QQMatrix.rowsi(acc_matrix)) - 1, acc_vector
+            )
 
     return acc_matrix, acc_vector
 
-def create_exp_vars(srk: syntax.Context, s_lst: List[linear.QQMatrix],
-                   transformers: List[Transformer]) -> List[Tuple]:
+
+def create_exp_vars(
+    srk: syntax.Context, s_lst: List[linear.QQMatrix], transformers: List[Transformer]
+) -> List[Tuple]:
     """Create existential variables for VAS abstraction"""
     bdim = 0
 
-    def mk_constants(nb: int, basename: str, typ: syntax.Typ) -> List[syntax.Expression]:
+    def mk_constants(
+        nb: int, basename: str, typ: syntax.Typ
+    ) -> List[syntax.Expression]:
         return [
             syntax.mk_const(srk, syntax.mk_symbol(srk, f"{basename},{i}", typ))
             for i in range(nb)
         ]
 
-    def helper(s_lst: List[linear.QQMatrix], coh_rep: int, coh_class_pairs: List) -> List:
+    def helper(
+        s_lst: List[linear.QQMatrix], coh_rep: int, coh_class_pairs: List
+    ) -> List:
         if not s_lst:
             return coh_class_pairs
 
@@ -292,76 +329,128 @@ def create_exp_vars(srk: syntax.Context, s_lst: List[linear.QQMatrix],
                 kstack.append(syntax.mk_zero(srk))
             else:
                 name = f"K{len(s_lst)},{i}"
-                kstack.append(syntax.mk_const(srk, syntax.mk_symbol(srk, name, syntax.TyInt)))
+                kstack.append(
+                    syntax.mk_const(srk, syntax.mk_symbol(srk, name, syntax.TyInt))
+                )
 
         # Create R var (reset indicator)
-        if any(linear.ZZ.equal(linear.ZZ.zero(), linear.ZZ.coeff(coh_rep, tr.a))
-               for tr in transformers):
-            rvar = syntax.mk_const(srk, syntax.mk_symbol(srk, f"R{len(s_lst)}", syntax.TyInt))
+        if any(
+            linear.ZZ.equal(linear.ZZ.zero(), linear.ZZ.coeff(coh_rep, tr.a))
+            for tr in transformers
+        ):
+            rvar = syntax.mk_const(
+                srk, syntax.mk_symbol(srk, f"R{len(s_lst)}", syntax.TyInt)
+            )
         else:
             rvar = syntax.mk_real(srk, linear.QQ.of_int(-1))
 
         # Create KSum var
-        ksum = syntax.mk_const(srk, syntax.mk_symbol(srk, f"KSUM{len(s_lst)}", syntax.TyInt))
+        ksum = syntax.mk_const(
+            srk, syntax.mk_symbol(srk, f"KSUM{len(s_lst)}", syntax.TyInt)
+        )
 
         # Create S vars (starting values)
-        svar = mk_constants(linear.QQMatrix.nb_rows(hd), f"S{len(s_lst)}", syntax.TyReal)
+        svar = mk_constants(
+            linear.QQMatrix.nb_rows(hd), f"S{len(s_lst)}", syntax.TyReal
+        )
 
         # Group vars together
-        equiv_pair = (kstack,
-                     [(svar[i], bdim + i) for i in range(len(svar))],
-                     rvar, ksum)
+        equiv_pair = (
+            kstack,
+            [(svar[i], bdim + i) for i in range(len(svar))],
+            rvar,
+            ksum,
+        )
 
-        return helper(tl, coh_rep + linear.QQMatrix.nb_rows(hd),
-                     [equiv_pair] + coh_class_pairs)
+        return helper(
+            tl, coh_rep + linear.QQMatrix.nb_rows(hd), [equiv_pair] + coh_class_pairs
+        )
 
     return helper(s_lst, 0, [])
 
-def mk_all_nonnegative(srk: syntax.Context, terms: List[syntax.Expression]) -> syntax.Formula:
-    """Create conjunction requiring all terms >= 0"""
-    return syntax.mk_and(srk, [syntax.mk_leq(srk, syntax.mk_zero(srk), term) for term in terms])
 
-def exp_full_transitions_reqs(srk: syntax.Context, kvarst: List[List[syntax.Expression]],
-                             rvarst: List[syntax.Expression], loop_counter: syntax.Expression) -> syntax.Formula:
+def mk_all_nonnegative(
+    srk: syntax.Context, terms: List[syntax.Expression]
+) -> syntax.Formula:
+    """Create conjunction requiring all terms >= 0"""
+    return syntax.mk_and(
+        srk, [syntax.mk_leq(srk, syntax.mk_zero(srk), term) for term in terms]
+    )
+
+
+def exp_full_transitions_reqs(
+    srk: syntax.Context,
+    kvarst: List[List[syntax.Expression]],
+    rvarst: List[syntax.Expression],
+    loop_counter: syntax.Expression,
+) -> syntax.Formula:
     """Create constraints for full transitions"""
     constraints = []
     for kvart_stack, rvar in zip(kvarst, rvarst):
         # If sum of k vars equals loop counter, then r var should be -1 (never reset)
         sum_k = syntax.mk_add(srk, kvart_stack)
         constraints.append(
-            syntax.mk_iff(srk,
-                         syntax.mk_eq(srk, sum_k, loop_counter),
-                         syntax.mk_eq(srk, rvar, syntax.mk_real(srk, linear.QQ.of_int(-1))))
+            syntax.mk_iff(
+                srk,
+                syntax.mk_eq(srk, sum_k, loop_counter),
+                syntax.mk_eq(srk, rvar, syntax.mk_real(srk, linear.QQ.of_int(-1))),
+            )
         )
     return syntax.mk_and(srk, constraints)
 
-def exp_kstacks_at_most_k(srk: syntax.Context, ksumst: List[syntax.Expression],
-                         loop_counter: syntax.Expression) -> syntax.Formula:
-    """No coherence class can take more transitions than loop counter"""
-    return syntax.mk_and(srk, [syntax.mk_leq(srk, ksum, loop_counter) for ksum in ksumst])
 
-def exp_lin_term_trans_constraints(srk: syntax.Context, coh_class_pairs: List,
-                                  transformers: List[Transformer],
-                                  unified_s: linear.QQMatrix) -> syntax.Formula:
+def exp_kstacks_at_most_k(
+    srk: syntax.Context,
+    ksumst: List[syntax.Expression],
+    loop_counter: syntax.Expression,
+) -> syntax.Formula:
+    """No coherence class can take more transitions than loop counter"""
+    return syntax.mk_and(
+        srk, [syntax.mk_leq(srk, ksum, loop_counter) for ksum in ksumst]
+    )
+
+
+def exp_lin_term_trans_constraints(
+    srk: syntax.Context,
+    coh_class_pairs: List,
+    transformers: List[Transformer],
+    unified_s: linear.QQMatrix,
+) -> syntax.Formula:
     """Constraints for linear term transitions"""
     constraints = []
     for kstack, svarstdims, _, _ in coh_class_pairs:
         for svar, dim in svarstdims:
             # Final value = initial value + sum over transformers of (k_i * b_{i,dim})
-            final_value = syntax.mk_add(srk, [
-                svar,
-                syntax.mk_add(srk, [
-                    syntax.mk_mul(srk, [syntax.mk_real(srk, linear.QQVector.coeff(dim, tr.b)),
-                                       kstack[i]])
-                    for i, tr in enumerate(transformers)
-                ])
-            ])
+            final_value = syntax.mk_add(
+                srk,
+                [
+                    svar,
+                    syntax.mk_add(
+                        srk,
+                        [
+                            syntax.mk_mul(
+                                srk,
+                                [
+                                    syntax.mk_real(
+                                        srk, linear.QQVector.coeff(dim, tr.b)
+                                    ),
+                                    kstack[i],
+                                ],
+                            )
+                            for i, tr in enumerate(transformers)
+                        ],
+                    ),
+                ],
+            )
 
             # Must equal the linear term at dimension dim
-            linear_term = syntax.Linear.of_linterm(srk, linear.QQMatrix.row(dim, unified_s))
+            linear_term = syntax.Linear.of_linterm(
+                srk, linear.QQMatrix.row(dim, unified_s)
+            )
             constraints.append(syntax.mk_eq(srk, linear_term, final_value))
 
     return syntax.mk_and(srk, constraints)
+
 
 def exp_kstack_eq_ksums(srk: syntax.Context, coh_class_pairs: List) -> syntax.Formula:
     """Relate K stack variables with K sum variables"""
@@ -371,9 +460,16 @@ def exp_kstack_eq_ksums(srk: syntax.Context, coh_class_pairs: List) -> syntax.Fo
         constraints.append(syntax.mk_eq(srk, sum_k, ksum))
     return syntax.mk_and(srk, constraints)
 
-def exp_sx_constraints(srk: syntax.Context, coh_class_pairs: List, transformers: List[Transformer],
-                      kvarst: List, ksumst: List, unified_s: linear.QQMatrix,
-                      tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol]]) -> syntax.Formula:
+
+def exp_sx_constraints(
+    srk: syntax.Context,
+    coh_class_pairs: List,
+    transformers: List[Transformer],
+    kvarst: List,
+    ksumst: List,
+    unified_s: linear.QQMatrix,
+    tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol]],
+) -> syntax.Formula:
     """Constraints for initial values of coherence classes"""
     constraints = []
     preify = syntax.substitute(srk, TF.pre_map(srk, tr_symbols))
@@ -381,19 +477,38 @@ def exp_sx_constraints(srk: syntax.Context, coh_class_pairs: List, transformers:
     for kstack, svarstdims, ri, ksum in coh_class_pairs:
         for svar, dim in svarstdims:
             # Cases: never reset vs reset at some point
-            never_reset_case = syntax.mk_and(srk, [
-                syntax.mk_eq(srk, svar, preify(syntax.Linear.of_linterm(srk,
-                    linear.QQMatrix.row(dim, unified_s)))),
-                syntax.mk_eq(srk, ri, syntax.mk_real(srk, linear.QQ.of_int(-1)))
-            ])
+            never_reset_case = syntax.mk_and(
+                srk,
+                [
+                    syntax.mk_eq(
+                        srk,
+                        svar,
+                        preify(
+                            syntax.Linear.of_linterm(
+                                srk, linear.QQMatrix.row(dim, unified_s)
+                            )
+                        ),
+                    ),
+                    syntax.mk_eq(srk, ri, syntax.mk_real(srk, linear.QQ.of_int(-1))),
+                ],
+            )
 
             reset_cases = []
             for i, tr in enumerate(transformers):
                 if not linear.ZZ.equal(linear.ZZ.coeff(dim, tr.a), linear.ZZ.one()):
-                    reset_case = syntax.mk_and(srk, [
-                        syntax.mk_eq(srk, svar, syntax.mk_real(srk, linear.QQVector.coeff(dim, tr.b))),
-                        syntax.mk_eq(srk, ri, syntax.mk_real(srk, linear.QQ.of_int(i)))
-                    ])
+                    reset_case = syntax.mk_and(
+                        srk,
+                        [
+                            syntax.mk_eq(
+                                srk,
+                                svar,
+                                syntax.mk_real(srk, linear.QQVector.coeff(dim, tr.b)),
+                            ),
+                            syntax.mk_eq(
+                                srk, ri, syntax.mk_real(srk, linear.QQ.of_int(i))
+                            ),
+                        ],
+                    )
                     reset_cases.append(reset_case)
 
             if reset_cases:
@@ -405,8 +520,13 @@ def exp_sx_constraints(srk: syntax.Context, coh_class_pairs: List, transformers:
 
     return syntax.mk_and(srk, constraints)
 
-def exp(srk: syntax.Context, tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol]],
-        loop_counter: syntax.Expression, vabs: VASAbstraction) -> syntax.Formula:
+
+def exp(
+    srk: syntax.Context,
+    tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol]],
+    loop_counter: syntax.Expression,
+    vabs: VASAbstraction,
+) -> syntax.Formula:
     """Compute VAS abstraction closure"""
     if vabs.is_empty():
         return syntax.mk_true(srk)
@@ -426,15 +546,22 @@ def exp(srk: syntax.Context, tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol
     constr1 = mk_all_nonnegative(srk, [loop_counter] + [k for ks in kvarst for k in ks])
     constr2 = exp_full_transitions_reqs(srk, kvarst, rvarst, loop_counter)
     constr3 = exp_kstacks_at_most_k(srk, ksumst, loop_counter)
-    constr4 = exp_lin_term_trans_constraints(srk, coh_class_pairs, transformers, unified_s)
+    constr4 = exp_lin_term_trans_constraints(
+        srk, coh_class_pairs, transformers, unified_s
+    )
     constr5 = exp_kstack_eq_ksums(srk, coh_class_pairs)
-    constr6 = exp_sx_constraints(srk, coh_class_pairs, transformers, kvarst, ksumst,
-                                unified_s, tr_symbols)
+    constr6 = exp_sx_constraints(
+        srk, coh_class_pairs, transformers, kvarst, ksumst, unified_s, tr_symbols
+    )
 
     return syntax.mk_and(srk, [constr1, constr2, constr3, constr4, constr5, constr6])
 
-def gamma(srk: syntax.Context, vas: VASAbstraction,
-         tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol]]) -> syntax.Formula:
+
+def gamma(
+    srk: syntax.Context,
+    vas: VASAbstraction,
+    tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol]],
+) -> syntax.Formula:
     """Gamma function for VAS abstraction"""
     if vas.v.is_empty():
         return syntax.mk_true(srk)
@@ -450,17 +577,34 @@ def gamma(srk: syntax.Context, vas: VASAbstraction,
         return syntax.mk_true(srk)
 
     def gamma_transformer(t: Transformer) -> syntax.Formula:
-        return syntax.mk_and(srk, [
-            syntax.mk_eq(srk, post_term,
-                        syntax.mk_add(srk, [
-                            syntax.mk_mul(srk, [pre_term, syntax.mk_real(srk,
-                                linear.QQ.of_zz(linear.ZZ.coeff(i, t.a)))]),
-                            syntax.mk_real(srk, linear.QQVector.coeff(i, t.b))
-                        ]))
-            for i, (pre_term, post_term) in enumerate(term_list)
-        ])
+        return syntax.mk_and(
+            srk,
+            [
+                syntax.mk_eq(
+                    srk,
+                    post_term,
+                    syntax.mk_add(
+                        srk,
+                        [
+                            syntax.mk_mul(
+                                srk,
+                                [
+                                    pre_term,
+                                    syntax.mk_real(
+                                        srk, linear.QQ.of_zz(linear.ZZ.coeff(i, t.a))
+                                    ),
+                                ],
+                            ),
+                            syntax.mk_real(srk, linear.QQVector.coeff(i, t.b)),
+                        ],
+                    ),
+                )
+                for i, (pre_term, post_term) in enumerate(term_list)
+            ],
+        )
 
     return syntax.mk_or(srk, [gamma_transformer(t) for t in vas.v.to_list()])
+
 
 def abstract_to_vas(srk: syntax.Context, tf: TF.TransitionFormula) -> VASAbstraction:
     """Abstract a transition formula to VAS abstraction"""
@@ -473,7 +617,9 @@ def abstract_to_vas(srk: syntax.Context, tf: TF.TransitionFormula) -> VASAbstrac
     solver = Smt.mk_solver(srk)
 
     def go(current_vas: VASAbstraction) -> VASAbstraction:
-        Smt.Solver.add(solver, [syntax.mk_not(srk, gamma(srk, current_vas, tr_symbols))])
+        Smt.Solver.add(
+            solver, [syntax.mk_not(srk, gamma(srk, current_vas, tr_symbols))]
+        )
 
         match Smt.Solver.get_model(solver):
             case Smt.Unsat:
@@ -490,27 +636,35 @@ def abstract_to_vas(srk: syntax.Context, tf: TF.TransitionFormula) -> VASAbstrac
                         implicant = []
                         # Could extract variable assignments here
                         # For now, use a conservative approximation
-                        logger.warning("Could not extract implicant, using conservative approximation")
+                        logger.warning(
+                            "Could not extract implicant, using conservative approximation"
+                        )
                 except Exception as e:
                     logger.warning(f"Failed to extract implicant: {e}")
                     implicant = []
-                
+
                 if not implicant:
                     # If we can't get an implicant, create a top abstraction
                     # This is conservative but sound
                     return go(coproduct(current_vas, VASAbstraction.top()))
 
                 # Create new VAS abstraction from implicant
-                sing_transformer_vas = alpha_hat(srk, syntax.mk_and(srk, implicant), tr_symbols)
+                sing_transformer_vas = alpha_hat(
+                    srk, syntax.mk_and(srk, implicant), tr_symbols
+                )
                 return go(coproduct(current_vas, sing_transformer_vas))
 
     Smt.Solver.add(solver, [phi])
     return go(VASAbstraction.bottom(tr_symbols))
 
-def alpha_hat(srk: syntax.Context, imp: syntax.Formula,
-             tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol]]) -> VASAbstraction:
+
+def alpha_hat(
+    srk: syntax.Context,
+    imp: syntax.Formula,
+    tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol]],
+) -> VASAbstraction:
     """Alpha-hat function for creating VAS abstraction from implicant.
-    
+
     Creates a VAS abstraction from an implicant by:
     1. Introducing delta variables: delta_x = x' - x
     2. Computing the affine hull of the constraints
@@ -524,59 +678,67 @@ def alpha_hat(srk: syntax.Context, imp: syntax.Formula,
         # Create a fresh symbol for the delta: delta_x
         delta_x = syntax.mk_symbol(srk, f"delta_{x.name}", syntax.typ_symbol(srk, x))
         xdeltpairs.append((delta_x, x))
-        
+
         # Add constraint: delta_x = x' - x
-        xdeltphis.append(syntax.mk_eq(srk,
-            syntax.mk_const(srk, delta_x),
-            syntax.mk_sub(srk, syntax.mk_const(srk, x_prime), syntax.mk_const(srk, x))))
+        xdeltphis.append(
+            syntax.mk_eq(
+                srk,
+                syntax.mk_const(srk, delta_x),
+                syntax.mk_sub(
+                    srk, syntax.mk_const(srk, x_prime), syntax.mk_const(srk, x)
+                ),
+            )
+        )
 
     # Combine the implicant with delta constraints
     combined_formula = syntax.mk_and(srk, [imp] + xdeltphis)
-    
+
     # Extract affine transformations
     # In a full implementation, this would:
     # 1. Use APRON to compute the affine hull
     # 2. Project onto the delta variables
     # 3. Extract coefficient matrices
-    
+
     # For now, create a simple transformer based on the structure
     try:
         # Try to extract simple linear relations
         transformers = set()
-        
+
         # Heuristic: look for relations of the form x' = x + c
         # This is a simplified version - full implementation would use APRON
-        
+
         # Create identity transformer as a conservative default
         num_vars = len(tr_symbols)
         a = linear.QQVector.of_list([linear.QQ.one() for _ in range(num_vars)])
         b = linear.QQVector.zero()
-        
+
         transformer = Transformer(a, b)
         transformers.add(transformer)
-        
+
         vas = VAS(transformers)
-        
+
         # Create simulation matrices (identity for simplicity)
         s_lst = [linear.QQMatrix.identity(list(range(num_vars)))]
-        
+
         return VASAbstraction(vas, s_lst)
-        
+
     except Exception as e:
         logger.warning(f"Failed to create VAS abstraction: {e}")
         # Return conservative top abstraction
         return VASAbstraction.top()
 
+
 def coproduct(vabs1: VASAbstraction, vabs2: VASAbstraction) -> VASAbstraction:
     """Coproduct of two VAS abstractions"""
     # Simplified implementation
-    return VASAbstraction(
-        vabs1.v.union(vabs2.v),
-        vabs1.s_lst + vabs2.s_lst
-    )
+    return VASAbstraction(vabs1.v.union(vabs2.v), vabs1.s_lst + vabs2.s_lst)
 
-def term_list(srk: syntax.Context, s_lst: List[linear.QQMatrix],
-             tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol]]) -> List:
+
+def term_list(
+    srk: syntax.Context,
+    s_lst: List[linear.QQMatrix],
+    tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol]],
+) -> List:
     """Create term list from simulation matrices"""
     preify = syntax.substitute(srk, TF.pre_map(srk, tr_symbols))
     result = []
@@ -588,16 +750,21 @@ def term_list(srk: syntax.Context, s_lst: List[linear.QQMatrix],
 
     return result
 
-def pp(srk: syntax.Context, syms: List[syntax.Symbol],
-      formatter, vas: VASAbstraction) -> None:
+
+def pp(
+    srk: syntax.Context, syms: List[syntax.Symbol], formatter, vas: VASAbstraction
+) -> None:
     """Pretty print VAS abstraction"""
     formatter.write(f"VAS: {gamma(srk, vas, syms)}")
+
 
 class Monotone:
     """Monotone VAS abstraction"""
 
     @staticmethod
-    def abstract_monotone(srk: syntax.Context, tf: TF.TransitionFormula) -> VASAbstraction:
+    def abstract_monotone(
+        srk: syntax.Context, tf: TF.TransitionFormula
+    ) -> VASAbstraction:
         """Abstract using monotone widening"""
         phi = TF.formula(tf)
         phi = syntax.rewrite(srk, phi, down=syntax.nnf_rewriter(srk))
@@ -607,7 +774,9 @@ class Monotone:
         solver = Smt.mk_solver(srk)
 
         def go(current_vas: VASAbstraction) -> VASAbstraction:
-            Smt.Solver.add(solver, [syntax.mk_not(srk, gamma(srk, current_vas, tr_symbols))])
+            Smt.Solver.add(
+                solver, [syntax.mk_not(srk, gamma(srk, current_vas, tr_symbols))]
+            )
 
             match Smt.Solver.get_model(solver):
                 case Smt.Unsat:
@@ -622,19 +791,36 @@ class Monotone:
                     for x, x_prime in tr_symbols:
                         cmp = linear.QQ.compare(
                             interpretation.real(model, x),
-                            interpretation.real(model, x_prime)
+                            interpretation.real(model, x_prime),
                         )
                         if cmp < 0:
-                            cell.append(syntax.mk_lt(srk, syntax.mk_const(srk, x),
-                                                    syntax.mk_const(srk, x_prime)))
+                            cell.append(
+                                syntax.mk_lt(
+                                    srk,
+                                    syntax.mk_const(srk, x),
+                                    syntax.mk_const(srk, x_prime),
+                                )
+                            )
                         elif cmp > 0:
-                            cell.append(syntax.mk_lt(srk, syntax.mk_const(srk, x_prime),
-                                                    syntax.mk_const(srk, x)))
+                            cell.append(
+                                syntax.mk_lt(
+                                    srk,
+                                    syntax.mk_const(srk, x_prime),
+                                    syntax.mk_const(srk, x),
+                                )
+                            )
                         else:
-                            cell.append(syntax.mk_eq(srk, syntax.mk_const(srk, x),
-                                                    syntax.mk_const(srk, x_prime)))
+                            cell.append(
+                                syntax.mk_eq(
+                                    srk,
+                                    syntax.mk_const(srk, x),
+                                    syntax.mk_const(srk, x_prime),
+                                )
+                            )
 
-                    cell_vas = alpha_hat(srk, syntax.mk_and(srk, [phi] + cell), tr_symbols)
+                    cell_vas = alpha_hat(
+                        srk, syntax.mk_and(srk, [phi] + cell), tr_symbols
+                    )
                     return go(coproduct(current_vas, cell_vas))
 
         Smt.Solver.add(solver, [phi])
@@ -643,8 +829,10 @@ class Monotone:
 
 # Additional VAS-related classes for testing
 
+
 class ReachabilityResult(Enum):
     """Result of reachability analysis."""
+
     REACHABLE = "reachable"
     UNREACHABLE = "unreachable"
 
@@ -663,7 +851,12 @@ class Place:
 class Transition:
     """Petri net transition."""
 
-    def __init__(self, name: str, input_places: Dict[Union[str, Place], int], output_places: Dict[Union[str, Place], int]):
+    def __init__(
+        self,
+        name: str,
+        input_places: Dict[Union[str, Place], int],
+        output_places: Dict[Union[str, Place], int],
+    ):
         self.name = name
         self.input_places = input_places
         self.output_places = output_places
@@ -673,7 +866,9 @@ class Transition:
             return marking[place]
         return marking.get(place.name, 0)
 
-    def _set_tokens(self, marking: Dict[Union[str, Place], int], place: Place, value: int) -> None:
+    def _set_tokens(
+        self, marking: Dict[Union[str, Place], int], place: Place, value: int
+    ) -> None:
         # Preserve key type of input marking if possible
         if place in marking or any(isinstance(k, Place) for k in marking.keys()):
             marking[place] = value
@@ -689,7 +884,9 @@ class Transition:
                 return False
         return True
 
-    def fire(self, marking: Dict[Union[str, Place], int]) -> Dict[Union[str, Place], int]:
+    def fire(
+        self, marking: Dict[Union[str, Place], int]
+    ) -> Dict[Union[str, Place], int]:
         """Fire this transition, returning the new marking."""
         if not self.is_enabled(marking):
             raise ValueError(f"Transition {self.name} is not enabled")
@@ -727,10 +924,18 @@ class PetriNet:
             in_map: Dict[Union[str, Place], int] = {}
             out_map: Dict[Union[str, Place], int] = {}
             for k, v in t.input_places.items():
-                place = k if isinstance(k, Place) else name_to_place.get(str(k), Place(str(k)))
+                place = (
+                    k
+                    if isinstance(k, Place)
+                    else name_to_place.get(str(k), Place(str(k)))
+                )
                 in_map[place] = v
             for k, v in t.output_places.items():
-                place = k if isinstance(k, Place) else name_to_place.get(str(k), Place(str(k)))
+                place = (
+                    k
+                    if isinstance(k, Place)
+                    else name_to_place.get(str(k), Place(str(k)))
+                )
                 out_map[place] = v
             normalized.append(Transition(t.name, in_map, out_map))
         self.transitions = normalized
@@ -739,7 +944,9 @@ class PetriNet:
         """Get the initial marking of the Petri net."""
         return {place: place.initial_tokens for place in self.places}
 
-    def step(self, marking: Dict[Union[str, Place], int]) -> List[Dict[Union[str, Place], int]]:
+    def step(
+        self, marking: Dict[Union[str, Place], int]
+    ) -> List[Dict[Union[str, Place], int]]:
         """Compute one step of Petri net execution."""
         next_markings: List[Dict[Union[str, Place], int]] = []
         for t in self.transitions:
@@ -747,7 +954,9 @@ class PetriNet:
                 next_markings.append(t.fire(marking))
         return next_markings
 
-    def enabled_transitions(self, marking: Dict[Union[str, Place], int]) -> List[Transition]:
+    def enabled_transitions(
+        self, marking: Dict[Union[str, Place], int]
+    ) -> List[Transition]:
         """Return list of currently enabled transitions for a marking."""
         return [t for t in self.transitions if t.is_enabled(marking)]
 
@@ -755,6 +964,7 @@ class PetriNet:
         """Convert Petri net to Vector Addition System."""
         # Dimension equals number of places, ordered by self.places
         from fractions import Fraction
+
         dim = len(self.places)
         index_of: Dict[Place, int] = {p: i for i, p in enumerate(self.places)}
         transformers: List[Transformer] = []
@@ -764,14 +974,22 @@ class PetriNet:
             # b encodes output-input tokens per place
             b_entries: Dict[int, Fraction] = {}
             for place, tokens in t.output_places.items():
-                b_entries[index_of[place]] = b_entries.get(index_of[place], Fraction(0)) + Fraction(tokens)
+                b_entries[index_of[place]] = b_entries.get(
+                    index_of[place], Fraction(0)
+                ) + Fraction(tokens)
             for place, tokens in t.input_places.items():
-                b_entries[index_of[place]] = b_entries.get(index_of[place], Fraction(0)) - Fraction(tokens)
-            transformers.append(Transformer(linear.QQVector(a_entries), linear.QQVector(b_entries)))
+                b_entries[index_of[place]] = b_entries.get(
+                    index_of[place], Fraction(0)
+                ) - Fraction(tokens)
+            transformers.append(
+                Transformer(linear.QQVector(a_entries), linear.QQVector(b_entries))
+            )
         return VectorAdditionSystem(transformers, dim)
 
     def __str__(self):
-        return f"PetriNet({len(self.places)} places, {len(self.transitions)} transitions)"
+        return (
+            f"PetriNet({len(self.places)} places, {len(self.transitions)} transitions)"
+        )
 
 
 class VectorAdditionSystem:
@@ -789,6 +1007,7 @@ class VectorAdditionSystem:
         Policy: a_i==1 requires state_i >= 0; a_i==0 imposes no requirement.
         """
         from fractions import Fraction
+
         applicable: List[Transformer] = []
         for t in self.transformers:
             ok = True
@@ -807,7 +1026,9 @@ class VectorAdditionSystem:
             succ.add(t.apply(state))
         return succ
 
-    def reachability(self, start: linear.QQVector, target: linear.QQVector, max_steps: int = 10) -> ReachabilityResult:
+    def reachability(
+        self, start: linear.QQVector, target: linear.QQVector, max_steps: int = 10
+    ) -> ReachabilityResult:
         """Naive BFS reachability up to max_steps."""
         if start == target:
             return ReachabilityResult.REACHABLE

@@ -26,16 +26,27 @@ Example:
 """
 
 from __future__ import annotations
-from typing import Dict, List, Set, Tuple, Optional, Union, Any, Callable, TypeVar, Generic
+from typing import (
+    Dict,
+    List,
+    Set,
+    Tuple,
+    Optional,
+    Union,
+    Any,
+    Callable,
+    TypeVar,
+    Generic,
+)
 from dataclasses import dataclass, field
 from functools import wraps
 import hashlib
 import weakref
 
-T = TypeVar('T')
-U = TypeVar('U')
-K = TypeVar('K')
-V = TypeVar('V')
+T = TypeVar("T")
+U = TypeVar("U")
+K = TypeVar("K")
+V = TypeVar("V")
 
 
 class MemoizationTable(Generic[K, V]):
@@ -136,6 +147,7 @@ class MemoizationTable(Generic[K, V]):
     def _evict_random(self) -> None:
         """Evict random item."""
         import random
+
         if self.table:
             random_key = random.choice(list(self.table.keys()))
             del self.table[random_key]
@@ -154,6 +166,7 @@ class ExpressionMemoizer:
 
     def memoize_normalization(self, expr_id: int):
         """Decorator for memoizing normalization."""
+
         def decorator(func):
             @wraps(func)
             def wrapper(*args, **kwargs):
@@ -163,11 +176,14 @@ class ExpressionMemoizer:
                 result = func(*args, **kwargs)
                 self.normalization_memo[expr_id] = result
                 return result
+
             return wrapper
+
         return decorator
 
     def memoize_simplification(self, expr_id: int):
         """Decorator for memoizing simplification."""
+
         def decorator(func):
             @wraps(func)
             def wrapper(*args, **kwargs):
@@ -177,11 +193,14 @@ class ExpressionMemoizer:
                 result = func(*args, **kwargs)
                 self.simplification_memo[expr_id] = result
                 return result
+
             return wrapper
+
         return decorator
 
     def memoize_equality(self, expr1_id: int, expr2_id: int):
         """Decorator for memoizing equality checks."""
+
         def decorator(func):
             @wraps(func)
             def wrapper(*args, **kwargs):
@@ -192,7 +211,9 @@ class ExpressionMemoizer:
                 result = func(*args, **kwargs)
                 self.equality_memo[key] = result
                 return result
+
             return wrapper
+
         return decorator
 
     def clear(self) -> None:
@@ -213,6 +234,7 @@ class FunctionMemoizer:
 
     def memoize(self, func_name: str):
         """Decorator for memoizing function calls."""
+
         def decorator(func):
             @wraps(func)
             def wrapper(*args, **kwargs):
@@ -233,10 +255,12 @@ class FunctionMemoizer:
 
             wrapper.memo_table = self.memo_table
             wrapper.stats = lambda: {
-                'calls': self.call_count,
-                'hits': self.hit_count,
-                'misses': self.call_count - self.hit_count,
-                'hit_rate': self.hit_count / self.call_count if self.call_count > 0 else 0
+                "calls": self.call_count,
+                "hits": self.hit_count,
+                "misses": self.call_count - self.hit_count,
+                "hit_rate": (
+                    self.hit_count / self.call_count if self.call_count > 0 else 0
+                ),
             }
             return wrapper
 
@@ -245,11 +269,11 @@ class FunctionMemoizer:
     def stats(self) -> Dict[str, int]:
         """Get memoization statistics."""
         return {
-            'calls': self.call_count,
-            'hits': self.hit_count,
-            'misses': self.call_count - self.hit_count,
-            'hit_rate': self.hit_count / self.call_count if self.call_count > 0 else 0,
-            'cache_size': self.memo_table.size()
+            "calls": self.call_count,
+            "hits": self.hit_count,
+            "misses": self.call_count - self.hit_count,
+            "hit_rate": self.hit_count / self.call_count if self.call_count > 0 else 0,
+            "cache_size": self.memo_table.size(),
         }
 
 
@@ -261,6 +285,7 @@ function_memoizer = FunctionMemoizer()
 # Convenience decorators
 def memoize(max_size: int = 1000):
     """Decorator for memoizing function calls."""
+
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -306,7 +331,7 @@ def memoize_function(func_name: str, max_size: int = 1000):
 # Hash utilities for complex objects
 def hash_expression(expr: Any) -> str:
     """Compute string hash for expression-like objects."""
-    if hasattr(expr, '__dict__'):
+    if hasattr(expr, "__dict__"):
         # For dataclass-like objects
         items = sorted(expr.__dict__.items())
         content = "|".join(f"{k}:{hash_expression(v)}" for k, v in items)
@@ -370,31 +395,31 @@ class MemoizationMonitor:
     def record_call(self, function_name: str) -> None:
         """Record a function call."""
         if function_name not in self.stats:
-            self.stats[function_name] = {'calls': 0, 'hits': 0, 'misses': 0}
+            self.stats[function_name] = {"calls": 0, "hits": 0, "misses": 0}
 
-        self.stats[function_name]['calls'] += 1
+        self.stats[function_name]["calls"] += 1
 
     def record_hit(self, function_name: str) -> None:
         """Record a cache hit."""
         if function_name in self.stats:
-            self.stats[function_name]['hits'] += 1
+            self.stats[function_name]["hits"] += 1
 
     def record_miss(self, function_name: str) -> None:
         """Record a cache miss."""
         if function_name in self.stats:
-            self.stats[function_name]['misses'] += 1
+            self.stats[function_name]["misses"] += 1
 
     def get_stats(self) -> Dict[str, Dict[str, int]]:
         """Get memoization statistics."""
         result = {}
         for func, stats in self.stats.items():
-            total = stats['calls']
-            hit_rate = stats['hits'] / total if total > 0 else 0
+            total = stats["calls"]
+            hit_rate = stats["hits"] / total if total > 0 else 0
             result[func] = {
-                'calls': stats['calls'],
-                'hits': stats['hits'],
-                'misses': stats['misses'],
-                'hit_rate': hit_rate
+                "calls": stats["calls"],
+                "hits": stats["hits"],
+                "misses": stats["misses"],
+                "hit_rate": hit_rate,
             }
         return result
 
@@ -406,6 +431,7 @@ memo_monitor = MemoizationMonitor()
 # Decorators for monitored memoization
 def monitored_memoize(func_name: str):
     """Memoize with monitoring."""
+
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -423,6 +449,7 @@ def monitored_memoize(func_name: str):
             return result
 
         return wrapper
+
     return decorator
 
 
@@ -437,11 +464,11 @@ def clear_all_memoization() -> None:
 def get_memoization_stats() -> Dict[str, Any]:
     """Get comprehensive memoization statistics."""
     return {
-        'expression_memo': {
-            'normalization': len(expression_memoizer.normalization_memo),
-            'simplification': len(expression_memoizer.simplification_memo),
-            'equality': len(expression_memoizer.equality_memo),
+        "expression_memo": {
+            "normalization": len(expression_memoizer.normalization_memo),
+            "simplification": len(expression_memoizer.simplification_memo),
+            "equality": len(expression_memoizer.equality_memo),
         },
-        'function_memo': function_memoizer.stats(),
-        'monitor': memo_monitor.get_stats()
+        "function_memo": function_memoizer.stats(),
+        "monitor": memo_monitor.get_stats(),
     }

@@ -24,6 +24,7 @@ import fzn2optimathsat
 ############
 ############
 
+
 # TODO:
 # - this does not handle MacOS correctly,
 #   it needs further testing.
@@ -31,8 +32,7 @@ import fzn2optimathsat
 #   something more flexible would be useful.
 def binary_filename():
     """Returns the expected filename for CVC4's binary."""
-    return 'cvc4-1.7-win64-op.exe' if os.name == 'nt' else \
-        'cvc4-1.7-x86_64-linux-opt'
+    return "cvc4-1.7-win64-op.exe" if os.name == "nt" else "cvc4-1.7-x86_64-linux-opt"
 
 
 def cvc4(config, solver_config=None):
@@ -51,6 +51,7 @@ def cvc4(config, solver_config=None):
 ### FLATZINC SOLVING ###
 ########################
 ########################
+
 
 def cvc4_solve(config, solver_config=None):
     """Solves a FlatZinc model with CVC4.
@@ -77,13 +78,18 @@ def cvc4_solve(config, solver_config=None):
             args.extend(solver_config)
 
         with io.open(output_trace, "w", newline=None) as out_f:
-            result = subprocess.run(args, universal_newlines=True, stderr=subprocess.PIPE,
-                                    stdout=out_f, check=True)
+            result = subprocess.run(
+                args,
+                universal_newlines=True,
+                stderr=subprocess.PIPE,
+                stdout=out_f,
+                check=True,
+            )
 
             # 4. display any error
             if result.returncode:
                 with open(output_trace, "r") as in_f:
-                    print(in_f.read(), file=sys.stderr, end='')
+                    print(in_f.read(), file=sys.stderr, end="")
                 sys.exit(1)
 
         # 5. extract status
@@ -101,8 +107,7 @@ def cvc4_solve_cmdline_args(config):
     """Determines the command-line arguments for the CVC4 call."""
     assert config.smt2
 
-    args = [binary_filename(),
-            config.smt2]
+    args = [binary_filename(), config.smt2]
 
     return args
 
@@ -118,7 +123,7 @@ def cvc4_extract_search_status(tracefile):
         uns_regex = re.compile(rb"^unsat\r?$", re.MULTILINE)
         sat_regex = re.compile(rb"^sat\r?$", re.MULTILINE)
 
-        with io.open(tracefile, 'r', newline=None) as fd_trace:
+        with io.open(tracefile, "r", newline=None) as fd_trace:
             with mmap.mmap(fd_trace.fileno(), 0, access=mmap.ACCESS_READ) as output:
 
                 uns_match = re.search(uns_regex, output)
@@ -143,12 +148,16 @@ def cvc4_extract_models(tracefile):
     models = []
 
     if not common.is_file_empty(tracefile):
-        regex = re.compile((rb"\(define-fun (.*) \(\) "
-                            rb"(Int|Bool|Real|\(_ BitVec [0-9]+\))"
-                            rb"\r?\n? +(.*)\)"))
+        regex = re.compile(
+            (
+                rb"\(define-fun (.*) \(\) "
+                rb"(Int|Bool|Real|\(_ BitVec [0-9]+\))"
+                rb"\r?\n? +(.*)\)"
+            )
+        )
         regex_pvt = re.compile(r"^_private_(.*)")
 
-        with io.open(tracefile, 'r', newline=None) as fd_trace:
+        with io.open(tracefile, "r", newline=None) as fd_trace:
             with mmap.mmap(fd_trace.fileno(), 0, access=mmap.ACCESS_READ) as output:
                 model = {}
                 for match in re.finditer(regex, output):
@@ -157,8 +166,8 @@ def cvc4_extract_models(tracefile):
                     if "BitVec" in stype:
                         stype = "BitVec"
 
-                    var = var.replace('_@_', '|')
-                    var = var.replace('_@@_', ':')
+                    var = var.replace("_@_", "|")
+                    var = var.replace("_@@_", ":")
 
                     if re.match(regex_pvt, var):
                         var = ".{}".format(var[9:])
@@ -181,6 +190,7 @@ def cvc4_extract_models(tracefile):
 ###########################
 ###########################
 
+
 def cvc4_compile(config):
     """Compiles a FlatZinc model in SMT-LIB format."""
     assert common.is_binary_in_path(binary_filename())
@@ -190,7 +200,7 @@ def cvc4_compile(config):
     optimathsat_config.infinite_precision = True  # always override!
     optimathsat_config.compile_raw = True
 
-    if not hasattr(optimathsat_config, 'ovars'):
+    if not hasattr(optimathsat_config, "ovars"):
         optimathsat_config.ovars = None
 
     fzn2optimathsat.optimathsat(optimathsat_config)
@@ -198,14 +208,18 @@ def cvc4_compile(config):
     make_smtlib_compatible_with_cvc4(config, optimathsat_config)
 
 
-def make_smtlib_compatible_with_cvc4(config, optimathsat_config):  # pylint: disable=R0912
+def make_smtlib_compatible_with_cvc4(
+    config, optimathsat_config
+):  # pylint: disable=R0912
     """Modifies SMT-LIB file with CVC4-specific syntax."""
     tmp_file_name = None
 
-    with io.open(config.smt2, 'rt', newline=None) as in_f:
+    with io.open(config.smt2, "rt", newline=None) as in_f:
         with mmap.mmap(in_f.fileno(), 0, access=mmap.ACCESS_READ) as formula:
 
-            with tempfile.NamedTemporaryFile(mode="w+t", delete=False, newline='') as out_f:
+            with tempfile.NamedTemporaryFile(
+                mode="w+t", delete=False, newline=""
+            ) as out_f:
                 tmp_file_name = out_f.name
 
                 # Consume first two lines
@@ -213,8 +227,9 @@ def make_smtlib_compatible_with_cvc4(config, optimathsat_config):  # pylint: dis
                 out_f.write(formula.readline().decode("utf-8"))
 
                 # Print header
-                for header_line in common.get_smtlib_header_lines(optimathsat_config,
-                                                                  "CVC4"):
+                for header_line in common.get_smtlib_header_lines(
+                    optimathsat_config, "CVC4"
+                ):
                     out_f.write(header_line)
 
                 # Consume third line
@@ -226,7 +241,9 @@ def make_smtlib_compatible_with_cvc4(config, optimathsat_config):  # pylint: dis
                 # Print config
                 out_f.write("(set-option :produce-models true)\n")
                 if config.random_seed:
-                    out_f.write("(set-option :random-seed {})\n".format(config.random_seed))
+                    out_f.write(
+                        "(set-option :random-seed {})\n".format(config.random_seed)
+                    )
 
                 # copy formula, except for minimize/maximize/check-sat
                 objectives = []
@@ -235,8 +252,10 @@ def make_smtlib_compatible_with_cvc4(config, optimathsat_config):  # pylint: dis
 
                     if obj:
                         if config.bv_enc:
-                            regex = re.compile(rb" %b \(\) \(_ BitVec ([0-9]+)\)"
-                                               % obj.term.encode("utf-8"))
+                            regex = re.compile(
+                                rb" %b \(\) \(_ BitVec ([0-9]+)\)"
+                                % obj.term.encode("utf-8")
+                            )
                             match = re.search(regex, formula)
                             if match:
                                 obj.bv_width = int(match.group(1))
@@ -247,9 +266,9 @@ def make_smtlib_compatible_with_cvc4(config, optimathsat_config):  # pylint: dis
                         continue
                     else:
                         if config.bv_enc:
-                            line = line.replace(b'_ to_bv ', b'_ int2bv ')
+                            line = line.replace(b"_ to_bv ", b"_ int2bv ")
                             line = common.replace_sbv_to_int(config, line)
-                        line = line.replace(b' .', b' _private_')
+                        line = line.replace(b" .", b" _private_")
                         out_f.write(line.decode("utf-8"))
 
                 # footer
@@ -282,25 +301,33 @@ def cvc4_objective_to_str(config, obj):
 #####################
 #####################
 
+
 def cvc4_parse_cmdline_options():
     """parses and returns input parameters."""
-    parser = argparse.ArgumentParser(description=("A tool for solving FlatZinc "
-                                                  "problems with CVC4."),
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=("A tool for solving FlatZinc " "problems with CVC4."),
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
 
     main_group = parser.add_argument_group("Main Options")
 
-    main_group.add_argument("model", metavar="<model>.fzn",
-                            type=argparse.FileType('r'),
-                            help="The FlatZinc model",
-                            action=common.check_file_ext('fzn'))
+    main_group.add_argument(
+        "model",
+        metavar="<model>.fzn",
+        type=argparse.FileType("r"),
+        help="The FlatZinc model",
+        action=common.check_file_ext("fzn"),
+    )
 
-    main_group.add_argument("--smt2", "--output-smt2-to-file",
-                            metavar="<filename>.smt2",
-                            type=argparse.FileType('w'),
-                            action=common.check_file_ext('smt2'),
-                            help="Filename for the generated SMT-LIB output",
-                            default=None)
+    main_group.add_argument(
+        "--smt2",
+        "--output-smt2-to-file",
+        metavar="<filename>.smt2",
+        type=argparse.FileType("w"),
+        action=common.check_file_ext("smt2"),
+        help="Filename for the generated SMT-LIB output",
+        default=None,
+    )
 
     ###################
     # ENCODING config #
@@ -309,20 +336,36 @@ def cvc4_parse_cmdline_options():
     enc_group = parser.add_argument_group("Encoding Options")
 
     group = enc_group.add_mutually_exclusive_group()
-    group.add_argument("--bv-enc", help="Encode ints with the SMT-LIB Bit-Vector type.",
-                       action="store_true", default=False)
-    group.add_argument("--int-enc", help="Encode ints with the SMT-LIB Int type.",
-                       action="store_true", default=True)
+    group.add_argument(
+        "--bv-enc",
+        help="Encode ints with the SMT-LIB Bit-Vector type.",
+        action="store_true",
+        default=False,
+    )
+    group.add_argument(
+        "--int-enc",
+        help="Encode ints with the SMT-LIB Int type.",
+        action="store_true",
+        default=True,
+    )
 
-    enc_group.add_argument("--cardinality-networks",
-                           help="Enable cardinality networks (when applicable).",
-                           action="store_true", default=False)
+    enc_group.add_argument(
+        "--cardinality-networks",
+        help="Enable cardinality networks (when applicable).",
+        action="store_true",
+        default=False,
+    )
 
-    enc_group.add_argument("--ignore-objs",
-                           help=("Ignore any objective contained in the input "
-                                 "FlatZinc problem rather than terminate the "
-                                 "execution with an error."),
-                           action="store_true", default=False)
+    enc_group.add_argument(
+        "--ignore-objs",
+        help=(
+            "Ignore any objective contained in the input "
+            "FlatZinc problem rather than terminate the "
+            "execution with an error."
+        ),
+        action="store_true",
+        default=False,
+    )
 
     ##################
     # SEARCH config #
@@ -331,9 +374,14 @@ def cvc4_parse_cmdline_options():
     search_group = parser.add_argument_group("Search Options")
 
     # Random Seed
-    search_group.add_argument("--random-seed", "-r",
-                              help="Set seed for pseudo-random number generators.",
-                              metavar="N", type=int, default=None)
+    search_group.add_argument(
+        "--random-seed",
+        "-r",
+        help="Set seed for pseudo-random number generators.",
+        metavar="N",
+        type=int,
+        default=None,
+    )
 
     ##################
     # MODEL PRINTING #
@@ -341,16 +389,27 @@ def cvc4_parse_cmdline_options():
 
     model_group = parser.add_argument_group("Model Options")
 
-    model_group.add_argument("--infinite-precision",
-                             help=("Print infinite-precision rational numbers "
-                                   "as fractions. Overrides --finite-precision."),
-                             action="store_true", default=False)
-    model_group.add_argument("--finite-precision",
-                             help=("Print infinite-precision rational numbers "
-                                   "as finite precision decimals using the specified "
-                                   "precision level. Must be larger or equal 2."),
-                             action=common.check_finite_precision(),
-                             metavar="prec", type=int, default=32)
+    model_group.add_argument(
+        "--infinite-precision",
+        help=(
+            "Print infinite-precision rational numbers "
+            "as fractions. Overrides --finite-precision."
+        ),
+        action="store_true",
+        default=False,
+    )
+    model_group.add_argument(
+        "--finite-precision",
+        help=(
+            "Print infinite-precision rational numbers "
+            "as finite precision decimals using the specified "
+            "precision level. Must be larger or equal 2."
+        ),
+        action=common.check_finite_precision(),
+        metavar="prec",
+        type=int,
+        default=32,
+    )
 
     ###################
     # IGNORED config #
@@ -359,22 +418,31 @@ def cvc4_parse_cmdline_options():
     ignore_group = parser.add_argument_group("Ignored Options")
 
     # Ignored config
-    ignore_group.add_argument("--free-search", "-f",
-                              help=("No need to follow search specification. "
-                                    "(CVC4 ignores all search specifications)"),
-                              action="store_true", default=True)
-    ignore_group.add_argument("--num-threads", "-p",
-                              help=("Number of threads. "
-                                    "(Requires special CVC4 version)"),
-                              metavar="N", type=int, default=1)
+    ignore_group.add_argument(
+        "--free-search",
+        "-f",
+        help=(
+            "No need to follow search specification. "
+            "(CVC4 ignores all search specifications)"
+        ),
+        action="store_true",
+        default=True,
+    )
+    ignore_group.add_argument(
+        "--num-threads",
+        "-p",
+        help=("Number of threads. " "(Requires special CVC4 version)"),
+        metavar="N",
+        type=int,
+        default=1,
+    )
 
     # parse
     config, solver_config = parser.parse_known_args()
 
     config.int_enc = not config.bv_enc
 
-    if config.finite_precision and \
-            config.finite_precision >= 2:
+    if config.finite_precision and config.finite_precision >= 2:
         config.float_fmt = "%.{}g".format(config.finite_precision)
     else:
         config.float_fmt = "%g"
@@ -387,6 +455,7 @@ def cvc4_parse_cmdline_options():
 ### MAIN ###
 ############
 ############
+
 
 def main():
     """The main entry point of this program."""

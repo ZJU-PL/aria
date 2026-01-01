@@ -12,12 +12,19 @@ from dataclasses import dataclass, field
 from fractions import Fraction
 from enum import Enum
 
-from aria.srk.syntax import Context, Symbol, Expression, make_expression_builder, symbols
+from aria.srk.syntax import (
+    Context,
+    Symbol,
+    Expression,
+    make_expression_builder,
+    symbols,
+)
 from aria.srk.linear import QQVector, QQMatrix
 
 
 class TransitionResult(Enum):
     """Result of transition validity checking."""
+
     VALID = "valid"
     INVALID = "invalid"
     UNKNOWN = "unknown"
@@ -45,10 +52,14 @@ class Transition:
     def assign(context: Context, var: Symbol, term: Expression) -> Transition:
         """Create a transition that assigns a term to a variable."""
         builder = make_expression_builder(context)
-        return Transition(transform={var: term}, guard=builder.mk_true(), context=context)
+        return Transition(
+            transform={var: term}, guard=builder.mk_true(), context=context
+        )
 
     @staticmethod
-    def parallel_assign(context: Context, assignments: List[Tuple[Symbol, Expression]]) -> Transition:
+    def parallel_assign(
+        context: Context, assignments: List[Tuple[Symbol, Expression]]
+    ) -> Transition:
         """Create a transition with parallel assignments."""
         # If a variable appears multiple times, the rightmost assignment wins
         transform = {}
@@ -99,7 +110,9 @@ class Transition:
         # This is a simplified version
         combined_guard = builder.mk_and([self.guard, other.guard])
 
-        return Transition(transform=combined_transform, guard=combined_guard, context=context)
+        return Transition(
+            transform=combined_transform, guard=combined_guard, context=context
+        )
 
     def add(self, other: Transition) -> Transition:
         """Non-deterministic choice between transitions."""
@@ -115,7 +128,9 @@ class Transition:
         # Disjoin guards
         combined_guard = builder.mk_or([self.guard, other.guard])
 
-        return Transition(transform=combined_transform, guard=combined_guard, context=context)
+        return Transition(
+            transform=combined_transform, guard=combined_guard, context=context
+        )
 
     def is_zero(self) -> bool:
         """Check if this is the zero (unexecutable) transition."""
@@ -152,11 +167,11 @@ class Transition:
         used_symbols = set()
 
         # Add symbols from the guard
-        if hasattr(self, 'guard') and self.guard is not None:
+        if hasattr(self, "guard") and self.guard is not None:
             used_symbols.update(symbols(self.guard))
 
         # Add symbols from transform expressions
-        if hasattr(self, 'transform') and self.transform is not None:
+        if hasattr(self, "transform") and self.transform is not None:
             for expr in self.transform.values():
                 used_symbols.update(symbols(expr))
 
@@ -165,8 +180,9 @@ class Transition:
     def exists(self, predicate: Callable[[Symbol], bool]) -> Transition:
         """Project out variables that don't satisfy the predicate."""
         # Remove variables from transform that don't satisfy predicate
-        new_transform = {var: expr for var, expr in self.transform.items()
-                        if predicate(var)}
+        new_transform = {
+            var: expr for var, expr in self.transform.items() if predicate(var)
+        }
 
         # For the guard, we'd need to existentially quantify variables
         # This is a simplified implementation
@@ -209,7 +225,9 @@ class Transition:
         # Subclasses or specific abstract domains should override this
         return property
 
-    def to_transition_formula(self, context: Context) -> Any:  # Would return TransitionFormula
+    def to_transition_formula(
+        self, context: Context
+    ) -> Any:  # Would return TransitionFormula
         """Convert to transition formula representation."""
         # Default implementation - would need to implement conversion to TransitionFormula
         # For now, return None as a conservative approximation
@@ -222,7 +240,9 @@ class Transition:
         # Interpolation algorithms would need to be implemented
         return []
 
-    def valid_triple(self, pre_condition: Expression, post_condition: Expression) -> TransitionResult:
+    def valid_triple(
+        self, pre_condition: Expression, post_condition: Expression
+    ) -> TransitionResult:
         """Check validity of {pre} transition {post}."""
         # Default implementation - unknown validity
         # Would need to check if pre ∧ transition ⇒ post
@@ -264,8 +284,7 @@ class Transition:
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Transition):
             return False
-        return (self.transform == other.transform and
-                self.guard == other.guard)
+        return self.transform == other.transform and self.guard == other.guard
 
     def __hash__(self) -> int:
         # Simple hash based on string representation
@@ -283,7 +302,9 @@ def make_assign(context: Context, var: Symbol, term: Expression) -> Transition:
     return Transition.assign(context, var, term)
 
 
-def make_parallel_assign(context: Context, assignments: List[Tuple[Symbol, Expression]]) -> Transition:
+def make_parallel_assign(
+    context: Context, assignments: List[Tuple[Symbol, Expression]]
+) -> Transition:
     """Create a parallel assignment transition."""
     return Transition.parallel_assign(context, assignments)
 
@@ -310,9 +331,9 @@ class TransitionSystem:
     from a context and a list of (u, Transition, v) edges.
     """
 
-    def __init__(self, context: Context, edges: List[Tuple[int, 'Transition', int]]):
+    def __init__(self, context: Context, edges: List[Tuple[int, "Transition", int]]):
         self.context = context
         self._edges = list(edges)
 
-    def edges(self) -> List[Tuple[int, 'Transition', int]]:
+    def edges(self) -> List[Tuple[int, "Transition", int]]:
         return list(self._edges)

@@ -10,6 +10,7 @@ class DisjointSubsets:
     Stores values in one or more subsets. Each value exists in only one
     subset at a time. Subsets may be unified.
     """
+
     def __init__(self):
         self._parent = {}
         # the parent is another element of the subset, or None for the
@@ -23,17 +24,17 @@ class DisjointSubsets:
         return key in self._parent
 
     def key_reps(self):
-        'Generate pairs consisting of an element and its representative.'
+        "Generate pairs consisting of an element and its representative."
         for key in self._parent:
             rep = self.rep(key)
             yield (key, rep)
 
     def subset_items(self):
-        'Generate pairs consisting of a representative and its subset.'
+        "Generate pairs consisting of a representative and its subset."
         return self._subset.items()
 
     def reps(self):
-        'Generate all representatives.'
+        "Generate all representatives."
         return self._subset.keys()
 
     def add_key(self, key):
@@ -83,12 +84,13 @@ class DisjointSubsets:
     def unified(self, key1, key2):
         return self.rep(key1) == self.rep(key2)
 
+
 # ----
 
 
 class Tag(pretty.PrettyRepr):
-    '''Subclasses of Tag may be used to label objects, so that they
-    may be added to sets or DisjointSubsets multiple times.'''
+    """Subclasses of Tag may be used to label objects, so that they
+    may be added to sets or DisjointSubsets multiple times."""
 
     def __init__(self, value):
         self.val = value

@@ -1,11 +1,12 @@
 """Utility functions for unification."""
+
 from collections.abc import Hashable, Mapping, Set
 from contextlib import suppress
 from typing import Dict, List, Tuple, TypeVar, Union
 
-T = TypeVar('T')
-K = TypeVar('K', bound=Hashable)
-V = TypeVar('V')
+T = TypeVar("T")
+K = TypeVar("K", bound=Hashable)
+V = TypeVar("V")
 
 
 def transitive_get(key: K, d: Dict[K, V]) -> V:

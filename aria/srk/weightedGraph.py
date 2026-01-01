@@ -6,7 +6,19 @@ path analysis, SCC computation, and advanced graph algorithms.
 """
 
 from __future__ import annotations
-from typing import TypeVar, Generic, Dict, List, Set, Tuple, Optional, Union, Callable, Any, Iterator
+from typing import (
+    TypeVar,
+    Generic,
+    Dict,
+    List,
+    Set,
+    Tuple,
+    Optional,
+    Union,
+    Callable,
+    Any,
+    Iterator,
+)
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from fractions import Fraction
@@ -14,27 +26,33 @@ from fractions import Fraction
 from aria.srk.util import IntSet
 from aria.srk.compressedWeightedForest import CompressedWeightedForest
 
-T = TypeVar('T')
-U = TypeVar('U')
+T = TypeVar("T")
+U = TypeVar("U")
+
 
 @dataclass
 class Algebra(Generic[T]):
     """Algebra for weighted graph operations."""
+
     mul: Callable[[T, T], T]
     add: Callable[[T, T], T]
     star: Callable[[T], T]  # Kleene star operation
     zero: T
     one: T
 
+
 @dataclass
 class OmegaAlgebra(Generic[T, U]):
     """Omega algebra for infinite path computations."""
+
     omega: Callable[[T], U]
     omega_add: Callable[[U, U], U]
     omega_mul: Callable[[T, U], U]
 
+
 # Type alias for vertices
 Vertex = int
+
 
 class WeightedGraph(Generic[T]):
     """Weighted graph with algebraic operations."""
@@ -76,7 +94,7 @@ class WeightedGraph(Generic[T]):
 
         # Remove all edges from/to u
         edges_to_remove = []
-        for (src, dst) in self.labels.keys():
+        for src, dst in self.labels.keys():
             if src == u or dst == u:
                 edges_to_remove.append((src, dst))
 
@@ -198,7 +216,9 @@ class WeightedGraph(Generic[T]):
         for (u, v), weight in self.labels.items():
             f(u, weight, v)
 
-    def fold_incident_edges(self, f: Callable[[Tuple[Vertex, Vertex]], U], v: Vertex, acc: U) -> U:
+    def fold_incident_edges(
+        self, f: Callable[[Tuple[Vertex, Vertex]], U], v: Vertex, acc: U
+    ) -> U:
         """Fold over edges incident to v."""
         # Successors
         for u in self.successors(v):
@@ -271,7 +291,9 @@ def path_weight(wg: WeightedGraph[T], src: Vertex) -> Callable[[Vertex], T]:
     return compute_path_weight
 
 
-def omega_path_weight(wg: WeightedGraph[T], omega: OmegaAlgebra[T, U], src: Vertex) -> U:
+def omega_path_weight(
+    wg: WeightedGraph[T], omega: OmegaAlgebra[T, U], src: Vertex
+) -> U:
     """Compute omega path weights from src (infinite path weights).
 
     This computes the weight of infinite paths starting from src,
@@ -318,7 +340,9 @@ def _find_reachable(wg: WeightedGraph[T], src: Vertex) -> Set[Vertex]:
     return reachable
 
 
-def _find_sccs_in_vertices(wg: WeightedGraph[T], vertices: Set[Vertex]) -> List[Set[Vertex]]:
+def _find_sccs_in_vertices(
+    wg: WeightedGraph[T], vertices: Set[Vertex]
+) -> List[Set[Vertex]]:
     """Find strongly connected components within a set of vertices."""
     # Build subgraph
     subgraph = {v: wg.successors(v) & vertices for v in vertices}
@@ -427,6 +451,7 @@ def msat_path_weight(wg: WeightedGraph[T], sources: List[Vertex]) -> WeightedGra
 # Trivial omega algebra
 def omega_trivial() -> OmegaAlgebra[T, None]:
     """Trivial omega algebra that ignores omega paths."""
+
     def omega(x: T) -> None:
         return None
 
@@ -439,7 +464,9 @@ def omega_trivial() -> OmegaAlgebra[T, None]:
     return OmegaAlgebra(omega, omega_add, omega_mul)
 
 
-def split_vertex(wg: WeightedGraph[T], u: Vertex, weight: T, v: Vertex) -> WeightedGraph[T]:
+def split_vertex(
+    wg: WeightedGraph[T], u: Vertex, weight: T, v: Vertex
+) -> WeightedGraph[T]:
     """Split vertex u with new vertex v and edge u->v with given weight."""
     new_wg = WeightedGraph(wg.algebra)
 
@@ -580,10 +607,12 @@ class LineGraph:
 
 
 # Forward analysis framework
-def forward_analysis(wg: WeightedGraph[T],
-                    entry: Vertex,
-                    update: Callable[[T, T], Optional[T]],
-                    init: Callable[[Vertex], T]) -> Callable[[Vertex], T]:
+def forward_analysis(
+    wg: WeightedGraph[T],
+    entry: Vertex,
+    update: Callable[[T, T], Optional[T]],
+    init: Callable[[Vertex], T],
+) -> Callable[[Vertex], T]:
     """Perform forward analysis on the weighted graph.
 
     Args:
@@ -633,6 +662,7 @@ def forward_analysis(wg: WeightedGraph[T],
 
 # Advanced path-finding algorithms using compressed weighted forests
 
+
 def _solve_dense(wg: WeightedGraph[T], src: Vertex) -> WeightedGraph[T]:
     """Solve dense path problems using sophisticated algorithms.
 
@@ -653,9 +683,7 @@ def _solve_dense(wg: WeightedGraph[T], src: Vertex) -> WeightedGraph[T]:
 
 # Main path weight computation using advanced algorithms
 def _path_weight_advanced(
-    wg: WeightedGraph[T],
-    omega: OmegaAlgebra[T, U],
-    src: Vertex
+    wg: WeightedGraph[T], omega: OmegaAlgebra[T, U], src: Vertex
 ) -> tuple[U, Callable[[Vertex], T], Set[Vertex]]:
     """Advanced path weight computation with SCC and loop handling.
 
@@ -695,9 +723,11 @@ def _path_weight_advanced(
     # For now, implement a simplified version
     # A full implementation would use the sophisticated SCC and loop algorithms
     path_weight = lambda target: (
-        wg.algebra.one if target == src
-        else wg.edge_weight(src, target) if wg.mem_edge(src, target)
-        else wg.algebra.zero
+        wg.algebra.one
+        if target == src
+        else (
+            wg.edge_weight(src, target) if wg.mem_edge(src, target) else wg.algebra.zero
+        )
     )
 
     omega_weight = omega.omega(wg.algebra.zero)
@@ -712,13 +742,17 @@ def path_weight_advanced(wg: WeightedGraph[T], src: Vertex) -> Callable[[Vertex]
     return path_weight
 
 
-def omega_path_weight_advanced(wg: WeightedGraph[T], omega: OmegaAlgebra[T, U], src: Vertex) -> U:
+def omega_path_weight_advanced(
+    wg: WeightedGraph[T], omega: OmegaAlgebra[T, U], src: Vertex
+) -> U:
     """Advanced omega path weight computation."""
     omega_weight, _, _ = _path_weight_advanced(wg, omega, src)
     return omega_weight
 
 
-def msat_path_weight_advanced(wg: WeightedGraph[T], sources: List[Vertex]) -> WeightedGraph[T]:
+def msat_path_weight_advanced(
+    wg: WeightedGraph[T], sources: List[Vertex]
+) -> WeightedGraph[T]:
     """Advanced multi-source path weight computation."""
     result = WeightedGraph(wg.algebra)
 
@@ -734,6 +768,7 @@ def msat_path_weight_advanced(wg: WeightedGraph[T], sources: List[Vertex]) -> We
 
 
 # Graph transformation utilities
+
 
 def contract_vertex(wg: WeightedGraph[T], v: Vertex) -> WeightedGraph[T]:
     """Contract vertex v by connecting predecessors to successors.
@@ -780,7 +815,9 @@ def contract_vertex(wg: WeightedGraph[T], v: Vertex) -> WeightedGraph[T]:
     return new_wg
 
 
-def fold_reachable_edges(f: Callable[[Vertex, Vertex], U], wg: WeightedGraph[T], v: Vertex, acc: U) -> U:
+def fold_reachable_edges(
+    f: Callable[[Vertex, Vertex], U], wg: WeightedGraph[T], v: Vertex, acc: U
+) -> U:
     """Fold over all edges reachable from vertex v."""
     visited = set()
 

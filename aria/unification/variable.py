@@ -1,4 +1,5 @@
 """Variable module for logic variables."""
+
 import weakref
 from abc import ABCMeta
 from collections.abc import Hashable

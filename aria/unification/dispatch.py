@@ -1,4 +1,5 @@
 """Dispatch module for multiple dispatch functionality."""
+
 from functools import partial
 from typing import Any
 

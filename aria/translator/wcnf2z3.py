@@ -6,6 +6,7 @@ Authors: Anthony Lin, Matt Hague
 
 Modified from https://github.com/matthewhague/sat-css-tool/blob/master/wcnf2z3.py
 """
+
 import sys
 from timeit import default_timer
 
@@ -20,30 +21,30 @@ def construct_z3_optimizer(fin):
     header_line = None
     for line in fin:
         linestrip = line.strip()
-        if len(linestrip) > 0 and linestrip[0] == 'c':
+        if len(linestrip) > 0 and linestrip[0] == "c":
             continue
-        if len(linestrip) > 0 and linestrip[0] == 'p':
+        if len(linestrip) > 0 and linestrip[0] == "p":
             header_line = linestrip
             break
-        assert False, 'Parse error: p expected after comments'
+        assert False, "Parse error: p expected after comments"
 
     # Extracting p-info
     if header_line is None:
-        assert False, 'Empty file'  # the only possibility of error
+        assert False, "Empty file"  # the only possibility of error
     line = header_line
     line_array = line.split()
-    assert len(line_array) == 5, 'Unexpected number of words in p line'
-    assert line_array[0] == 'p'
-    assert line_array[1] == 'wcnf'
+    assert len(line_array) == 5, "Unexpected number of words in p line"
+    assert line_array[0] == "p"
+    assert line_array[1] == "wcnf"
     try:
         nbvar = int(line_array[2])
-        assert nbvar >= 1, 'Non-positive number of variables'
+        assert nbvar >= 1, "Non-positive number of variables"
         nbclauses = int(line_array[3])
-        assert nbclauses >= 1, 'Non-positive number of clauses'
+        assert nbclauses >= 1, "Non-positive number of clauses"
         top = int(line_array[4])
-        assert top >= 1, 'Non-positive weight for hard constraints'
+        assert top >= 1, "Non-positive weight for hard constraints"
     except ValueError:
-        assert False, 'Unexpected input'
+        assert False, "Unexpected input"
 
     opt = z3.Optimize()
     h = None
@@ -61,30 +62,30 @@ def construct_z3_optimizer(fin):
                 elif int(lit) < 0:
                     clause.append(z3.Not(z3var))
                 else:
-                    assert False, 'Zero value is seen prematurely'
+                    assert False, "Zero value is seen prematurely"
         except ValueError:
-            assert False, 'Unexpected input'
+            assert False, "Unexpected input"
         if wt == top:
             opt.add(z3.Or(clause))
         elif wt < top:
             h = opt.add_soft(z3.Or(clause), wt)
         else:
-            assert False, 'Weight bigger than max weight declared'
+            assert False, "Weight bigger than max weight declared"
 
     return opt, h
 
 
 def main():
     """Main function for command-line execution."""
-    filename = 'file.wcnf'
+    filename = "file.wcnf"
     if len(sys.argv) > 1:
         filename = sys.argv[1]
         print(sys.argv[1])
 
-    with open(filename, 'r', encoding='utf-8') as fin:
+    with open(filename, "r", encoding="utf-8") as fin:
         (opt, h) = construct_z3_optimizer(fin)
 
-    opt.set('maxsat_engine', 'wmax')
+    opt.set("maxsat_engine", "wmax")
 
     print("Checking...")
     start_t = default_timer()
@@ -97,5 +98,5 @@ def main():
         print(h.value())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

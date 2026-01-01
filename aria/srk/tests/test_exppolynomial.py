@@ -5,7 +5,11 @@ Tests for the exponential polynomial module.
 import unittest
 from fractions import Fraction
 from aria.srk.syntax import Context, Symbol, Type
-from aria.srk.expPolynomial import ExpPolynomial, ExpPolynomialVector, ExpPolynomialMatrix
+from aria.srk.expPolynomial import (
+    ExpPolynomial,
+    ExpPolynomialVector,
+    ExpPolynomialMatrix,
+)
 
 
 class TestExpPolynomial(unittest.TestCase):
@@ -18,6 +22,7 @@ class TestExpPolynomial(unittest.TestCase):
         """Test zero exponential polynomial."""
         from aria.srk.polynomial import zero
         from fractions import Fraction
+
         zero_poly = zero()
         zero = ExpPolynomial(zero_poly, Fraction(0))
         self.assertIsNotNone(zero)
@@ -27,6 +32,7 @@ class TestExpPolynomial(unittest.TestCase):
         from aria.srk.polynomial import constant
         from aria.srk.qQ import QQ
         from fractions import Fraction
+
         const_poly = constant(QQ.of_int(5))
         const = ExpPolynomial(const_poly, Fraction(1))
         self.assertIsNotNone(const)
@@ -36,6 +42,7 @@ class TestExpPolynomial(unittest.TestCase):
         x = self.context.mk_symbol("x", Type.INT)
         from aria.srk.polynomial import Polynomial, Monomial
         from aria.srk.qQ import QQ
+
         # Create a monomial for the variable
         monomial = Monomial({x.id: 1})
         var_poly = Polynomial({monomial: QQ.one()})
@@ -81,6 +88,7 @@ class TestExpPolynomialVector(unittest.TestCase):
         """Test zero exponential polynomial vector."""
         from aria.srk.polynomial import zero
         from fractions import Fraction
+
         zero_poly = zero()
         zero_comp = ExpPolynomial(zero_poly, Fraction(0))
         zero_vec = ExpPolynomialVector({0: zero_comp, 1: zero_comp})
@@ -126,6 +134,7 @@ class TestExpPolynomialMatrix(unittest.TestCase):
         """Test zero exponential polynomial matrix."""
         from aria.srk.polynomial import zero
         from fractions import Fraction
+
         zero_poly = zero()
         zero_comp = ExpPolynomial(zero_poly, Fraction(0))
         zero_vec = ExpPolynomialVector({0: zero_comp, 1: zero_comp})
@@ -174,5 +183,5 @@ class TestExpPolynomialMatrix(unittest.TestCase):
         self.assertEqual(len(result.rows), 2)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

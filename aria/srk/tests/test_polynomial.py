@@ -5,8 +5,17 @@ Tests for the polynomial module.
 import unittest
 from fractions import Fraction
 from aria.srk.polynomial import (
-    Monomial, Polynomial, UnivariatePolynomial, MonomialOrder,
-    zero, one, constant, variable, monomial, groebner_basis, RewriteSystem
+    Monomial,
+    Polynomial,
+    UnivariatePolynomial,
+    MonomialOrder,
+    zero,
+    one,
+    constant,
+    variable,
+    monomial,
+    groebner_basis,
+    RewriteSystem,
 )
 
 
@@ -210,11 +219,13 @@ class TestPolynomial(unittest.TestCase):
         expected_m2 = Monomial([0, 1, 0])  # y1
         expected_m3 = Monomial([0, 0, 1])  # y2
 
-        expected = Polynomial({
-            expected_m1: Fraction(1),
-            expected_m2: Fraction(1),
-            expected_m3: Fraction(2)
-        })
+        expected = Polynomial(
+            {
+                expected_m1: Fraction(1),
+                expected_m2: Fraction(1),
+                expected_m3: Fraction(2),
+            }
+        )
 
         # Let's check if the result makes sense by evaluating both
         # For now, let's just check that substitution doesn't crash and produces a result
@@ -249,16 +260,22 @@ class TestUnivariatePolynomial(unittest.TestCase):
         p2 = UnivariatePolynomial([Fraction(1), Fraction(2)])  # 1 + 2x
 
         product = p1 * p2
-        expected = UnivariatePolynomial([Fraction(1), Fraction(3), Fraction(2)])  # 1 + 3x + 2x^2
+        expected = UnivariatePolynomial(
+            [Fraction(1), Fraction(3), Fraction(2)]
+        )  # 1 + 3x + 2x^2
 
         self.assertEqual(product, expected)
 
     def test_evaluation(self):
         """Test univariate polynomial evaluation."""
-        p = UnivariatePolynomial([Fraction(2), Fraction(3), Fraction(1)])  # 2 + 3x + x^2
+        p = UnivariatePolynomial(
+            [Fraction(2), Fraction(3), Fraction(1)]
+        )  # 2 + 3x + x^2
 
         result = p.evaluate(Fraction(2))
-        expected = Fraction(2) + Fraction(3)*Fraction(2) + Fraction(2)*Fraction(2)  # 2 + 6 + 4 = 12
+        expected = (
+            Fraction(2) + Fraction(3) * Fraction(2) + Fraction(2) * Fraction(2)
+        )  # 2 + 6 + 4 = 12
 
         self.assertEqual(result, expected)
 
@@ -296,5 +313,5 @@ class TestGroebnerBasis(unittest.TestCase):
         self.assertIsNotNone(gb)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

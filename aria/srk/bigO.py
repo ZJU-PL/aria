@@ -18,6 +18,7 @@ from aria.srk.syntax import Context
 
 class ComplexityClass(Enum):
     """Enumeration of complexity classes."""
+
     POLYNOMIAL = "polynomial"
     LOG = "log"
     EXP = "exp"
@@ -40,7 +41,9 @@ class BigO:
                 raise ValueError("Exponential base must be a rational")
         elif self.class_type in (ComplexityClass.LOG, ComplexityClass.UNKNOWN):
             if self.degree != 0:
-                raise ValueError(f"{self.class_type.value} complexity should have degree 0")
+                raise ValueError(
+                    f"{self.class_type.value} complexity should have degree 0"
+                )
 
     @staticmethod
     def polynomial(degree: int) -> BigO:
@@ -90,7 +93,10 @@ def compare(x: BigO, y: BigO) -> str:
         'eq' if equal, 'leq' if x <= y, 'geq' if x >= y, 'unknown' otherwise
     """
     # Handle Unknown cases
-    if x.class_type == ComplexityClass.UNKNOWN or y.class_type == ComplexityClass.UNKNOWN:
+    if (
+        x.class_type == ComplexityClass.UNKNOWN
+        or y.class_type == ComplexityClass.UNKNOWN
+    ):
         return "unknown"
 
     # Handle Log cases
@@ -102,7 +108,10 @@ def compare(x: BigO, y: BigO) -> str:
         return "geq"
 
     # Handle Polynomial cases
-    if x.class_type == ComplexityClass.POLYNOMIAL and y.class_type == ComplexityClass.POLYNOMIAL:
+    if (
+        x.class_type == ComplexityClass.POLYNOMIAL
+        and y.class_type == ComplexityClass.POLYNOMIAL
+    ):
         if x.degree == y.degree:
             return "eq"
         elif x.degree < y.degree:
@@ -138,14 +147,18 @@ def mul(x: BigO, y: BigO) -> BigO:
         return x
 
     # Both polynomials
-    if (x.class_type == ComplexityClass.POLYNOMIAL and
-        y.class_type == ComplexityClass.POLYNOMIAL):
+    if (
+        x.class_type == ComplexityClass.POLYNOMIAL
+        and y.class_type == ComplexityClass.POLYNOMIAL
+    ):
         return BigO.polynomial(x.degree + y.degree)
 
     # Both exponentials with same base
-    if (x.class_type == ComplexityClass.EXP and
-        y.class_type == ComplexityClass.EXP and
-        x.degree == y.degree):
+    if (
+        x.class_type == ComplexityClass.EXP
+        and y.class_type == ComplexityClass.EXP
+        and x.degree == y.degree
+    ):
         return BigO.exp(max(x.degree, y.degree))
 
     # Otherwise unknown
@@ -155,7 +168,10 @@ def mul(x: BigO, y: BigO) -> BigO:
 def add(x: BigO, y: BigO) -> BigO:
     """Add two complexity classes (takes maximum)."""
     # Unknown cases
-    if x.class_type == ComplexityClass.UNKNOWN or y.class_type == ComplexityClass.UNKNOWN:
+    if (
+        x.class_type == ComplexityClass.UNKNOWN
+        or y.class_type == ComplexityClass.UNKNOWN
+    ):
         return BigO.unknown()
 
     # Identity cases
@@ -169,13 +185,14 @@ def add(x: BigO, y: BigO) -> BigO:
         return BigO.log()
 
     # Both polynomials - take maximum degree
-    if (x.class_type == ComplexityClass.POLYNOMIAL and
-        y.class_type == ComplexityClass.POLYNOMIAL):
+    if (
+        x.class_type == ComplexityClass.POLYNOMIAL
+        and y.class_type == ComplexityClass.POLYNOMIAL
+    ):
         return BigO.polynomial(max(x.degree, y.degree))
 
     # Both exponentials - take maximum base
-    if (x.class_type == ComplexityClass.EXP and
-        y.class_type == ComplexityClass.EXP):
+    if x.class_type == ComplexityClass.EXP and y.class_type == ComplexityClass.EXP:
         return BigO.exp(max(x.degree, y.degree))
 
     # Exponential dominates
@@ -227,36 +244,36 @@ def of_arith_term(srk: Context, term: Any) -> BigO:
         """Recursively analyze the complexity of a term."""
         destruct_result = destruct(srk, t)
 
-        if destruct_result[0] == 'Real':
+        if destruct_result[0] == "Real":
             # Constants are O(1)
             return BigO.polynomial(0)
 
-        elif destruct_result[0] == 'Var':
+        elif destruct_result[0] == "Var":
             # Single variables are O(1) in terms of complexity
             # (they represent input size)
             return BigO.polynomial(1)
 
-        elif destruct_result[0] == 'Add':
+        elif destruct_result[0] == "Add":
             # Sum of terms - take the maximum complexity
             args = destruct_result[1] if len(destruct_result) > 1 else []
             complexities = [analyze_term(arg) for arg in args]
             return maximum(*complexities) if complexities else BigO.polynomial(0)
 
-        elif destruct_result[0] == 'Mul':
+        elif destruct_result[0] == "Mul":
             # Product of terms - add complexities
             args = destruct_result[1] if len(destruct_result) > 1 else []
             complexities = [analyze_term(arg) for arg in args]
             return sum_complexities(complexities)
 
-        elif destruct_result[0] == 'Unop':
+        elif destruct_result[0] == "Unop":
             op_type = destruct_result[1] if len(destruct_result) > 1 else None
             arg = destruct_result[2] if len(destruct_result) > 2 else None
 
-            if op_type == 'Neg':
+            if op_type == "Neg":
                 # Negation doesn't change complexity
                 return analyze_term(arg)
 
-            elif op_type == 'Floor':
+            elif op_type == "Floor":
                 # Floor is typically O(1) but depends on argument
                 arg_complexity = analyze_term(arg)
                 if arg_complexity.class_type == ComplexityClass.POLYNOMIAL:
@@ -264,24 +281,24 @@ def of_arith_term(srk: Context, term: Any) -> BigO:
                 else:
                     return arg_complexity
 
-        elif destruct_result[0] == 'Binop':
+        elif destruct_result[0] == "Binop":
             op_type = destruct_result[1] if len(destruct_result) > 1 else None
             left = destruct_result[2] if len(destruct_result) > 2 else None
             right = destruct_result[3] if len(destruct_result) > 3 else None
 
-            if op_type == 'Div':
+            if op_type == "Div":
                 # Division - complexity is max of numerator and denominator
                 left_complexity = analyze_term(left)
                 right_complexity = analyze_term(right)
                 return maximum(left_complexity, right_complexity)
 
-            elif op_type == 'Mod':
+            elif op_type == "Mod":
                 # Modulo - typically O(1) but depends on arguments
                 left_complexity = analyze_term(left)
                 right_complexity = analyze_term(right)
                 return maximum(left_complexity, right_complexity)
 
-        elif destruct_result[0] == 'App':
+        elif destruct_result[0] == "App":
             # Function application
             func = destruct_result[1] if len(destruct_result) > 1 else None
             args = destruct_result[2] if len(destruct_result) > 2 else []
@@ -289,36 +306,44 @@ def of_arith_term(srk: Context, term: Any) -> BigO:
             # Analyze function name for common complexity patterns
             func_name = str(func) if func else ""
 
-            if 'pow' in func_name.lower() or 'power' in func_name.lower():
+            if "pow" in func_name.lower() or "power" in func_name.lower():
                 # Power function - if base is constant and exponent is variable, it's exponential
                 if args and len(args) >= 2:
                     base_complexity = analyze_term(args[0])
                     exp_complexity = analyze_term(args[1])
 
-                    if (base_complexity.class_type == ComplexityClass.POLYNOMIAL and
-                        base_complexity.degree == 0 and
-                        exp_complexity.class_type == ComplexityClass.POLYNOMIAL and
-                        exp_complexity.degree > 0):
+                    if (
+                        base_complexity.class_type == ComplexityClass.POLYNOMIAL
+                        and base_complexity.degree == 0
+                        and exp_complexity.class_type == ComplexityClass.POLYNOMIAL
+                        and exp_complexity.degree > 0
+                    ):
                         # Constant base, variable exponent -> exponential
                         return BigO.exp(Fraction(2))  # Default base 2
 
-            elif 'log' in func_name.lower() or 'logarithm' in func_name.lower():
+            elif "log" in func_name.lower() or "logarithm" in func_name.lower():
                 # Logarithmic function
                 if args:
                     arg_complexity = analyze_term(args[0])
                     if arg_complexity.class_type == ComplexityClass.POLYNOMIAL:
                         return BigO.log()
 
-            elif 'min' in func_name.lower() or 'max' in func_name.lower():
+            elif "min" in func_name.lower() or "max" in func_name.lower():
                 # Min/max - complexity is max of arguments
                 arg_complexities = [analyze_term(arg) for arg in args]
-                return maximum(*arg_complexities) if arg_complexities else BigO.polynomial(0)
+                return (
+                    maximum(*arg_complexities)
+                    if arg_complexities
+                    else BigO.polynomial(0)
+                )
 
             # For other functions, analyze arguments and take maximum
             arg_complexities = [analyze_term(arg) for arg in args]
-            return maximum(*arg_complexities) if arg_complexities else BigO.polynomial(0)
+            return (
+                maximum(*arg_complexities) if arg_complexities else BigO.polynomial(0)
+            )
 
-        elif destruct_result[0] == 'Ite':
+        elif destruct_result[0] == "Ite":
             # Conditional - complexity is max of branches
             cond = destruct_result[1] if len(destruct_result) > 1 else None
             then_branch = destruct_result[2] if len(destruct_result) > 2 else None
@@ -337,7 +362,11 @@ def of_arith_term(srk: Context, term: Any) -> BigO:
             return BigO.polynomial(0)
 
         # Filter out constants (degree 0 polynomials)
-        non_constants = [c for c in complexities if not (c.class_type == ComplexityClass.POLYNOMIAL and c.degree == 0)]
+        non_constants = [
+            c
+            for c in complexities
+            if not (c.class_type == ComplexityClass.POLYNOMIAL and c.degree == 0)
+        ]
 
         if not non_constants:
             return BigO.polynomial(0)
@@ -349,7 +378,9 @@ def of_arith_term(srk: Context, term: Any) -> BigO:
             return max(exponentials, key=lambda x: x.degree)
 
         # If any polynomial, take the one with highest degree
-        polynomials = [c for c in non_constants if c.class_type == ComplexityClass.POLYNOMIAL]
+        polynomials = [
+            c for c in non_constants if c.class_type == ComplexityClass.POLYNOMIAL
+        ]
         if polynomials:
             max_degree = max(c.degree for c in polynomials)
             return BigO.polynomial(max_degree)

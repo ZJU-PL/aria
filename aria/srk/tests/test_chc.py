@@ -20,6 +20,7 @@ class TestCHCClause(unittest.TestCase):
 
         # Create a simple clause: x > 0 ∧ y > x ⇒ y > 0
         from aria.srk.syntax import Lt, Var, Const, Symbol
+
         zero_symbol = Symbol(0, "0", Type.INT)  # Create a symbol for constant 0
         premise1 = Lt(Var(x, Type.INT), Const(zero_symbol))
         premise2 = Lt(Var(y, Type.INT), Var(x, Type.INT))
@@ -35,6 +36,7 @@ class TestCHCClause(unittest.TestCase):
         x = self.context.mk_symbol("x", Type.INT)
 
         from aria.srk.syntax import Lt, Var, Const, Symbol
+
         zero_symbol = Symbol(0, "0", Type.INT)
         conclusion = Lt(Var(x, Type.INT), Const(zero_symbol))
         clause = CHCClause([], conclusion)
@@ -59,10 +61,14 @@ class TestCHCSystem(unittest.TestCase):
         x = self.context.mk_symbol("x", Type.INT)
 
         from aria.srk.syntax import Lt, Var, Const, Symbol
+
         zero_symbol = Symbol(0, "0", Type.INT)
         one_symbol = Symbol(1, "1", Type.INT)
         clause1 = CHCClause([], Lt(Var(x, Type.INT), Const(zero_symbol)))
-        clause2 = CHCClause([Lt(Var(x, Type.INT), Const(zero_symbol))], Lt(Var(x, Type.INT), Const(one_symbol)))
+        clause2 = CHCClause(
+            [Lt(Var(x, Type.INT), Const(zero_symbol))],
+            Lt(Var(x, Type.INT), Const(one_symbol)),
+        )
 
         system = CHCSystem([clause1, clause2])
         self.assertEqual(len(system.clauses), 2)
@@ -86,6 +92,7 @@ class TestCHCSolver(unittest.TestCase):
         # Create a simple system
         x = self.context.mk_symbol("x", Type.INT)
         from aria.srk.syntax import Lt, Var, Const, Symbol
+
         zero_symbol = Symbol(0, "0", Type.INT)
         clause = CHCClause([], Lt(Var(x, Type.INT), Const(zero_symbol)))
         system = CHCSystem([clause])
@@ -95,5 +102,5 @@ class TestCHCSolver(unittest.TestCase):
         self.assertIsNotNone(result)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

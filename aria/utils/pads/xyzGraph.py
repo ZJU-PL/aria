@@ -10,13 +10,14 @@ representations of an arbitrary graph, when they exist.
 D. Eppstein, June 2006.
 """
 
-
 from aria.utils.pads.Graphs import is_undirected
 from aria.utils.pads.PartialOrder import topological_order
 from aria.utils.pads.strong_connectivity import StronglyConnectedComponents
 from aria.utils.pads.Biconnectivity import stOrientation
+
 # sets.Set is deprecated in Python 3, use built-in set instead
 import unittest
+
 
 def CubicMatchPartitions(G):
     """Partition a biconnected cubic graph G into three matchings.
@@ -32,16 +33,16 @@ def CubicMatchPartitions(G):
             raise ValueError("CubicMatchPartitions: graph is not cubic")
     ST = stOrientation(G)
     L = topological_order(ST)
-    for B in range(1<<(len(L)//2 - 1)):
+    for B in range(1 << (len(L) // 2 - 1)):
         # Here with a bitstring representing the sequence of choices
         out = {}
         pos = 0
         for v in L:
             source = [w for w in G[v] if w in out]
             sourcepos = {}
-            adjlist = [None,None,None]
+            adjlist = [None, None, None]
             for w in source:
-                sourcepos[w] = [i for i in (0,1,2) if out[w][i]==v][0]
+                sourcepos[w] = [i for i in (0, 1, 2) if out[w][i] == v][0]
                 adjlist[sourcepos[w]] = w
             usedpos = [sourcepos[w] for w in source]
             if len(set(usedpos)) != len(usedpos):
@@ -52,11 +53,11 @@ def CubicMatchPartitions(G):
                 adjlist = list(ST[v])
             elif len(source) == 1:
                 # two outgoing vertices, one incoming
-                avail = [i for i in (0,1,2) if i != usedpos[0]]
-                if B & (1<<pos):
+                avail = [i for i in (0, 1, 2) if i != usedpos[0]]
+                if B & (1 << pos):
                     avail.reverse()
                 pos += 1
-                for i,w in zip(avail,list(ST[v])):
+                for i, w in zip(avail, list(ST[v])):
                     adjlist[i] = w
             elif len(source) == 2:
                 avail = 3 - sum(usedpos)
@@ -66,12 +67,13 @@ def CubicMatchPartitions(G):
                 # final vertex of topological ordering, still all consistent
                 yield out
 
-def groupByCycles(G,i,j):
+
+def groupByCycles(G, i, j):
     """
     Collect cycles of G[v][i] and G[v][j] edges,
     return a dictionary mapping v to the number of its cycle.
     """
-    G = dict([(v,(G[v][i],G[v][j])) for v in G])
+    G = dict([(v, (G[v][i], G[v][j])) for v in G])
     index = 0
     D = {}
     for C in StronglyConnectedComponents(G):
@@ -80,15 +82,16 @@ def groupByCycles(G,i,j):
         index += 1
     return D
 
+
 def isxyz(points):
     """
     True if there are two points per axis-parallel line, False otherwise.
     """
-    for i,j in [(0,1),(0,2),(1,2)]:
+    for i, j in [(0, 1), (0, 2), (1, 2)]:
         projections = {}
         for p in points:
-            x,y = p[i],p[j]
-            projections.setdefault((x,y),[]).append(p)
+            x, y = p[i], p[j]
+            projections.setdefault((x, y), []).append(p)
         for L in projections.values():
             if len(L) != 2:
                 return False
@@ -102,21 +105,23 @@ def xyzEmbeddings(G):
     To get just the points, use D.values().
     """
     for G in CubicMatchPartitions(G):
-        xyz = [groupByCycles(G,i,j) for i,j in [(0,1),(0,2),(1,2)]]
-        xyz = dict([(v,[xyz[i][v] for i in (0,1,2)]) for v in G])
+        xyz = [groupByCycles(G, i, j) for i, j in [(0, 1), (0, 2), (1, 2)]]
+        xyz = dict([(v, [xyz[i][v] for i in (0, 1, 2)]) for v in G])
         if isxyz(list(xyz.values())):
             yield xyz
 
+
 class xyzGraphTest(unittest.TestCase):
-    cube = dict([(v,[v^i for i in (1,2,4)]) for v in range(8)])
+    cube = dict([(v, [v ^ i for i in (1, 2, 4)]) for v in range(8)])
 
     def testCubicMatchPartitions(self):
         """Check that a cube has the right number of matching partitions."""
-        self.assertEqual(len(list(CubicMatchPartitions(self.cube))),4)
+        self.assertEqual(len(list(CubicMatchPartitions(self.cube))), 4)
 
     def testCubeIsXYZ(self):
         """Check that a cube is correctly identified as an xyz graph."""
-        self.assertEqual(len(list(xyzEmbeddings(self.cube))),1)
+        self.assertEqual(len(list(xyzEmbeddings(self.cube))), 1)
+
 
 if __name__ == "__main__":
     unittest.main()

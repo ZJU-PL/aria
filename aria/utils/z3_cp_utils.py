@@ -1,4 +1,3 @@
-
 #!/usr/bin/python -u
 # -*- coding: latin-1 -*-
 #
@@ -107,81 +106,161 @@ import uuid
 from typing import List, Dict, Tuple, Any, Union
 
 from z3 import (
-    Solver, ModelRef, ArithRef, ArrayRef, ExprRef, Int, Real, IntVector,
-    RealVector, Array, IntSort, RealSort, Or, And, Implies, Distinct, Sum,
-    If, sat
+    Solver,
+    ModelRef,
+    ArithRef,
+    ArrayRef,
+    ExprRef,
+    Int,
+    Real,
+    IntVector,
+    RealVector,
+    Array,
+    IntSort,
+    RealSort,
+    Or,
+    And,
+    Implies,
+    Distinct,
+    Sum,
+    If,
+    sat,
 )
 
+
 def getNewId() -> int:
-  return uuid.uuid4().int
+    return uuid.uuid4().int
+
 
 #
 # Utils to create Int, IntVector, Array etc
 # as well as the fiddling of evaluation and ensuring new solutions.
 #
 # creates Int() with a domain
-def makeIntVar(sol: Solver, name: str, min_val: Union[int, float], max_val: Union[int, float]) -> ArithRef:
+def makeIntVar(
+    sol: Solver, name: str, min_val: Union[int, float], max_val: Union[int, float]
+) -> ArithRef:
     v = Int(name)
     sol.add(v >= min_val, v <= max_val)
     return v
+
 
 def makeIntVarVals(sol: Solver, name: str, vals: List[int]) -> ArithRef:
     v = Int(name)
     sol.add(Or([v == i for i in vals]))
     return v
 
+
 #  creates [ Int() for i in range(size)] with a domains
-def makeIntVars(sol: Solver, name: str, size: int, min_val: Union[int, float], max_val: Union[int, float]) -> List[ArithRef]:
+def makeIntVars(
+    sol: Solver,
+    name: str,
+    size: int,
+    min_val: Union[int, float],
+    max_val: Union[int, float],
+) -> List[ArithRef]:
     a = [Int(f"{name}_{i}") for i in range(size)]
     [sol.add(a[i] >= min_val, a[i] <= max_val) for i in range(size)]
     return a
 
+
 # creates an IntVector with a domain
-def makeIntVector(sol: Solver, name: str, size: int, min_val: Union[int, float], max_val: Union[int, float]) -> List[ArithRef]:
-    v = IntVector(name,size)
+def makeIntVector(
+    sol: Solver,
+    name: str,
+    size: int,
+    min_val: Union[int, float],
+    max_val: Union[int, float],
+) -> List[ArithRef]:
+    v = IntVector(name, size)
     [sol.add(v[i] >= min_val, v[i] <= max_val) for i in range(size)]
     return v
 
-def makeIntVectorMatrix(sol: Solver, name: str, rows: int, cols: int, min_value: Union[int, float], max_value: Union[int, float]) -> Dict[Tuple[int, int], ArithRef]:
-  x = {}
-  for i in range(rows):
-    for j in range(cols):
-      x[(i,j)] = makeIntVar(sol,name + "%i_%i"%(i,j),min_value,max_value)
-  return x
+
+def makeIntVectorMatrix(
+    sol: Solver,
+    name: str,
+    rows: int,
+    cols: int,
+    min_value: Union[int, float],
+    max_value: Union[int, float],
+) -> Dict[Tuple[int, int], ArithRef]:
+    x = {}
+    for i in range(rows):
+        for j in range(cols):
+            x[(i, j)] = makeIntVar(sol, name + "%i_%i" % (i, j), min_value, max_value)
+    return x
+
 
 # creates an Array with a domain
-def makeIntArray(sol: Solver, name: str, size: int, min_val: Union[int, float], max_val: Union[int, float]) -> ArrayRef:
-    a = Array(name,IntSort(),IntSort())
+def makeIntArray(
+    sol: Solver,
+    name: str,
+    size: int,
+    min_val: Union[int, float],
+    max_val: Union[int, float],
+) -> ArrayRef:
+    a = Array(name, IntSort(), IntSort())
     [sol.add(a[i] >= min_val, a[i] <= max_val) for i in range(size)]
     return a
 
+
 # creates an Array with a domain, and returns an array
-def makeIntArrayVector(sol: Solver, name: str, size: int, min_val: Union[int, float], max_val: Union[int, float]) -> List[ExprRef]:
-    a = Array(name,IntSort(),IntSort())
-    [ sol.add(a[i] >= min_val, a[i] <= max_val) for i in range(size)]
+def makeIntArrayVector(
+    sol: Solver,
+    name: str,
+    size: int,
+    min_val: Union[int, float],
+    max_val: Union[int, float],
+) -> List[ExprRef]:
+    a = Array(name, IntSort(), IntSort())
+    [sol.add(a[i] >= min_val, a[i] <= max_val) for i in range(size)]
     return [a[i] for i in range(size)]
 
 
-def makeRealVar(sol: Solver, name: str, min_val: Union[int, float], max_val: Union[int, float]) -> ArithRef:
+def makeRealVar(
+    sol: Solver, name: str, min_val: Union[int, float], max_val: Union[int, float]
+) -> ArithRef:
     v = Real(name)
     sol.add(v >= min_val, v <= max_val)
     return v
 
+
 #  creates [ Real() for i in range(size)] with a domains
-def makeRealVars(sol: Solver, name: str, size: int, min_val: Union[int, float], max_val: Union[int, float]) -> List[ArithRef]:
+def makeRealVars(
+    sol: Solver,
+    name: str,
+    size: int,
+    min_val: Union[int, float],
+    max_val: Union[int, float],
+) -> List[ArithRef]:
     a = [Real(f"{name}_{i}") for i in range(size)]
     [sol.add(a[i] >= min_val, a[i] <= max_val) for i in range(size)]
     return a
 
+
 # creates an IntVector with a domain
-def makeRealVector(sol: Solver, name: str, size: int, min_val: Union[int, float], max_val: Union[int, float]) -> List[ArithRef]:
-    v = RealVector(name,size)
+def makeRealVector(
+    sol: Solver,
+    name: str,
+    size: int,
+    min_val: Union[int, float],
+    max_val: Union[int, float],
+) -> List[ArithRef]:
+    v = RealVector(name, size)
     [sol.add(v[i] >= min_val, v[i] <= max_val) for i in range(size)]
     return v
 
+
 # creates an Array with a domain
-def makeRealArray(sol: Solver, name: str, size: int, min_val: Union[int, float], max_val: Union[int, float]) -> ArrayRef:
-    a = Array(name,RealSort(),RealSort())
+def makeRealArray(
+    sol: Solver,
+    name: str,
+    size: int,
+    min_val: Union[int, float],
+    max_val: Union[int, float],
+) -> ArrayRef:
+    a = Array(name, RealSort(), RealSort())
     [sol.add(a[i] >= min_val, a[i] <= max_val) for i in range(size)]
     return a
 
@@ -203,39 +282,51 @@ def makeRealArray(sol: Solver, name: str, size: int, min_val: Union[int, float],
 # for maximization problems.
 #
 def getDifferentSolution(sol: Solver, mod: ModelRef, *params: Any) -> None:
-  for t in params:
-    sol.add(Or([t[i] != mod.eval(t[i]) for i in range(len(t))]))
+    for t in params:
+        sol.add(Or([t[i] != mod.eval(t[i]) for i in range(len(t))]))
+
 
 # special case for a matrix; requires number of rows and columns
-def getDifferentSolutionMatrix(sol: Solver, mod: ModelRef, x: Dict[Tuple[int, int], ArithRef], rows: int, cols: int) -> None:
-    sol.add(Or([x[i,j] != mod.eval(x[i,j]) for i in range(rows) for j in range(cols)]))
+def getDifferentSolutionMatrix(
+    sol: Solver, mod: ModelRef, x: Dict[Tuple[int, int], ArithRef], rows: int, cols: int
+) -> None:
+    sol.add(
+        Or([x[i, j] != mod.eval(x[i, j]) for i in range(rows) for j in range(cols)])
+    )
+
 
 # ensure that we get a solution with a less value of z
 def getLessSolution(sol: Solver, mod: ModelRef, z: ArithRef) -> None:
     sol.add(z < mod.eval(z))
 
+
 # ensure that we get a solution with a greater value of z
 def getGreaterSolution(sol: Solver, mod: ModelRef, z: ArithRef) -> None:
     sol.add(z > mod.eval(z))
+
 
 # evalArray(mod,a)
 # return an evaluated array
 def evalArray(mod: ModelRef, a: List[ExprRef]) -> List[ExprRef]:
     return [mod.eval(a[i]) for i in range(len(a))]
 
+
 # print_grid(sol,mod,x,num_rows,num_cols)
 # prints an (unformatted) grid/matrix
-def print_grid(mod: ModelRef, x: Dict[Tuple[int, int], ArithRef], rows: int, cols: int) -> None:
+def print_grid(
+    mod: ModelRef, x: Dict[Tuple[int, int], ArithRef], rows: int, cols: int
+) -> None:
     for i in range(rows):
         for j in range(cols):
-            print(mod.eval(x[(i,j)]), end=' ')
+            print(mod.eval(x[(i, j)]), end=" ")
         print()
     print()
+
 
 def print_grid2(mod: ModelRef, x: List[List[ArithRef]], rows: int, cols: int) -> None:
     for i in range(rows):
         for j in range(cols):
-            print(mod.eval(x[i][j]), end=' ')
+            print(mod.eval(x[i][j]), end=" ")
         print()
     print()
 
@@ -243,51 +334,75 @@ def print_grid2(mod: ModelRef, x: List[List[ArithRef]], rows: int, cols: int) ->
 #
 # Copy the (integer) array into an Array()
 #
-def copyArray(sol: Solver, a1: List[ExprRef], name: str, min_val: Union[int, float], max_val: Union[int, float]) -> ArrayRef:
-  n = len(a1)
-  a = makeIntArray(sol,name,n,min_val,max_val)
-  for i in range(n):
-    sol.add(a[i] == a1[i])
-  return a
+def copyArray(
+    sol: Solver,
+    a1: List[ExprRef],
+    name: str,
+    min_val: Union[int, float],
+    max_val: Union[int, float],
+) -> ArrayRef:
+    n = len(a1)
+    a = makeIntArray(sol, name, n, min_val, max_val)
+    for i in range(n):
+        sol.add(a[i] == a1[i])
+    return a
+
 
 #
 # Copy the (integer) array into an Array()
 #
-def copyRealArray(sol: Solver, a1: List[ExprRef], name: str, min_val: Union[int, float], max_val: Union[int, float]) -> ArrayRef:
-  n = len(a1)
-  a = makeRealArray(sol,name,n,min_val,max_val)
-  for i in range(n):
-    sol.add(a[i] == a1[i])
-  return a
+def copyRealArray(
+    sol: Solver,
+    a1: List[ExprRef],
+    name: str,
+    min_val: Union[int, float],
+    max_val: Union[int, float],
+) -> ArrayRef:
+    n = len(a1)
+    a = makeRealArray(sol, name, n, min_val, max_val)
+    for i in range(n):
+        sol.add(a[i] == a1[i])
+    return a
 
 
 #
 # Copy the (integer) matrix into an Array()
 #
-def copyArrayMatrix(sol: Solver, a1: List[List[Any]], name: str, rows: int, cols: int, min_val: Union[int, float], max_val: Union[int, float]) -> ArrayRef:
-  a = makeIntArray(sol,name,rows*cols,min_val,max_val)
-  for i in range(rows):
-    for j in range(cols):
-      sol.add(a[i*cols+j] == a1[i][j])
-  return a
+def copyArrayMatrix(
+    sol: Solver,
+    a1: List[List[Any]],
+    name: str,
+    rows: int,
+    cols: int,
+    min_val: Union[int, float],
+    max_val: Union[int, float],
+) -> ArrayRef:
+    a = makeIntArray(sol, name, rows * cols, min_val, max_val)
+    for i in range(rows):
+        for j in range(cols):
+            sol.add(a[i * cols + j] == a1[i][j])
+    return a
 
 
 #
 # Decompositions of global constraints
 #
 
+
 # all_different_except_0/2
 def all_different_except_0(sol: Solver, x: List[ArithRef]) -> None:
     for i in range(len(x)):
         for j in range(i):
-            sol.add( Implies(Or(x[i] != 0, x[j] != 0), x[j] != x[i]  ))
+            sol.add(Implies(Or(x[i] != 0, x[j] != 0), x[j] != x[i]))
+
 
 # all_different/2
 # (but one should probably use Distinct/1 instead...)
 def all_different(sol: Solver, x: List[ArithRef]) -> None:
     for i in range(len(x)):
         for j in range(i):
-            sol.add( x[i] != x[j])
+            sol.add(x[i] != x[j])
+
 
 #
 # element(sol,ix,x,v,n)
@@ -297,8 +412,8 @@ def all_different(sol: Solver, x: List[ArithRef]) -> None:
 # Experimental!
 #
 def element(sol: Solver, ix: ArithRef, x: List[ExprRef], v: ArithRef, n: int) -> None:
-  for i in range(n):
-    sol.add(Implies(i==ix, v == x[i]))
+    for i in range(n):
+        sol.add(Implies(i == ix, v == x[i]))
 
 
 #
@@ -308,85 +423,113 @@ def element(sol: Solver, ix: ArithRef, x: List[ExprRef], v: ArithRef, n: int) ->
 #
 # Experimental!
 #
-def element_matrix(sol: Solver, ix: ArithRef, jx: ArithRef, x: Dict[Tuple[int, int], ArithRef], v: ArithRef, rows: int, cols: int) -> None:
-  print(f"element_matrix({ix},{jx},{x},{v},{rows},{cols})")
-  for i in range(rows):
-    for j in range(cols):
-      sol.add(Implies(And(i == ix, j == jx), v == x[(i,j)]))
+def element_matrix(
+    sol: Solver,
+    ix: ArithRef,
+    jx: ArithRef,
+    x: Dict[Tuple[int, int], ArithRef],
+    v: ArithRef,
+    rows: int,
+    cols: int,
+) -> None:
+    print(f"element_matrix({ix},{jx},{x},{v},{rows},{cols})")
+    for i in range(rows):
+        for j in range(cols):
+            sol.add(Implies(And(i == ix, j == jx), v == x[(i, j)]))
 
 
 # increasing_strict/2
 def increasing_strict(sol: Solver, x: List[ArithRef]) -> None:
-    for i in range(len(x)-1):
-        sol.add(x[i] < x[i+1])
+    for i in range(len(x) - 1):
+        sol.add(x[i] < x[i + 1])
+
 
 # increasing/2
 def increasing(sol: Solver, x: List[ArithRef]) -> None:
-    for i in range(len(x)-1):
-        sol.add(x[i] <= x[i+1])
+    for i in range(len(x) - 1):
+        sol.add(x[i] <= x[i + 1])
+
 
 # decreasing_strict/2
 def decreasing_strict(sol: Solver, x: List[ArithRef]) -> None:
-    for i in range(len(x)-1):
-        sol.add(x[i] > x[i+1])
+    for i in range(len(x) - 1):
+        sol.add(x[i] > x[i + 1])
+
 
 # decreasing/2
 def decreasing(sol: Solver, x: List[ArithRef]) -> None:
-    for i in range(len(x)-1):
-        sol.add(x[i] >= x[i+1])
+    for i in range(len(x) - 1):
+        sol.add(x[i] >= x[i + 1])
+
 
 # count/4:
 # * if n is Int(): count the number of value in x
 # * if n is fixed: ensure that the number of value in the x array is exactly n
 # * if both value and n are Int()'s: count one/all value(s)
-def count(sol: Solver, value: Union[int, ArithRef], x: List[ArithRef], n: ArithRef) -> None:
-    sol.add(n == Sum([If(x[i] == value, 1,0) for i in range(len(x))]))
+def count(
+    sol: Solver, value: Union[int, ArithRef], x: List[ArithRef], n: ArithRef
+) -> None:
+    sol.add(n == Sum([If(x[i] == value, 1, 0) for i in range(len(x))]))
+
 
 # count/3
 # same as count/4 but returns the sum value
 def count2(sol: Solver, value: Union[int, ArithRef], x: List[ArithRef]) -> ArithRef:
-    return Sum([If(x[i] == value, 1,0) for i in range(len(x))])
+    return Sum([If(x[i] == value, 1, 0) for i in range(len(x))])
 
 
 # global_cardinality_count/4
 # * gcc[v] containts the occurrences of the value of values[v] in array x
 #   (it's a generalization of count/4)
-def global_cardinality_count(sol: Solver, values: List[int], x: List[ArithRef], gcc: List[ArithRef]) -> None:
+def global_cardinality_count(
+    sol: Solver, values: List[int], x: List[ArithRef], gcc: List[ArithRef]
+) -> None:
     for v in range(len(values)):
-        count(sol,values[v],x,gcc[v])
+        count(sol, values[v], x, gcc[v])
+
 
 # at_most/4
 # * there are at most max occurrences of value v in x
 def at_most(sol: Solver, v: Union[int, ArithRef], x: List[ArithRef], max: int) -> None:
     c = Int("c")
-    sol.add(c>=0, c <= len(x))
-    count(sol,v,x,c)
+    sol.add(c >= 0, c <= len(x))
+    count(sol, v, x, c)
     sol.add(c <= max)
+
 
 # at_least/4
 # * there are at least max occurrences of value v in x
 def at_least(sol: Solver, v: Union[int, ArithRef], x: List[ArithRef], min: int) -> None:
     c = Int("c")
-    sol.add(c>=0, c <= len(x))
-    count(sol,v,x,c)
+    sol.add(c >= 0, c <= len(x))
+    count(sol, v, x, c)
     sol.add(c >= min)
+
 
 # scalar_product(sol,a,x,product)
 # ensures that a[*]*x[*] == product
-def scalar_product(sol: Solver, a: List[Union[int, float]], x: List[ArithRef], product: ArithRef) -> None:
-    sol.add(product == Sum([a[i]*x[i] for i in range(len(x))]))
+def scalar_product(
+    sol: Solver, a: List[Union[int, float]], x: List[ArithRef], product: ArithRef
+) -> None:
+    sol.add(product == Sum([a[i] * x[i] for i in range(len(x))]))
+
 
 # product == scalar_product2(sol,a,x)
 # ensures that Sum([a[i]*x[i] ... ]  == product
-def scalar_product2(sol: Solver, a: List[Union[int, float]], x: List[ArithRef]) -> ArithRef:
-    return Sum([a[i]*x[i] for i in range(len(x))])
+def scalar_product2(
+    sol: Solver, a: List[Union[int, float]], x: List[ArithRef]
+) -> ArithRef:
+    return Sum([a[i] * x[i] for i in range(len(x))])
+
 
 #
 # constraint(sol,x,path,n)
 # find a (Hamiltonian) circuit of x and its path path
 # n is the size of x and path
 #
-def circuit(sol: Solver, x: ArrayRef, z: Union[ArrayRef, List[ArithRef]], n: int) -> None:
+def circuit(
+    sol: Solver, x: ArrayRef, z: Union[ArrayRef, List[ArithRef]], n: int
+) -> None:
 
     sol.add(Distinct([x[i] for i in range(n)]))
     sol.add(Distinct([z[i] for i in range(n)]))
@@ -401,17 +544,17 @@ def circuit(sol: Solver, x: ArrayRef, z: Union[ArrayRef, List[ArithRef]], n: int
     sol.add(x[0] == z[0])
 
     # The last element in z must be 0 (back to original spot)
-    sol.add(z[n-1] == 0)
+    sol.add(z[n - 1] == 0)
 
     # Might speed up things, or not
     # for i in range(n-1):
     #   sol.add(z[i] != 0)
 
     # Get the orbit for Z.
-    for i in range(1,n):
-      # I'm very happy that this element works! Z3 is cool. :-)
-      # Note: It requires that x is an Array.
-      sol.add(x[z[i-1]] == z[i])
+    for i in range(1, n):
+        # I'm very happy that this element works! Z3 is cool. :-)
+        # Note: It requires that x is an Array.
+        sol.add(x[z[i - 1]] == z[i])
 
 
 def circuit2(sol: Solver, x: List[ArithRef], z: List[ArithRef], n: int) -> None:
@@ -432,15 +575,15 @@ def circuit2(sol: Solver, x: List[ArithRef], z: List[ArithRef], n: int) -> None:
     sol.add(x[0] == z[0])
 
     # The last element in z must be 0 (back to original spot)
-    sol.add(z[n-1] == 0)
+    sol.add(z[n - 1] == 0)
 
     # Might speed up things, or not
     # for i in range(n-1):
     #   sol.add(z[i] != 0)
 
     # Get the orbit for Z.
-    for i in range(1,n):
-      element(sol, z[i-1], x, z[i],n)
+    for i in range(1, n):
+        element(sol, z[i - 1], x, z[i], n)
 
 
 # inverse(..f, invf, ..)
@@ -449,75 +592,95 @@ def circuit2(sol: Solver, x: List[ArithRef], z: List[ArithRef], n: int) -> None:
 #
 # See inverse.py
 #
-def inverse(sol: Solver, f: Union[ArrayRef, List[ArithRef]], invf: Union[ArrayRef, List[ArithRef]], n: int) -> None:
+def inverse(
+    sol: Solver,
+    f: Union[ArrayRef, List[ArithRef]],
+    invf: Union[ArrayRef, List[ArithRef]],
+    n: int,
+) -> None:
     for i in range(n):
         for j in range(n):
             sol.add((j == f[i]) == (i == invf[j]))
 
+
 # v is the maximum value of x
 def maximum(sol: Solver, v: ArithRef, x: List[ArithRef]) -> None:
-  sol.add(Or([v == x[i] for i in range(len(x))])) # max is an element in x)
-  for i in range(len(x)):
-    sol.add(v >= x[i]) # and it's the greatest
+    sol.add(Or([v == x[i] for i in range(len(x))]))  # max is an element in x)
+    for i in range(len(x)):
+        sol.add(v >= x[i])  # and it's the greatest
+
 
 # v == maximum2(sol,x): v is the maximum value of x
 def maximum2(sol: Solver, x: List[ArithRef]) -> ArithRef:
-  v = Int(f"v_{uuid.uuid4().int}")
-  sol.add(Or([v == x[i] for i in range(len(x))])) # v is an element in x)
-  for i in range(len(x)):
-    sol.add(v >= x[i]) # and it's the greatest
-  return v
+    v = Int(f"v_{uuid.uuid4().int}")
+    sol.add(Or([v == x[i] for i in range(len(x))]))  # v is an element in x)
+    for i in range(len(x)):
+        sol.add(v >= x[i])  # and it's the greatest
+    return v
 
 
 # min is the minimum value of x
 def minimum(sol: Solver, v: ArithRef, x: List[ArithRef]) -> None:
-  sol.add(Or([v == x[i] for i in range(len(x))])) # v is an element in x)
-  for i in range(len(x)):
-    sol.add(v <= x[i]) # and it's the smallest
+    sol.add(Or([v == x[i] for i in range(len(x))]))  # v is an element in x)
+    for i in range(len(x)):
+        sol.add(v <= x[i])  # and it's the smallest
+
 
 # v == minimum2(sol,x): v is the minimum value of x
 def minimum2(sol: Solver, x: List[ArithRef]) -> ArithRef:
-  v = Int(f"v_{uuid.uuid4().int}")
-  sol.add(Or([v == x[i] for i in range(len(x))])) # min is an element in x)
-  for i in range(len(x)):
-    sol.add(v <= x[i]) # and it's the smallest
-  return v
+    v = Int(f"v_{uuid.uuid4().int}")
+    sol.add(Or([v == x[i] for i in range(len(x))]))  # min is an element in x)
+    for i in range(len(x)):
+        sol.add(v <= x[i])  # and it's the smallest
+    return v
 
 
 # absolute value of x
 def abs_value(x: ArithRef) -> ArithRef:
     return If(x >= 0, x, -x)
 
+
 # converts a number (s) <-> an array of integers (t) in the specific base.
 # See toNum.py
 def to_num(sol: Solver, t: List[ArithRef], s: ArithRef, base: int) -> None:
-  tlen = len(t)
-  sol.add(s == Sum([(base ** (tlen - i - 1)) * t[i] for i in range(tlen)]))
+    tlen = len(t)
+    sol.add(s == Sum([(base ** (tlen - i - 1)) * t[i] for i in range(tlen)]))
+
 
 # subset_sum(sol,values,total)
 # total is the sum of the values of the select elements in values
 # returns array of the selected entries and the sum of the selected values
-def subset_sum(sol: Solver, values: List[int], total: ArithRef) -> Tuple[List[ArithRef], ArithRef]:
-  n = len(values)
-  x = [makeIntVar(sol, f"x_{i}", 0, n) for i in range(n)]
-  ss = makeIntVar(sol,"ss", 0, n)
+def subset_sum(
+    sol: Solver, values: List[int], total: ArithRef
+) -> Tuple[List[ArithRef], ArithRef]:
+    n = len(values)
+    x = [makeIntVar(sol, f"x_{i}", 0, n) for i in range(n)]
+    ss = makeIntVar(sol, "ss", 0, n)
 
-  sol.add(ss == Sum([x[i] for i in range(n)]))
-  sol.add(total == scalar_product2(sol,x, values))
+    sol.add(ss == Sum([x[i] for i in range(n)]))
+    sol.add(total == scalar_product2(sol, x, values))
 
-  return x, ss
+    return x, ss
+
 
 # allowed_assignments(sol,t,allowed):
 # a.k.a. table, table_in etc
 # ensure that the tuple (list) t is in the list allowed
 # (of allowed assignments)
-def allowed_assignments(sol: Solver, t: List[ArithRef], allowed: List[List[int]]) -> None:
+def allowed_assignments(
+    sol: Solver, t: List[ArithRef], allowed: List[List[int]]
+) -> None:
     len_allowed = len(allowed)
     t_len = len(t)
     sol.add(
-        Or([ And([t[a] == allowed[k][a] for a in range(t_len)])
-             for k in range(len_allowed)]
-           ))
+        Or(
+            [
+                And([t[a] == allowed[k][a] for a in range(t_len)])
+                for k in range(len_allowed)
+            ]
+        )
+    )
+
 
 # ensure that element e is one of v
 def member_of(sol: Solver, e: ArithRef, v: List[int]) -> None:
@@ -525,8 +688,15 @@ def member_of(sol: Solver, e: ArithRef, v: List[int]) -> None:
 
 
 # No overlapping of tasks s1 and s2
-def no_overlap(sol: Solver, s1: ArithRef, d1: Union[int, ArithRef], s2: ArithRef, d2: Union[int, ArithRef]) -> None:
-  sol.add(Or(s1 + d1 <= s2, s2 + d2 <= s1))
+def no_overlap(
+    sol: Solver,
+    s1: ArithRef,
+    d1: Union[int, ArithRef],
+    s2: ArithRef,
+    d2: Union[int, ArithRef],
+) -> None:
+    sol.add(Or(s1 + d1 <= s2, s2 + d2 <= s1))
+
 
 #
 # sliding_sum(sol,low,up,seq,x)
@@ -535,19 +705,28 @@ def no_overlap(sol: Solver, s1: ArithRef, d1: Union[int, ArithRef], s2: ArithRef
 # low, up, and seq must be fixed integers
 #
 def sliding_sum(sol: Solver, low: int, up: int, seq: int, x: List[ArithRef]) -> None:
-  vlen = len(x)
-  for i in range(vlen-seq+1):
-    s = makeIntVar(sol, f"s_{i}", low, up)
-    sol.add(s == Sum([x[j] for j in range(i,i+seq)]))
+    vlen = len(x)
+    for i in range(vlen - seq + 1):
+        s = makeIntVar(sol, f"s_{i}", low, up)
+        sol.add(s == Sum([x[j] for j in range(i, i + seq)]))
+
 
 # bin_packing
 #
 # Note: capacity (and bins) might be IntVar but weights must be an int vector
 #
-def bin_packing(sol: Solver, capacity: Union[int, ArithRef], bins: List[ArithRef], weights: List[int]) -> None:
-  n = len(bins)
-  for b in range(n):
-    sol.add(Sum([ weights[j]*If(bins[j] == b,1,0) for j in range(n)] ) <= capacity)
+def bin_packing(
+    sol: Solver,
+    capacity: Union[int, ArithRef],
+    bins: List[ArithRef],
+    weights: List[int],
+) -> None:
+    n = len(bins)
+    for b in range(n):
+        sol.add(
+            Sum([weights[j] * If(bins[j] == b, 1, 0) for j in range(n)]) <= capacity
+        )
+
 
 #
 # Decompositon of cumulative.
@@ -575,22 +754,38 @@ def bin_packing(sol: Solver, capacity: Union[int, ArithRef], bins: List[ArithRef
 #       Which makes it slower...
 #
 # pylint: disable=too-many-positional-arguments
-def cumulative(sol: Solver, s: List[ArithRef], d: List[int], r: List[int], b: Union[int, ArithRef], times_min: int, times_max1: int) -> None:
+def cumulative(
+    sol: Solver,
+    s: List[ArithRef],
+    d: List[int],
+    r: List[int],
+    b: Union[int, ArithRef],
+    times_min: int,
+    times_max1: int,
+) -> None:
 
-  tasks = [i for i in range(len(s)) if r[i] > 0 and d[i] > 0]
+    tasks = [i for i in range(len(s)) if r[i] > 0 and d[i] > 0]
 
-  # how do I get the upper/lower value of a decision variable?
-  # times_min = min([s[i].Min() for i in tasks])
-  # times_max = max([s[i].Max() + max(d) for i in tasks])
-  times_max = times_max1 + max(d)
-  for t in range(times_min, times_max + 1):
-    for i in tasks:
-      sol.add(Sum([(If(s[i] <= t,1,0) * If(t < s[i] + d[i],1,0))*r[i] for i in tasks])  <= b)
+    # how do I get the upper/lower value of a decision variable?
+    # times_min = min([s[i].Min() for i in tasks])
+    # times_max = max([s[i].Max() + max(d) for i in tasks])
+    times_max = times_max1 + max(d)
+    for t in range(times_min, times_max + 1):
+        for i in tasks:
+            sol.add(
+                Sum(
+                    [
+                        (If(s[i] <= t, 1, 0) * If(t < s[i] + d[i], 1, 0)) * r[i]
+                        for i in tasks
+                    ]
+                )
+                <= b
+            )
 
-  # Somewhat experimental:
-  # This constraint is needed to contrain the upper limit of b.
-  if not isinstance(b, int):
-    sol.add(b <= sum(r))
+    # Somewhat experimental:
+    # This constraint is needed to contrain the upper limit of b.
+    if not isinstance(b, int):
+        sol.add(b <= sum(r))
 
 
 #
@@ -598,11 +793,13 @@ def cumulative(sol: Solver, s: List[ArithRef], d: List[int], r: List[int], b: Un
 # Enforce that all 1s must be in a contiguous group.
 # Assumption: There must be at least one 1.
 #
-def global_contiguity(sol: Solver, x: List[ArithRef], start: ArithRef, end: ArithRef) -> None:
-  n = len(x)
-  sol.add(start<=end)
-  for i in range(n):
-    sol.add(And(i >= start, i <= end) == x[i] == 1)
+def global_contiguity(
+    sol: Solver, x: List[ArithRef], start: ArithRef, end: ArithRef
+) -> None:
+    n = len(x)
+    sol.add(start <= end)
+    for i in range(n):
+        sol.add(And(i >= start, i <= end) == x[i] == 1)
 
 
 #
@@ -628,108 +825,136 @@ def global_contiguity(sol: Solver, x: List[ArithRef], start: ArithRef, end: Arit
 # x_len: length of x [when using Array we cannot extract the length]
 #
 # pylint: disable=too-many-positional-arguments,invalid-name
-def regular(sol: Solver, x: Union[ArrayRef, List[ArithRef]], Q: int, S: int, d: List[List[int]], q0: int, F: List[int], x_len: int) -> None:
+def regular(
+    sol: Solver,
+    x: Union[ArrayRef, List[ArithRef]],
+    Q: int,
+    S: int,
+    d: List[List[int]],
+    q0: int,
+    F: List[int],
+    x_len: int,
+) -> None:
 
-  assert Q > 0, 'regular: "Q" must be greater than zero'
-  assert S > 0, 'regular: "S" must be greater than zero'
+    assert Q > 0, 'regular: "Q" must be greater than zero'
+    assert S > 0, 'regular: "S" must be greater than zero'
 
-  # d2 is the same as d, except we add one extra transition for
-  # each possible input;  each extra transition is from state zero
-  # to state zero.  This allows us to continue even if we hit a
-  # non-accepted input.
+    # d2 is the same as d, except we add one extra transition for
+    # each possible input;  each extra transition is from state zero
+    # to state zero.  This allows us to continue even if we hit a
+    # non-accepted input.
 
-  # Comet: int d2[0..Q, 1..S]
-  d2 = []
-  for i in range(Q + 1):
-    row = []
-    for j in range(S):
-      if i == 0:
-        row.append(0)
-      else:
-        row.append(d[i - 1][j])
-    d2.append(row)
+    # Comet: int d2[0..Q, 1..S]
+    d2 = []
+    for i in range(Q + 1):
+        row = []
+        for j in range(S):
+            if i == 0:
+                row.append(0)
+            else:
+                row.append(d[i - 1][j])
+        d2.append(row)
 
-  d2_flatten = [d2[i][j] for i in range(Q + 1) for j in range(S)]
-  d2_flatten_a = makeIntArray(sol, f"d2_flatten_a_{uuid.uuid4().int}", len(d2_flatten), min(d2_flatten), max(d2_flatten))
-  for i in range(len(d2_flatten)):
-     sol.add(d2_flatten[i] == d2_flatten_a[i])
+    d2_flatten = [d2[i][j] for i in range(Q + 1) for j in range(S)]
+    d2_flatten_a = makeIntArray(
+        sol,
+        f"d2_flatten_a_{uuid.uuid4().int}",
+        len(d2_flatten),
+        min(d2_flatten),
+        max(d2_flatten),
+    )
+    for i in range(len(d2_flatten)):
+        sol.add(d2_flatten[i] == d2_flatten_a[i])
 
-  # If x has index set m..n, then a[m-1] holds the initial state
-  # (q0), and a[i+1] holds the state we're in after processing
-  # x[i].  If a[n] is in F, then we succeed (ie. accept the
-  # string).
-  x_range = list(range(0, x_len))
-  m = 0
-  # n = len(x)
-  n = x_len
+    # If x has index set m..n, then a[m-1] holds the initial state
+    # (q0), and a[i+1] holds the state we're in after processing
+    # x[i].  If a[n] is in F, then we succeed (ie. accept the
+    # string).
+    x_range = list(range(0, x_len))
+    m = 0
+    # n = len(x)
+    n = x_len
 
-  a = [makeIntVar(sol, f'a[{i}]_{uuid.uuid4().int}', 0, Q + 1) for i in range(m, n + 1)]
+    a = [
+        makeIntVar(sol, f"a[{i}]_{uuid.uuid4().int}", 0, Q + 1) for i in range(m, n + 1)
+    ]
 
-  # Check that the final state is in F
-  member_of(sol,a[-1],F)
+    # Check that the final state is in F
+    member_of(sol, a[-1], F)
 
-  # First state is q0
-  sol.add(a[m] == q0)
-  for i in x_range:
-    sol.add(x[i] >= 1)
-    sol.add(x[i] <= S)
+    # First state is q0
+    sol.add(a[m] == q0)
+    for i in x_range:
+        sol.add(x[i] >= 1)
+        sol.add(x[i] <= S)
 
-    # Determine a[i+1]: a[i+1] == d2[a[i], x[i]]
-    sol.add(a[i + 1] == d2_flatten_a[(a[i] * S) + (x[i] - 1)])
+        # Determine a[i+1]: a[i+1] == d2[a[i], x[i]]
+        sol.add(a[i + 1] == d2_flatten_a[(a[i] * S) + (x[i] - 1)])
 
 
 # pylint: disable=too-many-positional-arguments,invalid-name
-def regular2(sol: Solver, x: List[ArithRef], Q: int, S: int, d: List[List[int]], q0: int, F: List[int], x_len: int) -> None:
-  """
-  This is the same as regular() but without the Array.
-  Some solvers don't support Array, e.g. QF_FD, so this version might
-  be faster than with the regular().
-  """
+def regular2(
+    sol: Solver,
+    x: List[ArithRef],
+    Q: int,
+    S: int,
+    d: List[List[int]],
+    q0: int,
+    F: List[int],
+    x_len: int,
+) -> None:
+    """
+    This is the same as regular() but without the Array.
+    Some solvers don't support Array, e.g. QF_FD, so this version might
+    be faster than with the regular().
+    """
 
-  assert Q > 0, 'regular: "Q" must be greater than zero'
-  assert S > 0, 'regular: "S" must be greater than zero'
+    assert Q > 0, 'regular: "Q" must be greater than zero'
+    assert S > 0, 'regular: "S" must be greater than zero'
 
-  # d2 is the same as d, except we add one extra transition for
-  # each possible input;  each extra transition is from state zero
-  # to state zero.  This allows us to continue even if we hit a
-  # non-accepted input.
+    # d2 is the same as d, except we add one extra transition for
+    # each possible input;  each extra transition is from state zero
+    # to state zero.  This allows us to continue even if we hit a
+    # non-accepted input.
 
-  # d2[0..Q, 1..S]
-  d2 = []
-  for i in range(Q + 1):
-    row = []
-    for j in range(S):
-      if i == 0:
-        row.append(0)
-      else:
-        row.append(d[i - 1][j])
-    d2.append(row)
+    # d2[0..Q, 1..S]
+    d2 = []
+    for i in range(Q + 1):
+        row = []
+        for j in range(S):
+            if i == 0:
+                row.append(0)
+            else:
+                row.append(d[i - 1][j])
+        d2.append(row)
 
-  d2_flatten = [d2[i][j] for i in range(Q + 1) for j in range(S)]
-  d2_flatten_len = len(d2_flatten)
+    d2_flatten = [d2[i][j] for i in range(Q + 1) for j in range(S)]
+    d2_flatten_len = len(d2_flatten)
 
-  # If x has index set m..n, then a[m-1] holds the initial state
-  # (q0), and a[i+1] holds the state we're in after processing
-  # x[i].  If a[n] is in F, then we succeed (ie. accept the
-  # string).
-  x_range = list(range(0, x_len))
-  m = 0
-  # n = len(x)
-  n = x_len
+    # If x has index set m..n, then a[m-1] holds the initial state
+    # (q0), and a[i+1] holds the state we're in after processing
+    # x[i].  If a[n] is in F, then we succeed (ie. accept the
+    # string).
+    x_range = list(range(0, x_len))
+    m = 0
+    # n = len(x)
+    n = x_len
 
-  a = [makeIntVar(sol, f'a[{i}]_{uuid.uuid4().int}', 0, Q + 1) for i in range(m, n + 1)]
+    a = [
+        makeIntVar(sol, f"a[{i}]_{uuid.uuid4().int}", 0, Q + 1) for i in range(m, n + 1)
+    ]
 
-  # Check that the final state is in F
-  member_of(sol,a[-1],F)
+    # Check that the final state is in F
+    member_of(sol, a[-1], F)
 
-  # First state is q0
-  sol.add(a[m] == q0)
-  for i in x_range:
-    sol.add(x[i] >= 1)
-    sol.add(x[i] <= S)
+    # First state is q0
+    sol.add(a[m] == q0)
+    for i in x_range:
+        sol.add(x[i] >= 1)
+        sol.add(x[i] <= S)
 
-    # Determine a[i+1]: a[i+1] == d2[a[i], x[i]]
-    element(sol,(a[i] * S) + (x[i] - 1), d2_flatten,a[i + 1],d2_flatten_len)
+        # Determine a[i+1]: a[i+1] == d2[a[i], x[i]]
+        element(sol, (a[i] * S) + (x[i] - 1), d2_flatten, a[i + 1], d2_flatten_len)
 
 
 #
@@ -738,11 +963,11 @@ def regular2(sol: Solver, x: List[ArithRef], Q: int, S: int, d: List[List[int]],
 # Ensure that all elements in x (modulo m) are distinct
 #
 def all_different_modulo(sol: Solver, x: List[ArithRef], m: int) -> None:
-  n = len(x)
-  mods = makeIntVector(sol,"mods",n, 0,m-1)
-  for i in range(n):
-     sol.add(mods[i] == x[i] % m)
-  sol.add(Distinct(mods))
+    n = len(x)
+    mods = makeIntVector(sol, "mods", n, 0, m - 1)
+    for i in range(n):
+        sol.add(mods[i] == x[i] % m)
+    sol.add(Distinct(mods))
 
 
 # among(sol,m,x,v)
@@ -750,7 +975,7 @@ def all_different_modulo(sol: Solver, x: List[ArithRef], m: int) -> None:
 # Requires exactly m variables in x to take one of the values in v.
 #
 def among(sol: Solver, m: ArithRef, x: List[ArithRef], v: List[int]) -> None:
-  sol.add(m == Sum([If(x[i] == j,1,0) for i in range(len(x)) for j in v]))
+    sol.add(m == Sum([If(x[i] == j, 1, 0) for i in range(len(x)) for j in v]))
 
 
 # nvalue(sol, m, x, min_val,max_val)
@@ -759,10 +984,19 @@ def among(sol: Solver, m: ArithRef, x: List[ArithRef], v: List[int]) -> None:
 # (min_val and max_val are the minimum and maximum value
 # in x, respectively)
 #
-def nvalue(sol: Solver, m: ArithRef, x: List[ArithRef], min_val: int, max_val: int) -> None:
-  n = len(x)
-  sol.add(m == Sum([ If(Sum([ If(x[j] == i,1,0) for j in range(n)]) > 0,1,0) for i in range(min_val, max_val+1)]))
-
+def nvalue(
+    sol: Solver, m: ArithRef, x: List[ArithRef], min_val: int, max_val: int
+) -> None:
+    n = len(x)
+    sol.add(
+        m
+        == Sum(
+            [
+                If(Sum([If(x[j] == i, 1, 0) for j in range(n)]) > 0, 1, 0)
+                for i in range(min_val, max_val + 1)
+            ]
+        )
+    )
 
 
 #
@@ -776,12 +1010,14 @@ def nvalue(sol: Solver, m: ArithRef, x: List[ArithRef], min_val: int, max_val: i
 # there should be a node from I to J in G. If it's not then
 # both c1 and c2 is not in the clique.
 #
-def clique(sol: Solver, g: List[List[int]], clique: List[ArithRef], card: ArithRef) -> None:
-  n = len(g)
-  sol.add(card == Sum([clique[i] for i in range(n)]))
-  for (c1,i) in zip(clique, range(n)):
-    for (c2,j) in zip(clique, range(n)):
-      sol.add(Implies(And(i != j, g[i][j] == 0), Or(c1 == 0, c2 == 0)))
+def clique(
+    sol: Solver, g: List[List[int]], clique: List[ArithRef], card: ArithRef
+) -> None:
+    n = len(g)
+    sol.add(card == Sum([clique[i] for i in range(n)]))
+    for c1, i in zip(clique, range(n)):
+        for c2, j in zip(clique, range(n)):
+            sol.add(Implies(And(i != j, g[i][j] == 0), Or(c1 == 0, c2 == 0)))
 
 
 #
@@ -791,46 +1027,56 @@ def clique(sol: Solver, g: List[List[int]], clique: List[ArithRef], card: ArithR
 # >= min_dist.
 #
 def all_min_dist(sol: Solver, min_dist: int, x: List[ArithRef], n: int) -> None:
-  for i in range(n):
-    for j in range(i):
-      sol.add(abs_value(x[i]-x[j]) >= min_dist)
+    for i in range(n):
+        for j in range(i):
+            sol.add(abs_value(x[i] - x[j]) >= min_dist)
+
 
 #
 # Ensure that all elements in xs + cst are distinct
 #
 def all_different_cst(sol: Solver, xs: List[ArithRef], cst: List[int]) -> None:
-    sol.add(Distinct([(x + c) for (x,c) in zip(xs,cst)]))
+    sol.add(Distinct([(x + c) for (x, c) in zip(xs, cst)]))
+
 
 #
 # Ensure that the values that are common in x and y are distinct (in each array)
 #
-def all_different_on_intersection(sol: Solver, x: List[ArithRef], y: List[ArithRef]) -> None:
-    _count_a_in_b(sol,x,y)
-    _count_a_in_b(sol,y,x)
+def all_different_on_intersection(
+    sol: Solver, x: List[ArithRef], y: List[ArithRef]
+) -> None:
+    _count_a_in_b(sol, x, y)
+    _count_a_in_b(sol, y, x)
+
 
 # helper for all_different_on_intersection
 def _count_a_in_b(sol: Solver, ass: List[ArithRef], bss: List[ArithRef]) -> None:
     for a in ass:
-        sol.add(Sum([If(a == b,1,0) for b in bss]) <= 1)
+        sol.add(Sum([If(a == b, 1, 0) for b in bss]) <= 1)
 
 
 # all pairs must be different
-def all_different_pairs(sol: Solver, a: Dict[Tuple[int, int], ArithRef], s: int) -> None:
+def all_different_pairs(
+    sol: Solver, a: Dict[Tuple[int, int], ArithRef], s: int
+) -> None:
     sol.add(Distinct(list(pairs(sol, a, s))))
+
 
 # the pairs are in increasing order
 def increasing_pairs(sol: Solver, a: Dict[Tuple[int, int], ArithRef], s: int) -> None:
-    increasing(sol,pairs(sol,a,s))
+    increasing(sol, pairs(sol, a, s))
+
 
 # the pairs are in decreasing order
 def decreasing_pairs(sol: Solver, a: Dict[Tuple[int, int], ArithRef], s: int) -> None:
-    decreasing(sol,pairs(sol,a,s))
+    decreasing(sol, pairs(sol, a, s))
+
 
 # return the pairs of a in the "integer representation": a[k,0]*(n-1) + a[k,1]
 # s is the size of max value of n
 def pairs(sol: Solver, a: Dict[Tuple[int, int], ArithRef], s: int) -> List[ArithRef]:
-    n = len(a)//2
-    return [ a[(k,0)]*(s-1) + a[(k,1)] for k in range(n)]
+    n = len(a) // 2
+    return [a[(k, 0)] * (s - 1) + a[(k, 1)] for k in range(n)]
 
 
 #
@@ -838,50 +1084,70 @@ def pairs(sol: Solver, a: Dict[Tuple[int, int], ArithRef], s: int) -> List[Arith
 #
 # Ensure that all pairs of vectors has >= k different values
 #
-def all_differ_from_at_least_k_pos(sol: Solver, k: int, vectors: List[List[ArithRef]]) -> None:
+def all_differ_from_at_least_k_pos(
+    sol: Solver, k: int, vectors: List[List[ArithRef]]
+) -> None:
     n = len(vectors)
     m = len(vectors[0])
     for i in range(n):
-        for j in range(i+1,n):
-            sol.add(Sum([If(vectors[i][kk] != vectors[j][kk],1,0) for kk in range(m)]) >= k)
+        for j in range(i + 1, n):
+            sol.add(
+                Sum([If(vectors[i][kk] != vectors[j][kk], 1, 0) for kk in range(m)])
+                >= k
+            )
+
 
 #
 # all_differ_from_exact_k_pos(sol, k, vectors)
 #
 # Ensure that all pairs of vectors has exactly k different values
 #
-def all_differ_from_exact_k_pos(sol: Solver, k: int, vectors: List[List[ArithRef]]) -> None:
+def all_differ_from_exact_k_pos(
+    sol: Solver, k: int, vectors: List[List[ArithRef]]
+) -> None:
     n = len(vectors)
     m = len(vectors[0])
     for i in range(n):
-        for j in range(i+1,n):
-            sol.add(Sum([If(vectors[i][kk] != vectors[j][kk],1,0) for kk in range(m)]) == k)
+        for j in range(i + 1, n):
+            sol.add(
+                Sum([If(vectors[i][kk] != vectors[j][kk], 1, 0) for kk in range(m)])
+                == k
+            )
+
 
 #
 # all_differ_from_at_most_k_pos(sol, k, x)
 #
 # Ensure that all pairs of vectors has <= k different values
 #
-def all_differ_from_at_most_k_pos(sol: Solver, k: int, vectors: List[List[ArithRef]]) -> None:
+def all_differ_from_at_most_k_pos(
+    sol: Solver, k: int, vectors: List[List[ArithRef]]
+) -> None:
     n = len(vectors)
     m = len(vectors[0])
     for i in range(n):
-        for j in range(i+1,n):
-            sol.add(Sum([If(vectors[i][kk] != vectors[j][kk],1,0) for kk in range(m)]) <= k)
+        for j in range(i + 1, n):
+            sol.add(
+                Sum([If(vectors[i][kk] != vectors[j][kk], 1, 0) for kk in range(m)])
+                <= k
+            )
+
 
 #
 # all values in x must be equal
 #
 def all_equal(sol: Solver, x: List[ArithRef]) -> None:
-    sol.add(And([x[i] == x[i-1] for i in range(len(x))]))
+    sol.add(And([x[i] == x[i - 1] for i in range(len(x))]))
 
 
 #
 # Ensure that all elements in x are <relop> then val.
 #
-def arith(sol: Solver, x: List[ArithRef], relop: int, val: Union[int, ArithRef]) -> None:
+def arith(
+    sol: Solver, x: List[ArithRef], relop: int, val: Union[int, ArithRef]
+) -> None:
     for i in range(len(x)):
-        arith_relop(sol,x[i],relop, val)
+        arith_relop(sol, x[i], relop, val)
 
 
 #
@@ -889,13 +1155,12 @@ def arith(sol: Solver, x: List[ArithRef], relop: int, val: Union[int, ArithRef])
 # Represents each function as an integer 0..5.
 #
 def arith_relop(sol: Solver, a: ArithRef, t: int, b: Union[int, ArithRef]) -> None:
-    sol.add(Implies(t == 0,a  < b))
-    sol.add(Implies(t == 1,a <= b))
-    sol.add(Implies(t == 2,a == b))
-    sol.add(Implies(t == 3,a >= b))
-    sol.add(Implies(t == 4,a  > b))
-    sol.add(Implies(t == 5,a  != b))
-
+    sol.add(Implies(t == 0, a < b))
+    sol.add(Implies(t == 1, a <= b))
+    sol.add(Implies(t == 2, a == b))
+    sol.add(Implies(t == 3, a >= b))
+    sol.add(Implies(t == 4, a > b))
+    sol.add(Implies(t == 5, a != b))
 
 
 # Some experiments
@@ -929,15 +1194,15 @@ if __name__ == "__main__":
     # test_sol.add(test_v >= 0, test_v <= test_n)
     # count(test_sol,test_v,test_x,test_c)
 
-    test_gcc = IntVector("gcc", test_n+1)
+    test_gcc = IntVector("gcc", test_n + 1)
     for test_i in range(test_n):
-        test_sol.add(test_gcc[test_i] >= 0, test_gcc[test_i] <= test_n+1)
+        test_sol.add(test_gcc[test_i] >= 0, test_gcc[test_i] <= test_n + 1)
     # for test_i in [test_i for test_i in range(test_n)]:
     #     test_nn = Int("nn")
     #     # test_sol.add(test_nn>=0, test_nn<=test_n+1)
     #     count(test_sol,test_i,test_x,test_gcc[test_i])
     #     # test_sol.add(test_gcc[test_i] == test_nn)
-    global_cardinality_count(test_sol, list(range(0, test_n+1)), test_x, test_gcc)
+    global_cardinality_count(test_sol, list(range(0, test_n + 1)), test_x, test_gcc)
 
     # enfore that we should have 2 0s
     # test_sol.add(test_gcc[0] == 1)
@@ -953,20 +1218,19 @@ if __name__ == "__main__":
         test_ss = [test_mod.eval(test_x[test_i]) for test_i in range(test_n)]
         test_cc = test_mod.eval(test_c)
         # test_vv = test_m.eval(test_v)
-        test_gccs = ([test_mod.eval(test_gcc[test_i]) for test_i in range(test_n)])
+        test_gccs = [test_mod.eval(test_gcc[test_i]) for test_i in range(test_n)]
         # print(test_ss, " #0s: ", test_mod.eval(test_cc), " test_v:", test_m.eval(test_v))
         print(test_ss, " #0s: ", test_mod.eval(test_cc), " gcc:", test_gccs)
         test_sol.add(
             Or(
-            Or([test_x[test_i] != test_ss[test_i] for test_i in range(test_n)]),
-            test_cc != test_c
-            , Or([test_gcc[test_i] != test_gccs[test_i] for test_i in range(test_n)]),
-            #, test_vv != test_v
+                Or([test_x[test_i] != test_ss[test_i] for test_i in range(test_n)]),
+                test_cc != test_c,
+                Or([test_gcc[test_i] != test_gccs[test_i] for test_i in range(test_n)]),
+                # , test_vv != test_v
             )
-            )
+        )
 
         print("num_solutions:", num_solutions)
-
 
 
 #
@@ -981,18 +1245,26 @@ if __name__ == "__main__":
 #         x[j] + dx[j] <= x[i] \/ y[j] + dy[j] <= y[i]
 #     );
 #
-def diffn(sol: Solver, x: List[ArithRef], y: List[ArithRef], dx: List[Union[int, ArithRef]], dy: List[Union[int, ArithRef]]) -> None:
+def diffn(
+    sol: Solver,
+    x: List[ArithRef],
+    y: List[ArithRef],
+    dx: List[Union[int, ArithRef]],
+    dy: List[Union[int, ArithRef]],
+) -> None:
     n = len(x)
     for i in range(n):
-        for j in range(i+1,n):
+        for j in range(i + 1, n):
             sol.add(
-                Or([x[i] + dx[i] <= x[j],
-                    y[i] + dy[i] <= y[j],
-                    x[j] + dx[j] <= x[i],
-                    y[j] + dy[j] <= y[i]]
-                   )
+                Or(
+                    [
+                        x[i] + dx[i] <= x[j],
+                        y[i] + dy[i] <= y[j],
+                        x[j] + dx[j] <= x[i],
+                        y[j] + dy[j] <= y[i],
+                    ]
                 )
-
+            )
 
 
 def argmax(s: Solver, x: List[ArithRef], ix: ArithRef, max_val: ArithRef) -> None:
@@ -1004,10 +1276,11 @@ def argmax(s: Solver, x: List[ArithRef], ix: ArithRef, max_val: ArithRef) -> Non
     # max_val must be in x
     s.add(Or([max_val == x[i] for i in range(n)]))
     for i in range(n):
-      # Identify argmax (the index)
-      # s.add(Implies(ix != i, x[i] < max_val))
-      # s.add((ix != i) == (x[i] < max_val))
-      s.add((ix == i) == (x[i] == max_val))
+        # Identify argmax (the index)
+        # s.add(Implies(ix != i, x[i] < max_val))
+        # s.add((ix != i) == (x[i] < max_val))
+        s.add((ix == i) == (x[i] == max_val))
+
 
 def argmin(s: Solver, x: List[ArithRef], ix: ArithRef, min_val: ArithRef) -> None:
     """
@@ -1018,7 +1291,7 @@ def argmin(s: Solver, x: List[ArithRef], ix: ArithRef, min_val: ArithRef) -> Non
     # max_val must be in x
     s.add(Or([min_val == x[i] for i in range(n)]))
     for i in range(n):
-      # Identify argmax (the index)
-      # s.add(Implies(ix != i, x[i] < max_val))
-      # s.add((ix != i) == (x[i] < max_val))
-      s.add((ix == i) == (x[i] == min_val))
+        # Identify argmax (the index)
+        # s.add(Implies(ix != i, x[i] < max_val))
+        # s.add((ix != i) == (x[i] < max_val))
+        s.add((ix == i) == (x[i] == min_val))

@@ -3,6 +3,7 @@
 Users can define nodes with functions and connect them via named edges.
 Execution pushes data along edges; nodes run with per-node parallelism.
 """
+
 from __future__ import annotations
 
 import logging
@@ -55,6 +56,7 @@ class Dataflow:
                 if item is self._sentinel:
                     break
                 collector.append(item)
+
         t = threading.Thread(target=sink, daemon=True)
         self.threads.append(t)
         t.start()
@@ -62,6 +64,7 @@ class Dataflow:
     def run(self) -> None:
         # Start each node thread that pulls from inputs and pushes to outputs
         for node in self.nodes.values():
+
             def node_loop(n: Node = node) -> None:
                 in_qs = [self.queues[qn] for qn in n.inputs]
                 out_qs = [self.queues[qn] for qn in n.outputs]

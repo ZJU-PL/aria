@@ -24,11 +24,14 @@ class Interval:
 
     def __post_init__(self):
         """Normalize the interval after creation."""
-        if (self.lower is not None and self.upper is not None and
-            self.lower > self.upper):
+        if (
+            self.lower is not None
+            and self.upper is not None
+            and self.lower > self.upper
+        ):
             # Invalid interval becomes bottom (empty)
-            object.__setattr__(self, 'lower', QQ(1))
-            object.__setattr__(self, 'upper', QQ(0))
+            object.__setattr__(self, "lower", QQ(1))
+            object.__setattr__(self, "upper", QQ(0))
 
     @staticmethod
     def bottom() -> Interval:
@@ -69,8 +72,7 @@ class Interval:
         """Check if two intervals are equal."""
         if not isinstance(other, Interval):
             return False
-        return (self.lower == other.lower and
-                self.upper == other.upper)
+        return self.lower == other.lower and self.upper == other.upper
 
     def __hash__(self) -> int:
         """Hash function for intervals."""
@@ -88,8 +90,11 @@ class Interval:
 
     def is_bottom(self) -> bool:
         """Check if this interval is empty (⊥)."""
-        return (self.lower is not None and self.upper is not None and
-                self.lower > self.upper)
+        return (
+            self.lower is not None
+            and self.upper is not None
+            and self.lower > self.upper
+        )
 
     def is_top(self) -> bool:
         """Check if this interval is the universal set (⊤)."""
@@ -97,8 +102,11 @@ class Interval:
 
     def is_point(self) -> bool:
         """Check if this interval represents a single point."""
-        return (self.lower is not None and self.upper is not None and
-                self.lower == self.upper)
+        return (
+            self.lower is not None
+            and self.upper is not None
+            and self.lower == self.upper
+        )
 
     def contains(self, x: QQ) -> bool:
         """Check if this interval contains the given rational number."""
@@ -114,7 +122,7 @@ class Interval:
         """Negate the interval."""
         return Interval(
             None if self.upper is None else -self.upper,
-            None if self.lower is None else -self.lower
+            None if self.lower is None else -self.lower,
         )
 
     def __add__(self, other: Interval) -> Interval:
@@ -194,22 +202,22 @@ class Interval:
             # Handle case where interval crosses zero (should return top)
             if self.lower < 0 < self.upper:
                 return Interval.top()
-            return Interval(QQ(1)/self.upper, QQ(1)/self.lower)
+            return Interval(QQ(1) / self.upper, QQ(1) / self.lower)
 
         # Handle infinite bounds
         if self.lower is None:
             if self.upper is not None:
                 if self.upper > 0:
-                    return Interval(QQ(0), QQ(1)/self.upper)
+                    return Interval(QQ(0), QQ(1) / self.upper)
                 else:
-                    return Interval(QQ(1)/self.upper, QQ(0))
+                    return Interval(QQ(1) / self.upper, QQ(0))
             return Interval.top()
         if self.upper is None:
             if self.lower is not None:
                 if self.lower > 0:
-                    return Interval(QQ(1)/self.lower, QQ(0))
+                    return Interval(QQ(1) / self.lower, QQ(0))
                 else:
-                    return Interval(QQ(0), QQ(1)/self.lower)
+                    return Interval(QQ(0), QQ(1) / self.lower)
             return Interval.top()
 
         return Interval.top()
@@ -282,7 +290,7 @@ class Interval:
             base = self.lower if self.lower is not None else QQ(0)
             exponent = other.lower if other.lower is not None else QQ(0)
             try:
-                result = base ** exponent
+                result = base**exponent
                 return Interval(result, result)
             except:
                 return Interval.top()
@@ -306,17 +314,20 @@ class Interval:
                 return Interval(QQ(0), QQ(0))
 
             import math
+
             lower_sqrt = math.sqrt(float(self.lower)) if self.lower is not None else 0
-            upper_sqrt = math.sqrt(float(self.upper)) if self.upper is not None else float('inf')
+            upper_sqrt = (
+                math.sqrt(float(self.upper)) if self.upper is not None else float("inf")
+            )
             return Interval(QQ(lower_sqrt), QQ(upper_sqrt))
 
         # Handle infinite bounds
         if self.lower is None:
-            return Interval(QQ(0), QQ(float('inf')))
+            return Interval(QQ(0), QQ(float("inf")))
         if self.upper is None:
-            return Interval(QQ(0), QQ(float('inf')))
+            return Interval(QQ(0), QQ(float("inf")))
 
-        return Interval(QQ(0), QQ(float('inf')))
+        return Interval(QQ(0), QQ(float("inf")))
 
     def abs(self) -> Interval:
         """Compute absolute value of interval."""

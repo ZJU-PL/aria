@@ -12,17 +12,60 @@ from enum import Enum
 
 try:
     import z3
+
     Z3_AVAILABLE = True
 except ImportError:
     z3 = None
     Z3_AVAILABLE = False
 
 from aria.srk.syntax import (
-    Context, Symbol, Type, Expression, Var, Const, Add, Mul, Eq, Lt, Leq, And, Or, Not,
-    TrueExpr, FalseExpr, Ite, Forall, Exists, App, Select, Store, mk_real, mk_true, mk_false,
-    mk_eq, mk_leq, mk_lt, mk_not, mk_and, mk_or, mk_ite, mk_add, mk_mul,
-    mk_div, mk_mod, mk_floor, mk_neg, mk_const, mk_var, mk_symbol, typ_symbol,
-    int_of_symbol, symbol_of_int, symbols, mk_exists, mk_forall
+    Context,
+    Symbol,
+    Type,
+    Expression,
+    Var,
+    Const,
+    Add,
+    Mul,
+    Eq,
+    Lt,
+    Leq,
+    And,
+    Or,
+    Not,
+    TrueExpr,
+    FalseExpr,
+    Ite,
+    Forall,
+    Exists,
+    App,
+    Select,
+    Store,
+    mk_real,
+    mk_true,
+    mk_false,
+    mk_eq,
+    mk_leq,
+    mk_lt,
+    mk_not,
+    mk_and,
+    mk_or,
+    mk_ite,
+    mk_add,
+    mk_mul,
+    mk_div,
+    mk_mod,
+    mk_floor,
+    mk_neg,
+    mk_const,
+    mk_var,
+    mk_symbol,
+    typ_symbol,
+    int_of_symbol,
+    symbol_of_int,
+    symbols,
+    mk_exists,
+    mk_forall,
 )
 from aria.srk.interpretation import Interpretation, InterpretationValue
 from aria.srk.qQ import QQ
@@ -31,6 +74,7 @@ from aria.srk.log import logf
 
 class Z3Result(Enum):
     """Result of Z3 query."""
+
     SAT = "sat"
     UNSAT = "unsat"
     UNKNOWN = "unknown"
@@ -57,8 +101,9 @@ def qq_val(z3_expr) -> Fraction:
     """Convert Z3 rational value to QQ fraction."""
     if not Z3_AVAILABLE:
         raise ImportError("Z3 is not available")
-    if (hasattr(z3_expr, 'is_int') and z3_expr.is_int()) or \
-       (hasattr(z3_expr, 'is_rational') and z3_expr.is_rational()):
+    if (hasattr(z3_expr, "is_int") and z3_expr.is_int()) or (
+        hasattr(z3_expr, "is_rational") and z3_expr.is_rational()
+    ):
         return QQ.of_string(str(z3_expr))
     raise ValueError("qq_val: not a numeral")
 
@@ -68,13 +113,13 @@ def typ_of_sort(sort) -> Type:
     if not Z3_AVAILABLE:
         raise ImportError("Z3 is not available")
 
-    if str(sort) == 'Int':
+    if str(sort) == "Int":
         return Type.INT
-    elif str(sort) == 'Real':
+    elif str(sort) == "Real":
         return Type.REAL
-    elif str(sort) == 'Bool':
+    elif str(sort) == "Bool":
         return Type.BOOL
-    elif 'Array' in str(sort):
+    elif "Array" in str(sort):
         return Type.ARRAY
     else:
         raise ValueError(f"typ_of_sort: unsupported sort {sort}")
@@ -94,7 +139,9 @@ def sort_of_typ(z3_ctx, typ: Type) -> Any:
     if typ in type_map:
         return type_map[typ](z3_ctx)
     elif typ == Type.ARRAY:
-        return z3.ArraySort(z3_ctx, sort_of_typ(z3_ctx, Type.INT), sort_of_typ(z3_ctx, Type.INT))
+        return z3.ArraySort(
+            z3_ctx, sort_of_typ(z3_ctx, Type.INT), sort_of_typ(z3_ctx, Type.INT)
+        )
     raise ValueError(f"sort_of_typ: unsupported type {typ}")
 
 
@@ -128,9 +175,11 @@ class Z3Model:
                 raise ValueError(f"Cannot evaluate symbol {symbol}")
         elif symbol_type == Type.BOOL:
             sort = sort_of_typ(self.z3_model.ctx, symbol_type)
-            z3_symbol = z3.FuncDecl.mk_const_decl(self.z3_model.ctx,
-                                                  z3.Symbol.mk_int(self.z3_model.ctx, int_of_symbol(symbol)),
-                                                  sort)
+            z3_symbol = z3.FuncDecl.mk_const_decl(
+                self.z3_model.ctx,
+                z3.Symbol.mk_int(self.z3_model.ctx, int_of_symbol(symbol)),
+                sort,
+            )
             z3_expr = z3.Expr.mk_const_f(self.z3_model.ctx, z3_symbol)
             try:
                 result = self.z3_model.eval(z3_expr, True)
@@ -166,16 +215,17 @@ class SrkZ3:
         """Create Z3 function declaration for SRK symbol."""
         symbol_type = typ_symbol(symbol)
         if symbol_type in (Type.INT, Type.REAL, Type.BOOL, Type.ARRAY):
-            raise ValueError(f"decl_of_symbol: not a function symbol, got {symbol_type}")
+            raise ValueError(
+                f"decl_of_symbol: not a function symbol, got {symbol_type}"
+            )
 
-        if isinstance(symbol_type, tuple) and symbol_type[0] == 'TyFun':
+        if isinstance(symbol_type, tuple) and symbol_type[0] == "TyFun":
             params, ret_type = symbol_type[1], symbol_type[2]
             param_sorts = [sort_of_typ(self.z3_ctx, p) for p in params]
             return_sort = sort_of_typ(self.z3_ctx, ret_type)
-            return z3.FuncDecl.mk_func_decl(self.z3_ctx,
-                                           self.z3_of_symbol(symbol),
-                                           param_sorts,
-                                           return_sort)
+            return z3.FuncDecl.mk_func_decl(
+                self.z3_ctx, self.z3_of_symbol(symbol), param_sorts, return_sort
+            )
         else:
             raise ValueError(f"decl_of_symbol: invalid function type {symbol_type}")
 
@@ -208,8 +258,9 @@ class SrkZ3:
         elif isinstance(expr, Var):
             # Variables need special handling - they should be bound variables
             # For now, treat as integer variables
-            return z3.Quantifier.mk_bound(self.z3_ctx, expr.var_id,
-                                         sort_of_typ(self.z3_ctx, expr.var_type))
+            return z3.Quantifier.mk_bound(
+                self.z3_ctx, expr.var_id, sort_of_typ(self.z3_ctx, expr.var_type)
+            )
         elif isinstance(expr, Add):
             if not expr.args:
                 return z3.IntVal(0, self.z3_ctx)
@@ -244,7 +295,7 @@ class SrkZ3:
         elif isinstance(expr, (TrueExpr, FalseExpr, And, Or, Not, Eq, Lt, Leq)):
             # These are formula expressions - convert using z3_of_formula
             return self.z3_of_formula(expr)
-        elif hasattr(expr, 'left') and hasattr(expr, 'right'):
+        elif hasattr(expr, "left") and hasattr(expr, "right"):
             # Handle binary operations generically
             left = self._z3_of_expr(expr.left)
             right = self._z3_of_expr(expr.right)
@@ -257,23 +308,25 @@ class SrkZ3:
             else:
                 # Try to convert as formula
                 return self.z3_of_formula(expr)
-        elif hasattr(expr, 'args') and hasattr(expr, 'symbol'):
+        elif hasattr(expr, "args") and hasattr(expr, "symbol"):
             # Handle n-ary operations generically
             if not expr.args:
                 return self.get_z3_symbol(expr.symbol)
             else:
                 # Try to determine operation type from symbol name or type
-                symbol_name = str(expr.symbol) if hasattr(expr.symbol, '__str__') else ""
-                if 'add' in symbol_name.lower() or '+' in symbol_name:
+                symbol_name = (
+                    str(expr.symbol) if hasattr(expr.symbol, "__str__") else ""
+                )
+                if "add" in symbol_name.lower() or "+" in symbol_name:
                     args_z3 = [self._z3_of_expr(arg) for arg in expr.args]
                     return z3.Arithmetic.mk_add(self.z3_ctx, args_z3)
-                elif 'mul' in symbol_name.lower() or '*' in symbol_name:
+                elif "mul" in symbol_name.lower() or "*" in symbol_name:
                     args_z3 = [self._z3_of_expr(arg) for arg in expr.args]
                     return z3.Arithmetic.mk_mul(self.z3_ctx, args_z3)
-                elif 'and' in symbol_name.lower():
+                elif "and" in symbol_name.lower():
                     args_z3 = [self.z3_of_formula(arg) for arg in expr.args]
                     return z3.Boolean.mk_and(self.z3_ctx, args_z3)
-                elif 'or' in symbol_name.lower():
+                elif "or" in symbol_name.lower():
                     args_z3 = [self.z3_of_formula(arg) for arg in expr.args]
                     return z3.Boolean.mk_or(self.z3_ctx, args_z3)
                 else:
@@ -284,9 +337,11 @@ class SrkZ3:
         else:
             # Try to provide more helpful error messages
             expr_type = type(expr).__name__
-            if hasattr(expr, '__str__'):
+            if hasattr(expr, "__str__"):
                 expr_str = str(expr)[:100]  # Truncate long expressions
-                raise NotImplementedError(f"Unsupported expression type {expr_type}: {expr_str}")
+                raise NotImplementedError(
+                    f"Unsupported expression type {expr_type}: {expr_str}"
+                )
             else:
                 raise NotImplementedError(f"Unsupported expression type {expr_type}")
 
@@ -350,14 +405,17 @@ class SrkZ3:
                 return z3.Expr.mk_app(self.z3_ctx, decl, args)
         elif isinstance(formula, Var):
             # Variables in formulas are boolean variables
-            return z3.Quantifier.mk_bound(self.z3_ctx, formula.var_id,
-                                         sort_of_typ(self.z3_ctx, Type.BOOL))
+            return z3.Quantifier.mk_bound(
+                self.z3_ctx, formula.var_id, sort_of_typ(self.z3_ctx, Type.BOOL)
+            )
         else:
             # Try to provide more helpful error messages
             formula_type = type(formula).__name__
-            if hasattr(formula, '__str__'):
+            if hasattr(formula, "__str__"):
                 formula_str = str(formula)[:100]  # Truncate long expressions
-                raise NotImplementedError(f"Unsupported formula type {formula_type}: {formula_str}")
+                raise NotImplementedError(
+                    f"Unsupported formula type {formula_type}: {formula_str}"
+                )
             else:
                 raise NotImplementedError(f"Unsupported formula type {formula_type}")
 
@@ -411,7 +469,10 @@ class SrkZ3:
                         srk_expr = self._expr_of_z3(z3_expr)
                         core.append(srk_expr)
                     except Exception as e:
-                        logf(f"get_unsat_core: failed to convert expression: {e}", level="warn")
+                        logf(
+                            f"get_unsat_core: failed to convert expression: {e}",
+                            level="warn",
+                        )
                 return core
             except Exception as e:
                 logf(f"get_unsat_core: failed to get unsat core: {e}", level="warn")
@@ -433,7 +494,7 @@ class SrkZ3:
 
             # Apply simplify tactic first to clean up the formula
             try:
-                simplify_tactic = z3.Tactic('simplify')
+                simplify_tactic = z3.Tactic("simplify")
                 simplified = simplify_tactic(z3_formula)
                 if simplified and len(simplified) > 0:
                     z3_formula = simplified[0]
@@ -442,26 +503,30 @@ class SrkZ3:
 
             # Try qe2 first (more modern and efficient)
             try:
-                qe2_tactic = z3.Tactic('qe2')
+                qe2_tactic = z3.Tactic("qe2")
                 result = qe2_tactic(z3_formula)
                 if result and len(result) > 0:
                     # Check if result is valid and different from input
                     if len(result) == 1:
                         result_expr = result[0]
-                        if not result_expr.is_false() and str(result_expr) != str(z3_formula):
+                        if not result_expr.is_false() and str(result_expr) != str(
+                            z3_formula
+                        ):
                             return self._expr_of_z3(result_expr)
             except Exception as e:
                 logf(f"qe2 tactic failed, trying qe: {e}", level="debug")
 
             # Fallback to qe tactic
             try:
-                qe_tactic = z3.Tactic('qe')
+                qe_tactic = z3.Tactic("qe")
                 result = qe_tactic(z3_formula)
                 if result and len(result) > 0:
                     # Check if result is valid and different from input
                     if len(result) == 1:
                         result_expr = result[0]
-                        if not result_expr.is_false() and str(result_expr) != str(z3_formula):
+                        if not result_expr.is_false() and str(result_expr) != str(
+                            z3_formula
+                        ):
                             return self._expr_of_z3(result_expr)
             except Exception as e:
                 logf(f"qe tactic failed: {e}", level="debug")
@@ -477,18 +542,19 @@ class SrkZ3:
         """Check if an SRK expression has quantifiers."""
         if isinstance(formula, (Forall, Exists)):
             return True
-        elif hasattr(formula, 'args'):
+        elif hasattr(formula, "args"):
             # Check recursively in arguments
             for arg in formula.args:
                 if self._has_quantifiers_srk(arg):
                     return True
-        elif hasattr(formula, 'body'):
+        elif hasattr(formula, "body"):
             # Check body of quantified formulas
             return self._has_quantifiers_srk(formula.body)
         return False
 
-
-    def get_array_model(self, array_symbol: Symbol) -> Optional[Dict[Expression, Expression]]:
+    def get_array_model(
+        self, array_symbol: Symbol
+    ) -> Optional[Dict[Expression, Expression]]:
         """Get array model for a given array symbol."""
         if not Z3_AVAILABLE or self.check_sat() != Z3Result.SAT:
             return None
@@ -513,7 +579,9 @@ class SrkZ3:
             for i in range(100):  # Sample first 100 indices
                 try:
                     idx_val = z3.IntVal(i, self.z3_ctx)
-                    elem_val = z3_model.eval(z3.Select(z3_array_val, idx_val), model_completion=True)
+                    elem_val = z3_model.eval(
+                        z3.Select(z3_array_val, idx_val), model_completion=True
+                    )
 
                     # Convert Z3 values back to SRK expressions
                     idx_expr = self._expr_of_z3(idx_val)
@@ -529,14 +597,16 @@ class SrkZ3:
             logf(f"get_array_model: failed: {e}", level="warn")
             return None
 
-    def get_function_model(self, func_symbol: Symbol) -> Optional[Dict[Tuple[Expression, ...], Expression]]:
+    def get_function_model(
+        self, func_symbol: Symbol
+    ) -> Optional[Dict[Tuple[Expression, ...], Expression]]:
         """Get function model for a given function symbol."""
         if not Z3_AVAILABLE or self.check_sat() != Z3Result.SAT:
             return None
 
         try:
             symbol_type = typ_symbol(func_symbol)
-            if not isinstance(symbol_type, tuple) or symbol_type[0] != 'TyFun':
+            if not isinstance(symbol_type, tuple) or symbol_type[0] != "TyFun":
                 raise ValueError(f"Symbol {func_symbol} is not a function")
 
             # Get the Z3 model
@@ -581,7 +651,6 @@ class SrkZ3:
         except Exception as e:
             logf(f"get_function_model: failed: {e}", level="warn")
             return None
-
 
     def _expr_of_z3(self, z3_expr) -> Expression:
         """Internal conversion from Z3 to SRK."""
@@ -844,7 +913,9 @@ class SrkZ3:
                     op_sym = mk_symbol(self.srk_context, op_name, Type.REAL)
                     return App(self.srk_context, op_sym, args)
                 except Exception as e:
-                    raise NotImplementedError(f"Unsupported Z3 operator {decl_kind}: {e}")
+                    raise NotImplementedError(
+                        f"Unsupported Z3 operator {decl_kind}: {e}"
+                    )
 
         elif ast_kind == z3.NUMERAL_AST:
             # Rational constant
@@ -865,15 +936,15 @@ class SrkZ3:
             bound_sorts = z3.Quantifier.get_bound_variable_sorts(quantifier)
 
             if z3.Quantifier.is_existential(quantifier):
-                qt = 'Exists'
+                qt = "Exists"
             else:
-                qt = 'Forall'
+                qt = "Forall"
 
             # For simplicity, handle only single variable quantification
             if len(bound_names) == 1 and len(bound_sorts) == 1:
                 name = z3.Symbol.to_string(bound_names[0])
                 typ = typ_of_sort(bound_sorts[0])
-                if qt == 'Exists':
+                if qt == "Exists":
                     return mk_exists(self.srk_context, name, typ, body)
                 else:
                     return mk_forall(self.srk_context, name, typ, body)
@@ -884,7 +955,7 @@ class SrkZ3:
                 for name, sort in reversed(list(zip(bound_names, bound_sorts))):
                     var_name = z3.Symbol.to_string(name)
                     var_typ = typ_of_sort(sort)
-                    if qt == 'Exists':
+                    if qt == "Exists":
                         result = mk_exists(self.srk_context, var_name, var_typ, result)
                     else:
                         result = mk_forall(self.srk_context, var_name, var_typ, result)
@@ -905,7 +976,10 @@ class SrkZ3:
 
         elif ast_kind == z3.UNKNOWN_AST:
             # Unknown AST - try to handle gracefully
-            logf(f"_expr_of_z3: encountered unknown AST, returning conservative approximation", level="warn")
+            logf(
+                f"_expr_of_z3: encountered unknown AST, returning conservative approximation",
+                level="warn",
+            )
             return mk_true(self.srk_context)
 
         else:
@@ -917,16 +991,22 @@ class SrkZ3:
                     if z3.Symbol.is_int(name):
                         return symbol_of_int(z3.Symbol.get_int(name))
                     else:
-                        return mk_symbol(self.srk_context, z3.Symbol.to_string(name), Type.REAL)
+                        return mk_symbol(
+                            self.srk_context, z3.Symbol.to_string(name), Type.REAL
+                        )
                 else:
                     return mk_true(self.srk_context)
             except Exception as e:
                 # Try to provide more context about the Z3 expression
                 try:
                     expr_str = str(z3_expr)[:100]  # Truncate long expressions
-                    raise NotImplementedError(f"Unsupported Z3 AST kind {ast_kind} ({expr_str}): {e}")
+                    raise NotImplementedError(
+                        f"Unsupported Z3 AST kind {ast_kind} ({expr_str}): {e}"
+                    )
                 except:
-                    raise NotImplementedError(f"Unsupported Z3 AST kind {ast_kind}: {e}")
+                    raise NotImplementedError(
+                        f"Unsupported Z3 AST kind {ast_kind}: {e}"
+                    )
 
 
 def z3_of_formula(srk_ctx: Context, z3_ctx: SrkZ3, formula: Expression) -> z3.ExprRef:
@@ -946,8 +1026,14 @@ def load_smtlib2(srk_ctx: Context, smtlib2_content: str) -> None:
 
     # Parse SMT-LIB2 content and convert to SRK expressions
     try:
-        ast = z3.SMT.parse_smtlib2_string(srk_ctx.z3_ctx if hasattr(srk_ctx, 'z3_ctx') else z3.Context(),
-                                         smtlib2_content, [], [], [], [])
+        ast = z3.SMT.parse_smtlib2_string(
+            srk_ctx.z3_ctx if hasattr(srk_ctx, "z3_ctx") else z3.Context(),
+            smtlib2_content,
+            [],
+            [],
+            [],
+            [],
+        )
         for expr in z3.AST.ASTVector.to_expr_list(ast):
             srk_expr = formula_of_z3(srk_ctx, None, expr)
             # Add the expression to the context (this would need proper implementation)
@@ -984,7 +1070,9 @@ def get_model(srk_ctx: Context, formulas: List[Expression]) -> Optional[Z3Model]
     return None
 
 
-def get_concrete_model(srk_ctx: Context, formulas: List[Expression]) -> Optional[Interpretation]:
+def get_concrete_model(
+    srk_ctx: Context, formulas: List[Expression]
+) -> Optional[Interpretation]:
     """Get a concrete model for satisfiable formulas."""
     z3_ctx = make_z3_context(srk_ctx)
 
@@ -997,6 +1085,7 @@ def get_concrete_model(srk_ctx: Context, formulas: List[Expression]) -> Optional
             # Convert Z3 model to SRK interpretation
             # This is a simplified implementation
             symbols = []
+
             def get_value(symbol):
                 try:
                     z3_model_value = model.get_value(symbol)
@@ -1008,7 +1097,9 @@ def get_concrete_model(srk_ctx: Context, formulas: List[Expression]) -> Optional
     return None
 
 
-def optimize_box(srk_ctx: Context, formula: Expression, objectives: List[Expression]) -> Tuple[Z3Result, List[Expression]]:
+def optimize_box(
+    srk_ctx: Context, formula: Expression, objectives: List[Expression]
+) -> Tuple[Z3Result, List[Expression]]:
     """Optimize a box (interval) for given objectives."""
     if not Z3_AVAILABLE:
         raise ImportError("Z3 is not available")
@@ -1061,8 +1152,6 @@ def quantifier_elimination(srk_ctx: Context, formula: Expression) -> Expression:
     return z3_ctx.quantifier_elimination(formula)
 
 
-
-
 def get_unsat_core(srk_ctx: Context, formulas: List[Expression]) -> List[Expression]:
     """Get unsat core for a list of formulas."""
     z3_ctx = make_z3_context(srk_ctx)
@@ -1073,7 +1162,9 @@ def get_unsat_core(srk_ctx: Context, formulas: List[Expression]) -> List[Express
     return z3_ctx.get_unsat_core()
 
 
-def incremental_solve(srk_ctx: Context, formulas: List[Expression]) -> Tuple[Z3Result, Optional[Z3Model]]:
+def incremental_solve(
+    srk_ctx: Context, formulas: List[Expression]
+) -> Tuple[Z3Result, Optional[Z3Model]]:
     """Solve formulas incrementally with push/pop support."""
     z3_ctx = make_z3_context(srk_ctx)
 
@@ -1086,7 +1177,10 @@ def incremental_solve(srk_ctx: Context, formulas: List[Expression]) -> Tuple[Z3R
         if result == Z3Result.UNSAT:
             # Get unsat core for debugging
             core = z3_ctx.get_unsat_core()
-            logf(f"incremental_solve: UNSAT after adding formula {i}, core: {len(core)} expressions", level="info")
+            logf(
+                f"incremental_solve: UNSAT after adding formula {i}, core: {len(core)} expressions",
+                level="info",
+            )
             return result, None
         elif result == Z3Result.UNKNOWN:
             logf(f"incremental_solve: UNKNOWN after adding formula {i}", level="warn")
@@ -1097,7 +1191,9 @@ def incremental_solve(srk_ctx: Context, formulas: List[Expression]) -> Tuple[Z3R
     return Z3Result.SAT, model
 
 
-def prove_implication(srk_ctx: Context, hypothesis: Expression, conclusion: Expression) -> bool:
+def prove_implication(
+    srk_ctx: Context, hypothesis: Expression, conclusion: Expression
+) -> bool:
     """Prove that hypothesis implies conclusion."""
     z3_ctx = make_z3_context(srk_ctx)
 
@@ -1110,7 +1206,9 @@ def prove_implication(srk_ctx: Context, hypothesis: Expression, conclusion: Expr
     return result == Z3Result.UNSAT
 
 
-def find_counterexample(srk_ctx: Context, hypothesis: Expression, conclusion: Expression) -> Optional[Z3Model]:
+def find_counterexample(
+    srk_ctx: Context, hypothesis: Expression, conclusion: Expression
+) -> Optional[Z3Model]:
     """Find a counterexample where hypothesis is true but conclusion is false."""
     z3_ctx = make_z3_context(srk_ctx)
 
@@ -1151,7 +1249,7 @@ class CHCSolver:
     def register_relation(self, symbol: Symbol) -> None:
         """Register a relation symbol."""
         symbol_type = typ_symbol(self.srk_ctx, symbol)
-        if isinstance(symbol_type, tuple) and symbol_type[0] == 'TyFun':
+        if isinstance(symbol_type, tuple) and symbol_type[0] == "TyFun":
             decl = self._decl_of_symbol(symbol)
             self.fp.register_relation(decl)
             self.head_relations.add(symbol)

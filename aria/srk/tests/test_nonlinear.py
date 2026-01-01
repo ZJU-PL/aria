@@ -4,8 +4,15 @@ Tests for the nonlinear arithmetic module.
 
 import unittest
 from aria.srk.nonlinear import (
-    SymbolicInterval, NonlinearOperations, ensure_symbols,
-    mk_log, mk_pow, linearize, uninterpret, interpret, optimize_box
+    SymbolicInterval,
+    NonlinearOperations,
+    ensure_symbols,
+    mk_log,
+    mk_pow,
+    linearize,
+    uninterpret,
+    interpret,
+    optimize_box,
 )
 from aria.srk.syntax import mk_real
 from aria.srk.syntax import Context, Type
@@ -134,5 +141,5 @@ class TestNonlinear(unittest.TestCase):
         self.assertTrue(callable(optimize_box))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

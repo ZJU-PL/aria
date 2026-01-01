@@ -17,16 +17,18 @@ from dataclasses import dataclass
 Symbol = str
 Number = Union[int, float]
 Atom = Union[Symbol, Number]
-SExpr = Union[Atom, List['SExpr']]
+SExpr = Union[Atom, List["SExpr"]]
 
 
 class SExprParser:
     """
     A class for parsing and manipulating S-expressions.
     """
+
     @dataclass
     class ParseError(Exception):
         """Exception raised for S-expression parsing errors."""
+
         message: str
         position: int
         expression: str
@@ -49,10 +51,12 @@ class SExprParser:
             >>> SExprParser.tokenize("(+ 1 2)")
             ['(', '+', '1', '2', ')']
         """
-        return (expression.replace('(', ' ( ')
-                .replace(')', ' ) ')
-                .replace('" "', 'space')
-                .split())
+        return (
+            expression.replace("(", " ( ")
+            .replace(")", " ) ")
+            .replace('" "', "space")
+            .split()
+        )
 
     @classmethod
     def parse(cls, expression: str) -> Optional[SExpr]:
@@ -81,7 +85,7 @@ class SExprParser:
                 raise cls.ParseError(
                     "Unexpected trailing tokens",
                     len(tokens) - len(remaining),
-                    expression
+                    expression,
                 )
             return result
         except (IndexError, ValueError) as e:
@@ -105,16 +109,16 @@ class SExprParser:
         token = tokens[0]
         remaining = tokens[1:]
 
-        if token == '(':
+        if token == "(":
             lst: List[SExpr] = []
-            while remaining and remaining[0] != ')':
+            while remaining and remaining[0] != ")":
                 expr, remaining = cls._parse_tokens(remaining, depth + 1)
                 lst.append(expr)
             if not remaining:
                 raise ValueError("Missing closing parenthesis")
             return lst, remaining[1:]  # Skip closing paren
 
-        if token == ')':
+        if token == ")":
             raise ValueError("Unexpected closing parenthesis")
 
         return cls.parse_atom(token), remaining
@@ -223,6 +227,5 @@ class SExprParser:
                 cls._validate_sexpr(item)
             return
         raise TypeError(
-            f"Invalid SExpr type: {type(expr)}. "
-            f"Expected int, float, str, or list."
+            f"Invalid SExpr type: {type(expr)}. " f"Expected int, float, str, or list."
         )

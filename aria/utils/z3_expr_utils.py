@@ -131,14 +131,14 @@ def get_atoms(expr: z3.BoolRef) -> Set[z3.BoolRef]:
         a_set.add(exp)
 
     # convert to NNF and then look for preds
-    exp = z3.Tactic('nnf')(expr).as_expr()
+    exp = z3.Tactic("nnf")(expr).as_expr()
     # exp = z3.Then('simplify', 'nnf')(expr).as_expr() # shoud we do this?
     get_preds_(exp)
     return a_set
 
 
 def to_smtlib2(expr: z3.BoolRef) -> str:
-    """"
+    """ "
     To SMT-LIB2 string
     """
     sol = z3.Solver()
@@ -158,7 +158,7 @@ def is_function_symbol(exp: z3.ExprRef) -> bool:
         # predicate symbol
         return False
 
-    if func.name().lower() == 'if':
+    if func.name().lower() == "if":
         return False
 
     return True
@@ -189,12 +189,14 @@ def skolemize(exp: z3.ExprRef) -> z3.ExprRef:
     """
     goal = z3.Goal()
     goal.add(exp)
-    tactic = z3.Tactic('snf')
+    tactic = z3.Tactic("snf")
     res = tactic(goal)
     return res.as_expr()
 
 
-def z3_quantifier_alternations(e: z3.ExprRef) -> Iterator[Tuple[z3.SortRef, z3.SortRef]]:
+def z3_quantifier_alternations(
+    e: z3.ExprRef,
+) -> Iterator[Tuple[z3.SortRef, z3.SortRef]]:
     """
     Analyze quantifier alternations in a Z3 expression by examining Skolem functions.
 
@@ -252,7 +254,7 @@ def negate(fml: z3.ExprRef) -> z3.ExprRef:
 
 def ctx_simplify(exp: z3.ExprRef):
     """Perform complex simplifications (can be slow)"""
-    return z3.Tactic('ctx-solver-simplify')(exp).as_expr()
+    return z3.Tactic("ctx-solver-simplify")(exp).as_expr()
 
 
 def is_expr_var(exp) -> bool:
@@ -320,8 +322,15 @@ def is_term(exp) -> bool:
     return not z3.is_bool(exp) and all(is_term(c) for c in exp.children())
 
 
-CONNECTIVE_OPS = [z3.Z3_OP_NOT, z3.Z3_OP_AND, z3.Z3_OP_OR, z3.Z3_OP_IMPLIES,
-                  z3.Z3_OP_IFF, z3.Z3_OP_ITE, z3.Z3_OP_XOR]
+CONNECTIVE_OPS = [
+    z3.Z3_OP_NOT,
+    z3.Z3_OP_AND,
+    z3.Z3_OP_OR,
+    z3.Z3_OP_IMPLIES,
+    z3.Z3_OP_IFF,
+    z3.Z3_OP_ITE,
+    z3.Z3_OP_XOR,
+]
 
 
 def is_atom(exp) -> bool:
@@ -340,8 +349,11 @@ def is_atom(exp) -> bool:
     if is_expr_var(exp):
         return True
 
-    return z3.is_app(exp) and exp.decl().kind() not in CONNECTIVE_OPS and \
-        all(is_term(c) for c in exp.children())
+    return (
+        z3.is_app(exp)
+        and exp.decl().kind() not in CONNECTIVE_OPS
+        and all(is_term(c) for c in exp.children())
+    )
 
 
 def is_pos_lit(fml) -> bool:
@@ -486,7 +498,7 @@ class FormulaInfo:
 
     def has_quantifier(self):
         if self._has_quantifier is None:  # Only compute if not cached
-            self._has_quantifier = self.apply_probe('has-quantifiers')
+            self._has_quantifier = self.apply_probe("has-quantifiers")
         return self._has_quantifier
 
     def logic_has_bv(self):
@@ -502,21 +514,20 @@ class FormulaInfo:
             bool: True if the formula contains the specified theory
         """
         try:
-            if theory_name.lower() == 'array':
-                return self.apply_probe('has-arrays')
-            if theory_name.lower() == 'fp':
-                return self.apply_probe('has-fp')
-            if theory_name.lower() == 'string':
+            if theory_name.lower() == "array":
+                return self.apply_probe("has-arrays")
+            if theory_name.lower() == "fp":
+                return self.apply_probe("has-fp")
+            if theory_name.lower() == "string":
                 # Probe for string-related functions or constants
                 result = False
                 goal = z3.Goal()
                 goal.add(self.formula)
-                string_indicators = ['str.', 'seq.', 'string']
+                string_indicators = ["str.", "seq.", "string"]
                 sexpr = goal.sexpr()
                 return any(indicator in sexpr for indicator in string_indicators)
-            if theory_name.lower() == 'bv':
-                return (self.apply_probe('has-bit2bool') or
-                        self.apply_probe('is-qfbv'))
+            if theory_name.lower() == "bv":
+                return self.apply_probe("has-bit2bool") or self.apply_probe("is-qfbv")
             return False
         except Exception:
             return False
@@ -558,10 +569,10 @@ class FormulaInfo:
 
         try:
             # Detect theories present in the formula
-            has_arrays = self.has_theory('array')
-            has_fp = self.has_theory('fp')
-            has_strings = self.has_theory('string')
-            has_bv = self.has_theory('bv')
+            has_arrays = self.has_theory("array")
+            has_fp = self.has_theory("fp")
+            has_strings = self.has_theory("string")
+            has_bv = self.has_theory("bv")
 
             # Base logic string
             logic_str = ""
@@ -625,7 +636,9 @@ class FormulaInfo:
                 theories.append("S")
 
             # Check for uninterpreted functions
-            if self.apply_probe("has-uninterpreted-functions") or self.apply_probe("is-propositional"):
+            if self.apply_probe("has-uninterpreted-functions") or self.apply_probe(
+                "is-propositional"
+            ):
                 theories.append("UF")
 
             # Combine theories with the arithmetic type
@@ -651,6 +664,7 @@ class FormulaInfo:
 
         except Exception as ex:
             import logging
+
             logging.warning("Error determining SMT logic: %s", ex)
             self._logic = "ALL"
             return self._logic
@@ -693,6 +707,7 @@ def get_z3_logic(fml: z3.ExprRef) -> str:
         return fml_info.get_logic()
     except Exception as ex:
         import logging
+
         logging.warning("Error determining logic for expression: %s", ex)
         return "ALL"  # Default to most general logic if detection fails
 
@@ -749,7 +764,9 @@ def is_real_sort(expr: z3.ExprRef) -> bool:
     return z3.is_const(expr) and expr.sort() == z3.RealSort()
 
 
-def eval_predicates(model: z3.ModelRef, predicates: List[z3.BoolRef]) -> List[z3.BoolRef]:
+def eval_predicates(
+    model: z3.ModelRef, predicates: List[z3.BoolRef]
+) -> List[z3.BoolRef]:
     """
     Let m be a model of a formula phi, preds be a set of predicates
     """

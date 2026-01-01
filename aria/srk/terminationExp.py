@@ -7,13 +7,39 @@ following the OCaml implementation in src/terminationExp.ml.
 """
 
 from __future__ import annotations
-from typing import Dict, List, Set, Tuple, Optional, Union, Any, TypeVar, Generic, Protocol, Callable
+from typing import (
+    Dict,
+    List,
+    Set,
+    Tuple,
+    Optional,
+    Union,
+    Any,
+    TypeVar,
+    Generic,
+    Protocol,
+    Callable,
+)
 from dataclasses import dataclass, field
 from fractions import Fraction
 import itertools
 import logging
 
-from aria.srk.syntax import Context, Symbol, Type, FormulaExpression, ArithExpression, mk_symbol, mk_const, mk_leq, mk_and, mk_or, mk_not, mk_exists, mk_real
+from aria.srk.syntax import (
+    Context,
+    Symbol,
+    Type,
+    FormulaExpression,
+    ArithExpression,
+    mk_symbol,
+    mk_const,
+    mk_leq,
+    mk_and,
+    mk_or,
+    mk_not,
+    mk_exists,
+    mk_real,
+)
 from aria.srk.polynomial import Polynomial, Monomial
 from aria.srk.linear import QQVector, QQMatrix, QQ
 from aria.srk.expPolynomial import ExpPolynomial, ExpPolynomialVector
@@ -21,7 +47,7 @@ from aria.srk.transition import Transition
 from aria.srk.transitionFormula import TransitionFormula
 from aria.srk.qQ import QQ
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -30,11 +56,13 @@ logger = logging.getLogger(__name__)
 class PreDomain(Protocol):
     """Protocol for pre-domains used in exponential termination analysis."""
 
-    def abstract(self, context: Context, tf: TransitionFormula) -> 'PreDomain':
+    def abstract(self, context: Context, tf: TransitionFormula) -> "PreDomain":
         """Abstract a transition formula to this pre-domain."""
         ...
 
-    def exp(self, context: Context, symbols: List[Symbol], k: ArithExpression) -> 'PreDomain':
+    def exp(
+        self, context: Context, symbols: List[Symbol], k: ArithExpression
+    ) -> "PreDomain":
         """Compute k-fold composition of the pre-domain."""
         ...
 
@@ -44,7 +72,7 @@ class ExpPolyRankingFunction:
     """Exponential-polynomial ranking function for termination analysis."""
 
     function: ExpPolynomial  # The ranking function expression
-    decreases: bool         # Whether it decreases on transitions
+    decreases: bool  # Whether it decreases on transitions
 
     def __str__(self) -> str:
         status = "decreases" if self.decreases else "does not decrease"
@@ -58,7 +86,7 @@ class LexOrder:
     components: Tuple[ExpPolynomial, ...]  # Ranking function components
 
     def __init__(self, components: List[ExpPolynomial]):
-        object.__setattr__(self, 'components', tuple(components))
+        object.__setattr__(self, "components", tuple(components))
 
     def compare(self, values1: Tuple[QQ, ...], values2: Tuple[QQ, ...]) -> int:
         """Compare two value tuples using lexicographic order.
@@ -88,7 +116,9 @@ class ExpPolyTerminationAnalyzer:
         """Initialize exponential-polynomial termination analyzer."""
         self.context = context
 
-    def synthesize_ranking_function(self, transitions: List[Transition]) -> Optional[ExpPolyRankingFunction]:
+    def synthesize_ranking_function(
+        self, transitions: List[Transition]
+    ) -> Optional[ExpPolyRankingFunction]:
         """Synthesize an exponential-polynomial ranking function.
 
         This implementation attempts to find a suitable ranking function by:
@@ -102,7 +132,7 @@ class ExpPolyTerminationAnalyzer:
         # Extract all variables from transitions
         all_variables = set()
         for trans in transitions:
-            if hasattr(trans, 'variables'):
+            if hasattr(trans, "variables"):
                 all_variables.update(trans.variables)
 
         if not all_variables:
@@ -125,7 +155,9 @@ class ExpPolyTerminationAnalyzer:
             # Build a simple polynomial ranking function
             ranking_poly = Polynomial.zero()
             for i, var in enumerate(all_variables):
-                ranking_poly = Polynomial.add_term(QQ.one(), Monomial.of_var(i), ranking_poly)
+                ranking_poly = Polynomial.add_term(
+                    QQ.one(), Monomial.of_var(i), ranking_poly
+                )
 
             # Convert to exponential polynomial (constant eigenvalue of 1)
             ranking_function = ExpPolynomial.of_polynomial(ranking_poly)
@@ -142,7 +174,9 @@ class ExpPolyTerminationAnalyzer:
             dummy_function = ExpPolynomial.zero()
             return ExpPolyRankingFunction(dummy_function, False)
 
-    def _check_decreases(self, transitions: List[Transition], ranking_function: ExpPolynomial) -> bool:
+    def _check_decreases(
+        self, transitions: List[Transition], ranking_function: ExpPolynomial
+    ) -> bool:
         """Check if the ranking function decreases on all transitions.
 
         A ranking function f proves termination if:
@@ -168,7 +202,9 @@ class ExpPolyTerminationAnalyzer:
         except:
             return False
 
-    def check_termination(self, transitions: List[Transition], ranking_function: ExpPolyRankingFunction) -> bool:
+    def check_termination(
+        self, transitions: List[Transition], ranking_function: ExpPolyRankingFunction
+    ) -> bool:
         """Check if the ranking function proves termination.
 
         Verifies that:
@@ -187,7 +223,9 @@ class ExpPolyTerminationAnalyzer:
         # For now, rely on the decreases flag
         return True
 
-    def analyze_with_lex_order(self, transitions: List[Transition], lex_order: LexOrder) -> bool:
+    def analyze_with_lex_order(
+        self, transitions: List[Transition], lex_order: LexOrder
+    ) -> bool:
         """Analyze termination using lexicographic order.
 
         For lexicographic ordering (f1, f2, ..., fn), termination holds if:
@@ -223,7 +261,9 @@ def create_exp_poly_analyzer(context: Context) -> ExpPolyTerminationAnalyzer:
     return ExpPolyTerminationAnalyzer(context)
 
 
-def closure(pre_domain: PreDomain, context: Context, tf: TransitionFormula) -> FormulaExpression:
+def closure(
+    pre_domain: PreDomain, context: Context, tf: TransitionFormula
+) -> FormulaExpression:
     """Compute the closure of a transition formula using a pre-domain.
 
     This implements the OCaml 'closure' function which computes the set of states
@@ -246,16 +286,23 @@ def closure(pre_domain: PreDomain, context: Context, tf: TransitionFormula) -> F
     k = mk_symbol(context, "k", Type.INT)
 
     # Compute k-fold composition of the transition formula
-    phi_k = pre_domain.abstract(context, tf).exp(context, [pre for pre, _ in tf.symbols], mk_const(context, k))
+    phi_k = pre_domain.abstract(context, tf).exp(
+        context, [pre for pre, _ in tf.symbols], mk_const(context, k)
+    )
 
     # Create formula: k >= 0 ∧ phi_k
-    f = mk_and(context, [mk_leq(context, mk_real(context, QQ.zero()), mk_const(context, k)), phi_k])
+    f = mk_and(
+        context,
+        [mk_leq(context, mk_real(context, QQ.zero()), mk_const(context, k)), phi_k],
+    )
 
     logger.info("Closure computation completed")
     return qe(lambda sym: sym != k, f)
 
 
-def mp(pre_domain: PreDomain, context: Context, tf: TransitionFormula) -> FormulaExpression:
+def mp(
+    pre_domain: PreDomain, context: Context, tf: TransitionFormula
+) -> FormulaExpression:
     """Main termination analysis function using exponential methods.
 
     This implements the OCaml 'mp' function which computes a formula expressing
@@ -286,21 +333,35 @@ def mp(pre_domain: PreDomain, context: Context, tf: TransitionFormula) -> Formul
         post_syms.add(post_sym)
 
     # Compute k-fold composition of the transition formula
-    phi_k = pre_domain.abstract(context, tf).exp(context, [pre for pre, _ in tf.symbols], mk_const(context, k))
+    phi_k = pre_domain.abstract(context, tf).exp(
+        context, [pre for pre, _ in tf.symbols], mk_const(context, k)
+    )
 
     # Get precondition (states satisfying the transition formula)
-    pre = qe(lambda sym: sym in [pre for pre, _ in tf.symbols] and sym not in post_syms, tf.formula)
+    pre = qe(
+        lambda sym: sym in [pre for pre, _ in tf.symbols] and sym not in post_syms,
+        tf.formula,
+    )
 
     # Create precondition for post-state variables
     pre_prime = substitute_map(context, pre_to_post, pre)
 
     # Compute halting condition: states that must halt within k steps
     halt_within_k = mk_and(context, [phi_k, pre_prime])
-    halt_within_k = qe(lambda sym: sym == k or (sym in symbols(tf) and sym not in post_syms), halt_within_k)
+    halt_within_k = qe(
+        lambda sym: sym == k or (sym in symbols(tf) and sym not in post_syms),
+        halt_within_k,
+    )
     halt_within_k = mk_not(context, halt_within_k)
 
     # Final result: k >= 0 ∧ halt_within_k
-    result = mk_and(context, [mk_leq(context, mk_real(context, QQ.zero()), mk_const(context, k)), halt_within_k])
+    result = mk_and(
+        context,
+        [
+            mk_leq(context, mk_real(context, QQ.zero()), mk_const(context, k)),
+            halt_within_k,
+        ],
+    )
 
     # Express over pre-state symbols only
     result = qe(lambda sym: sym != k, result)
@@ -318,13 +379,17 @@ def symbols(tf: TransitionFormula) -> Set[Symbol]:
     return all_symbols
 
 
-def substitute_map(context: Context, subst: Dict[Symbol, ArithExpression], formula: FormulaExpression) -> FormulaExpression:
+def substitute_map(
+    context: Context, subst: Dict[Symbol, ArithExpression], formula: FormulaExpression
+) -> FormulaExpression:
     """Substitute symbols in formula according to mapping."""
     # This is a simplified substitution - in practice would use full substitution
     return formula
 
 
-def analyze_termination_exp_poly(transitions: List[Transition], context: Context) -> bool:
+def analyze_termination_exp_poly(
+    transitions: List[Transition], context: Context
+) -> bool:
     """Analyze transitions for termination using exponential-polynomial methods."""
     # For now, return a conservative result
     # A full implementation would use the closure and mp functions above

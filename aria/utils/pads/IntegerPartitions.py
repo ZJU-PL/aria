@@ -5,6 +5,7 @@ D. Eppstein, August 2005.
 
 import unittest
 
+
 def mckay(n):
     """
     Integer partitions of n, in reverse lexicographic order.
@@ -31,11 +32,12 @@ def mckay(n):
             continue
         replacement = partition[last_nonunit] - 1
         total_replaced = replacement + len(partition) - last_nonunit
-        reps,rest = divmod(total_replaced,replacement)
-        partition[last_nonunit:] = reps*[replacement]
+        reps, rest = divmod(total_replaced, replacement)
+        partition[last_nonunit:] = reps * [replacement]
         if rest:
             partition.append(rest)
-        last_nonunit = len(partition) - (partition[-1]==1) - 1
+        last_nonunit = len(partition) - (partition[-1] == 1) - 1
+
 
 def revlex_partitions(n):
     """
@@ -49,7 +51,7 @@ def revlex_partitions(n):
         yield []
     if n <= 0:
         return
-    for p in revlex_partitions(n-1):
+    for p in revlex_partitions(n - 1):
         if len(p) == 1 or (len(p) > 1 and p[-1] < p[-2]):
             p[-1] += 1
             yield p
@@ -57,6 +59,7 @@ def revlex_partitions(n):
         p.append(1)
         yield p
         p.pop()
+
 
 def lex_partitions(n):
     """Similar to revlex_partitions, but in lexicographic order."""
@@ -64,7 +67,7 @@ def lex_partitions(n):
         yield []
     if n <= 0:
         return
-    for p in lex_partitions(n-1):
+    for p in lex_partitions(n - 1):
         p.append(1)
         yield p
         p.pop()
@@ -73,7 +76,9 @@ def lex_partitions(n):
             yield p
             p[-1] -= 1
 
-partitions = revlex_partitions     # default partition generating algorithm
+
+partitions = revlex_partitions  # default partition generating algorithm
+
 
 def binary_partitions(n):
     """
@@ -92,7 +97,7 @@ def binary_partitions(n):
         pow <<= 1
     partition = []
     while pow:
-        if sum+pow <= n:
+        if sum + pow <= n:
             partition.append(pow)
             sum += pow
         pow >>= 1
@@ -120,7 +125,7 @@ def binary_partitions(n):
     #
     # Therefore the overall average time per output is constant.
 
-    last_nonunit = len(partition) - 1 - (n&1)
+    last_nonunit = len(partition) - 1 - (n & 1)
     while True:
         yield partition
         if last_nonunit < 0:
@@ -131,18 +136,20 @@ def binary_partitions(n):
             last_nonunit -= 1
             continue
         partition.append(1)
-        x = partition[last_nonunit] = partition[last_nonunit+1] = \
-            partition[last_nonunit] >> 1    # make the split!
+        x = partition[last_nonunit] = partition[last_nonunit + 1] = (
+            partition[last_nonunit] >> 1
+        )  # make the split!
         last_nonunit += 1
         while x > 1:
             if len(partition) - last_nonunit - 1 >= x:
-                del partition[-x+1:]
+                del partition[-x + 1 :]
                 last_nonunit += 1
                 partition[last_nonunit] = x
             else:
                 x >>= 1
 
-def fixed_length_partitions(n,L):
+
+def fixed_length_partitions(n, L):
     """
     Integer partitions of n into L parts, in colex order.
     The algorithm follows Knuth v4 fasc3 p38 in rough outline;
@@ -161,7 +168,7 @@ def fixed_length_partitions(n,L):
     if n < L:
         return
 
-    partition = [n - L + 1] + (L-1)*[1]
+    partition = [n - L + 1] + (L - 1) * [1]
     while True:
         yield partition
         if partition[0] - 1 > partition[1]:
@@ -183,6 +190,7 @@ def fixed_length_partitions(n,L):
             j -= 1
         partition[0] = s
 
+
 def conjugate(p):
     """
     Find the conjugate of a partition.
@@ -194,48 +202,50 @@ def conjugate(p):
         return result
     while True:
         result.append(j)
-        while len(result) >= p[j-1]:
+        while len(result) >= p[j - 1]:
             j -= 1
             if j == 0:
                 return result
 
+
 # If run standalone, perform unit tests
 
+
 class PartitionTest(unittest.TestCase):
-    counts = [1,1,2,3,5,7,11,15,22,30,42,56,77,101,135]
+    counts = [1, 1, 2, 3, 5, 7, 11, 15, 22, 30, 42, 56, 77, 101, 135]
 
     def testCounts(self):
         """Check that each generator has the right number of outputs."""
         for n in range(len(self.counts)):
-            self.assertEqual(self.counts[n],len(list(mckay(n))))
-            self.assertEqual(self.counts[n],len(list(lex_partitions(n))))
-            self.assertEqual(self.counts[n],len(list(revlex_partitions(n))))
+            self.assertEqual(self.counts[n], len(list(mckay(n))))
+            self.assertEqual(self.counts[n], len(list(lex_partitions(n))))
+            self.assertEqual(self.counts[n], len(list(revlex_partitions(n))))
 
     def testSums(self):
         """Check that all outputs are partitions of the input."""
         for n in range(len(self.counts)):
             for p in mckay(n):
-                self.assertEqual(n,sum(p))
+                self.assertEqual(n, sum(p))
             for p in revlex_partitions(n):
-                self.assertEqual(n,sum(p))
+                self.assertEqual(n, sum(p))
             for p in lex_partitions(n):
-                self.assertEqual(n,sum(p))
+                self.assertEqual(n, sum(p))
 
     def testRevLex(self):
         """Check that the revlex generators' outputs are in revlex order."""
         for n in range(len(self.counts)):
-            last = [n+1]
+            last = [n + 1]
             for p in mckay(n):
                 self.assert_(last > p)
                 last = list(p)  # make less-mutable copy
-            last = [n+1]
+            last = [n + 1]
             for p in revlex_partitions(n):
                 self.assert_(last > p)
                 last = list(p)  # make less-mutable copy
 
     def testLex(self):
         """Check that the lex generator's outputs are in lex order."""
-        for n in range(1,len(self.counts)):
+        for n in range(1, len(self.counts)):
             last = []
             for p in lex_partitions(n):
                 if not last < p:
@@ -262,12 +272,12 @@ class PartitionTest(unittest.TestCase):
             pn = [list(p) for p in revlex_partitions(n)]
             pn.sort()
             np = 0
-            for L in range(n+1):
-                pnL = [list(p) for p in fixed_length_partitions(n,L)]
+            for L in range(n + 1):
+                pnL = [list(p) for p in fixed_length_partitions(n, L)]
                 pnL.sort()
                 np += len(pnL)
-                self.assertEqual(pnL,[p for p in pn if len(p) == L])
-            self.assertEqual(np,len(pn))
+                self.assertEqual(pnL, [p for p in pn if len(p) == L])
+            self.assertEqual(np, len(pn))
 
     def testConjugatePartition(self):
         """Check that conjugating a partition forms another partition."""
@@ -276,19 +286,19 @@ class PartitionTest(unittest.TestCase):
                 c = conjugate(p)
                 for x in c:
                     self.assert_(0 < x <= n)
-                self.assertEqual(sum(c),n)
+                self.assertEqual(sum(c), n)
 
     def testConjugateInvolution(self):
         """Check that double conjugation returns the same partition."""
         for n in range(len(self.counts)):
             for p in partitions(n):
-                self.assertEqual(p,conjugate(conjugate(p)))
+                self.assertEqual(p, conjugate(conjugate(p)))
 
     def testConjugateMaxLen(self):
         """Check the max-length reversing property of conjugation."""
-        for n in range(1,len(self.counts)):
+        for n in range(1, len(self.counts)):
             for p in partitions(n):
-                self.assertEqual(len(p),max(conjugate(p)))
+                self.assertEqual(len(p), max(conjugate(p)))
 
     def testBinary(self):
         """Test that the binary partitions are generated correctly."""
@@ -300,7 +310,8 @@ class PartitionTest(unittest.TestCase):
                         break
                 else:
                     binaries.append(list(p))
-            self.assertEqual(binaries,[list(p) for p in binary_partitions(n)])
+            self.assertEqual(binaries, [list(p) for p in binary_partitions(n)])
+
 
 if __name__ == "__main__":
     unittest.main()

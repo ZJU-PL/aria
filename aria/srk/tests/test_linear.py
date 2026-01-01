@@ -4,7 +4,16 @@ Tests for the linear algebra module.
 
 import unittest
 from fractions import Fraction
-from aria.srk.linear import QQVector, QQMatrix, QQVectorSpace, zero_vector, unit_vector, identity_matrix, vector_from_list, matrix_from_lists
+from aria.srk.linear import (
+    QQVector,
+    QQMatrix,
+    QQVectorSpace,
+    zero_vector,
+    unit_vector,
+    identity_matrix,
+    vector_from_list,
+    matrix_from_lists,
+)
 
 
 class TestQQVector(unittest.TestCase):
@@ -44,7 +53,7 @@ class TestQQVector(unittest.TestCase):
         v2 = QQVector({0: Fraction(3), 1: Fraction(4)})
 
         dot = v1.dot(v2)
-        expected = Fraction(1)*Fraction(3) + Fraction(2)*Fraction(4)  # 3 + 8 = 11
+        expected = Fraction(1) * Fraction(3) + Fraction(2) * Fraction(4)  # 3 + 8 = 11
 
         self.assertEqual(dot, expected)
 
@@ -107,59 +116,75 @@ class TestQQMatrix(unittest.TestCase):
 
     def test_addition(self):
         """Test matrix addition."""
-        m1 = QQMatrix([
-            QQVector({0: Fraction(1), 1: Fraction(2)}),
-            QQVector({0: Fraction(3), 1: Fraction(4)})
-        ])
-        m2 = QQMatrix([
-            QQVector({0: Fraction(5), 1: Fraction(6)}),
-            QQVector({0: Fraction(7), 1: Fraction(8)})
-        ])
+        m1 = QQMatrix(
+            [
+                QQVector({0: Fraction(1), 1: Fraction(2)}),
+                QQVector({0: Fraction(3), 1: Fraction(4)}),
+            ]
+        )
+        m2 = QQMatrix(
+            [
+                QQVector({0: Fraction(5), 1: Fraction(6)}),
+                QQVector({0: Fraction(7), 1: Fraction(8)}),
+            ]
+        )
 
         sum_m = m1 + m2
-        expected = QQMatrix([
-            QQVector({0: Fraction(6), 1: Fraction(8)}),
-            QQVector({0: Fraction(10), 1: Fraction(12)})
-        ])
+        expected = QQMatrix(
+            [
+                QQVector({0: Fraction(6), 1: Fraction(8)}),
+                QQVector({0: Fraction(10), 1: Fraction(12)}),
+            ]
+        )
 
         self.assertEqual(sum_m, expected)
 
     def test_scalar_multiplication(self):
         """Test scalar multiplication."""
-        m = QQMatrix([
-            QQVector({0: Fraction(1), 1: Fraction(2)}),
-            QQVector({0: Fraction(3), 1: Fraction(4)})
-        ])
+        m = QQMatrix(
+            [
+                QQVector({0: Fraction(1), 1: Fraction(2)}),
+                QQVector({0: Fraction(3), 1: Fraction(4)}),
+            ]
+        )
 
         scaled = m * Fraction(2)
-        expected = QQMatrix([
-            QQVector({0: Fraction(2), 1: Fraction(4)}),
-            QQVector({0: Fraction(6), 1: Fraction(8)})
-        ])
+        expected = QQMatrix(
+            [
+                QQVector({0: Fraction(2), 1: Fraction(4)}),
+                QQVector({0: Fraction(6), 1: Fraction(8)}),
+            ]
+        )
 
         self.assertEqual(scaled, expected)
 
     def test_transpose(self):
         """Test matrix transpose."""
-        m = QQMatrix([
-            QQVector({0: Fraction(1), 1: Fraction(2)}),
-            QQVector({0: Fraction(3), 1: Fraction(4)})
-        ])
+        m = QQMatrix(
+            [
+                QQVector({0: Fraction(1), 1: Fraction(2)}),
+                QQVector({0: Fraction(3), 1: Fraction(4)}),
+            ]
+        )
 
         transposed = m.transpose()
-        expected = QQMatrix([
-            QQVector({0: Fraction(1), 1: Fraction(3)}),
-            QQVector({0: Fraction(2), 1: Fraction(4)})
-        ])
+        expected = QQMatrix(
+            [
+                QQVector({0: Fraction(1), 1: Fraction(3)}),
+                QQVector({0: Fraction(2), 1: Fraction(4)}),
+            ]
+        )
 
         self.assertEqual(transposed, expected)
 
     def test_matrix_vector_multiplication(self):
         """Test matrix-vector multiplication."""
-        m = QQMatrix([
-            QQVector({0: Fraction(1), 1: Fraction(2)}),
-            QQVector({0: Fraction(3), 1: Fraction(4)})
-        ])
+        m = QQMatrix(
+            [
+                QQVector({0: Fraction(1), 1: Fraction(2)}),
+                QQVector({0: Fraction(3), 1: Fraction(4)}),
+            ]
+        )
         v = QQVector({0: Fraction(1), 1: Fraction(1)})
 
         result = m * v
@@ -201,17 +226,16 @@ class TestUtilityFunctions(unittest.TestCase):
 
     def test_matrix_from_lists(self):
         """Test matrix creation from lists."""
-        rows = [
-            [Fraction(1), Fraction(2)],
-            [Fraction(3), Fraction(4)]
-        ]
+        rows = [[Fraction(1), Fraction(2)], [Fraction(3), Fraction(4)]]
         matrix = matrix_from_lists(rows)
-        expected = QQMatrix([
-            QQVector({0: Fraction(1), 1: Fraction(2)}),
-            QQVector({0: Fraction(3), 1: Fraction(4)})
-        ])
+        expected = QQMatrix(
+            [
+                QQVector({0: Fraction(1), 1: Fraction(2)}),
+                QQVector({0: Fraction(3), 1: Fraction(4)}),
+            ]
+        )
         self.assertEqual(matrix, expected)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

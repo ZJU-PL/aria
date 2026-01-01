@@ -13,7 +13,7 @@ from aria.srk.termination import (
     LinearRankingFunction,
     TerminationResult,
     TerminationLLRF,
-    make_termination_analyzer
+    make_termination_analyzer,
 )
 from aria.srk.linear import QQVector
 from aria.srk import qQ as QQ

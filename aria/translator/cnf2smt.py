@@ -1,6 +1,7 @@
 """
 Module for converting CNF (DIMACS format) to Z3 expressions.
 """
+
 from typing import List, Tuple
 
 import pytest
@@ -20,10 +21,10 @@ def parse_dimacs_string(dimacs_str: str) -> Tuple[int, int, List[List[int]]]:
 
     for line in dimacs_str.splitlines():
         line = line.strip()
-        if not line or line.startswith('c'):  # Skip empty lines and comments
+        if not line or line.startswith("c"):  # Skip empty lines and comments
             continue
 
-        if line.startswith('p cnf'):
+        if line.startswith("p cnf"):
             # Parse problem line
             _, _, var_count, cls = line.split()
             num_vars = int(var_count)
@@ -48,13 +49,13 @@ def parse_dimacs(filename: str) -> Tuple[int, int, List[List[int]]]:
     num_vars = 0
     num_clauses = 0
 
-    with open(filename, 'r', encoding='utf-8') as f:
+    with open(filename, "r", encoding="utf-8") as f:
         for line in f:
             line = line.strip()
-            if not line or line.startswith('c'):  # Skip empty lines and comments
+            if not line or line.startswith("c"):  # Skip empty lines and comments
                 continue
 
-            if line.startswith('p cnf'):
+            if line.startswith("p cnf"):
                 # Parse problem line
                 _, _, var_count, cls = line.split()
                 num_vars = int(var_count)

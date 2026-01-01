@@ -6,6 +6,7 @@ Features:
 - Optional task-level logging (start/end/duration)
 - Graceful shutdown and timeouts
 """
+
 from __future__ import annotations
 
 from concurrent.futures import (

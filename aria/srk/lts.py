@@ -8,21 +8,30 @@ Based on src/lts.ml from the OCaml implementation.
 """
 
 from __future__ import annotations
-from typing import Dict, List, Set, Tuple, Optional, Union, Any, Generic, TypeVar, Callable
+from typing import (
+    Dict,
+    List,
+    Set,
+    Tuple,
+    Optional,
+    Union,
+    Any,
+    Generic,
+    TypeVar,
+    Callable,
+)
 from dataclasses import dataclass, field
 from fractions import Fraction
 import logging
 
 from aria.srk.syntax import Context, Symbol, Type, Expression
-from aria.srk.linear import (
-    QQVector, QQMatrix, QQVectorSpace, identity_matrix
-)
+from aria.srk.linear import QQVector, QQMatrix, QQVectorSpace, identity_matrix
 from aria.srk.transitionFormula import TransitionFormula
 from aria.srk.qQ import QQ
 
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 # Helper functions for linear algebra operations
@@ -30,6 +39,7 @@ def divide_right(A: QQMatrix, B: QQMatrix) -> Optional[QQMatrix]:
     """Solve X*B = A for X (right division)."""
     try:
         from .linear import divide_right as linear_divide_right
+
         return linear_divide_right(A, B)
     except Exception:
         return None
@@ -39,6 +49,7 @@ def divide_left(A: QQMatrix, B: QQMatrix) -> Optional[QQMatrix]:
     """Solve B*X = A for X (left division)."""
     try:
         from .linear import divide_left as linear_divide_left
+
         return linear_divide_left(A, B)
     except Exception:
         return None
@@ -48,6 +59,7 @@ def nullspace(matrix: QQMatrix, dims: List[int]) -> List[QQVector]:
     """Compute basis for nullspace of matrix."""
     try:
         from .linear_advanced import null_space
+
         return null_space(matrix)
     except ImportError:
         # Fallback implementation without numpy
@@ -58,7 +70,14 @@ def nullspace(matrix: QQMatrix, dims: List[int]) -> List[QQVector]:
 
         # Create augmented matrix with identity columns
         max_dim = max(dims) if dims else 0
-        num_cols = max(max_dim + 1, max((max(row.dimensions()) for row in matrix.rows if row.dimensions()), default=0) + 1)
+        num_cols = max(
+            max_dim + 1,
+            max(
+                (max(row.dimensions()) for row in matrix.rows if row.dimensions()),
+                default=0,
+            )
+            + 1,
+        )
 
         # Build augmented matrix [matrix | identity]
         augmented_rows = []
@@ -98,6 +117,7 @@ def linear_solve(matrix: QQMatrix, vector: QQVector) -> Optional[QQVector]:
     """Solve matrix * x = vector for x."""
     try:
         from .linear_utils import solve_linear_system
+
         return solve_linear_system(matrix, vector)
     except Exception:
         return None
@@ -115,8 +135,8 @@ class LinearTransitionSystem:
     B: QQMatrix  # Matrix for unprimed variables (pre-state)
 
     def __init__(self, A: QQMatrix, B: QQMatrix):
-        object.__setattr__(self, 'A', A)
-        object.__setattr__(self, 'B', B)
+        object.__setattr__(self, "A", A)
+        object.__setattr__(self, "B", B)
 
     def __str__(self) -> str:
         return f"LTS(A=\\n{self.A}\\nB=\\n{self.B})"
@@ -172,10 +192,15 @@ class PartialLinearMap:
     def equal(self, other: PartialLinearMap) -> bool:
         """Check equality of partial linear maps."""
         # Convert guards to QQVectorSpace objects for comparison
-        guard1 = QQVectorSpace(self.guard) if isinstance(self.guard, list) else self.guard
-        guard2 = QQVectorSpace(other.guard) if isinstance(other.guard, list) else other.guard
-        return (QQMatrix.equal(self.map_matrix, other.map_matrix) and
-                QQVectorSpace.equal(guard1, guard2))
+        guard1 = (
+            QQVectorSpace(self.guard) if isinstance(self.guard, list) else self.guard
+        )
+        guard2 = (
+            QQVectorSpace(other.guard) if isinstance(other.guard, list) else other.guard
+        )
+        return QQMatrix.equal(
+            self.map_matrix, other.map_matrix
+        ) and QQVectorSpace.equal(guard1, guard2)
 
     def __eq__(self, other: object) -> bool:
         """Check equality of partial linear maps."""
@@ -192,7 +217,9 @@ class PartialLinearMap:
         guard_part1 = QQMatrix.rowsi(QQMatrix(self.guard) * other.map_matrix)
         guard_part1_vecs = [vec for (_, vec) in guard_part1]
 
-        composed_guard_space = QQVectorSpace.sum(QQVectorSpace(guard_part1_vecs), QQVectorSpace(other.guard))
+        composed_guard_space = QQVectorSpace.sum(
+            QQVectorSpace(guard_part1_vecs), QQVectorSpace(other.guard)
+        )
         composed_guard = composed_guard_space.basis
 
         return PartialLinearMap.make(composed_map, composed_guard)
@@ -203,7 +230,10 @@ class PartialLinearMap:
         Returns ([f, f∘f, ..., f^n], stable_guard) where stable_guard is
         the invariant guard that stabilizes at f^n.
         """
-        def fix(current: PartialLinearMap) -> Tuple[List[PartialLinearMap], List[QQVector]]:
+
+        def fix(
+            current: PartialLinearMap,
+        ) -> Tuple[List[PartialLinearMap], List[QQVector]]:
             composed = current.compose(self)
             if QQVectorSpace.equal(current.guard, composed.guard):
                 return ([current], current.guard)
@@ -242,8 +272,10 @@ class LTSAnalysis:
         """
         try:
             from .transitionFormula import (
-                formula as tf_formula, symbols as tf_symbols,
-                is_symbolic_constant, exists as tf_exists
+                formula as tf_formula,
+                symbols as tf_symbols,
+                is_symbolic_constant,
+                exists as tf_exists,
             )
             from .abstract import affine_hull
             from .linear import Linear, linterm_of
@@ -253,6 +285,7 @@ class LTSAnalysis:
 
             # Get all symbols that exist in the formula
             from .syntax import symbols as get_symbols
+
             phi_symbols_set = get_symbols(phi_formula)
             exists_pred = tf_exists(tf)
             phi_symbols = [s for s in phi_symbols_set if exists_pred(s)]
@@ -262,7 +295,7 @@ class LTSAnalysis:
 
             # Create pre_map: post dims -> pre dims
             pre_map = {}
-            for (s, s_prime) in tr_symbols:
+            for s, s_prime in tr_symbols:
                 pre_dim = Linear.dim_of_sym(s)
                 post_dim = Linear.dim_of_sym(s_prime)
                 pre_map[post_dim] = pre_dim
@@ -279,7 +312,7 @@ class LTSAnalysis:
                 a_vec = QQVector.zero()
                 b_vec = QQVector.zero()
 
-                for (coeff, dim) in QQVector.enum(linterm):
+                for coeff, dim in QQVector.enum(linterm):
                     if dim in pre_map:
                         # Post-state variable: goes in A with negated coefficient
                         pre_dim = pre_map[dim]
@@ -296,7 +329,9 @@ class LTSAnalysis:
                 row_idx += 1
 
             # Add identity constraints for symbolic constants
-            for const_sym in [Linear.const_dim] + [Linear.dim_of_sym(c) for c in constants]:
+            for const_sym in [Linear.const_dim] + [
+                Linear.dim_of_sym(c) for c in constants
+            ]:
                 a_vec = QQVector.of_term(QQ.one(), const_sym)
                 b_vec = QQVector.of_term(QQ.one(), const_sym)
                 mA = QQMatrix.add_row(row_idx, a_vec, mA)
@@ -309,13 +344,16 @@ class LTSAnalysis:
             logger.warning(f"LTS abstraction failed: {e}, returning empty LTS")
             return LinearTransitionSystem(QQMatrix.zero(), QQMatrix.zero())
 
-    def contains(self, lts1: LinearTransitionSystem, lts2: LinearTransitionSystem) -> bool:
+    def contains(
+        self, lts1: LinearTransitionSystem, lts2: LinearTransitionSystem
+    ) -> bool:
         """Check if lts1 contains lts2 (lts2's transitions ⊆ lts1's transitions)."""
         witness = self.containment_witness(lts1, lts2)
         return witness is not None
 
-    def containment_witness(self, lts1: LinearTransitionSystem,
-                           lts2: LinearTransitionSystem) -> Optional[QQMatrix]:
+    def containment_witness(
+        self, lts1: LinearTransitionSystem, lts2: LinearTransitionSystem
+    ) -> Optional[QQMatrix]:
         """Find witness matrix M such that M*A1 = A2 and M*B1 = B2.
 
         If such M exists, then lts1 contains lts2.
@@ -335,34 +373,30 @@ def max_rowspace_projection(mA: QQMatrix, mB: QQMatrix) -> List[QQVector]:
     """
     # Create system: u*A - v*B = 0 where u's are even columns, v's are odd
     mat = QQMatrix.interlace_columns(
-        mA.transpose(),
-        QQMatrix.scalar_mul(QQ.of_int(-1), mB).transpose()
+        mA.transpose(), QQMatrix.scalar_mul(QQ.of_int(-1), mB).transpose()
     )
 
     result = []
     mat_rows = QQMatrix.nb_rows(mat)
 
     # Try to find vectors v such that there exists u with uA = vB
-    for (r, _) in QQMatrix.rowsi(mB):
+    for r, _ in QQMatrix.rowsi(mB):
         col = 2 * r + 1  # Column for v_r
 
         # Add constraint that v_r = 1
         mat_with_constraint = QQMatrix.add_row(
-            mat_rows,
-            QQVector.of_term(QQ.one(), col),
-            mat
+            mat_rows, QQVector.of_term(QQ.one(), col), mat
         )
 
         # Try to solve
         solution = linear_solve(
-            mat_with_constraint,
-            QQVector.of_term(QQ.one(), mat_rows)
+            mat_with_constraint, QQVector.of_term(QQ.one(), mat_rows)
         )
 
         if solution is not None:
             # Extract v from solution (odd columns)
             v_row = QQVector.zero()
-            for (entry, i) in QQVector.enum(solution):
+            for entry, i in QQVector.enum(solution):
                 if i % 2 == 1:  # Odd column = v component
                     v_row = v_row.add_term(entry, i // 2)
 
@@ -402,10 +436,7 @@ def determinize(lts: LinearTransitionSystem) -> Tuple[PartialLinearMap, QQMatrix
             return (mA, mB)
         else:
             # Continue refining
-            return fix(
-                mT_prime * mA,
-                mT_prime * mB
-            )
+            return fix(mT_prime * mA, mT_prime * mB)
 
     (mA, mB) = fix(lts.A, lts.B)
 
@@ -419,9 +450,7 @@ def determinize(lts: LinearTransitionSystem) -> Tuple[PartialLinearMap, QQMatrix
         mT = mA
     else:
         # Compute simulation matrix S (basis of A's row space)
-        mS = QQMatrix(QQVectorSpace.simplify(
-            QQVectorSpace.of_matrix(mA).basis
-        ))
+        mS = QQMatrix(QQVectorSpace.simplify(QQVectorSpace.of_matrix(mA).basis))
 
         # Compute D such that DA = S
         mD = divide_right(mS, mA)
@@ -463,7 +492,7 @@ def dlts_inverse_image(sim: QQMatrix, dlts: PartialLinearMap) -> LinearTransitio
     mB = dynamics
 
     # Add guard constraints as additional rows
-    for (i, dom_constraint) in enumerate(dlts.guard_space()):
+    for i, dom_constraint in enumerate(dlts.guard_space()):
         # Transform constraint by similarity
         transformed = QQVector.vector_left_mul(dom_constraint, sim)
         mB = QQMatrix.add_row(i + dim, transformed, mB)
@@ -471,18 +500,20 @@ def dlts_inverse_image(sim: QQMatrix, dlts: PartialLinearMap) -> LinearTransitio
     return LinearTransitionSystem(mA, mB)
 
 
-def dlts_abstract_spectral(spectral_decomp: Callable[[QQMatrix, List[int]], List[QQVector]],
-                           dlts: PartialLinearMap,
-                           dim: int) -> Tuple[PartialLinearMap, QQMatrix]:
+def dlts_abstract_spectral(
+    spectral_decomp: Callable[[QQMatrix, List[int]], List[QQVector]],
+    dlts: PartialLinearMap,
+    dim: int,
+) -> Tuple[PartialLinearMap, QQMatrix]:
     """Compute best abstraction of DLTS satisfying spectral conditions.
 
-        Args:
-        spectral_decomp: Function computing spectral decomposition
-        dlts: The partial linear map to abstract
-        dim: Dimension of the space
+    Args:
+    spectral_decomp: Function computing spectral decomposition
+    dlts: The partial linear map to abstract
+    dim: Dimension of the space
 
-        Returns:
-        (abstracted_dlts, simulation_matrix)
+    Returns:
+    (abstracted_dlts, simulation_matrix)
     """
 
     def fix(mA: QQMatrix, mB: QQMatrix) -> Tuple[PartialLinearMap, QQMatrix]:
@@ -508,14 +539,16 @@ def dlts_abstract_spectral(spectral_decomp: Callable[[QQMatrix, List[int]], List
                 map_result = mPTS
 
             guard_mat = divide_right(mPDS, mPS)
-            guard_result = QQVectorSpace.of_matrix(guard_mat) if guard_mat is not None else []
+            guard_result = (
+                QQVectorSpace.of_matrix(guard_mat) if guard_mat is not None else []
+            )
 
             return (PartialLinearMap.make(map_result, guard_result), mPS)
         else:
             # Continue refining
             mB_new = mPTS
             size = QQMatrix.nb_rows(mPS)
-            for (i, row) in QQMatrix.rowsi(mPDS):
+            for i, row in QQMatrix.rowsi(mPDS):
                 mB_new = QQMatrix.add_row(i + size, row, mB_new)
 
             return fix(mPS, mB_new)
@@ -525,14 +558,15 @@ def dlts_abstract_spectral(spectral_decomp: Callable[[QQMatrix, List[int]], List
     mA = QQMatrix.identity(list(range(dim)))
     mB = dlts.map()
 
-    for (i, row) in enumerate(dlts.guard_space()):
+    for i, row in enumerate(dlts.guard_space()):
         mB = QQMatrix.add_row(i + dim, row, mB)
 
     return fix(mA, mB)
 
 
-def periodic_rational_spectrum_reflection(dlts: PartialLinearMap,
-                                         dim: int) -> Tuple[PartialLinearMap, QQMatrix]:
+def periodic_rational_spectrum_reflection(
+    dlts: PartialLinearMap, dim: int
+) -> Tuple[PartialLinearMap, QQMatrix]:
     """Find best abstraction with periodic rational spectrum."""
     from .linear import periodic_rational_spectral_decomposition
 
@@ -543,8 +577,9 @@ def periodic_rational_spectrum_reflection(dlts: PartialLinearMap,
     return dlts_abstract_spectral(spectral_decomp, dlts, dim)
 
 
-def rational_spectrum_reflection(dlts: PartialLinearMap,
-                                 dim: int) -> Tuple[PartialLinearMap, QQMatrix]:
+def rational_spectrum_reflection(
+    dlts: PartialLinearMap, dim: int
+) -> Tuple[PartialLinearMap, QQMatrix]:
     """Find best abstraction with rational spectrum."""
     from .linear import rational_spectral_decomposition
 
@@ -563,7 +598,9 @@ class LTSOperations:
     """Operations on Linear Transition Systems."""
 
     @staticmethod
-    def determinize(lts_matrices: Tuple[QQMatrix, QQMatrix]) -> Tuple[PartialLinearMap, QQMatrix]:
+    def determinize(
+        lts_matrices: Tuple[QQMatrix, QQMatrix],
+    ) -> Tuple[PartialLinearMap, QQMatrix]:
         """Find best deterministic abstraction of an LTS.
 
         Args:
@@ -579,7 +616,9 @@ class LTSOperations:
         return determinize(lts)
 
     @staticmethod
-    def dlts_inverse_image(sim: QQMatrix, dlts: PartialLinearMap) -> LinearTransitionSystem:
+    def dlts_inverse_image(
+        sim: QQMatrix, dlts: PartialLinearMap
+    ) -> LinearTransitionSystem:
         """Compute inverse image of DLTS under similarity map.
 
         Given similarity S and DLTS with map T and guard G,
@@ -596,7 +635,9 @@ def make_linear_transition_system(A: QQMatrix, B: QQMatrix) -> LinearTransitionS
     return LinearTransitionSystem(A, B)
 
 
-def make_partial_linear_map(matrix: QQMatrix, guard: List[QQVector]) -> PartialLinearMap:
+def make_partial_linear_map(
+    matrix: QQMatrix, guard: List[QQVector]
+) -> PartialLinearMap:
     """Create a partial linear map."""
     return PartialLinearMap.make(matrix, guard)
 
@@ -607,22 +648,25 @@ def make_lts_analysis(context: Context) -> LTSAnalysis:
 
 
 # Analysis functions
-def abstract_to_lts(transition_formula: TransitionFormula, context: Context) -> LinearTransitionSystem:
+def abstract_to_lts(
+    transition_formula: TransitionFormula, context: Context
+) -> LinearTransitionSystem:
     """Abstract a transition formula to an LTS."""
     analysis = LTSAnalysis(context)
     return analysis.abstract_lts(transition_formula)
 
 
-def check_lts_containment(lts1: LinearTransitionSystem, lts2: LinearTransitionSystem,
-                          context: Context) -> bool:
+def check_lts_containment(
+    lts1: LinearTransitionSystem, lts2: LinearTransitionSystem, context: Context
+) -> bool:
     """Check if lts1 contains the transitions of lts2."""
     analysis = LTSAnalysis(context)
     return analysis.contains(lts1, lts2)
 
 
-def find_containment_witness(lts1: LinearTransitionSystem,
-                             lts2: LinearTransitionSystem,
-                             context: Context) -> Optional[QQMatrix]:
+def find_containment_witness(
+    lts1: LinearTransitionSystem, lts2: LinearTransitionSystem, context: Context
+) -> Optional[QQMatrix]:
     """Find witness matrix for containment."""
     analysis = LTSAnalysis(context)
     return analysis.containment_witness(lts1, lts2)

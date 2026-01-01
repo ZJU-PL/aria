@@ -3,6 +3,7 @@
 
 class PrettyRepr:
     """Base class for pretty-printable objects."""
+
     pass
 
 

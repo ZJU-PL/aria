@@ -14,7 +14,7 @@ throughout the SRK system.
 from __future__ import annotations
 from typing import TypeVar, Protocol, Generic, Any, Optional, Callable
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class Semigroup(Protocol[T]):
@@ -23,6 +23,7 @@ class Semigroup(Protocol[T]):
     def mul(self, other: T) -> T:
         """Multiplication operation."""
         ...
+
 
 class Ring(Protocol[T]):
     """Protocol for ring algebraic structure."""
@@ -51,6 +52,7 @@ class Ring(Protocol[T]):
         """Multiplicative identity."""
         ...
 
+
 class Semilattice(Protocol[T]):
     """Protocol for semilattice algebraic structure."""
 
@@ -61,6 +63,7 @@ class Semilattice(Protocol[T]):
     def equal(self, other: T) -> bool:
         """Equality comparison."""
         ...
+
 
 class Lattice(Protocol[T]):
     """Protocol for lattice algebraic structure."""
@@ -77,7 +80,9 @@ class Lattice(Protocol[T]):
         """Meet (greatest lower bound) operation."""
         ...
 
+
 # Concrete implementations for common types
+
 
 class IntegerRing:
     """Ring implementation for integers."""
@@ -129,14 +134,20 @@ class RationalRing:
 
 # Utility functions for working with algebraic structures
 
-def is_commutative_semigroup(semigroup: Any, mul_func: Optional[Callable[[T, T], T]] = None, a: T = None, b: T = None) -> bool:
+
+def is_commutative_semigroup(
+    semigroup: Any,
+    mul_func: Optional[Callable[[T, T], T]] = None,
+    a: T = None,
+    b: T = None,
+) -> bool:
     """Check if a semigroup operation is commutative."""
     try:
         # Handle the case where mul_func is provided as the second argument
         if mul_func is not None and callable(mul_func):
             # Test with default values
             return mul_func(1, 2) == mul_func(2, 1)
-        elif hasattr(semigroup, 'mul'):
+        elif hasattr(semigroup, "mul"):
             # Use object's mul method - test with default values
             return semigroup.mul(1, 2) == semigroup.mul(2, 1)
         else:
@@ -145,21 +156,31 @@ def is_commutative_semigroup(semigroup: Any, mul_func: Optional[Callable[[T, T],
     except Exception:
         return False
 
-def is_associative_semigroup(semigroup: Any, mul_func: Optional[Callable[[T, T], T]] = None, a: T = None, b: T = None, c: T = None) -> bool:
+
+def is_associative_semigroup(
+    semigroup: Any,
+    mul_func: Optional[Callable[[T, T], T]] = None,
+    a: T = None,
+    b: T = None,
+    c: T = None,
+) -> bool:
     """Check if a semigroup operation is associative."""
     try:
         # Handle the case where mul_func is provided as the second argument
         if mul_func is not None and callable(mul_func):
             # Test with default values
             return mul_func(mul_func(1, 2), 3) == mul_func(1, mul_func(2, 3))
-        elif hasattr(semigroup, 'mul'):
+        elif hasattr(semigroup, "mul"):
             # Use object's mul method - test with default values
-            return semigroup.mul(semigroup.mul(1, 2), 3) == semigroup.mul(1, semigroup.mul(2, 3))
+            return semigroup.mul(semigroup.mul(1, 2), 3) == semigroup.mul(
+                1, semigroup.mul(2, 3)
+            )
         else:
             # Default case - not enough information
             return False
     except Exception:
         return False
+
 
 def is_ring(ring_class: type, zero: T, one: T) -> bool:
     """Basic checks for ring properties."""
@@ -174,8 +195,10 @@ def is_ring(ring_class: type, zero: T, one: T) -> bool:
 
         # Check distributivity (basic check)
         a, b = one, one
-        if not ring_class.equal(ring_class.mul(a, ring_class.add(b, one)),
-                               ring_class.add(ring_class.mul(a, b), ring_class.mul(a, one))):
+        if not ring_class.equal(
+            ring_class.mul(a, ring_class.add(b, one)),
+            ring_class.add(ring_class.mul(a, b), ring_class.mul(a, one)),
+        ):
             return False
 
         return True

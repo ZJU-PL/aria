@@ -41,6 +41,7 @@ class TestMemoization(unittest.TestCase):
 
     def test_function_memoization(self):
         """Test function memoization."""
+
         @memoize(max_size=100)
         def fibonacci(n):
             if n <= 1:
@@ -68,6 +69,7 @@ class TestMemoization(unittest.TestCase):
 
     def test_cache_behavior(self):
         """Test that caching works correctly."""
+
         @memoize(max_size=10)
         def test_func(x):
             return x * 2
@@ -98,5 +100,5 @@ class TestTabulate(unittest.TestCase):
         self.assertIsNotNone(tabulator)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

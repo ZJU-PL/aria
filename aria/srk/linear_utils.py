@@ -69,7 +69,17 @@ def linterm_of(srk_context, term) -> QQVector:
     Returns:
         QQVector representing the linear term
     """
-    from .syntax import destruct, mk_const, mk_real, mk_add, mk_mul, Const, Var, Add, Mul
+    from .syntax import (
+        destruct,
+        mk_const,
+        mk_real,
+        mk_add,
+        mk_mul,
+        Const,
+        Var,
+        Add,
+        Mul,
+    )
 
     def _linterm_of_rec(t, const_dim=0):
         """Recursive helper to convert term to linear form."""
@@ -93,8 +103,19 @@ def linterm_of(srk_context, term) -> QQVector:
                 # Check if first arg is a constant
                 const_part, var_part = None, None
                 for arg in t.args:
-                    if isinstance(arg, (Const, Var)) and hasattr(arg, 'symbol'):
-                        if isinstance(arg, Const) and arg.symbol.name in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']:
+                    if isinstance(arg, (Const, Var)) and hasattr(arg, "symbol"):
+                        if isinstance(arg, Const) and arg.symbol.name in [
+                            "0",
+                            "1",
+                            "2",
+                            "3",
+                            "4",
+                            "5",
+                            "6",
+                            "7",
+                            "8",
+                            "9",
+                        ]:
                             try:
                                 const_part = QQ.of_string(arg.symbol.name)
                             except:
@@ -106,7 +127,9 @@ def linterm_of(srk_context, term) -> QQVector:
 
                 if const_part is not None and var_part is not None:
                     # coefficient * variable
-                    coeff_vec = QQVector.add_term(const_part, var_part.var_id, QQVector.zero())
+                    coeff_vec = QQVector.add_term(
+                        const_part, var_part.var_id, QQVector.zero()
+                    )
                     return coeff_vec
 
             # Fallback: treat as sum of linear terms
@@ -139,7 +162,10 @@ def solve_linear_system(A: QQMatrix, b: QQVector) -> Optional[QQVector]:
         return QQVector() if b.is_zero() else None
 
     m = len(A.rows)  # Number of rows
-    n = max((max(row.dimensions()) for row in A.rows if row.dimensions()), default=0) + 1  # Number of columns
+    n = (
+        max((max(row.dimensions()) for row in A.rows if row.dimensions()), default=0)
+        + 1
+    )  # Number of columns
 
     # Create augmented matrix [A | b]
     # We'll use column n as the augmented column
@@ -237,6 +263,13 @@ def solve_linear_system(A: QQMatrix, b: QQVector) -> Optional[QQVector]:
 
 # Export functions
 __all__ = [
-    'zero_vector', 'unit_vector', 'identity_matrix', 'vector_from_list',
-    'matrix_from_lists', 'mk_vector', 'mk_matrix', 'linterm_of', 'solve_linear_system'
+    "zero_vector",
+    "unit_vector",
+    "identity_matrix",
+    "vector_from_list",
+    "matrix_from_lists",
+    "mk_vector",
+    "mk_matrix",
+    "linterm_of",
+    "solve_linear_system",
 ]

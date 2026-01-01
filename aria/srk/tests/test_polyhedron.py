@@ -37,7 +37,7 @@ class TestPolyhedron(unittest.TestCase):
         """Test polyhedron creation."""
         constraints = [
             Constraint(QQVector({1: Fraction(1)}), Fraction(0)),  # x >= 0
-            Constraint(QQVector({1: Fraction(-1)}), Fraction(0))   # -x >= 0 (x <= 0)
+            Constraint(QQVector({1: Fraction(-1)}), Fraction(0)),  # -x >= 0 (x <= 0)
         ]
         poly = Polyhedron(constraints)
 
@@ -68,7 +68,9 @@ class TestPolyhedron(unittest.TestCase):
         """Test polyhedron intersection."""
         # Two overlapping regions
         p1_constraints = [Constraint(QQVector({1: Fraction(1)}), Fraction(0))]  # x >= 0
-        p2_constraints = [Constraint(QQVector({1: Fraction(-1)}), Fraction(-2))]  # -x >= -2 (x <= 2)
+        p2_constraints = [
+            Constraint(QQVector({1: Fraction(-1)}), Fraction(-2))
+        ]  # -x >= -2 (x <= 2)
 
         p1 = Polyhedron(p1_constraints)
         p2 = Polyhedron(p2_constraints)
@@ -103,5 +105,5 @@ class TestPolyhedron(unittest.TestCase):
         self.assertFalse(constraint.is_satisfied(point2))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

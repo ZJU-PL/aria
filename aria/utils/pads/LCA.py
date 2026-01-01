@@ -12,10 +12,10 @@ it uses as a subroutine.
 D. Eppstein, November 2003.
 """
 
-
 import unittest
 import random
 from aria.utils.pads.UnionFind import UnionFind
+
 # sets.Set is deprecated in Python 3, use built-in set instead
 
 
@@ -34,12 +34,12 @@ class RangeMin:
             parents = {i: big[i][1] for i in range(len(x_seq)) if big[i]}
             self._lca = LCA(parents)
 
-    def __getslice__(self,left,right):
+    def __getslice__(self, left, right):
         """Return min(X[left:right])."""
         right = min(right, len(self._data))  # handle omitted right index
         if right <= left:
-            return None     # empty range has no minimum
-        return self._data[self._lca(left,right-1)]
+            return None  # empty range has no minimum
+        return self._data[self._lca(left, right - 1)]
 
     def __len__(self):
         """How much data do we have?  Needed for negative index in slice."""
@@ -53,14 +53,15 @@ class RangeMin:
         Due to our use of positions as a tie-breaker, values equal to x
         count as smaller on the left and larger on the right.
         """
-        stack = [None]   # protect stack top with sentinel
-        output = [0]*len(self._data)
+        stack = [None]  # protect stack top with sentinel
+        output = [0] * len(self._data)
         for xi in _pairs(self._data, is_reversed):
             while stack[-1] > xi:
                 stack.pop()
             output[xi[1]] = stack[-1]
             stack.append(xi)
         return output
+
 
 class RestrictedRangeMin:
     """Linear-space RangeMin for integer data obeying the constraint
@@ -71,24 +72,25 @@ class RestrictedRangeMin:
     all ranges are in the same positions as the minima of the integers
     in the first positions of each pair, so the data structure still works.
     """
+
     def __init__(self, x_seq):
         # Compute parameters for partition into blocks.
         # Position i in X becomes transformed into
         # position i&self._blockmask in block i>>self.blocklen
-        self._blocksize = _log2(len(x_seq))//2
+        self._blocksize = _log2(len(x_seq)) // 2
         self._blockmask = (1 << self._blocksize) - 1
         blocklen = 1 << self._blocksize
 
         # Do partition into blocks, find minima within
         # each block, prefix minima in each block,
         # and suffix minima in each block
-        blocks = []             # map block to block id
-        ids = {}                # map block id to PrecomputedRangeMin
-        blockmin = []           # map block to min value
-        self._prefix = [None]   # map data index to prefix min of block
-        self._suffix = []       # map data index to suffix min of block
+        blocks = []  # map block to block id
+        ids = {}  # map block id to PrecomputedRangeMin
+        blockmin = []  # map block to min value
+        self._prefix = [None]  # map data index to prefix min of block
+        self._suffix = []  # map data index to suffix min of block
         for i in range(0, len(x_seq), blocklen):
-            block_data = x_seq[i:i+blocklen]
+            block_data = x_seq[i : i + blocklen]
             blockmin.append(min(block_data))
             self._prefix += prefix_minima(block_data)
             self._suffix += prefix_minima(block_data, is_reversed=True)
@@ -107,12 +109,12 @@ class RestrictedRangeMin:
         lastblock = (right - 1) >> self._blocksize
         if firstblock == lastblock:
             i = left & self._blockmask
-            position = self._blocks[firstblock][i:i+right-left][1]
+            position = self._blocks[firstblock][i : i + right - left][1]
             return self._data[position + (firstblock << self._blocksize)]
         best = min(self._suffix[left], self._prefix[right])
         if lastblock > firstblock + 1:
             # pylint: disable=unsubscriptable-object
-            best = min(best, self._blockrange[firstblock+1:lastblock])
+            best = min(best, self._blockrange[firstblock + 1 : lastblock])
         return best
 
     def _blockid(self, block_data):
@@ -121,8 +123,9 @@ class RestrictedRangeMin:
         """
         blockid = 0
         for i in range(1, len(block_data)):
-            blockid = blockid*2 + (block_data[i] > block_data[i-1])
+            blockid = blockid * 2 + (block_data[i] > block_data[i - 1])
         return blockid
+
 
 class PrecomputedRangeMin:
     """RangeMin solved in quadratic space by precomputing all solutions."""
@@ -131,10 +134,11 @@ class PrecomputedRangeMin:
         self._minima = [prefix_minima(x_seq[i:]) for i in range(len(x_seq))]
 
     def __getslice__(self, x, y):
-        return self._minima[x][y-x-1]
+        return self._minima[x][y - x - 1]
 
     def __len__(self):
         return len(self._minima)
+
 
 class LogarithmicRangeMin:
     """RangeMin in O(n log n) space and constant query time."""
@@ -143,18 +147,19 @@ class LogarithmicRangeMin:
         """Compute min(X[i:i+2**j]) for each possible i,j."""
         self._minima = m = [list(x_seq)]
         for j in range(_log2(len(x_seq))):
-            m.append(list(map(min, m[-1], m[-1][1<<j:])))
+            m.append(list(map(min, m[-1], m[-1][1 << j :])))
 
     def __getslice__(self, x, y):
         """Find range minimum by representing range as the union
         of two overlapping subranges with power-of-two lengths.
         """
-        j = _logtable[y-x]
+        j = _logtable[y - x]
         row = self._minima[j]
-        return min(row[x], row[y-2**j])
+        return min(row[x], row[y - 2**j])
 
     def __len__(self):
         return len(self._minima[0])
+
 
 class LCA:
     """Structure for finding least common ancestors in trees.
@@ -162,40 +167,42 @@ class LCA:
     by a dictionary mapping nodes to their parents.
     LCA(T)(x,y) finds the LCA of nodes x and y in tree T.
     """
+
     def __init__(self, parent, range_min_factory=RestrictedRangeMin):
         """Construct LCA structure from tree parent relation."""
         children = {}
         for x in parent:
-            children.setdefault(parent[x],[]).append(x)
+            children.setdefault(parent[x], []).append(x)
         root = [x for x in children if x not in parent]
         if len(root) != 1:
             raise ValueError("LCA input is not a tree")
 
         levels = []
         self._representatives = {}
-        self._visit(children,levels,root[0],0)
+        self._visit(children, levels, root[0], 0)
         if [x for x in parent if x not in self._representatives]:
             raise ValueError("LCA input is not a tree")
         self._rangemin = range_min_factory(levels)
 
-    def __call__(self,*nodes):
+    def __call__(self, *nodes):
         """Find least common ancestor of a set of nodes."""
         r = [self._representatives[x] for x in nodes]
-        return self._rangemin[min(r):max(r)+1][1]
+        return self._rangemin[min(r) : max(r) + 1][1]
 
-    def _visit(self,children,levels,node,level):
+    def _visit(self, children, levels, node, level):
         """Perform Euler traversal of tree."""
         self._representatives[node] = len(levels)
-        pair = (level,node)
+        pair = (level, node)
         levels.append(pair)
-        for child in children.get(node,[]):
-            self._visit(children,levels,child,level+1)
+        for child in children.get(node, []):
+            self._visit(children, levels, child, level + 1)
             levels.append(pair)
+
 
 class OfflineLCA(dict):
     """Find LCAs of all pairs in a given sequence, using Union-Find."""
 
-    def __init__(self,parent,pairs):
+    def __init__(self, parent, pairs):
         """Set up to find LCAs of pairs in tree defined by parent.
         LCA of any given pair x,y can then be found by self[x][y].
         However unlike the online LCA structure we can not find LCAs
@@ -204,8 +211,8 @@ class OfflineLCA(dict):
 
         # set up dictionary where answers get stored
         dict.__init__(self)
-        for u,v in pairs:
-            self.setdefault(u,{})[v] = self.setdefault(v,{})[u] = None
+        for u, v in pairs:
+            self.setdefault(u, {})[v] = self.setdefault(v, {})[u] = None
 
         # set up data structure for finding node ancestor on search path
         # self.descendants forms a collection of disjoint sets,
@@ -216,8 +223,8 @@ class OfflineLCA(dict):
 
         # invert the parent relationship so we can traverse the tree
         self.children = {}
-        for x,px in parent.items():
-            self.children.setdefault(px,[]).append(x)
+        for x, px in parent.items():
+            self.children.setdefault(px, []).append(x)
         root = [x for x in self.children if x not in parent]
         if len(root) != 1:
             raise ValueError("LCA input is not a tree")
@@ -226,12 +233,12 @@ class OfflineLCA(dict):
         self.visited = set()
         self.traverse(root[0])
 
-    def traverse(self,node):
+    def traverse(self, node):
         """Perform depth first traversal of tree."""
         self.ancestors[self.descendants[node]] = node
-        for child in self.children.get(node,[]):
+        for child in self.children.get(node, []):
             self.traverse(child)
-            self.descendants.union(child,node)
+            self.descendants.union(child, node)
             self.ancestors[self.descendants[node]] = node
         self.visited.add(node)
         for query in self[node]:
@@ -239,14 +246,16 @@ class OfflineLCA(dict):
                 lca = self.ancestors[self.descendants[query]]
                 self[node][query] = self[query][node] = lca
 
+
 # Various utility functions
+
 
 def prefix_minima(x_seq, is_reversed=False):
     """Compute table of prefix minima
     (or suffix minima, if is_reversed=True) of list X.
     """
     current = None
-    output = [None]*len(x_seq)
+    output = [None] * len(x_seq)
     for x, i in _pairs(x_seq, is_reversed):
         if current is None:
             current = x
@@ -254,6 +263,7 @@ def prefix_minima(x_seq, is_reversed=False):
             current = min(current, x)
         output[i] = current
     return output
+
 
 def _pairs(x_seq, is_reversed=False):
     """Return pairs (x,i) for x in list X, where i is
@@ -264,41 +274,57 @@ def _pairs(x_seq, is_reversed=False):
         indices.reverse()
     return [(x_seq[i], i) for i in indices]
 
-_logtable = [None,0]
+
+_logtable = [None, 0]
+
+
 def _log2(n):
     """Make table of logs reach up to n and return floor(log_2(n))."""
     while len(_logtable) <= n:
-        _logtable.extend([1+_logtable[-1]]*len(_logtable))
+        _logtable.extend([1 + _logtable[-1]] * len(_logtable))
     return _logtable[n]
+
 
 # if run as "python LCA.py", run tests on random data
 # and check that RangeMin's results are correct.
 
+
 class RandomRangeMinTest(unittest.TestCase):
     def test_range_min(self):
         for trial in range(20):
-            data = [random.choice(range(1000000))
-                    for i in range(random.randint(1, 100))]
+            data = [
+                random.choice(range(1000000)) for i in range(random.randint(1, 100))
+            ]
             range_min = RangeMin(data)
             for sample in range(100):
-                i = random.randint(0, len(data)-1)
-                j = random.randint(i+1, len(data))
+                i = random.randint(0, len(data) - 1)
+                j = random.randint(i + 1, len(data))
                 # pylint: disable=unsubscriptable-object
                 self.assertEqual(range_min[i:j], min(data[i:j]))
 
+
 class LCATest(unittest.TestCase):
-    parent = {'b':'a','c':'a','d':'a','e':'b','f':'b','g':'f','h':'g','i':'g'}
+    parent = {
+        "b": "a",
+        "c": "a",
+        "d": "a",
+        "e": "b",
+        "f": "b",
+        "g": "f",
+        "h": "g",
+        "i": "g",
+    }
     lcas = {
-        ('a','b'):'a',
-        ('b','c'):'a',
-        ('c','d'):'a',
-        ('d','e'):'a',
-        ('e','f'):'b',
-        ('e','g'):'b',
-        ('e','h'):'b',
-        ('c','i'):'a',
-        ('a','i'):'a',
-        ('f','i'):'f',
+        ("a", "b"): "a",
+        ("b", "c"): "a",
+        ("c", "d"): "a",
+        ("d", "e"): "a",
+        ("e", "f"): "b",
+        ("e", "g"): "b",
+        ("e", "h"): "b",
+        ("c", "i"): "a",
+        ("a", "i"): "a",
+        ("f", "i"): "f",
     }
 
     def test_lca(self):
@@ -315,6 +341,7 @@ class LCATest(unittest.TestCase):
         lca = OfflineLCA(self.parent, self.lcas.keys())
         for (p, q), v in self.lcas.items():
             self.assertEqual(lca[p][q], v)
+
 
 if __name__ == "__main__":
     unittest.main()

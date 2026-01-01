@@ -148,6 +148,7 @@ class ApronDomain:
         # Convert Apron value back to logical formula
         # Placeholder implementation
         from .syntax import TrueExpr
+
         return TrueExpr()
 
     def join(self, a: ApronAbstractValue, b: ApronAbstractValue) -> ApronAbstractValue:
@@ -158,8 +159,12 @@ class ApronDomain:
         """Meet two abstract values."""
         return a.meet(b)
 
-    def assign(self, abstract_value: ApronAbstractValue,
-               variable: Symbol, expression: ArithExpression) -> ApronAbstractValue:
+    def assign(
+        self,
+        abstract_value: ApronAbstractValue,
+        variable: Symbol,
+        expression: ArithExpression,
+    ) -> ApronAbstractValue:
         """Assign expression to variable."""
         if not self.manager.is_available():
             raise RuntimeError("Apron not available")
@@ -167,7 +172,9 @@ class ApronDomain:
         # Perform assignment in Apron
         return abstract_value  # Placeholder
 
-    def forget(self, abstract_value: ApronAbstractValue, variables: Set[Symbol]) -> ApronAbstractValue:
+    def forget(
+        self, abstract_value: ApronAbstractValue, variables: Set[Symbol]
+    ) -> ApronAbstractValue:
         """Forget (project out) variables."""
         if not self.manager.is_available():
             raise RuntimeError("Apron not available")
@@ -183,14 +190,16 @@ class ApronAnalysis:
         self.context = context
         self.domain = ApronDomain(context, domain_type)
 
-    def forward_analysis(self, initial_state: ApronAbstractValue,
-                        transition_formula: Any) -> ApronAbstractValue:
+    def forward_analysis(
+        self, initial_state: ApronAbstractValue, transition_formula: Any
+    ) -> ApronAbstractValue:
         """Perform forward analysis."""
         # Placeholder implementation
         return initial_state
 
-    def backward_analysis(self, final_state: ApronAbstractValue,
-                         transition_formula: Any) -> ApronAbstractValue:
+    def backward_analysis(
+        self, final_state: ApronAbstractValue, transition_formula: Any
+    ) -> ApronAbstractValue:
         """Perform backward analysis."""
         # Placeholder implementation
         return final_state
@@ -207,7 +216,9 @@ def make_apron_domain(context: Context, domain_type: str = "interval") -> ApronD
     return ApronDomain(context, domain_type)
 
 
-def make_apron_analysis(context: Context, domain_type: str = "interval") -> ApronAnalysis:
+def make_apron_analysis(
+    context: Context, domain_type: str = "interval"
+) -> ApronAnalysis:
     """Create an Apron analysis."""
     return ApronAnalysis(context, domain_type)
 
@@ -233,6 +244,7 @@ def apron_available() -> bool:
     """Check if Apron library is available."""
     try:
         import apron
+
         return True
     except ImportError:
         return False
@@ -267,22 +279,28 @@ def get_available_apron_domains() -> List[str]:
 # Error handling for Apron operations
 class ApronError(Exception):
     """Error in Apron operations."""
+
     pass
 
 
 class ApronUnavailableError(ApronError):
     """Apron library not available."""
+
     pass
 
 
 def check_apron_available() -> None:
     """Check if Apron is available, raise error if not."""
     if not apron_available():
-        raise ApronUnavailableError("Apron library not available. Install with: pip install apron")
+        raise ApronUnavailableError(
+            "Apron library not available. Install with: pip install apron"
+        )
 
 
 # Integration utilities
-def formula_to_apron_constraints(formula: FormulaExpression, context: Context) -> List[Any]:
+def formula_to_apron_constraints(
+    formula: FormulaExpression, context: Context
+) -> List[Any]:
     """Convert formula to Apron constraints."""
     check_apron_available()
 
@@ -291,13 +309,16 @@ def formula_to_apron_constraints(formula: FormulaExpression, context: Context) -
     return []
 
 
-def apron_constraints_to_formula(constraints: List[Any], context: Context) -> FormulaExpression:
+def apron_constraints_to_formula(
+    constraints: List[Any], context: Context
+) -> FormulaExpression:
     """Convert Apron constraints to formula."""
     check_apron_available()
 
     # This would convert Apron constraints back to logical formulas
     # Placeholder implementation
     from .syntax import TrueExpr
+
     return TrueExpr()
 
 
@@ -311,12 +332,12 @@ class ApronPerformanceMonitor:
     def record_operation(self, operation: str, duration: float) -> None:
         """Record an operation."""
         if operation not in self.stats:
-            self.stats[operation] = {'count': 0, 'total_time': 0, 'avg_time': 0}
+            self.stats[operation] = {"count": 0, "total_time": 0, "avg_time": 0}
 
         stats = self.stats[operation]
-        stats['count'] += 1
-        stats['total_time'] += duration
-        stats['avg_time'] = stats['total_time'] / stats['count']
+        stats["count"] += 1
+        stats["total_time"] += duration
+        stats["avg_time"] = stats["total_time"] / stats["count"]
 
     def get_stats(self) -> Dict[str, Dict[str, float]]:
         """Get performance statistics."""
@@ -329,6 +350,7 @@ apron_monitor = ApronPerformanceMonitor()
 
 def with_apron_monitoring(operation: str):
     """Decorator for monitoring Apron operations."""
+
     def decorator(func):
         def wrapper(*args, **kwargs):
             import time
@@ -343,6 +365,7 @@ def with_apron_monitoring(operation: str):
                 apron_monitor.record_operation(operation, duration)
 
         return wrapper
+
     return decorator
 
 
@@ -378,6 +401,7 @@ def formula_of_property(apron_value: Any) -> FormulaExpression:
 
     # Placeholder implementation - would need to convert Apron constraints to formulas
     from .syntax import TrueExpr
+
     return TrueExpr()
 
 
@@ -392,6 +416,7 @@ def widen(apron_value1: Any, apron_value2: Any) -> Any:
 
     try:
         import apron
+
         # Perform widening operation
         return apron_value1.widening(apron_value2)
     except Exception:

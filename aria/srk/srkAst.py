@@ -23,8 +23,36 @@ from typing import List, Dict, Set, Tuple, Optional, Union, Callable, Any
 from fractions import Fraction
 
 # Import from other SRK modules
-from .syntax import Context, Symbol, Expression, FormulaExpression, ArithExpression, Type, mk_const, mk_symbol, mk_real, mk_add, mk_mul, mk_div, mk_mod, mk_eq, mk_and, mk_or, mk_leq, mk_lt, mk_ite, mk_not, mk_true, mk_false, destruct, expr_typ, symbols, substitute_const
+from .syntax import (
+    Context,
+    Symbol,
+    Expression,
+    FormulaExpression,
+    ArithExpression,
+    Type,
+    mk_const,
+    mk_symbol,
+    mk_real,
+    mk_add,
+    mk_mul,
+    mk_div,
+    mk_mod,
+    mk_eq,
+    mk_and,
+    mk_or,
+    mk_leq,
+    mk_lt,
+    mk_ite,
+    mk_not,
+    mk_true,
+    mk_false,
+    destruct,
+    expr_typ,
+    symbols,
+    substitute_const,
+)
 from .srkSimplify import simplify_terms
+
 
 # Create a simplifying context for AST operations
 class SimplifyingContext:
@@ -113,8 +141,11 @@ term = ArithExpression
 formula = FormulaExpression
 
 
-def mk_quantified(mkq: Callable[[str], Callable[[Expression], Expression]],
-                  ks: List[Symbol], phi: Expression) -> Expression:
+def mk_quantified(
+    mkq: Callable[[str], Callable[[Expression], Expression]],
+    ks: List[Symbol],
+    phi: Expression,
+) -> Expression:
     """Create a quantified formula with variable substitution."""
     # Reverse the list for proper substitution order
     ks_rev = list(reversed(ks))
@@ -140,6 +171,7 @@ def mk_quantified(mkq: Callable[[str], Callable[[Expression], Expression]],
 
 def mk_exists(ks: List[Symbol], phi: Expression) -> Expression:
     """Create an existential quantification over the given variables."""
+
     def mkq(name: str) -> Callable[[Expression], Expression]:
         return lambda body: _simplifying_context.mk_exists(name, Type.REAL, body)
 
@@ -148,6 +180,7 @@ def mk_exists(ks: List[Symbol], phi: Expression) -> Expression:
 
 def mk_forall(ks: List[Symbol], phi: Expression) -> Expression:
     """Create a universal quantification over the given variables."""
+
     def mkq(name: str) -> Callable[[Expression], Expression]:
         return lambda body: _simplifying_context.mk_forall(name, Type.REAL, body)
 
@@ -206,8 +239,11 @@ def bound_variables(expr: Expression) -> Set[Symbol]:
     return set()
 
 
-def substitute(expr: Expression, var: Symbol, replacement: ArithExpression) -> Expression:
+def substitute(
+    expr: Expression, var: Symbol, replacement: ArithExpression
+) -> Expression:
     """Substitute a variable in an expression."""
+
     def subst_func(sym: Symbol) -> ArithExpression:
         if sym == var:
             return replacement
@@ -236,17 +272,17 @@ def occurs_free(var: Symbol, expr: Expression) -> bool:
 def is_atom(expr: Expression) -> bool:
     """Check if an expression is an atomic formula."""
     destruct_result = destruct(_simplifying_context.context, expr)
-    return destruct_result[0] == 'Atom'
+    return destruct_result[0] == "Atom"
 
 
 def is_literal(expr: Expression) -> bool:
     """Check if an expression is a literal (atom or negation of atom)."""
     destruct_result = destruct(_simplifying_context.context, expr)
-    if destruct_result[0] == 'Atom':
+    if destruct_result[0] == "Atom":
         return True
-    elif destruct_result[0] == 'Not':
+    elif destruct_result[0] == "Not":
         inner_destr = destruct(_simplifying_context.context, destruct_result[1])
-        return inner_destr[0] == 'Atom'
+        return inner_destr[0] == "Atom"
     else:
         return False
 
@@ -254,7 +290,7 @@ def is_literal(expr: Expression) -> bool:
 def conjuncts(expr: Expression) -> List[Expression]:
     """Get the conjuncts of a conjunction."""
     destruct_result = destruct(_simplifying_context.context, expr)
-    if destruct_result[0] == 'And':
+    if destruct_result[0] == "And":
         return destruct_result[1] if len(destruct_result) > 1 else []
     else:
         return [expr]
@@ -263,7 +299,7 @@ def conjuncts(expr: Expression) -> List[Expression]:
 def disjuncts(expr: Expression) -> List[Expression]:
     """Get the disjuncts of a disjunction."""
     destruct_result = destruct(_simplifying_context.context, expr)
-    if destruct_result[0] == 'Or':
+    if destruct_result[0] == "Or":
         return destruct_result[1] if len(destruct_result) > 1 else []
     else:
         return [expr]

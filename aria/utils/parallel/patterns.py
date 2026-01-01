@@ -1,4 +1,5 @@
 """Compatibility module re-exporting parallel patterns."""
+
 from __future__ import annotations
 
 from .fork_join import fork_join

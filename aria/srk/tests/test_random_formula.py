@@ -4,9 +4,13 @@ Tests for the random formula generation module.
 
 import unittest
 from aria.srk.randomFormula import (
-    RandomFormulaGenerator, mk_random_formula, mk_random_term,
-    mk_random_qf_formula, set_coeff_range, set_quantifier_prefix,
-    set_formula_parameters
+    RandomFormulaGenerator,
+    mk_random_formula,
+    mk_random_term,
+    mk_random_qf_formula,
+    set_coeff_range,
+    set_quantifier_prefix,
+    set_formula_parameters,
 )
 from aria.srk.syntax import Context, Type
 
@@ -66,7 +70,7 @@ class TestRandomFormula(unittest.TestCase):
         set_coeff_range(-5, 5)
 
         # Test quantifier prefix setting
-        new_prefix = ['Forall', 'Exists', 'Forall']
+        new_prefix = ["Forall", "Exists", "Forall"]
         set_quantifier_prefix(new_prefix)
 
         # Test formula parameters
@@ -118,5 +122,5 @@ class TestRandomFormula(unittest.TestCase):
         self.assertIsNotNone(qf_formula)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

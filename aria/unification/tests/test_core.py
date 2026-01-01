@@ -1,4 +1,5 @@
 """Tests for core unification functionality."""
+
 import sys
 from collections import OrderedDict
 from types import MappingProxyType
@@ -116,8 +117,12 @@ def test_unify_slice():
 def test_unify_iter():
     x = var()
     assert unify([1], (1,)) is False  # pylint: disable=no-value-for-parameter
-    assert unify((i for i in [1, 2]), [1, 2]) is False  # pylint: disable=no-value-for-parameter
-    assert unify(iter([1, x]), iter([1, 2])) == {x: 2}  # pylint: disable=no-value-for-parameter
+    assert (
+        unify((i for i in [1, 2]), [1, 2]) is False
+    )  # pylint: disable=no-value-for-parameter
+    assert unify(iter([1, x]), iter([1, 2])) == {
+        x: 2
+    }  # pylint: disable=no-value-for-parameter
 
 
 def test_unify_seq():

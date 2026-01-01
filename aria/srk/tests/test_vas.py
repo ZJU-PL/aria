@@ -5,8 +5,15 @@ Tests for the Vector Addition Systems (VAS) and Petri Nets module.
 import unittest
 from fractions import Fraction
 from aria.srk.vas import (
-    Transformer, VectorAdditionSystem, PetriNet, Place, Transition,
-    ReachabilityResult, make_vas, make_petri_net, producer_consumer_petri_net
+    Transformer,
+    VectorAdditionSystem,
+    PetriNet,
+    Place,
+    Transition,
+    ReachabilityResult,
+    make_vas,
+    make_petri_net,
+    producer_consumer_petri_net,
 )
 from aria.srk.linear import QQVector
 
@@ -57,7 +64,7 @@ class TestVectorAdditionSystem(unittest.TestCase):
         """Test VAS creation."""
         transformers = [
             Transformer(QQVector({0: Fraction(1)}), QQVector({0: Fraction(1)})),
-            Transformer(QQVector({0: Fraction(0)}), QQVector({0: Fraction(-1)}))
+            Transformer(QQVector({0: Fraction(0)}), QQVector({0: Fraction(-1)})),
         ]
 
         vas = VectorAdditionSystem(transformers, 1)
@@ -67,7 +74,9 @@ class TestVectorAdditionSystem(unittest.TestCase):
     def test_add_transformer(self):
         """Test adding transformers to VAS."""
         vas = VectorAdditionSystem([], 1)
-        transformer = Transformer(QQVector({0: Fraction(1)}), QQVector({0: Fraction(1)}))
+        transformer = Transformer(
+            QQVector({0: Fraction(1)}), QQVector({0: Fraction(1)})
+        )
 
         new_vas = vas.add_transformer(transformer)
         self.assertEqual(len(new_vas.transformers), 1)
@@ -75,8 +84,12 @@ class TestVectorAdditionSystem(unittest.TestCase):
     def test_applicable_transformers(self):
         """Test finding applicable transformers."""
         transformers = [
-            Transformer(QQVector({0: Fraction(1)}), QQVector({0: Fraction(1)})),  # requires x0 >= 0
-            Transformer(QQVector({0: Fraction(0)}), QQVector({0: Fraction(-1)}))   # always applicable
+            Transformer(
+                QQVector({0: Fraction(1)}), QQVector({0: Fraction(1)})
+            ),  # requires x0 >= 0
+            Transformer(
+                QQVector({0: Fraction(0)}), QQVector({0: Fraction(-1)})
+            ),  # always applicable
         ]
 
         vas = VectorAdditionSystem(transformers, 1)
@@ -127,9 +140,7 @@ class TestPetriNet(unittest.TestCase):
     def test_creation(self):
         """Test Petri net creation."""
         places = [Place("p1", 1), Place("p2", 0)]
-        transitions = [
-            Transition("t1", {"p1": 1}, {"p2": 1})
-        ]
+        transitions = [Transition("t1", {"p1": 1}, {"p2": 1})]
 
         net = PetriNet(places, transitions)
         self.assertEqual(len(net.places), 2)
@@ -172,9 +183,7 @@ class TestPetriNet(unittest.TestCase):
     def test_petri_net_step(self):
         """Test one step of Petri net execution."""
         places = [Place("p1", 1), Place("p2", 0)]
-        transitions = [
-            Transition("t1", {"p1": 1}, {"p2": 1})
-        ]
+        transitions = [Transition("t1", {"p1": 1}, {"p2": 1})]
 
         net = PetriNet(places, transitions)
         marking = {"p1": 1, "p2": 0}
@@ -215,5 +224,5 @@ class TestPetriNet(unittest.TestCase):
         self.assertEqual(len(vas.transformers), 2)  # produce and consume
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

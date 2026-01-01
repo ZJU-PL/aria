@@ -11,16 +11,42 @@ from fractions import Fraction
 import random
 
 # Import from other SRK modules
-from aria.srk.syntax import Context, Symbol, Expression, Formula, ArithTerm, Type, mk_var, mk_const, mk_real, mk_add, mk_mul, mk_leq, mk_and, mk_or, mk_exists, mk_forall
+from aria.srk.syntax import (
+    Context,
+    Symbol,
+    Expression,
+    Formula,
+    ArithTerm,
+    Type,
+    mk_var,
+    mk_const,
+    mk_real,
+    mk_add,
+    mk_mul,
+    mk_leq,
+    mk_and,
+    mk_or,
+    mk_exists,
+    mk_forall,
+)
 
 
 # Configuration variables (module-level, similar to OCaml refs)
 min_coeff = -10
 max_coeff = 10
 quantifier_prefix = [
-    'Forall', 'Forall', 'Forall', 'Forall',
-    'Exists', 'Exists', 'Exists', 'Exists',
-    'Forall', 'Forall', 'Forall', 'Forall'
+    "Forall",
+    "Forall",
+    "Forall",
+    "Forall",
+    "Exists",
+    "Exists",
+    "Exists",
+    "Exists",
+    "Forall",
+    "Forall",
+    "Forall",
+    "Forall",
 ]
 formula_uq_proba = 0.9
 formula_uq_depth = 5
@@ -91,11 +117,11 @@ class RandomFormulaGenerator:
         result = qf_formula
 
         for qt in reversed(quantifier_prefix):
-            if qt == 'Exists':
+            if qt == "Exists":
                 var_name = f"v{self.variable_counter}"
                 self.variable_counter += 1
                 result = mk_exists(var_name, Type.INT, result)
-            elif qt == 'Forall':
+            elif qt == "Forall":
                 var_name = f"v{self.variable_counter}"
                 self.variable_counter += 1
                 result = mk_forall(var_name, Type.INT, result)
@@ -142,7 +168,9 @@ def set_quantifier_prefix(prefix: List[str]) -> None:
     RandomFormulaGenerator.quantifier_prefix = prefix
 
 
-def set_formula_parameters(uq_proba: float = 0.9, uq_depth: int = 5, monomials: int = 5, dense: bool = False) -> None:
+def set_formula_parameters(
+    uq_proba: float = 0.9, uq_depth: int = 5, monomials: int = 5, dense: bool = False
+) -> None:
     """Set formula generation parameters."""
     RandomFormulaGenerator.formula_uq_proba = uq_proba
     RandomFormulaGenerator.formula_uq_depth = uq_depth

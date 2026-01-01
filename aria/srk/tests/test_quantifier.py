@@ -4,9 +4,28 @@ Tests for the quantifier elimination module.
 
 import unittest
 from aria.srk.syntax import (
-    Context, Symbol, Type, Lt, Leq, Eq, Var, Const, Exists, Forall,
-    mk_symbol, mk_const, mk_real, mk_add, mk_mul, mk_eq, mk_lt, mk_leq, mk_geq,
-    mk_and, mk_or, mk_not
+    Context,
+    Symbol,
+    Type,
+    Lt,
+    Leq,
+    Eq,
+    Var,
+    Const,
+    Exists,
+    Forall,
+    mk_symbol,
+    mk_const,
+    mk_real,
+    mk_add,
+    mk_mul,
+    mk_eq,
+    mk_lt,
+    mk_leq,
+    mk_geq,
+    mk_and,
+    mk_or,
+    mk_not,
 )
 from aria.srk.quantifier import QuantifierEngine, StrategyImprovementSolver
 
@@ -94,10 +113,7 @@ class TestQuantifierEngine(unittest.TestCase):
         x_var = self.context.mk_var(x)
 
         # ∃x. x < 0 ∨ x > 10
-        formula = Exists(str(x), x.typ, mk_or([
-            mk_lt(x_var, zero),
-            mk_lt(ten, x_var)
-        ]))
+        formula = Exists(str(x), x.typ, mk_or([mk_lt(x_var, zero), mk_lt(ten, x_var)]))
 
         result = engine.eliminate_quantifiers(formula)
         print(f"Formula: {formula}")
@@ -116,10 +132,9 @@ class TestQuantifierEngine(unittest.TestCase):
 
         # ∀x. x > 0 → x > -1
         # This is equivalent to: ∀x. ¬(x > 0) ∨ (x > -1)
-        formula = Forall(str(x), x.typ, mk_or([
-            mk_not(mk_lt(zero, x_var)),
-            mk_lt(neg_one, x_var)
-        ]))
+        formula = Forall(
+            str(x), x.typ, mk_or([mk_not(mk_lt(zero, x_var)), mk_lt(neg_one, x_var)])
+        )
 
         result = engine.eliminate_quantifiers(formula)
         print(f"Formula: {formula}")
@@ -265,5 +280,5 @@ class TestStrategyImprovementSolver(unittest.TestCase):
         pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

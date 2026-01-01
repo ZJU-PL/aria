@@ -119,7 +119,9 @@ class SmtlibProc:
                 buf = buf.strip()
             except TypeError:
                 if not wait:
-                    if buf != "":  # we got an error, but something was returned, let's save it
+                    if (
+                        buf != ""
+                    ):  # we got an error, but something was returned, let's save it
                         self._last_buf = buf
                     return None
                 else:

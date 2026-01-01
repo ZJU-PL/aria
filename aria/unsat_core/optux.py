@@ -9,98 +9,98 @@
 ##
 
 """
-    ===============
-    List of classes
-    ===============
+===============
+List of classes
+===============
 
-    .. autosummary::
-        :nosignatures:
+.. autosummary::
+    :nosignatures:
 
-        OptUx
+    OptUx
 
-    ==================
-    Module description
-    ==================
+==================
+Module description
+==================
 
-    An implementation of an extractor of a smallest size minimal unsatisfiable
-    subset (smallest MUS, or SMUS) [1]_ [2]_ [3]_ [4]_ and enumerator of
-    SMUSes based on *implicit hitting set enumeration* [1]_. This
-    implementation tries to replicate the well-known SMUS extractor Forqes
-    [1]_. In contrast to Forqes, this implementation supports not only plain
-    DIMACS :class:`.CNF` formulas but also weighted :class:`.WCNF` formulas.
-    As a result, the tool is able to compute and enumerate *optimal* MUSes in
-    case of weighted formulas. On the other hand, this prototype lacks a
-    number of command-line options used in Forqes and so it may be less
-    efficient compared to Forqes but the performance difference should not be
-    significant.
+An implementation of an extractor of a smallest size minimal unsatisfiable
+subset (smallest MUS, or SMUS) [1]_ [2]_ [3]_ [4]_ and enumerator of
+SMUSes based on *implicit hitting set enumeration* [1]_. This
+implementation tries to replicate the well-known SMUS extractor Forqes
+[1]_. In contrast to Forqes, this implementation supports not only plain
+DIMACS :class:`.CNF` formulas but also weighted :class:`.WCNF` formulas.
+As a result, the tool is able to compute and enumerate *optimal* MUSes in
+case of weighted formulas. On the other hand, this prototype lacks a
+number of command-line options used in Forqes and so it may be less
+efficient compared to Forqes but the performance difference should not be
+significant.
 
-    .. [1] Alexey Ignatiev, Alessandro Previti, Mark H. Liffiton, Joao
-        Marques-Silva. *Smallest MUS Extraction with Minimal Hitting Set
-        Dualization*. CP 2015. pp. 173-182
+.. [1] Alexey Ignatiev, Alessandro Previti, Mark H. Liffiton, Joao
+    Marques-Silva. *Smallest MUS Extraction with Minimal Hitting Set
+    Dualization*. CP 2015. pp. 173-182
 
-    .. [2] Mark H. Liffiton, Maher N. Mneimneh, Ines Lynce, Zaher S. Andraus,
-        Joao Marques-Silva, Karem A. Sakallah. *A branch and bound algorithm
-        for extracting smallest minimal unsatisfiable subformulas*.
-        Constraints An Int. J. 14(4). 2009. pp. 415-442
+.. [2] Mark H. Liffiton, Maher N. Mneimneh, Ines Lynce, Zaher S. Andraus,
+    Joao Marques-Silva, Karem A. Sakallah. *A branch and bound algorithm
+    for extracting smallest minimal unsatisfiable subformulas*.
+    Constraints An Int. J. 14(4). 2009. pp. 415-442
 
-    .. [3] Alexey Ignatiev, Mikolas Janota, Joao Marques-Silva. *Quantified
-        Maximum Satisfiability: A Core-Guided Approach*. SAT 2013.
-        pp. 250-266
+.. [3] Alexey Ignatiev, Mikolas Janota, Joao Marques-Silva. *Quantified
+    Maximum Satisfiability: A Core-Guided Approach*. SAT 2013.
+    pp. 250-266
 
-    .. [4] Alexey Ignatiev, Mikolas Janota, Joao Marques-Silva. *Quantified
-        maximum satisfiability*. Constraints An Int. J. 21(2). 2016.
-        pp. 277-302
+.. [4] Alexey Ignatiev, Mikolas Janota, Joao Marques-Silva. *Quantified
+    maximum satisfiability*. Constraints An Int. J. 21(2). 2016.
+    pp. 277-302
 
-    The file provides a class :class:`OptUx`, which is the basic
-    implementation of the algorithm. It can be applied to any formula in the
-    :class:`.CNF` or :class:`.WCNF` format.
+The file provides a class :class:`OptUx`, which is the basic
+implementation of the algorithm. It can be applied to any formula in the
+:class:`.CNF` or :class:`.WCNF` format.
 
-    The implementation can be used as an executable (the list of available
-    command-line options can be shown using ``optux.py -h``) in the following
-    way:
+The implementation can be used as an executable (the list of available
+command-line options can be shown using ``optux.py -h``) in the following
+way:
 
-    ::
+::
 
-        $ xzcat formula.wcnf.xz
-        p wcnf 3 6 4
-        1 1 0
-        1 2 0
-        1 3 0
-        4 -1 -2 0
-        4 -1 -3 0
-        4 -2 -3 0
+    $ xzcat formula.wcnf.xz
+    p wcnf 3 6 4
+    1 1 0
+    1 2 0
+    1 3 0
+    4 -1 -2 0
+    4 -1 -3 0
+    4 -2 -3 0
 
-        $ optux.py -vvv formula.wcnf.xz
-        c mcs: 1 2 0
-        c mcses: 0 unit, 1 disj
-        c mus: 1 2 0
-        c cost: 2
-        c oracle time: 0.0001
+    $ optux.py -vvv formula.wcnf.xz
+    c mcs: 1 2 0
+    c mcses: 0 unit, 1 disj
+    c mus: 1 2 0
+    c cost: 2
+    c oracle time: 0.0001
 
-    Alternatively, the algorithm can be accessed and invoked through the
-    standard ``import`` interface of Python, e.g.
+Alternatively, the algorithm can be accessed and invoked through the
+standard ``import`` interface of Python, e.g.
 
-    .. code-block:: python
+.. code-block:: python
 
-        >>> from pysat.examples.optux import OptUx
-        >>> from pysat.formula import WCNF
-        >>>
-        >>> wcnf = WCNF(from_file='formula.wcnf.xz')
-        >>>
-        >>> with OptUx(wcnf) as optux:
-        ...     for mus in optux.enumerate():
-        ...         print('mus {0} has cost {1}'.format(mus, optux.cost))
-        mus [1, 2] has cost 2
-        mus [1, 3] has cost 2
-        mus [2, 3] has cost 2
+    >>> from pysat.examples.optux import OptUx
+    >>> from pysat.formula import WCNF
+    >>>
+    >>> wcnf = WCNF(from_file='formula.wcnf.xz')
+    >>>
+    >>> with OptUx(wcnf) as optux:
+    ...     for mus in optux.enumerate():
+    ...         print('mus {0} has cost {1}'.format(mus, optux.cost))
+    mus [1, 2] has cost 2
+    mus [1, 3] has cost 2
+    mus [2, 3] has cost 2
 
-    As can be seen in the example above, the solver can be instructed either
-    to compute one optimal MUS of an input formula, or to enumerate a given
-    number (or *all*) of its top optimal MUSes.
+As can be seen in the example above, the solver can be instructed either
+to compute one optimal MUS of an input formula, or to enumerate a given
+number (or *all*) of its top optimal MUSes.
 
-    ==============
-    Module details
-    ==============
+==============
+Module details
+==============
 """
 
 #
@@ -120,107 +120,118 @@ from pysat.solvers import Solver, SolverNames
 # ==============================================================================
 class OptUx:
     """
-        A simple Python version of the implicit hitting set based optimal MUS
-        extractor and enumerator. Given a (weighted) (partial) CNF formula,
-        i.e. formula in the :class:`.WCNF` format, this class can be used to
-        compute a given number of optimal MUS (starting from the *best* one)
-        of the input formula. :class:`OptUx` roughly follows the
-        implementation of Forqes [1]_ but lacks a few additional heuristics,
-        which however aren't applied in Forqes by default.
+    A simple Python version of the implicit hitting set based optimal MUS
+    extractor and enumerator. Given a (weighted) (partial) CNF formula,
+    i.e. formula in the :class:`.WCNF` format, this class can be used to
+    compute a given number of optimal MUS (starting from the *best* one)
+    of the input formula. :class:`OptUx` roughly follows the
+    implementation of Forqes [1]_ but lacks a few additional heuristics,
+    which however aren't applied in Forqes by default.
 
-        As a result, OptUx applies exhaustive *disjoint* minimal correction
-        subset (MCS) enumeration [1]_, [2]_, [3]_, [4]_ with the incremental
-        use of RC2 [5]_ as an underlying MaxSAT solver. Once disjoint MCSes
-        are enumerated, they are used to bootstrap a hitting set solver. This
-        implementation uses :class:`.Hitman` as a hitting set solver, which is
-        again based on RC2.
+    As a result, OptUx applies exhaustive *disjoint* minimal correction
+    subset (MCS) enumeration [1]_, [2]_, [3]_, [4]_ with the incremental
+    use of RC2 [5]_ as an underlying MaxSAT solver. Once disjoint MCSes
+    are enumerated, they are used to bootstrap a hitting set solver. This
+    implementation uses :class:`.Hitman` as a hitting set solver, which is
+    again based on RC2.
 
-        Note that in the main implicit hitting enumeration loop of the
-        algorithm, OptUx follows Forqes in that it does not reduce correction
-        subsets detected to minimal correction subsets. As a result,
-        correction subsets computed in the main loop are added to
-        :class:`Hitman` *unreduced*.
+    Note that in the main implicit hitting enumeration loop of the
+    algorithm, OptUx follows Forqes in that it does not reduce correction
+    subsets detected to minimal correction subsets. As a result,
+    correction subsets computed in the main loop are added to
+    :class:`Hitman` *unreduced*.
 
-        :class:`OptUx` can use any SAT solver available in PySAT. The default
-        SAT solver to use is ``g3``, which stands for Glucose 3 [6]_ (see
-        :class:`.SolverNames`). Boolean parameters ``adapt``, ``exhaust``, and
-        ``minz`` control whether or not the underlying :class:`.RC2` oracles
-        should apply detection and adaptation of intrinsic AtMost1
-        constraints, core exhaustion, and core reduction. Also, unsatisfiable
-        cores can be trimmed if the ``trim`` parameter is set to a non-zero
-        integer. Finally, verbosity level can be set using the ``verbose``
-        parameter.
+    :class:`OptUx` can use any SAT solver available in PySAT. The default
+    SAT solver to use is ``g3``, which stands for Glucose 3 [6]_ (see
+    :class:`.SolverNames`). Boolean parameters ``adapt``, ``exhaust``, and
+    ``minz`` control whether or not the underlying :class:`.RC2` oracles
+    should apply detection and adaptation of intrinsic AtMost1
+    constraints, core exhaustion, and core reduction. Also, unsatisfiable
+    cores can be trimmed if the ``trim`` parameter is set to a non-zero
+    integer. Finally, verbosity level can be set using the ``verbose``
+    parameter.
 
-        Two additional optional parameters ``unsorted`` and ``dcalls`` can be
-        used to instruct the tool to enumerate MUSes in the unsorted fashion,
-        i.e. optimal MUSes are not guaranteed to go first. For this,
-        :class:`OptUx` applies LBX-like MCS enumeration (it uses :class:`.LBX`
-        directly). Parameter ``dcalls`` can be applied to instruct the
-        underlying MCS enumerator to apply clause D oracle calls.
+    Two additional optional parameters ``unsorted`` and ``dcalls`` can be
+    used to instruct the tool to enumerate MUSes in the unsorted fashion,
+    i.e. optimal MUSes are not guaranteed to go first. For this,
+    :class:`OptUx` applies LBX-like MCS enumeration (it uses :class:`.LBX`
+    directly). Parameter ``dcalls`` can be applied to instruct the
+    underlying MCS enumerator to apply clause D oracle calls.
 
-        Another optional paramater ``puresat`` can be used to instruct OptUx
-        to run a purely SAT-based minimal hitting set enumerator, following
-        the ideas of [7]_. The value of ``puresat`` can be either ``False``,
-        meaning that no pure SAT enumeration is to be done or be equal to
-        ``'mgh'``, ``'cd15'``, or ``'lgl'`` - these are the solvers that
-        support *hard* phase setting, i.e. user preferences will not be
-        overwritten by the *phase saving* heuristic [8]_.
+    Another optional paramater ``puresat`` can be used to instruct OptUx
+    to run a purely SAT-based minimal hitting set enumerator, following
+    the ideas of [7]_. The value of ``puresat`` can be either ``False``,
+    meaning that no pure SAT enumeration is to be done or be equal to
+    ``'mgh'``, ``'cd15'``, or ``'lgl'`` - these are the solvers that
+    support *hard* phase setting, i.e. user preferences will not be
+    overwritten by the *phase saving* heuristic [8]_.
 
-        Finally, one more optional input parameter ``cover`` is to be used
-        when exhaustive enumeration of MUSes is not necessary and the tool can
-        stop as soon as a given formula is covered by the set of currently
-        computed MUSes. This can be made to work if the soft clauses of
-        ``formula`` are of size 1.
+    Finally, one more optional input parameter ``cover`` is to be used
+    when exhaustive enumeration of MUSes is not necessary and the tool can
+    stop as soon as a given formula is covered by the set of currently
+    computed MUSes. This can be made to work if the soft clauses of
+    ``formula`` are of size 1.
 
-        .. [5] Alexey Ignatiev, Antonio Morgado, Joao Marques-Silva. *RC2: an
-            Efficient MaxSAT Solver*. J. Satisf. Boolean Model. Comput. 11(1).
-            2019. pp. 53-64
+    .. [5] Alexey Ignatiev, Antonio Morgado, Joao Marques-Silva. *RC2: an
+        Efficient MaxSAT Solver*. J. Satisf. Boolean Model. Comput. 11(1).
+        2019. pp. 53-64
 
-        .. [6] Gilles Audemard, Jean-Marie Lagniez, Laurent Simon.
-            *Improving Glucose for Incremental SAT Solving with
-            Assumptions: Application to MUS Extraction*. SAT 2013.
-            pp. 309-317
+    .. [6] Gilles Audemard, Jean-Marie Lagniez, Laurent Simon.
+        *Improving Glucose for Incremental SAT Solving with
+        Assumptions: Application to MUS Extraction*. SAT 2013.
+        pp. 309-317
 
-        .. [7] Enrico Giunchiglia, Marco Maratea. *Solving Optimization
-            Problems with DLL*. ECAI 2006. pp. 377-381
+    .. [7] Enrico Giunchiglia, Marco Maratea. *Solving Optimization
+        Problems with DLL*. ECAI 2006. pp. 377-381
 
-        .. [8] Knot Pipatsrisawat, Adnan Darwiche. *A Lightweight Component
-            Caching Scheme for Satisfiability Solvers*. SAT 2007. pp. 294-299
+    .. [8] Knot Pipatsrisawat, Adnan Darwiche. *A Lightweight Component
+        Caching Scheme for Satisfiability Solvers*. SAT 2007. pp. 294-299
 
 
-        :param formula: (weighted) (partial) CNFPlus formula
-        :param solver: SAT oracle name
-        :param adapt: detect and adapt intrinsic AtMost1 constraints
-        :param cover: CNFPlus formula to cover when doing MUS enumeration
-        :param dcalls: apply clause D oracle calls (for unsorted enumeration only)
-        :param exhaust: do core exhaustion
-        :param minz: do heuristic core reduction
-        :param puresat: use pure SAT-based hitting set enumeration
-        :param unsorted: apply unsorted MUS enumeration
-        :param trim: do core trimming at most this number of times
-        :param verbose: verbosity level
+    :param formula: (weighted) (partial) CNFPlus formula
+    :param solver: SAT oracle name
+    :param adapt: detect and adapt intrinsic AtMost1 constraints
+    :param cover: CNFPlus formula to cover when doing MUS enumeration
+    :param dcalls: apply clause D oracle calls (for unsorted enumeration only)
+    :param exhaust: do core exhaustion
+    :param minz: do heuristic core reduction
+    :param puresat: use pure SAT-based hitting set enumeration
+    :param unsorted: apply unsorted MUS enumeration
+    :param trim: do core trimming at most this number of times
+    :param verbose: verbosity level
 
-        :type formula: :class:`.WCNFPlus`
-        :type solver: str
-        :type adapt: bool
-        :type cover: :class:`.CNFPlus`
-        :type dcalls: bool
-        :type exhaust: bool
-        :type minz: bool
-        :type puresat: str
-        :type unsorted: bool
-        :type trim: int
-        :type verbose: int
+    :type formula: :class:`.WCNFPlus`
+    :type solver: str
+    :type adapt: bool
+    :type cover: :class:`.CNFPlus`
+    :type dcalls: bool
+    :type exhaust: bool
+    :type minz: bool
+    :type puresat: str
+    :type unsorted: bool
+    :type trim: int
+    :type verbose: int
     """
 
-    def __init__(self, formula, solver='g3', adapt=False, cover=None,
-                 dcalls=False, exhaust=False, minz=False, puresat=False,
-                 unsorted=False, trim=False, verbose=0):
+    def __init__(
+        self,
+        formula,
+        solver="g3",
+        adapt=False,
+        cover=None,
+        dcalls=False,
+        exhaust=False,
+        minz=False,
+        puresat=False,
+        unsorted=False,
+        trim=False,
+        verbose=0,
+    ):
         """
-            Constructor.
+        Constructor.
         """
 
-        assert not puresat or unsorted, '\'unsorted\' needs to be True for pure SAT mode'
+        assert not puresat or unsorted, "'unsorted' needs to be True for pure SAT mode"
 
         # verbosity level
         self.verbose = verbose
@@ -233,8 +244,7 @@ class OptUx:
         self.formula.nv = formula.nv
 
         # copying atmost constraints, if any
-        if (isinstance(formula, WCNFPlus) and
-                hasattr(formula, 'atms') and formula.atms):
+        if isinstance(formula, WCNFPlus) and hasattr(formula, "atms") and formula.atms:
             self.formula.atms = formula.atms[:]
 
         # top variable identifier
@@ -249,36 +259,53 @@ class OptUx:
         unweighted.wght = [1 for w in unweighted.wght]
 
         # enumerating disjoint MCSes (including unit-size MCSes)
-        to_hit, self.units = self._disjoint(unweighted, solver, adapt, exhaust,
-                                            minz, trim)
+        to_hit, self.units = self._disjoint(
+            unweighted, solver, adapt, exhaust, minz, trim
+        )
 
         if self.verbose > 2:
-            print(f'c mcses: {len(self.units)} unit, '
-                  f'{len(to_hit) + len(self.units)} disj')
+            print(
+                f"c mcses: {len(self.units)} unit, "
+                f"{len(to_hit) + len(self.units)} disj"
+            )
 
         if not unsorted:
             # MaxSAT-based hitting set enumerator
             self.hitman = Hitman(
-                bootstrap_with=to_hit, weights=self.weights,
-                solver=solver, htype='sorted', mxs_adapt=adapt,
-                mxs_exhaust=exhaust, mxs_minz=minz, mxs_trim=trim)
+                bootstrap_with=to_hit,
+                weights=self.weights,
+                solver=solver,
+                htype="sorted",
+                mxs_adapt=adapt,
+                mxs_exhaust=exhaust,
+                mxs_minz=minz,
+                mxs_trim=trim,
+            )
         elif not puresat:
             # MCS-based hitting set enumerator
             self.hitman = Hitman(
-                bootstrap_with=to_hit, weights=self.weights,
-                solver=solver, htype='lbx', mcs_usecld=dcalls)
+                bootstrap_with=to_hit,
+                weights=self.weights,
+                solver=solver,
+                htype="lbx",
+                mcs_usecld=dcalls,
+            )
         else:
             # pure SAT-based hitting set enumerator with preferred phases
             self.hitman = Hitman(
-                bootstrap_with=to_hit, weights=self.weights,
-                solver=puresat, htype='sat')
+                bootstrap_with=to_hit, weights=self.weights, solver=puresat, htype="sat"
+            )
 
         # adding the formula to cover to the hitting set enumerator
         self.cover = cover is not None
         if cover:
             # mapping literals to Hitman's atoms
             def m(l):
-                return Atom(l, sign=True) if -l not in self.weights else Atom(-l, sign=False)
+                return (
+                    Atom(l, sign=True)
+                    if -l not in self.weights
+                    else Atom(-l, sign=False)
+                )
 
             for cl in cover:
                 if len(cl) != 2 or not type(cl[0]) in (list, tuple, set):
@@ -292,50 +319,50 @@ class OptUx:
         # clauses of the unit-size MCSes are enforced to be enabled
         self.solver = solver
         self.oracle = Solver(
-            name=solver,
-            bootstrap_with=unweighted.hard + [[mcs] for mcs in self.units])
+            name=solver, bootstrap_with=unweighted.hard + [[mcs] for mcs in self.units]
+        )
 
-        if hasattr(unweighted, 'atms') and unweighted.atms:
+        if hasattr(unweighted, "atms") and unweighted.atms:
             # Check if solver supports atmost constraints
-            cadical195 = getattr(SolverNames, 'cadical195', [])
-            if (hasattr(SolverNames, 'cadical195') and
-                    solver in cadical195):
+            cadical195 = getattr(SolverNames, "cadical195", [])
+            if hasattr(SolverNames, "cadical195") and solver in cadical195:
                 # we are using CaDiCaL195 and it can use external linear engine
-                if hasattr(self.oracle, 'activate_atmost'):
+                if hasattr(self.oracle, "activate_atmost"):
                     self.oracle.activate_atmost()
 
-            assert self.oracle.supports_atmost(), \
-                (f'{self.solver} does not support native cardinality '
-                 f'constraints. Make sure you use the right type of '
-                 f'formula.')
+            assert self.oracle.supports_atmost(), (
+                f"{self.solver} does not support native cardinality "
+                f"constraints. Make sure you use the right type of "
+                f"formula."
+            )
 
             for atm in unweighted.atms:
                 self.oracle.add_atmost(*atm)
 
     def __del__(self):
         """
-            Destructor.
+        Destructor.
         """
 
         self.delete()
 
     def __enter__(self):
         """
-            'with' constructor.
+        'with' constructor.
         """
 
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
         """
-            'with' destructor.
+        'with' destructor.
         """
 
         self.delete()
 
     def delete(self):
         """
-            Explicit destructor of the internal hitting set and SAT oracles.
+        Explicit destructor of the internal hitting set and SAT oracles.
         """
 
         if self.hitman:
@@ -348,12 +375,12 @@ class OptUx:
 
     def _process_soft(self, formula):
         """
-            The method is for processing the soft clauses of the input
-            formula. Concretely, it checks which soft clauses must be relaxed
-            by a unique selector literal and applies the relaxation.
+        The method is for processing the soft clauses of the input
+        formula. Concretely, it checks which soft clauses must be relaxed
+        by a unique selector literal and applies the relaxation.
 
-            :param formula: input formula
-            :type formula: :class:`.WCNF`
+        :param formula: input formula
+        :type formula: :class:`.WCNF`
         """
 
         # list of selectors
@@ -383,7 +410,9 @@ class OptUx:
                     self.topv += 1
                     nsel = self.topv
                     self.sels[self.smap[selv] - 1] = nsel
-                    self.formula.hard.append(self.formula.soft[self.smap[selv] - 1] + [-nsel])
+                    self.formula.hard.append(
+                        self.formula.soft[self.smap[selv] - 1] + [-nsel]
+                    )
                     self.formula.soft[self.smap[selv] - 1] = [nsel]
                     self.smap[nsel] = self.smap[selv]
                     processed_dups.add(selv)
@@ -409,37 +438,44 @@ class OptUx:
 
     def _disjoint(self, formula, solver, adapt, exhaust, minz, trim):
         """
-            This method constitutes the preliminary step of the implicit
-            hitting set paradigm of Forqes. Namely, it enumerates all the
-            disjoint *minimal correction subsets* (MCSes) of the formula,
-            which will be later used to bootstrap the hitting set solver.
+        This method constitutes the preliminary step of the implicit
+        hitting set paradigm of Forqes. Namely, it enumerates all the
+        disjoint *minimal correction subsets* (MCSes) of the formula,
+        which will be later used to bootstrap the hitting set solver.
 
-            Note that the MaxSAT solver in use is :class:`.RC2`. As a result,
-            all the input parameters of the method, namely, ``formula``,
-            ``solver``, ``adapt``, `exhaust``, ``minz``, and ``trim`` -
-            represent the input and the options for the RC2 solver.
+        Note that the MaxSAT solver in use is :class:`.RC2`. As a result,
+        all the input parameters of the method, namely, ``formula``,
+        ``solver``, ``adapt``, `exhaust``, ``minz``, and ``trim`` -
+        represent the input and the options for the RC2 solver.
 
-            :param formula: input formula
-            :param solver: SAT solver name
-            :param adapt: detect and adapt AtMost1 constraints
-            :param exhaust: exhaust unsatisfiable cores
-            :param minz: apply heuristic core minimization
-            :param trim: trim unsatisfiable cores at most this number of times
+        :param formula: input formula
+        :param solver: SAT solver name
+        :param adapt: detect and adapt AtMost1 constraints
+        :param exhaust: exhaust unsatisfiable cores
+        :param minz: apply heuristic core minimization
+        :param trim: trim unsatisfiable cores at most this number of times
 
-            :type formula: :class:`.WCNF`
-            :type solver: str
-            :type adapt: bool
-            :type exhaust: bool
-            :type minz: bool
-            :type trim: int
+        :type formula: :class:`.WCNF`
+        :type solver: str
+        :type adapt: bool
+        :type exhaust: bool
+        :type minz: bool
+        :type trim: int
         """
 
         # these will store disjoint MCSes
         # (unit-size MCSes are stored separately)
         to_hit, units = [], []
 
-        with RC2(formula, solver=solver, adapt=adapt, exhaust=exhaust,
-                 minz=minz, trim=trim, verbose=0) as oracle:
+        with RC2(
+            formula,
+            solver=solver,
+            adapt=adapt,
+            exhaust=exhaust,
+            minz=minz,
+            trim=trim,
+            verbose=0,
+        ) as oracle:
 
             # iterating over MaxSAT solutions
             while True:
@@ -466,8 +502,8 @@ class OptUx:
 
                 # reporting the MCS
                 if self.verbose > 3:
-                    mcs_str = ' '.join([str(self.smap[s]) for s in falsified])
-                    print(f'c mcs: {mcs_str} 0')
+                    mcs_str = " ".join([str(self.smap[s]) for s in falsified])
+                    print(f"c mcs: {mcs_str} 0")
 
             # RC2 will be destroyed next; let's keep the oracle time
             self.disj_time = oracle.oracle_time()
@@ -476,12 +512,12 @@ class OptUx:
 
     def compute(self):
         """
-            This method implements the main look of the implicit hitting set
-            paradigm of Forqes to compute a best-cost MUS. The result MUS is
-            returned as a list of integers, each representing a soft clause
-            index.
+        This method implements the main look of the implicit hitting set
+        paradigm of Forqes to compute a best-cost MUS. The result MUS is
+        returned as a list of integers, each representing a soft clause
+        index.
 
-            :rtype: list(int)
+        :rtype: list(int)
         """
 
         # correctly computed cost of the unit-mcs component
@@ -511,8 +547,7 @@ class OptUx:
                 if self.units and self.cover:
                     # due to additional constraints to cover and unit mcses,
                     # there may be duplicate clauses in self.units + hs
-                    return sorted(
-                        self.smap[s] for s in sorted(set(self.units + hs)))
+                    return sorted(self.smap[s] for s in sorted(set(self.units + hs)))
                 return sorted(self.smap[s] for s in self.units + hs)
             # the candidate subset is satisfiable,
             # thus extracting a correction subset
@@ -524,11 +559,11 @@ class OptUx:
 
     def enumerate(self):
         """
-            This is generator method iterating through MUSes and enumerating
-            them until the formula has no more MUSes, or a user decides to
-            stop the process.
+        This is generator method iterating through MUSes and enumerating
+        them until the formula has no more MUSes, or a user decides to
+        stop the process.
 
-            :rtype: list(int)
+        :rtype: list(int)
         """
 
         done = False
@@ -543,10 +578,10 @@ class OptUx:
 
     def oracle_time(self):
         """
-            This method computes and returns the total SAT solving time
-            involved.
+        This method computes and returns the total SAT solving time
+        involved.
 
-            :rtype: float
+        :rtype: float
         """
 
         return self.disj_time + self.hitman.oracle_time() + self.oracle.time_accum()
@@ -556,16 +591,30 @@ class OptUx:
 # ==============================================================================
 def parse_options():
     """
-        Parses command-line options.
+    Parses command-line options.
     """
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'ac:de:hmp:s:t:uvx',
-                                   ['adapt', 'cover=', 'dcalls', 'enum=', 'exhaust', 'help',
-                                    'minimize', 'solver=', 'puresat=', 'unsorted', 'trim=',
-                                    'verbose'])
+        opts, args = getopt.getopt(
+            sys.argv[1:],
+            "ac:de:hmp:s:t:uvx",
+            [
+                "adapt",
+                "cover=",
+                "dcalls",
+                "enum=",
+                "exhaust",
+                "help",
+                "minimize",
+                "solver=",
+                "puresat=",
+                "unsorted",
+                "trim=",
+                "verbose",
+            ],
+        )
     except getopt.GetoptError as err:
-        sys.stderr.write(str(err).capitalize() + '\n')
+        sys.stderr.write(str(err).capitalize() + "\n")
         usage()
         sys.exit(1)
 
@@ -575,133 +624,184 @@ def parse_options():
     exhaust = False
     minz = False
     to_enum = 1
-    solver = 'g3'
+    solver = "g3"
     puresat = False
     unsorted = False
     trim = 0
     verbose = 1
 
     for opt, arg in opts:
-        if opt in ('-a', '--adapt'):
+        if opt in ("-a", "--adapt"):
             adapt = True
-        elif opt in ('-c', '--cover'):
+        elif opt in ("-c", "--cover"):
             cover = str(arg)
-            if cover.lower() == 'none':
+            if cover.lower() == "none":
                 cover = None
-        elif opt in ('-d', '--dcalls'):
+        elif opt in ("-d", "--dcalls"):
             dcalls = True
-        elif opt in ('-e', '--enum'):
+        elif opt in ("-e", "--enum"):
             to_enum = str(arg)
-            if to_enum != 'all':
+            if to_enum != "all":
                 to_enum = int(to_enum)
-        elif opt in ('-h', '--help'):
+        elif opt in ("-h", "--help"):
             usage()
             sys.exit(0)
-        elif opt in ('-m', '--minimize'):
+        elif opt in ("-m", "--minimize"):
             minz = True
-        elif opt in ('-p', '--puresat'):
+        elif opt in ("-p", "--puresat"):
             puresat = str(arg)
-        elif opt in ('-s', '--solver'):
+        elif opt in ("-s", "--solver"):
             solver = str(arg)
-        elif opt in ('-u', '--unsorted'):
+        elif opt in ("-u", "--unsorted"):
             unsorted = True
-        elif opt in ('-t', '--trim'):
+        elif opt in ("-t", "--trim"):
             trim = int(arg)
-        elif opt in ('-v', '--verbose'):
+        elif opt in ("-v", "--verbose"):
             verbose += 1
-        elif opt in ('-x', '--exhaust'):
+        elif opt in ("-x", "--exhaust"):
             exhaust = True
         else:
-            assert False, f'Unhandled option: {opt} {arg}'
+            assert False, f"Unhandled option: {opt} {arg}"
 
-    return adapt, cover, dcalls, exhaust, minz, trim, to_enum, solver, \
-        puresat, unsorted, verbose, args
+    return (
+        adapt,
+        cover,
+        dcalls,
+        exhaust,
+        minz,
+        trim,
+        to_enum,
+        solver,
+        puresat,
+        unsorted,
+        verbose,
+        args,
+    )
 
 
 #
 # ==============================================================================
 def usage():
     """
-        Prints help message.
+    Prints help message.
     """
 
-    print('Usage:', os.path.basename(sys.argv[0]), '[options] file')
-    print('Options:')
-    print('        -a, --adapt               Try to adapt (simplify) input formula')
-    print('        -c, --cover=<string>      Stop MUS enumeration as soon as this '
-          'formula is covered')
-    print('                                  Available values: any valid file path, '
-          'none (default = none)')
-    print('        -d, --dcalls              Apply clause D calls (in unsorted '
-          'enumeration only)')
-    print('        -e, --enum=<string>       Enumerate top-k solutions')
-    print('                                  Available values: [1 .. INT_MAX], all '
-          '(default: 1)')
-    print('        -h, --help                Show this message')
-    print('        -m, --minimize            Use a heuristic unsatisfiable core '
-          'minimizer')
-    print('        -p, --puresat=<string>    Use a pure SAT-based hitting set '
-          'enumerator')
-    print('                                  Available values: cd15, cd19, lgl, mgh '
-          '(default = mgh)')
-    print('                                  Requires: unsorted mode, i.e. \'-u\'')
-    print('        -s, --solver              SAT solver to use')
-    print('                                  Available values: cd15, cd19, g3, g4, '
-          'lgl, mcb, mcm, mpl, m22, mc, mgh (default = g3)')
-    print('        -t, --trim=<int>          How many times to trim unsatisfiable '
-          'cores')
-    print('                                  Available values: [0 .. INT_MAX] '
-          '(default = 0)')
-    print('        -u, --unsorted            Enumerate MUSes in an unsorted way')
-    print('        -v, --verbose             Be verbose')
-    print('        -x, --exhaust             Exhaust new unsatisfiable cores')
+    print("Usage:", os.path.basename(sys.argv[0]), "[options] file")
+    print("Options:")
+    print("        -a, --adapt               Try to adapt (simplify) input formula")
+    print(
+        "        -c, --cover=<string>      Stop MUS enumeration as soon as this "
+        "formula is covered"
+    )
+    print(
+        "                                  Available values: any valid file path, "
+        "none (default = none)"
+    )
+    print(
+        "        -d, --dcalls              Apply clause D calls (in unsorted "
+        "enumeration only)"
+    )
+    print("        -e, --enum=<string>       Enumerate top-k solutions")
+    print(
+        "                                  Available values: [1 .. INT_MAX], all "
+        "(default: 1)"
+    )
+    print("        -h, --help                Show this message")
+    print(
+        "        -m, --minimize            Use a heuristic unsatisfiable core "
+        "minimizer"
+    )
+    print(
+        "        -p, --puresat=<string>    Use a pure SAT-based hitting set "
+        "enumerator"
+    )
+    print(
+        "                                  Available values: cd15, cd19, lgl, mgh "
+        "(default = mgh)"
+    )
+    print("                                  Requires: unsorted mode, i.e. '-u'")
+    print("        -s, --solver              SAT solver to use")
+    print(
+        "                                  Available values: cd15, cd19, g3, g4, "
+        "lgl, mcb, mcm, mpl, m22, mc, mgh (default = g3)"
+    )
+    print(
+        "        -t, --trim=<int>          How many times to trim unsatisfiable "
+        "cores"
+    )
+    print(
+        "                                  Available values: [0 .. INT_MAX] "
+        "(default = 0)"
+    )
+    print("        -u, --unsorted            Enumerate MUSes in an unsorted way")
+    print("        -v, --verbose             Be verbose")
+    print("        -x, --exhaust             Exhaust new unsatisfiable cores")
 
 
 #
 # ==============================================================================
-if __name__ == '__main__':
-    adapt, cover, dcalls, exhaust, minz, trim, to_enum, solver, puresat, \
-        unsorted, verbose, files = parse_options()
+if __name__ == "__main__":
+    (
+        adapt,
+        cover,
+        dcalls,
+        exhaust,
+        minz,
+        trim,
+        to_enum,
+        solver,
+        puresat,
+        unsorted,
+        verbose,
+        files,
+    ) = parse_options()
 
     if files:
-            # reading standard CNF, WCNF, or (W)CNF+
-            if re.search(r'cnf[p|+]?(\.(gz|bz2|lzma|xz))?$', files[0]):
-                if re.search(
-                    r'\.wcnf[p|+]?(\.(gz|bz2|lzma|xz))?$', files[0]
-                ):
-                    formula = WCNFPlus(from_file=files[0])
-                else:  # expecting '*.cnf[,p,+].*'
-                    formula = CNFPlus(from_file=files[0]).weighted()
-            else:
-                formula = None
+        # reading standard CNF, WCNF, or (W)CNF+
+        if re.search(r"cnf[p|+]?(\.(gz|bz2|lzma|xz))?$", files[0]):
+            if re.search(r"\.wcnf[p|+]?(\.(gz|bz2|lzma|xz))?$", files[0]):
+                formula = WCNFPlus(from_file=files[0])
+            else:  # expecting '*.cnf[,p,+].*'
+                formula = CNFPlus(from_file=files[0]).weighted()
+        else:
+            formula = None
 
-            if cover:  # expecting  '*.cnf[,p,+].*' only!
-                assert re.search(
-                    r'cnf[p|+]?(\.(gz|bz2|lzma|xz))?$', cover
-                ), 'wrong file for formula to cover'
-                cover = CNFPlus(from_file=cover)
+        if cover:  # expecting  '*.cnf[,p,+].*' only!
+            assert re.search(
+                r"cnf[p|+]?(\.(gz|bz2|lzma|xz))?$", cover
+            ), "wrong file for formula to cover"
+            cover = CNFPlus(from_file=cover)
 
-            if formula:
-                # creating an object of OptUx
-                with OptUx(formula, solver=solver, adapt=adapt, cover=cover,
-                           dcalls=dcalls, exhaust=exhaust, minz=minz,
-                           puresat=puresat, unsorted=unsorted, trim=trim,
-                           verbose=verbose) as optux:
+        if formula:
+            # creating an object of OptUx
+            with OptUx(
+                formula,
+                solver=solver,
+                adapt=adapt,
+                cover=cover,
+                dcalls=dcalls,
+                exhaust=exhaust,
+                minz=minz,
+                puresat=puresat,
+                unsorted=unsorted,
+                trim=trim,
+                verbose=verbose,
+            ) as optux:
 
-                    # iterating over the necessary number of optimal MUSes
-                    for i, mus in enumerate(optux.enumerate()):
-                        # reporting the current solution
-                        if verbose:
-                            mus_str = ' '.join([str(cl_id) for cl_id in mus])
-                            print(f'c mus: {mus_str} 0')
+                # iterating over the necessary number of optimal MUSes
+                for i, mus in enumerate(optux.enumerate()):
+                    # reporting the current solution
+                    if verbose:
+                        mus_str = " ".join([str(cl_id) for cl_id in mus])
+                        print(f"c mus: {mus_str} 0")
 
-                            if verbose > 1:
-                                print('c cost:', optux.cost)
+                        if verbose > 1:
+                            print("c cost:", optux.cost)
 
-                        # checking if we are done
-                        if to_enum and i + 1 == to_enum:
-                            break
+                    # checking if we are done
+                    if to_enum and i + 1 == to_enum:
+                        break
 
-                    # reporting the total oracle time
-                    if verbose > 1:
-                        print(f'c oracle time: {optux.oracle_time():.4f}')
+                # reporting the total oracle time
+                if verbose > 1:
+                    print(f"c oracle time: {optux.oracle_time():.4f}")

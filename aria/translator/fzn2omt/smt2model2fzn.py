@@ -26,6 +26,7 @@ import fzn2optimathsat
 ########################
 ########################
 
+
 def decode(config, solver_config=None):
     """Decodes a SMT2 model."""
 
@@ -68,7 +69,7 @@ def extract_search_status(tracefile):
         uns_regex = re.compile(rb"^unsat\r?$", re.MULTILINE)
         sat_regex = re.compile(rb"^sat\r?$", re.MULTILINE)
 
-        with io.open(tracefile, 'r', newline=None) as fd_trace:
+        with io.open(tracefile, "r", newline=None) as fd_trace:
             with mmap.mmap(fd_trace.fileno(), 0, access=mmap.ACCESS_READ) as output:
 
                 uns_match = re.search(uns_regex, output)
@@ -90,13 +91,17 @@ def extract_models(tracefile):
     """Extract and returns all models contained
     in the given tracefile."""
 
-    regex = re.compile((rb"\(define-fun (.*) \(\) (Int|Bool|Real|\(_ BitVec [0-9]+\))"
-                        rb"\r?\n +(.*)\)"))
+    regex = re.compile(
+        (
+            rb"\(define-fun (.*) \(\) (Int|Bool|Real|\(_ BitVec [0-9]+\))"
+            rb"\r?\n +(.*)\)"
+        )
+    )
 
     models = []
 
     if not common.is_file_empty(tracefile):
-        with io.open(tracefile, 'r', newline=None) as fd_trace:
+        with io.open(tracefile, "r", newline=None) as fd_trace:
             with mmap.mmap(fd_trace.fileno(), 0, access=mmap.ACCESS_READ) as output:
                 model = {}
                 for match in re.finditer(regex, output):
@@ -123,6 +128,7 @@ def extract_models(tracefile):
 ###########################
 ###########################
 
+
 def compile(config):
     """Compiles a FlatZinc model in SMT-LIB format."""
     assert config.smt2
@@ -131,7 +137,7 @@ def compile(config):
     optimathsat_config.infinite_precision = True  # always override!
     optimathsat_config.compile_raw = True
 
-    if not hasattr(optimathsat_config, 'ovars'):
+    if not hasattr(optimathsat_config, "ovars"):
         optimathsat_config.ovars = None
 
     fzn2optimathsat.optimathsat(optimathsat_config)
@@ -143,24 +149,34 @@ def compile(config):
 #####################
 #####################
 
+
 def parse_cmdline_options():
     """parses and returns input parameters."""
-    parser = argparse.ArgumentParser(description=("A tool for converting SMT2 models "
-                                                  "to the FlatZinc (MiniZinc) format."),
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=(
+            "A tool for converting SMT2 models " "to the FlatZinc (MiniZinc) format."
+        ),
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
 
     main_group = parser.add_argument_group("Main Options")
 
-    main_group.add_argument("model", metavar="<model>.fzn",
-                            type=argparse.FileType('r'),
-                            help="The FlatZinc model",
-                            action=common.check_file_ext('fzn'))
+    main_group.add_argument(
+        "model",
+        metavar="<model>.fzn",
+        type=argparse.FileType("r"),
+        help="The FlatZinc model",
+        action=common.check_file_ext("fzn"),
+    )
 
-    main_group.add_argument("--trace", "--output-trace",
-                            metavar="<filename>",
-                            type=str,
-                            help="Filename for the generated SMT-LIB output",
-                            default=None)
+    main_group.add_argument(
+        "--trace",
+        "--output-trace",
+        metavar="<filename>",
+        type=str,
+        help="Filename for the generated SMT-LIB output",
+        default=None,
+    )
 
     ###################
     # ENCODING config #
@@ -169,14 +185,25 @@ def parse_cmdline_options():
     enc_group = parser.add_argument_group("Encoding Options")
 
     group = enc_group.add_mutually_exclusive_group()
-    group.add_argument("--bv-enc", help="Encode ints with the SMT-LIB Bit-Vector type.",
-                       action="store_true", default=False)
-    group.add_argument("--int-enc", help="Encode ints with the SMT-LIB Int type.",
-                       action="store_true", default=True)
+    group.add_argument(
+        "--bv-enc",
+        help="Encode ints with the SMT-LIB Bit-Vector type.",
+        action="store_true",
+        default=False,
+    )
+    group.add_argument(
+        "--int-enc",
+        help="Encode ints with the SMT-LIB Int type.",
+        action="store_true",
+        default=True,
+    )
 
-    enc_group.add_argument("--cardinality-networks",
-                           help="Enable cardinality networks (when applicable).",
-                           action="store_true", default=False)
+    enc_group.add_argument(
+        "--cardinality-networks",
+        help="Enable cardinality networks (when applicable).",
+        action="store_true",
+        default=False,
+    )
 
     ##################
     # MODEL PRINTING #
@@ -184,16 +211,27 @@ def parse_cmdline_options():
 
     model_group = parser.add_argument_group("Model Options")
 
-    model_group.add_argument("--infinite-precision",
-                             help=("Print infinite-precision rational numbers "
-                                   "as fractions. Overrides --finite-precision."),
-                             action="store_true", default=False)
-    model_group.add_argument("--finite-precision",
-                             help=("Print infinite-precision rational numbers "
-                                   "as finite precision decimals using the specified "
-                                   "precision level. Must be larger or equal 2."),
-                             action=common.check_finite_precision(),
-                             metavar="prec", type=int, default=32)
+    model_group.add_argument(
+        "--infinite-precision",
+        help=(
+            "Print infinite-precision rational numbers "
+            "as fractions. Overrides --finite-precision."
+        ),
+        action="store_true",
+        default=False,
+    )
+    model_group.add_argument(
+        "--finite-precision",
+        help=(
+            "Print infinite-precision rational numbers "
+            "as finite precision decimals using the specified "
+            "precision level. Must be larger or equal 2."
+        ),
+        action=common.check_finite_precision(),
+        metavar="prec",
+        type=int,
+        default=32,
+    )
 
     # parse
     config = parser.parse_args()
@@ -201,8 +239,7 @@ def parse_cmdline_options():
     config.int_enc = not config.bv_enc
     config.get_model = True
 
-    if config.finite_precision and \
-            config.finite_precision >= 2:
+    if config.finite_precision and config.finite_precision >= 2:
         config.float_fmt = "%.{}g".format(config.finite_precision)
     else:
         config.float_fmt = "%g"
@@ -215,6 +252,7 @@ def parse_cmdline_options():
 ### MAIN ###
 ############
 ############
+
 
 def main():
     """The main entry point of this program."""

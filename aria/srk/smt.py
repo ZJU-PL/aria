@@ -13,14 +13,37 @@ from dataclasses import dataclass
 from fractions import Fraction
 
 from aria.srk.syntax import (
-    Context, Symbol, Type, Expression, FormulaExpression, ArithExpression,
-    TermExpression, Var, Const, Eq, Lt, Leq, And, Or, Not, TrueExpr, FalseExpr,
-    Ite, Forall, Exists, Add, Mul, App, Select, Store
+    Context,
+    Symbol,
+    Type,
+    Expression,
+    FormulaExpression,
+    ArithExpression,
+    TermExpression,
+    Var,
+    Const,
+    Eq,
+    Lt,
+    Leq,
+    And,
+    Or,
+    Not,
+    TrueExpr,
+    FalseExpr,
+    Ite,
+    Forall,
+    Exists,
+    Add,
+    Mul,
+    App,
+    Select,
+    Store,
 )
 
 
 class SMTResult(Enum):
     """Result of SMT query."""
+
     SAT = "sat"
     UNSAT = "unsat"
     UNKNOWN = "unknown"
@@ -36,7 +59,9 @@ class SMTModel:
         """Get the value of a symbol in the model."""
         return self.interpretations.get(symbol)
 
-    def get_array_value(self, symbol: Symbol, index: int) -> Union[Fraction, bool, None]:
+    def get_array_value(
+        self, symbol: Symbol, index: int
+    ) -> Union[Fraction, bool, None]:
         """Get the value of an array element at a specific index."""
         val = self.interpretations.get(symbol)
         if isinstance(val, dict):
@@ -120,7 +145,9 @@ class SMTModel:
                 if isinstance(body_result, bool):
                     return body_result  # If body is true, exists is true (simplified)
                 else:
-                    return True  # If body contains non-boolean, conservatively return True
+                    return (
+                        True  # If body contains non-boolean, conservatively return True
+                    )
             return True
         elif isinstance(expr, Add):
             # Arithmetic addition
@@ -232,12 +259,15 @@ class Z3Solver(SMTSolver):
         # Try to import z3
         try:
             import z3
+
             self.z3 = z3
             self._z3_solver = z3.Solver()
             self._symbol_map: Dict[Symbol, Any] = {}  # Map SRK symbols to Z3 symbols
             self._z3_symbol_map: Dict[Any, Symbol] = {}  # Map Z3 symbols to SRK symbols
         except ImportError:
-            raise ImportError("Z3 is not installed. Please install with: pip install z3-solver")
+            raise ImportError(
+                "Z3 is not installed. Please install with: pip install z3-solver"
+            )
 
     def _z3_sort_from_type(self, typ: Type) -> Any:
         """Map SRK Type to a Z3 Sort (best-effort defaults)."""
@@ -292,17 +322,27 @@ class Z3Solver(SMTSolver):
             if expr.name and expr.name in env:
                 return env[expr.name]
 
-            symbol = self.context._symbols.get(expr.var_id) if hasattr(self.context, "_symbols") else None
+            symbol = (
+                self.context._symbols.get(expr.var_id)
+                if hasattr(self.context, "_symbols")
+                else None
+            )
             if symbol is None:
                 symbol = Symbol(expr.var_id, expr.name, expr.var_type)
 
             return self._srk_to_z3_symbol(symbol)
         elif isinstance(expr, Eq):
-            return self._srk_to_z3_expr_with_env(expr.left, env) == self._srk_to_z3_expr_with_env(expr.right, env)
+            return self._srk_to_z3_expr_with_env(
+                expr.left, env
+            ) == self._srk_to_z3_expr_with_env(expr.right, env)
         elif isinstance(expr, Lt):
-            return self._srk_to_z3_expr_with_env(expr.left, env) < self._srk_to_z3_expr_with_env(expr.right, env)
+            return self._srk_to_z3_expr_with_env(
+                expr.left, env
+            ) < self._srk_to_z3_expr_with_env(expr.right, env)
         elif isinstance(expr, Leq):
-            return self._srk_to_z3_expr_with_env(expr.left, env) <= self._srk_to_z3_expr_with_env(expr.right, env)
+            return self._srk_to_z3_expr_with_env(
+                expr.left, env
+            ) <= self._srk_to_z3_expr_with_env(expr.right, env)
         elif isinstance(expr, And):
             if not expr.args:
                 return self.z3.BoolVal(True)
@@ -327,19 +367,23 @@ class Z3Solver(SMTSolver):
             return self.z3.If(
                 self._srk_to_z3_expr_with_env(expr.condition, env),
                 self._srk_to_z3_expr_with_env(expr.then_branch, env),
-                self._srk_to_z3_expr_with_env(expr.else_branch, env)
+                self._srk_to_z3_expr_with_env(expr.else_branch, env),
             )
         elif isinstance(expr, Forall):
             # Proper binding: introduce a bound variable with the given name and type
             sort = self._z3_sort_from_type(expr.var_type)
             bound = self.z3.Const(expr.var_name, sort)
-            body_z3 = self._srk_to_z3_expr_with_env(expr.body, {**env, expr.var_name: bound})
+            body_z3 = self._srk_to_z3_expr_with_env(
+                expr.body, {**env, expr.var_name: bound}
+            )
             return self.z3.ForAll([bound], body_z3)
 
         elif isinstance(expr, Exists):
             sort = self._z3_sort_from_type(expr.var_type)
             bound = self.z3.Const(expr.var_name, sort)
-            body_z3 = self._srk_to_z3_expr_with_env(expr.body, {**env, expr.var_name: bound})
+            body_z3 = self._srk_to_z3_expr_with_env(
+                expr.body, {**env, expr.var_name: bound}
+            )
             return self.z3.Exists([bound], body_z3)
         elif isinstance(expr, Add):
             # Arithmetic addition
@@ -384,9 +428,9 @@ class Z3Solver(SMTSolver):
                 # Determine result type based on expression type
                 # For simplicity, assume boolean result for predicates
                 arg_sorts = [arg.sort() for arg in arg_z3]
-                if hasattr(expr, 'typ') and expr.typ == Type.BOOL:
+                if hasattr(expr, "typ") and expr.typ == Type.BOOL:
                     rng_sort = self.z3.BoolSort()
-                elif hasattr(expr, 'typ') and expr.typ == Type.REAL:
+                elif hasattr(expr, "typ") and expr.typ == Type.REAL:
                     rng_sort = self.z3.RealSort()
                 else:
                     rng_sort = self.z3.IntSort()
@@ -398,7 +442,7 @@ class Z3Solver(SMTSolver):
             idx = self._srk_to_z3_expr_with_env(expr.index, env)
             val = self._srk_to_z3_expr_with_env(expr.value, env)
             return self.z3.Store(arr, idx, val)
-        elif hasattr(expr, 'left') and hasattr(expr, 'right'):
+        elif hasattr(expr, "left") and hasattr(expr, "right"):
             # Handle binary operations generically
             left = self._srk_to_z3_expr_with_env(expr.left, env)
             right = self._srk_to_z3_expr_with_env(expr.right, env)
@@ -410,35 +454,43 @@ class Z3Solver(SMTSolver):
                 return left <= right
             else:
                 # Try to determine operation from class name or attributes
-                if hasattr(expr, 'op'):
-                    if expr.op == 'Div':
+                if hasattr(expr, "op"):
+                    if expr.op == "Div":
                         return left / right
-                    elif expr.op == 'Mod':
+                    elif expr.op == "Mod":
                         return left % right
-                    elif expr.op == 'Floor':
+                    elif expr.op == "Floor":
                         return self.z3.ToInt(left)
-                    elif expr.op == 'Neg':
+                    elif expr.op == "Neg":
                         return -left
                     else:
                         # Create uninterpreted function for unknown operations
                         op_name = f"op_{expr.op.lower()}"
-                        op_sym = self.z3.Function(op_name, left.sort(), right.sort(), left.sort())
+                        op_sym = self.z3.Function(
+                            op_name, left.sort(), right.sort(), left.sort()
+                        )
                         return op_sym(left, right)
                 else:
                     # Default to equality for unknown binary operations
                     return left == right
-        elif hasattr(expr, 'args') and hasattr(expr, 'symbol'):
+        elif hasattr(expr, "args") and hasattr(expr, "symbol"):
             # Handle n-ary operations generically
             if not expr.args:
                 return self._srk_to_z3_symbol(expr.symbol)
             else:
                 # Try to determine operation type from symbol name or type
-                symbol_name = str(expr.symbol) if hasattr(expr.symbol, '__str__') else ""
-                if 'add' in symbol_name.lower() or '+' in symbol_name:
-                    args_z3 = [self._srk_to_z3_expr_with_env(arg, env) for arg in expr.args]
+                symbol_name = (
+                    str(expr.symbol) if hasattr(expr.symbol, "__str__") else ""
+                )
+                if "add" in symbol_name.lower() or "+" in symbol_name:
+                    args_z3 = [
+                        self._srk_to_z3_expr_with_env(arg, env) for arg in expr.args
+                    ]
                     return self.z3.Sum(args_z3) if len(args_z3) > 1 else args_z3[0]
-                elif 'mul' in symbol_name.lower() or '*' in symbol_name:
-                    args_z3 = [self._srk_to_z3_expr_with_env(arg, env) for arg in expr.args]
+                elif "mul" in symbol_name.lower() or "*" in symbol_name:
+                    args_z3 = [
+                        self._srk_to_z3_expr_with_env(arg, env) for arg in expr.args
+                    ]
                     if len(args_z3) == 0:
                         return self.z3.IntVal(1)
                     elif len(args_z3) == 1:
@@ -448,22 +500,28 @@ class Z3Solver(SMTSolver):
                         for arg in args_z3[1:]:
                             result = result * arg
                         return result
-                elif 'and' in symbol_name.lower():
-                    args_z3 = [self._srk_to_z3_expr_with_env(arg, env) for arg in expr.args]
+                elif "and" in symbol_name.lower():
+                    args_z3 = [
+                        self._srk_to_z3_expr_with_env(arg, env) for arg in expr.args
+                    ]
                     return self.z3.And(args_z3)
-                elif 'or' in symbol_name.lower():
-                    args_z3 = [self._srk_to_z3_expr_with_env(arg, env) for arg in expr.args]
+                elif "or" in symbol_name.lower():
+                    args_z3 = [
+                        self._srk_to_z3_expr_with_env(arg, env) for arg in expr.args
+                    ]
                     return self.z3.Or(args_z3)
                 else:
                     # Default to function application
                     func_name = str(expr.symbol)
-                    arg_z3 = [self._srk_to_z3_expr_with_env(arg, env) for arg in expr.args]
+                    arg_z3 = [
+                        self._srk_to_z3_expr_with_env(arg, env) for arg in expr.args
+                    ]
 
                     # Determine result type based on expression type
                     arg_sorts = [arg.sort() for arg in arg_z3]
-                    if hasattr(expr, 'typ') and expr.typ == Type.BOOL:
+                    if hasattr(expr, "typ") and expr.typ == Type.BOOL:
                         rng_sort = self.z3.BoolSort()
-                    elif hasattr(expr, 'typ') and expr.typ == Type.REAL:
+                    elif hasattr(expr, "typ") and expr.typ == Type.REAL:
                         rng_sort = self.z3.RealSort()
                     else:
                         rng_sort = self.z3.IntSort()
@@ -472,9 +530,11 @@ class Z3Solver(SMTSolver):
         else:
             # Try to provide more helpful error messages
             expr_type = type(expr).__name__
-            if hasattr(expr, '__str__'):
+            if hasattr(expr, "__str__"):
                 expr_str = str(expr)[:100]  # Truncate long expressions
-                raise NotImplementedError(f"Cannot convert expression type {expr_type}: {expr_str}")
+                raise NotImplementedError(
+                    f"Cannot convert expression type {expr_type}: {expr_str}"
+                )
             else:
                 raise NotImplementedError(f"Cannot convert expression type {expr_type}")
 
@@ -550,9 +610,9 @@ class Z3Solver(SMTSolver):
                 try:
                     if val.is_int_value():
                         interpretations[srk_symbol] = Fraction(int(val.as_long()), 1)
-                    elif hasattr(val, 'as_decimal'):
+                    elif hasattr(val, "as_decimal"):
                         dec = val.as_decimal(50)
-                        if dec.endswith('?'):
+                        if dec.endswith("?"):
                             dec = dec[:-1]
                         interpretations[srk_symbol] = Fraction(dec)
                     else:
@@ -570,12 +630,14 @@ class Z3Solver(SMTSolver):
                     for i in range(10):  # Sample first 10 indices
                         try:
                             idx_val = self.z3.IntVal(i)
-                            elem_val = model.eval(self.z3.Select(val, idx_val), model_completion=True)
+                            elem_val = model.eval(
+                                self.z3.Select(val, idx_val), model_completion=True
+                            )
                             if elem_val.is_int_value():
                                 array_model[i] = Fraction(int(elem_val.as_long()), 1)
-                            elif hasattr(elem_val, 'as_decimal'):
+                            elif hasattr(elem_val, "as_decimal"):
                                 dec = elem_val.as_decimal(50)
-                                if dec.endswith('?'):
+                                if dec.endswith("?"):
                                     dec = dec[:-1]
                                 array_model[i] = Fraction(dec)
                         except:
@@ -622,14 +684,18 @@ class SMTInterface:
             return self.solver.get_model()
         return None
 
-    def entails(self, premise: FormulaExpression, conclusion: FormulaExpression) -> SMTResult:
+    def entails(
+        self, premise: FormulaExpression, conclusion: FormulaExpression
+    ) -> SMTResult:
         """Check if premise entails conclusion."""
         # Check if (premise ∧ ¬conclusion) is unsatisfiable
         not_conclusion = Not(conclusion)
         combined = And([premise, not_conclusion])
         return self.solver.check([combined])
 
-    def equiv(self, formula1: FormulaExpression, formula2: FormulaExpression) -> SMTResult:
+    def equiv(
+        self, formula1: FormulaExpression, formula2: FormulaExpression
+    ) -> SMTResult:
         """Check if two formulas are equivalent."""
         # Check if (formula1 ∧ ¬formula2) and (¬formula1 ∧ formula2) are both unsatisfiable
         not_formula2 = Not(formula2)
@@ -667,13 +733,15 @@ def check_sat(context: Context, formulas: List[FormulaExpression]) -> str:
     solver = SMTInterface(context)
     result = solver.solver.check(formulas)
     if result == SMTResult.SAT:
-        return 'sat'
+        return "sat"
     if result == SMTResult.UNSAT:
-        return 'unsat'
-    return 'unknown'
+        return "unsat"
+    return "unknown"
 
 
-def get_model(formula: FormulaExpression, context: Optional[Context] = None) -> Optional[SMTModel]:
+def get_model(
+    formula: FormulaExpression, context: Optional[Context] = None
+) -> Optional[SMTModel]:
     """Get a model for a satisfiable formula."""
     ctx = context or Context()
     solver = SMTInterface(ctx)

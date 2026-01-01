@@ -8,9 +8,9 @@ from typing import Protocol, TypeVar, Callable, Any, Dict, List, Union
 
 from .loop import compute_loop_nesting_forest, Loop as SRKLoop
 
-V = TypeVar('V')
-E = TypeVar('E')
-T = TypeVar('T')
+V = TypeVar("V")
+E = TypeVar("E")
+T = TypeVar("T")
 
 
 class GraphProtocol(Protocol[V, E]):
@@ -61,8 +61,7 @@ def analyze(
     def next_annotation(v: V) -> T:
         def folder(e: E, flow_in: T) -> T:
             return domain.join(
-                flow_in,
-                domain.transform(e, get_annotation(graph.edge_src(e)))
+                flow_in, domain.transform(e, get_annotation(graph.edge_src(e)))
             )
 
         return graph.fold_pred_edges(folder, v, get_annotation(v))

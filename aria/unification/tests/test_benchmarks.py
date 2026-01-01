@@ -1,4 +1,5 @@
 """Benchmark tests for unification."""
+
 import platform
 import sys
 
@@ -13,6 +14,7 @@ skip_benchmarks = True
 
 try:
     import pytest_benchmark  # noqa: F401
+
     skip_benchmarks = False
 except ImportError:  # noqa: S110
     pass

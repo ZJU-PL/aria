@@ -34,7 +34,7 @@ def matching(graph):
         # and is also used as a flag value for pred[u] when u is in the first layer
         preds = {}
         unmatched = []
-        pred = dict([(u,unmatched) for u in graph])
+        pred = dict([(u, unmatched) for u in graph])
         for v in matching:
             del pred[matching[v]]
         layer = list(pred)
@@ -45,7 +45,7 @@ def matching(graph):
             for u in layer:
                 for v in graph[u]:
                     if v not in preds:
-                        newLayer.setdefault(v,[]).append(u)
+                        newLayer.setdefault(v, []).append(u)
             layer = []
             for v in newLayer:
                 preds[v] = newLayer[v]
@@ -62,7 +62,7 @@ def matching(graph):
                 for v in graph[u]:
                     if v not in preds:
                         unlayered[v] = None
-            return (matching,list(pred),list(unlayered))
+            return (matching, list(pred), list(unlayered))
 
         # recursively search backward through layers to find alternating paths
         # recursion returns true if found path, false otherwise
@@ -82,6 +82,7 @@ def matching(graph):
         for v in unmatched:
             recurse(v)
 
+
 def imperfections(graph):
     """
     Find edges that do not belong to any perfect matching of G.
@@ -93,33 +94,36 @@ def imperfections(graph):
     vertices that must be matched to each other, including w but
     not including v.
     """
-    M,A,B = matching(graph)
+    M, A, B = matching(graph)
     if len(M) != len(graph):
-        return graph    # whole graph is imperfect
+        return graph  # whole graph is imperfect
 
     orientation = {}
     for v in graph:
-        orientation[v,True]=[]
+        orientation[v, True] = []
         for w in graph[v]:
             if M[w] == v:
-                orientation[w,False]=[(v,True)]
+                orientation[w, False] = [(v, True)]
             else:
-                orientation[v,True].append((w,False))
+                orientation[v, True].append((w, False))
 
     components = {}
     for C in StronglyConnectedComponents(orientation):
-        induced = dict([(v,set([w for w,bit2 in C[v,bit]]))
-                        for v,bit in C if bit])
-        for v,bit in C:
-            if not bit:   # don't forget the matched edges!
-                induced.setdefault(M[v],set()).add(v)
+        induced = dict([(v, set([w for w, bit2 in C[v, bit]])) for v, bit in C if bit])
+        for v, bit in C:
+            if not bit:  # don't forget the matched edges!
+                induced.setdefault(M[v], set()).add(v)
         for v in C:
             components[v] = induced
 
     imperfections = {}
     for v in graph:
-        imperfections[v] = dict([(w,components[w,False]) for w in graph[v]
-                                 if M[w] != v and
-                                 components[v,True] != components[w,False]])
+        imperfections[v] = dict(
+            [
+                (w, components[w, False])
+                for w in graph[v]
+                if M[w] != v and components[v, True] != components[w, False]
+            ]
+        )
 
     return imperfections

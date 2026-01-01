@@ -10,18 +10,32 @@ This module provides various utility functions including:
 """
 
 from __future__ import annotations
-from typing import List, Dict, Set, Tuple, Optional, Union, Any, Callable, TypeVar, Generic, Iterator
+from typing import (
+    List,
+    Dict,
+    Set,
+    Tuple,
+    Optional,
+    Union,
+    Any,
+    Callable,
+    TypeVar,
+    Generic,
+    Iterator,
+)
 from collections import defaultdict
 import io
 import functools
 
-T = TypeVar('T')
-U = TypeVar('U')
-K = TypeVar('K')
-V = TypeVar('V')
+T = TypeVar("T")
+U = TypeVar("U")
+K = TypeVar("K")
+V = TypeVar("V")
 
 
-def binary_search(array: List[T], value: T, compare: Optional[Callable[[T, T], int]] = None) -> int:
+def binary_search(
+    array: List[T], value: T, compare: Optional[Callable[[T, T], int]] = None
+) -> int:
     """
     Search for a value in a sorted array using binary search.
 
@@ -55,7 +69,9 @@ def binary_search(array: List[T], value: T, compare: Optional[Callable[[T, T], i
     raise ValueError(f"Value {value} not found in array")
 
 
-def merge_arrays(a: List[T], b: List[T], compare: Optional[Callable[[T, T], int]] = None) -> List[T]:
+def merge_arrays(
+    a: List[T], b: List[T], compare: Optional[Callable[[T, T], int]] = None
+) -> List[T]:
     """
     Merge two sorted arrays into a single sorted array.
 
@@ -129,7 +145,12 @@ def format_to_string(format_func: Callable, value: Any) -> str:
     return str(value)
 
 
-def print_enum(formatter: Any, enum: Iterator[T], pp_elt: Callable, pp_sep: Optional[Callable] = None) -> None:
+def print_enum(
+    formatter: Any,
+    enum: Iterator[T],
+    pp_elt: Callable,
+    pp_sep: Optional[Callable] = None,
+) -> None:
     """
     Pretty print an enumeration of elements.
 

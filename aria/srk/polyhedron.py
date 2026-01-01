@@ -17,7 +17,9 @@ from .linear import QQVector, QQMatrix
 class Constraint:
     """Linear constraint: a^T x + c ≥ 0 or a^T x + c = 0."""
 
-    def __init__(self, coefficients: QQVector, constant: Fraction, equality: bool = False):
+    def __init__(
+        self, coefficients: QQVector, constant: Fraction, equality: bool = False
+    ):
         self.coefficients = coefficients
         self.constant = constant
         self.equality = equality  # True for equality, False for inequality
@@ -69,55 +71,61 @@ class Polyhedron:
         """Check if polyhedron is empty using linear programming."""
         if not self.constraints:
             return False
-        
+
         try:
             from scipy.optimize import linprog
             import numpy as np
-            
+
             # Extract inequality and equality constraints
             ineq_constraints = []
             eq_constraints = []
-            
+
             all_dims = set()
             for constraint in self.constraints:
                 all_dims.update(constraint.coefficients.dimensions())
-            
+
             if not all_dims:
                 # Check if any equality constraint is violated
                 for constraint in self.constraints:
                     if constraint.equality and constraint.constant != 0:
                         return True
                 return False
-            
+
             n = max(all_dims) + 1
-            
+
             for constraint in self.constraints:
                 # Convert to standard form
                 A_row = np.zeros(n)
                 for dim, coeff in constraint.coefficients.entries.items():
                     A_row[dim] = float(coeff)
                 b_val = float(-constraint.constant)
-                
+
                 if constraint.equality:
                     eq_constraints.append((A_row, b_val))
                 else:
                     # Convert a^T x + c >= 0 to -a^T x <= c
                     ineq_constraints.append((-A_row, -b_val))
-            
+
             # Try to find a feasible point
             # Minimize 0 (just check feasibility)
             c = np.zeros(n)
-            
-            A_ub = np.array([a for a, b in ineq_constraints]) if ineq_constraints else None
-            b_ub = np.array([b for a, b in ineq_constraints]) if ineq_constraints else None
-            
+
+            A_ub = (
+                np.array([a for a, b in ineq_constraints]) if ineq_constraints else None
+            )
+            b_ub = (
+                np.array([b for a, b in ineq_constraints]) if ineq_constraints else None
+            )
+
             A_eq = np.array([a for a, b in eq_constraints]) if eq_constraints else None
             b_eq = np.array([b for a, b in eq_constraints]) if eq_constraints else None
-            
-            result = linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, method='highs')
-            
+
+            result = linprog(
+                c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, method="highs"
+            )
+
             return not result.success
-            
+
         except ImportError:
             # If scipy not available, fall back to conservative answer
             return False
@@ -133,32 +141,32 @@ class Polyhedron:
         """Get vertices of the polyhedron using vertex enumeration."""
         if not self.constraints or self.is_empty():
             return []
-        
+
         try:
             from scipy.spatial import HalfspaceIntersection
             from scipy.optimize import linprog
             import numpy as np
-            
+
             # Get all dimensions
             all_dims = set()
             for constraint in self.constraints:
                 all_dims.update(constraint.coefficients.dimensions())
-            
+
             if not all_dims:
                 return []
-            
+
             n = max(all_dims) + 1
-            
+
             # Convert constraints to halfspace representation
             # Each halfspace is a^T x + b <= 0
             halfspaces = []
-            
+
             for constraint in self.constraints:
                 A_row = np.zeros(n)
                 for dim, coeff in constraint.coefficients.entries.items():
                     A_row[dim] = float(coeff)
                 b_val = float(constraint.constant)
-                
+
                 if constraint.equality:
                     # a^T x + b = 0 becomes two inequalities
                     halfspaces.append(np.concatenate([A_row, [b_val]]))
@@ -166,47 +174,49 @@ class Polyhedron:
                 else:
                     # a^T x + b >= 0 becomes -a^T x - b <= 0
                     halfspaces.append(np.concatenate([-A_row, [-b_val]]))
-            
+
             if not halfspaces:
                 return []
-            
+
             halfspaces = np.array(halfspaces)
-            
+
             # Find a feasible interior point
             c = np.zeros(n)
             A_ub = []
             b_ub = []
             A_eq = []
             b_eq = []
-            
+
             for constraint in self.constraints:
                 A_row = np.zeros(n)
                 for dim, coeff in constraint.coefficients.entries.items():
                     A_row[dim] = float(coeff)
                 b_val = float(-constraint.constant)
-                
+
                 if constraint.equality:
                     A_eq.append(A_row)
                     b_eq.append(b_val)
                 else:
                     A_ub.append(-A_row)
                     b_ub.append(-b_val)
-            
+
             A_ub = np.array(A_ub) if A_ub else None
             b_ub = np.array(b_ub) if b_ub else None
             A_eq = np.array(A_eq) if A_eq else None
             b_eq = np.array(b_eq) if b_eq else None
-            
-            result = linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, method='highs')
-            
+
+            result = linprog(
+                c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, method="highs"
+            )
+
             if not result.success:
                 return []  # No feasible point
-            
+
             feasible_point = result.x
-            
+
             # Compute halfspace intersection
             hs = HalfspaceIntersection(halfspaces, feasible_point)
-            
+
             # Convert vertices to QQVectors
             vertices = []
             for vertex in hs.intersections:
@@ -215,9 +225,9 @@ class Polyhedron:
                     if abs(val) > 1e-10:
                         entries[i] = Fraction(val).limit_denominator(10000)
                 vertices.append(QQVector(entries))
-            
+
             return vertices
-            
+
         except (ImportError, Exception):
             # If computation fails, return empty list
             return []
@@ -281,7 +291,7 @@ class PolyhedronOperations:
             return QQVector()
 
         atoms = [formula]
-        if hasattr(formula, 'args') and isinstance(formula, And):
+        if hasattr(formula, "args") and isinstance(formula, And):
             atoms = list(formula.args)
 
         for atom in atoms:
@@ -295,7 +305,9 @@ class PolyhedronOperations:
                     constraints.append(Constraint(coeffs, c, equality=False))
                 elif isinstance(atom, Lt):
                     # Strict inequality approximated by non-strict with -1
-                    constraints.append(Constraint(coeffs, c - Fraction(1), equality=False))
+                    constraints.append(
+                        Constraint(coeffs, c - Fraction(1), equality=False)
+                    )
                 else:  # Eq
                     constraints.append(Constraint(coeffs, c, equality=True))
 
@@ -305,6 +317,7 @@ class PolyhedronOperations:
     def to_formula(polyhedron: Polyhedron, context: Context) -> FormulaExpression:
         """Convert polyhedron to formula."""
         from .syntax import make_expression_builder
+
         builder = make_expression_builder(context)
         conjuncts: List[FormulaExpression] = []
         for c in polyhedron.constraints:
@@ -313,16 +326,26 @@ class PolyhedronOperations:
                 if coeff == 0:
                     continue
                 var = builder.mk_var(dim, Type.REAL)
-                term = var if coeff == 1 else builder.mk_mul([builder.mk_const(int(coeff)), var])
-                sum_term = term if sum_term is None else builder.mk_add([sum_term, term])
+                term = (
+                    var
+                    if coeff == 1
+                    else builder.mk_mul([builder.mk_const(int(coeff)), var])
+                )
+                sum_term = (
+                    term if sum_term is None else builder.mk_add([sum_term, term])
+                )
             if sum_term is None:
                 sum_term = builder.mk_const(0)
             if c.constant != 0:
                 sum_term = builder.mk_add([sum_term, builder.mk_const(int(c.constant))])
-            conjuncts.append(builder.mk_eq(sum_term, builder.mk_const(0)) if c.equality
-                             else builder.mk_leq(builder.mk_const(0), sum_term))
+            conjuncts.append(
+                builder.mk_eq(sum_term, builder.mk_const(0))
+                if c.equality
+                else builder.mk_leq(builder.mk_const(0), sum_term)
+            )
         if not conjuncts:
             from .syntax import TrueExpr
+
             return TrueExpr()
         result = conjuncts[0]
         for conj in conjuncts[1:]:
@@ -334,41 +357,41 @@ class PolyhedronOperations:
         """Project polyhedron onto dimensions using Fourier-Motzkin elimination."""
         if not polyhedron.constraints:
             return polyhedron
-        
+
         # Get all dimensions in the polyhedron
         all_dims = set()
         for constraint in polyhedron.constraints:
             all_dims.update(constraint.coefficients.dimensions())
-        
+
         # Dimensions to eliminate
         dims_to_eliminate = all_dims - dimensions
-        
+
         if not dims_to_eliminate:
             return polyhedron  # Nothing to eliminate
-        
+
         # Apply Fourier-Motzkin elimination for each dimension to eliminate
         current_constraints = list(polyhedron.constraints)
-        
+
         for dim in dims_to_eliminate:
             new_constraints = []
             positive = []  # Constraints with positive coefficient for dim
             negative = []  # Constraints with negative coefficient for dim
-            zero = []      # Constraints with zero coefficient for dim
-            
+            zero = []  # Constraints with zero coefficient for dim
+
             # Partition constraints
             for constraint in current_constraints:
                 coeff = constraint.coefficients.get(dim, Fraction(0))
-                
+
                 if coeff > 0:
                     positive.append(constraint)
                 elif coeff < 0:
                     negative.append(constraint)
                 else:
                     zero.append(constraint)
-            
+
             # Keep constraints that don't involve the dimension
             new_constraints.extend(zero)
-            
+
             # For each pair (positive, negative), create a new constraint
             # by eliminating the dimension
             for pos_constraint in positive:
@@ -376,37 +399,42 @@ class PolyhedronOperations:
                     # Normalize so coefficients of dim are 1 and -1
                     pos_coeff = pos_constraint.coefficients.get(dim)
                     neg_coeff = neg_constraint.coefficients.get(dim)
-                    
+
                     # Scale constraints
                     # pos: a^T x >= -c  with a_dim > 0
                     # neg: b^T x >= -d  with b_dim < 0
                     # Eliminate dim: combine to get new constraint
-                    
+
                     # Scale positive constraint by |neg_coeff|
                     scale_pos = abs(neg_coeff)
                     # Scale negative constraint by pos_coeff
                     scale_neg = pos_coeff
-                    
+
                     # Create new coefficients
                     new_coeffs = {}
                     for d in all_dims:
                         if d == dim:
                             continue
-                        val = (scale_pos * pos_constraint.coefficients.get(d, Fraction(0)) +
-                               scale_neg * neg_constraint.coefficients.get(d, Fraction(0)))
+                        val = scale_pos * pos_constraint.coefficients.get(
+                            d, Fraction(0)
+                        ) + scale_neg * neg_constraint.coefficients.get(d, Fraction(0))
                         if val != 0:
                             new_coeffs[d] = val
-                    
-                    new_const = (scale_pos * pos_constraint.constant +
-                                scale_neg * neg_constraint.constant)
-                    
+
+                    new_const = (
+                        scale_pos * pos_constraint.constant
+                        + scale_neg * neg_constraint.constant
+                    )
+
                     # Determine if it's an equality
                     new_eq = pos_constraint.equality and neg_constraint.equality
-                    
-                    new_constraints.append(Constraint(QQVector(new_coeffs), new_const, new_eq))
-            
+
+                    new_constraints.append(
+                        Constraint(QQVector(new_coeffs), new_const, new_eq)
+                    )
+
             current_constraints = new_constraints
-        
+
         return Polyhedron(current_constraints)
 
     @staticmethod
@@ -420,40 +448,40 @@ class PolyhedronOperations:
         try:
             from scipy.spatial import ConvexHull
             import numpy as np
-            
+
             # Get vertices of both polyhedra
             vertices1 = poly1.vertices()
             vertices2 = poly2.vertices()
-            
+
             if not vertices1 and not vertices2:
                 return Polyhedron([])
-            
+
             all_vertices = vertices1 + vertices2
-            
+
             # Get all dimensions
             all_dims = set()
             for v in all_vertices:
                 all_dims.update(v.dimensions())
-            
+
             if not all_dims:
                 return Polyhedron([])
-            
+
             n = max(all_dims) + 1
-            
+
             # Convert to numpy array
             points = np.zeros((len(all_vertices), n))
             for i, v in enumerate(all_vertices):
                 for dim in range(n):
                     points[i, dim] = float(v.get(dim, Fraction(0)))
-            
+
             # Compute convex hull
             hull = ConvexHull(points)
-            
+
             # Convert equations to constraints
             # Each equation is: a^T x + b = 0 for points on the facet
             # and a^T x + b <= 0 for all points in the hull
             constraints = []
-            
+
             for eq in hull.equations:
                 # eq has form [a1, a2, ..., an, b]
                 coeffs = {}
@@ -461,22 +489,25 @@ class PolyhedronOperations:
                     val = eq[i]
                     if abs(val) > 1e-10:
                         coeffs[i] = Fraction(val).limit_denominator(10000)
-                
+
                 const = Fraction(eq[-1]).limit_denominator(10000)
-                
+
                 # Create constraint: a^T x + b <= 0, which we store as -a^T x - b >= 0
                 neg_coeffs = {k: -v for k, v in coeffs.items()}
-                constraints.append(Constraint(QQVector(neg_coeffs), -const, equality=False))
-            
+                constraints.append(
+                    Constraint(QQVector(neg_coeffs), -const, equality=False)
+                )
+
             return Polyhedron(constraints)
-            
+
         except (ImportError, Exception):
             # Fall back to simple union of constraints (over-approximation)
             return Polyhedron(poly1.constraints + poly2.constraints)
 
     @staticmethod
-    def affine_transform(polyhedron: Polyhedron, matrix: QQMatrix,
-                        vector: QQVector) -> Polyhedron:
+    def affine_transform(
+        polyhedron: Polyhedron, matrix: QQMatrix, vector: QQVector
+    ) -> Polyhedron:
         """Apply affine transformation to polyhedron."""
         # Transform vertices and take convex hull back to constraints if possible
         verts = polyhedron.vertices()
@@ -495,6 +526,7 @@ class PolyhedronOperations:
         try:
             from scipy.spatial import ConvexHull
             import numpy as np
+
             # Determine dimension
             all_dims: Set[int] = set()
             for v in transformed:
@@ -516,7 +548,9 @@ class PolyhedronOperations:
                         coeffs[i] = Fraction(val).limit_denominator(10000)
                 const = Fraction(eq[-1]).limit_denominator(10000)
                 neg_coeffs = {k: -v for k, v in coeffs.items()}
-                constraints.append(Constraint(QQVector(neg_coeffs), -const, equality=False))
+                constraints.append(
+                    Constraint(QQVector(neg_coeffs), -const, equality=False)
+                )
             return Polyhedron(constraints)
         except Exception:
             # Fallback: return original polyhedron if convex hull fails
@@ -529,7 +563,9 @@ def make_polyhedron(constraints: List[Constraint]) -> Polyhedron:
     return Polyhedron(constraints)
 
 
-def make_constraint(coefficients: QQVector, constant: Fraction, equality: bool = False) -> Constraint:
+def make_constraint(
+    coefficients: QQVector, constant: Fraction, equality: bool = False
+) -> Constraint:
     """Create a constraint."""
     return Constraint(coefficients, constant, equality)
 
@@ -605,6 +641,8 @@ def polyhedron_from_formula(formula: FormulaExpression, context: Context) -> Pol
     return PolyhedronOperations.from_formula(formula, context)
 
 
-def polyhedron_to_formula(polyhedron: Polyhedron, context: Context) -> FormulaExpression:
+def polyhedron_to_formula(
+    polyhedron: Polyhedron, context: Context
+) -> FormulaExpression:
     """Convert polyhedron to logical formula."""
     return PolyhedronOperations.to_formula(polyhedron, context)

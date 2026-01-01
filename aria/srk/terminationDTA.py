@@ -6,14 +6,46 @@ transition automata for proving program termination, following the OCaml impleme
 """
 
 from __future__ import annotations
-from typing import Dict, List, Set, Tuple, Optional, Union, Any, TypeVar, Generic, Callable
+from typing import (
+    Dict,
+    List,
+    Set,
+    Tuple,
+    Optional,
+    Union,
+    Any,
+    TypeVar,
+    Generic,
+    Callable,
+)
 from dataclasses import dataclass, field
 from fractions import Fraction
 from enum import Enum
 import itertools
 import logging
 
-from aria.srk.syntax import Context, Symbol, Type, FormulaExpression, ArithExpression, mk_symbol, mk_one, mk_lt, mk_leq, mk_eq, mk_and, mk_or, mk_not, mk_add, mk_mul, mk_mod, mk_real, mk_const, mk_true, mk_false
+from aria.srk.syntax import (
+    Context,
+    Symbol,
+    Type,
+    FormulaExpression,
+    ArithExpression,
+    mk_symbol,
+    mk_one,
+    mk_lt,
+    mk_leq,
+    mk_eq,
+    mk_and,
+    mk_or,
+    mk_not,
+    mk_add,
+    mk_mul,
+    mk_mod,
+    mk_real,
+    mk_const,
+    mk_true,
+    mk_false,
+)
 from aria.srk.polynomial import Polynomial, Monomial
 from aria.srk.linear import QQVector, QQMatrix, dim_of_sym, const_dim
 from aria.srk.expPolynomial import ExpPolynomial, ExpPolynomialVector
@@ -24,9 +56,9 @@ from aria.srk.qQ import QQ
 from aria.srk.smt import SMTInterface, SMTResult, is_sat
 from aria.srk.sparseMap import SparseMap
 
-T = TypeVar('T')
-K = TypeVar('K')
-V = TypeVar('V')
+T = TypeVar("T")
+K = TypeVar("K")
+V = TypeVar("V")
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -46,9 +78,9 @@ class EPTerm:
         self._terms: Dict[Tuple[QQ, int], QQVector] = {}
 
     @classmethod
-    def of_ep_vec(cls, ep_vec: ExpPolynomialVector) -> 'EPTerm':
+    def of_ep_vec(cls, ep_vec: ExpPolynomialVector) -> "EPTerm":
         """Convert ExpPolynomialVector to EPTerm representation."""
-        context = ep_vec.context if hasattr(ep_vec, 'context') else Context()
+        context = ep_vec.context if hasattr(ep_vec, "context") else Context()
         result = cls(context)
 
         # Iterate through exponential polynomial vector components
@@ -57,13 +89,17 @@ class EPTerm:
                 for coeff, degree in Polynomial.QQX.enum(poly):
                     key = (base, degree)
                     if key not in result._terms:
-                        result._terms[key] = QQVector.zero(dim + 1)  # +1 for constant dimension
+                        result._terms[key] = QQVector.zero(
+                            dim + 1
+                        )  # +1 for constant dimension
                     # Add coefficient to the appropriate dimension
                     result._terms[key] = result._terms[key].add_term(coeff, dim)
 
         return result
 
-    def eventually_positive(self, term_of_dim: Callable[[int], ArithExpression]) -> FormulaExpression:
+    def eventually_positive(
+        self, term_of_dim: Callable[[int], ArithExpression]
+    ) -> FormulaExpression:
         """Check if EPTerm is eventually positive.
 
         Args:
@@ -85,7 +121,9 @@ class EPTerm:
 
         return mk_or(self.context, terms)
 
-    def eventually_nonnegative(self, term_of_dim: Callable[[int], ArithExpression]) -> FormulaExpression:
+    def eventually_nonnegative(
+        self, term_of_dim: Callable[[int], ArithExpression]
+    ) -> FormulaExpression:
         """Check if EPTerm is eventually nonnegative."""
         zero = mk_real(self.context, QQ.zero())
         terms = []
@@ -108,7 +146,9 @@ class EPTerm:
 
         return mk_or(self.context, terms)
 
-    def is_zero(self, term_of_dim: Callable[[int], ArithExpression]) -> FormulaExpression:
+    def is_zero(
+        self, term_of_dim: Callable[[int], ArithExpression]
+    ) -> FormulaExpression:
         """Check if EPTerm is identically zero."""
         zero = mk_real(self.context, QQ.zero())
         terms = []
@@ -122,7 +162,9 @@ class EPTerm:
 
         return mk_and(self.context, terms)
 
-    def _vec_to_term(self, vec: QQVector, term_of_dim: Callable[[int], ArithExpression]) -> ArithExpression:
+    def _vec_to_term(
+        self, vec: QQVector, term_of_dim: Callable[[int], ArithExpression]
+    ) -> ArithExpression:
         """Convert QQVector to arithmetic term."""
         terms = []
 
@@ -135,7 +177,13 @@ class EPTerm:
                 # Variable term
                 coeff = vec[i]
                 if coeff != 0:
-                    var_term = mk_mul(self.context, [mk_real(self.context, coeff), term_of_dim(i)]) if term_of_dim(i) is not None else mk_real(self.context, coeff)
+                    var_term = (
+                        mk_mul(
+                            self.context, [mk_real(self.context, coeff), term_of_dim(i)]
+                        )
+                        if term_of_dim(i) is not None
+                        else mk_real(self.context, coeff)
+                    )
                     terms.append(var_term)
 
         if not terms:
@@ -161,6 +209,7 @@ class XSeq:
     @staticmethod
     def seq_of_exp(modulus: int, eigenvalue: QQ) -> UltimatelyPeriodicSequence[QQ]:
         """Create sequence of eigenvalue^k mod modulus."""
+
         def unfold_func(power: QQ) -> QQ:
             return (power * eigenvalue) % QQ(modulus)
 
@@ -168,7 +217,9 @@ class XSeq:
         return seq.periodic_approx()
 
     @staticmethod
-    def seq_of_polynomial(modulus: int, poly: Polynomial) -> UltimatelyPeriodicSequence[QQ]:
+    def seq_of_polynomial(
+        modulus: int, poly: Polynomial
+    ) -> UltimatelyPeriodicSequence[QQ]:
         """Create characteristic sequence of polynomial mod modulus."""
         # Get LCM of denominators in coefficients
         lcm_denoms = QQ.one()
@@ -186,6 +237,7 @@ class XSeq:
             try:
                 # Use the polynomial evaluation method
                 from fractions import Fraction
+
                 values = {0: Fraction(i)}  # Assume univariate for now
                 result = scaled_poly.evaluate(values)
                 # result mod modulus, then convert back to QQ with denominator lcm_denoms
@@ -198,18 +250,22 @@ class XSeq:
         return UltimatelyPeriodicSequence.from_list(seq_values)
 
     @staticmethod
-    def seq_of_single_base_exp_polynomial(modulus: int, poly: Polynomial, base: QQ) -> UltimatelyPeriodicSequence[QQ]:
+    def seq_of_single_base_exp_polynomial(
+        modulus: int, poly: Polynomial, base: QQ
+    ) -> UltimatelyPeriodicSequence[QQ]:
         """Characteristic sequence of base^k * poly(k) mod modulus."""
         seq_exp = XSeq.seq_of_exp(modulus, base)
         seq_poly = XSeq.seq_of_polynomial(modulus, poly)
 
         def combine(n: QQ, p: QQ) -> QQ:
-                return (QQ(n) * p) % QQ(modulus)
+            return (QQ(n) * p) % QQ(modulus)
 
         return UltimatelyPeriodicSequence.map2(combine, seq_exp, seq_poly)
 
     @staticmethod
-    def seq_of_exp_polynomial(modulus: int, exp_poly: ExpPolynomial) -> UltimatelyPeriodicSequence[QQ]:
+    def seq_of_exp_polynomial(
+        modulus: int, exp_poly: ExpPolynomial
+    ) -> UltimatelyPeriodicSequence[QQ]:
         """Characteristic sequence of exponential polynomial mod modulus."""
         # Start with zero sequence
         result = UltimatelyPeriodicSequence.from_list([QQ.zero()])
@@ -225,7 +281,9 @@ class XSeq:
                 raise ValueError(f"Non-integer base {base} in exponential polynomial")
 
             base_mod = base_int % modulus
-            current_seq = XSeq.seq_of_single_base_exp_polynomial(modulus, poly, QQ(base_mod))
+            current_seq = XSeq.seq_of_single_base_exp_polynomial(
+                modulus, poly, QQ(base_mod)
+            )
 
             def add_mod(x: QQ, y: QQ) -> QQ:
                 return (x + y) % QQ(modulus)
@@ -235,8 +293,12 @@ class XSeq:
         return result
 
     @staticmethod
-    def seq_of_compare_atom(context: Context, op: str, closed_form_vec: ExpPolynomialVector,
-                           term_of_dim: Callable[[int], ArithExpression]) -> UltimatelyPeriodicSequence[FormulaExpression]:
+    def seq_of_compare_atom(
+        context: Context,
+        op: str,
+        closed_form_vec: ExpPolynomialVector,
+        term_of_dim: Callable[[int], ArithExpression],
+    ) -> UltimatelyPeriodicSequence[FormulaExpression]:
         """Compute characteristic sequence of compare atom (LHS < 0, LHS = 0, LHS <= 0)."""
         # Handle even/odd case split for negative exponentials
         positive_cf = XSeq._handle_positive_cf(closed_form_vec)
@@ -255,9 +317,14 @@ class XSeq:
         return UltimatelyPeriodicSequence.map(make_predicate, positive_cf)
 
     @staticmethod
-    def seq_of_divides_atom(context: Context, divisor: int, closed_form_dividend: ExpPolynomialVector,
-                           term_of_dim: Callable[[int], ArithExpression]) -> UltimatelyPeriodicSequence[FormulaExpression]:
+    def seq_of_divides_atom(
+        context: Context,
+        divisor: int,
+        closed_form_dividend: ExpPolynomialVector,
+        term_of_dim: Callable[[int], ArithExpression],
+    ) -> UltimatelyPeriodicSequence[FormulaExpression]:
         """Compute characteristic sequence of divides atom (q | dividend)."""
+
         def make_divides_formula(k: QQ) -> FormulaExpression:
             # dividend_xseq is the sequence of dividend values mod divisor
             dividend_seqs = []
@@ -275,14 +342,24 @@ class XSeq:
             if dividend_seqs:
                 dividend_sum = dividend_seqs[0]
                 for seq in dividend_seqs[1:]:
-                    def add_dividends(x: ArithExpression, y: ArithExpression) -> ArithExpression:
+
+                    def add_dividends(
+                        x: ArithExpression, y: ArithExpression
+                    ) -> ArithExpression:
                         return mk_add(context, [x, y])
-                    dividend_sum = UltimatelyPeriodicSequence.map2(add_dividends, dividend_sum, seq)
+
+                    dividend_sum = UltimatelyPeriodicSequence.map2(
+                        add_dividends, dividend_sum, seq
+                    )
             else:
-                dividend_sum = UltimatelyPeriodicSequence.from_list([mk_real(context, QQ.zero())])
+                dividend_sum = UltimatelyPeriodicSequence.from_list(
+                    [mk_real(context, QQ.zero())]
+                )
 
             # Create divides condition: dividend ≡ 0 mod divisor
-            def make_divides_condition(dividend_val: ArithExpression) -> FormulaExpression:
+            def make_divides_condition(
+                dividend_val: ArithExpression,
+            ) -> FormulaExpression:
                 divisor_term = mk_real(context, QQ(divisor))
                 remainder = mk_mod(context, dividend_val, divisor_term)
                 return mk_eq(context, remainder, mk_real(context, QQ.zero()))
@@ -290,7 +367,9 @@ class XSeq:
             return UltimatelyPeriodicSequence.map(make_divides_condition, dividend_sum)
 
     @staticmethod
-    def _handle_positive_cf(closed_form_vec: ExpPolynomialVector) -> UltimatelyPeriodicSequence[ExpPolynomialVector]:
+    def _handle_positive_cf(
+        closed_form_vec: ExpPolynomialVector,
+    ) -> UltimatelyPeriodicSequence[ExpPolynomialVector]:
         """Handle even/odd case split for negative exponentials."""
         # Check if any entry has negative base
         has_negative_base = False
@@ -305,12 +384,12 @@ class XSeq:
         if has_negative_base:
             # Create even and odd cases
             cf_even = ExpPolynomialVector.map(
-                lambda _ : lambda ep: ExpPolynomial.compose_left_affine(ep, 2, 0),
-                closed_form_vec
+                lambda _: lambda ep: ExpPolynomial.compose_left_affine(ep, 2, 0),
+                closed_form_vec,
             )
             cf_odd = ExpPolynomialVector.map(
-                lambda _ : lambda ep: ExpPolynomial.compose_left_affine(ep, 2, 1),
-                closed_form_vec
+                lambda _: lambda ep: ExpPolynomial.compose_left_affine(ep, 2, 1),
+                closed_form_vec,
             )
             return UltimatelyPeriodicSequence.from_list([cf_even, cf_odd])
         else:
@@ -333,7 +412,9 @@ def constraints_to_generators(dim: int, constraint_mat: QQMatrix) -> QQMatrix:
     return QQMatrix.transpose(QQMatrix.of_rows(simplified_basis))
 
 
-def inv_subspace_restriction(tr: QQMatrix, inv_subspace: QQMatrix) -> Optional[QQMatrix]:
+def inv_subspace_restriction(
+    tr: QQMatrix, inv_subspace: QQMatrix
+) -> Optional[QQMatrix]:
     """Given dynamics matrix T and invariant subspace G, compute T restricted to G."""
     try:
         # Compute T * G
@@ -351,7 +432,9 @@ def int_eigenspace(dim: int, matrix: QQMatrix) -> QQMatrix:
     var_indices = list(range(dim))
 
     # Compute rational spectral decomposition
-    eigenpairs = QQMatrix.rational_spectral_decomposition(QQMatrix.transpose(matrix), var_indices)
+    eigenpairs = QQMatrix.rational_spectral_decomposition(
+        QQMatrix.transpose(matrix), var_indices
+    )
 
     # Filter eigenvectors with integer eigenvalues
     integer_eigenvectors = []
@@ -370,7 +453,9 @@ def int_eigenspace(dim: int, matrix: QQMatrix) -> QQMatrix:
     return QQMatrix.transpose(QQMatrix.of_rows(subspace))
 
 
-def closed_form(sim_symbols: List[Symbol], linterm: QQVector, ep_mat: ExpPolynomialVector) -> ExpPolynomialVector:
+def closed_form(
+    sim_symbols: List[Symbol], linterm: QQVector, ep_mat: ExpPolynomialVector
+) -> ExpPolynomialVector:
     """Given symbols, linear term, and exponential matrix, compute closed form."""
     # Create vector of exponential polynomials from linear term
     ep_vec = ExpPolynomialVector.zero(len(sim_symbols) + 1)  # +1 for constant
@@ -379,12 +464,16 @@ def closed_form(sim_symbols: List[Symbol], linterm: QQVector, ep_mat: ExpPolynom
     for i, symbol in enumerate(sim_symbols):
         coeff = QQVector.coeff(dim_of_sym(symbol), linterm)
         if coeff != 0:
-            ep_vec = ExpPolynomialVector.add_term(ExpPolynomial.scalar(coeff), i, ep_vec)
+            ep_vec = ExpPolynomialVector.add_term(
+                ExpPolynomial.scalar(coeff), i, ep_vec
+            )
 
     # Add constant term
     const_coeff = QQVector.coeff(const_dim, linterm)
     if const_coeff != 0:
-        ep_vec = ExpPolynomialVector.add_term(ExpPolynomial.scalar(const_coeff), const_dim, ep_vec)
+        ep_vec = ExpPolynomialVector.add_term(
+            ExpPolynomial.scalar(const_coeff), const_dim, ep_vec
+        )
 
     # Multiply by exponential matrix from the left
     return ExpPolynomialVector.vector_left_mul(ep_vec, ep_mat)
@@ -406,7 +495,9 @@ class DTA:
         """Add a state to the DTA."""
         self.states.add(state)
 
-    def add_transition(self, from_state: str, to_state: str, formula: TransitionFormula) -> None:
+    def add_transition(
+        self, from_state: str, to_state: str, formula: TransitionFormula
+    ) -> None:
         """Add a transition between states."""
         self.transitions[(from_state, to_state)] = formula
 
@@ -445,7 +536,7 @@ class DTA:
 
         while worklist:
             current = worklist.pop()
-            for (from_state, to_state) in self.transitions.keys():
+            for from_state, to_state in self.transitions.keys():
                 if from_state == current and to_state not in reachable:
                     reachable.add(to_state)
                     worklist.append(to_state)
@@ -481,7 +572,7 @@ class DTA:
         visited.add(state)
 
         # Check all transitions from this state
-        for (from_state, to_state) in self.transitions.keys():
+        for from_state, to_state in self.transitions.keys():
             if from_state == state:
                 if self._can_reach_final(to_state, visited.copy()):
                     return True
@@ -528,7 +619,7 @@ class DTAAnalyzer:
         # Extract variables from transitions
         variables = set()
         for trans in transitions:
-            if hasattr(trans, 'variables'):
+            if hasattr(trans, "variables"):
                 variables.update(trans.variables)
 
         # Create DTA
@@ -558,12 +649,13 @@ class DTAAnalyzer:
                 state_map[f"trans_{i}_post"] = target_state
 
             # Add transition
-            if hasattr(trans, 'formula'):
+            if hasattr(trans, "formula"):
                 from .transitionFormula import TransitionFormula, linearize
+
                 tf = TransitionFormula(
                     formula=trans.formula,
-                    symbols=getattr(trans, 'symbols', []),
-                    exists=getattr(trans, 'exists', lambda x: False)
+                    symbols=getattr(trans, "symbols", []),
+                    exists=getattr(trans, "exists", lambda x: False),
                 )
                 dta.add_transition(source_state, target_state, tf)
 
@@ -627,7 +719,9 @@ def create_dta_analyzer(context: Context) -> DTAAnalyzer:
     return DTAAnalyzer(context)
 
 
-def analyze_termination(transitions: List[Transition], context: Context) -> TerminationResult:
+def analyze_termination(
+    transitions: List[Transition], context: Context
+) -> TerminationResult:
     """Analyze transitions for termination using DTA."""
     analyzer = DTAAnalyzer(context)
     return analyzer.analyze_transitions(transitions)
@@ -655,9 +749,14 @@ def mp(context: Context, tf: TransitionFormula) -> FormulaExpression:
 
     # Get rational abstraction using DLTS
     try:
-        from aria.srk.solvablePolynomial import DLTSPeriodicRationalAbstraction, simplify_dlts
+        from aria.srk.solvablePolynomial import (
+            DLTSPeriodicRationalAbstraction,
+            simplify_dlts,
+        )
 
-        qdlts_abs = DLTSPeriodicRationalAbstraction.abstract_rational(context, tf_linear)
+        qdlts_abs = DLTSPeriodicRationalAbstraction.abstract_rational(
+            context, tf_linear
+        )
         qdlts_abs = simplify_dlts(context, qdlts_abs, scale=True)
 
         # Get the LTS module for partial linear maps
@@ -668,7 +767,9 @@ def mp(context: Context, tf: TransitionFormula) -> FormulaExpression:
 
         dim = len(qdlts_abs.simulation)
 
-        logger.info(f"DTA analysis: dimension={dim}, omega_domain_size={len(omega_domain)}")
+        logger.info(
+            f"DTA analysis: dimension={dim}, omega_domain_size={len(omega_domain)}"
+        )
 
         # Compute basis for omega domain (constraints Ax = 0)
         g = constraints_to_generators(dim, QQMatrix.of_rows(omega_domain))
@@ -697,8 +798,17 @@ def mp(context: Context, tf: TransitionFormula) -> FormulaExpression:
         for i in range(len(qdlts_abs.simulation)):
             gz_term = QQMatrix.row(gz, i)
             # Convert row vector to linear term
-            gz_linear_term = QQVector.from_list([QQMatrix.get(gz_term, i, j) for j in range(QQMatrix.nb_columns(gz_term))])
-            sim_term = mk_const(context, gz_symbols[i]) if i < len(gz_symbols) else mk_real(context, QQ.zero())
+            gz_linear_term = QQVector.from_list(
+                [
+                    QQMatrix.get(gz_term, i, j)
+                    for j in range(QQMatrix.nb_columns(gz_term))
+                ]
+            )
+            sim_term = (
+                mk_const(context, gz_symbols[i])
+                if i < len(gz_symbols)
+                else mk_real(context, QQ.zero())
+            )
 
             # Create equality constraint
             sim_constraints.append(mk_eq(context, qdlts_abs.simulation[i], sim_term))
@@ -735,11 +845,17 @@ def mp(context: Context, tf: TransitionFormula) -> FormulaExpression:
             elif op == "Fls":
                 return UltimatelyPeriodicSequence.from_list([mk_false()])
             elif op == "And":
-                return lambda xs: UltimatelyPeriodicSequence.mapn(lambda *args: mk_and(context, args), xs)
+                return lambda xs: UltimatelyPeriodicSequence.mapn(
+                    lambda *args: mk_and(context, args), xs
+                )
             elif op == "Or":
-                return lambda xs: UltimatelyPeriodicSequence.mapn(lambda *args: mk_or(context, args), xs)
+                return lambda xs: UltimatelyPeriodicSequence.mapn(
+                    lambda *args: mk_or(context, args), xs
+                )
             elif op == "Not":
-                return lambda x: UltimatelyPeriodicSequence.map(lambda f: mk_not(context, f), x)
+                return lambda x: UltimatelyPeriodicSequence.map(
+                    lambda f: mk_not(context, f), x
+                )
             elif op == "Atom":
                 return lambda atom: _handle_atom(context, atom, tr_z_exp, term_of_dim)
             else:
@@ -804,10 +920,15 @@ def _handle_atom(context: Context, atom, tr_z_exp, term_of_dim):
 
 
 # Import additional functions needed
-def mbp(context: Context, formula: FormulaExpression, is_symbol_relevant: Callable[[Symbol], bool]) -> FormulaExpression:
+def mbp(
+    context: Context,
+    formula: FormulaExpression,
+    is_symbol_relevant: Callable[[Symbol], bool],
+) -> FormulaExpression:
     """Model-based projection for quantifier elimination."""
     # This is a simplified version - in practice would use full MBP algorithm
     from aria.srk.quantifier import mbp as quantifier_mbp
+
     return quantifier_mbp(context, formula, is_symbol_relevant)
 
 
@@ -823,7 +944,9 @@ def eliminate_floor(context: Context, formula: FormulaExpression) -> FormulaExpr
     return formula
 
 
-def evaluate_formula_with_algebra(context: Context, algebra: Callable, formula: FormulaExpression) -> Any:
+def evaluate_formula_with_algebra(
+    context: Context, algebra: Callable, formula: FormulaExpression
+) -> Any:
     """Evaluate a formula using an algebra for structural recursion.
 
     Args:
@@ -843,11 +966,15 @@ def evaluate_formula_with_algebra(context: Context, algebra: Callable, formula: 
         return algebra("Fls")
     elif isinstance(formula, And):
         # Recursively evaluate all conjuncts
-        evaluated_args = [evaluate_formula_with_algebra(context, algebra, arg) for arg in formula.args]
+        evaluated_args = [
+            evaluate_formula_with_algebra(context, algebra, arg) for arg in formula.args
+        ]
         return algebra("And")(evaluated_args)
     elif isinstance(formula, Or):
         # Recursively evaluate all disjuncts
-        evaluated_args = [evaluate_formula_with_algebra(context, algebra, arg) for arg in formula.args]
+        evaluated_args = [
+            evaluate_formula_with_algebra(context, algebra, arg) for arg in formula.args
+        ]
         return algebra("Or")(evaluated_args)
     elif isinstance(formula, Not):
         # Recursively evaluate the negated formula

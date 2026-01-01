@@ -6,8 +6,14 @@ This module tests ring operations and algebraic structures used in SRK.
 
 import unittest
 from aria.srk.ring import (
-    IntegerRing, RationalRing, RingMap, RingVector, RingMatrix,
-    is_ring, is_commutative_semigroup, is_associative_semigroup
+    IntegerRing,
+    RationalRing,
+    RingMap,
+    RingVector,
+    RingMatrix,
+    is_ring,
+    is_commutative_semigroup,
+    is_associative_semigroup,
 )
 
 
@@ -114,5 +120,5 @@ class TestRingProperties(unittest.TestCase):
         self.assertTrue(is_associative_semigroup(int_ring, int_ring.mul))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

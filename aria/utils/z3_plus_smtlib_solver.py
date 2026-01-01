@@ -14,6 +14,7 @@ entail, etc, but use cvc5 and other solvers for specific queries, e.g.,
   - MaxSMT
   - etc.
 """
+
 import logging
 import subprocess
 from enum import Enum, auto
@@ -69,13 +70,12 @@ def solve_with_bin_solver(cmd, timeout=300):
     """
     Solve a Z3 expression with an external binary solver
     """
-    with subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                          stderr=subprocess.STDOUT) as p:
+    with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as p:
         is_timeout = [False]
         timer = Timer(timeout, terminate, args=[p, is_timeout])
         timer.start()
         out = p.stdout.readlines()
-        out = ' '.join([str(element.decode('UTF-8')) for element in out])
+        out = " ".join([str(element.decode("UTF-8")) for element in out])
         timer.cancel()
         if p.poll() is None:
             p.terminate()
@@ -95,8 +95,7 @@ class Z3SolverPlus(z3.Solver):
         cvc5_path = global_config.get_solver_path("cvc5")
         if not cvc5_path:
             logger.warning(
-                "CVC5 not found in global config. "
-                "Using 'cvc5' command from PATH."
+                "CVC5 not found in global config. " "Using 'cvc5' command from PATH."
             )
             cvc5_path = "cvc5"
 
@@ -107,9 +106,7 @@ class Z3SolverPlus(z3.Solver):
         self.binary_qe_solver = f"{cvc5_path} -q --produce-models"
         # binary interpolant (NOTE: cvc5 uses the original definition of
         # interpolant)
-        self.binary_interpol_solver = (
-            f"{cvc5_path} --produce-interpols=default -q"
-        )
+        self.binary_interpol_solver = f"{cvc5_path} --produce-interpols=default -q"
         # sequence interpolant
         self.sequence_interpol_solver = None
         # implicant/implicate
@@ -123,8 +120,7 @@ class Z3SolverPlus(z3.Solver):
         # all-sat
         self.all_sat_solver = "optimathsat -model_generation=true"
 
-    def binary_interpolant(self, pre: z3.BoolRef, post: z3.BoolRef,
-                           logic=None):
+    def binary_interpolant(self, pre: z3.BoolRef, post: z3.BoolRef, logic=None):
         """
         Binary interpolant
         - It seems that cvc5's interpolant follows the original definition,
@@ -217,9 +213,7 @@ class Z3SolverPlus(z3.Solver):
             # we need another approach for labeling the status
             ret = z3.BoolVal(False)
         else:
-            ret = z3.And(z3.parse_smt2_string(
-                signature + f"(assert {qe_res})"
-            ))
+            ret = z3.And(z3.parse_smt2_string(signature + f"(assert {qe_res})"))
         smtlib.stop()
         return ret
 
@@ -253,8 +247,15 @@ class Z3SolverPlus(z3.Solver):
         smtlib.stop()
         return ret
 
-    def sygus(self, funcs: List[z3.FuncDeclRef], cnts: List[z3.BoolRef],
-              all_vars: List[z3.ExprRef], grammar=None, logic=None, pbe=False):
+    def sygus(
+        self,
+        funcs: List[z3.FuncDeclRef],
+        cnts: List[z3.BoolRef],
+        all_vars: List[z3.ExprRef],
+        grammar=None,
+        logic=None,
+        pbe=False,
+    ):
         """
         SyGuS with CVC5
         """
@@ -331,8 +332,9 @@ class Z3SolverPlus(z3.Solver):
         # print(z3.And(z3.parse_smt2_string("\n".join(signature_vec) + cnt)))
         return z3.And(z3.parse_smt2_string("\n".join(signature_vec) + cnt))
 
-    def compute_min_max(self, fml: z3.ExprRef, minimize: List,
-                        maximize: List, logic=None):
+    def compute_min_max(
+        self, fml: z3.ExprRef, minimize: List, maximize: List, logic=None
+    ):
         s = z3.Optimize()
         s.add(fml)
 
@@ -354,9 +356,7 @@ class Z3SolverPlus(z3.Solver):
             s.maximize(e)
 
         # print(s.sexpr())
-        smtlib = SmtlibProc(
-            self.omt_solver + " -opt.priority=box", debug=self.debug
-        )
+        smtlib = SmtlibProc(self.omt_solver + " -opt.priority=box", debug=self.debug)
         smtlib.start()
         if logic:
             smtlib.send(f"(set-logic {logic})")
@@ -384,9 +384,9 @@ class Z3SolverPlus(z3.Solver):
             else:
                 asserts.append(f"(assert (<= {res_val[2:-1]}))")
         # print(asserts)
-        return z3.And(z3.parse_smt2_string(
-            "\n".join(signature_vec) + "\n".join(asserts)
-        ))
+        return z3.And(
+            z3.parse_smt2_string("\n".join(signature_vec) + "\n".join(asserts))
+        )
 
     def all_sat(self, fml: z3.ExprRef, bools: List[z3.ExprRef]):
         """

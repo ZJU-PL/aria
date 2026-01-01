@@ -11,7 +11,7 @@ from aria.srk.fixpoint import analyze
 class SelfLoopGraph:
     """Single-vertex graph with a self-loop."""
 
-    def __init__(self, vertex: str = 'X') -> None:
+    def __init__(self, vertex: str = "X") -> None:
         self.vertex = vertex
 
     # For loop forest construction
@@ -23,7 +23,9 @@ class SelfLoopGraph:
             f(self.vertex)
 
     # For fixpoint propagation
-    def fold_pred_edges(self, f: Callable[[Tuple[str, str], int], int], v: str, acc: int) -> int:
+    def fold_pred_edges(
+        self, f: Callable[[Tuple[str, str], int], int], v: str, acc: int
+    ) -> int:
         if v == self.vertex:
             return f((self.vertex, self.vertex), acc)
         return acc
@@ -52,15 +54,15 @@ class SaturatingIntDomain:
 
 class TestAnalyze(unittest.TestCase):
     def test_self_loop_saturating(self) -> None:
-        graph = SelfLoopGraph('X')
+        graph = SelfLoopGraph("X")
         domain = SaturatingIntDomain()
 
         def init(_: str) -> int:
             return 0
 
         annot = analyze(graph, init, domain, delay=0)
-        self.assertEqual(annot('X'), 5)
+        self.assertEqual(annot("X"), 5)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

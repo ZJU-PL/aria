@@ -7,14 +7,26 @@ matrices and other sparse data structures efficiently.
 """
 
 from __future__ import annotations
-from typing import Dict, List, Set, Tuple, Optional, Union, Any, Generic, TypeVar, Iterator, Callable
+from typing import (
+    Dict,
+    List,
+    Set,
+    Tuple,
+    Optional,
+    Union,
+    Any,
+    Generic,
+    TypeVar,
+    Iterator,
+    Callable,
+)
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
 import operator
 
-K = TypeVar('K')  # Key type (must be ordered/comparable)
-V = TypeVar('V')  # Value type (must have zero element and equality)
-T = TypeVar('T')  # Accumulator type for fold operation
+K = TypeVar("K")  # Key type (must be ordered/comparable)
+V = TypeVar("V")  # Value type (must have zero element and equality)
+T = TypeVar("T")  # Accumulator type for fold operation
 
 
 class ZeroValue(Generic[V]):
@@ -45,7 +57,7 @@ class SparseMap(Generic[K, V]):
     def _is_zero(self, value: V) -> bool:
         """Check if a value is considered zero."""
         # Try to call zero() method if it exists (for ZeroValue protocol)
-        if hasattr(value, 'zero'):
+        if hasattr(value, "zero"):
             return value == value.zero()
         # Otherwise use standard equality with 0
         try:
@@ -75,7 +87,9 @@ class SparseMap(Generic[K, V]):
         """Check if this map is empty (contains only zeros)."""
         return len(self._map) == 0
 
-    def merge(self, other: SparseMap[K, V], combine: Callable[[V, V], V]) -> SparseMap[K, V]:
+    def merge(
+        self, other: SparseMap[K, V], combine: Callable[[V, V], V]
+    ) -> SparseMap[K, V]:
         """Merge this map with another using a combination function."""
         result_map = self._map.copy()
 
@@ -260,7 +274,9 @@ def sparse_map_add(sm1: SparseMap[K, int], sm2: SparseMap[K, int]) -> SparseMap[
     return sm1.merge(sm2, operator.add)
 
 
-def sparse_map_multiply(sm1: SparseMap[K, int], sm2: SparseMap[K, int]) -> SparseMap[K, int]:
+def sparse_map_multiply(
+    sm1: SparseMap[K, int], sm2: SparseMap[K, int]
+) -> SparseMap[K, int]:
     """Multiply two integer sparse maps (element-wise)."""
     return sm1.merge(sm2, operator.mul)
 
@@ -299,7 +315,7 @@ def test_sparse_map():
     sm_added = sm.merge(sm2, operator.add)
     assert sm_added.get(1) == 13  # 10 + 3
     assert sm_added.get(3) == 10  # Only in first map
-    assert sm_added.get(4) == 7   # Only in second map
+    assert sm_added.get(4) == 7  # Only in second map
 
     print("Sparse map tests passed!")
 

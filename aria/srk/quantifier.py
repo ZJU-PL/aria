@@ -32,6 +32,7 @@ def pivot(term: Any, symbol: Any) -> Tuple[Any, Any]:
         (coefficient, remaining_term)
     """
     from .linear import dim_of_sym
+
     dim = dim_of_sym(symbol)
     return term.pivot(dim)
 
@@ -42,6 +43,7 @@ QuantifierPrefix = List[Tuple[str, Any]]  # [('Forall'|'Exists', symbol), ...]
 
 class QuantifierType(Enum):
     """Quantifier types."""
+
     FORALL = "Forall"
     EXISTS = "Exists"
 
@@ -54,10 +56,10 @@ class VirtualTerm:
     term: Optional[Any] = None  # Linear term
 
     def __str__(self) -> str:
-        if self.kind == 'MinusInfinity':
-            return '-∞'
-        elif self.kind == 'PlusEpsilon':
-            return f'{self.term} + ε'
+        if self.kind == "MinusInfinity":
+            return "-∞"
+        elif self.kind == "PlusEpsilon":
+            return f"{self.term} + ε"
         else:
             return str(self.term)
 
@@ -74,10 +76,10 @@ class IntVirtualTerm:
         if self.divisor == 1:
             result = str(self.term)
         else:
-            result = f'floor({self.term} / {self.divisor})'
+            result = f"floor({self.term} / {self.divisor})"
 
         if self.offset != 0:
-            result += f' + {self.offset}'
+            result += f" + {self.offset}"
 
         return result
 
@@ -136,7 +138,18 @@ def normalize(srk: Any, phi: Any) -> Tuple[QuantifierPrefix, Any]:
     Returns:
         (quantifier_prefix, quantifier_free_formula)
     """
-    from .syntax import Formula, prenex, destruct, mk_eq, mk_leq, mk_lt, mk_sub, mk_real, QQ, mk_symbol
+    from .syntax import (
+        Formula,
+        prenex,
+        destruct,
+        mk_eq,
+        mk_leq,
+        mk_lt,
+        mk_sub,
+        mk_real,
+        QQ,
+        mk_symbol,
+    )
 
     # Convert to prenex form
     phi = prenex(srk, phi)
@@ -146,7 +159,11 @@ def normalize(srk: Any, phi: Any) -> Tuple[QuantifierPrefix, Any]:
     def resolve_symbol(name, typ):
         """Reuse existing named symbol when available to preserve ids."""
         try:
-            if name is not None and hasattr(srk, "is_registered_name") and srk.is_registered_name(name):
+            if (
+                name is not None
+                and hasattr(srk, "is_registered_name")
+                and srk.is_registered_name(name)
+            ):
                 sym = srk.get_named_symbol(name)
                 if sym.typ == typ:
                     return sym
@@ -159,16 +176,16 @@ def normalize(srk: Any, phi: Any) -> Tuple[QuantifierPrefix, Any]:
         """Recursively process quantifiers."""
         match = destruct(formula)
 
-        if match and match[0] == 'Quantify':
+        if match and match[0] == "Quantify":
             qt, name, typ, psi = match[1:]
 
             k = resolve_symbol(name, typ)
 
             inner_prefix, inner_formula = process(psi)
 
-            qt_str = 'Forall' if qt == 'forall' else 'Exists'
+            qt_str = "Forall" if qt == "forall" else "Exists"
             return ([(qt_str, k)] + inner_prefix, inner_formula)
-        elif match and match[0] in ('Exists', 'Forall'):
+        elif match and match[0] in ("Exists", "Forall"):
             # Handle Exists/Forall directly from destruct
             var_name, var_type, body = match[1]
 
@@ -187,18 +204,18 @@ def normalize(srk: Any, phi: Any) -> Tuple[QuantifierPrefix, Any]:
                 """Normalize arithmetic atoms."""
                 match = destruct(expr)
 
-                if match and match[0] == 'Atom' and match[1][0] == 'Arith':
+                if match and match[0] == "Atom" and match[1][0] == "Arith":
                     op, s, t = match[1][1:]
                     zero = mk_real(srk, QQ.zero())
 
                     # Normalize to t - s op 0
                     diff = mk_sub(srk, s, t)
 
-                    if op == 'Eq':
+                    if op == "Eq":
                         return mk_eq(srk, diff, zero)
-                    elif op == 'Leq':
+                    elif op == "Leq":
                         return mk_leq(srk, diff, zero)
-                    elif op == 'Lt':
+                    elif op == "Lt":
                         return mk_lt(srk, diff, zero)
 
                 return expr
@@ -237,6 +254,7 @@ def select_real_term(srk: Any, interp: Any, x: Any, atoms: List[Any]) -> Any:
 
     class EqualTerm(Exception):
         """Exception raised when an equal term is found."""
+
         def __init__(self, term):
             self.term = term
 
@@ -279,15 +297,17 @@ def select_real_term(srk: Any, interp: Any, x: Any, atoms: List[Any]) -> Any:
         """Extract bound information from an atom."""
         try:
             from .interpretation import destruct_atom
+
             match = destruct_atom(srk, atom)
 
-            if not match or match[0] != 'ArithComparison':
+            if not match or match[0] != "ArithComparison":
                 return (None, None)
 
             op, s, t = match[1:]
 
             # Parse as linear constraint
             from .syntax import mk_sub
+
             diff = mk_sub(srk, s, t)
             term = linterm_of(srk, diff)
 
@@ -298,18 +318,18 @@ def select_real_term(srk: Any, interp: Any, x: Any, atoms: List[Any]) -> Any:
                 return (None, None)
 
             # Compute -t'/a (the bound)
-            toa = QQVector.scalar_mul(-1/a, t_prime)
+            toa = QQVector.scalar_mul(-1 / a, t_prime)
             toa_val = evaluate_linterm(lambda sym: interp.real(sym), toa)
 
-            if op == 'Eq' or (op == 'Leq' and toa_val == x_val):
+            if op == "Eq" or (op == "Leq" and toa_val == x_val):
                 raise EqualTerm(toa)
 
             if a < 0:
                 # Lower bound: x >= -t'/a
-                return ((toa, toa_val, op == 'Lt'), None)
+                return ((toa, toa_val, op == "Lt"), None)
             else:
                 # Upper bound: x <= -t'/a
-                return (None, (toa, toa_val, op == 'Lt'))
+                return (None, (toa, toa_val, op == "Lt"))
 
         except Exception as e:
             if isinstance(e, EqualTerm):
@@ -318,6 +338,7 @@ def select_real_term(srk: Any, interp: Any, x: Any, atoms: List[Any]) -> Any:
 
     # Check if x appears in atoms
     from .syntax import symbols
+
     has_x = False
     for atom in atoms:
         if x in symbols(atom):
@@ -336,9 +357,13 @@ def select_real_term(srk: Any, interp: Any, x: Any, atoms: List[Any]) -> Any:
         lower, upper = bounds
 
         # Select a term based on bounds
-        if lower is not None and lower[2] == False:  # Non-strict lower bound equal to x_val
+        if (
+            lower is not None and lower[2] == False
+        ):  # Non-strict lower bound equal to x_val
             return lower[0]
-        elif upper is not None and upper[2] == False:  # Non-strict upper bound equal to x_val
+        elif (
+            upper is not None and upper[2] == False
+        ):  # Non-strict upper bound equal to x_val
             return upper[0]
         elif lower is not None and upper is None:
             # Only lower bound: return lower + 1
@@ -389,6 +414,7 @@ def select_int_term(srk: Any, interp: Any, x: Any, atoms: List[Any]) -> IntVirtu
 
     class EqualIntTerm(Exception):
         """Exception raised when an equal term is found."""
+
         def __init__(self, vt):
             self.vt = vt
 
@@ -397,16 +423,17 @@ def select_int_term(srk: Any, interp: Any, x: Any, atoms: List[Any]) -> IntVirtu
     for atom in atoms:
         try:
             from .interpretation import destruct_atom
+
             match = destruct_atom(srk, atom)
 
-            if not match or match[0] != 'ArithComparison':
+            if not match or match[0] != "ArithComparison":
                 continue
 
             op, s, t = match[1:]
 
             # Check for divisibility constraint
             atom_type = simplify_atom(srk, op, s, t)
-            if atom_type[0] in ('Divides', 'NotDivides'):
+            if atom_type[0] in ("Divides", "NotDivides"):
                 divisor = atom_type[1]
                 term = atom_type[2]
 
@@ -414,6 +441,7 @@ def select_int_term(srk: Any, interp: Any, x: Any, atoms: List[Any]) -> IntVirtu
                 a = abs(int(term.get(x, 0)))
                 if a != 0:
                     from .zZ import lcm, gcd
+
                     delta = lcm(delta, divisor // gcd(divisor, a))
 
         except Exception:
@@ -423,9 +451,10 @@ def select_int_term(srk: Any, interp: Any, x: Any, atoms: List[Any]) -> IntVirtu
         """Extract bound information from an atom."""
         try:
             from .interpretation import destruct_atom
+
             match = destruct_atom(srk, atom)
 
-            if not match or match[0] != 'ArithComparison':
+            if not match or match[0] != "ArithComparison":
                 return None
 
             op, s, t = match[1:]
@@ -433,7 +462,7 @@ def select_int_term(srk: Any, interp: Any, x: Any, atoms: List[Any]) -> IntVirtu
             # Simplify atom
             atom_type = simplify_atom(srk, op, s, t)
 
-            if atom_type[0] != 'CompareZero':
+            if atom_type[0] != "CompareZero":
                 return None
 
             _, op, term = atom_type
@@ -450,43 +479,49 @@ def select_int_term(srk: Any, interp: Any, x: Any, atoms: List[Any]) -> IntVirtu
             if a_int > 0:
                 # Upper bound: ax + t' <= 0 => x <= floor(-t'/a)
                 numerator = QQVector.negate(t_prime)
-                if op == 'Lt':
-                    numerator = QQVector.add(numerator, QQVector.const_linterm(Fraction(-1)))
+                if op == "Lt":
+                    numerator = QQVector.add(
+                        numerator, QQVector.const_linterm(Fraction(-1))
+                    )
 
-                rhs_val = int(evaluate_linterm(lambda sym: interp.real(sym), numerator) // a_int)
-
-                vt = IntVirtualTerm(
-                    term=numerator,
-                    divisor=a_int,
-                    offset=(x_val - rhs_val) % delta
+                rhs_val = int(
+                    evaluate_linterm(lambda sym: interp.real(sym), numerator) // a_int
                 )
 
-                if op == 'Eq':
+                vt = IntVirtualTerm(
+                    term=numerator, divisor=a_int, offset=(x_val - rhs_val) % delta
+                )
+
+                if op == "Eq":
                     raise EqualIntTerm(vt)
 
-                return ('Upper', vt, evaluate_vt(vt))
+                return ("Upper", vt, evaluate_vt(vt))
 
             else:
                 # Lower bound: ax + t' <= 0 => x >= ceil(t'/(-a))
                 a_int = -a_int
                 numerator = t_prime
-                if op == 'Lt':
-                    numerator = QQVector.add(numerator, QQVector.const_linterm(Fraction(a_int)))
+                if op == "Lt":
+                    numerator = QQVector.add(
+                        numerator, QQVector.const_linterm(Fraction(a_int))
+                    )
                 else:
-                    numerator = QQVector.add(numerator, QQVector.const_linterm(Fraction(a_int - 1)))
+                    numerator = QQVector.add(
+                        numerator, QQVector.const_linterm(Fraction(a_int - 1))
+                    )
 
-                rhs_val = int(evaluate_linterm(lambda sym: interp.real(sym), numerator) // a_int)
-
-                vt = IntVirtualTerm(
-                    term=numerator,
-                    divisor=a_int,
-                    offset=(x_val - rhs_val) % delta
+                rhs_val = int(
+                    evaluate_linterm(lambda sym: interp.real(sym), numerator) // a_int
                 )
 
-                if op == 'Eq':
+                vt = IntVirtualTerm(
+                    term=numerator, divisor=a_int, offset=(x_val - rhs_val) % delta
+                )
+
+                if op == "Eq":
                     raise EqualIntTerm(vt)
 
-                return ('Lower', vt, evaluate_vt(vt))
+                return ("Lower", vt, evaluate_vt(vt))
 
         except Exception as e:
             if isinstance(e, EqualIntTerm):
@@ -508,17 +543,18 @@ def select_int_term(srk: Any, interp: Any, x: Any, atoms: List[Any]) -> IntVirtu
         kind1, vt1, val1 = bound1
         kind2, vt2, val2 = bound2
 
-        if kind1 == 'Lower' and kind2 == 'Lower':
+        if kind1 == "Lower" and kind2 == "Lower":
             return bound1 if val1 > val2 else bound2
-        elif kind1 == 'Upper' and kind2 == 'Upper':
+        elif kind1 == "Upper" and kind2 == "Upper":
             return bound1 if val1 < val2 else bound2
-        elif kind1 == 'Lower':
+        elif kind1 == "Lower":
             return bound1
         else:
             return bound2
 
     # Check if x appears in atoms
     from .syntax import symbols
+
     has_x = False
     for atom in atoms:
         if x in symbols(atom):
@@ -600,7 +636,7 @@ def mbp_virtual_term(srk: Any, interp: Any, x: Any, atoms: List[Any]) -> Virtual
     # Get the value of x in the model
     x_val = value_of(x)
     if x_val is None:
-        return VirtualTerm('MinusInfinity')
+        return VirtualTerm("MinusInfinity")
 
     # Find bounds on x
     lower_bound = None
@@ -610,13 +646,15 @@ def mbp_virtual_term(srk: Any, interp: Any, x: Any, atoms: List[Any]) -> Virtual
         try:
             # Parse atom as ax + t op 0
             from .interpretation import destruct_atom
+
             match = destruct_atom(srk, atom)
 
-            if not match or match[0] != 'ArithComparison':
+            if not match or match[0] != "ArithComparison":
                 continue
 
             op, s, t = match[1:]
             from .syntax import mk_sub
+
             diff = mk_sub(srk, s, t)
             term = linterm_of(srk, diff)
             a, t_prime = pivot(term, x)
@@ -625,12 +663,12 @@ def mbp_virtual_term(srk: Any, interp: Any, x: Any, atoms: List[Any]) -> Virtual
                 continue
 
             # Compute -t/a (the bound)
-            bound_term = QQVector.scalar_mul(-1/a, t_prime)
+            bound_term = QQVector.scalar_mul(-1 / a, t_prime)
             bound_val = evaluate_linterm(lambda sym: interp.real(sym), bound_term)
 
             # Check if this is an equality
             if bound_val == x_val:
-                return VirtualTerm('Term', bound_term)
+                return VirtualTerm("Term", bound_term)
 
             # Check if this is a lower bound
             if a < 0:  # ax + t <= 0 => x >= -t/a
@@ -643,9 +681,9 @@ def mbp_virtual_term(srk: Any, interp: Any, x: Any, atoms: List[Any]) -> Virtual
 
     # Return the tightest lower bound + epsilon, or -infinity
     if lower_bound is not None:
-        return VirtualTerm('PlusEpsilon', lower_bound)
+        return VirtualTerm("PlusEpsilon", lower_bound)
     else:
-        return VirtualTerm('MinusInfinity')
+        return VirtualTerm("MinusInfinity")
 
 
 def virtual_substitution(srk: Any, x: Any, vt: VirtualTerm, phi: Any) -> Any:
@@ -663,20 +701,31 @@ def virtual_substitution(srk: Any, x: Any, vt: VirtualTerm, phi: Any) -> Any:
     Returns:
         Formula with x substituted by vt
     """
-    from .syntax import (rewrite, destruct, mk_eq, mk_leq, mk_lt, mk_true,
-                        mk_false, substitute_const, mk_const, mk_sub, mk_real,
-                        of_linterm)
+    from .syntax import (
+        rewrite,
+        destruct,
+        mk_eq,
+        mk_leq,
+        mk_lt,
+        mk_true,
+        mk_false,
+        substitute_const,
+        mk_const,
+        mk_sub,
+        mk_real,
+        of_linterm,
+    )
     from .linear import linterm_of, QQVector
 
     def replace_atom(expr):
         """Replace atoms containing x."""
         match = destruct(expr)
 
-        if not match or match[0] != 'Atom':
+        if not match or match[0] != "Atom":
             return expr
 
         atom_kind = match[1]
-        if not atom_kind or atom_kind[0] != 'Arith':
+        if not atom_kind or atom_kind[0] != "Arith":
             return expr
 
         op, s, t = atom_kind[1:]
@@ -692,36 +741,42 @@ def virtual_substitution(srk: Any, x: Any, vt: VirtualTerm, phi: Any) -> Any:
                 return expr
 
             # Compute -t'/a
-            soa = QQVector.scalar_mul(-1/a, t_prime)
+            soa = QQVector.scalar_mul(-1 / a, t_prime)
 
-            if vt.kind == 'Term':
+            if vt.kind == "Term":
                 # Direct substitution
                 diff = mk_sub(srk, of_linterm(srk, soa), of_linterm(srk, vt.term))
                 zero = mk_real(srk, Fraction(0))
 
-                if op == 'Eq':
+                if op == "Eq":
                     return mk_eq(srk, diff, zero)
-                elif op == 'Leq':
+                elif op == "Leq":
                     if a < 0:
                         return mk_leq(srk, diff, zero)
                     else:
-                        return mk_leq(srk, mk_sub(srk, of_linterm(srk, vt.term),
-                                                 of_linterm(srk, soa)), zero)
-                elif op == 'Lt':
+                        return mk_leq(
+                            srk,
+                            mk_sub(srk, of_linterm(srk, vt.term), of_linterm(srk, soa)),
+                            zero,
+                        )
+                elif op == "Lt":
                     if a < 0:
                         return mk_lt(srk, diff, zero)
                     else:
-                        return mk_lt(srk, mk_sub(srk, of_linterm(srk, vt.term),
-                                                of_linterm(srk, soa)), zero)
+                        return mk_lt(
+                            srk,
+                            mk_sub(srk, of_linterm(srk, vt.term), of_linterm(srk, soa)),
+                            zero,
+                        )
 
-            elif vt.kind == 'MinusInfinity':
+            elif vt.kind == "MinusInfinity":
                 # x = -∞
                 if a < 0:
                     return mk_false()
                 else:
                     return mk_true()
 
-            elif vt.kind == 'PlusEpsilon':
+            elif vt.kind == "PlusEpsilon":
                 # x = t + ε
                 if a < 0:
                     # bound < x = t + ε  =>  bound <= t
@@ -738,9 +793,11 @@ def virtual_substitution(srk: Any, x: Any, vt: VirtualTerm, phi: Any) -> Any:
         return expr
 
     # If vt is a Term, do direct substitution
-    if vt.kind == 'Term':
+    if vt.kind == "Term":
         replacement = of_linterm(srk, vt.term)
-        return substitute_const(srk, lambda sym: replacement if sym == x else mk_const(srk, sym), phi)
+        return substitute_const(
+            srk, lambda sym: replacement if sym == x else mk_const(srk, sym), phi
+        )
 
     # Otherwise, rewrite atoms
     return rewrite(srk, replace_atom, phi)
@@ -763,8 +820,17 @@ def mbp(srk: Any, exists: Callable[[Any], bool], phi: Any, dnf: bool = False) ->
         Quantifier-free formula
     """
     from .smt import mk_solver, Solver, SMTResult
-    from .syntax import (mk_not, mk_or, mk_and, mk_false, mk_true, symbols as get_symbols,
-                        Var, Symbol, ExpressionVisitor)
+    from .syntax import (
+        mk_not,
+        mk_or,
+        mk_and,
+        mk_false,
+        mk_true,
+        symbols as get_symbols,
+        Var,
+        Symbol,
+        ExpressionVisitor,
+    )
 
     # Extract symbols from constants
     all_symbols = get_symbols(phi)
@@ -772,6 +838,7 @@ def mbp(srk: Any, exists: Callable[[Any], bool], phi: Any, dnf: bool = False) ->
     # Also extract variables and convert them to symbols
     class VariableExtractor(ExpressionVisitor[Set[Symbol]]):
         """Extract variables and convert them to symbols."""
+
         def visit_var(self, var: Var) -> Set[Symbol]:
             # Create a symbol from the variable's id and type
             return {Symbol(var.var_id, None, var.var_type)}
@@ -911,6 +978,7 @@ def mbp(srk: Any, exists: Callable[[Any], bool], phi: Any, dnf: bool = False) ->
         # Get implicant from model. SMTModel doesn't implement select_implicant,
         # so fall back to using the whole formula as the implicant.
         from .interpretation import select_implicant
+
         try:
             implicant = select_implicant(model, phi)
         except AttributeError:
@@ -952,12 +1020,12 @@ def simsat(srk: Any, phi: Any) -> str:
     # For now, fall back to SMT solver
     result = is_sat(srk, phi)
 
-    if result == 'Sat':
-        return 'Sat'
-    elif result == 'Unsat':
-        return 'Unsat'
+    if result == "Sat":
+        return "Sat"
+    elif result == "Unsat":
+        return "Unsat"
     else:
-        return 'Unknown'
+        return "Unknown"
 
 
 def qe_mbp(srk: Any, phi: Any) -> Any:
@@ -977,7 +1045,7 @@ def qe_mbp(srk: Any, phi: Any) -> Any:
     result = psi
 
     for qt, x in reversed(qf_pre):
-        if qt == 'Exists':
+        if qt == "Exists":
             # Eliminate existential quantifier
             # Match by symbol id since normalize may create new Symbol objects
             x_id = x.id
@@ -985,6 +1053,7 @@ def qe_mbp(srk: Any, phi: Any) -> Any:
         else:
             # Forall: ∀x.φ ≡ ¬∃x.¬φ
             from .syntax import mk_not
+
             x_id = x.id
             result = mk_not(mbp(srk, lambda s: s.id == x_id, mk_not(result), dnf=True))
 
@@ -1006,6 +1075,7 @@ def easy_sat(srk: Any, phi: Any) -> str:
 
 
 # Helper functions for Presburger arithmetic
+
 
 def mk_divides(srk: Any, divisor: int, term: Any) -> Any:
     """
@@ -1037,9 +1107,11 @@ def mk_divides(srk: Any, divisor: int, term: Any) -> Any:
     # Create formula: (term mod divisor) = 0
     divisor_qq = Fraction(divisor)
 
-    return mk_eq(srk,
-                 mk_mod(srk, of_linterm(srk, term), mk_real(srk, divisor_qq)),
-                 mk_real(srk, Fraction(0)))
+    return mk_eq(
+        srk,
+        mk_mod(srk, of_linterm(srk, term), mk_real(srk, divisor_qq)),
+        mk_real(srk, Fraction(0)),
+    )
 
 
 def simplify_atom(srk: Any, op: str, s: Any, t: Any) -> Tuple[str, ...]:
@@ -1067,7 +1139,7 @@ def simplify_atom(srk: Any, op: str, s: Any, t: Any) -> Tuple[str, ...]:
         # Check for modulo operations (divisibility constraints)
         match = destruct(diff)
 
-        if match and match[0] == 'Binop' and match[1] == 'Mod':
+        if match and match[0] == "Binop" and match[1] == "Mod":
             # Divisibility constraint
             dividend, modulus = match[2:]
 
@@ -1075,17 +1147,17 @@ def simplify_atom(srk: Any, op: str, s: Any, t: Any) -> Tuple[str, ...]:
                 mod_val = int(modulus)
                 term = linterm_of(srk, dividend)
 
-                if op == 'Eq' or op == 'Leq':
-                    return ('Divides', mod_val, term)
+                if op == "Eq" or op == "Leq":
+                    return ("Divides", mod_val, term)
                 else:
-                    return ('NotDivides', mod_val, term)
+                    return ("NotDivides", mod_val, term)
             except:
                 pass
 
-        return ('CompareZero', op, term)
+        return ("CompareZero", op, term)
 
     except Exception:
-        return ('CompareZero', op, None)
+        return ("CompareZero", op, None)
 
 
 class QuantifierEngine:
@@ -1125,14 +1197,15 @@ def is_presburger_atom(srk: Any, atom: Any) -> bool:
     """
     try:
         from .interpretation import destruct_atom
+
         match = destruct_atom(srk, atom)
 
         if not match:
             return False
 
-        if match[0] == 'Literal':
+        if match[0] == "Literal":
             return True
-        elif match[0] == 'ArithComparison':
+        elif match[0] == "ArithComparison":
             op, s, t = match[1:]
             # Try to simplify the atom
             simplify_atom(srk, op, s, t)
@@ -1144,8 +1217,9 @@ def is_presburger_atom(srk: Any, atom: Any) -> bool:
         return False
 
 
-def local_project_cube(srk: Any, exists: Callable[[Any], bool],
-                      model: Any, cube: List[Any]) -> List[Any]:
+def local_project_cube(
+    srk: Any, exists: Callable[[Any], bool], model: Any, cube: List[Any]
+) -> List[Any]:
     """
     Given an interpretation M, a conjunctive formula cube such that M |= cube,
     and a predicate exists, find a cube cube' expressed over symbols that
@@ -1174,8 +1248,9 @@ def local_project_cube(srk: Any, exists: Callable[[Any], bool],
     def is_true(phi):
         """Check if formula is trivially true."""
         from .syntax import destruct
+
         match = destruct(phi)
-        return match and match[0] == 'Tru'
+        return match and match[0] == "Tru"
 
     # Project each symbol
     result = cube
@@ -1190,6 +1265,7 @@ def local_project_cube(srk: Any, exists: Callable[[Any], bool],
 
 # Cover virtual terms for over-approximate projection
 
+
 @dataclass(frozen=True)
 class CoverVirtualTerm:
     """Cover virtual term for over-approximate projection."""
@@ -1198,17 +1274,19 @@ class CoverVirtualTerm:
     term: Optional[Any] = None
 
     def __str__(self) -> str:
-        if self.kind == 'MinusInfinity':
-            return '-∞'
-        elif self.kind == 'PlusEpsilon':
-            return f'{self.term} + ε'
-        elif self.kind == 'Term':
+        if self.kind == "MinusInfinity":
+            return "-∞"
+        elif self.kind == "PlusEpsilon":
+            return f"{self.term} + ε"
+        elif self.kind == "Term":
             return str(self.term)
         else:
-            return '??'
+            return "??"
 
 
-def cover_virtual_term(srk: Any, interp: Any, x: Any, atoms: List[Any]) -> CoverVirtualTerm:
+def cover_virtual_term(
+    srk: Any, interp: Any, x: Any, atoms: List[Any]
+) -> CoverVirtualTerm:
     """
     Select a cover virtual term for over-approximate projection.
 
@@ -1229,14 +1307,15 @@ def cover_virtual_term(srk: Any, interp: Any, x: Any, atoms: List[Any]) -> Cover
         """Try to find an equal term."""
         try:
             from .interpretation import destruct_atom
+
             match = destruct_atom(srk, atom)
 
-            if not match or match[0] != 'ArithComparison':
+            if not match or match[0] != "ArithComparison":
                 return None
 
             op, s, t = match[1:]
 
-            if op in ('Lt',):
+            if op in ("Lt",):
                 return None
 
             # Evaluate both sides
@@ -1246,6 +1325,7 @@ def cover_virtual_term(srk: Any, interp: Any, x: Any, atoms: List[Any]) -> Cover
             if sval == tval:
                 # Try to isolate x
                 from .srkSimplify import isolate_linear
+
                 diff = mk_sub(srk, s, t)
                 result = isolate_linear(srk, x, diff)
 
@@ -1254,11 +1334,16 @@ def cover_virtual_term(srk: Any, interp: Any, x: Any, atoms: List[Any]) -> Cover
                     if a != 0:
                         # x = -b/a
                         from .syntax import mk_mul, mk_real, mk_floor, typ_symbol
+
                         term = mk_mul(srk, [mk_real(srk, Fraction(-1) / a), b])
 
                         # If x is integer and term is real, apply floor
                         from .syntax import typ_symbol, expr_typ
-                        if typ_symbol(srk, x) == 'TyInt' and expr_typ(srk, term) == 'TyReal':
+
+                        if (
+                            typ_symbol(srk, x) == "TyInt"
+                            and expr_typ(srk, term) == "TyReal"
+                        ):
                             term = mk_floor(srk, term)
 
                         return term
@@ -1272,15 +1357,17 @@ def cover_virtual_term(srk: Any, interp: Any, x: Any, atoms: List[Any]) -> Cover
         """Try to extract a lower bound."""
         try:
             from .interpretation import destruct_atom
+
             match = destruct_atom(srk, atom)
 
-            if not match or match[0] != 'ArithComparison':
+            if not match or match[0] != "ArithComparison":
                 return None
 
             op, s, t = match[1:]
 
             # Try to isolate x
             from .srkSimplify import isolate_linear
+
             diff = mk_sub(srk, s, t)
             result = isolate_linear(srk, x, diff)
 
@@ -1292,6 +1379,7 @@ def cover_virtual_term(srk: Any, interp: Any, x: Any, atoms: List[Any]) -> Cover
             if a < 0:
                 # Lower bound
                 from .syntax import mk_mul, mk_real
+
                 b_over_a = mk_mul(srk, [mk_real(srk, Fraction(-1) / a), b])
                 b_over_a_val = interp.evaluate_term(b_over_a)
                 return (b_over_a, b_over_a_val)
@@ -1310,13 +1398,14 @@ def cover_virtual_term(srk: Any, interp: Any, x: Any, atoms: List[Any]) -> Cover
 
     if not has_x:
         from .syntax import mk_real
-        return CoverVirtualTerm('Term', mk_real(srk, Fraction(0)))
+
+        return CoverVirtualTerm("Term", mk_real(srk, Fraction(0)))
 
     # Try to find an equal term
     for atom in atoms:
         equal_term = get_equal_term(atom)
         if equal_term is not None:
-            return CoverVirtualTerm('Term', equal_term)
+            return CoverVirtualTerm("Term", equal_term)
 
     # Try to find bounds
     try:
@@ -1328,13 +1417,13 @@ def cover_virtual_term(srk: Any, interp: Any, x: Any, atoms: List[Any]) -> Cover
                     lower = vt
 
         if lower is not None:
-            return CoverVirtualTerm('PlusEpsilon', lower[0])
+            return CoverVirtualTerm("PlusEpsilon", lower[0])
         else:
-            return CoverVirtualTerm('MinusInfinity')
+            return CoverVirtualTerm("MinusInfinity")
 
     except Exception:
         # Fall back to unknown
-        return CoverVirtualTerm('Unknown')
+        return CoverVirtualTerm("Unknown")
 
 
 def cover_virtual_substitution(srk: Any, x: Any, vt: CoverVirtualTerm, phi: Any) -> Any:
@@ -1350,19 +1439,34 @@ def cover_virtual_substitution(srk: Any, x: Any, vt: CoverVirtualTerm, phi: Any)
     Returns:
         Formula with x substituted by vt
     """
-    from .syntax import (rewrite, destruct, mk_eq, mk_leq, mk_lt, mk_true,
-                        mk_false, substitute_const, mk_const, mk_sub, mk_real,
-                        mk_add, mk_mul, symbols)
+    from .syntax import (
+        rewrite,
+        destruct,
+        mk_eq,
+        mk_leq,
+        mk_lt,
+        mk_true,
+        mk_false,
+        substitute_const,
+        mk_const,
+        mk_sub,
+        mk_real,
+        mk_add,
+        mk_mul,
+        symbols,
+    )
 
-    if vt.kind == 'Term':
+    if vt.kind == "Term":
         # Direct substitution
-        return substitute_const(srk, lambda sym: vt.term if sym == x else mk_const(srk, sym), phi)
+        return substitute_const(
+            srk, lambda sym: vt.term if sym == x else mk_const(srk, sym), phi
+        )
 
-    elif vt.kind == 'Unknown':
+    elif vt.kind == "Unknown":
         # Drop atoms containing x
         def drop(expr):
             match = destruct(expr)
-            if match and match[0] == 'Atom':
+            if match and match[0] == "Atom":
                 if x in symbols(expr):
                     return mk_true()
             return expr
@@ -1374,17 +1478,18 @@ def cover_virtual_substitution(srk: Any, x: Any, vt: CoverVirtualTerm, phi: Any)
         def replace_atom(expr):
             match = destruct(expr)
 
-            if not match or match[0] != 'Atom':
+            if not match or match[0] != "Atom":
                 return expr
 
             atom_kind = match[1]
-            if not atom_kind or atom_kind[0] != 'Arith':
+            if not atom_kind or atom_kind[0] != "Arith":
                 return expr
 
             op, s, t = atom_kind[1:]
 
             # Try to isolate x
             from .srkSimplify import isolate_linear
+
             diff = mk_sub(srk, s, t)
             result = isolate_linear(srk, x, diff)
 
@@ -1396,22 +1501,22 @@ def cover_virtual_substitution(srk: Any, x: Any, vt: CoverVirtualTerm, phi: Any)
 
             if a == 0:
                 # x doesn't appear
-                if op == 'Eq':
+                if op == "Eq":
                     return mk_eq(srk, s, t)
-                elif op == 'Leq':
+                elif op == "Leq":
                     return mk_leq(srk, s, t)
-                elif op == 'Lt':
+                elif op == "Lt":
                     return mk_lt(srk, s, t)
 
             zero = mk_real(srk, Fraction(0))
 
-            if vt.kind == 'MinusInfinity':
+            if vt.kind == "MinusInfinity":
                 if a < 0:
                     return mk_false()
                 else:
                     return mk_true()
 
-            elif vt.kind == 'PlusEpsilon':
+            elif vt.kind == "PlusEpsilon":
                 # x = t + ε
                 if a < 0:
                     # a(t + ε) + b <= 0  =>  at + b <= 0
@@ -1427,7 +1532,9 @@ def cover_virtual_substitution(srk: Any, x: Any, vt: CoverVirtualTerm, phi: Any)
         return rewrite(srk, replace_atom, phi)
 
 
-def mbp_cover(srk: Any, exists: Callable[[Any], bool], phi: Any, dnf: bool = True) -> Any:
+def mbp_cover(
+    srk: Any, exists: Callable[[Any], bool], phi: Any, dnf: bool = True
+) -> Any:
     """
     Over-approximate model-based projection.
 
@@ -1460,11 +1567,12 @@ def mbp_cover(srk: Any, exists: Callable[[Any], bool], phi: Any, dnf: bool = Tru
     while True:
         model = Solver.get_model(solver)
 
-        if model is None or model == 'Unsat':
+        if model is None or model == "Unsat":
             break
 
         # Get implicant from model
         from .interpretation import select_implicant
+
         implicant = select_implicant(model, phi)
 
         if implicant is None:
@@ -1474,8 +1582,10 @@ def mbp_cover(srk: Any, exists: Callable[[Any], bool], phi: Any, dnf: bool = Tru
         projected_implicant = implicant
         for x in project:
             vt = cover_virtual_term(srk, model, x, projected_implicant)
-            projected_implicant = [cover_virtual_substitution(srk, x, vt, atom)
-                                  for atom in projected_implicant]
+            projected_implicant = [
+                cover_virtual_substitution(srk, x, vt, atom)
+                for atom in projected_implicant
+            ]
 
         if dnf:
             disjunct = mk_and(srk, projected_implicant)
@@ -1490,11 +1600,14 @@ def mbp_cover(srk: Any, exists: Callable[[Any], bool], phi: Any, dnf: bool = Tru
     return mk_or(srk, disjuncts) if disjuncts else mk_false()
 
 
-def cover_virtual_substitution_formula(srk: Any, project: Set[Any], model: Any, phi: Any) -> Any:
+def cover_virtual_substitution_formula(
+    srk: Any, project: Set[Any], model: Any, phi: Any
+) -> Any:
     """Apply cover virtual substitution to an entire formula."""
     result = phi
     for x in project:
         from .interpretation import select_implicant
+
         implicant = select_implicant(model, result)
         if implicant:
             vt = cover_virtual_term(srk, model, x, implicant)
@@ -1504,41 +1617,46 @@ def cover_virtual_substitution_formula(srk: Any, project: Set[Any], model: Any, 
 
 # Export main functions
 __all__ = [
-    'normalize',
-    'mbp',
-    'mbp_virtual_term',
-    'virtual_substitution',
-    'simsat',
-    'easy_sat',
-    'qe_mbp',
-    'mk_divides',
-    'simplify_atom',
-    'is_presburger_atom',
-    'local_project_cube',
-    'mbp_cover',
-    'cover_virtual_term',
-    'cover_virtual_substitution',
-    'select_real_term',
-    'select_int_term',
-    'VirtualTerm',
-    'IntVirtualTerm',
-    'CoverVirtualTerm',
-    'QuantifierType',
-    'QuantifierEngine',
-    'StrategyImprovementSolver',
+    "normalize",
+    "mbp",
+    "mbp_virtual_term",
+    "virtual_substitution",
+    "simsat",
+    "easy_sat",
+    "qe_mbp",
+    "mk_divides",
+    "simplify_atom",
+    "is_presburger_atom",
+    "local_project_cube",
+    "mbp_cover",
+    "cover_virtual_term",
+    "cover_virtual_substitution",
+    "select_real_term",
+    "select_int_term",
+    "VirtualTerm",
+    "IntVirtualTerm",
+    "CoverVirtualTerm",
+    "QuantifierType",
+    "QuantifierEngine",
+    "StrategyImprovementSolver",
 ]
 
 # -------------------------
 # Game-theoretic features
 # -------------------------
 
+
 def term_of_int_virtual_term(srk: Any, vt: IntVirtualTerm) -> Any:
     """Build an expression floor(term/divisor) + offset from IntVirtualTerm."""
     from .syntax import of_linterm, mk_floor, mk_div, mk_add, mk_real
+
     if vt.divisor == 1:
         base = of_linterm(srk, vt.term)
     else:
-        base = mk_floor(srk, mk_div(srk, of_linterm(srk, vt.term), mk_real(srk, Fraction(vt.divisor))))
+        base = mk_floor(
+            srk,
+            mk_div(srk, of_linterm(srk, vt.term), mk_real(srk, Fraction(vt.divisor))),
+        )
     if vt.offset != 0:
         return mk_add(srk, [base, mk_real(srk, Fraction(vt.offset))])
     return base
@@ -1581,13 +1699,14 @@ class Skeleton:
     def mk_path(srk: Any, path: List[Any]) -> Any:
         """Create skeleton from path: entries are (`Forall symbol) or (`Exists (symbol, move))."""
         from .syntax import mk_symbol, typ_symbol
+
         node: Any = Skeleton.SEmpty()
         for entry in reversed(path):
-            if isinstance(entry, tuple) and len(entry) == 2 and entry[0] == 'Forall':
+            if isinstance(entry, tuple) and len(entry) == 2 and entry[0] == "Forall":
                 k = entry[1]
                 sk = mk_symbol(srk, name=str(k), typ=typ_symbol(srk, k))
                 node = Skeleton.SForall(k, sk, node)
-            elif isinstance(entry, tuple) and len(entry) == 2 and entry[0] == 'Exists':
+            elif isinstance(entry, tuple) and len(entry) == 2 and entry[0] == "Exists":
                 k, move = entry[1]
                 node = Skeleton.SExists(k, [(move, node)])
             else:
@@ -1603,12 +1722,12 @@ class Skeleton:
         head, *tail = path
         if isinstance(skeleton, Skeleton.SForall):
             tag, k = head
-            assert tag == 'Forall' and k == skeleton.symbol
+            assert tag == "Forall" and k == skeleton.symbol
             skeleton.subtree = Skeleton.add_path(srk, tail, skeleton.subtree)
             return skeleton
         if isinstance(skeleton, Skeleton.SExists):
             tag, (k, move) = head
-            assert tag == 'Exists' and k == skeleton.symbol
+            assert tag == "Exists" and k == skeleton.symbol
             for i, (mv, sub) in enumerate(skeleton.moves):
                 if mv == move:
                     skeleton.moves[i] = (mv, Skeleton.add_path(srk, tail, sub))
@@ -1621,12 +1740,14 @@ class Skeleton:
     @staticmethod
     def substitute(srk: Any, x: Any, move: Any, phi: Any) -> Any:
         from .syntax import of_linterm, mk_const, substitute_const
+
         if isinstance(move, Skeleton.MReal):
             replacement = of_linterm(srk, move.term)
         elif isinstance(move, Skeleton.MInt):
             replacement = term_of_int_virtual_term(srk, move.vt)
         elif isinstance(move, Skeleton.MBool):
             from .syntax import mk_true, mk_false
+
             replacement = mk_true() if move.value else mk_false()
         else:
             return phi
@@ -1635,16 +1756,20 @@ class Skeleton:
     @staticmethod
     def winning_formula(srk: Any, skeleton: Any, phi: Any) -> Any:
         from .syntax import mk_const, mk_or
+
         if isinstance(skeleton, Skeleton.SEmpty):
             return phi
         if isinstance(skeleton, Skeleton.SForall):
             # Replace quantified symbol with its skolem in the subtree
             from .syntax import substitute_const
-            replaced = substitute_const({skeleton.symbol: mk_const(srk, skeleton.skolem)}, phi)
+
+            replaced = substitute_const(
+                {skeleton.symbol: mk_const(srk, skeleton.skolem)}, phi
+            )
             return Skeleton.winning_formula(srk, skeleton.subtree, replaced)
         if isinstance(skeleton, Skeleton.SExists):
             disjuncts = []
-            for (move, subtree) in skeleton.moves:
+            for move, subtree in skeleton.moves:
                 moved = Skeleton.substitute(srk, skeleton.symbol, move, phi)
                 disjuncts.append(Skeleton.winning_formula(srk, subtree, moved))
             return mk_or(srk, disjuncts) if disjuncts else phi
@@ -1663,41 +1788,49 @@ class CSS:
         solver: Any
 
     @staticmethod
-    def make_ctx(srk: Any, formula: Any, skeleton: Any) -> 'CSS.Ctx':
+    def make_ctx(srk: Any, formula: Any, skeleton: Any) -> "CSS.Ctx":
         from .smt import mk_solver, Solver
         from .syntax import mk_not
+
         solver = mk_solver(srk)
         not_formula = mk_not(srk, formula)
         # Block current winning formula
         win = Skeleton.winning_formula(srk, skeleton, formula)
         Solver.add(solver, [mk_not(srk, win)])
-        return CSS.Ctx(srk=srk, formula=formula, not_formula=not_formula, skeleton=skeleton, solver=solver)
+        return CSS.Ctx(
+            srk=srk,
+            formula=formula,
+            not_formula=not_formula,
+            skeleton=skeleton,
+            solver=solver,
+        )
 
     @staticmethod
-    def add_path(ctx: 'CSS.Ctx', path: List[Any]) -> None:
+    def add_path(ctx: "CSS.Ctx", path: List[Any]) -> None:
         from .smt import Solver
         from .syntax import mk_not
+
         ctx.skeleton = Skeleton.add_path(ctx.srk, path, ctx.skeleton)
         win = Skeleton.winning_formula(ctx.srk, ctx.skeleton, ctx.formula)
         Solver.add(ctx.solver, [mk_not(ctx.srk, win)])
 
     @staticmethod
-    def get_counter_strategy(ctx: 'CSS.Ctx') -> Union[str, List[List[Any]]]:
+    def get_counter_strategy(ctx: "CSS.Ctx") -> Union[str, List[List[Any]]]:
         from .smt import Solver
         from .interpretation import select_implicant
         from .syntax import symbols, typ_symbol
         from .linear import const_linterm
 
         model = Solver.get_model(ctx.solver)
-        if model is None or model == 'Unsat':
-            return 'Unsat'
-        if model == 'Unknown':
-            return 'Unknown'
+        if model is None or model == "Unsat":
+            return "Unsat"
+        if model == "Unknown":
+            return "Unknown"
 
         # Get implicant from the model
         implicant = select_implicant(model, ctx.not_formula)
         if implicant is None:
-            return 'Unknown'
+            return "Unknown"
 
         # Build counter-strategy by traversing the skeleton and selecting moves
         def build_counter_path(skeleton, path_so_far):
@@ -1709,19 +1842,21 @@ class CSS:
                 # the model to determine what value to assign to the universal variable
                 try:
                     # Use the model's value for this universal variable
-                    if typ_symbol(ctx.srk, skeleton.symbol) == 'TyReal':
+                    if typ_symbol(ctx.srk, skeleton.symbol) == "TyReal":
                         val = model.real(skeleton.symbol)
                         move = Skeleton.MReal(const_linterm(val))
-                    elif typ_symbol(ctx.srk, skeleton.symbol) == 'TyInt':
+                    elif typ_symbol(ctx.srk, skeleton.symbol) == "TyInt":
                         val = int(model.real(skeleton.symbol))
                         move = Skeleton.MInt(IntVirtualTerm(const_linterm(val), 1, 0))
-                    elif typ_symbol(ctx.srk, skeleton.symbol) == 'TyBool':
+                    elif typ_symbol(ctx.srk, skeleton.symbol) == "TyBool":
                         val = model.bool(skeleton.symbol)
                         move = Skeleton.MBool(val)
                     else:
                         return []
 
-                    return build_counter_path(skeleton.subtree, path_so_far + [('Forall', skeleton.symbol)])
+                    return build_counter_path(
+                        skeleton.subtree, path_so_far + [("Forall", skeleton.symbol)]
+                    )
                 except Exception:
                     return []
             elif isinstance(skeleton, Skeleton.SExists):
@@ -1734,18 +1869,29 @@ class CSS:
                         if isinstance(move, Skeleton.MReal):
                             # Verify the move is consistent with the model
                             val = model.real(skeleton.symbol)
-                            if abs(val - move.term.get(0, 0)) < 1e-10:  # Rough equality check
-                                sub_paths = build_counter_path(subtree, path_so_far + [('Exists', (skeleton.symbol, move))])
+                            if (
+                                abs(val - move.term.get(0, 0)) < 1e-10
+                            ):  # Rough equality check
+                                sub_paths = build_counter_path(
+                                    subtree,
+                                    path_so_far + [("Exists", (skeleton.symbol, move))],
+                                )
                                 counter_paths.extend(sub_paths)
                         elif isinstance(move, Skeleton.MInt):
                             val = int(model.real(skeleton.symbol))
                             if val == move.vt.offset:  # Simplified check
-                                sub_paths = build_counter_path(subtree, path_so_far + [('Exists', (skeleton.symbol, move))])
+                                sub_paths = build_counter_path(
+                                    subtree,
+                                    path_so_far + [("Exists", (skeleton.symbol, move))],
+                                )
                                 counter_paths.extend(sub_paths)
                         elif isinstance(move, Skeleton.MBool):
                             val = model.bool(skeleton.symbol)
                             if val == move.value:
-                                sub_paths = build_counter_path(subtree, path_so_far + [('Exists', (skeleton.symbol, move))])
+                                sub_paths = build_counter_path(
+                                    subtree,
+                                    path_so_far + [("Exists", (skeleton.symbol, move))],
+                                )
                                 counter_paths.extend(sub_paths)
                     except Exception:
                         continue
@@ -1760,23 +1906,25 @@ class CSS:
         if counter_paths:
             return counter_paths
         else:
-            return 'Unknown'
+            return "Unknown"
 
 
 def simsat_core(srk: Any, qf_pre: List[Tuple[str, Any]], phi: Any) -> str:
     """Game-theoretic satisfiability core (simplified)."""
     from .smt import is_sat
+
     res = is_sat(srk, phi)
-    if res == 'Sat':
-        return 'Sat'
-    if res == 'Unsat':
-        return 'Unsat'
-    return 'Unknown'
+    if res == "Sat":
+        return "Sat"
+    if res == "Unsat":
+        return "Unsat"
+    return "Unknown"
 
 
 def simsat_forward(srk: Any, phi: Any) -> str:
     """Forward version of simsat (simplified)."""
     from .smt import is_sat
+
     return is_sat(srk, phi)
 
 
@@ -1796,7 +1944,17 @@ def maximize_feasible(srk: Any, phi: Any, t: Any) -> Any:
     Returns:
         'MinusInfinity', 'Infinity', 'Bounded' with value, or 'Unknown'
     """
-    from .syntax import symbols, mk_symbol, mk_leq, mk_sub, mk_real, mk_and, mk_not, normalize, mk_const
+    from .syntax import (
+        symbols,
+        mk_symbol,
+        mk_leq,
+        mk_sub,
+        mk_real,
+        mk_and,
+        mk_not,
+        normalize,
+        mk_const,
+    )
     from .smt import is_sat
     from .srkZ3 import optimize_box, Z3Result
     from .interval import Interval
@@ -1811,24 +1969,29 @@ def maximize_feasible(srk: Any, phi: Any, t: Any) -> Any:
     qf_pre, phi_norm = normalize(srk, phi)
 
     # Add existential quantifiers for all constants
-    qf_pre = [('Exists', k) for k in all_constants] + qf_pre
+    qf_pre = [("Exists", k) for k in all_constants] + qf_pre
 
     # First check if the objective is unbounded
     # This is done by checking satisfiability of:
     # forall i. exists ks. phi /\ t >= i
-    objective = mk_symbol(srk, name="objective", typ='TyReal')
-    qf_pre_unbounded = [('Forall', objective)] + qf_pre
-    phi_unbounded = mk_and(srk, [
-        phi_norm,
-        mk_leq(srk, mk_sub(srk, mk_const(srk, objective), t), mk_real(srk, QQ.zero()))
-    ])
+    objective = mk_symbol(srk, name="objective", typ="TyReal")
+    qf_pre_unbounded = [("Forall", objective)] + qf_pre
+    phi_unbounded = mk_and(
+        srk,
+        [
+            phi_norm,
+            mk_leq(
+                srk, mk_sub(srk, mk_const(srk, objective), t), mk_real(srk, QQ.zero())
+            ),
+        ],
+    )
 
     # Check if unbounded
     unbounded_result = simsat_core(srk, qf_pre_unbounded, phi_unbounded)
-    if unbounded_result == 'Unsat':
-        return 'MinusInfinity'  # phi is unsatisfiable
-    elif unbounded_result == 'Unknown':
-        return 'Unknown'
+    if unbounded_result == "Unsat":
+        return "MinusInfinity"  # phi is unsatisfiable
+    elif unbounded_result == "Unknown":
+        return "Unknown"
 
     # If we get here, phi is satisfiable, so check if objective is bounded
     # Use box optimization to find bounds
@@ -1836,32 +1999,32 @@ def maximize_feasible(srk: Any, phi: Any, t: Any) -> Any:
         result, intervals = optimize_box(srk, phi_norm, [t])
 
         if result == Z3Result.UNSAT:
-            return 'MinusInfinity'
+            return "MinusInfinity"
         elif result == Z3Result.UNKNOWN:
-            return 'Unknown'
+            return "Unknown"
         elif result == Z3Result.SAT and intervals:
             # Get the upper bound of the objective
             lower_bound, upper_bound = intervals[0]
 
             if upper_bound is None:
-                return 'Infinity'
+                return "Infinity"
             else:
                 # Convert Z3 value to QQ
-                if hasattr(upper_bound, 'as_fraction'):
+                if hasattr(upper_bound, "as_fraction"):
                     upper_qq = QQ.of_string(str(upper_bound.as_fraction()))
                 else:
                     upper_qq = QQ.of_string(str(upper_bound))
 
-                return ('Bounded', upper_qq)
+                return ("Bounded", upper_qq)
         else:
-            return 'Unknown'
+            return "Unknown"
 
     except Exception as e:
         # If optimization fails, fall back to simple satisfiability check
-        if is_sat(srk, phi_norm) == 'Sat':
-            return 'Infinity'  # Conservative: assume unbounded if we can't optimize
+        if is_sat(srk, phi_norm) == "Sat":
+            return "Infinity"  # Conservative: assume unbounded if we can't optimize
         else:
-            return 'MinusInfinity'
+            return "MinusInfinity"
 
 
 def maximize(srk: Any, phi: Any, t: Any) -> Any:
@@ -1884,31 +2047,35 @@ def maximize(srk: Any, phi: Any, t: Any) -> Any:
     # First check if phi is satisfiable
     sat_result = simsat(srk, phi)
 
-    if sat_result == 'Unsat':
-        return 'MinusInfinity'
-    elif sat_result == 'Unknown':
-        return 'Unknown'
+    if sat_result == "Unsat":
+        return "MinusInfinity"
+    elif sat_result == "Unknown":
+        return "Unknown"
     else:  # sat_result == 'Sat'
         return maximize_feasible(srk, phi, t)
 
 
 def extract_strategy(srk: Any, skeleton: Any, phi: Any) -> Any:
     """Extract a strategy (not implemented, returns empty strategy)."""
-    return {'strategy': []}
+    return {"strategy": []}
 
 
 def winning_strategy(srk: Any, qf_pre: List[Tuple[str, Any]], phi: Any) -> Any:
     res = simsat_core(srk, qf_pre, phi)
-    if res == 'Sat':
-        return ('Sat', extract_strategy(srk, Skeleton.empty(), phi))
-    if res == 'Unsat':
+    if res == "Sat":
+        return ("Sat", extract_strategy(srk, Skeleton.empty(), phi))
+    if res == "Unsat":
         from .syntax import mk_not
-        return ('Unsat', extract_strategy(srk, Skeleton.empty(), mk_not(srk, phi)))
-    return 'Unknown'
+
+        return ("Unsat", extract_strategy(srk, Skeleton.empty(), mk_not(srk, phi)))
+    return "Unknown"
 
 
-def check_strategy(srk: Any, qf_pre: List[Tuple[str, Any]], phi: Any, strategy: Any) -> bool:
+def check_strategy(
+    srk: Any, qf_pre: List[Tuple[str, Any]], phi: Any, strategy: Any
+) -> bool:
     from .smt import is_sat
     from .syntax import mk_not, mk_and
+
     # Best-effort: check phi is valid under strategy by SMT
-    return is_sat(srk, mk_and(srk, [phi, mk_not(srk, phi)])) == 'Unsat'
+    return is_sat(srk, mk_and(srk, [phi, mk_not(srk, phi)])) == "Unsat"

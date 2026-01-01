@@ -22,20 +22,20 @@ from pysmt.walkers import IdentityDagWalker
 from six.moves import cStringIO
 import sympy
 
-default_interpreted_constants = {'PI': sympy.pi, 'E': sympy.exp(1)}
+default_interpreted_constants = {"PI": sympy.pi, "E": sympy.exp(1)}
 
 # Additional sympy functions can be added similarly:
 # https://docs.sympy.org/latest/modules/functions/index.html
 default_interpreted_unary_functions = {
-    'sin': sympy.sin,
-    'cos': sympy.cos,
-    'tan': sympy.tan,
-    'asin': sympy.asin,
-    'acos': sympy.acos,
-    'atan': sympy.atan,
-    'log': sympy.log,
-    'exp': sympy.exp,
-    'sqrt': sympy.sqrt,
+    "sin": sympy.sin,
+    "cos": sympy.cos,
+    "tan": sympy.tan,
+    "asin": sympy.asin,
+    "acos": sympy.acos,
+    "atan": sympy.atan,
+    "log": sympy.log,
+    "exp": sympy.exp,
+    "sqrt": sympy.sqrt,
 }
 
 
@@ -56,8 +56,12 @@ def _make_walk_binary(func):
 
 class SMTToSympyWalker(IdentityDagWalker):
 
-    def __init__(self, environment, interpreted_constants: Dict[str, Callable],
-                 interpreted_unary_functions: Dict[str, Callable]):
+    def __init__(
+        self,
+        environment,
+        interpreted_constants: Dict[str, Callable],
+        interpreted_unary_functions: Dict[str, Callable],
+    ):
         DagWalker.__init__(self, environment)
         self.mgr = environment.formula_manager
         self._get_type = environment.stc.get_type
@@ -75,14 +79,17 @@ class SMTToSympyWalker(IdentityDagWalker):
         symbol_type = formula.symbol_type()
         symbol_name = formula.symbol_name()
         if symbol_type == REAL:
-            return self._interpreted_constants.get(symbol_name,
-                                                   sympy.Symbol(symbol_name, real=True))
+            return self._interpreted_constants.get(
+                symbol_name, sympy.Symbol(symbol_name, real=True)
+            )
         if symbol_type == INT:
-            return self._interpreted_constants.get(symbol_name,
-                                                   sympy.Symbol(symbol_name, integer=True))
-        assert (symbol_type != REAL and
-                symbol_type != INT), (f'Only real and integer variables are allowed: '
-                                      f'{symbol_name} has type {symbol_type}')
+            return self._interpreted_constants.get(
+                symbol_name, sympy.Symbol(symbol_name, integer=True)
+            )
+        assert symbol_type != REAL and symbol_type != INT, (
+            f"Only real and integer variables are allowed: "
+            f"{symbol_name} has type {symbol_type}"
+        )
 
     def walk_ite(self, formula, args, **kwargs):
         # ITE(condition, A, B)
@@ -118,19 +125,27 @@ class SMTToSympyWalker(IdentityDagWalker):
         raise NotImplementedError()
 
     walk_and = _make_walk_nary(
-        lambda args: functools.reduce(lambda x, y: x & y, args, True))
+        lambda args: functools.reduce(lambda x, y: x & y, args, True)
+    )
     walk_or = _make_walk_nary(
-        lambda args: functools.reduce(lambda x, y: x | y, args, False))
+        lambda args: functools.reduce(lambda x, y: x | y, args, False)
+    )
     walk_not = lambda args: sympy.Not(args[0])
 
     walk_plus = _make_walk_nary(
-        lambda args: functools.reduce(lambda x, y: x + y, args, 0))
-    walk_times = _make_walk_nary(lambda args: functools.reduce(lambda x, y: x * y, args))
-    walk_minus = _make_walk_nary(lambda args: functools.reduce(lambda x, y: x - y, args))
+        lambda args: functools.reduce(lambda x, y: x + y, args, 0)
+    )
+    walk_times = _make_walk_nary(
+        lambda args: functools.reduce(lambda x, y: x * y, args)
+    )
+    walk_minus = _make_walk_nary(
+        lambda args: functools.reduce(lambda x, y: x - y, args)
+    )
 
     walk_implies = _make_walk_binary(lambda args: sympy.Implies(args[0], args[1]))
     walk_iff = _make_walk_binary(
-        lambda args: (sympy.Implies(args[0], args[1]) & sympy.Implies(args[1], args[0])))
+        lambda args: (sympy.Implies(args[0], args[1]) & sympy.Implies(args[1], args[0]))
+    )
     walk_pow = _make_walk_binary(lambda args: args[0] ** args[1])
     walk_div = _make_walk_binary(lambda args: args[0] / args[1])
 
@@ -143,10 +158,12 @@ class SMTToSympyWalker(IdentityDagWalker):
 
 
 def smtlib_to_sympy_constraint(
-        smtlib_input: str,
-        interpreted_constants: Dict[str, Callable] = default_interpreted_constants,
-        interpreted_unary_functions: Dict[str,
-        Callable] = default_interpreted_unary_functions):
+    smtlib_input: str,
+    interpreted_constants: Dict[str, Callable] = default_interpreted_constants,
+    interpreted_unary_functions: Dict[
+        str, Callable
+    ] = default_interpreted_unary_functions,
+):
     """Convert SMTLIB(v2) constraints into sympy constraints analyzable via SYMPAIS.
     This function is experimental and introduced as an example.
     It is implemented on top of PySMT (https://github.com/pysmt/pysmt).
@@ -163,34 +180,39 @@ def smtlib_to_sympy_constraint(
       A dict of the estimates found by the DMC sampler.
     """
 
-    interpreted_symbols_declarations = '\n'.join(
-        [f'(declare-const {cname} Real)' for cname in interpreted_constants.keys()])
-    interpreted_symbols_declarations += '\n'.join([
-        f'(declare-fun {fname} (Real) Real)'
-        for fname in interpreted_unary_functions.keys()
-    ])
+    interpreted_symbols_declarations = "\n".join(
+        [f"(declare-const {cname} Real)" for cname in interpreted_constants.keys()]
+    )
+    interpreted_symbols_declarations += "\n".join(
+        [
+            f"(declare-fun {fname} (Real) Real)"
+            for fname in interpreted_unary_functions.keys()
+        ]
+    )
 
     smtlib_with_interpreted_symbols = (
-            interpreted_symbols_declarations + '\n' + smtlib_input)
+        interpreted_symbols_declarations + "\n" + smtlib_input
+    )
 
     reset_env()
     parser = SmtLibParser()
     script = parser.get_script(cStringIO(smtlib_with_interpreted_symbols))
     f = script.get_last_formula()
-    converter = SMTToSympyWalker(get_env(), interpreted_constants,
-                                 interpreted_unary_functions)
+    converter = SMTToSympyWalker(
+        get_env(), interpreted_constants, interpreted_unary_functions
+    )
     f_sympy = converter.walk(f)
     f_sympy = sympy.logic.simplify_logic(f_sympy)
     f_sympy = sympy.simplify(f_sympy)
     if f_sympy.atoms(sympy.logic.Or):
         warnings.warn(
-            'Disjunctive constraints are not supported by RealPaver. Consider replacing it with an adequate interval constraint propagation tool for benefit from all the features of SYMPAIS'
+            "Disjunctive constraints are not supported by RealPaver. Consider replacing it with an adequate interval constraint propagation tool for benefit from all the features of SYMPAIS"
         )
     return f_sympy
 
 
 def test_example_smt_transformation():
-    smt01 = '''
+    smt01 = """
     (declare-fun x () Real)
     (declare-fun y () Real)
     (declare-const PI Real)
@@ -206,14 +228,15 @@ def test_example_smt_transformation():
     (assert
         (> x 20)
     )
-    '''
-    x = sympy.Symbol('x')
-    y = sympy.Symbol('y')
+    """
+    x = sympy.Symbol("x")
+    y = sympy.Symbol("y")
     expected_result = (y * sympy.sqrt(y) + sympy.sin(x) <= 1) & (x > 20)
     print(expected_result)
-    assert sympy.logic.boolalg.Equivalent(expected_result,
-                                          smtlib_to_sympy_constraint(smt01))
+    assert sympy.logic.boolalg.Equivalent(
+        expected_result, smtlib_to_sympy_constraint(smt01)
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_example_smt_transformation()

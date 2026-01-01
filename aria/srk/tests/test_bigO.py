@@ -4,9 +4,7 @@ Tests for the asymptotic complexity analysis module.
 
 import unittest
 from fractions import Fraction
-from aria.srk.bigO import (
-    ComplexityClass, BigO, compare, mul, add, minimum, maximum
-)
+from aria.srk.bigO import ComplexityClass, BigO, compare, mul, add, minimum, maximum
 
 
 class TestComplexityClass(unittest.TestCase):
@@ -104,7 +102,7 @@ class TestCompare(unittest.TestCase):
 
         self.assertEqual(compare(poly1, poly2), "leq")  # n^1 <= n^2
         self.assertEqual(compare(poly2, poly1), "geq")  # n^2 >= n^1
-        self.assertEqual(compare(poly1, poly3), "eq")   # n^1 == n^1
+        self.assertEqual(compare(poly1, poly3), "eq")  # n^1 == n^1
 
     def test_log_comparison(self):
         """Test logarithmic comparisons."""
@@ -112,19 +110,19 @@ class TestCompare(unittest.TestCase):
         poly = BigO.polynomial(1)
         exp = BigO.exp(Fraction(2))
 
-        self.assertEqual(compare(log, log), "eq")       # log(n) == log(n)
-        self.assertEqual(compare(log, poly), "leq")     # log(n) <= n
-        self.assertEqual(compare(poly, log), "geq")     # n >= log(n)
-        self.assertEqual(compare(log, exp), "leq")      # log(n) <= 2^n
-        self.assertEqual(compare(exp, log), "geq")      # 2^n >= log(n)
+        self.assertEqual(compare(log, log), "eq")  # log(n) == log(n)
+        self.assertEqual(compare(log, poly), "leq")  # log(n) <= n
+        self.assertEqual(compare(poly, log), "geq")  # n >= log(n)
+        self.assertEqual(compare(log, exp), "leq")  # log(n) <= 2^n
+        self.assertEqual(compare(exp, log), "geq")  # 2^n >= log(n)
 
     def test_exponential_comparison(self):
         """Test exponential base comparison."""
         exp1 = BigO.exp(Fraction(2))
         exp2 = BigO.exp(Fraction(3))
 
-        self.assertEqual(compare(exp1, exp2), "leq")   # 2^n <= 3^n
-        self.assertEqual(compare(exp2, exp1), "geq")   # 3^n >= 2^n
+        self.assertEqual(compare(exp1, exp2), "leq")  # 2^n <= 3^n
+        self.assertEqual(compare(exp2, exp1), "geq")  # 3^n >= 2^n
 
     def test_unknown_cases(self):
         """Test comparisons involving unknowns."""
@@ -140,8 +138,8 @@ class TestCompare(unittest.TestCase):
         poly = BigO.polynomial(100)
         exp = BigO.exp(Fraction(2))
 
-        self.assertEqual(compare(poly, exp), "leq")    # n^100 <= 2^n
-        self.assertEqual(compare(exp, poly), "geq")    # 2^n >= n^100
+        self.assertEqual(compare(poly, exp), "leq")  # n^100 <= 2^n
+        self.assertEqual(compare(exp, poly), "geq")  # 2^n >= n^100
 
 
 class TestMul(unittest.TestCase):
@@ -328,5 +326,5 @@ class TestEdgeCases(unittest.TestCase):
         self.assertEqual(result, poly)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

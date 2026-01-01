@@ -13,7 +13,35 @@ import logging
 from enum import Enum
 
 # Import from other SRK modules
-from aria.srk.syntax import Context, Symbol, Expression, FormulaExpression, ArithExpression, Type, mk_const, mk_symbol, mk_real, mk_add, mk_mul, mk_div, mk_mod, mk_eq, mk_and, mk_or, mk_leq, mk_lt, mk_ite, mk_not, mk_true, mk_false, mk_if, destruct, expr_typ, symbols, substitute_const
+from aria.srk.syntax import (
+    Context,
+    Symbol,
+    Expression,
+    FormulaExpression,
+    ArithExpression,
+    Type,
+    mk_const,
+    mk_symbol,
+    mk_real,
+    mk_add,
+    mk_mul,
+    mk_div,
+    mk_mod,
+    mk_eq,
+    mk_and,
+    mk_or,
+    mk_leq,
+    mk_lt,
+    mk_ite,
+    mk_not,
+    mk_true,
+    mk_false,
+    mk_if,
+    destruct,
+    expr_typ,
+    symbols,
+    substitute_const,
+)
 from .polynomial import Monomial, QQX
 from .linear import QQVector, QQMatrix, QQ
 from .interval import Interval
@@ -41,7 +69,7 @@ class UPXs:
     """Ultimately periodic polynomials over multiple variables."""
 
     # Dictionary mapping monomials to UP coefficients
-    _terms: Dict[Monomial, 'UP'] = field(default_factory=dict)
+    _terms: Dict[Monomial, "UP"] = field(default_factory=dict)
 
     def __post_init__(self):
         # Remove zero coefficients
@@ -53,7 +81,7 @@ class UPXs:
         return UPXs()
 
     @staticmethod
-    def scalar(coeff: UP) -> 'UPXs':
+    def scalar(coeff: UP) -> "UPXs":
         """Create scalar UPXs polynomial."""
         if coeff == UP.zero():
             return UPXs.zero()
@@ -63,7 +91,7 @@ class UPXs:
         return upxs
 
     @staticmethod
-    def add_term(coeff: UP, monomial: Monomial) -> 'UPXs':
+    def add_term(coeff: UP, monomial: Monomial) -> "UPXs":
         """Add a term to UPXs polynomial."""
         upxs = UPXs()
         if coeff != UP.zero():
@@ -83,7 +111,7 @@ class UPXs:
             result = QQX.add_term(coeff_at_k, monomial, result)
         return result
 
-    def map_coeff(self, f: Callable[[Monomial, UP], UP]) -> 'UPXs':
+    def map_coeff(self, f: Callable[[Monomial, UP], UP]) -> "UPXs":
         """Map coefficients of UPXs polynomial."""
         new_terms = {}
         for monomial, coeff in self._terms.items():
@@ -94,7 +122,7 @@ class UPXs:
         result._terms = new_terms
         return result
 
-    def flatten(self, period: List['UPXs']) -> 'UPXs':
+    def flatten(self, period: List["UPXs"]) -> "UPXs":
         """Flatten UPXs polynomials."""
         # Get all monomials from all polynomials in the period
         all_monomials = set()
@@ -125,16 +153,19 @@ class UPXs:
             substituted = QQX.zero()
             for coeff, var in monomial.enum():
                 if var in subst:
-                    substituted = QQX.add(substituted,
-                                         QQX.scalar_mul(coeff, subst[var]))
+                    substituted = QQX.add(
+                        substituted, QQX.scalar_mul(coeff, subst[var])
+                    )
                 else:
-                    substituted = QQX.add_term(coeff, Monomial.singleton(var, 1), substituted)
+                    substituted = QQX.add_term(
+                        coeff, Monomial.singleton(var, 1), substituted
+                    )
 
             # For now, assume constant UP coefficients (simplified)
             result = QQX.add(result, QQX.scalar_mul(up_coeff.evaluate(0), substituted))
         return result
 
-    def add(self, other: 'UPXs') -> 'UPXs':
+    def add(self, other: "UPXs") -> "UPXs":
         """Add two UPXs polynomials."""
         new_terms = self._terms.copy()
         for monomial, coeff in other._terms.items():
@@ -148,17 +179,19 @@ class UPXs:
         result._terms = new_terms
         return result
 
-    def mul(self, other: 'UPXs') -> 'UPXs':
+    def mul(self, other: "UPXs") -> "UPXs":
         """Multiply two UPXs polynomials."""
         result = UPXs()
         for m1, c1 in self._terms.items():
             for m2, c2 in other._terms.items():
                 new_monomial = m1 * m2  # Use * operator for monomial multiplication
                 new_coeff = c1 * c2  # Use * operator for UP multiplication
-                result = UPXs.add(result, UPXs.add_term(new_coeff, new_monomial, UPXs()))
+                result = UPXs.add(
+                    result, UPXs.add_term(new_coeff, new_monomial, UPXs())
+                )
         return result
 
-    def exp(self, n: int) -> 'UPXs':
+    def exp(self, n: int) -> "UPXs":
         """Raise UPXs to a power."""
         if n == 0:
             upxs = UPXs()
@@ -176,12 +209,15 @@ class UPXs:
 @dataclass
 class Block:
     """A block in a solvable polynomial map."""
+
     blk_transform: List[List[Fraction]]  # Transformation matrix
     blk_add: List[QQX]  # Additive terms
 
     def __post_init__(self):
         # Convert to arrays for consistency
-        self.blk_transform = [row[:] for row in self.blk_transform] if self.blk_transform else []
+        self.blk_transform = (
+            [row[:] for row in self.blk_transform] if self.blk_transform else []
+        )
         self.blk_add = list(self.blk_add) if self.blk_add else []
 
 
@@ -227,7 +263,7 @@ def matrix_polyvec_mul(m: List[List[Fraction]], polyvec: List[QQX]) -> List[QQX]
     return result
 
 
-def vec_upxsvec_dot(vec1: List[Fraction], vec2: List['UPXs']) -> 'UPXs':
+def vec_upxsvec_dot(vec1: List[Fraction], vec2: List["UPXs"]) -> "UPXs":
     """Dot product of vector and UPXs vector."""
     if len(vec1) != len(vec2):
         raise ValueError("Vector length mismatch")
@@ -255,7 +291,9 @@ def vec_qqxsvec_dot(vec1: List[Fraction], vec2: List[QQX]) -> QQX:
     return result
 
 
-def matrix_polyvec_mul_improved(m: List[List[Fraction]], polyvec: List[QQX]) -> List[QQX]:
+def matrix_polyvec_mul_improved(
+    m: List[List[Fraction]], polyvec: List[QQX]
+) -> List[QQX]:
     """Matrix-polynomial vector multiplication."""
     if not m or not polyvec:
         return []
@@ -272,10 +310,14 @@ def matrix_polyvec_mul_improved(m: List[List[Fraction]], polyvec: List[QQX]) -> 
     return result
 
 
-def term_of_ocrs(srk: Context, loop_counter: ArithExpression,
-                 pre_term_of_id: Callable[[str], ArithExpression],
-                 post_term_of_id: Callable[[str], ArithExpression]) -> Callable:
+def term_of_ocrs(
+    srk: Context,
+    loop_counter: ArithExpression,
+    pre_term_of_id: Callable[[str], ArithExpression],
+    post_term_of_id: Callable[[str], ArithExpression],
+) -> Callable:
     """Convert OCRS terms to SRK terms."""
+
     # This would need the OCRS module implementation
     # For now, return a placeholder
     def convert_term(ocrs_term) -> ArithExpression:
@@ -287,10 +329,11 @@ def term_of_ocrs(srk: Context, loop_counter: ArithExpression,
 
 class MonomialSet:
     """Set of monomials."""
+
     def __init__(self, monomials: Optional[Set[Monomial]] = None):
         self._set = monomials if monomials is not None else set()
 
-    def add(self, m: Monomial) -> 'MonomialSet':
+    def add(self, m: Monomial) -> "MonomialSet":
         """Add a monomial to the set."""
         new_set = MonomialSet(self._set.copy())
         new_set._set.add(m)
@@ -304,30 +347,31 @@ class MonomialSet:
         """Get all elements in the set."""
         return list(self._set)
 
-    def union(self, other: 'MonomialSet') -> 'MonomialSet':
+    def union(self, other: "MonomialSet") -> "MonomialSet":
         """Union with another monomial set."""
         new_set = MonomialSet(self._set.copy())
         new_set._set.update(other._set)
         return new_set
 
-    def difference(self, other: 'MonomialSet') -> 'MonomialSet':
+    def difference(self, other: "MonomialSet") -> "MonomialSet":
         """Difference with another monomial set."""
         new_set = MonomialSet(self._set.copy())
         new_set._set -= other._set
         return new_set
 
     @staticmethod
-    def empty() -> 'MonomialSet':
+    def empty() -> "MonomialSet":
         """Create empty monomial set."""
         return MonomialSet()
 
 
 class MonomialMap:
     """Map from monomials to values."""
+
     def __init__(self, mapping: Optional[Dict[Monomial, Any]] = None):
         self._map = mapping if mapping is not None else {}
 
-    def add(self, m: Monomial, v: Any) -> 'MonomialMap':
+    def add(self, m: Monomial, v: Any) -> "MonomialMap":
         """Add a mapping."""
         new_map = MonomialMap(self._map.copy())
         new_map._map[m] = v
@@ -354,18 +398,21 @@ class MonomialMap:
         return list(self._map.items())
 
     @staticmethod
-    def empty() -> 'MonomialMap':
+    def empty() -> "MonomialMap":
         """Create empty monomial map."""
         return MonomialMap()
 
 
 def monomial_closure(pm: PolynomialMap, monomials: MonomialSet) -> MonomialSet:
     """Compute monomial closure for a polynomial map."""
+
     def rhs(m: Monomial) -> QQX:
         # Substitute variables in polynomial using polynomial map
         # Create a polynomial with just this monomial and substitute
         poly_with_m = QQX.add_term(Fraction(1), m, QQX.zero())
-        return QQX.substitute(lambda i: pm[i] if i < len(pm) else QQX.zero(), poly_with_m)
+        return QQX.substitute(
+            lambda i: pm[i] if i < len(pm) else QQX.zero(), poly_with_m
+        )
 
     def fix(worklist: List[Monomial], monomials: MonomialSet) -> MonomialSet:
         if not worklist:
@@ -379,7 +426,7 @@ def monomial_closure(pm: PolynomialMap, monomials: MonomialSet) -> MonomialSet:
         new_worklist = []
         new_monomials = monomials
 
-        for (_, m) in QQX.enum(rhs_w):
+        for _, m in QQX.enum(rhs_w):
             if not monomials.mem(m):
                 new_worklist.append(m)
                 new_monomials = new_monomials.add(m)
@@ -389,7 +436,9 @@ def monomial_closure(pm: PolynomialMap, monomials: MonomialSet) -> MonomialSet:
     return fix(monomials.elements(), monomials)
 
 
-def dlts_of_solvable_algebraic(pm: PolynomialMap, ideal: List[QQX]) -> Tuple[PLM, List[Monomial]]:
+def dlts_of_solvable_algebraic(
+    pm: PolynomialMap, ideal: List[QQX]
+) -> Tuple[PLM, List[Monomial]]:
     """Create DLTS from solvable algebraic system."""
     # This would need proper implementation with the existing modules
     # For now, return a placeholder - full implementation would involve:
@@ -408,6 +457,7 @@ def dlts_of_solvable_algebraic(pm: PolynomialMap, ideal: List[QQX]) -> Tuple[PLM
 
 def pp_dim(formatter, i: int) -> None:
     """Pretty print dimension index."""
+
     def to_string(i: int) -> str:
         if i < 26:
             return chr(97 + i)  # 'a' + i
@@ -466,11 +516,11 @@ def closure_ocrs(sp: SolvablePolynomial) -> List[Any]:
     return cf
 
 
-def closure_periodic_rational(sp: SolvablePolynomial) -> List['UPXs']:
+def closure_periodic_rational(sp: SolvablePolynomial) -> List["UPXs"]:
     """Compute closed-form with periodic rational eigenvalues."""
     cf = [UPXs.zero() for _ in range(dimension(sp))]
 
-    def substitute_closed_forms(p: QQX) -> 'UPXs':
+    def substitute_closed_forms(p: QQX) -> "UPXs":
         """Substitute closed forms in for a polynomial"""
         result = UPXs.zero()
 
@@ -520,7 +570,9 @@ def closure_periodic_rational(sp: SolvablePolynomial) -> List['UPXs']:
     return cf
 
 
-def standard_basis_prsd(mA: List[List[Fraction]], size: int) -> List[Tuple[int, Fraction, List[Fraction]]]:
+def standard_basis_prsd(
+    mA: List[List[Fraction]], size: int
+) -> List[Tuple[int, Fraction, List[Fraction]]]:
     """Compute periodic rational spectral decomposition for standard basis."""
     # This would need proper linear algebra implementation
     # For now, return placeholder - full implementation would:
@@ -541,6 +593,7 @@ def standard_basis_prsd(mA: List[List[Fraction]], size: int) -> List[Tuple[int, 
 @dataclass
 class IterationDomain:
     """Iteration domain abstraction."""
+
     term_of_id: List[ArithExpression]
     nb_constants: int
     block_eq: List[Block]
@@ -557,13 +610,20 @@ def nb_equations(iter_dom: IterationDomain) -> int:
     return sum(block_size(block) for block in iter_dom.block_eq)
 
 
-def pp(srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]], formatter, iter_dom: IterationDomain) -> None:
+def pp(
+    srk: Context,
+    tr_symbols: List[Tuple[Symbol, Symbol]],
+    formatter,
+    iter_dom: IterationDomain,
+) -> None:
     """Pretty print iteration domain."""
     # This would need proper pretty printing implementation
     formatter.write(f"IterationDomain({len(iter_dom.term_of_id)} terms)")
 
 
-def extract_constant_symbols(srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]], wedge: Wedge) -> BatDynArray:
+def extract_constant_symbols(
+    srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]], wedge: Wedge
+) -> BatDynArray:
     """Extract constant symbols from wedge."""
     cs = wedge.coordinate_system
     pre_symbols = TransitionFormula.pre_symbols(tr_symbols)
@@ -592,9 +652,12 @@ def extract_constant_symbols(srk: Context, tr_symbols: List[Tuple[Symbol, Symbol
     return term_of_id
 
 
-def extract_solvable_polynomial_eq(srk: Context, wedge: Wedge,
-                                   tr_symbols: List[Tuple[Symbol, Symbol]],
-                                   term_of_id: BatDynArray) -> List[Block]:
+def extract_solvable_polynomial_eq(
+    srk: Context,
+    wedge: Wedge,
+    tr_symbols: List[Tuple[Symbol, Symbol]],
+    term_of_id: BatDynArray,
+) -> List[Block]:
     """Extract solvable polynomial equations."""
     # Simplified implementation - in practice this would involve:
     # 1. Extracting the affine hull of the wedge
@@ -612,9 +675,10 @@ def extract_solvable_polynomial_eq(srk: Context, wedge: Wedge,
             s_prime_coord = cs.cs_term_id(cs, mk_const(srk, s_prime))
 
             # Create identity transformation and zero additive term
-            transform = [[Fraction(1) if i == j else Fraction(0)
-                         for j in range(1)]
-                        for i in range(1)]
+            transform = [
+                [Fraction(1) if i == j else Fraction(0) for j in range(1)]
+                for i in range(1)
+            ]
             add_terms = [QQX.zero()]
 
             block = Block(blk_transform=transform, blk_add=add_terms)
@@ -626,9 +690,12 @@ def extract_solvable_polynomial_eq(srk: Context, wedge: Wedge,
     return blocks
 
 
-def extract_periodic_rational_matrix_eq(srk: Context, wedge: Wedge,
-                                        tr_symbols: List[Tuple[Symbol, Symbol]],
-                                        term_of_id: BatDynArray) -> List[Block]:
+def extract_periodic_rational_matrix_eq(
+    srk: Context,
+    wedge: Wedge,
+    tr_symbols: List[Tuple[Symbol, Symbol]],
+    term_of_id: BatDynArray,
+) -> List[Block]:
     """Extract periodic rational matrix equations."""
     # Simplified implementation - similar to solvable polynomial but with
     # periodic rational spectrum reflection
@@ -653,9 +720,13 @@ def extract_periodic_rational_matrix_eq(srk: Context, wedge: Wedge,
     return blocks
 
 
-def extract_vector_leq(srk: Context, wedge: Wedge,
-                       tr_symbols: List[Tuple[Symbol, Symbol]],
-                       term_of_id: BatDynArray, base: Fraction) -> List[Block]:
+def extract_vector_leq(
+    srk: Context,
+    wedge: Wedge,
+    tr_symbols: List[Tuple[Symbol, Symbol]],
+    term_of_id: BatDynArray,
+    base: Fraction,
+) -> List[Block]:
     """Extract vector inequalities."""
     # Simplified implementation - extract inequalities of the form t' <= base*t + p
 
@@ -679,8 +750,9 @@ def extract_vector_leq(srk: Context, wedge: Wedge,
     return blocks
 
 
-def abstract_wedge_solvable_polynomial(srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]],
-                                       wedge: Wedge) -> IterationDomain:
+def abstract_wedge_solvable_polynomial(
+    srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]], wedge: Wedge
+) -> IterationDomain:
     """Abstract wedge as solvable polynomial."""
     term_of_id = extract_constant_symbols(srk, tr_symbols, wedge)
     nb_constants = len(term_of_id)
@@ -691,19 +763,22 @@ def abstract_wedge_solvable_polynomial(srk: Context, tr_symbols: List[Tuple[Symb
         term_of_id=list(term_of_id),
         nb_constants=nb_constants,
         block_eq=block_eq,
-        block_leq=block_leq
+        block_leq=block_leq,
     )
 
 
-def abstract_solvable_polynomial(srk: Context, tf: TransitionFormula) -> IterationDomain:
+def abstract_solvable_polynomial(
+    srk: Context, tf: TransitionFormula
+) -> IterationDomain:
     """Abstract transition formula as solvable polynomial."""
     tr_symbols = tf.symbols
     wedge = tf.wedge_hull(srk)
     return abstract_wedge_solvable_polynomial(srk, tr_symbols, wedge)
 
 
-def abstract_wedge_solvable_polynomial_periodic_rational(srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]],
-                                                        wedge: Wedge) -> IterationDomain:
+def abstract_wedge_solvable_polynomial_periodic_rational(
+    srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]], wedge: Wedge
+) -> IterationDomain:
     """Abstract wedge as periodic rational solvable polynomial."""
     term_of_id = extract_constant_symbols(srk, tr_symbols, wedge)
     nb_constants = len(term_of_id)
@@ -714,47 +789,66 @@ def abstract_wedge_solvable_polynomial_periodic_rational(srk: Context, tr_symbol
         term_of_id=list(term_of_id),
         nb_constants=nb_constants,
         block_eq=block_eq,
-        block_leq=block_leq
+        block_leq=block_leq,
     )
 
 
-def abstract_solvable_polynomial_periodic_rational(srk: Context, tf: TransitionFormula) -> IterationDomain:
+def abstract_solvable_polynomial_periodic_rational(
+    srk: Context, tf: TransitionFormula
+) -> IterationDomain:
     """Abstract transition formula as periodic rational solvable polynomial."""
     tr_symbols = tf.symbols
     wedge = tf.wedge_hull(srk)
     return abstract_wedge_solvable_polynomial_periodic_rational(srk, tr_symbols, wedge)
 
 
-def join_solvable_polynomial(srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]],
-                             iter1: IterationDomain, iter2: IterationDomain) -> IterationDomain:
+def join_solvable_polynomial(
+    srk: Context,
+    tr_symbols: List[Tuple[Symbol, Symbol]],
+    iter1: IterationDomain,
+    iter2: IterationDomain,
+) -> IterationDomain:
     """Join two solvable polynomial abstractions."""
     # This would need proper join implementation
     return iter1
 
 
-def widen_solvable_polynomial(srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]],
-                              iter1: IterationDomain, iter2: IterationDomain) -> IterationDomain:
+def widen_solvable_polynomial(
+    srk: Context,
+    tr_symbols: List[Tuple[Symbol, Symbol]],
+    iter1: IterationDomain,
+    iter2: IterationDomain,
+) -> IterationDomain:
     """Widen two solvable polynomial abstractions."""
     # This would need proper widening implementation
     return iter1
 
 
-def exp_ocrs_solvable_polynomial(srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]],
-                                 loop_counter: ArithExpression, iter_dom: IterationDomain) -> Expression:
+def exp_ocrs_solvable_polynomial(
+    srk: Context,
+    tr_symbols: List[Tuple[Symbol, Symbol]],
+    loop_counter: ArithExpression,
+    iter_dom: IterationDomain,
+) -> Expression:
     """Compute exponential using OCRS for solvable polynomial."""
     # This would need OCRS implementation
     return mk_true(srk)
 
 
-def wedge_of_solvable_polynomial(srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]],
-                                 iter_dom: IterationDomain) -> Wedge:
+def wedge_of_solvable_polynomial(
+    srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]], iter_dom: IterationDomain
+) -> Wedge:
     """Convert solvable polynomial to wedge."""
     # This would need proper conversion implementation
     return Wedge.top(srk)
 
 
-def equal_solvable_polynomial(srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]],
-                              iter1: IterationDomain, iter2: IterationDomain) -> bool:
+def equal_solvable_polynomial(
+    srk: Context,
+    tr_symbols: List[Tuple[Symbol, Symbol]],
+    iter1: IterationDomain,
+    iter2: IterationDomain,
+) -> bool:
     """Check equality of two solvable polynomial abstractions."""
     return wedge_of_solvable_polynomial(srk, tr_symbols, iter1).equal(
         wedge_of_solvable_polynomial(srk, tr_symbols, iter2)
@@ -765,7 +859,9 @@ class SolvablePolynomialAbstraction:
     """Solvable polynomial abstraction interface."""
 
     @staticmethod
-    def abstract_wedge(srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]], wedge: Wedge) -> IterationDomain:
+    def abstract_wedge(
+        srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]], wedge: Wedge
+    ) -> IterationDomain:
         """Abstract wedge as solvable polynomial."""
         return abstract_wedge_solvable_polynomial(srk, tr_symbols, wedge)
 
@@ -775,32 +871,52 @@ class SolvablePolynomialAbstraction:
         return abstract_solvable_polynomial(srk, tf)
 
     @staticmethod
-    def join(srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]],
-             iter1: IterationDomain, iter2: IterationDomain) -> IterationDomain:
+    def join(
+        srk: Context,
+        tr_symbols: List[Tuple[Symbol, Symbol]],
+        iter1: IterationDomain,
+        iter2: IterationDomain,
+    ) -> IterationDomain:
         """Join two abstractions."""
         return join_solvable_polynomial(srk, tr_symbols, iter1, iter2)
 
     @staticmethod
-    def widen(srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]],
-              iter1: IterationDomain, iter2: IterationDomain) -> IterationDomain:
+    def widen(
+        srk: Context,
+        tr_symbols: List[Tuple[Symbol, Symbol]],
+        iter1: IterationDomain,
+        iter2: IterationDomain,
+    ) -> IterationDomain:
         """Widen two abstractions."""
         return widen_solvable_polynomial(srk, tr_symbols, iter1, iter2)
 
     @staticmethod
-    def exp(srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]],
-            loop_counter: ArithExpression, iter_dom: IterationDomain) -> Expression:
+    def exp(
+        srk: Context,
+        tr_symbols: List[Tuple[Symbol, Symbol]],
+        loop_counter: ArithExpression,
+        iter_dom: IterationDomain,
+    ) -> Expression:
         """Compute exponential."""
         return exp_ocrs_solvable_polynomial(srk, tr_symbols, loop_counter, iter_dom)
 
     @staticmethod
-    def equal(srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]],
-              iter1: IterationDomain, iter2: IterationDomain) -> bool:
+    def equal(
+        srk: Context,
+        tr_symbols: List[Tuple[Symbol, Symbol]],
+        iter1: IterationDomain,
+        iter2: IterationDomain,
+    ) -> bool:
         """Check equality."""
         return equal_solvable_polynomial(srk, tr_symbols, iter1, iter2)
 
     @staticmethod
-    def pp(srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]],
-           formatter, iter_dom: IterationDomain) -> None:
+    def pp(
+        srk: Context,
+        tr_symbols: List[Tuple[Symbol, Symbol]],
+        formatter,
+        iter_dom: IterationDomain,
+    ) -> None:
         """Pretty print."""
         pp(srk, tr_symbols, formatter, iter_dom)
 
@@ -809,9 +925,13 @@ class SolvablePolynomialPeriodicRationalAbstraction:
     """Periodic rational solvable polynomial abstraction interface."""
 
     @staticmethod
-    def abstract_wedge(srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]], wedge: Wedge) -> IterationDomain:
+    def abstract_wedge(
+        srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]], wedge: Wedge
+    ) -> IterationDomain:
         """Abstract wedge as periodic rational solvable polynomial."""
-        return abstract_wedge_solvable_polynomial_periodic_rational(srk, tr_symbols, wedge)
+        return abstract_wedge_solvable_polynomial_periodic_rational(
+            srk, tr_symbols, wedge
+        )
 
     @staticmethod
     def abstract(srk: Context, tf: TransitionFormula) -> IterationDomain:
@@ -819,33 +939,53 @@ class SolvablePolynomialPeriodicRationalAbstraction:
         return abstract_solvable_polynomial_periodic_rational(srk, tf)
 
     @staticmethod
-    def join(srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]],
-             iter1: IterationDomain, iter2: IterationDomain) -> IterationDomain:
+    def join(
+        srk: Context,
+        tr_symbols: List[Tuple[Symbol, Symbol]],
+        iter1: IterationDomain,
+        iter2: IterationDomain,
+    ) -> IterationDomain:
         """Join two abstractions."""
         return join_solvable_polynomial(srk, tr_symbols, iter1, iter2)
 
     @staticmethod
-    def widen(srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]],
-              iter1: IterationDomain, iter2: IterationDomain) -> IterationDomain:
+    def widen(
+        srk: Context,
+        tr_symbols: List[Tuple[Symbol, Symbol]],
+        iter1: IterationDomain,
+        iter2: IterationDomain,
+    ) -> IterationDomain:
         """Widen two abstractions."""
         return widen_solvable_polynomial(srk, tr_symbols, iter1, iter2)
 
     @staticmethod
-    def exp(srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]],
-            loop_counter: ArithExpression, iter_dom: IterationDomain) -> Expression:
+    def exp(
+        srk: Context,
+        tr_symbols: List[Tuple[Symbol, Symbol]],
+        loop_counter: ArithExpression,
+        iter_dom: IterationDomain,
+    ) -> Expression:
         """Compute exponential with periodic rational semantics."""
         # This would need proper periodic rational implementation
         return exp_ocrs_solvable_polynomial(srk, tr_symbols, loop_counter, iter_dom)
 
     @staticmethod
-    def equal(srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]],
-              iter1: IterationDomain, iter2: IterationDomain) -> bool:
+    def equal(
+        srk: Context,
+        tr_symbols: List[Tuple[Symbol, Symbol]],
+        iter1: IterationDomain,
+        iter2: IterationDomain,
+    ) -> bool:
         """Check equality."""
         return equal_solvable_polynomial(srk, tr_symbols, iter1, iter2)
 
     @staticmethod
-    def pp(srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]],
-           formatter, iter_dom: IterationDomain) -> None:
+    def pp(
+        srk: Context,
+        tr_symbols: List[Tuple[Symbol, Symbol]],
+        formatter,
+        iter_dom: IterationDomain,
+    ) -> None:
         """Pretty print."""
         pp(srk, tr_symbols, formatter, iter_dom)
 
@@ -853,6 +993,7 @@ class SolvablePolynomialPeriodicRationalAbstraction:
 @dataclass
 class DLTSAbstraction:
     """DLTS (Difference Logic Transition System) abstraction."""
+
     dlts: PLM
     simulation: List[ArithExpression]
 
@@ -865,12 +1006,20 @@ def dimension_dlts(dlts_abs: DLTSAbstraction) -> int:
     return len(dlts_abs.simulation)
 
 
-def pp_dlts(srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]],
-            formatter, dlts_abs: DLTSAbstraction) -> None:
+def pp_dlts(
+    srk: Context,
+    tr_symbols: List[Tuple[Symbol, Symbol]],
+    formatter,
+    dlts_abs: DLTSAbstraction,
+) -> None:
     """Pretty print DLTS abstraction."""
     formatter.write("@[<v 2>Map:")
     for i, term in enumerate(dlts_abs.simulation):
-        row = QQMatrix.row(i, dlts_abs.dlts.map) if i < QQMatrix.nb_rows(dlts_abs.dlts.map) else []
+        row = (
+            QQMatrix.row(i, dlts_abs.dlts.map)
+            if i < QQMatrix.nb_rows(dlts_abs.dlts.map)
+            else []
+        )
         # This would need proper term printing
         formatter.write(f"  {term} := linear_term({row})")
     formatter.write("@]")
@@ -883,17 +1032,28 @@ def pp_dlts(srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]],
         formatter.write("@]")
 
 
-def exp_impl_dlts(base_exp: Callable, srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]],
-                  loop_count: ArithExpression, dlts_abs: DLTSAbstraction) -> Expression:
+def exp_impl_dlts(
+    base_exp: Callable,
+    srk: Context,
+    tr_symbols: List[Tuple[Symbol, Symbol]],
+    loop_count: ArithExpression,
+    dlts_abs: DLTSAbstraction,
+) -> Expression:
     """Implementation of exponential for DLTS."""
     # This would need proper DLTS exponential implementation
     return mk_true(srk)
 
 
-def exp_dlts(srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]],
-              loop_count: ArithExpression, dlts_abs: DLTSAbstraction) -> Expression:
+def exp_dlts(
+    srk: Context,
+    tr_symbols: List[Tuple[Symbol, Symbol]],
+    loop_count: ArithExpression,
+    dlts_abs: DLTSAbstraction,
+) -> Expression:
     """Compute exponential for DLTS."""
-    return exp_impl_dlts(SolvablePolynomialAbstraction.exp, srk, tr_symbols, loop_count, dlts_abs)
+    return exp_impl_dlts(
+        SolvablePolynomialAbstraction.exp, srk, tr_symbols, loop_count, dlts_abs
+    )
 
 
 def abstract_dlts(srk: Context, tf: TransitionFormula) -> DLTSAbstraction:
@@ -920,8 +1080,12 @@ def abstract_dlts(srk: Context, tf: TransitionFormula) -> DLTSAbstraction:
     return DLTSAbstraction(dlts=dlts, simulation=simulation)
 
 
-def equal_dlts(srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]],
-                dlts1: DLTSAbstraction, dlts2: DLTSAbstraction) -> bool:
+def equal_dlts(
+    srk: Context,
+    tr_symbols: List[Tuple[Symbol, Symbol]],
+    dlts1: DLTSAbstraction,
+    dlts2: DLTSAbstraction,
+) -> bool:
     """Check equality of DLTS abstractions."""
     return dlts1.dlts.equal(dlts2.dlts) and dlts1.simulation == dlts2.simulation
 
@@ -932,23 +1096,36 @@ def to_formula_dlts(srk: Context, dlts_abs: DLTSAbstraction) -> Expression:
     return mk_true(srk)
 
 
-def join_dlts(srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]],
-               dlts1: DLTSAbstraction, dlts2: DLTSAbstraction) -> DLTSAbstraction:
+def join_dlts(
+    srk: Context,
+    tr_symbols: List[Tuple[Symbol, Symbol]],
+    dlts1: DLTSAbstraction,
+    dlts2: DLTSAbstraction,
+) -> DLTSAbstraction:
     """Join two DLTS abstractions."""
-    return abstract_dlts(srk, TransitionFormula.make(
-        mk_or(srk, [to_formula_dlts(srk, dlts1), to_formula_dlts(srk, dlts2)]),
-        tr_symbols
-    ))
+    return abstract_dlts(
+        srk,
+        TransitionFormula.make(
+            mk_or(srk, [to_formula_dlts(srk, dlts1), to_formula_dlts(srk, dlts2)]),
+            tr_symbols,
+        ),
+    )
 
 
-def simplify_dlts(srk: Context, dlts_abs: DLTSAbstraction, scale: bool = False) -> DLTSAbstraction:
+def simplify_dlts(
+    srk: Context, dlts_abs: DLTSAbstraction, scale: bool = False
+) -> DLTSAbstraction:
     """Simplify DLTS abstraction."""
     # This would need proper simplification implementation
     return dlts_abs
 
 
-def widen_dlts(srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]],
-                dlts1: DLTSAbstraction, dlts2: DLTSAbstraction) -> DLTSAbstraction:
+def widen_dlts(
+    srk: Context,
+    tr_symbols: List[Tuple[Symbol, Symbol]],
+    dlts1: DLTSAbstraction,
+    dlts2: DLTSAbstraction,
+) -> DLTSAbstraction:
     """Widen two DLTS abstractions."""
     return join_dlts(srk, tr_symbols, dlts1, dlts2)
 
@@ -957,7 +1134,9 @@ class DLTSSolvablePolynomialAbstraction:
     """DLTS with solvable polynomial abstraction."""
 
     @staticmethod
-    def abstract_wedge(srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]], wedge: Wedge) -> DLTSAbstraction:
+    def abstract_wedge(
+        srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]], wedge: Wedge
+    ) -> DLTSAbstraction:
         """Abstract wedge as DLTS with solvable polynomial."""
         # This would need proper implementation
         return DLTSAbstraction(PLM.identity(0), [])
@@ -968,10 +1147,20 @@ class DLTSSolvablePolynomialAbstraction:
         return abstract_dlts(srk, tf)
 
     @staticmethod
-    def exp(srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]],
-            loop_count: ArithExpression, dlts_abs: DLTSAbstraction) -> Expression:
+    def exp(
+        srk: Context,
+        tr_symbols: List[Tuple[Symbol, Symbol]],
+        loop_count: ArithExpression,
+        dlts_abs: DLTSAbstraction,
+    ) -> Expression:
         """Compute exponential."""
-        return exp_impl_dlts(SolvablePolynomialPeriodicRationalAbstraction.exp, srk, tr_symbols, loop_count, dlts_abs)
+        return exp_impl_dlts(
+            SolvablePolynomialPeriodicRationalAbstraction.exp,
+            srk,
+            tr_symbols,
+            loop_count,
+            dlts_abs,
+        )
 
 
 class DLTSPeriodicRationalAbstraction:
@@ -986,7 +1175,17 @@ class DLTSPeriodicRationalAbstraction:
         return dlts_abs
 
     @staticmethod
-    def exp(srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]],
-            loop_count: ArithExpression, dlts_abs: DLTSAbstraction) -> Expression:
+    def exp(
+        srk: Context,
+        tr_symbols: List[Tuple[Symbol, Symbol]],
+        loop_count: ArithExpression,
+        dlts_abs: DLTSAbstraction,
+    ) -> Expression:
         """Compute exponential."""
-        return exp_impl_dlts(SolvablePolynomialPeriodicRationalAbstraction.exp, srk, tr_symbols, loop_count, dlts_abs)
+        return exp_impl_dlts(
+            SolvablePolynomialPeriodicRationalAbstraction.exp,
+            srk,
+            tr_symbols,
+            loop_count,
+            dlts_abs,
+        )

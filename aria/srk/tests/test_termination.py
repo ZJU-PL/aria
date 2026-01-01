@@ -45,6 +45,7 @@ class TestRankingFunction(unittest.TestCase):
 
         # Create a simple linear ranking function: x + 1
         from aria.srk.syntax import mk_add, mk_var, mk_const, Symbol
+
         one_symbol = Symbol(1, "1", Type.INT)
         expr = mk_add([mk_var(x, Type.INT), mk_const(one_symbol)])
 
@@ -71,6 +72,7 @@ class TestTerminationResult(unittest.TestCase):
         """Test result with ranking function."""
         x = Context().mk_symbol("x", Type.INT)
         from aria.srk.syntax import mk_add, mk_var, mk_const, Symbol
+
         one_symbol = Symbol(1, "1", Type.INT)
         expr = mk_add([mk_var(x, Type.INT), mk_const(one_symbol)])
         ranking_func = RankingFunction(expr, True)
@@ -80,5 +82,5 @@ class TestTerminationResult(unittest.TestCase):
         self.assertEqual(result.ranking_function, ranking_func)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

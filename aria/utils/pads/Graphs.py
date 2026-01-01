@@ -13,6 +13,7 @@ D. Eppstein, April 2004.
 
 # sets.Set is deprecated in Python 3, use built-in set instead
 
+
 def is_undirected(graph):
     """Check that graph represents a simple undirected graph."""
     for v in graph:
@@ -23,13 +24,16 @@ def is_undirected(graph):
                 return False
     return True
 
+
 def max_degree(graph):
     """Return the maximum vertex (out)degree of graph G."""
     return max(len(graph[v]) for v in graph)
 
+
 def min_degree(graph):
     """Return the minimum vertex (out)degree of graph G."""
     return min(len(graph[v]) for v in graph)
+
 
 def copy_graph(graph, adjacency_list_type):
     """
@@ -42,15 +46,19 @@ def copy_graph(graph, adjacency_list_type):
     """
     return {v: adjacency_list_type(iter(graph[v])) for v in graph}
 
+
 def induced_subgraph(vertices, graph, adjacency_list_type):
     """
     The subgraph consisting of all edges between pairs of vertices in vertices.
     """
+
     def neighbors(x):
         for y in graph[x]:
             if y in vertices:
                 yield y
+
     return {x: adjacency_list_type(neighbors(x)) for x in graph if x in vertices}
+
 
 def union(*graphs):
     """Return a graph having all edges from the argument graphs."""
@@ -60,10 +68,12 @@ def union(*graphs):
             out.setdefault(v, set()).update(list(graph[v]))
     return out
 
+
 def is_independent_set(vertices, graph):
     """
     True if vertices is an independent set of vertices in graph, False otherwise.
     """
+
     class NonIndependent(Exception):
         pass
 

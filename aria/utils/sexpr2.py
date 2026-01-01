@@ -11,6 +11,7 @@ import string
 
 from typing import Iterable, Iterator, List, Mapping, Optional, Set, Union, overload
 
+
 @dataclass
 class SList:
     contents: List[Sexp]
@@ -31,6 +32,7 @@ class SList:
     def __getitem__(self, i: Union[int, slice]) -> Union[Sexp, List[Sexp]]:
         return self.contents[i]
 
+
 @dataclass
 class Atom:
     name: str
@@ -38,14 +40,17 @@ class Atom:
     def __str__(self) -> str:
         return self.name
 
+
 @dataclass
 class Comment:
     contents: str
 
     def __str__(self) -> str:
-        return f';{self.contents}\n'
+        return f";{self.contents}\n"
+
 
 Sexp = Union[Comment, str, SList]
+
 
 # note: does not understand variable binding!
 # be careful when substituting into expressions with bound variables.
@@ -76,6 +81,7 @@ def symbols_used(e: Sexp, into: Optional[Set[str]] = None) -> Set[str]:
 class EOF:
     pass
 
+
 @dataclass
 class CharBuffer:
     contents: str
@@ -84,14 +90,18 @@ class CharBuffer:
     def add_input(self, new_input: str) -> None:
         self.contents += new_input
 
+
 token_specification = [
-    ('ID', r'[^(); \t\n]+'),
-    ('COMMENT', r';.*\n'),
-    ('LPAREN', r'\('),
-    ('RPAREN', r'\)'),
-    ('BLANK', r'[ \t\n]+')
+    ("ID", r"[^(); \t\n]+"),
+    ("COMMENT", r";.*\n"),
+    ("LPAREN", r"\("),
+    ("RPAREN", r"\)"),
+    ("BLANK", r"[ \t\n]+"),
 ]
-tok_regex = re.compile('|'.join(f'(?P<{pair[0]}>{pair[1]})' for pair in token_specification))
+tok_regex = re.compile(
+    "|".join(f"(?P<{pair[0]}>{pair[1]})" for pair in token_specification)
+)
+
 
 @dataclass
 class SexpLexer:
@@ -118,15 +128,15 @@ class SexpLexer:
             value = mo.group()
             # print(self.buffer.pos, mo.start(), mo.end(), value)
             self.buffer.pos = mo.end()
-            if kind == 'ID':
+            if kind == "ID":
                 yield Atom(value)
-            elif kind == 'COMMENT':
+            elif kind == "COMMENT":
                 yield Comment(value[1:])
-            elif kind == 'LPAREN':
-                yield '('
-            elif kind == 'RPAREN':
-                yield ')'
-            elif kind == 'BLANK':
+            elif kind == "LPAREN":
+                yield "("
+            elif kind == "RPAREN":
+                yield ")"
+            elif kind == "BLANK":
                 continue
             else:
                 assert False
@@ -167,6 +177,7 @@ class SexpLexer:
         #         # assert self.buffer.pos > start
         #         yield Atom(contents[start:i])
 
+
 @dataclass
 class SexpParser:
     lexer: SexpLexer
@@ -197,25 +208,28 @@ class SexpParser:
             else:
                 # assert isinstance(tok, str)
                 # assert tok in '()'
-                if tok == '(':
+                if tok == "(":
                     self.stack.append([])
                 else:
-                    assert tok == ')'
-                    assert len(self.stack) > 0, 'unexpected close paren'
+                    assert tok == ")"
+                    assert len(self.stack) > 0, "unexpected close paren"
                     prev = SList(self.stack.pop())
                     if not self.stack:
                         yield prev
                     else:
                         self.stack[-1].append(prev)
 
+
 def get_parser(input_str: str) -> SexpParser:
     return SexpParser(SexpLexer(CharBuffer(input_str)))
+
 
 def parse(input_str: str) -> Iterable[Sexp]:
     for sexp in get_parser(input_str).parse():
         if isinstance(sexp, EOF):
             return
         yield sexp
+
 
 def parse_one(input_str: str) -> Sexp:
     l = list(parse(input_str))

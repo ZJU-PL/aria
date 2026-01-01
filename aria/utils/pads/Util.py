@@ -14,12 +14,15 @@ def arbitrary_item(S):
     except StopIteration as exc:
         raise IndexError("No items to select.") from exc
 
+
 def map_to_constant(constant):
     """
     Return a factory that turns sequences into dictionaries, where the
     dictionary maps each item in the sequence into the given constant.
     Appropriate as the adjacency_list_type argument for Graphs.copy_graph.
     """
+
     def factory(seq):
-        return dict.fromkeys(seq,constant)
+        return dict.fromkeys(seq, constant)
+
     return factory

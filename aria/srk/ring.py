@@ -6,7 +6,19 @@ along with abelian groups and related algebraic structures.
 """
 
 from __future__ import annotations
-from typing import TypeVar, Protocol, Generic, Dict, List, Tuple, Optional, Iterator, Callable, Any, Union
+from typing import (
+    TypeVar,
+    Protocol,
+    Generic,
+    Dict,
+    List,
+    Tuple,
+    Optional,
+    Iterator,
+    Callable,
+    Any,
+    Union,
+)
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from fractions import Fraction
@@ -15,11 +27,12 @@ import math
 from aria.srk.algebra import Ring
 from aria.srk.util import IntSet
 
-T = TypeVar('T')
-U = TypeVar('U')
-D = TypeVar('D')  # Dimension type
-S = TypeVar('S')  # Scalar type
-V = TypeVar('V')  # Vector type
+T = TypeVar("T")
+U = TypeVar("U")
+D = TypeVar("D")  # Dimension type
+S = TypeVar("S")  # Scalar type
+V = TypeVar("V")  # Vector type
+
 
 class AbelianGroup(Protocol[T]):
     """Protocol for abelian group algebraic structure."""
@@ -44,41 +57,42 @@ class AbelianGroup(Protocol[T]):
         """Additive identity."""
         ...
 
+
 class Vector(Protocol):
     """Protocol for vector operations over a ring."""
 
     @abstractmethod
-    def equal(self, other: 'Vector') -> bool:
+    def equal(self, other: "Vector") -> bool:
         """Equality comparison."""
         ...
 
     @abstractmethod
-    def add(self, other: 'Vector') -> 'Vector':
+    def add(self, other: "Vector") -> "Vector":
         """Vector addition."""
         ...
 
     @abstractmethod
-    def scalar_mul(self, scalar: Any, vec: 'Vector') -> 'Vector':
+    def scalar_mul(self, scalar: Any, vec: "Vector") -> "Vector":
         """Scalar multiplication."""
         ...
 
     @abstractmethod
-    def negate(self) -> 'Vector':
+    def negate(self) -> "Vector":
         """Additive inverse."""
         ...
 
     @abstractmethod
-    def sub(self, other: 'Vector') -> 'Vector':
+    def sub(self, other: "Vector") -> "Vector":
         """Vector subtraction."""
         ...
 
     @abstractmethod
-    def dot(self, other: 'Vector') -> Any:
+    def dot(self, other: "Vector") -> Any:
         """Dot product."""
         ...
 
     @abstractmethod
-    def zero(self) -> 'Vector':
+    def zero(self) -> "Vector":
         """Zero vector."""
         ...
 
@@ -88,12 +102,12 @@ class Vector(Protocol):
         ...
 
     @abstractmethod
-    def add_term(self, scalar: Any, dim: Any, vec: 'Vector') -> 'Vector':
+    def add_term(self, scalar: Any, dim: Any, vec: "Vector") -> "Vector":
         """Add scalar * basis vector to vector."""
         ...
 
     @abstractmethod
-    def of_term(self, scalar: Any, dim: Any) -> 'Vector':
+    def of_term(self, scalar: Any, dim: Any) -> "Vector":
         """Create vector from scalar and dimension."""
         ...
 
@@ -103,12 +117,12 @@ class Vector(Protocol):
         ...
 
     @abstractmethod
-    def of_enum(self, enum: Iterator[Tuple[Any, Any]]) -> 'Vector':
+    def of_enum(self, enum: Iterator[Tuple[Any, Any]]) -> "Vector":
         """Create vector from enumeration."""
         ...
 
     @abstractmethod
-    def of_list(self, lst: List[Tuple[Any, Any]]) -> 'Vector':
+    def of_list(self, lst: List[Tuple[Any, Any]]) -> "Vector":
         """Create vector from list."""
         ...
 
@@ -118,22 +132,22 @@ class Vector(Protocol):
         ...
 
     @abstractmethod
-    def pivot(self, dim: Any) -> Tuple[Any, 'Vector']:
+    def pivot(self, dim: Any) -> Tuple[Any, "Vector"]:
         """Extract coefficient and remove from vector."""
         ...
 
     @abstractmethod
-    def pop(self) -> Tuple[Tuple[Any, Any], 'Vector']:
+    def pop(self) -> Tuple[Tuple[Any, Any], "Vector"]:
         """Remove and return arbitrary element."""
         ...
 
     @abstractmethod
-    def map(self, f: Callable[[Any, Any], Any]) -> 'Vector':
+    def map(self, f: Callable[[Any, Any], Any]) -> "Vector":
         """Map function over coefficients."""
         ...
 
     @abstractmethod
-    def merge(self, f: Callable[[Any, Any, Any], Any], other: 'Vector') -> 'Vector':
+    def merge(self, f: Callable[[Any, Any, Any], Any], other: "Vector") -> "Vector":
         """Merge two vectors."""
         ...
 
@@ -143,7 +157,7 @@ class Vector(Protocol):
         ...
 
     @abstractmethod
-    def compare(self, comparer: Callable[[Any, Any], int]) -> Callable[['Vector'], int]:
+    def compare(self, comparer: Callable[[Any, Any], int]) -> Callable[["Vector"], int]:
         """Comparison function."""
         ...
 
@@ -152,36 +166,37 @@ class Vector(Protocol):
         """Fold over coefficients."""
         ...
 
+
 class Matrix(Protocol):
     """Protocol for matrix operations over a ring."""
 
     @abstractmethod
-    def equal(self, other: 'Matrix') -> bool:
+    def equal(self, other: "Matrix") -> bool:
         """Equality comparison."""
         ...
 
     @abstractmethod
-    def add(self, other: 'Matrix') -> 'Matrix':
+    def add(self, other: "Matrix") -> "Matrix":
         """Matrix addition."""
         ...
 
     @abstractmethod
-    def scalar_mul(self, scalar: Any, mat: 'Matrix') -> 'Matrix':
+    def scalar_mul(self, scalar: Any, mat: "Matrix") -> "Matrix":
         """Scalar multiplication."""
         ...
 
     @abstractmethod
-    def mul(self, other: 'Matrix') -> 'Matrix':
+    def mul(self, other: "Matrix") -> "Matrix":
         """Matrix multiplication."""
         ...
 
     @abstractmethod
-    def zero(self) -> 'Matrix':
+    def zero(self) -> "Matrix":
         """Zero matrix."""
         ...
 
     @abstractmethod
-    def identity(self, dims: List[Any]) -> 'Matrix':
+    def identity(self, dims: List[Any]) -> "Matrix":
         """Identity matrix."""
         ...
 
@@ -206,32 +221,32 @@ class Matrix(Protocol):
         ...
 
     @abstractmethod
-    def add_row(self, dim: Any, vec: Any) -> 'Matrix':
+    def add_row(self, dim: Any, vec: Any) -> "Matrix":
         """Add row to matrix."""
         ...
 
     @abstractmethod
-    def add_column(self, dim: Any, vec: Any) -> 'Matrix':
+    def add_column(self, dim: Any, vec: Any) -> "Matrix":
         """Add column to matrix."""
         ...
 
     @abstractmethod
-    def add_entry(self, row: Any, col: Any, scalar: Any) -> 'Matrix':
+    def add_entry(self, row: Any, col: Any, scalar: Any) -> "Matrix":
         """Add entry to matrix."""
         ...
 
     @abstractmethod
-    def pivot(self, dim: Any) -> Tuple[Any, 'Matrix']:
+    def pivot(self, dim: Any) -> Tuple[Any, "Matrix"]:
         """Extract row and remove from matrix."""
         ...
 
     @abstractmethod
-    def pivot_column(self, dim: Any) -> Tuple[Any, 'Matrix']:
+    def pivot_column(self, dim: Any) -> Tuple[Any, "Matrix"]:
         """Extract column and remove from matrix."""
         ...
 
     @abstractmethod
-    def transpose(self) -> 'Matrix':
+    def transpose(self) -> "Matrix":
         """Matrix transpose."""
         ...
 
@@ -266,7 +281,7 @@ class Matrix(Protocol):
         ...
 
     @abstractmethod
-    def map_rows(self, f: Callable[[Any], Any]) -> 'Matrix':
+    def map_rows(self, f: Callable[[Any], Any]) -> "Matrix":
         """Map function over rows."""
         ...
 
@@ -281,7 +296,7 @@ class Matrix(Protocol):
         ...
 
     @abstractmethod
-    def of_dense(self, matrix: List[List[Any]]) -> 'Matrix':
+    def of_dense(self, matrix: List[List[Any]]) -> "Matrix":
         """Create from dense representation."""
         ...
 
@@ -291,16 +306,18 @@ class Matrix(Protocol):
         ...
 
     @abstractmethod
-    def of_rows(self, rows: List[Any]) -> 'Matrix':
+    def of_rows(self, rows: List[Any]) -> "Matrix":
         """Create from list of row vectors."""
         ...
 
     @abstractmethod
-    def interlace_columns(self, other: 'Matrix') -> 'Matrix':
+    def interlace_columns(self, other: "Matrix") -> "Matrix":
         """Interlace columns of two matrices."""
         ...
 
+
 # Concrete implementations using sparse maps
+
 
 class RingMap(Generic[T], dict):
     """Sparse map implementation for ring elements."""
@@ -396,7 +413,9 @@ class RingMap(Generic[T], dict):
         elif self.ring.equal(k, self.ring.zero()):
             return RingMap(self.ring)
         else:
-            return RingMap(self.ring, {k_: self.ring.mul(k, v) for k_, v in vec.items()})
+            return RingMap(
+                self.ring, {k_: self.ring.mul(k, v) for k_, v in vec.items()}
+            )
 
     def dot(self, other: RingMap[T]) -> T:
         """Dot product."""
@@ -449,6 +468,7 @@ class RingMap(Generic[T], dict):
 
     def compare(self, comparer: Callable[[T, T], int]) -> int:
         """Comparison function."""
+
         def compare_vecs(other: RingMap[T]) -> int:
             keys1 = sorted(self.keys())
             keys2 = sorted(other.keys())
@@ -459,6 +479,7 @@ class RingMap(Generic[T], dict):
                 if cmp != 0:
                     return cmp
             return 0
+
         return compare_vecs
 
     def fold(self, f: Callable[[Any, T, U], U], acc: U) -> U:
@@ -469,14 +490,23 @@ class RingMap(Generic[T], dict):
 
     def equal(self, other: RingMap[T]) -> bool:
         """Equality comparison."""
-        return self.compare(lambda a, b: 0 if self.ring.equal(a, b) else -1 if a < b else 1)(other) == 0
+        return (
+            self.compare(
+                lambda a, b: 0 if self.ring.equal(a, b) else -1 if a < b else 1
+            )(other)
+            == 0
+        )
+
 
 # Vector implementation over rings
+
 
 class RingVector(RingMap[T]):
     """Vector implementation over a ring."""
 
-    def __init__(self, ring: Ring[T], data: Optional[Union[Dict[T, T], List[T]]] = None):
+    def __init__(
+        self, ring: Ring[T], data: Optional[Union[Dict[T, T], List[T]]] = None
+    ):
         if isinstance(data, list):
             # Convert list to dict with indices as keys
             data = {i: data[i] for i in range(len(data))}
@@ -510,7 +540,9 @@ class RingVector(RingMap[T]):
                 v2 = v2.add_term(coeff, dim // 2, v2)
         return (v1, v2)
 
+
 # Matrix implementation over rings
+
 
 class RingMatrix(Generic[T]):
     """Matrix implementation over a ring."""
@@ -610,7 +642,9 @@ class RingMatrix(Generic[T]):
         result = RingMatrix(self.ring)
         for i, row in self.rowsi():
             if i != j:
-                new_row = RingVector(self.ring, {k: v for k, v in row._data.items() if k != j})
+                new_row = RingVector(
+                    self.ring, {k: v for k, v in row._data.items() if k != j}
+                )
                 result._data[i] = new_row
         return (col, result)
 
@@ -677,8 +711,9 @@ class RingMatrix(Generic[T]):
             for j in other.column_set():
                 dot_product = self.ring.zero()
                 for k in range(max(self.nb_columns(), other.nb_rows())):
-                    dot_product = self.ring.add(dot_product,
-                                              self.ring.mul(row.coeff(k), other.entry(k, j)))
+                    dot_product = self.ring.add(
+                        dot_product, self.ring.mul(row.coeff(k), other.entry(k, j))
+                    )
                 if not self.ring.equal(dot_product, self.ring.zero()):
                     result = result.add_entry(i, j, dot_product)
         return result
@@ -786,11 +821,13 @@ class RationalRing:
     @staticmethod
     def zero():
         from fractions import Fraction
+
         return Fraction(0)
 
     @staticmethod
     def one():
         from fractions import Fraction
+
         return Fraction(1)
 
     @staticmethod
@@ -812,18 +849,18 @@ class RationalRing:
 
 def is_ring(obj) -> bool:
     """Check if an object implements the ring interface."""
-    required_methods = ['zero', 'one', 'add', 'mul', 'neg', 'equal']
+    required_methods = ["zero", "one", "add", "mul", "neg", "equal"]
     return all(hasattr(obj, method) for method in required_methods)
 
 
 def is_commutative_semigroup(obj, mul_func=None, a=None, b=None) -> bool:
     """Check if an object implements a commutative semigroup (additive)."""
     # For the simple case, just check if the object has the required methods
-    required_methods = ['zero', 'add', 'equal']
+    required_methods = ["zero", "add", "equal"]
     return all(hasattr(obj, method) for method in required_methods)
 
 
 def is_associative_semigroup(obj, mul_func=None, a=None, b=None, c=None) -> bool:
     """Check if an object implements an associative semigroup (multiplicative)."""
-    required_methods = ['one', 'mul', 'equal']
+    required_methods = ["one", "mul", "equal"]
     return all(hasattr(obj, method) for method in required_methods)

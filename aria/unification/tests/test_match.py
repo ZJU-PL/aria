@@ -79,7 +79,9 @@ def test_ordering():
     o = ordering([(1,), (x,), (2,), (y,), (x, x), (1, x), (x, 1), (1, 2)])
 
     for a, b in zip(o, o[1:]):
-        assert supercedes(a, b) or not supercedes(b, a)  # pylint: disable=arguments-out-of-order
+        assert supercedes(a, b) or not supercedes(
+            b, a
+        )  # pylint: disable=arguments-out-of-order
 
 
 def test_raises_error():

@@ -16,7 +16,7 @@ class PartitionRefinement:
     operation takes time proportional to the size of its argument.
     """
 
-    def __init__(self,items):
+    def __init__(self, items):
         """Create a new partition refinement data structure for the given
         items.  Initially, all items belong to the same subset.
         """
@@ -24,7 +24,7 @@ class PartitionRefinement:
         self._sets = {id(S): S}
         self._partition = {x: S for x in S}
 
-    def __getitem__(self,element):
+    def __getitem__(self, element):
         """Return the set that contains the given element."""
         return self._partition[element]
 
@@ -45,12 +45,12 @@ class PartitionRefinement:
         subset.add(element)
         self._partition[element] = subset
 
-    def remove(self,element):
+    def remove(self, element):
         """Remove the given element from its partition subset."""
         self._partition[element].remove(element)
         del self._partition[element]
 
-    def refine(self,S):
+    def refine(self, S):
         """Refine each set A in the partition to the two sets
         A & S, A - S.  Return a list of pairs (A & S, A - S)
         for each changed set.  Within each pair, A & S will be
@@ -65,14 +65,14 @@ class PartitionRefinement:
             if x in self._partition:
                 Ax = self._partition[x]
                 hit.setdefault(id(Ax), set()).add(x)
-        for A,AS in hit.items():
+        for A, AS in hit.items():
             A = self._sets[A]
             if AS != A:
                 self._sets[id(AS)] = AS
                 for x in AS:
                     self._partition[x] = AS
                 A -= AS
-                output.append((AS,A))
+                output.append((AS, A))
         return output
 
     def freeze(self):

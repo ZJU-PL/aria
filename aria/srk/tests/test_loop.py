@@ -5,10 +5,16 @@ Tests for the loop analysis module.
 import unittest
 from typing import Set, List, Dict, Any
 from aria.srk.loop import (
-    Loop, GraphProtocol, compute_loop_nesting_forest,
-    find_all_loops, find_cutpoints, get_loop_header,
-    get_loop_body, get_loop_children, analyze_graph_loops,
-    format_forest
+    Loop,
+    GraphProtocol,
+    compute_loop_nesting_forest,
+    find_all_loops,
+    find_cutpoints,
+    get_loop_header,
+    get_loop_body,
+    get_loop_children,
+    analyze_graph_loops,
+    format_forest,
 )
 
 
@@ -73,13 +79,15 @@ def proper_nesting(loop_nesting_forest) -> bool:
 
     # Check that every pair of loops is either disjoint or properly nested
     for i, loop1 in enumerate(loops):
-        for loop2 in loops[i+1:]:
+        for loop2 in loops[i + 1 :]:
             body1, body2 = get_loop_body(loop1), get_loop_body(loop2)
 
             # Check disjointness or proper nesting
-            if not (body1.isdisjoint(body2) or
-                    body1.issubset(body2) or
-                    body2.issubset(body1)):
+            if not (
+                body1.isdisjoint(body2)
+                or body1.issubset(body2)
+                or body2.issubset(body1)
+            ):
                 return False
 
     return True
@@ -117,10 +125,14 @@ def loop_contains_header(loop_nesting_forest) -> bool:
 
 def well_formed(graph: SimpleGraph, loop_nesting_forest) -> bool:
     """Test well-formedness conditions for loop nesting forest."""
-    assert feedback_vertex_set(graph, loop_nesting_forest), "Feedback vertex set property failed"
+    assert feedback_vertex_set(
+        graph, loop_nesting_forest
+    ), "Feedback vertex set property failed"
     assert proper_nesting(loop_nesting_forest), "Proper nesting property failed"
     assert loop_is_scc(graph, loop_nesting_forest), "Loop is SCC property failed"
-    assert loop_contains_header(loop_nesting_forest), "Loop contains header property failed"
+    assert loop_contains_header(
+        loop_nesting_forest
+    ), "Loop contains header property failed"
     return True
 
 
@@ -154,10 +166,20 @@ class TestLoopAnalysis(unittest.TestCase):
 
     def test_ramalingam_example(self):
         """Test the example from Ramalingam's paper."""
-        g = make_graph([
-            (0, 1), (0, 2), (1, 3), (2, 4), (3, 5), (4, 5),
-            (3, 1), (4, 2), (3, 4), (4, 3)
-        ])
+        g = make_graph(
+            [
+                (0, 1),
+                (0, 2),
+                (1, 3),
+                (2, 4),
+                (3, 5),
+                (4, 5),
+                (3, 1),
+                (4, 2),
+                (3, 4),
+                (4, 3),
+            ]
+        )
         forest = compute_loop_nesting_forest(g)
 
         well_formed(g, forest)
@@ -177,11 +199,11 @@ class TestLoopAnalysis(unittest.TestCase):
 
         # Test analysis function
         analysis = analyze_graph_loops(g)
-        self.assertIn('forest', analysis)
-        self.assertIn('loops', analysis)
-        self.assertIn('cutpoints', analysis)
-        self.assertIn('num_loops', analysis)
-        self.assertIn('num_cutpoints', analysis)
+        self.assertIn("forest", analysis)
+        self.assertIn("loops", analysis)
+        self.assertIn("cutpoints", analysis)
+        self.assertIn("num_loops", analysis)
+        self.assertIn("num_cutpoints", analysis)
 
     def test_forest_formatting(self):
         """Test pretty-printing of loop forests."""
@@ -193,5 +215,5 @@ class TestLoopAnalysis(unittest.TestCase):
         self.assertTrue(len(formatted) > 0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

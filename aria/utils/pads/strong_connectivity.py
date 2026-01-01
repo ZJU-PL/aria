@@ -18,7 +18,7 @@ class StronglyConnectedComponents(DFS.Searcher):
     a sequence of subgraphs of G.
     """
 
-    def __init__(self,G):
+    def __init__(self, G):
         """Search for strongly connected components of graph G."""
 
         # set up data structures for DFS
@@ -31,7 +31,7 @@ class StronglyConnectedComponents(DFS.Searcher):
         self._graph = G
 
         # perform the Depth First Search
-        DFS.Searcher.__init__(self,G)
+        DFS.Searcher.__init__(self, G)
 
         # clean up now-useless data structures
         del self._dfsnumber, self._activelen, self._active, self._low
@@ -40,14 +40,13 @@ class StronglyConnectedComponents(DFS.Searcher):
         """Return iterator for sequence of strongly connected components."""
         return iter(self._components)
 
-    def _component(self,vertices):
+    def _component(self, vertices):
         """Make a new SCC."""
         vertices = set(vertices)
-        induced = {v: {w for w in self._graph[v] if w in vertices}
-                   for v in vertices}
+        induced = {v: {w for w in self._graph[v] if w in vertices} for v in vertices}
         self._components.append(induced)
 
-    def preorder(self,parent,child):
+    def preorder(self, parent, child):
         """Handle first visit to vertex in DFS search for components."""
         if parent == child:
             self._active = []
@@ -55,49 +54,52 @@ class StronglyConnectedComponents(DFS.Searcher):
         self._active.append(child)
         self._low[child] = self._dfsnumber[child] = len(self._dfsnumber)
 
-    def backedge(self,source,destination):
+    def backedge(self, source, destination):
         """Handle non-tree edge in DFS search for components."""
-        self._low[source] = min(self._low[source],self._low[destination])
+        self._low[source] = min(self._low[source], self._low[destination])
 
-    def postorder(self,parent,child):
+    def postorder(self, parent, child):
         """Handle last visit to vertex in DFS search for components."""
         if self._low[child] == self._dfsnumber[child]:
-            self._component(self._active[self._activelen[child]:])
+            self._component(self._active[self._activelen[child] :])
             for v in self._components[-1]:
                 self._low[v] = self._biglow
-            del self._active[self._activelen[child]:]
+            del self._active[self._activelen[child] :]
         else:
-            self._low[parent] = min(self._low[parent],self._low[child])
+            self._low[parent] = min(self._low[parent], self._low[child])
+
 
 # If run as "python strong_connectivity.py", run tests on various small graphs
 # and check that the correct results are obtained.
 
+
 class StrongConnectivityTest(unittest.TestCase):
-    G1 = { 0:[1], 1:[2,3], 2:[4,5], 3:[4,5], 4:[6], 5:[], 6:[] }
-    C1 = [[0],[1],[2],[3],[4],[5],[6]]
+    G1 = {0: [1], 1: [2, 3], 2: [4, 5], 3: [4, 5], 4: [6], 5: [], 6: []}
+    C1 = [[0], [1], [2], [3], [4], [5], [6]]
 
-    G2 = { 0:[1], 1:[2,3,4], 2:[0,3], 3:[4], 4:[3] }
-    C2 = [[0,1,2],[3,4]]
+    G2 = {0: [1], 1: [2, 3, 4], 2: [0, 3], 3: [4], 4: [3]}
+    C2 = [[0, 1, 2], [3, 4]]
 
-    knownpairs = [(G1,C1),(G2,C2)]
+    knownpairs = [(G1, C1), (G2, C2)]
 
     def test_strongly_connected_components(self):
         """Check known graph/component pairs."""
-        for (graph,expectedoutput) in self.knownpairs:
+        for graph, expectedoutput in self.knownpairs:
             output = [list(C) for C in StronglyConnectedComponents(graph)]
             for component in output:
                 component.sort()
             output.sort()
-            self.assertEqual(output,expectedoutput)
+            self.assertEqual(output, expectedoutput)
 
     def test_subgraph(self):
         """Check that each SCC is an induced subgraph."""
-        for (graph,expectedoutput) in self.knownpairs:
+        for graph, expectedoutput in self.knownpairs:
             components = StronglyConnectedComponents(graph)
             for comp in components:
                 for v in comp:
                     for w in graph:
                         self.assertEqual(w in graph[v] and w in comp, w in comp[v])
+
 
 if __name__ == "__main__":
     unittest.main()

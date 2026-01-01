@@ -1,27 +1,27 @@
 """Utils for manipulating values (especially BV and FP)
-  - bool_to_bit_vec: Convert a boolean expression to a 1-bit bitvector.
-  - bv_log2: Compute the floor of log2 of a bitvector value.
-  - zext_or_trunc: Zero-extend or truncate a bitvector to a target width.
-  - ctlz: Count leading zeros in a bitvector.
-  - cttz: Count trailing zeros in a bitvector.
-  - compute_num_sign_bits: Compute the number of consecutive sign bits in a
-    bitvector.
-  - fp_ueq: Unordered floating-point equality.
-  - fp_mod: Floating-point modulo operation.
-  - fp_mod_using_fp_rem: Implement fp_mod using fp_rem.
-  - fp_rem_trampoline: Trampoline to Z3's fp_rem.
-  - set_bit: Set the index:th bit of v to x, and return the new value.
-  - twos_complement: Returns the 2-complemented value of val assuming bits word width
-  - convert_smtlib_models_to_python_value: For converting SMT-LIB models to
-    Python values
-  - zero_extension: Set the rest of bits on the left to 0.
-  - one_extension: Set the rest of bits on the left to 1.
-  - sign_extension: Set the rest of bits on the left to the value of the sign bit.
-  - right_zero_extension: Set the rest of bits on the right to 0.
-  - right_one_extension: Set the rest of bits on the right to 1.
-  - right_sign_extension: Set the rest of bits on the right to the value of
-    the sign bit.
-  - absolute_value_bv: Absolute value for bitvector encoding.
+- bool_to_bit_vec: Convert a boolean expression to a 1-bit bitvector.
+- bv_log2: Compute the floor of log2 of a bitvector value.
+- zext_or_trunc: Zero-extend or truncate a bitvector to a target width.
+- ctlz: Count leading zeros in a bitvector.
+- cttz: Count trailing zeros in a bitvector.
+- compute_num_sign_bits: Compute the number of consecutive sign bits in a
+  bitvector.
+- fp_ueq: Unordered floating-point equality.
+- fp_mod: Floating-point modulo operation.
+- fp_mod_using_fp_rem: Implement fp_mod using fp_rem.
+- fp_rem_trampoline: Trampoline to Z3's fp_rem.
+- set_bit: Set the index:th bit of v to x, and return the new value.
+- twos_complement: Returns the 2-complemented value of val assuming bits word width
+- convert_smtlib_models_to_python_value: For converting SMT-LIB models to
+  Python values
+- zero_extension: Set the rest of bits on the left to 0.
+- one_extension: Set the rest of bits on the left to 1.
+- sign_extension: Set the rest of bits on the left to the value of the sign bit.
+- right_zero_extension: Set the rest of bits on the right to 0.
+- right_one_extension: Set the rest of bits on the right to 1.
+- right_sign_extension: Set the rest of bits on the right to the value of
+  the sign bit.
+- absolute_value_bv: Absolute value for bitvector encoding.
 """
 
 import re
@@ -34,6 +34,7 @@ RE_GET_EXPR_VALUE_ALL = re.compile(
     r"[0-9]*|true|false|[-+]?[0-9]+|[-+]?[0-9]*\.[0-9]+|\"[^\"]*\")\)"
 )
 
+
 def bool_to_bit_vec(b):
     """Convert a boolean expression to a 1-bit bitvector.
 
@@ -45,6 +46,7 @@ def bool_to_bit_vec(b):
     """
     return z3.If(b, z3.BitVecVal(1, 1), z3.BitVecVal(0, 1))
 
+
 def bv_log2(bitwidth, v):
     """Compute the floor of log2 of a bitvector value.
 
@@ -55,12 +57,14 @@ def bv_log2(bitwidth, v):
     Returns:
         Bitvector of specified bitwidth representing floor(log2(v))
     """
+
     def rec(h, l):
         if h <= l:
             return z3.BitVecVal(l, bitwidth)
-        mid = l+int((h-l)/2)
-        return z3.If(z3.Extract(h,mid+1,v) != 0, rec(h, mid+1), rec(mid, l))
-    return rec(v.size()-1, 0)
+        mid = l + int((h - l) / 2)
+        return z3.If(z3.Extract(h, mid + 1, v) != 0, rec(h, mid + 1), rec(mid, l))
+
+    return rec(v.size() - 1, 0)
 
 
 def zext_or_trunc(v, src, tgt):
@@ -80,7 +84,7 @@ def zext_or_trunc(v, src, tgt):
     if tgt > src:
         return z3.ZeroExt(tgt - src, v)
 
-    return z3.Extract(tgt-1, 0, v)
+    return z3.Extract(tgt - 1, 0, v)
 
 
 def ctlz(output_width, v):
@@ -94,13 +98,17 @@ def ctlz(output_width, v):
         Bitvector representing the number of leading zeros in v
     """
     size = v.size()
+
     def rec(i):
         if i < 0:
             return z3.BitVecVal(size, output_width)
-        return z3.If(z3.Extract(i,i,v) == z3.BitVecVal(1, 1),
-                      z3.BitVecVal(size-1-i, output_width),
-                      rec(i-1))
-    return rec(size-1)
+        return z3.If(
+            z3.Extract(i, i, v) == z3.BitVecVal(1, 1),
+            z3.BitVecVal(size - 1 - i, output_width),
+            rec(i - 1),
+        )
+
+    return rec(size - 1)
 
 
 def cttz(output_width, v):
@@ -114,13 +122,18 @@ def cttz(output_width, v):
         Bitvector representing the number of trailing zeros in v
     """
     size = v.size()
+
     def rec(i):
         if i == size:
             return z3.BitVecVal(size, output_width)
-        return z3.If(z3.Extract(i,i,v) == z3.BitVecVal(1, 1),
-                      z3.BitVecVal(i, output_width),
-                      rec(i+1))
+        return z3.If(
+            z3.Extract(i, i, v) == z3.BitVecVal(1, 1),
+            z3.BitVecVal(i, output_width),
+            rec(i + 1),
+        )
+
     return rec(0)
+
 
 def compute_num_sign_bits(bitwidth, v):
     """Compute the number of consecutive sign bits in a bitvector.
@@ -142,10 +155,12 @@ def compute_num_sign_bits(bitwidth, v):
     def rec(i):
         if i < 0:
             return z3.BitVecVal(size, bitwidth)
-        return z3.If(z3.Extract(i,i,v) == sign,
-                      rec(i-1),
-                      z3.BitVecVal(size1-i, bitwidth))
+        return z3.If(
+            z3.Extract(i, i, v) == sign, rec(i - 1), z3.BitVecVal(size1 - i, bitwidth)
+        )
+
     return rec(size - 2)
+
 
 def fp_ueq(x, y):
     """Unordered floating-point equality.
@@ -159,23 +174,23 @@ def fp_ueq(x, y):
     Returns:
         Boolean expression representing unordered equality
     """
-    return z3.Or(z3.fpEQ(x,y), z3.fpIsNaN(x), z3.fpIsNaN(y))
+    return z3.Or(z3.fpEQ(x, y), z3.fpIsNaN(x), z3.fpIsNaN(y))
 
 
 # Z3 4.4 incorrectly implemented fpRem as fpMod, where fpMod(x,y) has the same
 # sign as x. In particular fpMod(3,2) = 1, but fpRem(3,2) = -1.
 def detect_fp_mod():
-    """Determine whether Z3's fpRem is correct, and set fp_mod accordingly.
-    """
+    """Determine whether Z3's fpRem is correct, and set fp_mod accordingly."""
     import logging
+
     log = logging.getLogger(__name__)
-    log.debug('Setting fp_mod')
+    log.debug("Setting fp_mod")
 
     if z3.is_true(z3.simplify(z3.FPVal(3, z3.Float32()) % 2 < 0)):
-        log.debug('Correct fpRem detected')
+        log.debug("Correct fpRem detected")
         fp_mod.__code__ = fp_mod_using_fp_rem.__code__
     else:
-        log.debug('fpRem = fpMod')
+        log.debug("fpRem = fpMod")
         fp_mod.__code__ = fp_rem_trampoline.__code__
 
 
@@ -198,6 +213,7 @@ def fp_mod(x, y, ctx=None):
     detect_fp_mod()
     return fp_mod(x, y, ctx)
 
+
 # It would be great if this had a less complicated implementation
 def fp_mod_using_fp_rem(x, y, ctx=None):
     """Implement fp_mod using fpRem.
@@ -216,8 +232,9 @@ def fp_mod_using_fp_rem(x, y, ctx=None):
     z = z3.fpRem(z3.fpAbs(x), y, ctx)
     r = z3.If(z3.fpIsNegative(z), z + y, z, ctx)  # rounding mode?
     return z3.If(
-        z3.Not(z3.fpIsNegative(x) == z3.fpIsNegative(r), ctx),
-        z3.fpNeg(r), r, ctx)
+        z3.Not(z3.fpIsNegative(x) == z3.fpIsNegative(r), ctx), z3.fpNeg(r), r, ctx
+    )
+
 
 # synonym for fpRem, but located in this module (i.e., same globals in scope)
 def fp_rem_trampoline(x, y, ctx=None):
@@ -251,7 +268,7 @@ def set_bit(v: int, index: int, x: int):
 def twos_complement(val: int, bits: int):
     """Returns the 2-complemented value of val assuming bits word width"""
     if (val & (1 << (bits - 1))) != 0:  # if sign bit is set
-        val = val - (2 ** bits)  # compute negative value
+        val = val - (2**bits)  # compute negative value
     return val
 
 
@@ -271,16 +288,16 @@ def convert_smtlib_models_to_python_value(v):
         r = int(v[2:], 16)
     elif v.startswith("_ bv"):
         # Extract the number part between "_ bv" and the space
-        parts = v[len("_ bv"):].split(" ")
+        parts = v[len("_ bv") :].split(" ")
         r = int(parts[0], 10)
     elif v.startswith("(_ bv"):
-        v = v[len("(_ bv"):]
+        v = v[len("(_ bv") :]
         r = int(v[: v.find(" ")], 10)
     elif v.startswith('"') and v.endswith('"'):
         r = v[1:-1]  # Remove quotes for string values
     elif "." in v:  # Real number
         r = float(v)
-    elif v.lstrip('-+').isdigit():  # Integer (possibly with sign)
+    elif v.lstrip("-+").isdigit():  # Integer (possibly with sign)
         r = int(v)
 
     assert r is not None
@@ -288,8 +305,7 @@ def convert_smtlib_models_to_python_value(v):
 
 
 def zero_extension(formula: z3.BitVecRef, bit_places: int) -> z3.BitVecRef:
-    """Set the rest of bits on the left to 0.
-    """
+    """Set the rest of bits on the left to 0."""
     complement = BitVecVal(0, formula.size() - bit_places)
     formula = z3.Concat(complement, (Extract(bit_places - 1, 0, formula)))
     return formula
@@ -342,10 +358,9 @@ def right_zero_extension(formula: z3.BitVecRef, bit_places: int) -> z3.BitVecRef
         Bitvector with rightmost bits set to 0, leftmost bit_places bits preserved
     """
     complement = BitVecVal(0, formula.size() - bit_places)
-    formula = Concat(Extract(formula.size() - 1,
-                             formula.size() - bit_places,
-                             formula),
-                     complement)
+    formula = Concat(
+        Extract(formula.size() - 1, formula.size() - bit_places, formula), complement
+    )
     return formula
 
 
@@ -360,10 +375,9 @@ def right_one_extension(formula: z3.BitVecRef, bit_places: int) -> z3.BitVecRef:
         Bitvector with rightmost bits set to 1, leftmost bit_places bits preserved
     """
     complement = BitVecVal(0, formula.size() - bit_places) - 1
-    formula = Concat(Extract(formula.size() - 1,
-                             formula.size() - bit_places,
-                             formula),
-                     complement)
+    formula = Concat(
+        Extract(formula.size() - 1, formula.size() - bit_places, formula), complement
+    )
     return formula
 
 
@@ -385,10 +399,9 @@ def right_sign_extension(formula: z3.BitVecRef, bit_places: int) -> z3.BitVecRef
     for _ in range(sign_bit_position - 1):
         complement = Concat(sign_bit, complement)
 
-    formula = Concat(Extract(formula.size() - 1,
-                             sign_bit_position,
-                             formula),
-                     complement)
+    formula = Concat(
+        Extract(formula.size() - 1, sign_bit_position, formula), complement
+    )
     return formula
 
 

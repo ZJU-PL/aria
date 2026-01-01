@@ -6,13 +6,24 @@ by their feature vectors, allowing efficient one-sided range queries.
 """
 
 from __future__ import annotations
-from typing import List, Dict, Set, Tuple, Union, Optional, Callable, Any, TypeVar, Generic
+from typing import (
+    List,
+    Dict,
+    Set,
+    Tuple,
+    Union,
+    Optional,
+    Callable,
+    Any,
+    TypeVar,
+    Generic,
+)
 from dataclasses import dataclass
 import random
 from enum import Enum
 
 # Type variable for elements
-T = TypeVar('T')
+T = TypeVar("T")
 
 # Feature vector type
 FeatureVector = List[int]
@@ -21,6 +32,7 @@ FeatureVector = List[int]
 @dataclass
 class FeatureTreeNode:
     """Node in a feature tree."""
+
     value: int  # Split value
     feature: int  # Feature index used for splitting
     left: FeatureTree  # Left subtree
@@ -30,6 +42,7 @@ class FeatureTreeNode:
 @dataclass
 class FeatureTree:
     """Feature tree data structure."""
+
     features: Callable[[T], FeatureVector]  # Function to extract features from elements
     tree: Union[List[Tuple[FeatureVector, List[T]]], FeatureTreeNode]  # Tree structure
 
@@ -59,7 +72,9 @@ def empty(features: Callable[[T], FeatureVector]) -> FeatureTree[T]:
     return FeatureTree(features, [])
 
 
-def insert_bucket(fv: FeatureVector, elt: T, buckets: List[Tuple[FeatureVector, List[T]]]) -> List[Tuple[FeatureVector, List[T]]]:
+def insert_bucket(
+    fv: FeatureVector, elt: T, buckets: List[Tuple[FeatureVector, List[T]]]
+) -> List[Tuple[FeatureVector, List[T]]]:
     """Insert an element into a list of buckets."""
     for i, (fv_bucket, elts) in enumerate(buckets):
         cmp = compare_feature_vectors(fv, fv_bucket)
@@ -77,7 +92,9 @@ def insert_bucket(fv: FeatureVector, elt: T, buckets: List[Tuple[FeatureVector, 
     return buckets
 
 
-def make_tree(num_features: int, bucket: List[Tuple[FeatureVector, List[T]]]) -> Union[List[Tuple[FeatureVector, List[T]]], FeatureTreeNode]:
+def make_tree(
+    num_features: int, bucket: List[Tuple[FeatureVector, List[T]]]
+) -> Union[List[Tuple[FeatureVector, List[T]]], FeatureTreeNode]:
     """Build a tree from a bucket of elements."""
     if len(bucket) <= 4:  # bucket_size = 4
         return bucket
@@ -104,7 +121,9 @@ def make_tree(num_features: int, bucket: List[Tuple[FeatureVector, List[T]]]) ->
 
     for i in range(num_features):
         balance = abs(mid - counts[i])
-        if balance < best_balance or (balance == best_balance and random.random() < 0.5):
+        if balance < best_balance or (
+            balance == best_balance and random.random() < 0.5
+        ):
             best_balance = balance
             best_feature = i
 
@@ -126,11 +145,13 @@ def make_tree(num_features: int, bucket: List[Tuple[FeatureVector, List[T]]]) ->
         value=ref_fv[best_feature],
         feature=best_feature,
         left=FeatureTree(bucket[0][1][0].__class__() if bucket else None, left_tree),  # type: ignore
-        right=FeatureTree(bucket[0][1][0].__class__() if bucket else None, right_tree)  # type: ignore
+        right=FeatureTree(bucket[0][1][0].__class__() if bucket else None, right_tree),  # type: ignore
     )
 
 
-def of_list(features: Callable[[T], FeatureVector], elements: List[T]) -> FeatureTree[T]:
+def of_list(
+    features: Callable[[T], FeatureVector], elements: List[T]
+) -> FeatureTree[T]:
     """Create a feature tree from a list of elements."""
     if not elements:
         return empty(features)
@@ -172,7 +193,9 @@ def insert(element: T, tree: FeatureTree[T]) -> FeatureTree[T]:
     fv = tree.features(element)
     num_features = len(fv)
 
-    def insert_into_tree(t: Union[List[Tuple[FeatureVector, List[T]]], FeatureTreeNode]) -> Union[List[Tuple[FeatureVector, List[T]]], FeatureTreeNode]:
+    def insert_into_tree(
+        t: Union[List[Tuple[FeatureVector, List[T]]], FeatureTreeNode],
+    ) -> Union[List[Tuple[FeatureVector, List[T]]], FeatureTreeNode]:
         if isinstance(t, list):
             # Leaf node - insert into buckets
             return insert_bucket(fv, element, t)
@@ -183,22 +206,25 @@ def insert(element: T, tree: FeatureTree[T]) -> FeatureTree[T]:
                     value=t.value,
                     feature=t.feature,
                     left=FeatureTree(tree.features, insert_into_tree(t.left.tree)),
-                    right=t.right
+                    right=t.right,
                 )
             else:
                 return FeatureTreeNode(
                     value=t.value,
                     feature=t.feature,
                     left=t.left,
-                    right=FeatureTree(tree.features, insert_into_tree(t.right.tree))
+                    right=FeatureTree(tree.features, insert_into_tree(t.right.tree)),
                 )
 
     new_tree = insert_into_tree(tree.tree)
     return FeatureTree(tree.features, new_tree)
 
 
-def find_leq(fv: FeatureVector, predicate: Callable[[T], bool], tree: FeatureTree[T]) -> Optional[T]:
+def find_leq(
+    fv: FeatureVector, predicate: Callable[[T], bool], tree: FeatureTree[T]
+) -> Optional[T]:
     """Find an element with features <= fv that satisfies the predicate."""
+
     def find_in_buckets(buckets: List[Tuple[FeatureVector, List[T]]]) -> Optional[T]:
         for fv_bucket, elts in buckets:
             if feature_vector_leq(fv_bucket, fv):
@@ -207,7 +233,9 @@ def find_leq(fv: FeatureVector, predicate: Callable[[T], bool], tree: FeatureTre
                         return elt
         return None
 
-    def find_in_tree(t: Union[List[Tuple[FeatureVector, List[T]]], FeatureTreeNode]) -> Optional[T]:
+    def find_in_tree(
+        t: Union[List[Tuple[FeatureVector, List[T]]], FeatureTreeNode],
+    ) -> Optional[T]:
         if isinstance(t, list):
             return find_in_buckets(t)
         else:
@@ -226,8 +254,11 @@ def find_leq(fv: FeatureVector, predicate: Callable[[T], bool], tree: FeatureTre
     return find_in_tree(tree.tree)
 
 
-def find_leq_map(fv: FeatureVector, f: Callable[[T], Optional[Any]], tree: FeatureTree[T]) -> Optional[Any]:
+def find_leq_map(
+    fv: FeatureVector, f: Callable[[T], Optional[Any]], tree: FeatureTree[T]
+) -> Optional[Any]:
     """Find an element with features <= fv where f is defined, return f(element)."""
+
     def find_in_buckets(buckets: List[Tuple[FeatureVector, List[T]]]) -> Optional[Any]:
         for fv_bucket, elts in buckets:
             if feature_vector_leq(fv_bucket, fv):
@@ -237,7 +268,9 @@ def find_leq_map(fv: FeatureVector, f: Callable[[T], Optional[Any]], tree: Featu
                         return result
         return None
 
-    def find_in_tree(t: Union[List[Tuple[FeatureVector, List[T]]], FeatureTreeNode]) -> Optional[Any]:
+    def find_in_tree(
+        t: Union[List[Tuple[FeatureVector, List[T]]], FeatureTreeNode],
+    ) -> Optional[Any]:
         if isinstance(t, list):
             return find_in_buckets(t)
         else:
@@ -256,11 +289,15 @@ def find_leq_map(fv: FeatureVector, f: Callable[[T], Optional[Any]], tree: Featu
     return find_in_tree(tree.tree)
 
 
-def remove(equal: Callable[[T, T], bool], element: T, tree: FeatureTree[T]) -> FeatureTree[T]:
+def remove(
+    equal: Callable[[T, T], bool], element: T, tree: FeatureTree[T]
+) -> FeatureTree[T]:
     """Remove an element from the feature tree."""
     fv = tree.features(element)
 
-    def remove_from_buckets(buckets: List[Tuple[FeatureVector, List[T]]]) -> List[Tuple[FeatureVector, List[T]]]:
+    def remove_from_buckets(
+        buckets: List[Tuple[FeatureVector, List[T]]],
+    ) -> List[Tuple[FeatureVector, List[T]]]:
         result = []
         for fv_bucket, elts in buckets:
             if compare_feature_vectors(fv_bucket, fv) == 0:
@@ -272,7 +309,9 @@ def remove(equal: Callable[[T, T], bool], element: T, tree: FeatureTree[T]) -> F
                 result.append((fv_bucket, elts))
         return result
 
-    def remove_from_tree(t: Union[List[Tuple[FeatureVector, List[T]]], FeatureTreeNode]) -> Union[List[Tuple[FeatureVector, List[T]]], FeatureTreeNode]:
+    def remove_from_tree(
+        t: Union[List[Tuple[FeatureVector, List[T]]], FeatureTreeNode],
+    ) -> Union[List[Tuple[FeatureVector, List[T]]], FeatureTreeNode]:
         if isinstance(t, list):
             return remove_from_buckets(t)
         else:
@@ -282,14 +321,14 @@ def remove(equal: Callable[[T, T], bool], element: T, tree: FeatureTree[T]) -> F
                     value=t.value,
                     feature=t.feature,
                     left=FeatureTree(tree.features, remove_from_tree(t.left.tree)),
-                    right=t.right
+                    right=t.right,
                 )
             else:
                 return FeatureTreeNode(
                     value=t.value,
                     feature=t.feature,
                     left=t.left,
-                    right=FeatureTree(tree.features, remove_from_tree(t.right.tree))
+                    right=FeatureTree(tree.features, remove_from_tree(t.right.tree)),
                 )
 
     new_tree = remove_from_tree(tree.tree)
@@ -298,7 +337,10 @@ def remove(equal: Callable[[T, T], bool], element: T, tree: FeatureTree[T]) -> F
 
 def rebalance(tree: FeatureTree[T]) -> FeatureTree[T]:
     """Rebalance a feature tree."""
-    def collect_buckets(t: Union[List[Tuple[FeatureVector, List[T]]], FeatureTreeNode]) -> List[Tuple[FeatureVector, List[T]]]:
+
+    def collect_buckets(
+        t: Union[List[Tuple[FeatureVector, List[T]]], FeatureTreeNode],
+    ) -> List[Tuple[FeatureVector, List[T]]]:
         if isinstance(t, list):
             return t
         else:
@@ -320,7 +362,10 @@ def rebalance(tree: FeatureTree[T]) -> FeatureTree[T]:
 
 def enum(tree: FeatureTree[T]) -> List[T]:
     """Convert the feature tree to a list of all elements."""
-    def collect_elements(t: Union[List[Tuple[FeatureVector, List[T]]], FeatureTreeNode]) -> List[T]:
+
+    def collect_elements(
+        t: Union[List[Tuple[FeatureVector, List[T]]], FeatureTreeNode],
+    ) -> List[T]:
         if isinstance(t, list):
             result = []
             for _, elts in t:

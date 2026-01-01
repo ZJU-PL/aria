@@ -13,8 +13,8 @@ Some APIs/functions for playing with Z3 expr (cont.)
 - to_dnf_boolean: Convert a boolean Z3 expression to DNF (more reliable for
   boolean expressions)
 """
-import z3
 
+import z3
 
 
 def ground_quantifier(qexpr):

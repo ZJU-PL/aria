@@ -3,7 +3,6 @@
 D. Eppstein, July 2006.
 """
 
-
 import unittest
 
 from aria.utils.pads import BipartiteMatching
@@ -25,6 +24,7 @@ def is_topological_order(graph, ordering):
                 return False
     return True
 
+
 def topological_order(graph):
     """Find a topological ordering of directed graph graph."""
     ordering = list(postorder(graph))
@@ -33,11 +33,13 @@ def topological_order(graph):
         raise ValueError("topological_order: graph is not acyclic.")
     return ordering
 
+
 def is_acyclic(graph):
     """Return True if graph is a directed acyclic graph, False otherwise."""
     ordering = list(postorder(graph))
     ordering.reverse()
     return is_topological_order(graph, ordering)
+
 
 def transitive_closure(graph):
     """
@@ -49,6 +51,7 @@ def transitive_closure(graph):
     for v in graph:
         tc[v].remove(v)
     return tc
+
 
 def trace_paths(graph):
     """
@@ -63,6 +66,7 @@ def trace_paths(graph):
     if path:
         yield path
 
+
 def minimum_path_decomposition(graph):
     """
     Cover a directed acyclic graph with a minimum number of paths.
@@ -74,6 +78,7 @@ def minimum_path_decomposition(graph):
             dag[matching[v]] = (v,)
     return trace_paths(dag)
 
+
 def minimum_chain_decomposition(graph):
     """
     Cover a partial order with a minimum number of chains.
@@ -82,6 +87,7 @@ def minimum_chain_decomposition(graph):
     a directed acyclic graph, not necessarily transitively closed.
     """
     return minimum_path_decomposition(transitive_closure(graph))
+
 
 def maximum_antichain(graph):
     """
@@ -93,11 +99,12 @@ def maximum_antichain(graph):
     matching, set_a, set_b = BipartiteMatching.matching(transitive_closure(graph))
     return set(set_a).intersection(set_b)
 
+
 class PartialOrderTest(unittest.TestCase):
     cube = {i: [] for i in range(16)}
     for i in range(16):
-        for b in (1,2,4,8):
-            cube[min(i,i^b)].append(max(i,i^b))
+        for b in (1, 2, 4, 8):
+            cube[min(i, i ^ b)].append(max(i, i ^ b))
 
     def test_hypercube_acyclic(self):
         self.assertTrue(is_acyclic(self.cube))
@@ -105,17 +112,17 @@ class PartialOrderTest(unittest.TestCase):
     def test_hypercube_closure(self):
         tc = transitive_closure(self.cube)
         for i in range(16):
-            self.assertEqual(tc[i],
-                {j for j in range(16) if i & j == i and i != j})
+            self.assertEqual(tc[i], {j for j in range(16) if i & j == i and i != j})
 
     def test_hypercube_antichain(self):
         antichain = maximum_antichain(self.cube)
-        self.assertEqual(antichain,set((3,5,6,9,10,12)))
+        self.assertEqual(antichain, set((3, 5, 6, 9, 10, 12)))
 
     def test_hypercube_dilworth(self):
         chain_decomp = list(minimum_chain_decomposition(self.cube))
         print(chain_decomp)
-        self.assertEqual(len(chain_decomp),6)
+        self.assertEqual(len(chain_decomp), 6)
+
 
 if __name__ == "__main__":
     unittest.main()

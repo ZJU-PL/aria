@@ -4,9 +4,15 @@ Tests for the algebraic structures module.
 
 import unittest
 from aria.srk.algebra import (
-    Semigroup, Ring, Semilattice, Lattice,
-    IntegerRing, RationalRing,
-    is_commutative_semigroup, is_associative_semigroup, is_ring
+    Semigroup,
+    Ring,
+    Semilattice,
+    Lattice,
+    IntegerRing,
+    RationalRing,
+    is_commutative_semigroup,
+    is_associative_semigroup,
+    is_ring,
 )
 
 
@@ -25,8 +31,10 @@ class TestIntegerRing(unittest.TestCase):
 
         # Test distributivity
         a, b, c = 2, 3, 4
-        self.assertEqual(IntegerRing.mul(a, IntegerRing.add(b, c)),
-                        IntegerRing.add(IntegerRing.mul(a, b), IntegerRing.mul(a, c)))
+        self.assertEqual(
+            IntegerRing.mul(a, IntegerRing.add(b, c)),
+            IntegerRing.add(IntegerRing.mul(a, b), IntegerRing.mul(a, c)),
+        )
 
     def test_operations(self):
         """Test basic arithmetic operations."""
@@ -85,6 +93,7 @@ class TestAlgebraicUtilities(unittest.TestCase):
 
     def test_invalid_cases(self):
         """Test that invalid cases return False."""
+
         # Test with a class that doesn't have mul method
         class BadRing:
             pass
@@ -103,6 +112,7 @@ class TestProtocols(unittest.TestCase):
 
     def test_semigroup_protocol(self):
         """Test that Semigroup protocol is properly defined."""
+
         # This is mainly a smoke test since protocols are structural
         class TestSemigroup:
             def mul(self, other):
@@ -114,13 +124,25 @@ class TestProtocols(unittest.TestCase):
 
     def test_ring_protocol(self):
         """Test that Ring protocol is properly defined."""
+
         class TestRing:
-            def equal(self, other): return self.value == other
-            def add(self, other): return self.value + other
-            def negate(self): return -self.value
-            def zero(self): return 0
-            def mul(self, other): return self.value * other
-            def one(self): return 1
+            def equal(self, other):
+                return self.value == other
+
+            def add(self, other):
+                return self.value + other
+
+            def negate(self):
+                return -self.value
+
+            def zero(self):
+                return 0
+
+            def mul(self, other):
+                return self.value * other
+
+            def one(self):
+                return 1
 
         ring = TestRing()
         ring.value = 3
@@ -129,9 +151,13 @@ class TestProtocols(unittest.TestCase):
 
     def test_semilattice_protocol(self):
         """Test that Semilattice protocol is properly defined."""
+
         class TestSemilattice:
-            def join(self, other): return max(self.value, other)
-            def equal(self, other): return self.value == other
+            def join(self, other):
+                return max(self.value, other)
+
+            def equal(self, other):
+                return self.value == other
 
         sl = TestSemilattice()
         sl.value = 5
@@ -140,10 +166,16 @@ class TestProtocols(unittest.TestCase):
 
     def test_lattice_protocol(self):
         """Test that Lattice protocol is properly defined."""
+
         class TestLattice:
-            def join(self, other): return max(self.value, other)
-            def meet(self, other): return min(self.value, other)
-            def equal(self, other): return self.value == other
+            def join(self, other):
+                return max(self.value, other)
+
+            def meet(self, other):
+                return min(self.value, other)
+
+            def equal(self, other):
+                return self.value == other
 
         lat = TestLattice()
         lat.value = 5
@@ -151,5 +183,5 @@ class TestProtocols(unittest.TestCase):
         self.assertEqual(lat.meet(3), 3)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

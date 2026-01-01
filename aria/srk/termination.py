@@ -11,9 +11,25 @@ from fractions import Fraction
 from dataclasses import dataclass, field
 
 from aria.srk.syntax import (
-    Context, Symbol, Type, FormulaExpression, ArithExpression,
-    mk_real, mk_const, mk_add, mk_mul, mk_leq, mk_lt, mk_eq, mk_and, mk_or,
-    mk_not, mk_true, mk_false, mk_neg, symbols
+    Context,
+    Symbol,
+    Type,
+    FormulaExpression,
+    ArithExpression,
+    mk_real,
+    mk_const,
+    mk_add,
+    mk_mul,
+    mk_leq,
+    mk_lt,
+    mk_eq,
+    mk_and,
+    mk_or,
+    mk_not,
+    mk_true,
+    mk_false,
+    mk_neg,
+    symbols,
 )
 from aria.srk.polynomial import Polynomial, Monomial
 from aria.srk.linear import QQVector, QQMatrix, QQVectorSpace
@@ -36,7 +52,9 @@ class RankingFunction:
 class TerminationResult:
     """Result of termination analysis."""
 
-    def __init__(self, terminates: bool, ranking_function: Optional[RankingFunction] = None):
+    def __init__(
+        self, terminates: bool, ranking_function: Optional[RankingFunction] = None
+    ):
         self.terminates = terminates
         self.ranking_function = ranking_function
 
@@ -53,8 +71,12 @@ class TerminationResult:
 class LinearRankingFunction:
     """Linear ranking function of the form c^T * x + d."""
 
-    def __init__(self, coefficients: QQVector, constant: Fraction = Fraction(0),
-                 symbol_map: Optional[Dict[int, Symbol]] = None):
+    def __init__(
+        self,
+        coefficients: QQVector,
+        constant: Fraction = Fraction(0),
+        symbol_map: Optional[Dict[int, Symbol]] = None,
+    ):
         self.coefficients = coefficients
         self.constant = constant
         self.symbol_map = symbol_map or {}
@@ -70,6 +92,7 @@ class LinearRankingFunction:
                 if symbol in values:
                     # Use qQ module functions
                     import aria.srk.qQ as qQ
+
                     result = qQ.add(result, qQ.mul(coeff, values[symbol]))
 
         return result
@@ -113,7 +136,7 @@ class TerminationAnalyzer:
             # Collect symbols appearing in transitions
             used_syms: List[Symbol] = []
             for tr in transitions:
-                if hasattr(tr, 'uses'):
+                if hasattr(tr, "uses"):
                     for s in tr.uses():
                         if s not in used_syms:
                             used_syms.append(s)
@@ -122,7 +145,9 @@ class TerminationAnalyzer:
                 return TerminationResult(False)
 
             # Create a simple linear ranking function f(x) = -x_0
-            coeffs = QQVector({0: QQ.one().negate() if hasattr(QQ.one(), 'negate') else -QQ.one()})
+            coeffs = QQVector(
+                {0: QQ.one().negate() if hasattr(QQ.one(), "negate") else -QQ.one()}
+            )
             symbol_map = {0: used_syms[0]}
             lrf = LinearRankingFunction(coeffs, QQ.zero(), symbol_map)
             rf_term = lrf.to_term(self.context)
@@ -131,10 +156,9 @@ class TerminationAnalyzer:
             logf(f"Error analyzing transitions: {e}")
             return TerminationResult(False)
 
-    def synthesize_linear_ranking_function(self,
-                                          pre_vars: List[Symbol],
-                                          post_vars: List[Symbol],
-                                          guard: FormulaExpression) -> Optional[LinearRankingFunction]:
+    def synthesize_linear_ranking_function(
+        self, pre_vars: List[Symbol], post_vars: List[Symbol], guard: FormulaExpression
+    ) -> Optional[LinearRankingFunction]:
         """
         Synthesize a linear ranking function for a transition relation.
 
@@ -181,15 +205,21 @@ class TerminationAnalyzer:
             logf(f"Error synthesizing linear ranking function: {e}")
             return None
 
-    def synthesize_ranking_function(self, transition_formula: Any) -> Optional[RankingFunction]:
+    def synthesize_ranking_function(
+        self, transition_formula: Any
+    ) -> Optional[RankingFunction]:
         """Synthesize a ranking function for a transition formula."""
         try:
             # Extract pre/post variables from transition formula
-            if hasattr(transition_formula, 'symbols'):
+            if hasattr(transition_formula, "symbols"):
                 var_pairs = transition_formula.symbols()
                 pre_vars = [pre for pre, _ in var_pairs]
                 post_vars = [post for _, post in var_pairs]
-                guard = transition_formula.formula() if hasattr(transition_formula, 'formula') else None
+                guard = (
+                    transition_formula.formula()
+                    if hasattr(transition_formula, "formula")
+                    else None
+                )
             else:
                 # Fallback: try to find variables in the formula
                 pre_vars = []
@@ -200,7 +230,9 @@ class TerminationAnalyzer:
                 return None
 
             # Try to synthesize a linear ranking function
-            linear_rf = self.synthesize_linear_ranking_function(pre_vars, post_vars, guard)
+            linear_rf = self.synthesize_linear_ranking_function(
+                pre_vars, post_vars, guard
+            )
 
             if linear_rf:
                 # Convert to term for RankingFunction
@@ -260,7 +292,9 @@ class TerminationLLRF:
     def __init__(self, context: Context):
         self.context = context
 
-    def synthesize(self, transition_formula: Any) -> Optional[LexicographicRankingFunction]:
+    def synthesize(
+        self, transition_formula: Any
+    ) -> Optional[LexicographicRankingFunction]:
         """
         Synthesize a lexicographic ranking function.
 
@@ -269,7 +303,7 @@ class TerminationLLRF:
         """
         try:
             # Extract variables from transition formula
-            if hasattr(transition_formula, 'symbols'):
+            if hasattr(transition_formula, "symbols"):
                 var_pairs = list(transition_formula.symbols)
                 pre_vars = [pre for pre, _ in var_pairs]
             else:
@@ -284,7 +318,11 @@ class TerminationLLRF:
             linear_rf = analyzer.synthesize_linear_ranking_function(
                 pre_vars,
                 [post for _, post in var_pairs],
-                transition_formula.formula if hasattr(transition_formula, 'formula') else None
+                (
+                    transition_formula.formula
+                    if hasattr(transition_formula, "formula")
+                    else None
+                ),
             )
 
             if linear_rf:
@@ -375,7 +413,9 @@ def make_exp_analyzer(context: Context) -> TerminationExp:
     return TerminationExp(context)
 
 
-def prove_termination(transition_formula: Any, context: Optional[Context] = None) -> TerminationResult:
+def prove_termination(
+    transition_formula: Any, context: Optional[Context] = None
+) -> TerminationResult:
     """Prove termination of a transition formula."""
     ctx = context or Context()
     analyzer = TerminationAnalyzer(ctx)

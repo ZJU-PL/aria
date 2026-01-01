@@ -10,9 +10,9 @@ import re
 
 def convert_to_smt(slfile, smtfile):
     """Convert a SyGuS file to SMT format."""
-    with open(slfile, 'r', encoding='utf-8') as f:
+    with open(slfile, "r", encoding="utf-8") as f:
         lines = f.readlines()
-    content = ''
+    content = ""
     flag = 0
     for line in lines:
         if line.startswith("(synth-fun"):
@@ -43,7 +43,7 @@ def convert_to_smt(slfile, smtfile):
             if "constraint" in line:
                 line = line.replace("constraint", "assert")
             content += line
-    with open(smtfile, "w", encoding='utf-8') as f:
+    with open(smtfile, "w", encoding="utf-8") as f:
         f.write(content)
 
 
@@ -55,6 +55,6 @@ def convert_sl_to_smt(file):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--file', type=str, help="sl file", dest='file')
+    parser.add_argument("--file", type=str, help="sl file", dest="file")
     args = parser.parse_args()
     convert_sl_to_smt(args.file)

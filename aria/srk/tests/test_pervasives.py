@@ -6,8 +6,16 @@ This module tests basic utility functions that are commonly used throughout SRK.
 
 import unittest
 from aria.srk.util import (
-    IntSet, IntMap, Counter, Stack, Queue, PriorityQueue,
-    make_int_set, make_int_map, binary_search, merge_arrays
+    IntSet,
+    IntMap,
+    Counter,
+    Stack,
+    Queue,
+    PriorityQueue,
+    make_int_set,
+    make_int_map,
+    binary_search,
+    merge_arrays,
 )
 
 
@@ -165,5 +173,5 @@ class TestUtilityFunctions(unittest.TestCase):
         self.assertEqual(result, [1, 2, 3, 4, 5, 6])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

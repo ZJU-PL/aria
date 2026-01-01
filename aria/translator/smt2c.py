@@ -51,75 +51,93 @@ return 0;
 #    e.g., satisfiabiity checking; optimization
 # Operation kind mappings for concise type checking
 OP_KINDS = {
-    Z3_OP_UNINTERPRETED: 'literal',
-    Z3_OP_BNUM: 'bvconst',
-    Z3_OP_ITE: 'ite',
-    Z3_OP_IFF: 'iff',
-    Z3_OP_SGEQ: 'sge',
-    Z3_OP_SGT: 'sgt',
-    Z3_OP_SLEQ: 'sle',
-    Z3_OP_SLT: 'slt',
-    Z3_OP_BADD: 'badd',
-    Z3_OP_BSUB: 'bsub',
-    Z3_OP_BMUL: 'bmul',
-    Z3_OP_BSDIV: 'bsdiv',
-    Z3_OP_BSMOD: 'bsmod',
-    Z3_OP_BAND: 'band',
-    Z3_OP_BOR: 'bor',
-    Z3_OP_BLSHR: 'blshift_r',
-    Z3_OP_BSHL: 'bshift_l'
+    Z3_OP_UNINTERPRETED: "literal",
+    Z3_OP_BNUM: "bvconst",
+    Z3_OP_ITE: "ite",
+    Z3_OP_IFF: "iff",
+    Z3_OP_SGEQ: "sge",
+    Z3_OP_SGT: "sgt",
+    Z3_OP_SLEQ: "sle",
+    Z3_OP_SLT: "slt",
+    Z3_OP_BADD: "badd",
+    Z3_OP_BSUB: "bsub",
+    Z3_OP_BMUL: "bmul",
+    Z3_OP_BSDIV: "bsdiv",
+    Z3_OP_BSMOD: "bsmod",
+    Z3_OP_BAND: "band",
+    Z3_OP_BOR: "bor",
+    Z3_OP_BLSHR: "blshift_r",
+    Z3_OP_BSHL: "bshift_l",
 }
+
 
 def is_op_kind(e, op_kind):
     return e.decl().kind() == op_kind
 
+
 def is_literal(e):
     return is_const(e) and is_op_kind(e, Z3_OP_UNINTERPRETED)
+
 
 def is_bvconst(e):
     return is_const(e) and is_op_kind(e, Z3_OP_BNUM)
 
+
 def is_ite(e):
     return is_op_kind(e, Z3_OP_ITE)
+
 
 def is_iff(e):
     return is_op_kind(e, Z3_OP_IFF)
 
+
 def is_sge(e):
     return is_op_kind(e, Z3_OP_SGEQ)
+
 
 def is_sgt(e):
     return is_op_kind(e, Z3_OP_SGT)
 
+
 def is_sle(e):
     return is_op_kind(e, Z3_OP_SLEQ)
+
 
 def is_slt(e):
     return is_op_kind(e, Z3_OP_SLT)
 
+
 def is_badd(e):
     return is_op_kind(e, Z3_OP_BADD)
+
 
 def is_bsub(e):
     return is_op_kind(e, Z3_OP_BSUB)
 
+
 def is_bmul(e):
     return is_op_kind(e, Z3_OP_BMUL)
+
 
 def is_bsdiv(e):
     return is_op_kind(e, Z3_OP_BSDIV)
 
+
 def is_bsmod(e):
     return is_op_kind(e, Z3_OP_BSMOD)
+
 
 def is_band(e):
     return is_op_kind(e, Z3_OP_BAND)
 
+
 def is_bor(e):
     return is_op_kind(e, Z3_OP_BOR)
 
+
 def is_blshift_r(e):
     return is_op_kind(e, Z3_OP_BLSHR)
+
 
 def is_bshift_l(e):
     return is_op_kind(e, Z3_OP_BSHL)
@@ -132,7 +150,7 @@ def find_var_bounds(clauses):
 
     for clause in clauses:
         children = clause.children()
-        '''
+        """
         if is_sge(clause):
             input_vars[children[0]][0] = children[1].as_long()
         elif is_sgt(clause):
@@ -143,7 +161,7 @@ def find_var_bounds(clauses):
             input_vars[children[0]][1] = children[1].as_long() - 1
         else:
             to_process.append(clause)
-        '''
+        """
         tt = children[1]
         if is_sge(clause):
             # BitVecVal(tt, tt.size())
@@ -160,7 +178,7 @@ def find_var_bounds(clauses):
     return input_vars, to_process
 
 
-def compile_to_c(formula, mode='counting'):
+def compile_to_c(formula, mode="counting"):
     """Compile formula to C code. Mode can be 'counting' or 'sat'."""
     # don't go deep now, just find out the bounds
     input_vars, to_process = find_var_bounds(formula.children())
@@ -178,15 +196,27 @@ def compile_to_c(formula, mode='counting'):
         for boolean_expr in c_visitor(clause):
             line = "    if (!({})) {{\n     continue;\n    }} \n".format(boolean_expr)
             filters.append(line)
-            for oprt in ['+', '-', '*', '/', '%', ' & ', ' | ', ' ^ ', ' ~ ', '>>', '<<']:
+            for oprt in [
+                "+",
+                "-",
+                "*",
+                "/",
+                "%",
+                " & ",
+                " | ",
+                " ^ ",
+                " ~ ",
+                ">>",
+                "<<",
+            ]:
                 n_ops += line.count(oprt)
 
     full_loop = []
     full_loop.extend(loop)
     full_loop.extend(filters)
 
-    if mode == 'sat':
-        full_loop.append("  printf(\"Find model!\\n\");")
+    if mode == "sat":
+        full_loop.append('  printf("Find model!\\n");')
         full_loop.append("  return 0;")
         template = TEMPLATE_SAT
     else:  # counting mode
@@ -212,8 +242,9 @@ BINARY_OPS = {
     Z3_OP_BAND: ("&", None),
     Z3_OP_BOR: ("|", None),
     Z3_OP_BLSHR: (">>", "(unsigned int){}"),
-    Z3_OP_BSHL: ("<<", None)
+    Z3_OP_BSHL: ("<<", None),
 }
+
 
 def handle_binary_op(e, operator, format_str=None):
     """Generic handler for binary operations"""
@@ -226,6 +257,7 @@ def handle_binary_op(e, operator, format_str=None):
         return format_str.format(",".join(clauses))
     else:
         return "(" + f" {operator} ".join(clauses) + ")"
+
 
 def c_visitor(e):
     if is_literal(e):
@@ -271,10 +303,11 @@ def c_visitor(e):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input', dest='input', type=str)
-    parser.add_argument('--mode', dest='mode', default='counting', type=str)
-    parser.add_argument("-v", "--verbose", help="increase output verbosity",
-                        action="store_true")
+    parser.add_argument("--input", dest="input", type=str)
+    parser.add_argument("--mode", dest="mode", default="counting", type=str)
+    parser.add_argument(
+        "-v", "--verbose", help="increase output verbosity", action="store_true"
+    )
     args = parser.parse_args()
     # inputfile = sys.argv[1]
     inputfile = args.input
@@ -288,5 +321,5 @@ def main():
     print(code)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

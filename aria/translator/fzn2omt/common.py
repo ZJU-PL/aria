@@ -17,6 +17,7 @@ from functools import partial
 # GENERIC #
 ###########
 
+
 def eprint(*args, **kwargs):
     """Prints an error message to stderr."""
     print(*args, file=sys.stderr, **kwargs)
@@ -25,6 +26,7 @@ def eprint(*args, **kwargs):
 #################
 # BINARY LOOKUP #
 #################
+
 
 def is_binary_in_path(name):
     """Returns True if binary found in path."""
@@ -46,6 +48,7 @@ def is_file_empty(file_path):
 # ARGPARSE HELP FUNCTIONS #
 ###########################
 
+
 def check_file_ext(extension=None):
     """Checks that the argument extension matches the given extension."""
 
@@ -56,8 +59,10 @@ def check_file_ext(extension=None):
             """Check that the argument extension matches the given extension"""
             ext = os.path.splitext(file.name)[1][1:]
             if extension and ext != extension:
-                option_string = '({})'.format(option_string) if option_string else ''
-                parser.error("file doesn't end with `{}' {}".format(extension, option_string))
+                option_string = "({})".format(option_string) if option_string else ""
+                parser.error(
+                    "file doesn't end with `{}' {}".format(extension, option_string)
+                )
             else:
                 setattr(namespace, self.dest, file.name)
 
@@ -73,7 +78,7 @@ def check_finite_precision():
         def __call__(self, parser, namespace, value, option_string=None):
             """Check that the argument finite precision matches the given restriction."""
             if value < 2:
-                option_string = '({})'.format(option_string) if option_string else ''
+                option_string = "({})".format(option_string) if option_string else ""
                 parser.error("minimum finite precision is 2 {}".format(option_string))
             else:
                 setattr(namespace, self.dest, value)
@@ -85,9 +90,10 @@ def check_finite_precision():
 # FLATZINC MODEL INSPECTION #
 #############################
 
+
 def is_optimization_problem(fzn_file):
     """Checks whether the FlatZinc problem contains an optimization goal."""
-    with io.open(fzn_file, 'r', newline=None) as fd_fzn:
+    with io.open(fzn_file, "r", newline=None) as fd_fzn:
         with mmap.mmap(fd_fzn.fileno(), 0, access=mmap.ACCESS_READ) as fd_mmap:
             return re.search(b"solve .*satisfy;", fd_mmap) is None
 
@@ -96,20 +102,21 @@ def is_optimization_problem(fzn_file):
 # SMTLIB FORMULA INSPECTION #
 #############################
 
+
 def match_check_sat(bline):
     """Matches (check-sat) in the given argument."""
-    regex = re.compile(br"^\(check-sat\)\r?$")
+    regex = re.compile(rb"^\(check-sat\)\r?$")
     return re.match(regex, bline)
 
 
 def match_objective(bline):
     """Matches an optimization goal declaration
     in the given argument."""
-    regex = re.compile(br"^\((minimize|maximize) ([^:]*?) ?(:signed)?\)\r?$")
+    regex = re.compile(rb"^\((minimize|maximize) ([^:]*?) ?(:signed)?\)\r?$")
     match = re.match(regex, bline)
     if match:
         obj = argparse.Namespace()
-        obj.minimize = match[1] == b'minimize'
+        obj.minimize = match[1] == b"minimize"
         obj.term = match[2].decode("utf-8")
         obj.bv_width = 0
         match = obj
@@ -122,7 +129,7 @@ def replace_sbv_to_int(config, bline):
     SMT-LIB compatible encoding"""
     assert config.bv_enc
 
-    regex_sbv = re.compile(br"\(sbv_to_int ([\w\_\-.]*?)\)")
+    regex_sbv = re.compile(rb"\(sbv_to_int ([\w\_\-.]*?)\)")
 
     while True:
 
@@ -135,13 +142,14 @@ def replace_sbv_to_int(config, bline):
 
         var = bv_var.decode("utf-8")
         msb = bv_width - 1
-        dsp = 2 ** bv_width
-        expr = (f"(ite (= ((_ extract {msb} {msb}) {var}) #b0) "
-                f"     (bv2nat {var}) "
-                f"     (- (bv2nat {var}) {dsp}))")
+        dsp = 2**bv_width
+        expr = (
+            f"(ite (= ((_ extract {msb} {msb}) {var}) #b0) "
+            f"     (bv2nat {var}) "
+            f"     (- (bv2nat {var}) {dsp}))"
+        )
 
-        bline = bline.replace(b"(sbv_to_int %b)" % bv_var,
-                              expr.encode("utf-8"))
+        bline = bline.replace(b"(sbv_to_int %b)" % bv_var, expr.encode("utf-8"))
 
     return bline
 
@@ -153,18 +161,23 @@ def extract_bv_var_width(config, bv_var):
     assert not is_file_empty(config.smt2)
 
     width = -1
-    with io.open(config.smt2, 'rt', newline=None) as in_f:
+    with io.open(config.smt2, "rt", newline=None) as in_f:
         with mmap.mmap(in_f.fileno(), 0, access=mmap.ACCESS_READ) as formula:
 
-            regex_decl = re.compile((br"\((?:define|declare)-fun +%b +"
-                                     br"\(\) \(_ BitVec ([0-9]+)\)") % bv_var)
+            regex_decl = re.compile(
+                (rb"\((?:define|declare)-fun +%b +" rb"\(\) \(_ BitVec ([0-9]+)\)")
+                % bv_var
+            )
 
             match = re.search(regex_decl, formula)
             if match:
                 width = int(match.group(1))
             else:
-                raise Exception(("error: failed to determine "
-                                 "BitVec width of `{}`").format(bv_var.decode("utf-8")))
+                raise Exception(
+                    ("error: failed to determine " "BitVec width of `{}`").format(
+                        bv_var.decode("utf-8")
+                    )
+                )
 
     return width
 
@@ -172,6 +185,7 @@ def extract_bv_var_width(config, bv_var):
 ###################
 # SMT-LIB FORMULA #
 ###################
+
 
 def get_smtlib_header_lines(config, solver):
     """Yields the header for the SMT-LIB file."""
@@ -188,12 +202,15 @@ def get_smtlib_header_lines(config, solver):
 # SMT-LIB OUTPUT CONVERSION #
 #############################
 
+
 def smtlib_to_python(value):
     """Converts a constant SMT-LIB value to
     a Python type."""
-    funcs = [smtlib_bool_to_python_bool,
-             smtlib_int_to_python_int,
-             smtlib_real_to_python_fraction]
+    funcs = [
+        smtlib_bool_to_python_bool,
+        smtlib_int_to_python_int,
+        smtlib_real_to_python_fraction,
+    ]
     ret = None
     counter = 0
     for func in funcs:
@@ -230,7 +247,7 @@ def smtlib_bool_to_python_bool(value):
     to bool."""
     ret = None
     if value in ("true", "false"):
-        ret = (value == "true")
+        ret = value == "true"
     return ret
 
 
@@ -241,7 +258,7 @@ def smtlib_int_to_python_int(value):
     try:
         match = re.match(regex_min, value)
         if match:
-            ret = - int(match.group(1))
+            ret = -int(match.group(1))
         else:
             ret = int(value)
     except ValueError:
@@ -254,8 +271,12 @@ def smtlib_real_to_python_fraction(value):
     to Fraction."""
     ret = None
 
-    regex_frac = re.compile((r"(?:\(- )?\( ?/ ([^\.]+)(?:\.0)? "
-                             r"([^\.]+)(?:\.0)? ?\)(?:\)?)|([^\(]*)/(.*)"))
+    regex_frac = re.compile(
+        (
+            r"(?:\(- )?\( ?/ ([^\.]+)(?:\.0)? "
+            r"([^\.]+)(?:\.0)? ?\)(?:\)?)|([^\(]*)/(.*)"
+        )
+    )
     regex_min = re.compile(r"\( ?- (.*) ?\)")
 
     match = re.match(regex_frac, value)
@@ -264,9 +285,9 @@ def smtlib_real_to_python_fraction(value):
 
         match = re.match(regex_min, num)
         if match:  # barcelogic
-            num = - int(match.group(1))
+            num = -int(match.group(1))
         elif re.match(regex_min, value):  # z3
-            num = - int(num)
+            num = -int(num)
 
         ret = Fraction(int(num), int(den))
     else:
@@ -286,7 +307,7 @@ def smtlib_bv_to_python_int(value):
     if match:
         num, bits = map(int, match.groups())
         if num >= (2 ** (bits - 1)):
-            num -= (2 ** bits)
+            num -= 2**bits
         ret = num
     return ret
 
@@ -364,7 +385,7 @@ def model_value_to_str(config, term):  # pylint: disable=R0912
         for sub_term in term:
             ret.append(model_value_to_str(config, sub_term))
         # throw away quotes
-        ret = "[{}]".format(', '.join(ret))
+        ret = "[{}]".format(", ".join(ret))
 
     if ret is None:
         raise Exception("error: model_value_to_str; please report this exception.")
@@ -389,7 +410,7 @@ def model_value(model, term):
 
             if isinstance(val, bool):
                 if val:
-                    val = int(sub_term[sub_term.rindex('.') + 1:])
+                    val = int(sub_term[sub_term.rindex(".") + 1 :])
                     ret.add(val)
             elif isinstance(val, int):
                 ret.add(val)
@@ -411,6 +432,7 @@ def model_value(model, term):
 #########################
 # MODEL AUTO-COMPLETION #
 #########################
+
 
 def extract_model_autocomplete(config, model, oskeleton):  # pylint: disable=R0914,R1721
     """Returns a dictionary assigning a value to
@@ -437,7 +459,7 @@ def extract_model_autocomplete(config, model, oskeleton):  # pylint: disable=R09
 
         cache = {}
 
-        with io.open(config.model, 'rt', newline=None) as in_f:
+        with io.open(config.model, "rt", newline=None) as in_f:
             with mmap.mmap(in_f.fileno(), 0, access=mmap.ACCESS_READ) as flatzinc:
 
                 for orphan in orphans:
@@ -449,15 +471,22 @@ def extract_model_autocomplete(config, model, oskeleton):  # pylint: disable=R09
                     else:
                         # inspect flatzinc file
                         for decl in var2decl[orphan]:
-                            regex = re.compile((rb'(?:array +\[.*\] of +)?(?:var)? *'
-                                                rb'(set +of)? *(bool|int|float|.*)?'
-                                                rb' *: *%b *(?:::|=|;)')
-                                               % decl.encode("utf-8"))
+                            regex = re.compile(
+                                (
+                                    rb"(?:array +\[.*\] of +)?(?:var)? *"
+                                    rb"(set +of)? *(bool|int|float|.*)?"
+                                    rb" *: *%b *(?:::|=|;)"
+                                )
+                                % decl.encode("utf-8")
+                            )
 
                             match = re.search(regex, flatzinc)
                             if match:
-                                value = False if match.group(1) is not None \
+                                value = (
+                                    False
+                                    if match.group(1) is not None
                                     else autocomplete_value(match.group(2))
+                                )
                                 autocomplete[orphan] = value
                                 cache[decl] = value
                                 break
@@ -487,6 +516,7 @@ def extract_variables(term):
 # SOLUTION SKELETON #
 #####################
 
+
 def extract_solution_skeleton(ovars_file):  # pylint: disable=R0914
     """Extracts the required solution skeleton,
     and also the mapping between FlatZinc and
@@ -498,7 +528,7 @@ def extract_solution_skeleton(ovars_file):  # pylint: disable=R0914
     regex_arr = re.compile(r"array(.*)d\((.*) (\[.*\])\)")
     regex_raw = re.compile(r"\{.+?\}|[^, \[\]]+")
 
-    with io.open(ovars_file, 'rt', newline=None) as in_f:
+    with io.open(ovars_file, "rt", newline=None) as in_f:
         with mmap.mmap(in_f.fileno(), 0, access=mmap.ACCESS_READ) as skeleton:
 
             # skip first line
@@ -516,8 +546,9 @@ def extract_solution_skeleton(ovars_file):  # pylint: disable=R0914
                 match = re.match(regex_arr, expr)
                 if match:
                     dim, decl, raw_arr = match.groups()
-                    out.str = partial("{0} = array{1}d({2} {3});".format,
-                                      out.decl, dim, decl)
+                    out.str = partial(
+                        "{0} = array{1}d({2} {3});".format, out.decl, dim, decl
+                    )
                     out.term = []
 
                     terms = re.findall(regex_raw, raw_arr)

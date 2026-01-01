@@ -15,12 +15,13 @@ from aria.srk.syntax import Context, Symbol, Expression, Type
 from aria.srk.interval import Interval
 
 
-T = TypeVar('T')
-S = TypeVar('S')  # State type
+T = TypeVar("T")
+S = TypeVar("S")  # State type
 
 
 class LabelType(Enum):
     """Type of transition label."""
+
     WEIGHT = "weight"
     CALL = "call"
 
@@ -28,6 +29,7 @@ class LabelType(Enum):
 @dataclass(frozen=True)
 class Label(Generic[T]):
     """A label on a transition system edge."""
+
     label_type: LabelType
     weight: Optional[T] = None
     call: Optional[Tuple[int, int]] = None  # (entry, exit) vertices for call edges
@@ -46,9 +48,11 @@ class Label(Generic[T]):
 class TransitionSystem(Generic[T]):
     """A transition system with labeled edges."""
 
-    def __init__(self,
-                 vertices: Optional[Set[int]] = None,
-                 edges: Optional[Dict[int, List[Tuple[int, Label[T]]]]] = None):
+    def __init__(
+        self,
+        vertices: Optional[Set[int]] = None,
+        edges: Optional[Dict[int, List[Tuple[int, Label[T]]]]] = None,
+    ):
         self.vertices = vertices or set()
         self.edges = edges or {}
 
@@ -63,7 +67,9 @@ class TransitionSystem(Generic[T]):
 
         return TransitionSystem(new_vertices, new_edges)
 
-    def add_edge(self, from_vertex: int, to_vertex: int, label: Label[T]) -> TransitionSystem[T]:
+    def add_edge(
+        self, from_vertex: int, to_vertex: int, label: Label[T]
+    ) -> TransitionSystem[T]:
         """Add an edge to the transition system."""
         # Ensure both vertices exist
         ts = self.add_vertex(from_vertex)
@@ -111,10 +117,9 @@ class TransitionSystem(Generic[T]):
 class Query(Generic[T]):
     """A query structure for computing path weights in transition systems."""
 
-    def __init__(self,
-                 transition_system: TransitionSystem[T],
-                 source: int,
-                 abstract_weight: Any):  # Would need proper abstract weight type
+    def __init__(
+        self, transition_system: TransitionSystem[T], source: int, abstract_weight: Any
+    ):  # Would need proper abstract weight type
         self.transition_system = transition_system
         self.source = source
         self.abstract_weight = abstract_weight
@@ -131,7 +136,9 @@ class Query(Generic[T]):
         # A full implementation would compute call-specific weights
         return self.abstract_weight
 
-    def omega_path_weight(self, omega_algebra: Any) -> Any:  # Would need proper omega algebra type
+    def omega_path_weight(
+        self, omega_algebra: Any
+    ) -> Any:  # Would need proper omega algebra type
         """Compute infinite path weights."""
         # Default implementation - return the abstract weight
         # A full implementation would handle infinite paths using omega algebra
@@ -153,7 +160,9 @@ class BoxAbstractDomain:
         """Return the bottom element (⊥)."""
         return {"__bottom__": Interval.bottom()}
 
-    def join(self, x: Dict[int, Interval], y: Dict[int, Interval]) -> Dict[int, Interval]:
+    def join(
+        self, x: Dict[int, Interval], y: Dict[int, Interval]
+    ) -> Dict[int, Interval]:
         """Compute the join of two interval stores."""
         if "__bottom__" in x:
             return y
@@ -172,7 +181,9 @@ class BoxAbstractDomain:
 
         return result
 
-    def meet(self, x: Dict[int, Interval], y: Dict[int, Interval]) -> Dict[int, Interval]:
+    def meet(
+        self, x: Dict[int, Interval], y: Dict[int, Interval]
+    ) -> Dict[int, Interval]:
         """Compute the meet of two interval stores."""
         if "__bottom__" in x or "__bottom__" in y:
             return self.bottom()
@@ -202,6 +213,7 @@ class BoxAbstractDomain:
             # x[var] ⊆ y[var]
             xv = x[var]
             yv = y[var]
+
             # inclusion: y.lower <= x.lower and x.upper <= y.upper, handling None as infinities
             def leq_bound(lo1, lo2):
                 if lo2 is None:
@@ -209,12 +221,14 @@ class BoxAbstractDomain:
                 if lo1 is None:
                     return False
                 return lo2 <= lo1
+
             def geq_bound(up1, up2):
                 if up2 is None:
                     return True
                 if up1 is None:
                     return False
                 return up1 <= up2
+
             if not (leq_bound(xv.lower, yv.lower) and geq_bound(xv.upper, yv.upper)):
                 return False
 
@@ -238,7 +252,7 @@ class BoxAbstractDomain:
         # Try to extract guard and transformation from transition
         try:
             # If transition is a label with weight
-            if hasattr(transition, 'label_type') and hasattr(transition, 'weight'):
+            if hasattr(transition, "label_type") and hasattr(transition, "weight"):
                 if transition.label_type == LabelType.CALL:
                     # For call edges, project to global variables only
                     result = {}
@@ -246,14 +260,17 @@ class BoxAbstractDomain:
                         if var_id != "__bottom__":  # Keep only "global" variables
                             result[var_id] = ivl
                     return result
-                elif transition.label_type == LabelType.WEIGHT and transition.weight is not None:
+                elif (
+                    transition.label_type == LabelType.WEIGHT
+                    and transition.weight is not None
+                ):
                     tr = transition.weight
                     # Extract guard and transformations
-                    if hasattr(tr, 'guard') and hasattr(tr, 'transform'):
+                    if hasattr(tr, "guard") and hasattr(tr, "transform"):
                         return self._post_with_transition(x, tr)
 
             # If transition has guard/transform directly
-            elif hasattr(transition, 'guard') and hasattr(transition, 'transform'):
+            elif hasattr(transition, "guard") and hasattr(transition, "transform"):
                 return self._post_with_transition(x, transition)
 
         except Exception:
@@ -262,7 +279,9 @@ class BoxAbstractDomain:
         # Default: return input unchanged (safe over-approximation)
         return x
 
-    def _post_with_transition(self, x: Dict[int, Interval], tr: Any) -> Dict[int, Interval]:
+    def _post_with_transition(
+        self, x: Dict[int, Interval], tr: Any
+    ) -> Dict[int, Interval]:
         """Helper to compute post-image with a concrete transition formula using Z3 optimization.
 
         This follows the approach from the OCaml implementation in src/transitionSystem.ml.
@@ -271,7 +290,7 @@ class BoxAbstractDomain:
             return self.bottom()
 
         # Check if we have access to the required modules
-        if not hasattr(tr, 'context') or tr.context is None:
+        if not hasattr(tr, "context") or tr.context is None:
             # Fallback to conservative approximation if no context
             return self._post_with_transition_fallback(x, tr)
 
@@ -280,7 +299,15 @@ class BoxAbstractDomain:
         try:
             # Import here to avoid circular imports
             from .srkZ3 import make_z3_context, optimize_box, Z3Result
-            from .syntax import mk_and, mk_leq, mk_geq, mk_var, mk_const, mk_symbol, mk_eq
+            from .syntax import (
+                mk_and,
+                mk_leq,
+                mk_geq,
+                mk_var,
+                mk_const,
+                mk_symbol,
+                mk_eq,
+            )
 
             context = tr.context
 
@@ -288,17 +315,17 @@ class BoxAbstractDomain:
             constraints = []
 
             # Add transition guard first
-            if hasattr(tr, 'guard'):
+            if hasattr(tr, "guard"):
                 constraints.append(tr.guard)
 
             # Get all variables that are used (read) by the transition
             used_vars = set()
-            if hasattr(tr, 'uses'):
+            if hasattr(tr, "uses"):
                 used_vars = tr.uses()
 
             # Get all variables that are defined (written to) by the transition
             defined_vars = set()
-            if hasattr(tr, 'defines'):
+            if hasattr(tr, "defines"):
                 defined_vars = set(tr.defines())
 
             # Variables that may be affected by the transition (defined + used in guard/transform)
@@ -312,12 +339,16 @@ class BoxAbstractDomain:
 
                     if interval.lower is not None:
                         # var >= lower_bound
-                        lower_expr = mk_geq(context, mk_var(context, var_id, Type.INT), interval.lower)
+                        lower_expr = mk_geq(
+                            context, mk_var(context, var_id, Type.INT), interval.lower
+                        )
                         constraints.append(lower_expr)
 
                     if interval.upper is not None:
                         # var <= upper_bound
-                        upper_expr = mk_leq(context, mk_var(context, var_id, Type.INT), interval.upper)
+                        upper_expr = mk_leq(
+                            context, mk_var(context, var_id, Type.INT), interval.upper
+                        )
                         constraints.append(upper_expr)
 
             # Combine all constraints
@@ -328,6 +359,7 @@ class BoxAbstractDomain:
             else:
                 # No constraints - use true
                 from .syntax import mk_true
+
                 guard_formula = mk_true(context)
 
             # Create objectives for all variables that may be affected by the transition
@@ -340,17 +372,21 @@ class BoxAbstractDomain:
                 if var_symbol in defined_vars:
                     # Variable is defined (modified) by the transition
                     # Use the transform expression as the objective
-                    if hasattr(tr, 'transform') and var_symbol in tr.transform:
+                    if hasattr(tr, "transform") and var_symbol in tr.transform:
                         transform_expr = tr.transform[var_symbol]
                         # Create a fresh symbol and equate it to the transform expression
-                        fresh_symbol = mk_symbol(context, f"obj_{var_id}", var_symbol.typ)
+                        fresh_symbol = mk_symbol(
+                            context, f"obj_{var_id}", var_symbol.typ
+                        )
                         fresh_var = mk_const(context, fresh_symbol)
                         objectives.append(fresh_var)
                         objective_map[var_id] = fresh_var
 
                         # Add constraint that fresh_var equals the transform expression
                         transform_constraint = mk_eq(context, fresh_var, transform_expr)
-                        guard_formula = mk_and(context, [guard_formula, transform_constraint])
+                        guard_formula = mk_and(
+                            context, [guard_formula, transform_constraint]
+                        )
                     else:
                         # Fallback: use the variable itself as objective
                         var_expr = mk_var(context, var_id, var_symbol.typ)
@@ -367,7 +403,11 @@ class BoxAbstractDomain:
             try:
                 opt_result, bounds = optimize_box(context, guard_formula, objectives)
 
-                if opt_result == Z3Result.SAT and bounds and len(bounds) == len(objectives):
+                if (
+                    opt_result == Z3Result.SAT
+                    and bounds
+                    and len(bounds) == len(objectives)
+                ):
                     # Assign computed intervals to result
                     for i, var_id in enumerate(objective_map.keys()):
                         if i < len(bounds):
@@ -412,15 +452,17 @@ class BoxAbstractDomain:
             # If anything goes wrong, fall back to conservative approximation
             return self._post_with_transition_fallback(x, tr)
 
-    def _post_with_transition_fallback(self, x: Dict[int, Interval], tr: Any) -> Dict[int, Interval]:
+    def _post_with_transition_fallback(
+        self, x: Dict[int, Interval], tr: Any
+    ) -> Dict[int, Interval]:
         """Fallback implementation for post-image computation."""
         # Conservatively widen all modified variables to top
         result = x.copy()
 
         try:
-            if hasattr(tr, 'transform'):
+            if hasattr(tr, "transform"):
                 for var, expr in tr.transform.items():
-                    var_id = getattr(var, 'id', var) if hasattr(var, 'id') else var
+                    var_id = getattr(var, "id", var) if hasattr(var, "id") else var
                     if var_id in result:
                         # For variables that are modified, we need to analyze the expression
                         # to determine the new interval bounds
@@ -435,7 +477,9 @@ class BoxAbstractDomain:
         """Check if x is a maximal element (top)."""
         return "__bottom__" not in x and len(x) == 0
 
-    def widen(self, x: Dict[int, Interval], y: Dict[int, Interval]) -> Dict[int, Interval]:
+    def widen(
+        self, x: Dict[int, Interval], y: Dict[int, Interval]
+    ) -> Dict[int, Interval]:
         """Apply widening operator to two interval stores.
 
         Widening extrapolates bounds to ensure termination of fixpoint iteration.
@@ -471,9 +515,9 @@ def make_transition_system() -> TransitionSystem[T]:
     return TransitionSystem()
 
 
-def make_query(transition_system: TransitionSystem[T],
-               source: int,
-               abstract_weight: Any) -> Query[T]:
+def make_query(
+    transition_system: TransitionSystem[T], source: int, abstract_weight: Any
+) -> Query[T]:
     """Create a query for path weight computation."""
     return Query(transition_system, source, abstract_weight)
 
@@ -492,8 +536,9 @@ def remove_temporaries(ts: TransitionSystem[T]) -> TransitionSystem[T]:
     return ts
 
 
-def forward_invariants_ivl(ts: TransitionSystem[T],
-                          entry: int) -> List[Tuple[int, Expression]]:
+def forward_invariants_ivl(
+    ts: TransitionSystem[T], entry: int
+) -> List[Tuple[int, Expression]]:
     """Compute interval invariants for loop headers using box abstract domain.
 
     This performs forward abstract interpretation using intervals to compute
@@ -557,9 +602,9 @@ def _find_loop_headers(ts: TransitionSystem[T], entry: int) -> Set[int]:
     return loop_headers
 
 
-def forward_invariants_ivl_pa(_pre_invariants: List[Expression],
-                             ts: TransitionSystem[T],
-                             entry: int) -> List[Tuple[int, Expression]]:
+def forward_invariants_ivl_pa(
+    _pre_invariants: List[Expression], ts: TransitionSystem[T], entry: int
+) -> List[Tuple[int, Expression]]:
     """Compute interval-and-predicate invariants.
 
     This combines interval analysis with predicate abstraction using
@@ -575,8 +620,9 @@ def forward_invariants_ivl_pa(_pre_invariants: List[Expression],
     return ivl_invariants
 
 
-def simplify(predicate: Callable[[int], bool],
-             ts: TransitionSystem[T]) -> TransitionSystem[T]:
+def simplify(
+    predicate: Callable[[int], bool], ts: TransitionSystem[T]
+) -> TransitionSystem[T]:
     """Simplify a transition system by removing vertices that don't satisfy the predicate.
 
     Args:

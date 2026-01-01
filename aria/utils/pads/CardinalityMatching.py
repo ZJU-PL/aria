@@ -69,7 +69,7 @@ def matching(graph, initial_matching=None):
 
             def find_side(v_vertex, w_vertex):
                 path = [leader[v_vertex]]
-                b = (v_vertex, w_vertex)   # new base for all T nodes found on the path
+                b = (v_vertex, w_vertex)  # new base for all T nodes found on the path
                 while path[-1] != a:
                     tnode = s_blossoms[path[-1]]
                     path.append(tnode)
@@ -78,13 +78,14 @@ def matching(graph, initial_matching=None):
                     path.append(leader[t_vertices[tnode]])
                 return path
 
-            a = leader[a]   # sanity check
+            a = leader[a]  # sanity check
             path1, path2 = find_side(v, w), find_side(w, v)
             leader.union(*path1)
             leader.union(*path2)
             s_blossoms[leader[a]] = s_blossoms[a]  # update structure tree
 
         topless = object()  # should be unequal to any graph vertex
+
         def alternating_path(start, goal=topless):
             """Return sequence of vertices on alternating path from start to goal.
             The goal must be a T node along the path from the start to
@@ -101,11 +102,11 @@ def matching(graph, initial_matching=None):
                     start = w
                 path.append(start)
                 if start not in result_matching:
-                    return path     # reached top of structure tree, done!
+                    return path  # reached top of structure tree, done!
                 tnode = result_matching[start]
                 path.append(tnode)
                 if tnode == goal:
-                    return path     # finished recursive subpath
+                    return path  # finished recursive subpath
                 start = t_vertices[tnode]
 
         def alternate(v):
@@ -113,9 +114,9 @@ def matching(graph, initial_matching=None):
             tree."""
             path = alternating_path(v)
             path.reverse()
-            for i in range(0, len(path)-1, 2):
-                result_matching[path[i]] = path[i+1]
-                result_matching[path[i+1]] = path[i]
+            for i in range(0, len(path) - 1, 2):
+                result_matching[path[i]] = path[i + 1]
+                result_matching[path[i + 1]] = path[i]
 
         def add_match(v, w):
             """Here with an S-S edge vw connecting vertices in different structure
@@ -133,7 +134,7 @@ def matching(graph, initial_matching=None):
             """
 
             if leader[v] == leader[w]:
-                return False        # self-loop within blossom, ignore
+                return False  # self-loop within blossom, ignore
 
             # parallel search up two branches of structure tree
             # until we find a common ancestor of v and w
@@ -144,7 +145,7 @@ def matching(graph, initial_matching=None):
                 head = leader[head]
                 parent = leader[s_blossoms[head]]
                 if parent == head:
-                    return head     # found root of structure tree
+                    return head  # found root of structure tree
                 path[head] = parent
                 path[parent] = leader[t_vertices[parent]]
                 return path[parent]
@@ -157,8 +158,10 @@ def matching(graph, initial_matching=None):
                     blossom(v, w, head1)
                     return False
 
-                if (leader[s_blossoms[head1]] == head1 and
-                        leader[s_blossoms[head2]] == head2):
+                if (
+                    leader[s_blossoms[head1]] == head1
+                    and leader[s_blossoms[head2]] == head2
+                ):
                     add_match(v, w)
                     return True
 
@@ -177,7 +180,7 @@ def matching(graph, initial_matching=None):
                 s_blossoms[v] = v
                 unexplored.append(v)
 
-        current = 0     # index into unexplored, in FIFO order so we get short paths
+        current = 0  # index into unexplored, in FIFO order so we get short paths
         while current < len(unexplored):
             v = unexplored[current]
             current += 1
@@ -187,20 +190,21 @@ def matching(graph, initial_matching=None):
                     if ss(v, w):
                         return True
 
-                elif w not in t_vertices:    # previously unexplored node, add as T-node
+                elif w not in t_vertices:  # previously unexplored node, add as T-node
                     t_vertices[w] = v
                     u = result_matching[w]
                     if leader[u] not in s_blossoms:
-                        s_blossoms[u] = w    # and add its match as an S-node
+                        s_blossoms[u] = w  # and add its match as an S-node
                         unexplored.append(u)
 
-        return False    # ran out of graph without finding an augmenting path
+        return False  # ran out of graph without finding an augmenting path
 
     # augment the matching until it is maximum
     while augment():
         pass
 
     return result_matching
+
 
 def greedy_matching(graph, initial_matching=None):
     """Near-linear-time greedy heuristic for creating high-cardinality matching.
@@ -235,9 +239,14 @@ def greedy_matching(graph, initial_matching=None):
         return result_matching
 
     # make sets of degree one and degree two vertices
-    deg1 = {v for v, neighbors in avail.items() if len(neighbors) == 1}  # pylint: disable=consider-using-dict-items
-    deg2 = {v for v, neighbors in avail.items() if len(neighbors) == 2}  # pylint: disable=consider-using-dict-items
+    deg1 = {
+        v for v, neighbors in avail.items() if len(neighbors) == 1
+    }  # pylint: disable=consider-using-dict-items
+    deg2 = {
+        v for v, neighbors in avail.items() if len(neighbors) == 2
+    }  # pylint: disable=consider-using-dict-items
     d2edges = []
+
     def update_degree(v):
         """Cluster degree changed, update sets."""
         if v in deg1:
@@ -275,7 +284,7 @@ def greedy_matching(graph, initial_matching=None):
         del avail[u][v]
         del avail[w][v]
         if len(avail[u]) > len(avail[w]):
-            u, w = w, u   # swap to preserve near-linear time bound
+            u, w = w, u  # swap to preserve near-linear time bound
         for x in avail[u]:
             del avail[x][u]
             if x in avail[w]:
@@ -304,14 +313,19 @@ def greedy_matching(graph, initial_matching=None):
     # at this point the edges listed in d2edges form a matchable tree
     # repeat the degree one part of the algorithm only on those edges
     avail = {}
-    d2edges = [(u, v) for u, v in d2edges
-               if u not in result_matching and v not in result_matching]
+    d2edges = [
+        (u, v)
+        for u, v in d2edges
+        if u not in result_matching and v not in result_matching
+    ]
     for u, v in d2edges:
         avail[u] = {}
         avail[v] = {}
     for u, v in d2edges:
         avail[u][v] = avail[v][u] = (u, v)
-    deg1 = {v for v, neighbors in avail.items() if len(neighbors) == 1}  # pylint: disable=consider-using-dict-items  # pylint: disable=consider-using-dict-items
+    deg1 = {
+        v for v, neighbors in avail.items() if len(neighbors) == 1
+    }  # pylint: disable=consider-using-dict-items  # pylint: disable=consider-using-dict-items
     while deg1:
         v = arbitrary_item(deg1)
         w = arbitrary_item(avail[v])

@@ -35,9 +35,9 @@ def powerset(elements: List):
 
     E.g., powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)
     """
-    return itertools.chain.from_iterable(itertools.combinations(elements, r)
-                                         for r in range(len(elements) + 1))
-
+    return itertools.chain.from_iterable(
+        itertools.combinations(elements, r) for r in range(len(elements) + 1)
+    )
 
 
 def filldedent(s, w=70, **kwargs):
@@ -55,7 +55,7 @@ def filldedent(s, w=70, **kwargs):
     ========
     strlines, rawlines
     """
-    return '\n' + fill(dedent(str(s)).strip('\n'), width=w, **kwargs)
+    return "\n" + fill(dedent(str(s)).strip("\n"), width=w, **kwargs)
 
 
 def strlines(s, c=64, short=False):
@@ -88,23 +88,23 @@ def strlines(s, c=64, short=False):
     filldedent, rawlines
     """
     if not isinstance(s, str):
-        raise ValueError('expecting string input')
-    if '\n' in s:
+        raise ValueError("expecting string input")
+    if "\n" in s:
         return rawlines(s)
 
     q = '"' if repr(s).startswith('"') else "'"
     q = (q,) * 2
 
-    if '\\' in s:  # use r-string
-        m = f'(\nr{q[0]}%s{q[1]}\n)'
-        j = f'{q[0]}\nr{q[1]}'
+    if "\\" in s:  # use r-string
+        m = f"(\nr{q[0]}%s{q[1]}\n)"
+        j = f"{q[0]}\nr{q[1]}"
         c -= 3
     else:
-        m = f'(\n{q[0]}%s{q[1]}\n)'
-        j = f'{q[0]}\n{q[1]}'
+        m = f"(\n{q[0]}%s{q[1]}\n)"
+        j = f"{q[0]}\n{q[1]}"
         c -= 2
 
-    out = [s[i:i+c] for i in range(0, len(s), c)]
+    out = [s[i : i + c] for i in range(0, len(s), c)]
 
     if short and len(out) == 1:
         return (m % out[0]).splitlines()[1]  # strip bounding (\n...\n)
@@ -171,24 +171,24 @@ def rawlines(s):
     ========
     filldedent, strlines
     """
-    lines = s.split('\n')
+    lines = s.split("\n")
     if len(lines) == 1:
         return repr(lines[0])
 
     triple = ["'''" in s, '"""' in s]
-    if any(li.endswith(' ') for li in lines) or '\\' in s or all(triple):
+    if any(li.endswith(" ") for li in lines) or "\\" in s or all(triple):
         rv = []
-        trailing = s.endswith('\n')
+        trailing = s.endswith("\n")
         last = len(lines) - 1
 
         for i, li in enumerate(lines):
             if i != last or trailing:
-                rv.append(repr(li + '\n'))
+                rv.append(repr(li + "\n"))
             else:
                 rv.append(repr(li))
 
-        return '(\n    %s\n)' % '\n    '.join(rv)
-    rv = '\n    '.join(lines)
+        return "(\n    %s\n)" % "\n    ".join(rv)
+    rv = "\n    ".join(lines)
     if triple[0]:
         return f'dedent("""\\\n    {rv}""")'
     return f"dedent('''\\\n    {rv}''')"
@@ -198,7 +198,7 @@ def rawlines(s):
 ARCH = f"{struct.calcsize('P') * 8}-bit"
 
 # Note: PyPy does not support hash randomization
-HASH_RANDOMIZATION = getattr(sys.flags, 'hash_randomization', False)
+HASH_RANDOMIZATION = getattr(sys.flags, "hash_randomization", False)
 
 _debug_tmp: List[str] = []
 _DEBUG_ITER = 0
@@ -237,7 +237,7 @@ def debug_decorator(func):
             for a in subtrees[:-1]:
                 result.append(indent(a))
             result.append(indent(subtrees[-1], 2))
-            return ''.join(result)
+            return "".join(result)
 
         r = f(*args, **kw)
 
@@ -263,6 +263,7 @@ def debug(*args):
     Print ``*args`` if ARIA_DEBUG is True, else do nothing.
     """
     from aria import ARIA_DEBUG
+
     if ARIA_DEBUG:
         print(*args, file=sys.stderr)
 
@@ -273,6 +274,7 @@ def debugf(string, args):
     intended for debug messages using formatted strings.
     """
     from aria import ARIA_DEBUG
+
     if ARIA_DEBUG:
         print(string % args, file=sys.stderr)
 
@@ -296,12 +298,12 @@ def func_name(x, short=False):
     'Lt'
     """
     alias = {
-        'GreaterThan': 'Ge',
-        'StrictGreaterThan': 'Gt',
-        'LessThan': 'Le',
-        'StrictLessThan': 'Lt',
-        'Equality': 'Eq',
-        'Unequality': 'Ne',
+        "GreaterThan": "Ge",
+        "StrictGreaterThan": "Gt",
+        "LessThan": "Le",
+        "StrictLessThan": "Lt",
+        "Equality": "Eq",
+        "Unequality": "Ne",
     }
 
     typ = type(x)
@@ -310,10 +312,10 @@ def func_name(x, short=False):
     if type_str.startswith("<type '") or type_str.startswith("<class '"):
         typ = type_str.split("'")[1]
 
-    rv = getattr(getattr(x, 'func', x), '__name__', typ)
+    rv = getattr(getattr(x, "func", x), "__name__", typ)
 
-    if '.' in rv:
-        rv = rv.split('.')[-1]
+    if "." in rv:
+        rv = rv.split(".")[-1]
 
     return alias.get(rv, rv) if short else rv
 
@@ -427,11 +429,11 @@ def translate(s, a, b=None, c=None):
     # Handle delete-only case
     if a is None:
         if c is not None:
-            raise ValueError(f'c should be None when a=None is passed, instead got {c}')
+            raise ValueError(f"c should be None when a=None is passed, instead got {c}")
         if b is None:
             return s
         # Delete characters in b
-        return s.translate(str.maketrans('', '', b))
+        return s.translate(str.maketrans("", "", b))
 
     # Handle dictionary mapping case
     if isinstance(a, dict):
@@ -445,19 +447,19 @@ def translate(s, a, b=None, c=None):
 
         # Create translation tables
         if singles:
-            a, b = ''.join(k for k in singles), ''.join(singles[k] for k in singles)
+            a, b = "".join(k for k in singles), "".join(singles[k] for k in singles)
         else:
-            a = b = ''
+            a = b = ""
 
     # Handle character-by-character mapping
     elif len(a) != len(b):
-        raise ValueError('oldchars and newchars have different lengths')
+        raise ValueError("oldchars and newchars have different lengths")
     else:
         mr = {}  # No multi-character replacements
 
     # Apply deletions if specified
     if c:
-        s = s.translate(str.maketrans('', '', c))
+        s = s.translate(str.maketrans("", "", c))
 
     # Apply multi-character replacements
     s = replace(s, mr)
@@ -476,11 +478,12 @@ def run_external_tool(cmd, input_content=None, timeout=300, delete_input=True):
     """
     import os
     import tempfile
+
     is_timeout = [False]
     input_file = None
     try:
         if input_content is not None:
-            with tempfile.NamedTemporaryFile(mode='w', delete=False) as f:
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
                 input_file = f.name
                 f.write(input_content)
             if isinstance(cmd, list):
@@ -492,14 +495,14 @@ def run_external_tool(cmd, input_content=None, timeout=300, delete_input=True):
             stdin=None if input_content is None else subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            text=True
+            text=True,
         )
         timer = None
         try:
             if timeout > 0:
                 timer = threading.Timer(
                     timeout,
-                    lambda: (process.terminate(), is_timeout.__setitem__(0, True))
+                    lambda: (process.terminate(), is_timeout.__setitem__(0, True)),
                 )
                 timer.start()
             stdout, stderr = process.communicate()
@@ -522,4 +525,4 @@ def run_external_tool(cmd, input_content=None, timeout=300, delete_input=True):
                 os.unlink(input_file)
             except Exception:
                 pass
-        return False, '', str(e)
+        return False, "", str(e)

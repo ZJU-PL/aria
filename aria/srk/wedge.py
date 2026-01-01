@@ -25,15 +25,18 @@ from .polynomial import RewriteSystem
 
 logger = logging.getLogger(__name__)
 
+
 # APRON types (simplified)
 class Scalar:
     Float = "Float"
     Mpqf = "Mpqf"
     Mpfrf = "Mpfrf"
 
+
 class Coeff:
     Scalar = "Scalar"
     Interval = "Interval"
+
 
 class Abstract0:
     def __init__(self, manager, int_dim: int, real_dim: int):
@@ -81,6 +84,7 @@ class Abstract0:
     def to_lincons_array(manager, abstract):
         return []  # Placeholder
 
+
 class Linexpr0:
     def __init__(self, coeffs: List[Tuple], cst: Optional):
         self.coeffs = coeffs
@@ -103,6 +107,7 @@ class Linexpr0:
         # Update coefficient for dimension
         pass
 
+
 class Lincons0:
     EQ = "EQ"
     SUPEQ = "SUPEQ"
@@ -118,30 +123,36 @@ class Lincons0:
     def make(linexpr0, typ: str):
         return Lincons0(linexpr0, typ)
 
+
 class Dim:
     def __init__(self, dim: List[int], intdim: int, realdim: int):
         self.dim = dim
         self.intdim = intdim
         self.realdim = realdim
 
+
 # Manager for APRON operations
 def get_manager():
     """Get APRON manager (Polka strict)"""
     return "PolkaManager"  # Placeholder
 
+
 # Environment for coordinate system mapping
 @dataclass
 class Environment:
     """Environment mapping coordinates to APRON dimensions"""
+
     int_dim: List[int]  # Integer coordinate IDs
     real_dim: List[int]  # Real coordinate IDs
 
-    def copy(self) -> 'Environment':
+    def copy(self) -> "Environment":
         return Environment(self.int_dim.copy(), self.real_dim.copy())
+
 
 @dataclass
 class Wedge:
     """Convex polyhedron (wedge) representation"""
+
     srk: syntax.Context  # SRK context
     cs: CS.CoordinateSystem  # Coordinate system
     env: Environment  # Environment mapping
@@ -149,7 +160,7 @@ class Wedge:
 
     def is_consistent(self) -> bool:
         """Check if environment is consistent with coordinate system"""
-        return (CS.dim(self.cs) == len(self.env.int_dim) + len(self.env.real_dim))
+        return CS.dim(self.cs) == len(self.env.int_dim) + len(self.env.real_dim)
 
     def update_env(self) -> None:
         """Update environment when coordinate system grows"""
@@ -169,16 +180,20 @@ class Wedge:
                         added_real += 1
                         self.env.real_dim.append(id)
 
-            logger.debug(f"update env: adding {added_int} integer and {added_real} real dimension(s)")
+            logger.debug(
+                f"update env: adding {added_int} integer and {added_real} real dimension(s)"
+            )
 
-            added = [int_dim if i < added_int else int_dim + real_dim
-                    for i in range(added_int + added_real)]
+            added = [
+                int_dim if i < added_int else int_dim + real_dim
+                for i in range(added_int + added_real)
+            ]
 
             # Add dimensions to APRON abstract value
             self.abstract = Abstract0.add_dimensions(
-                get_manager(), self.abstract,
-                Dim(added, added_int, added_real), False
+                get_manager(), self.abstract, Dim(added, added_int, added_real), False
             )
+
 
 # Utility functions
 def qq_of_scalar(scalar) -> linear.QQ:
@@ -191,6 +206,7 @@ def qq_of_scalar(scalar) -> linear.QQ:
         case Scalar.Mpfrf(k):
             return linear.QQ.from_mpfrf(k)
 
+
 def qq_of_coeff(coeff) -> Optional[linear.QQ]:
     """Convert APRON coefficient to QQ"""
     match coeff:
@@ -198,6 +214,7 @@ def qq_of_coeff(coeff) -> Optional[linear.QQ]:
             return qq_of_scalar(s)
         case Coeff.Interval(_):
             return None
+
 
 def qq_of_coeff_exn(coeff) -> linear.QQ:
     """Convert APRON coefficient to QQ (raises exception if interval)"""
@@ -207,32 +224,39 @@ def qq_of_coeff_exn(coeff) -> linear.QQ:
         case Coeff.Interval(_):
             raise ValueError("qq_of_coeff_exn: argument must be a scalar")
 
+
 def coeff_of_qq(qq: linear.QQ) -> str:
     """Convert QQ to APRON coefficient"""
     return Coeff.Scalar(Scalar.Mpqf(qq))
+
 
 def mk_log(srk: syntax.Context) -> syntax.Symbol:
     """Get log symbol"""
     return nonlinear.mk_log(srk)
 
+
 def mk_pow(srk: syntax.Context) -> syntax.Symbol:
     """Get pow symbol"""
     return nonlinear.mk_pow(srk)
+
 
 def vec_of_poly(poly: P.Polynomial) -> Optional[linear.QQVector]:
     """Convert polynomial to vector if linear"""
     # This would need proper polynomial vector conversion
     return None
 
+
 def poly_of_vec(vec: linear.QQVector) -> P.Polynomial:
     """Convert vector to polynomial"""
     # This would need proper vector polynomial conversion
     return P.zero()
 
+
 # Environment operations
 def mk_empty_env() -> Environment:
     """Create empty environment"""
     return Environment([], [])
+
 
 def mk_env(cs: CS.CoordinateSystem) -> Environment:
     """Create environment from coordinate system"""
@@ -245,28 +269,34 @@ def mk_env(cs: CS.CoordinateSystem) -> Environment:
                 env.real_dim.append(id)
     return env
 
+
 # Wedge operations
 def top(srk: syntax.Context) -> Wedge:
     """Create top wedge (universe)"""
     cs = CS.mk_empty(srk)
     return Wedge(srk, cs, mk_empty_env(), Abstract0.top(get_manager(), 0, 0))
 
+
 def is_top(wedge: Wedge) -> bool:
     """Check if wedge is top"""
     return Abstract0.is_top(get_manager(), wedge.abstract)
+
 
 def bottom(srk: syntax.Context) -> Wedge:
     """Create bottom wedge (empty)"""
     cs = CS.mk_empty(srk)
     return Wedge(srk, cs, mk_empty_env(), Abstract0.bottom(get_manager(), 0, 0))
 
+
 def is_bottom(wedge: Wedge) -> bool:
     """Check if wedge is bottom"""
     return Abstract0.is_bottom(get_manager(), wedge.abstract)
 
+
 def copy(wedge: Wedge) -> Wedge:
     """Copy a wedge"""
     return Wedge(wedge.srk, CS.copy(wedge.cs), wedge.env.copy(), wedge.abstract)
+
 
 def equal(wedge1: Wedge, wedge2: Wedge) -> bool:
     """Check if two wedges are equal"""
@@ -274,7 +304,11 @@ def equal(wedge1: Wedge, wedge2: Wedge) -> bool:
     phi = nonlinear.uninterpret(srk, to_formula(wedge1))
     phi_prime = nonlinear.uninterpret(srk, to_formula(wedge2))
 
-    return Smt.is_sat(srk, syntax.mk_not(srk, syntax.mk_iff(srk, phi, phi_prime))) == Smt.Unsat
+    return (
+        Smt.is_sat(srk, syntax.mk_not(srk, syntax.mk_iff(srk, phi, phi_prime)))
+        == Smt.Unsat
+    )
+
 
 def to_atoms(wedge: Wedge) -> List[syntax.Formula]:
     """Convert wedge to list of atomic formulas"""
@@ -282,9 +316,11 @@ def to_atoms(wedge: Wedge) -> List[syntax.Formula]:
     # For now, return placeholder
     return []
 
+
 def to_formula(wedge: Wedge) -> syntax.Formula:
     """Convert wedge to formula"""
     return syntax.mk_and(wedge.srk, to_atoms(wedge))
+
 
 # APRON conversion functions
 def vec_of_linexpr(env: Environment, linexpr: Linexpr0) -> linear.QQVector:
@@ -307,8 +343,12 @@ def vec_of_linexpr(env: Environment, linexpr: Linexpr0) -> linear.QQVector:
 
     return vec
 
-def linexpr_of_vec(cs: CS.CoordinateSystem, env: Environment, vec: linear.QQVector) -> Linexpr0:
+
+def linexpr_of_vec(
+    cs: CS.CoordinateSystem, env: Environment, vec: linear.QQVector
+) -> Linexpr0:
     """Convert vector to APRON linexpr"""
+
     def mk_coeff_dim(coeff, id):
         coord_id = CS.dim_of_id(cs, env, id)
         return (coeff_of_qq(coeff), coord_id)
@@ -316,8 +356,13 @@ def linexpr_of_vec(cs: CS.CoordinateSystem, env: Environment, vec: linear.QQVect
     const_coeff, rest = linear.QQVector.pivot(CS.const_id, vec)
     coeffs = [mk_coeff_dim(coeff, id) for coeff, id in linear.QQVector.enum(rest)]
     # Pass None if constant coefficient is zero, otherwise pass the coefficient
-    cst_value = None if linear.QQ.equal(const_coeff, linear.QQ.zero()) else coeff_of_qq(const_coeff)
+    cst_value = (
+        None
+        if linear.QQ.equal(const_coeff, linear.QQ.zero())
+        else coeff_of_qq(const_coeff)
+    )
     return Linexpr0.of_list(None, coeffs, cst_value)
+
 
 def atom_of_lincons(wedge: Wedge, lincons: Lincons0) -> syntax.Formula:
     """Convert APRON lincons to atomic formula"""
@@ -334,32 +379,40 @@ def atom_of_lincons(wedge: Wedge, lincons: Lincons0) -> syntax.Formula:
         case _:
             raise ValueError(f"Unsupported lincons type: {lincons.typ}")
 
+
 def pp(formatter, wedge: Wedge) -> None:
     """Pretty print wedge"""
     formatter.write(f"Wedge with {CS.dim(wedge.cs)} dimensions")
+
 
 def show(wedge: Wedge) -> str:
     """String representation of wedge"""
     return f"Wedge({CS.dim(wedge.cs)} dims)"
 
-def lincons_of_atom(srk: syntax.Context, cs: CS.CoordinateSystem, env: Environment,
-                   atom: syntax.Formula) -> Lincons0:
+
+def lincons_of_atom(
+    srk: syntax.Context, cs: CS.CoordinateSystem, env: Environment, atom: syntax.Formula
+) -> Lincons0:
     """Convert atomic formula to APRON lincons"""
     match interpretation.destruct_atom(srk, atom):
         case ("ArithComparison", ("Lt", x, y)):
-            vec = linear.QQVector.add(CS.vec_of_term(cs, y),
-                                     linear.QQVector.negate(CS.vec_of_term(cs, x)))
+            vec = linear.QQVector.add(
+                CS.vec_of_term(cs, y), linear.QQVector.negate(CS.vec_of_term(cs, x))
+            )
             return Lincons0.make(linexpr_of_vec(cs, env, vec), Lincons0.SUP)
         case ("ArithComparison", ("Leq", x, y)):
-            vec = linear.QQVector.add(CS.vec_of_term(cs, y),
-                                     linear.QQVector.negate(CS.vec_of_term(cs, x)))
+            vec = linear.QQVector.add(
+                CS.vec_of_term(cs, y), linear.QQVector.negate(CS.vec_of_term(cs, x))
+            )
             return Lincons0.make(linexpr_of_vec(cs, env, vec), Lincons0.SUPEQ)
         case ("ArithComparison", ("Eq", x, y)):
-            vec = linear.QQVector.add(CS.vec_of_term(cs, y),
-                                     linear.QQVector.negate(CS.vec_of_term(cs, x)))
+            vec = linear.QQVector.add(
+                CS.vec_of_term(cs, y), linear.QQVector.negate(CS.vec_of_term(cs, x))
+            )
             return Lincons0.make(linexpr_of_vec(cs, env, vec), Lincons0.EQ)
         case _:
             raise ValueError(f"Unsupported atom type: {atom}")
+
 
 def meet_atoms(wedge: Wedge, atoms: List[syntax.Formula]) -> None:
     """Meet wedge with atomic formulas"""
@@ -375,12 +428,15 @@ def meet_atoms(wedge: Wedge, atoms: List[syntax.Formula]) -> None:
     wedge.update_env()
 
     # Convert atoms to APRON lincons
-    lincons_array = [lincons_of_atom(wedge.srk, wedge.cs, wedge.env, atom) for atom in atoms]
+    lincons_array = [
+        lincons_of_atom(wedge.srk, wedge.cs, wedge.env, atom) for atom in atoms
+    ]
 
     # Meet with APRON abstract value
     wedge.abstract = Abstract0.meet_lincons_array(
         get_manager(), wedge.abstract, lincons_array
     )
+
 
 def bound_vec(wedge: Wedge, vec: linear.QQVector) -> "Interval":
     """Compute bounds for vector expression"""
@@ -388,15 +444,18 @@ def bound_vec(wedge: Wedge, vec: linear.QQVector) -> "Interval":
     # For now, return placeholder
     return Interval.top()
 
+
 def bound_coordinate(wedge: Wedge, coordinate: int) -> "Interval":
     """Compute bounds for coordinate"""
     return bound_vec(wedge, linear.QQVector.of_term(linear.QQ.one(), coordinate))
+
 
 def bound_monomial(wedge: Wedge, monomial) -> "Interval":
     """Compute bounds for monomial"""
     # This would need proper interval arithmetic for monomials
     # For now, return placeholder
     return Interval.const(linear.QQ.one())
+
 
 # Interval arithmetic (simplified)
 class Interval:
@@ -461,21 +520,26 @@ class Interval:
     def log(base_ivl, exp_ivl):
         return "LogInterval"  # Placeholder
 
+
 def mk_sign_axioms(srk: syntax.Context) -> syntax.Formula:
     """Create sign axioms for nonlinear operations"""
     # This would create the full set of sign axioms
     # For now, return a placeholder
     return syntax.mk_true(srk)
 
+
 def wedge_entails(wedge: Wedge, phi: syntax.Formula) -> bool:
     """Check if wedge entails formula modulo LIRA + sign axioms"""
     srk = wedge.srk
     s = Smt.mk_solver(srk)
-    Smt.Solver.add(s, [
-        nonlinear.uninterpret(srk, to_formula(wedge)),
-        nonlinear.uninterpret(srk, syntax.mk_not(srk, phi)),
-        mk_sign_axioms(srk)
-    ])
+    Smt.Solver.add(
+        s,
+        [
+            nonlinear.uninterpret(srk, to_formula(wedge)),
+            nonlinear.uninterpret(srk, syntax.mk_not(srk, phi)),
+            mk_sign_axioms(srk),
+        ],
+    )
 
     match Smt.Solver.check(s, []):
         case Smt.Sat | Smt.Unknown:
@@ -483,11 +547,15 @@ def wedge_entails(wedge: Wedge, phi: syntax.Formula) -> bool:
         case Smt.Unsat:
             return True
 
+
 def nonnegative_polynomial(wedge: Wedge, p: P.Polynomial) -> bool:
     """Check if polynomial is nonnegative on wedge"""
     term = CS.term_of_polynomial(wedge.cs, p)
-    geq_zero = syntax.mk_leq(wedge.srk, syntax.mk_real(wedge.srk, linear.QQ.zero()), term)
+    geq_zero = syntax.mk_leq(
+        wedge.srk, syntax.mk_real(wedge.srk, linear.QQ.zero()), term
+    )
     return wedge_entails(wedge, geq_zero)
+
 
 def bound_polynomial(wedge: Wedge, polynomial: P.Polynomial) -> "Interval":
     """Compute bounds for polynomial"""
@@ -495,25 +563,35 @@ def bound_polynomial(wedge: Wedge, polynomial: P.Polynomial) -> "Interval":
     # For now, return placeholder
     return Interval.top()
 
+
 def affine_hull(wedge: Wedge) -> List[linear.QQVector]:
     """Compute affine hull of wedge"""
     if is_bottom(wedge):
-        return [linear.QQVector.add_term(linear.QQ.one(), CS.const_id, linear.QQVector.zero())]
+        return [
+            linear.QQVector.add_term(
+                linear.QQ.one(), CS.const_id, linear.QQVector.zero()
+            )
+        ]
 
     # This would extract equality constraints from APRON
     # For now, return placeholder
     return []
 
-def polynomial_constraints(lemma: Callable, wedge: Wedge) -> List[Tuple[str, P.Polynomial]]:
+
+def polynomial_constraints(
+    lemma: Callable, wedge: Wedge
+) -> List[Tuple[str, P.Polynomial]]:
     """Extract polynomial constraints from wedge"""
     # This would extract constraints from APRON lincons
     # For now, return placeholder
     return []
 
+
 def polynomial_cone(lemma: Callable, wedge: Wedge) -> List[P.Polynomial]:
     """Extract polynomial cone from wedge"""
     constraints = polynomial_constraints(lemma, wedge)
     return [p for _, p in constraints if _ in ("Nonneg", "Pos")]
+
 
 def vanishing_ideal(wedge: Wedge) -> List[P.Polynomial]:
     """Compute vanishing ideal of wedge"""
@@ -524,11 +602,13 @@ def vanishing_ideal(wedge: Wedge) -> List[P.Polynomial]:
     # For now, return placeholder
     return []
 
+
 def coordinate_ideal(lemma: Callable, wedge: Wedge) -> List[P.Polynomial]:
     """Compute coordinate ideal of wedge"""
     # This would compute the ideal generated by coordinate definitions
     # For now, return placeholder
     return []
+
 
 def equational_saturation(lemma: Callable, wedge: Wedge) -> str:
     """Compute equational saturation of wedge"""
@@ -536,64 +616,71 @@ def equational_saturation(lemma: Callable, wedge: Wedge) -> str:
     # For now, return placeholder
     return "RewritePlaceholder"
 
+
 def generalized_fourier_motzkin(lemma: Callable, order, wedge: Wedge) -> None:
     """Apply generalized Fourier-Motzkin elimination"""
     srk = wedge.srk
     cs = wedge.cs
-    
+
     def add_bound(precondition, bound):
         logger.debug(f"Lemma: {precondition} => {bound}")
         lemma(syntax.mk_or(srk, [syntax.mk_not(srk, precondition), bound]))
         meet_atoms(wedge, [bound])
-    
+
     old_wedge = bottom(srk)
-    
+
     def polyhedron_equal(w1, w2):
-        return (CS.dim(w1.cs) == CS.dim(w2.cs) and 
-                Abstract0.is_eq(get_manager(), w1.abstract, w2.abstract))
-    
+        return CS.dim(w1.cs) == CS.dim(w2.cs) and Abstract0.is_eq(
+            get_manager(), w1.abstract, w2.abstract
+        )
+
     gfm_limit = 10  # Maximum iterations
     iterations = 0
-    
+
     while iterations < gfm_limit and not polyhedron_equal(wedge, old_wedge):
         iterations += 1
         logger.debug(f"GFM iteration: {iterations}")
         old_wedge = copy(wedge)
         cone = polynomial_cone(lemma, wedge)
-        
+
         for p in cone:
             c, m, p_rest = P.split_leading(order, p)
             if linear.QQ.lt(c, linear.QQ.zero()):
                 p_scaled = P.scalar_mul(linear.QQ.negate(linear.QQ.inverse(c)), p)
-                
+
                 for q in cone:
                     quot, rem = P.qr_monomial(q, m)
                     if P.degree(quot) >= 1 and nonnegative_polynomial(wedge, quot):
                         zero = syntax.mk_real(srk, linear.QQ.zero())
                         mk_nonneg = lambda t: syntax.mk_leq(srk, zero, t)
-                        
+
                         p_sub_m = P.add_term(linear.QQ.of_int(-1), m, p_scaled)
-                        hypothesis = syntax.mk_and(srk, [
-                            mk_nonneg(CS.term_of_polynomial(cs, p_sub_m)),
-                            mk_nonneg(CS.term_of_polynomial(cs, quot)),
-                            mk_nonneg(CS.term_of_polynomial(cs, q))
-                        ])
-                        
-                        conclusion = mk_nonneg(CS.term_of_polynomial(cs, 
-                                                P.add(P.mul(quot, p_scaled), rem)))
+                        hypothesis = syntax.mk_and(
+                            srk,
+                            [
+                                mk_nonneg(CS.term_of_polynomial(cs, p_sub_m)),
+                                mk_nonneg(CS.term_of_polynomial(cs, quot)),
+                                mk_nonneg(CS.term_of_polynomial(cs, q)),
+                            ],
+                        )
+
+                        conclusion = mk_nonneg(
+                            CS.term_of_polynomial(cs, P.add(P.mul(quot, p_scaled), rem))
+                        )
                         add_bound(hypothesis, conclusion)
+
 
 def strengthen_intervals(lemma: Callable, wedge: Wedge) -> None:
     """Strengthen intervals using bounds"""
     srk = wedge.srk
     cs = wedge.cs
     zero = syntax.mk_real(srk, linear.QQ.zero())
-    
+
     # Compute bounds for each coordinate and add them as constraints
     for id in range(CS.dim(cs)):
         vec = linear.QQVector.of_term(linear.QQ.one(), id)
         ivl = bound_vec(wedge, vec)
-        
+
         # Add lower bound constraint if available
         lower = Interval.lower(ivl)
         if lower is not None:
@@ -602,7 +689,7 @@ def strengthen_intervals(lemma: Callable, wedge: Wedge) -> None:
             if not wedge_entails(wedge, lower_bound):
                 lemma(lower_bound)
                 meet_atoms(wedge, [lower_bound])
-        
+
         # Add upper bound constraint if available
         upper = Interval.upper(ivl)
         if upper is not None:
@@ -612,12 +699,13 @@ def strengthen_intervals(lemma: Callable, wedge: Wedge) -> None:
                 lemma(upper_bound)
                 meet_atoms(wedge, [upper_bound])
 
+
 def strengthen_products(lemma: Callable, rewrite, wedge: Wedge) -> None:
     """Strengthen products using rewrite rules"""
     srk = wedge.srk
     cs = wedge.cs
     zero = syntax.mk_real(srk, linear.QQ.zero())
-    
+
     # For each pair of coordinates, check if their product has better bounds
     # This is a simplified implementation - full version would use sophisticated
     # interval arithmetic and polynomial rewriting
@@ -625,65 +713,71 @@ def strengthen_products(lemma: Callable, rewrite, wedge: Wedge) -> None:
         for id2 in range(id1 + 1, CS.dim(cs)):
             vec1 = linear.QQVector.of_term(linear.QQ.one(), id1)
             vec2 = linear.QQVector.of_term(linear.QQ.one(), id2)
-            
+
             ivl1 = bound_vec(wedge, vec1)
             ivl2 = bound_vec(wedge, vec2)
-            
+
             # Compute product interval
             prod_ivl = Interval.mul(ivl1, ivl2)
-            
+
             # Check if product is zero (one of the intervals contains only zero)
             if Interval.elem(linear.QQ.zero(), prod_ivl) and (
-                Interval.elem(linear.QQ.zero(), ivl1) or Interval.elem(linear.QQ.zero(), ivl2)
+                Interval.elem(linear.QQ.zero(), ivl1)
+                or Interval.elem(linear.QQ.zero(), ivl2)
             ):
                 # Add constraint that product is zero if one factor is zero
                 term1 = CS.term_of_vec(cs, vec1)
                 term2 = CS.term_of_vec(cs, vec2)
-                constraint = syntax.mk_or(srk, [
-                    syntax.mk_not(srk, syntax.mk_eq(srk, term1, zero)),
-                    syntax.mk_not(srk, syntax.mk_eq(srk, term2, zero)),
-                    syntax.mk_eq(srk, syntax.mk_mul(srk, [term1, term2]), zero)
-                ])
+                constraint = syntax.mk_or(
+                    srk,
+                    [
+                        syntax.mk_not(srk, syntax.mk_eq(srk, term1, zero)),
+                        syntax.mk_not(srk, syntax.mk_eq(srk, term2, zero)),
+                        syntax.mk_eq(srk, syntax.mk_mul(srk, [term1, term2]), zero),
+                    ],
+                )
                 lemma(constraint)
+
 
 def strengthen_integral(lemma: Callable, wedge: Wedge) -> None:
     """Strengthen integral dimensions"""
     srk = wedge.srk
     cs = wedge.cs
-    
+
     # For integer dimensions, add integrality constraints
     for id in range(CS.dim(cs)):
         if CS.type_of_id(cs, id) == syntax.TyInt:
             vec = linear.QQVector.of_term(linear.QQ.one(), id)
             ivl = bound_vec(wedge, vec)
-            
+
             # Get lower and upper bounds
             lower = Interval.lower(ivl)
             upper = Interval.upper(ivl)
-            
+
             if lower is not None and upper is not None:
                 # Strengthen to integer bounds using floor/ceiling
                 lower_int = linear.QQ.of_int(int(linear.QQ.ceiling(lower)))
                 upper_int = linear.QQ.of_int(int(linear.QQ.floor(upper)))
-                
+
                 # Add strengthened bounds if they're tighter
                 term = CS.term_of_vec(cs, vec)
-                
+
                 if linear.QQ.gt(lower_int, lower):
-                    lower_bound = syntax.mk_leq(srk, 
-                                               syntax.mk_real(srk, lower_int), 
-                                               term)
+                    lower_bound = syntax.mk_leq(
+                        srk, syntax.mk_real(srk, lower_int), term
+                    )
                     if not wedge_entails(wedge, lower_bound):
                         lemma(lower_bound)
                         meet_atoms(wedge, [lower_bound])
-                
+
                 if linear.QQ.lt(upper_int, upper):
-                    upper_bound = syntax.mk_leq(srk, 
-                                               term,
-                                               syntax.mk_real(srk, upper_int))
+                    upper_bound = syntax.mk_leq(
+                        srk, term, syntax.mk_real(srk, upper_int)
+                    )
                     if not wedge_entails(wedge, upper_bound):
                         lemma(upper_bound)
                         meet_atoms(wedge, [upper_bound])
+
 
 def strengthen_inverse(lemma: Callable, wedge: Wedge) -> None:
     """Strengthen inverse coordinates"""
@@ -691,40 +785,53 @@ def strengthen_inverse(lemma: Callable, wedge: Wedge) -> None:
     cs = wedge.cs
     zero = syntax.mk_real(srk, linear.QQ.zero())
     one = syntax.mk_real(srk, linear.QQ.one())
-    
+
     # For each coordinate, check if we can deduce bounds on its inverse
     for id in range(CS.dim(cs)):
         vec = linear.QQVector.of_term(linear.QQ.one(), id)
         ivl = bound_vec(wedge, vec)
-        
+
         # Check if the interval is bounded away from zero
         if Interval.is_positive(ivl) or Interval.is_negative(ivl):
             # Can safely compute inverse interval
             term = CS.term_of_vec(cs, vec)
-            
+
             # If x > 0, then 1/x is also bounded
             if Interval.is_positive(ivl):
                 lower = Interval.lower(ivl)
                 upper = Interval.upper(ivl)
-                
-                if lower is not None and upper is not None and not linear.QQ.equal(lower, linear.QQ.zero()):
+
+                if (
+                    lower is not None
+                    and upper is not None
+                    and not linear.QQ.equal(lower, linear.QQ.zero())
+                ):
                     # 1/upper <= 1/x <= 1/lower (when x > 0)
-                    inv_lower = linear.QQ.inverse(upper) if not linear.QQ.equal(upper, linear.QQ.zero()) else None
-                    inv_upper = linear.QQ.inverse(lower) if not linear.QQ.equal(lower, linear.QQ.zero()) else None
-                    
+                    inv_lower = (
+                        linear.QQ.inverse(upper)
+                        if not linear.QQ.equal(upper, linear.QQ.zero())
+                        else None
+                    )
+                    inv_upper = (
+                        linear.QQ.inverse(lower)
+                        if not linear.QQ.equal(lower, linear.QQ.zero())
+                        else None
+                    )
+
                     inv_term = syntax.mk_div(srk, one, term)
-                    
+
                     if inv_lower is not None:
-                        inv_lower_bound = syntax.mk_leq(srk,
-                                                       syntax.mk_real(srk, inv_lower),
-                                                       inv_term)
+                        inv_lower_bound = syntax.mk_leq(
+                            srk, syntax.mk_real(srk, inv_lower), inv_term
+                        )
                         lemma(inv_lower_bound)
-                    
+
                     if inv_upper is not None:
-                        inv_upper_bound = syntax.mk_leq(srk,
-                                                       inv_term,
-                                                       syntax.mk_real(srk, inv_upper))
+                        inv_upper_bound = syntax.mk_leq(
+                            srk, inv_term, syntax.mk_real(srk, inv_upper)
+                        )
                         lemma(inv_upper_bound)
+
 
 def strengthen(lemma: Callable, wedge: Wedge) -> None:
     """Strengthen wedge using various techniques"""
@@ -745,6 +852,7 @@ def strengthen(lemma: Callable, wedge: Wedge) -> None:
     ignore_result = equational_saturation(lemma, wedge)  # Final saturation
     logger.debug(f"After strengthen: {wedge}")
 
+
 def of_atoms(srk: syntax.Context, atoms: List[syntax.Formula]) -> Wedge:
     """Create wedge from atomic formulas"""
     cs = CS.mk_empty(srk)
@@ -763,12 +871,13 @@ def of_atoms(srk: syntax.Context, atoms: List[syntax.Formula]) -> Wedge:
         get_manager(),
         len(env.int_dim),
         len(env.real_dim),
-        [lincons_of_atom(srk, cs, env, atom) for atom in atoms]
+        [lincons_of_atom(srk, cs, env, atom) for atom in atoms],
     )
 
     wedge = Wedge(srk, cs, env, abstract)
     wedge.update_env()
     return wedge
+
 
 def common_cs(wedge1: Wedge, wedge2: Wedge) -> Tuple[Wedge, Wedge]:
     """Create common coordinate system for two wedges"""
@@ -796,14 +905,31 @@ def common_cs(wedge1: Wedge, wedge2: Wedge) -> Tuple[Wedge, Wedge]:
     env2 = mk_env(cs)
 
     # Create wedges with common coordinate system
-    wedge1_new = Wedge(srk, cs, env,
-                      Abstract0.of_lincons_array(get_manager(), len(env.int_dim), len(env.real_dim),
-                                                [lincons_of_atom(srk, cs, env, atom) for atom in to_atoms(wedge1)]))
-    wedge2_new = Wedge(srk, cs, env2,
-                      Abstract0.of_lincons_array(get_manager(), len(env.int_dim), len(env.real_dim),
-                                                [lincons_of_atom(srk, cs, env, atom) for atom in to_atoms(wedge2)]))
+    wedge1_new = Wedge(
+        srk,
+        cs,
+        env,
+        Abstract0.of_lincons_array(
+            get_manager(),
+            len(env.int_dim),
+            len(env.real_dim),
+            [lincons_of_atom(srk, cs, env, atom) for atom in to_atoms(wedge1)],
+        ),
+    )
+    wedge2_new = Wedge(
+        srk,
+        cs,
+        env2,
+        Abstract0.of_lincons_array(
+            get_manager(),
+            len(env.int_dim),
+            len(env.real_dim),
+            [lincons_of_atom(srk, cs, env, atom) for atom in to_atoms(wedge2)],
+        ),
+    )
 
     return wedge1_new, wedge2_new
+
 
 def join(lemma: Callable, wedge1: Wedge, wedge2: Wedge) -> Wedge:
     """Join two wedges"""
@@ -818,8 +944,13 @@ def join(lemma: Callable, wedge1: Wedge, wedge2: Wedge) -> Wedge:
     strengthen(lemma, wedge2_copy)
     wedge1_copy.update_env()  # May have grown during strengthening
 
-    return Wedge(wedge1_copy.srk, wedge1_copy.cs, wedge1_copy.env,
-                Abstract0.join(get_manager(), wedge1_copy.abstract, wedge2_copy.abstract))
+    return Wedge(
+        wedge1_copy.srk,
+        wedge1_copy.cs,
+        wedge1_copy.env,
+        Abstract0.join(get_manager(), wedge1_copy.abstract, wedge2_copy.abstract),
+    )
+
 
 def meet(wedge1: Wedge, wedge2: Wedge) -> Wedge:
     """Meet two wedges"""
@@ -832,13 +963,25 @@ def meet(wedge1: Wedge, wedge2: Wedge) -> Wedge:
     meet_atoms(wedge_copy, to_atoms(wedge2))
     return wedge_copy
 
+
 def abstract_to_wedge(srk: syntax.Context, phi: syntax.Formula) -> Wedge:
     """Abstract formula to wedge"""
-    return abstract_subwedge(lambda lemma, w: w, lambda lemma, w1, w2: join(lemma, w1, w2),
-                           lambda w: to_formula(w), srk, phi)
+    return abstract_subwedge(
+        lambda lemma, w: w,
+        lambda lemma, w1, w2: join(lemma, w1, w2),
+        lambda w: to_formula(w),
+        srk,
+        phi,
+    )
 
-def abstract_subwedge(of_wedge: Callable, join_op: Callable, to_formula_op: Callable,
-                     srk: syntax.Context, phi: syntax.Formula) -> Any:
+
+def abstract_subwedge(
+    of_wedge: Callable,
+    join_op: Callable,
+    to_formula_op: Callable,
+    srk: syntax.Context,
+    phi: syntax.Formula,
+) -> Any:
     """Abstract formula using custom wedge operations"""
     phi = syntax.eliminate_ite(srk, phi)
     phi = simplify.simplify_terms(srk, phi)
@@ -846,8 +989,9 @@ def abstract_subwedge(of_wedge: Callable, join_op: Callable, to_formula_op: Call
     logger.info(f"Abstracting formula: {phi}")
 
     solver = Smt.mk_solver(srk, theory="QF_LIRA")
-    uninterp_phi = syntax.rewrite(srk, phi, down=syntax.nnf_rewriter(srk),
-                                 up=nonlinear.uninterpret_rewriter(srk))
+    uninterp_phi = syntax.rewrite(
+        srk, phi, down=syntax.nnf_rewriter(srk), up=nonlinear.uninterpret_rewriter(srk)
+    )
 
     # lin_phi, nonlinear_map = srk_simplify.purify(srk, uninterp_phi)  # Disabled due to missing functions
     lin_phi = uninterp_phi  # Placeholder
@@ -875,12 +1019,23 @@ def abstract_subwedge(of_wedge: Callable, join_op: Callable, to_formula_op: Call
 
                 # Create new wedge from implicant
                 new_wedge = of_atoms(srk, implicant)
-                new_wedge = strengthen(lambda psi: Smt.Solver.add(solver, [nonlinear.uninterpret(srk, psi)]),
-                                     new_wedge)
+                new_wedge = strengthen(
+                    lambda psi: Smt.Solver.add(
+                        solver, [nonlinear.uninterpret(srk, psi)]
+                    ),
+                    new_wedge,
+                )
 
                 new_prop = of_wedge(lambda w: new_wedge)
-                return go(join_op(lambda psi: Smt.Solver.add(solver, [nonlinear.uninterpret(srk, psi)]),
-                                prop, new_prop))
+                return go(
+                    join_op(
+                        lambda psi: Smt.Solver.add(
+                            solver, [nonlinear.uninterpret(srk, psi)]
+                        ),
+                        prop,
+                        new_prop,
+                    )
+                )
 
     result = go(of_wedge(lambda w: bottom(srk)))
     logger.info(f"Abstraction result: {to_formula_op(result)}")

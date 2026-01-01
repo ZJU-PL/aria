@@ -3,8 +3,32 @@ Tests for the Iteration module (approximate transitive closure computation).
 """
 
 import unittest
-from aria.srk.syntax import Context, Symbol, Type, mk_symbol, mk_const, mk_true, mk_false, mk_eq, mk_lt, mk_leq, mk_and, mk_or, mk_not, mk_ite, mk_add, mk_mul, mk_real
-from aria.srk.iteration import IterationEngine, WedgeGuard, PolyhedronGuard, make_wedge_guard, make_polyhedron_guard
+from aria.srk.syntax import (
+    Context,
+    Symbol,
+    Type,
+    mk_symbol,
+    mk_const,
+    mk_true,
+    mk_false,
+    mk_eq,
+    mk_lt,
+    mk_leq,
+    mk_and,
+    mk_or,
+    mk_not,
+    mk_ite,
+    mk_add,
+    mk_mul,
+    mk_real,
+)
+from aria.srk.iteration import (
+    IterationEngine,
+    WedgeGuard,
+    PolyhedronGuard,
+    make_wedge_guard,
+    make_polyhedron_guard,
+)
 from aria.srk.transitionFormula import TransitionFormula
 from aria.srk.qQ import QQ, zero, one
 
@@ -15,18 +39,22 @@ class TestIteration(unittest.TestCase):
     def setUp(self):
         """Set up test context and symbols."""
         self.ctx = Context()
-        self.w = mk_symbol('w', Type.INT)
-        self.x = mk_symbol('x', Type.INT)
-        self.y = mk_symbol('y', Type.INT)
-        self.z = mk_symbol('z', Type.INT)
-        self.w_prime = mk_symbol('w\'', Type.INT)
-        self.x_prime = mk_symbol('x\'', Type.INT)
-        self.y_prime = mk_symbol('y\'', Type.INT)
-        self.z_prime = mk_symbol('z\'', Type.INT)
+        self.w = mk_symbol("w", Type.INT)
+        self.x = mk_symbol("x", Type.INT)
+        self.y = mk_symbol("y", Type.INT)
+        self.z = mk_symbol("z", Type.INT)
+        self.w_prime = mk_symbol("w'", Type.INT)
+        self.x_prime = mk_symbol("x'", Type.INT)
+        self.y_prime = mk_symbol("y'", Type.INT)
+        self.z_prime = mk_symbol("z'", Type.INT)
 
         # Transition symbols for testing
-        self.tr_symbols = [(self.w, self.w_prime), (self.x, self.x_prime),
-                          (self.y, self.y_prime), (self.z, self.z_prime)]
+        self.tr_symbols = [
+            (self.w, self.w_prime),
+            (self.x, self.x_prime),
+            (self.y, self.y_prime),
+            (self.z, self.z_prime),
+        ]
 
     def test_iteration_engine_creation(self):
         """Test creating an iteration engine."""
@@ -67,14 +95,14 @@ class TestIteration(unittest.TestCase):
 
         # These would be properly implemented when the modules are complete
         # For now, test that the objects can be created and have expected methods
-        self.assertTrue(hasattr(wedge_guard, 'abstract'))
-        self.assertTrue(hasattr(wedge_guard, 'exp'))
+        self.assertTrue(hasattr(wedge_guard, "abstract"))
+        self.assertTrue(hasattr(wedge_guard, "exp"))
 
         # Test PolyhedronGuard operations
         poly_guard = make_polyhedron_guard()
-        self.assertTrue(hasattr(poly_guard, 'abstract'))
-        self.assertTrue(hasattr(poly_guard, 'join'))
-        self.assertTrue(hasattr(poly_guard, 'widen'))
+        self.assertTrue(hasattr(poly_guard, "abstract"))
+        self.assertTrue(hasattr(poly_guard, "join"))
+        self.assertTrue(hasattr(poly_guard, "widen"))
 
 
 class TestPrePostConditions(unittest.TestCase):
@@ -83,8 +111,8 @@ class TestPrePostConditions(unittest.TestCase):
     def setUp(self):
         """Set up test context and symbols."""
         self.ctx = Context()
-        self.x = mk_symbol('x', Type.INT)
-        self.x_prime = mk_symbol('x\'', Type.INT)
+        self.x = mk_symbol("x", Type.INT)
+        self.x_prime = mk_symbol("x'", Type.INT)
 
     def test_basic_pre_post(self):
         """Test basic pre/post condition relationships."""
@@ -109,10 +137,10 @@ class TestInductionProofs(unittest.TestCase):
     def setUp(self):
         """Set up test context and symbols."""
         self.ctx = Context()
-        self.w = mk_symbol('w', Type.INT)
-        self.x = mk_symbol('x', Type.INT)
-        self.y = mk_symbol('y', Type.INT)
-        self.z = mk_symbol('z', Type.INT)
+        self.w = mk_symbol("w", Type.INT)
+        self.x = mk_symbol("x", Type.INT)
+        self.y = mk_symbol("y", Type.INT)
+        self.z = mk_symbol("z", Type.INT)
 
     def test_simple_induction(self):
         """Test simple induction proof."""
@@ -124,5 +152,5 @@ class TestInductionProofs(unittest.TestCase):
         self.assertIsNotNone(self.ctx)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

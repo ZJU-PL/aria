@@ -13,6 +13,7 @@ from fractions import Fraction
 # Optional numpy import for advanced operations
 try:
     import numpy as np
+
     NUMPY_AVAILABLE = True
 except ImportError:
     np = None
@@ -21,7 +22,7 @@ except ImportError:
 from aria.srk.linear import QQMatrix, QQVector, QQ
 
 
-def to_numpy_matrix(matrix: QQMatrix) -> 'np.ndarray':
+def to_numpy_matrix(matrix: QQMatrix) -> "np.ndarray":
     """Convert QQMatrix to numpy array."""
     if not NUMPY_AVAILABLE:
         raise ImportError("numpy is required for this operation")
@@ -49,7 +50,7 @@ def to_numpy_matrix(matrix: QQMatrix) -> 'np.ndarray':
     return arr
 
 
-def from_numpy_matrix(arr: 'np.ndarray') -> QQMatrix:
+def from_numpy_matrix(arr: "np.ndarray") -> QQMatrix:
     """Convert numpy array to QQMatrix."""
     rows = []
     for i in range(arr.shape[0]):
@@ -408,7 +409,16 @@ def gram_schmidt(vectors: List[QQVector]) -> List[QQVector]:
 
 # Export functions
 __all__ = [
-    'to_numpy_matrix', 'from_numpy_matrix', 'rational_eigenvalues', 'eigenvectors',
-    'matrix_power', 'determinant', 'matrix_inverse', 'qr_decomposition', 'svd',
-    'null_space', 'column_space', 'gram_schmidt'
+    "to_numpy_matrix",
+    "from_numpy_matrix",
+    "rational_eigenvalues",
+    "eigenvectors",
+    "matrix_power",
+    "determinant",
+    "matrix_inverse",
+    "qr_decomposition",
+    "svd",
+    "null_space",
+    "column_space",
+    "gram_schmidt",
 ]

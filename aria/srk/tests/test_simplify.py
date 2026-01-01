@@ -5,13 +5,33 @@ Tests for the simplify module.
 import unittest
 from fractions import Fraction
 from aria.srk.srkSimplify import (
-    Simplifier, NNFConverter, CNFConverter, ExpressionSimplifier,
-    make_simplifier, make_nnf_converter, make_cnf_converter
+    Simplifier,
+    NNFConverter,
+    CNFConverter,
+    ExpressionSimplifier,
+    make_simplifier,
+    make_nnf_converter,
+    make_cnf_converter,
 )
 from aria.srk.syntax import (
-    Context, Symbol, Type, ExpressionBuilder,
-    Var, Const, Add, Mul, Eq, Lt, Leq, And, Or, Not, TrueExpr, FalseExpr,
-    make_context, make_expression_builder
+    Context,
+    Symbol,
+    Type,
+    ExpressionBuilder,
+    Var,
+    Const,
+    Add,
+    Mul,
+    Eq,
+    Lt,
+    Leq,
+    And,
+    Or,
+    Not,
+    TrueExpr,
+    FalseExpr,
+    make_context,
+    make_expression_builder,
 )
 
 
@@ -290,5 +310,5 @@ class TestSimplificationUtilities(unittest.TestCase):
             pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

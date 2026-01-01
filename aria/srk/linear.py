@@ -58,7 +58,7 @@ class QQVector:
             entries: Dictionary of dimension -> coefficient mappings.
                     If None, creates an empty vector (zero vector).
         """
-        object.__setattr__(self, 'entries', entries or {})
+        object.__setattr__(self, "entries", entries or {})
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, QQVector):
@@ -224,7 +224,9 @@ class QQVector:
 
         # Scale so that target coefficient becomes 1
         scale_factor = QQ(1) / pivot_coeff
-        scaled_entries = {dim: coeff * scale_factor for dim, coeff in new_entries.items()}
+        scaled_entries = {
+            dim: coeff * scale_factor for dim, coeff in new_entries.items()
+        }
 
         return pivot_coeff, QQVector(scaled_entries)
 
@@ -265,7 +267,7 @@ class QQMatrix:
     def __init__(self, rows: Optional[List[QQVector]] = None):
         if rows is None:
             rows = []
-        object.__setattr__(self, 'rows', tuple(rows))
+        object.__setattr__(self, "rows", tuple(rows))
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, QQMatrix):
@@ -296,7 +298,9 @@ class QQMatrix:
 
         return QQMatrix(new_rows)
 
-    def __mul__(self, other: Union[QQMatrix, QQVector, QQ]) -> Union[QQMatrix, QQVector]:
+    def __mul__(
+        self, other: Union[QQMatrix, QQVector, QQ]
+    ) -> Union[QQMatrix, QQVector]:
         """Matrix multiplication."""
         if isinstance(other, QQMatrix):
             return self._matrix_multiply(other)
@@ -439,7 +443,10 @@ class QQMatrix:
 
             # Swap rows to bring pivot to current position
             if pivot_row != rank:
-                rows_list[rank], rows_list[pivot_row] = rows_list[pivot_row], rows_list[rank]
+                rows_list[rank], rows_list[pivot_row] = (
+                    rows_list[pivot_row],
+                    rows_list[rank],
+                )
 
             # Eliminate below
             pivot_coeff = rows_list[rank].get(col)
@@ -449,7 +456,9 @@ class QQMatrix:
             for row_idx in range(rank + 1, m):
                 factor = rows_list[row_idx].get(col, QQ(0)) / pivot_coeff
                 if factor != 0:
-                    rows_list[row_idx] = rows_list[row_idx] - (rows_list[row_idx] * factor)
+                    rows_list[row_idx] = rows_list[row_idx] - (
+                        rows_list[row_idx] * factor
+                    )
 
             rank += 1
 
@@ -654,10 +663,13 @@ class QQVectorSpace:
             rows.append(QQVector(row_entries))
 
         A = QQMatrix(rows)
-        b = QQVector({i: vector.get(dim, QQ(0)) for i, dim in enumerate(sorted(all_dims))})
+        b = QQVector(
+            {i: vector.get(dim, QQ(0)) for i, dim in enumerate(sorted(all_dims))}
+        )
 
         # Try to solve Ax = b
         from .linear_utils import solve_linear_system
+
         solution = solve_linear_system(A, b)
         return solution is not None
 
@@ -741,48 +753,65 @@ class QQVectorSpace:
 def zero_vector(dimensions: int):
     """Create a zero vector."""
     from .linear_utils import zero_vector as _zero_vector
+
     return _zero_vector(dimensions)
+
 
 def unit_vector(dim: int, size: int):
     """Create a unit vector in the given dimension."""
     from .linear_utils import unit_vector as _unit_vector
+
     return _unit_vector(dim, size)
+
 
 def identity_matrix(size: int):
     """Create an identity matrix."""
     from .linear_utils import identity_matrix as _identity_matrix
+
     return _identity_matrix(size)
+
 
 def vector_from_list(values):
     """Create a vector from a list of values."""
     from .linear_utils import vector_from_list as _vector_from_list
+
     return _vector_from_list(values)
+
 
 def matrix_from_lists(rows):
     """Create a matrix from a list of row lists."""
     from .linear_utils import matrix_from_lists as _matrix_from_lists
+
     return _matrix_from_lists(rows)
+
 
 def mk_vector(values):
     """Create a vector from a list of values."""
     from .linear_utils import mk_vector as _mk_vector
+
     return _mk_vector(values)
+
 
 def mk_matrix(rows):
     """Create a matrix from a list of row lists."""
     from .linear_utils import mk_matrix as _mk_matrix
+
     return _mk_matrix(rows)
+
 
 def solve_linear_system(matrix, vector):
     """Solve a linear system Ax = b."""
     from .linear_utils import solve_linear_system as _solve_linear_system
+
     return _solve_linear_system(matrix, vector)
+
 
 #
 # Compatibility helpers for symbolic linear terms
 #
 # Dimension 0 is reserved for the constant term; symbols/vars map to (id + 1).
 const_dim = 0
+
 
 def dim_of_sym(symbol) -> int:
     """Map a symbol/var to a QQVector dimension (0 is reserved for constants)."""
@@ -807,7 +836,9 @@ def linterm_of(*args):
     elif len(args) == 2:
         _, expr = args
     else:
-        raise TypeError(f"linterm_of expects (expr) or (srk, expr), got {len(args)} args")
+        raise TypeError(
+            f"linterm_of expects (expr) or (srk, expr), got {len(args)} args"
+        )
 
     from fractions import Fraction
     from .syntax import Var, Const, Add, Mul
@@ -832,7 +863,9 @@ def linterm_of(*args):
     def _scale(v: QQVector, k: Fraction) -> QQVector:
         if k == 0 or not v.entries:
             return QQVector()
-        return QQVector({d: Fraction(c) * k for d, c in v.entries.items() if Fraction(c) * k != 0})
+        return QQVector(
+            {d: Fraction(c) * k for d, c in v.entries.items() if Fraction(c) * k != 0}
+        )
 
     def _add(vs: list[QQVector]) -> QQVector:
         out: dict[int, Fraction] = {}
@@ -873,6 +906,7 @@ def linterm_of(*args):
 
     return rec(expr)
 
+
 def divide_right(a: QQMatrix, b: QQMatrix) -> Optional[QQMatrix]:
     """Solve for x in a * x = b.
 
@@ -893,8 +927,12 @@ def divide_right(a: QQMatrix, b: QQMatrix) -> Optional[QQMatrix]:
         result_rows = []
         for col_idx in range(b_cols):
             # Extract column col_idx from b
-            b_col = QQVector({row_idx: b.rows[row_idx].get(col_idx, QQ(0))
-                             for row_idx in range(len(b.rows))})
+            b_col = QQVector(
+                {
+                    row_idx: b.rows[row_idx].get(col_idx, QQ(0))
+                    for row_idx in range(len(b.rows))
+                }
+            )
 
             # Solve a * x_col = b_col for x_col
             try:
@@ -907,6 +945,7 @@ def divide_right(a: QQMatrix, b: QQMatrix) -> Optional[QQMatrix]:
         return QQMatrix(result_rows) if result_rows else QQMatrix()
     except Exception:
         return None
+
 
 def divide_left(a: QQMatrix, b: QQMatrix) -> Optional[QQMatrix]:
     """Solve for x in x * a = b.
@@ -925,85 +964,131 @@ def divide_left(a: QQMatrix, b: QQMatrix) -> Optional[QQMatrix]:
     except Exception:
         return None
 
+
 # Advanced functions - imported locally to avoid cyclic imports
 def to_numpy_matrix(matrix):
     """Convert QQMatrix to numpy array."""
     from .linear_advanced import to_numpy_matrix as _to_numpy_matrix
+
     return _to_numpy_matrix(matrix)
+
 
 def from_numpy_matrix(arr):
     """Convert numpy array to QQMatrix."""
     from .linear_advanced import from_numpy_matrix as _from_numpy_matrix
+
     return _from_numpy_matrix(arr)
+
 
 def rational_eigenvalues(matrix):
     """Compute rational eigenvalues of matrix."""
     from .linear_advanced import rational_eigenvalues as _rational_eigenvalues
+
     return _rational_eigenvalues(matrix)
+
 
 def eigenvectors(matrix):
     """Compute eigenvectors of matrix."""
     from .linear_advanced import eigenvectors as _eigenvectors
+
     return _eigenvectors(matrix)
+
 
 def matrix_power(matrix, n):
     """Compute matrix power."""
     from .linear_advanced import matrix_power as _matrix_power
+
     return _matrix_power(matrix, n)
+
 
 def determinant(matrix):
     """Compute matrix determinant."""
     from .linear_advanced import determinant as _determinant
+
     return _determinant(matrix)
+
 
 def matrix_inverse(matrix):
     """Compute matrix inverse."""
     from .linear_advanced import matrix_inverse as _matrix_inverse
+
     return _matrix_inverse(matrix)
+
 
 def qr_decomposition(matrix):
     """QR decomposition of matrix."""
     from .linear_advanced import qr_decomposition as _qr_decomposition
+
     return _qr_decomposition(matrix)
+
 
 def svd(matrix):
     """Singular value decomposition of matrix."""
     from .linear_advanced import svd as _svd
+
     return _svd(matrix)
+
 
 def null_space(matrix):
     """Compute null space of matrix."""
     from .linear_advanced import null_space as _null_space
+
     return _null_space(matrix)
+
 
 def column_space(matrix):
     """Compute column space of matrix."""
     from .linear_advanced import column_space as _column_space
+
     return _column_space(matrix)
+
 
 def gram_schmidt(vectors):
     """Gram-Schmidt orthogonalization."""
     from .linear_advanced import gram_schmidt as _gram_schmidt
+
     return _gram_schmidt(vectors)
+
 
 # Export the Linear class and all functions
 __all__ = [
-    'Linear', 'QQVector', 'QQMatrix', 'QQVectorSpace',
+    "Linear",
+    "QQVector",
+    "QQMatrix",
+    "QQVectorSpace",
     # Utility functions
-    'zero_vector', 'unit_vector', 'identity_matrix', 'vector_from_list',
-    'matrix_from_lists', 'mk_vector', 'mk_matrix', 'solve_linear_system', 'linterm_of',
+    "zero_vector",
+    "unit_vector",
+    "identity_matrix",
+    "vector_from_list",
+    "matrix_from_lists",
+    "mk_vector",
+    "mk_matrix",
+    "solve_linear_system",
+    "linterm_of",
     # Symbol dimension helpers
-    'const_dim', 'dim_of_sym',
+    "const_dim",
+    "dim_of_sym",
     # Advanced functions
-    'to_numpy_matrix', 'from_numpy_matrix', 'rational_eigenvalues', 'eigenvectors',
-    'matrix_power', 'determinant', 'matrix_inverse', 'qr_decomposition', 'svd',
-    'null_space', 'column_space', 'gram_schmidt'
+    "to_numpy_matrix",
+    "from_numpy_matrix",
+    "rational_eigenvalues",
+    "eigenvectors",
+    "matrix_power",
+    "determinant",
+    "matrix_inverse",
+    "qr_decomposition",
+    "svd",
+    "null_space",
+    "column_space",
+    "gram_schmidt",
 ]
 
 
 # Linear namespace for compatibility with OCaml module structure
 class Linear:
     """Namespace for linear algebra functions."""
+
     QQVector = QQVector
     QQMatrix = QQMatrix
     QQVectorSpace = QQVectorSpace
@@ -1020,19 +1105,27 @@ class Linear:
     def _get_utility_functions():
         """Get utility functions with local import to avoid cyclic dependencies."""
         from .linear_utils import (
-            zero_vector, unit_vector, identity_matrix, vector_from_list, matrix_from_lists,
-            mk_vector, mk_matrix, linterm_of, solve_linear_system
+            zero_vector,
+            unit_vector,
+            identity_matrix,
+            vector_from_list,
+            matrix_from_lists,
+            mk_vector,
+            mk_matrix,
+            linterm_of,
+            solve_linear_system,
         )
+
         return {
-            'zero_vector': zero_vector,
-            'unit_vector': unit_vector,
-            'identity_matrix': identity_matrix,
-            'vector_from_list': vector_from_list,
-            'matrix_from_lists': matrix_from_lists,
-            'mk_vector': mk_vector,
-            'mk_matrix': mk_matrix,
-            'solve_linear_system': solve_linear_system,
-            'linterm_of': linterm_of
+            "zero_vector": zero_vector,
+            "unit_vector": unit_vector,
+            "identity_matrix": identity_matrix,
+            "vector_from_list": vector_from_list,
+            "matrix_from_lists": matrix_from_lists,
+            "mk_vector": mk_vector,
+            "mk_matrix": mk_matrix,
+            "solve_linear_system": solve_linear_system,
+            "linterm_of": linterm_of,
         }
 
     @staticmethod
@@ -1040,23 +1133,33 @@ class Linear:
         """Get advanced functions with local import to avoid cyclic dependencies."""
         try:
             from .linear_advanced import (
-                to_numpy_matrix, from_numpy_matrix, rational_eigenvalues, eigenvectors,
-                matrix_power, determinant, matrix_inverse, qr_decomposition, svd,
-                null_space, column_space, gram_schmidt
+                to_numpy_matrix,
+                from_numpy_matrix,
+                rational_eigenvalues,
+                eigenvectors,
+                matrix_power,
+                determinant,
+                matrix_inverse,
+                qr_decomposition,
+                svd,
+                null_space,
+                column_space,
+                gram_schmidt,
             )
+
             return {
-                'to_numpy_matrix': to_numpy_matrix,
-                'from_numpy_matrix': from_numpy_matrix,
-                'rational_eigenvalues': rational_eigenvalues,
-                'eigenvectors': eigenvectors,
-                'matrix_power': matrix_power,
-                'determinant': determinant,
-                'matrix_inverse': matrix_inverse,
-                'qr_decomposition': qr_decomposition,
-                'svd': svd,
-                'null_space': null_space,
-                'column_space': column_space,
-                'gram_schmidt': gram_schmidt
+                "to_numpy_matrix": to_numpy_matrix,
+                "from_numpy_matrix": from_numpy_matrix,
+                "rational_eigenvalues": rational_eigenvalues,
+                "eigenvectors": eigenvectors,
+                "matrix_power": matrix_power,
+                "determinant": determinant,
+                "matrix_inverse": matrix_inverse,
+                "qr_decomposition": qr_decomposition,
+                "svd": svd,
+                "null_space": null_space,
+                "column_space": column_space,
+                "gram_schmidt": gram_schmidt,
             }
         except ImportError:
             return {}
@@ -1073,4 +1176,6 @@ class Linear:
         if name in advanced_funcs:
             return advanced_funcs[name]
 
-        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
+        raise AttributeError(
+            f"'{self.__class__.__name__}' object has no attribute '{name}'"
+        )

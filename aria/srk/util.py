@@ -20,7 +20,19 @@ Example:
 """
 
 from __future__ import annotations
-from typing import Dict, List, Set, Tuple, Optional, Union, Any, Callable, TypeVar, Iterator,Iterable
+from typing import (
+    Dict,
+    List,
+    Set,
+    Tuple,
+    Optional,
+    Union,
+    Any,
+    Callable,
+    TypeVar,
+    Iterator,
+    Iterable,
+)
 from dataclasses import dataclass, field
 from fractions import Fraction
 from contextlib import contextmanager, redirect_stdout
@@ -29,10 +41,10 @@ import itertools
 import bisect
 from io import StringIO
 
-T = TypeVar('T')
-U = TypeVar('U')
-K = TypeVar('K')
-V = TypeVar('V')
+T = TypeVar("T")
+U = TypeVar("U")
+K = TypeVar("K")
+V = TypeVar("V")
 
 
 class ZZ:
@@ -509,8 +521,9 @@ class BatArray:
         for x in arr:
             f(x)
 
-T = TypeVar('T')
-U = TypeVar('U')
+
+T = TypeVar("T")
+U = TypeVar("U")
 
 
 class IntSet:
@@ -933,7 +946,9 @@ def powerset(iterable: Iterable[T]) -> Iterator[Tuple[T, ...]]:
     )
 
 
-def combinations_with_replacement(iterable: Iterable[T], r: int) -> Iterator[Tuple[T, ...]]:
+def combinations_with_replacement(
+    iterable: Iterable[T], r: int
+) -> Iterator[Tuple[T, ...]]:
     """Generate combinations with replacement."""
     return itertools.combinations_with_replacement(iterable, r)
 
@@ -946,8 +961,8 @@ def permutations(iterable: Iterable[T]) -> Iterator[Tuple[T, ...]]:
 # String utilities
 def indent_string(s: str, indent: str = "  ") -> str:
     """Indent each line of a string."""
-    lines = s.split('\n')
-    return '\n'.join(indent + line if line else '' for line in lines)
+    lines = s.split("\n")
+    return "\n".join(indent + line if line else "" for line in lines)
 
 
 def format_number(n: Union[int, float, Fraction]) -> str:
@@ -982,7 +997,9 @@ def is_number(x: Any) -> bool:
     return isinstance(x, (int, float, Fraction))
 
 
-def safe_divide(a: Union[int, float, Fraction], b: Union[int, float, Fraction]) -> Union[int, float, Fraction]:
+def safe_divide(
+    a: Union[int, float, Fraction], b: Union[int, float, Fraction]
+) -> Union[int, float, Fraction]:
     """Safe division that handles zero denominator."""
     if b == 0:
         raise ZeroDivisionError("Division by zero")
@@ -1017,7 +1034,9 @@ def group_by(items: List[T], key_func: Callable[[T], U]) -> Dict[U, List[T]]:
     return result
 
 
-def partition(items: List[T], predicate: Callable[[T], bool]) -> Tuple[List[T], List[T]]:
+def partition(
+    items: List[T], predicate: Callable[[T], bool]
+) -> Tuple[List[T], List[T]]:
     """Partition items based on predicate."""
     true_items = []
     false_items = []
@@ -1032,21 +1051,25 @@ def partition(items: List[T], predicate: Callable[[T], bool]) -> Tuple[List[T], 
 # Error handling utilities
 class SRKError(Exception):
     """Base exception for SRK errors."""
+
     pass
 
 
 class TypeError(SRKError):
     """Type-related error."""
+
     pass
 
 
 class ValueError(SRKError):
     """Value-related error."""
+
     pass
 
 
 class NotImplementedError(SRKError):
     """Feature not implemented error."""
+
     pass
 
 
@@ -1076,11 +1099,13 @@ class Timer:
     def start(self) -> None:
         """Start the timer."""
         import time
+
         self.start_time = time.time()
 
     def stop(self) -> float:
         """Stop the timer and return elapsed time."""
         import time
+
         if self.start_time is None:
             raise RuntimeError("Timer not started")
 
@@ -1090,6 +1115,7 @@ class Timer:
     def elapsed(self) -> float:
         """Get elapsed time without stopping."""
         import time
+
         if self.start_time is None:
             return 0.0
 
@@ -1120,7 +1146,7 @@ def estimate_size(obj: Any) -> int:
     import sys
 
     # Basic estimation - in practice would be more sophisticated
-    if hasattr(obj, '__sizeof__'):
+    if hasattr(obj, "__sizeof__"):
         return sys.getsizeof(obj)
     else:
         return 0
@@ -1128,7 +1154,7 @@ def estimate_size(obj: Any) -> int:
 
 def format_bytes(bytes: int) -> str:
     """Format bytes in human-readable form."""
-    for unit in ['B', 'KB', 'MB', 'GB']:
+    for unit in ["B", "KB", "MB", "GB"]:
         if bytes < 1024:
             return f"{bytes:.1f}{unit}"
         bytes /= 1024
@@ -1138,14 +1164,14 @@ def format_bytes(bytes: int) -> str:
 # File and I/O utilities
 def read_file_lines(filename: str) -> List[str]:
     """Read lines from file."""
-    with open(filename, 'r') as f:
-        return f.read().strip().split('\n')
+    with open(filename, "r") as f:
+        return f.read().strip().split("\n")
 
 
 def write_file_lines(filename: str, lines: List[str]) -> None:
     """Write lines to file."""
-    with open(filename, 'w') as f:
-        f.write('\n'.join(lines))
+    with open(filename, "w") as f:
+        f.write("\n".join(lines))
 
 
 # Statistical utilities
@@ -1165,9 +1191,9 @@ def median(values: List[float]) -> float:
     n = len(sorted_values)
 
     if n % 2 == 0:
-        return (sorted_values[n//2 - 1] + sorted_values[n//2]) / 2
+        return (sorted_values[n // 2 - 1] + sorted_values[n // 2]) / 2
     else:
-        return sorted_values[n//2]
+        return sorted_values[n // 2]
 
 
 def variance(values: List[float]) -> float:
@@ -1188,25 +1214,30 @@ def standard_deviation(values: List[float]) -> float:
 def random_int(a: int, b: int) -> int:
     """Generate random integer between a and b (inclusive)."""
     import random
+
     return random.randint(a, b)
 
 
 def random_choice(items: List[T]) -> T:
     """Choose random item from list."""
     import random
+
     return random.choice(items)
 
 
 def shuffle_list(items: List[T]) -> List[T]:
     """Shuffle a list in place and return it."""
     import random
+
     shuffled = items.copy()
     random.shuffle(shuffled)
     return shuffled
 
 
 # Binary search utility
-def search(value: T, array: List[T], compare: Optional[Callable[[T, T], int]] = None) -> int:
+def search(
+    value: T, array: List[T], compare: Optional[Callable[[T, T], int]] = None
+) -> int:
     """Search for an index in a sorted array using binary search."""
     if compare is None:
         compare = lambda a, b: (a > b) - (a < b)  # Default comparison
@@ -1229,7 +1260,9 @@ def search(value: T, array: List[T], compare: Optional[Callable[[T, T], int]] = 
 
 
 # Array merging utility
-def merge_array(a: List[T], b: List[T], compare: Optional[Callable[[T, T], int]] = None) -> List[T]:
+def merge_array(
+    a: List[T], b: List[T], compare: Optional[Callable[[T, T], int]] = None
+) -> List[T]:
     """Merge two sorted arrays into a single sorted array."""
     if compare is None:
         compare = lambda x, y: (x > y) - (x < y)
@@ -1305,7 +1338,9 @@ def default_sep(formatter) -> None:
     print(", ", file=formatter, end="")
 
 
-def pp_print_enum_nobox(pp_elt: Callable, formatter, enum: Iterator[T], pp_sep: Optional[Callable] = None) -> None:
+def pp_print_enum_nobox(
+    pp_elt: Callable, formatter, enum: Iterator[T], pp_sep: Optional[Callable] = None
+) -> None:
     """Pretty print enumeration without box."""
     if pp_sep is None:
         pp_sep = lambda f, _: default_sep(f)
@@ -1320,7 +1355,13 @@ def pp_print_enum_nobox(pp_elt: Callable, formatter, enum: Iterator[T], pp_sep: 
         pass
 
 
-def pp_print_enum(pp_elt: Callable, formatter, enum: Iterator[T], indent: int = 2, pp_sep: Optional[Callable] = None) -> None:
+def pp_print_enum(
+    pp_elt: Callable,
+    formatter,
+    enum: Iterator[T],
+    indent: int = 2,
+    pp_sep: Optional[Callable] = None,
+) -> None:
     """Pretty print enumeration with box."""
     if pp_sep is None:
         pp_sep = lambda f, _: default_sep(f)
@@ -1372,6 +1413,7 @@ def distinct_pairs(enum: Iterator[T]) -> Iterator[Tuple[T, T]]:
 # List pretty printing
 def pp_print_list(pp_elt: Callable, formatter, xs: List[T]) -> None:
     """Pretty print a list."""
+
     def sep(f, _) -> None:
         print("; ", file=f, end="")
 

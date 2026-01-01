@@ -22,7 +22,18 @@ Example:
 """
 
 from __future__ import annotations
-from typing import Dict, List, Set, Tuple, Optional, Union, Any, TypeVar, Generic, Callable
+from typing import (
+    Dict,
+    List,
+    Set,
+    Tuple,
+    Optional,
+    Union,
+    Any,
+    TypeVar,
+    Generic,
+    Callable,
+)
 from abc import ABC, abstractmethod
 from enum import Enum
 from dataclasses import dataclass, field
@@ -33,8 +44,9 @@ import itertools
 from aria.srk.qQ import QQ
 
 # Type variables for generic types
-T = TypeVar('T')
-U = TypeVar('U')
+T = TypeVar("T")
+U = TypeVar("U")
+
 
 # Core types
 class Type(Enum):
@@ -50,6 +62,7 @@ class Type(Enum):
     The type system ensures type safety in symbolic expressions and
     helps guide the application of appropriate operations.
     """
+
     INT = "Int"
     REAL = "Real"
     BOOL = "Bool"
@@ -164,7 +177,9 @@ class Context:
                 raise TypeError(f"typ must be a Type enum value, got {type(typ)}")
             return Var(var_id_or_symbol, typ, name)
         else:
-            raise TypeError(f"mk_var expects (var_id, typ) or (symbol), got ({type(var_id_or_symbol)}, {type(typ)})")
+            raise TypeError(
+                f"mk_var expects (var_id, typ) or (symbol), got ({type(var_id_or_symbol)}, {type(typ)})"
+            )
 
     def mk_const(self, symbol: Symbol):
         """Create a constant expression."""
@@ -214,7 +229,7 @@ class Expression(ABC):
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         # Ensure all subclasses have a typ attribute
-        if not hasattr(cls, 'typ'):
+        if not hasattr(cls, "typ"):
             raise TypeError(f"Expression subclass {cls} must define 'typ' attribute")
 
     def __eq__(self, other: object) -> bool:
@@ -231,7 +246,7 @@ class Expression(ABC):
         """Hash based on type and attributes."""
         # Simple hash based on type and a few key attributes
         attrs = []
-        for attr_name in ['typ']:
+        for attr_name in ["typ"]:
             if hasattr(self, attr_name):
                 attrs.append(getattr(self, attr_name))
         return hash((type(self), tuple(attrs)))
@@ -241,7 +256,7 @@ class Expression(ABC):
         # Provide a more informative default representation
         attrs = []
         for attr_name in dir(self):
-            if not attr_name.startswith('_') and attr_name != 'typ':
+            if not attr_name.startswith("_") and attr_name != "typ":
                 try:
                     value = getattr(self, attr_name)
                     if not callable(value) and value != self.typ:
@@ -420,6 +435,7 @@ class DefaultExpressionVisitor(ExpressionVisitor[T]):
 @dataclass(frozen=True)
 class Var(Expression):
     """Variable expression."""
+
     var_id: int
     var_type: Type
     # Optional human-friendly name carried from the originating symbol.
@@ -447,6 +463,7 @@ class Var(Expression):
 @dataclass(frozen=True)
 class Const(Expression):
     """Constant symbol expression."""
+
     symbol: Symbol
 
     @property
@@ -481,6 +498,7 @@ class Const(Expression):
 @dataclass(frozen=True)
 class App(Expression):
     """Function application expression."""
+
     symbol: Symbol
     args: Tuple[Expression, ...]
 
@@ -506,6 +524,7 @@ class App(Expression):
 @dataclass(frozen=True)
 class Select(Expression):
     """Array select expression."""
+
     array: Expression
     index: Expression
 
@@ -529,6 +548,7 @@ class Select(Expression):
 @dataclass(frozen=True)
 class Store(Expression):
     """Array store expression."""
+
     array: Expression
     index: Expression
     value: Expression
@@ -538,9 +558,11 @@ class Store(Expression):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Store):
             return False
-        return (self.array == other.array and
-                self.index == other.index and
-                self.value == other.value)
+        return (
+            self.array == other.array
+            and self.index == other.index
+            and self.value == other.value
+        )
 
     def __hash__(self) -> int:
         return hash((self.array, self.index, self.value))
@@ -555,6 +577,7 @@ class Store(Expression):
 @dataclass(frozen=True)
 class Add(Expression):
     """Addition expression."""
+
     args: Tuple[ArithExpression, ...]
 
     typ = Type.REAL  # Addition promotes to real
@@ -577,6 +600,7 @@ class Add(Expression):
 @dataclass(frozen=True)
 class Mul(Expression):
     """Multiplication expression."""
+
     args: Tuple[ArithExpression, ...]
 
     typ = Type.REAL  # Multiplication promotes to real
@@ -599,6 +623,7 @@ class Mul(Expression):
 @dataclass(frozen=True)
 class Ite(Expression):
     """If-then-else expression."""
+
     condition: FormulaExpression
     then_branch: Expression
     else_branch: Expression
@@ -608,9 +633,11 @@ class Ite(Expression):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Ite):
             return False
-        return (self.condition == other.condition and
-                self.then_branch == other.then_branch and
-                self.else_branch == other.else_branch)
+        return (
+            self.condition == other.condition
+            and self.then_branch == other.then_branch
+            and self.else_branch == other.else_branch
+        )
 
     def __hash__(self) -> int:
         return hash((self.condition, self.then_branch, self.else_branch))
@@ -664,6 +691,7 @@ class FalseExpr(Expression):
 @dataclass(frozen=True)
 class And(Expression):
     """Conjunction formula."""
+
     args: Tuple[FormulaExpression, ...]
 
     typ = Type.BOOL
@@ -686,6 +714,7 @@ class And(Expression):
 @dataclass(frozen=True)
 class Or(Expression):
     """Disjunction formula."""
+
     args: Tuple[FormulaExpression, ...]
 
     typ = Type.BOOL
@@ -708,6 +737,7 @@ class Or(Expression):
 @dataclass(frozen=True)
 class Not(Expression):
     """Negation formula."""
+
     arg: FormulaExpression
 
     typ = Type.BOOL
@@ -730,6 +760,7 @@ class Not(Expression):
 @dataclass(frozen=True)
 class Eq(Expression):
     """Equality formula."""
+
     left: ArithExpression
     right: ArithExpression
 
@@ -738,13 +769,15 @@ class Eq(Expression):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Eq):
             return False
-        return (self.left == other.left and self.right == other.right) or \
-               (self.left == other.right and self.right == other.left)
+        return (self.left == other.left and self.right == other.right) or (
+            self.left == other.right and self.right == other.left
+        )
 
     def __hash__(self) -> int:
         # Make hash symmetric
-        return hash((min(self.left, self.right, key=hash),
-                     max(self.left, self.right, key=hash)))
+        return hash(
+            (min(self.left, self.right, key=hash), max(self.left, self.right, key=hash))
+        )
 
     def __str__(self) -> str:
         return f"({self.left} = {self.right})"
@@ -756,6 +789,7 @@ class Eq(Expression):
 @dataclass(frozen=True)
 class Lt(Expression):
     """Less-than formula."""
+
     left: ArithExpression
     right: ArithExpression
 
@@ -779,6 +813,7 @@ class Lt(Expression):
 @dataclass(frozen=True)
 class Leq(Expression):
     """Less-than-or-equal formula."""
+
     left: ArithExpression
     right: ArithExpression
 
@@ -802,6 +837,7 @@ class Leq(Expression):
 @dataclass(frozen=True)
 class Forall(Expression):
     """Universal quantification formula."""
+
     var_name: str
     var_type: Type
     body: FormulaExpression
@@ -811,9 +847,11 @@ class Forall(Expression):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Forall):
             return False
-        return (self.var_name == other.var_name and
-                self.var_type == other.var_type and
-                self.body == other.body)
+        return (
+            self.var_name == other.var_name
+            and self.var_type == other.var_type
+            and self.body == other.body
+        )
 
     def __hash__(self) -> int:
         return hash((self.var_name, self.var_type, self.body))
@@ -828,6 +866,7 @@ class Forall(Expression):
 @dataclass(frozen=True)
 class Exists(Expression):
     """Existential quantification formula."""
+
     var_name: str
     var_type: Type
     body: FormulaExpression
@@ -837,9 +876,11 @@ class Exists(Expression):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Exists):
             return False
-        return (self.var_name == other.var_name and
-                self.var_type == other.var_type and
-                self.body == other.body)
+        return (
+            self.var_name == other.var_name
+            and self.var_type == other.var_type
+            and self.body == other.body
+        )
 
     def __hash__(self) -> int:
         return hash((self.var_name, self.var_type, self.body))
@@ -856,7 +897,9 @@ ArithExpression = Union[Var, Const, App, Add, Mul, Ite, Select, Store]
 TermExpression = Union[Var, Const, App, Add, Mul, Ite, Select, Store]
 # Alias for backward compatibility
 ArithTerm = TermExpression
-FormulaExpression = Union[TrueExpr, FalseExpr, And, Or, Not, Eq, Lt, Leq, Forall, Exists]
+FormulaExpression = Union[
+    TrueExpr, FalseExpr, And, Or, Not, Eq, Lt, Leq, Forall, Exists
+]
 # Alias for backward compatibility
 Formula = FormulaExpression
 AnyExpression = Union[Expression, ArithExpression, FormulaExpression, TermExpression]
@@ -889,7 +932,9 @@ class ExpressionBuilder:
                 raise TypeError(f"typ must be a Type enum value, got {type(typ)}")
             return Var(var_id_or_symbol, typ)
         else:
-            raise TypeError(f"mk_var expects (var_id, typ) or (symbol), got ({type(var_id_or_symbol)}, {type(typ)})")
+            raise TypeError(
+                f"mk_var expects (var_id, typ) or (symbol), got ({type(var_id_or_symbol)}, {type(typ)})"
+            )
 
     def mk_const(self, symbol: Symbol) -> Const:
         """Create a constant expression."""
@@ -903,7 +948,9 @@ class ExpressionBuilder:
         """Create a select expression."""
         return Select(array, index)
 
-    def mk_store(self, array: Expression, index: Expression, value: Expression) -> Store:
+    def mk_store(
+        self, array: Expression, index: Expression, value: Expression
+    ) -> Store:
         """Create a store expression."""
         return Store(array, index, value)
 
@@ -915,7 +962,12 @@ class ExpressionBuilder:
         """Create a multiplication expression."""
         return Mul(tuple(args))
 
-    def mk_ite(self, condition: FormulaExpression, then_branch: Expression, else_branch: Expression) -> Ite:
+    def mk_ite(
+        self,
+        condition: FormulaExpression,
+        then_branch: Expression,
+        else_branch: Expression,
+    ) -> Ite:
         """Create an if-then-else expression."""
         return Ite(condition, then_branch, else_branch)
 
@@ -972,7 +1024,9 @@ class ExpressionBuilder:
         """Create a floor expression."""
         # For now, implement as application of floor function
         # A full implementation would need a proper Floor expression class
-        return self.mk_app(self.mk_symbol("floor", Type.FUN([Type.REAL], Type.REAL)), [arg])
+        return self.mk_app(
+            self.mk_symbol("floor", Type.FUN([Type.REAL], Type.REAL)), [arg]
+        )
 
     def mk_neg(self, arg: ArithExpression) -> Mul:
         """Create a negation expression."""
@@ -984,11 +1038,15 @@ class ExpressionBuilder:
         real_symbol = self.mk_symbol(f"real_{value}", Type.REAL)
         return self.mk_const(real_symbol)
 
-    def mk_forall(self, var_name: str, var_type: Type, body: FormulaExpression) -> Forall:
+    def mk_forall(
+        self, var_name: str, var_type: Type, body: FormulaExpression
+    ) -> Forall:
         """Create a universal quantification formula."""
         return Forall(var_name, var_type, body)
 
-    def mk_exists(self, var_name: str, var_type: Type, body: FormulaExpression) -> Exists:
+    def mk_exists(
+        self, var_name: str, var_type: Type, body: FormulaExpression
+    ) -> Exists:
         """Create an existential quantification formula."""
         return Exists(var_name, var_type, body)
 
@@ -1023,7 +1081,9 @@ def mk_symbol(*args) -> Symbol:
         context, name, typ = args
         return context.mk_symbol(name, typ)
     else:
-        raise TypeError(f"mk_symbol expects (name, typ) or (context, name, typ), got {len(args)} args")
+        raise TypeError(
+            f"mk_symbol expects (name, typ) or (context, name, typ), got {len(args)} args"
+        )
 
 
 def mk_var(*args) -> Var:
@@ -1052,7 +1112,9 @@ def mk_var(*args) -> Var:
             symbol = arg
             return _default_builder.mk_var(symbol.id, symbol.typ)
         else:
-            raise TypeError(f"mk_var expects Symbol or Context as single argument, got {type(arg)}")
+            raise TypeError(
+                f"mk_var expects Symbol or Context as single argument, got {type(arg)}"
+            )
     elif len(args) == 2:
         # Could be mk_var(var_id, typ) or mk_var(context, symbol)
         first, second = args
@@ -1062,7 +1124,9 @@ def mk_var(*args) -> Var:
             if isinstance(symbol, Symbol):
                 return context.mk_var(symbol.id, symbol.typ)
             else:
-                raise TypeError(f"Second argument must be Symbol when first is Context, got {type(symbol)}")
+                raise TypeError(
+                    f"Second argument must be Symbol when first is Context, got {type(symbol)}"
+                )
         else:
             # Called as mk_var(var_id, typ) - use default context
             var_id, typ = first, second
@@ -1085,12 +1149,16 @@ def mk_const(*args) -> Const:
     if len(args) == 1 and isinstance(args[0], Symbol):
         (symbol,) = args
         return _default_builder.mk_const(symbol)
-    elif len(args) == 2 and isinstance(args[0], Context) and isinstance(args[1], Symbol):
+    elif (
+        len(args) == 2 and isinstance(args[0], Context) and isinstance(args[1], Symbol)
+    ):
         context, symbol = args
         builder = make_expression_builder(context)
         return builder.mk_const(symbol)
     else:
-        raise TypeError(f"mk_const expects (symbol) or (context, symbol), got {len(args)} args")
+        raise TypeError(
+            f"mk_const expects (symbol) or (context, symbol), got {len(args)} args"
+        )
 
 
 def mk_add(*args) -> Add:
@@ -1108,7 +1176,9 @@ def mk_add(*args) -> Add:
         builder = make_expression_builder(context)
         return builder.mk_add(terms)
     else:
-        raise TypeError(f"mk_add expects (args) or (context, args), got {len(args)} args")
+        raise TypeError(
+            f"mk_add expects (args) or (context, args), got {len(args)} args"
+        )
 
 
 def mk_mul(*args) -> Mul:
@@ -1126,7 +1196,9 @@ def mk_mul(*args) -> Mul:
         builder = make_expression_builder(context)
         return builder.mk_mul(terms)
     else:
-        raise TypeError(f"mk_mul expects (args) or (context, args), got {len(args)} args")
+        raise TypeError(
+            f"mk_mul expects (args) or (context, args), got {len(args)} args"
+        )
 
 
 def mk_eq(*args) -> Eq:
@@ -1144,7 +1216,9 @@ def mk_eq(*args) -> Eq:
         builder = make_expression_builder(context)
         return builder.mk_eq(left, right)
     else:
-        raise TypeError(f"mk_eq expects (left, right) or (context, left, right), got {len(args)} args")
+        raise TypeError(
+            f"mk_eq expects (left, right) or (context, left, right), got {len(args)} args"
+        )
 
 
 def mk_lt(*args) -> Lt:
@@ -1162,7 +1236,9 @@ def mk_lt(*args) -> Lt:
         builder = make_expression_builder(context)
         return builder.mk_lt(left, right)
     else:
-        raise TypeError(f"mk_lt expects (left, right) or (context, left, right), got {len(args)} args")
+        raise TypeError(
+            f"mk_lt expects (left, right) or (context, left, right), got {len(args)} args"
+        )
 
 
 def mk_leq(*args) -> Leq:
@@ -1180,7 +1256,9 @@ def mk_leq(*args) -> Leq:
         builder = make_expression_builder(context)
         return builder.mk_leq(left, right)
     else:
-        raise TypeError(f"mk_leq expects (left, right) or (context, left, right), got {len(args)} args")
+        raise TypeError(
+            f"mk_leq expects (left, right) or (context, left, right), got {len(args)} args"
+        )
 
 
 def mk_geq(*args) -> Leq:
@@ -1198,7 +1276,9 @@ def mk_geq(*args) -> Leq:
         builder = make_expression_builder(context)
         return builder.mk_geq(left, right)
     else:
-        raise TypeError(f"mk_geq expects (left, right) or (context, left, right), got {len(args)} args")
+        raise TypeError(
+            f"mk_geq expects (left, right) or (context, left, right), got {len(args)} args"
+        )
 
 
 def mk_div(*args) -> Mul:
@@ -1216,7 +1296,9 @@ def mk_div(*args) -> Mul:
         builder = make_expression_builder(context)
         return builder.mk_div(left, right)
     else:
-        raise TypeError(f"mk_div expects (left, right) or (context, left, right), got {len(args)} args")
+        raise TypeError(
+            f"mk_div expects (left, right) or (context, left, right), got {len(args)} args"
+        )
 
 
 def mk_mod(*args) -> Mul:
@@ -1234,7 +1316,9 @@ def mk_mod(*args) -> Mul:
         builder = make_expression_builder(context)
         return builder.mk_mod(left, right)
     else:
-        raise TypeError(f"mk_mod expects (left, right) or (context, left, right), got {len(args)} args")
+        raise TypeError(
+            f"mk_mod expects (left, right) or (context, left, right), got {len(args)} args"
+        )
 
 
 def mk_floor(*args) -> App:
@@ -1246,7 +1330,9 @@ def mk_floor(*args) -> App:
     """
     if len(args) == 1:
         (arg,) = args
-        floor_symbol = _default_builder.mk_symbol("floor", Type.FUN([Type.REAL], Type.INT))
+        floor_symbol = _default_builder.mk_symbol(
+            "floor", Type.FUN([Type.REAL], Type.INT)
+        )
         return _default_builder.mk_app(floor_symbol, [arg])
     elif len(args) == 2 and isinstance(args[0], Context):
         context, arg = args
@@ -1254,7 +1340,9 @@ def mk_floor(*args) -> App:
         floor_symbol = builder.mk_symbol("floor", Type.FUN([Type.REAL], Type.INT))
         return builder.mk_app(floor_symbol, [arg])
     else:
-        raise TypeError(f"mk_floor expects (arg) or (context, arg), got {len(args)} args")
+        raise TypeError(
+            f"mk_floor expects (arg) or (context, arg), got {len(args)} args"
+        )
 
 
 def mk_neg(arg: ArithExpression) -> Mul:
@@ -1276,6 +1364,7 @@ def mk_real(*args) -> Const:
         try:
             # Handle QQ.one()/QQ.zero() by numeric conversion
             from .qQ import QQ as _QQ
+
             if isinstance(value, _QQ):
                 val = float(value)
             else:
@@ -1288,6 +1377,7 @@ def mk_real(*args) -> Const:
         builder = make_expression_builder(context)
         try:
             from .qQ import QQ as _QQ
+
             if isinstance(value, _QQ):
                 val = float(value)
             else:
@@ -1296,7 +1386,9 @@ def mk_real(*args) -> Const:
             val = value
         return builder.mk_real(val)
     else:
-        raise TypeError(f"mk_real expects (value) or (context, value), got {len(args)} args")
+        raise TypeError(
+            f"mk_real expects (value) or (context, value), got {len(args)} args"
+        )
 
 
 def of_linterm(srk: Context, term: Any) -> ArithExpression:
@@ -1378,7 +1470,9 @@ def mk_and(*args) -> And:
         builder = make_expression_builder(context)
         return builder.mk_and(conjuncts)
     else:
-        raise TypeError(f"mk_and expects (args) or (context, args), got {len(args)} args")
+        raise TypeError(
+            f"mk_and expects (args) or (context, args), got {len(args)} args"
+        )
 
 
 def mk_or(*args) -> Or:
@@ -1396,7 +1490,9 @@ def mk_or(*args) -> Or:
         builder = make_expression_builder(context)
         return builder.mk_or(disjuncts)
     else:
-        raise TypeError(f"mk_or expects (args) or (context, args), got {len(args)} args")
+        raise TypeError(
+            f"mk_or expects (args) or (context, args), got {len(args)} args"
+        )
 
 
 def mk_true(*args) -> TrueExpr:
@@ -1443,7 +1539,9 @@ def mk_forall(var_name: str, var_type: Type, body: FormulaExpression) -> Forall:
     return _default_builder.mk_forall(var_name, var_type, body)
 
 
-def mk_ite(condition: FormulaExpression, then_branch: Expression, else_branch: Expression) -> Ite:
+def mk_ite(
+    condition: FormulaExpression, then_branch: Expression, else_branch: Expression
+) -> Ite:
     """Create an if-then-else expression."""
     return _default_builder.mk_ite(condition, then_branch, else_branch)
 
@@ -1466,7 +1564,11 @@ def mk_not(*args) -> Not:
         raise TypeError(f"mk_not expects (arg) or (context, arg), got {len(args)} args")
 
 
-def mk_app(context_or_symbol: Union[Context, Symbol], symbol_or_args: Union[Symbol, List[Expression]], args: List[Expression] = None) -> App:
+def mk_app(
+    context_or_symbol: Union[Context, Symbol],
+    symbol_or_args: Union[Symbol, List[Expression]],
+    args: List[Expression] = None,
+) -> App:
     """Create an application expression.
 
     Can be called in two ways:
@@ -1491,7 +1593,11 @@ def mk_app(context_or_symbol: Union[Context, Symbol], symbol_or_args: Union[Symb
         return _default_builder.mk_app(symbol, args)
 
 
-def mk_select(context_or_array: Union[Context, Expression], array_or_index: Union[Expression, Expression], index: Expression = None) -> Select:
+def mk_select(
+    context_or_array: Union[Context, Expression],
+    array_or_index: Union[Expression, Expression],
+    index: Expression = None,
+) -> Select:
     """Create a select expression.
 
     Can be called in two ways:
@@ -1516,7 +1622,12 @@ def mk_select(context_or_array: Union[Context, Expression], array_or_index: Unio
         return _default_builder.mk_select(array, index)
 
 
-def mk_store(context_or_array: Union[Context, Expression], array_or_index: Union[Expression, Expression], index_or_value: Union[Expression, Expression] = None, value: Expression = None) -> Store:
+def mk_store(
+    context_or_array: Union[Context, Expression],
+    array_or_index: Union[Expression, Expression],
+    index_or_value: Union[Expression, Expression] = None,
+    value: Expression = None,
+) -> Store:
     """Create a store expression.
 
     Can be called in two ways:
@@ -1563,10 +1674,16 @@ def mk_int(context_or_value: Union[Context, int], value: int = None) -> Const:
     else:
         # Called as mk_int(value) - use default context
         value = context_or_value
-        return _default_builder.mk_const(_default_builder.mk_symbol(str(value), Type.INT))
+        return _default_builder.mk_const(
+            _default_builder.mk_symbol(str(value), Type.INT)
+        )
 
 
-def mk_sub(context_or_left: Union[Context, ArithExpression], left_or_right: Union[ArithExpression, ArithExpression], right: ArithExpression = None) -> ArithExpression:
+def mk_sub(
+    context_or_left: Union[Context, ArithExpression],
+    left_or_right: Union[ArithExpression, ArithExpression],
+    right: ArithExpression = None,
+) -> ArithExpression:
     """Create a subtraction expression.
 
     Can be called in two ways:
@@ -1591,7 +1708,12 @@ def mk_sub(context_or_left: Union[Context, ArithExpression], left_or_right: Unio
         return _default_builder.mk_add([left, _default_builder.mk_neg(right)])
 
 
-def mk_if(context_or_condition: Union[Context, FormulaExpression], condition_or_then: Union[FormulaExpression, Expression], then_branch: Expression = None, else_branch: Expression = None) -> Expression:
+def mk_if(
+    context_or_condition: Union[Context, FormulaExpression],
+    condition_or_then: Union[FormulaExpression, Expression],
+    then_branch: Expression = None,
+    else_branch: Expression = None,
+) -> Expression:
     """Create an if-then-else expression.
 
     Can be called in two ways:
@@ -1607,13 +1729,21 @@ def mk_if(context_or_condition: Union[Context, FormulaExpression], condition_or_
     Returns:
         An Expression representing if condition then then_branch else else_branch
     """
-    if isinstance(context_or_condition, Context) and then_branch is not None and else_branch is not None:
+    if (
+        isinstance(context_or_condition, Context)
+        and then_branch is not None
+        and else_branch is not None
+    ):
         # Called as mk_if(context, condition, then_branch, else_branch)
         context, condition = context_or_condition, condition_or_then
         return context.mk_ite(condition, then_branch, else_branch)
     else:
         # Called as mk_if(condition, then_branch, else_branch) - use default context
-        condition, then_branch, else_branch = context_or_condition, condition_or_then, then_branch
+        condition, then_branch, else_branch = (
+            context_or_condition,
+            condition_or_then,
+            then_branch,
+        )
         return _default_builder.mk_ite(condition, then_branch, else_branch)
 
 
@@ -1624,6 +1754,7 @@ Term = TermExpression
 # Utility functions that need to be implemented
 def substitute(expr: Expression, subst_map: Dict[Symbol, Expression]) -> Expression:
     """Substitute symbols in expression according to substitution map."""
+
     class SubstitutionVisitor(ExpressionVisitor[Expression]):
         def __init__(self, subst_map: Dict[Symbol, Expression]):
             self.subst_map = subst_map
@@ -1720,7 +1851,9 @@ def substitute(expr: Expression, subst_map: Dict[Symbol, Expression]) -> Express
     return expr.accept(visitor)
 
 
-def rewrite(*args, down: Optional[Callable] = None, up: Optional[Callable] = None) -> Expression:
+def rewrite(
+    *args, down: Optional[Callable] = None, up: Optional[Callable] = None
+) -> Expression:
     """Rewrite an expression using rewrite rules.
 
     This module is used by components that follow the original SRK API, which
@@ -1747,7 +1880,9 @@ def rewrite(*args, down: Optional[Callable] = None, up: Optional[Callable] = Non
             if callable(up_fn) and up is None:
                 up = up_fn
         else:
-            raise TypeError(f"rewrite expects (srk, expr, ...) or (expr, ...), got {len(args)} args")
+            raise TypeError(
+                f"rewrite expects (srk, expr, ...) or (expr, ...), got {len(args)} args"
+            )
     else:
         expr = args[0]
         if len(args) == 2 and down is None:
@@ -1755,7 +1890,9 @@ def rewrite(*args, down: Optional[Callable] = None, up: Optional[Callable] = Non
         elif len(args) == 3 and down is None and up is None:
             down, up = args[1], args[2]
         elif len(args) > 3:
-            raise TypeError(f"rewrite expects at most 3 positional args, got {len(args)}")
+            raise TypeError(
+                f"rewrite expects at most 3 positional args, got {len(args)}"
+            )
 
     # Placeholder implementation (kept intentionally lightweight)
     return expr
@@ -1816,6 +1953,7 @@ def destruct(expr: Expression) -> Tuple[str, Any]:
 
 def symbols(expr: Expression) -> Set[Symbol]:
     """Extract all symbols from an expression."""
+
     class SymbolExtractor(ExpressionVisitor[Set[Symbol]]):
         def visit_var(self, var: Var) -> Set[Symbol]:
             return set()
@@ -1914,6 +2052,7 @@ def typ_symbol(symbol: Symbol) -> Type:
 
 class Env:
     """Environment for expression evaluation."""
+
     def __init__(self):
         pass
 
@@ -1921,7 +2060,7 @@ class Env:
 def expr_typ(expr: Expression) -> Type:
     """Get the type of an expression."""
     # Most expression types have their type as a class attribute
-    if hasattr(expr, 'typ'):
+    if hasattr(expr, "typ"):
         return expr.typ
     # For more complex expressions, we need to infer the type
     if isinstance(expr, Var):
@@ -1956,8 +2095,6 @@ def expr_typ(expr: Expression) -> Type:
     else:
         # For formulas and other expressions, return BOOL
         return Type.BOOL
-
-
 
 
 def int_of_symbol(symbol: Symbol) -> int:
@@ -2016,7 +2153,11 @@ def substitute_const(*args) -> Expression:
                 return Select(select.array.accept(self), select.index.accept(self))
 
             def visit_store(self, store: Store) -> Expression:
-                return Store(store.array.accept(self), store.index.accept(self), store.value.accept(self))
+                return Store(
+                    store.array.accept(self),
+                    store.index.accept(self),
+                    store.value.accept(self),
+                )
 
             def visit_add(self, add: Add) -> Expression:
                 return Add(tuple(arg.accept(self) for arg in add.args))
@@ -2025,7 +2166,11 @@ def substitute_const(*args) -> Expression:
                 return Mul(tuple(arg.accept(self) for arg in mul.args))
 
             def visit_ite(self, ite: Ite) -> Expression:
-                return Ite(ite.condition.accept(self), ite.then_branch.accept(self), ite.else_branch.accept(self))
+                return Ite(
+                    ite.condition.accept(self),
+                    ite.then_branch.accept(self),
+                    ite.else_branch.accept(self),
+                )
 
             def visit_true(self, true_expr: TrueExpr) -> Expression:
                 return true_expr
@@ -2052,14 +2197,20 @@ def substitute_const(*args) -> Expression:
                 return Leq(leq.left.accept(self), leq.right.accept(self))
 
             def visit_forall(self, forall: Forall) -> Expression:
-                return Forall(forall.var_name, forall.var_type, forall.body.accept(self))
+                return Forall(
+                    forall.var_name, forall.var_type, forall.body.accept(self)
+                )
 
             def visit_exists(self, exists: Exists) -> Expression:
-                return Exists(exists.var_name, exists.var_type, exists.body.accept(self))
+                return Exists(
+                    exists.var_name, exists.var_type, exists.body.accept(self)
+                )
 
         return expr.accept(ConstSubVisitor())
 
-    raise TypeError(f"substitute_const expects (dict, expr) or (context, f, expr), got {len(args)} args")
+    raise TypeError(
+        f"substitute_const expects (dict, expr) or (context, f, expr), got {len(args)} args"
+    )
 
 
 def prenex(srk: Context, phi: Expression) -> Expression:
@@ -2075,10 +2226,13 @@ def prenex(srk: Context, phi: Expression) -> Expression:
     Returns:
         Formula in prenex normal form
     """
+
     def negate_prefix(prefix):
         """Negate quantifier prefix (exists <-> forall)."""
-        return [(('Forall' if q[0] == 'Exists' else 'Exists'), name, typ)
-                for q, name, typ in prefix]
+        return [
+            (("Forall" if q[0] == "Exists" else "Exists"), name, typ)
+            for q, name, typ in prefix
+        ]
 
     def combine(phis):
         """Combine multiple formulas with their quantifier prefixes."""
@@ -2113,28 +2267,28 @@ def prenex(srk: Context, phi: Expression) -> Expression:
 
         op, *args = match
 
-        if op == 'True':
+        if op == "True":
             return ([], mk_true())
-        elif op == 'False':
+        elif op == "False":
             return ([], mk_false())
-        elif op == 'Atom':
+        elif op == "Atom":
             return ([], expr)
-        elif op == 'And':
+        elif op == "And":
             conjuncts = [process(arg) for arg in args]
             qf_pre, conjuncts = combine(conjuncts)
             return (qf_pre, mk_and(conjuncts))
-        elif op == 'Or':
+        elif op == "Or":
             disjuncts = [process(arg) for arg in args]
             qf_pre, disjuncts = combine(disjuncts)
             return (qf_pre, mk_or(disjuncts))
-        elif op == 'Quantify':
+        elif op == "Quantify":
             qt, name, typ, body = args
             qf_pre, matrix = process(body)
             return ([(qt, name, typ)] + qf_pre, matrix)
-        elif op == 'Not':
+        elif op == "Not":
             qf_pre, matrix = process(args[0])
             return (negate_prefix(qf_pre), mk_not(matrix))
-        elif op == 'Ite':
+        elif op == "Ite":
             cond, then_branch, else_branch = args
             cond_prefix, cond_matrix = process(cond)
             then_prefix, then_matrix = process(then_branch)
@@ -2161,9 +2315,9 @@ def prenex(srk: Context, phi: Expression) -> Expression:
     result = matrix
     for qf in reversed(qf_pre):  # Process in reverse order
         qt, name, typ = qf
-        if qt == 'Exists':
+        if qt == "Exists":
             result = mk_exists(name, typ, result)
-        elif qt == 'Forall':
+        elif qt == "Forall":
             result = mk_forall(name, typ, result)
 
     return result

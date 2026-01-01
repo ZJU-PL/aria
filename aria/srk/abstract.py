@@ -22,15 +22,24 @@ Example:
 """
 
 from __future__ import annotations
-from typing import Dict, List, Set, Tuple, Optional, Union, Any, Protocol, Generic, TypeVar
+from typing import (
+    Dict,
+    List,
+    Set,
+    Tuple,
+    Optional,
+    Union,
+    Any,
+    Protocol,
+    Generic,
+    TypeVar,
+)
 from abc import ABC, abstractmethod
 from enum import Enum
 from dataclasses import dataclass, field
 from fractions import Fraction
 
-from aria.srk.syntax import (
-    Context, Symbol, Type, Expression, make_expression_builder
-)
+from aria.srk.syntax import Context, Symbol, Type, Expression, make_expression_builder
 from aria.srk.linear import QQVector, QQMatrix
 
 
@@ -51,12 +60,13 @@ class AbstractValue(Enum):
     These abstract values form a lattice under inclusion, enabling
     efficient join (⊔) and meet (⊓) operations for analysis.
     """
+
     POSITIVE = "positive"
     NEGATIVE = "negative"
     ZERO = "zero"
     NON_POSITIVE = "non_positive"  # ≤ 0
     NON_NEGATIVE = "non_negative"  # ≥ 0
-    NON_ZERO = "non_zero"          # ≠ 0
+    NON_ZERO = "non_zero"  # ≠ 0
     UNKNOWN = "unknown"
 
 
@@ -98,7 +108,7 @@ class SignDomain:
             signs: Dictionary mapping symbols to their abstract sign values.
                   If None, creates an empty domain (all symbols unknown).
         """
-        object.__setattr__(self, 'signs', signs or {})
+        object.__setattr__(self, "signs", signs or {})
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, SignDomain):
@@ -159,13 +169,21 @@ class SignDomain:
                 result[symbol] = sign2
             elif sign2 == AbstractValue.UNKNOWN:
                 result[symbol] = sign1
-            elif sign1 == AbstractValue.POSITIVE and sign2 == AbstractValue.NON_NEGATIVE:
+            elif (
+                sign1 == AbstractValue.POSITIVE and sign2 == AbstractValue.NON_NEGATIVE
+            ):
                 result[symbol] = AbstractValue.POSITIVE
-            elif sign1 == AbstractValue.NON_NEGATIVE and sign2 == AbstractValue.POSITIVE:
+            elif (
+                sign1 == AbstractValue.NON_NEGATIVE and sign2 == AbstractValue.POSITIVE
+            ):
                 result[symbol] = AbstractValue.POSITIVE
-            elif sign1 == AbstractValue.NEGATIVE and sign2 == AbstractValue.NON_POSITIVE:
+            elif (
+                sign1 == AbstractValue.NEGATIVE and sign2 == AbstractValue.NON_POSITIVE
+            ):
                 result[symbol] = AbstractValue.NEGATIVE
-            elif sign1 == AbstractValue.NON_POSITIVE and sign2 == AbstractValue.NEGATIVE:
+            elif (
+                sign1 == AbstractValue.NON_POSITIVE and sign2 == AbstractValue.NEGATIVE
+            ):
                 result[symbol] = AbstractValue.NEGATIVE
             elif sign1 == AbstractValue.NON_ZERO and sign2 == AbstractValue.ZERO:
                 result[symbol] = AbstractValue.NON_ZERO
@@ -229,7 +247,9 @@ class SignDomain:
 class AffineRelation:
     """Represents an affine equality relation: a*x + b*y + ... + c = 0"""
 
-    def __init__(self, coefficients: Dict[Symbol, Fraction], constant: Fraction = Fraction(0)):
+    def __init__(
+        self, coefficients: Dict[Symbol, Fraction], constant: Fraction = Fraction(0)
+    ):
         self.coefficients = coefficients
         self.constant = constant
 
@@ -290,7 +310,7 @@ class AffineDomain:
     relations: Tuple[AffineRelation, ...]
 
     def __init__(self, relations: Optional[List[AffineRelation]] = None):
-        object.__setattr__(self, 'relations', tuple(relations or []))
+        object.__setattr__(self, "relations", tuple(relations or []))
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, AffineDomain):
@@ -394,7 +414,7 @@ class AbstractDomain(ABC):
     """
 
     @abstractmethod
-    def join(self, other: 'AbstractDomain') -> 'AbstractDomain':
+    def join(self, other: "AbstractDomain") -> "AbstractDomain":
         """Join with another domain element (least upper bound / ⊔).
 
         The join operation computes an over-approximation that includes all
@@ -421,12 +441,14 @@ class AbstractDomain(ABC):
             >>> result = interval1.join(interval2)  # IntervalDomain({x: Interval(1, 5)})
         """
         if type(self) != type(other):
-            raise TypeError(f"Cannot join incompatible domain types: {type(self).__name__} and {type(other).__name__}")
+            raise TypeError(
+                f"Cannot join incompatible domain types: {type(self).__name__} and {type(other).__name__}"
+            )
         # Subclasses must implement this - this is intentional
         raise NotImplementedError(f"Join not implemented for {type(self).__name__}")
 
     @abstractmethod
-    def meet(self, other: 'AbstractDomain') -> 'AbstractDomain':
+    def meet(self, other: "AbstractDomain") -> "AbstractDomain":
         """Meet with another domain element (greatest lower bound / ⊓).
 
         The meet operation computes the intersection of states represented
@@ -453,11 +475,13 @@ class AbstractDomain(ABC):
             >>> result = interval1.meet(interval2)  # IntervalDomain({x: Interval(2, 3)})
         """
         if type(self) != type(other):
-            raise TypeError(f"Cannot meet incompatible domain types: {type(self).__name__} and {type(other).__name__}")
+            raise TypeError(
+                f"Cannot meet incompatible domain types: {type(self).__name__} and {type(other).__name__}"
+            )
         # Subclasses must implement this - this is intentional
         raise NotImplementedError(f"Meet not implemented for {type(self).__name__}")
 
-    def project(self, symbols: Set[Symbol]) -> 'AbstractDomain':
+    def project(self, symbols: Set[Symbol]) -> "AbstractDomain":
         """Project onto a subset of symbols."""
         # Default implementation - conservative approximation that returns self
         # This is a conservative approximation that assumes the projection
@@ -484,9 +508,9 @@ class PredicateAbstraction(AbstractDomain):
     predicates: Tuple[Expression, ...]
 
     def __init__(self, predicates: List[Expression]):
-        object.__setattr__(self, 'predicates', tuple(predicates))
+        object.__setattr__(self, "predicates", tuple(predicates))
 
-    def join(self, other: 'PredicateAbstraction') -> 'PredicateAbstraction':
+    def join(self, other: "PredicateAbstraction") -> "PredicateAbstraction":
         """Join predicate abstractions."""
         if not isinstance(other, PredicateAbstraction):
             raise TypeError("Can only join with another PredicateAbstraction")
@@ -495,7 +519,7 @@ class PredicateAbstraction(AbstractDomain):
         combined_predicates = list(self.predicates) + list(other.predicates)
         return PredicateAbstraction(combined_predicates)
 
-    def meet(self, other: 'PredicateAbstraction') -> 'PredicateAbstraction':
+    def meet(self, other: "PredicateAbstraction") -> "PredicateAbstraction":
         """Meet predicate abstractions."""
         if not isinstance(other, PredicateAbstraction):
             raise TypeError("Can only meet with another PredicateAbstraction")
@@ -504,7 +528,7 @@ class PredicateAbstraction(AbstractDomain):
         combined_predicates = [p for p in self.predicates if p in other.predicates]
         return PredicateAbstraction(combined_predicates)
 
-    def project(self, symbols: Set[Symbol]) -> 'PredicateAbstraction':
+    def project(self, symbols: Set[Symbol]) -> "PredicateAbstraction":
         """Project onto a subset of symbols."""
         # For now, return the same predicates (would need more sophisticated analysis)
         return PredicateAbstraction(list(self.predicates))
@@ -530,19 +554,19 @@ class Interval:
             raise ValueError("Lower bound cannot be greater than upper bound")
 
     @staticmethod
-    def unbounded_below() -> 'Interval':
+    def unbounded_below() -> "Interval":
         """Create an interval unbounded below: (-∞, upper]"""
         # Use a very large negative number to represent -∞
-        return Interval(Fraction('-1e100'), Fraction('1e100'))
+        return Interval(Fraction("-1e100"), Fraction("1e100"))
 
     @staticmethod
-    def unbounded_above() -> 'Interval':
+    def unbounded_above() -> "Interval":
         """Create an interval unbounded above: [lower, +∞)"""
         # Use a very large positive number to represent +∞
-        return Interval(Fraction('-1e100'), Fraction('1e100'))
+        return Interval(Fraction("-1e100"), Fraction("1e100"))
 
     @staticmethod
-    def singleton(value: Fraction) -> 'Interval':
+    def singleton(value: Fraction) -> "Interval":
         """Create a singleton interval [value, value]"""
         return Interval(value, value)
 
@@ -550,18 +574,20 @@ class Interval:
         """Check if interval contains a value."""
         return self.lower <= value <= self.upper
 
-    def intersection(self, other: 'Interval') -> 'Interval':
+    def intersection(self, other: "Interval") -> "Interval":
         """Intersect with another interval."""
         new_lower = max(self.lower, other.lower)
         new_upper = min(self.upper, other.upper)
 
         if new_lower > new_upper:
             # Empty intersection
-            return Interval(Fraction(1), Fraction(0))  # Invalid interval representing empty
+            return Interval(
+                Fraction(1), Fraction(0)
+            )  # Invalid interval representing empty
 
         return Interval(new_lower, new_upper)
 
-    def union(self, other: 'Interval') -> 'Interval':
+    def union(self, other: "Interval") -> "Interval":
         """Union with another interval."""
         new_lower = min(self.lower, other.lower)
         new_upper = max(self.upper, other.upper)
@@ -579,7 +605,7 @@ class Interval:
 
     def __str__(self) -> str:
         # Check for very large bounds (representing infinity)
-        inf_threshold = Fraction('1e50')
+        inf_threshold = Fraction("1e50")
 
         if abs(self.lower) > inf_threshold and abs(self.upper) > inf_threshold:
             return "(-∞, +∞)"
@@ -607,7 +633,7 @@ class IntervalDomain(AbstractDomain):
     intervals: Dict[Symbol, Interval]
 
     def __init__(self, intervals: Optional[Dict[Symbol, Interval]] = None):
-        object.__setattr__(self, 'intervals', dict(intervals) if intervals else {})
+        object.__setattr__(self, "intervals", dict(intervals) if intervals else {})
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, IntervalDomain):
@@ -615,9 +641,11 @@ class IntervalDomain(AbstractDomain):
         return self.intervals == other.intervals
 
     def __hash__(self) -> int:
-        return hash(tuple(sorted((k, v.lower, v.upper) for k, v in self.intervals.items())))
+        return hash(
+            tuple(sorted((k, v.lower, v.upper) for k, v in self.intervals.items()))
+        )
 
-    def join(self, other: 'IntervalDomain') -> 'IntervalDomain':
+    def join(self, other: "IntervalDomain") -> "IntervalDomain":
         """Join interval domains (union of intervals)."""
         if not isinstance(other, IntervalDomain):
             raise TypeError("Can only join with another IntervalDomain")
@@ -633,7 +661,7 @@ class IntervalDomain(AbstractDomain):
 
         return IntervalDomain(result)
 
-    def meet(self, other: 'IntervalDomain') -> 'IntervalDomain':
+    def meet(self, other: "IntervalDomain") -> "IntervalDomain":
         """Meet interval domains (intersection of intervals)."""
         if not isinstance(other, IntervalDomain):
             raise TypeError("Can only meet with another IntervalDomain")
@@ -651,7 +679,7 @@ class IntervalDomain(AbstractDomain):
 
         return IntervalDomain(result)
 
-    def project(self, symbols: Set[Symbol]) -> 'IntervalDomain':
+    def project(self, symbols: Set[Symbol]) -> "IntervalDomain":
         """Project onto a subset of symbols."""
         result = {}
         for symbol in symbols:
@@ -668,7 +696,7 @@ class IntervalDomain(AbstractDomain):
             var = builder.mk_var(symbol.id, symbol.typ)
 
             # Check for very large bounds (representing infinity)
-            inf_threshold = Fraction('1e50')
+            inf_threshold = Fraction("1e50")
 
             # Lower bound
             if abs(interval.lower) <= inf_threshold:
@@ -692,7 +720,7 @@ class IntervalDomain(AbstractDomain):
         """Get the interval for a symbol."""
         return self.intervals.get(symbol, Interval.unbounded_below())
 
-    def set_interval(self, symbol: Symbol, interval: Interval) -> 'IntervalDomain':
+    def set_interval(self, symbol: Symbol, interval: Interval) -> "IntervalDomain":
         """Set the interval for a symbol."""
         new_intervals = self.intervals.copy()
         if interval.is_empty():
@@ -701,7 +729,7 @@ class IntervalDomain(AbstractDomain):
             new_intervals[symbol] = interval
         return IntervalDomain(new_intervals)
 
-    def widen(self, other: 'IntervalDomain') -> 'IntervalDomain':
+    def widen(self, other: "IntervalDomain") -> "IntervalDomain":
         """Widening operator for interval domain.
 
         Widening ensures termination of fixpoint iteration by extrapolating
@@ -729,26 +757,29 @@ class IntervalDomain(AbstractDomain):
             interval2 = other.intervals.get(symbol, Interval.unbounded_below())
 
             # Widening on lower bound
-            inf_threshold = Fraction('1e50')
+            inf_threshold = Fraction("1e50")
             if interval2.lower < interval1.lower:
-                new_lower = Fraction('-1e100')  # -∞
+                new_lower = Fraction("-1e100")  # -∞
             else:
                 new_lower = interval1.lower
 
             # Widening on upper bound
             if interval2.upper > interval1.upper:
-                new_upper = Fraction('1e100')  # +∞
+                new_upper = Fraction("1e100")  # +∞
             else:
                 new_upper = interval1.upper
 
             widened = Interval(new_lower, new_upper)
             # Only store intervals that are not top (fully unbounded)
-            if abs(widened.lower) <= inf_threshold or abs(widened.upper) <= inf_threshold:
+            if (
+                abs(widened.lower) <= inf_threshold
+                or abs(widened.upper) <= inf_threshold
+            ):
                 result[symbol] = widened
 
         return IntervalDomain(result)
 
-    def leq(self, other: 'IntervalDomain') -> bool:
+    def leq(self, other: "IntervalDomain") -> bool:
         """Check if this domain is less than or equal to another (subset relation).
 
         Returns True if this domain represents a subset of states represented
@@ -766,7 +797,10 @@ class IntervalDomain(AbstractDomain):
         for symbol, interval1 in self.intervals.items():
             interval2 = other.intervals.get(symbol, Interval.unbounded_below())
             # interval1 ⊆ interval2 iff interval2.lower ≤ interval1.lower ∧ interval1.upper ≤ interval2.upper
-            if not (interval2.lower <= interval1.lower and interval1.upper <= interval2.upper):
+            if not (
+                interval2.lower <= interval1.lower
+                and interval1.upper <= interval2.upper
+            ):
                 return False
 
         return True
@@ -792,7 +826,7 @@ class ProductDomain(AbstractDomain):
     domain1: AbstractDomain
     domain2: AbstractDomain
 
-    def join(self, other: 'ProductDomain') -> 'ProductDomain':
+    def join(self, other: "ProductDomain") -> "ProductDomain":
         """Join product domains."""
         if not isinstance(other, ProductDomain):
             raise TypeError("Can only join with another ProductDomain")
@@ -802,7 +836,7 @@ class ProductDomain(AbstractDomain):
 
         return ProductDomain(new_domain1, new_domain2)
 
-    def meet(self, other: 'ProductDomain') -> 'ProductDomain':
+    def meet(self, other: "ProductDomain") -> "ProductDomain":
         """Meet product domains."""
         if not isinstance(other, ProductDomain):
             raise TypeError("Can only meet with another ProductDomain")
@@ -812,7 +846,7 @@ class ProductDomain(AbstractDomain):
 
         return ProductDomain(new_domain1, new_domain2)
 
-    def project(self, symbols: Set[Symbol]) -> 'ProductDomain':
+    def project(self, symbols: Set[Symbol]) -> "ProductDomain":
         """Project product domains."""
         new_domain1 = self.domain1.project(symbols)
         new_domain2 = self.domain2.project(symbols)
@@ -882,7 +916,10 @@ def bottom_interval() -> IntervalDomain:
 
 # Abstract interpretation utilities
 
-def vanishing_space(context: Context, formula: Expression, terms: List[Expression]) -> List[Any]:
+
+def vanishing_space(
+    context: Context, formula: Expression, terms: List[Expression]
+) -> List[Any]:
     """Counter-example based extraction of vanishing space.
 
     Extracts the subspace of functions (linear combinations of terms) that
@@ -925,6 +962,7 @@ def vanishing_space(context: Context, formula: Expression, terms: List[Expressio
 
         # Check if candidate vanishes on formula
         from .linear import term_of_vec
+
         candidate_term = term_of_vec(context, lambda i: terms[i], candidate)
 
         solver.push()
@@ -933,14 +971,14 @@ def vanishing_space(context: Context, formula: Expression, terms: List[Expressio
 
         result = solver.check()
 
-        if result == 'unsat':
+        if result == "unsat":
             # Candidate vanishes on formula
             solver.pop()
             vanishing_fns.append(candidate)
             mat[row_num] = QQVector.of_term(QQ.one(), dim)
             row_num += 1
             dim -= 1
-        elif result == 'sat':
+        elif result == "sat":
             # Found counter-example where candidate doesn't vanish
             solver.pop()
             model = solver.get_model()
@@ -949,6 +987,7 @@ def vanishing_space(context: Context, formula: Expression, terms: List[Expressio
             point_row = QQVector()
             for i, term in enumerate(terms):
                 from .interpretation import evaluate_term
+
                 val = evaluate_term(model, term)
                 point_row = QQVector.add_term(val, i, point_row)
 
@@ -961,7 +1000,9 @@ def vanishing_space(context: Context, formula: Expression, terms: List[Expressio
     return vanishing_fns
 
 
-def affine_hull(context: Context, formula: Expression, symbols: List[Symbol]) -> List[Expression]:
+def affine_hull(
+    context: Context, formula: Expression, symbols: List[Symbol]
+) -> List[Expression]:
     """Compute affine hull of formula over given symbols.
 
     The affine hull is the set of all affine equalities that hold on every
@@ -982,11 +1023,13 @@ def affine_hull(context: Context, formula: Expression, symbols: List[Symbol]) ->
 
     # Convert vanishing vectors back to terms
     from .linear import term_of_vec
+
     return [term_of_vec(context, lambda i: basis[i], vec) for vec in vanishing_vecs]
 
 
-def abstract_transformer(context: Context, domain: AbstractDomain,
-                         formula: Expression, symbols: Set[Symbol]) -> AbstractDomain:
+def abstract_transformer(
+    context: Context, domain: AbstractDomain, formula: Expression, symbols: Set[Symbol]
+) -> AbstractDomain:
     """Abstract post-image transformer for a formula.
 
     Computes the abstract post-image of a domain element through a transition

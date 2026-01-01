@@ -11,8 +11,8 @@ from dataclasses import dataclass, field
 from fractions import Fraction
 from abc import ABC, abstractmethod
 
-T = TypeVar('T')
-U = TypeVar('U')
+T = TypeVar("T")
+U = TypeVar("U")
 
 
 class ASTNode(ABC):
@@ -124,6 +124,7 @@ class Constant(ASTNode):
 
 class BinaryOpType:
     """Binary operation types."""
+
     ADD = "add"
     SUB = "sub"
     MUL = "mul"
@@ -138,6 +139,7 @@ class BinaryOpType:
 
 class UnaryOpType:
     """Unary operation types."""
+
     NEG = "neg"
     NOT = "not"
     FLOOR = "floor"
@@ -161,9 +163,11 @@ class BinaryOp(ASTNode):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, BinaryOp):
             return False
-        return (self.op_type == other.op_type and
-                self.left == other.left and
-                self.right == other.right)
+        return (
+            self.op_type == other.op_type
+            and self.left == other.left
+            and self.right == other.right
+        )
 
     def __hash__(self) -> int:
         return hash((self.op_type, self.left, self.right))
@@ -199,8 +203,8 @@ class FunctionCall(ASTNode):
     arguments: Tuple[ASTNode, ...]
 
     def __init__(self, function_name: str, arguments: List[ASTNode]):
-        object.__setattr__(self, 'function_name', function_name)
-        object.__setattr__(self, 'arguments', tuple(arguments))
+        object.__setattr__(self, "function_name", function_name)
+        object.__setattr__(self, "arguments", tuple(arguments))
 
     def accept(self, visitor: ASTVisitor[T]) -> T:
         return visitor.visit_function_call(self)
@@ -212,8 +216,10 @@ class FunctionCall(ASTNode):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, FunctionCall):
             return False
-        return (self.function_name == other.function_name and
-                self.arguments == other.arguments)
+        return (
+            self.function_name == other.function_name
+            and self.arguments == other.arguments
+        )
 
     def __hash__(self) -> int:
         return hash((self.function_name, self.arguments))
@@ -236,9 +242,11 @@ class Quantifier(ASTNode):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Quantifier):
             return False
-        return (self.quantifier_type == other.quantifier_type and
-                self.variable == other.variable and
-                self.body == other.body)
+        return (
+            self.quantifier_type == other.quantifier_type
+            and self.variable == other.variable
+            and self.body == other.body
+        )
 
     def __hash__(self) -> int:
         return hash((self.quantifier_type, self.variable, self.body))
@@ -261,9 +269,11 @@ class Conditional(ASTNode):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Conditional):
             return False
-        return (self.condition == other.condition and
-                self.then_branch == other.then_branch and
-                self.else_branch == other.else_branch)
+        return (
+            self.condition == other.condition
+            and self.then_branch == other.then_branch
+            and self.else_branch == other.else_branch
+        )
 
     def __hash__(self) -> int:
         return hash((self.condition, self.then_branch, self.else_branch))
@@ -276,7 +286,9 @@ class ASTBuilder:
         """Create a variable node."""
         return Variable(name, var_type)
 
-    def constant(self, value: Union[int, float, Fraction, bool], const_type: str = "int") -> Constant:
+    def constant(
+        self, value: Union[int, float, Fraction, bool], const_type: str = "int"
+    ) -> Constant:
         """Create a constant node."""
         return Constant(value, const_type)
 
@@ -288,15 +300,21 @@ class ASTBuilder:
         """Create a unary operation node."""
         return UnaryOp(op_type, operand)
 
-    def function_call(self, function_name: str, arguments: List[ASTNode]) -> FunctionCall:
+    def function_call(
+        self, function_name: str, arguments: List[ASTNode]
+    ) -> FunctionCall:
         """Create a function call node."""
         return FunctionCall(function_name, arguments)
 
-    def quantifier(self, quantifier_type: str, variable: Variable, body: ASTNode) -> Quantifier:
+    def quantifier(
+        self, quantifier_type: str, variable: Variable, body: ASTNode
+    ) -> Quantifier:
         """Create a quantifier node."""
         return Quantifier(quantifier_type, variable, body)
 
-    def conditional(self, condition: ASTNode, then_branch: ASTNode, else_branch: ASTNode) -> Conditional:
+    def conditional(
+        self, condition: ASTNode, then_branch: ASTNode, else_branch: ASTNode
+    ) -> Conditional:
         """Create a conditional node."""
         return Conditional(condition, then_branch, else_branch)
 
@@ -328,6 +346,7 @@ class ASTAnalyzer:
 
     def get_variables(self, node: ASTNode) -> Set[Variable]:
         """Get all variables in an AST."""
+
         class VariableCollector(ASTVisitor[Set[Variable]]):
             def visit_variable(self, node: Variable) -> Set[Variable]:
                 return {node}
@@ -365,6 +384,7 @@ class ASTAnalyzer:
 
     def get_depth(self, node: ASTNode) -> int:
         """Get the depth of an AST."""
+
         class DepthCalculator(ASTVisitor[int]):
             def visit_variable(self, node: Variable) -> int:
                 return 1
@@ -400,6 +420,7 @@ class ASTAnalyzer:
 
     def get_size(self, node: ASTNode) -> int:
         """Get the size (number of nodes) of an AST."""
+
         class SizeCalculator(ASTVisitor[int]):
             def visit_variable(self, node: Variable) -> int:
                 return 1
@@ -420,9 +441,12 @@ class ASTAnalyzer:
                 return 1 + node.body.accept(self)
 
             def visit_conditional(self, node: Conditional) -> int:
-                return (1 + node.condition.accept(self) +
-                       node.then_branch.accept(self) +
-                       node.else_branch.accept(self))
+                return (
+                    1
+                    + node.condition.accept(self)
+                    + node.then_branch.accept(self)
+                    + node.else_branch.accept(self)
+                )
 
         calculator = SizeCalculator()
         return node.accept(calculator)
@@ -431,8 +455,11 @@ class ASTAnalyzer:
 class ASTTransformer:
     """Transform AST nodes."""
 
-    def substitute(self, node: ASTNode, substitutions: Dict[Variable, ASTNode]) -> ASTNode:
+    def substitute(
+        self, node: ASTNode, substitutions: Dict[Variable, ASTNode]
+    ) -> ASTNode:
         """Substitute variables in AST."""
+
         class SubstitutionVisitor(ASTVisitor[ASTNode]):
             def __init__(self, substitutions: Dict[Variable, ASTNode]):
                 self.substitutions = substitutions
@@ -472,6 +499,7 @@ class ASTTransformer:
 
     def rename_variables(self, node: ASTNode, renaming: Dict[str, str]) -> ASTNode:
         """Rename variables in AST."""
+
         class RenamingVisitor(ASTVisitor[ASTNode]):
             def __init__(self, renaming: Dict[str, str]):
                 self.renaming = renaming
@@ -570,7 +598,9 @@ def make_variable(name: str, var_type: str = "int") -> Variable:
     return Variable(name, var_type)
 
 
-def make_constant(value: Union[int, float, Fraction, bool], const_type: str = "int") -> Constant:
+def make_constant(
+    value: Union[int, float, Fraction, bool], const_type: str = "int"
+) -> Constant:
     """Create a constant node."""
     return Constant(value, const_type)
 
@@ -590,12 +620,16 @@ def make_function_call(function_name: str, arguments: List[ASTNode]) -> Function
     return FunctionCall(function_name, arguments)
 
 
-def make_quantifier(quantifier_type: str, variable: Variable, body: ASTNode) -> Quantifier:
+def make_quantifier(
+    quantifier_type: str, variable: Variable, body: ASTNode
+) -> Quantifier:
     """Create a quantifier node."""
     return Quantifier(quantifier_type, variable, body)
 
 
-def make_conditional(condition: ASTNode, then_branch: ASTNode, else_branch: ASTNode) -> Conditional:
+def make_conditional(
+    condition: ASTNode, then_branch: ASTNode, else_branch: ASTNode
+) -> Conditional:
     """Create a conditional node."""
     return Conditional(condition, then_branch, else_branch)
 

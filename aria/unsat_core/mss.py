@@ -26,16 +26,19 @@ to the reduced set satisfies a k-1 of the original soft constraints.
 
 """
 
-from z3 import (
-    Bool, BoolVal, Not, Or, And, Reals, Solver, sat, unsat, is_true, eq
-)
+from z3 import Bool, BoolVal, Not, Or, And, Reals, Solver, sat, unsat, is_true, eq
 
 
 def main():
-    x, y = Reals('x y')
+    x, y = Reals("x y")
     soft_constraints = [
-        x > 2, x < 1, x < 0, Or(x + y > 0, y < 0),
-        Or(y >= 0, x >= 0), Or(y < 0, x < 0), Or(y > 0, x < 0)
+        x > 2,
+        x < 1,
+        x < 0,
+        Or(x + y > 0, y < 0),
+        Or(y >= 0, x >= 0),
+        Or(y < 0, x < 0),
+        Or(y > 0, x < 0),
     ]
     hard_constraints = BoolVal(True)
     solver = MSSSolver(hard_constraints, soft_constraints)
@@ -161,6 +164,7 @@ class MSSSolver:
             else:
                 print(f"solver returned {is_sat}")
                 import sys
+
                 sys.exit()
         mss = [x for x in self.orig_soft_vars if is_true(self.model[x])]
         mcs = [x for x in self.orig_soft_vars if not is_true(self.model[x])]

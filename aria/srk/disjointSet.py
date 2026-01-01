@@ -8,21 +8,30 @@ This module implements an efficient disjoint set data structure with:
 """
 
 from __future__ import annotations
-from typing import Dict, List, Set, Tuple, Optional, Union, Any, Generic, TypeVar, Protocol
+from typing import (
+    Dict,
+    List,
+    Set,
+    Tuple,
+    Optional,
+    Union,
+    Any,
+    Generic,
+    TypeVar,
+    Protocol,
+)
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class HashableType(Protocol):
     """Protocol for types that can be used as disjoint set elements."""
 
-    def __hash__(self) -> int:
-        ...
+    def __hash__(self) -> int: ...
 
-    def __eq__(self, other: object) -> bool:
-        ...
+    def __eq__(self, other: object) -> bool: ...
 
 
 @dataclass

@@ -4,7 +4,12 @@ Tests for the coordinate system module.
 
 import unittest
 from aria.srk.coordinateSystem import (
-    CoordinateSystem, CSTerm, CSTermType, TermType, mk_empty, get_context
+    CoordinateSystem,
+    CSTerm,
+    CSTermType,
+    TermType,
+    mk_empty,
+    get_context,
 )
 from aria.srk.syntax import Context
 from aria.srk.linear import QQVector
@@ -138,5 +143,5 @@ class TestCoordinateSystem(unittest.TestCase):
         self.assertIsNotNone(term)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

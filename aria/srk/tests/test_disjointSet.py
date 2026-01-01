@@ -4,8 +4,11 @@ Tests for the disjointSet module.
 
 import unittest
 from aria.srk.disjointSet import (
-    DisjointSet, DisjointSetElement, make_disjoint_set,
-    make_disjoint_set_from_elements, test_disjoint_set
+    DisjointSet,
+    DisjointSetElement,
+    make_disjoint_set,
+    make_disjoint_set_from_elements,
+    test_disjoint_set,
 )
 
 
@@ -293,6 +296,7 @@ class TestDisjointSetPerformance(unittest.TestCase):
 
         # Time the operations (basic performance check)
         import time
+
         start_time = time.time()
 
         for elem in elements:
@@ -344,7 +348,7 @@ class TestDisjointSetPerformance(unittest.TestCase):
         self.assertEqual(root1.id, root2.id)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Run the built-in test if available
     try:
         test_disjoint_set()

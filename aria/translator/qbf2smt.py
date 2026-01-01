@@ -45,7 +45,7 @@ def parse(filename):
     """
     Parses a QDIMACS file and outputs its equivalent in SMT-LIB2 format, using UFBV logic.
     """
-    with open(filename, encoding='utf-8') as f:
+    with open(filename, encoding="utf-8") as f:
         printed_comments = False
         seendesc = False
         overprefix = False
@@ -125,9 +125,7 @@ def parse(filename):
                     a = abs(v)
                     (lvl, i) = mapping[a]
                     bit_val = 1 if a == v else 0
-                    sys.stdout.write(
-                        f" (= ((_ extract {i} {i}) vec{lvl}) #b{bit_val})"
-                    )
+                    sys.stdout.write(f" (= ((_ extract {i} {i}) vec{lvl}) #b{bit_val})")
 
                 sys.stdout.write(f"){os.linesep}")
 

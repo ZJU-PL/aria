@@ -7,4 +7,4 @@ and SMT-LIB2 format using PLY.
 
 from aria.srk.srkParse import MathParser, SMT2Parser
 
-__all__ = ['MathParser', 'SMT2Parser']
+__all__ = ["MathParser", "SMT2Parser"]

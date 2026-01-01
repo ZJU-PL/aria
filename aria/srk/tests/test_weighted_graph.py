@@ -3,8 +3,23 @@ Tests for the Weighted Graph module.
 """
 
 import unittest
-from aria.srk.weightedGraph import WeightedGraph, Algebra, path_weight, omega_path_weight, msat_path_weight
-from aria.srk.syntax import Context, Symbol, Type, mk_symbol, mk_const, mk_lt, mk_add, mk_real
+from aria.srk.weightedGraph import (
+    WeightedGraph,
+    Algebra,
+    path_weight,
+    omega_path_weight,
+    msat_path_weight,
+)
+from aria.srk.syntax import (
+    Context,
+    Symbol,
+    Type,
+    mk_symbol,
+    mk_const,
+    mk_lt,
+    mk_add,
+    mk_real,
+)
 from aria.srk.transition import Transition
 from aria.srk.qQ import QQ
 
@@ -15,8 +30,8 @@ class TestWeightedGraph(unittest.TestCase):
     def setUp(self):
         """Set up test context and symbols."""
         self.ctx = Context()
-        self.x = mk_symbol(self.ctx, 'x', Type.INT)
-        self.n = mk_symbol(self.ctx, 'n', Type.INT)
+        self.x = mk_symbol(self.ctx, "x", Type.INT)
+        self.n = mk_symbol(self.ctx, "n", Type.INT)
 
     def test_empty_graph(self):
         """Test creating an empty graph."""
@@ -24,9 +39,11 @@ class TestWeightedGraph(unittest.TestCase):
         algebra = Algebra(
             mul=lambda x, y: x * y,
             add=lambda x, y: x + y,
-            star=lambda x: 1 / (1 - x) if x < 1 else float('inf'),  # Simplified Kleene star
+            star=lambda x: (
+                1 / (1 - x) if x < 1 else float("inf")
+            ),  # Simplified Kleene star
             zero=0,
-            one=1
+            one=1,
         )
         wg = WeightedGraph(algebra)
 
@@ -38,9 +55,9 @@ class TestWeightedGraph(unittest.TestCase):
         algebra = Algebra(
             mul=lambda x, y: x * y,
             add=lambda x, y: x + y,
-            star=lambda x: 1 / (1 - x) if x < 1 else float('inf'),
+            star=lambda x: 1 / (1 - x) if x < 1 else float("inf"),
             zero=0,
-            one=1
+            one=1,
         )
         wg = WeightedGraph(algebra)
         wg = wg.add_vertex(0)
@@ -57,9 +74,9 @@ class TestWeightedGraph(unittest.TestCase):
         algebra = Algebra(
             mul=lambda x, y: x * y,
             add=lambda x, y: x + y,
-            star=lambda x: 1 / (1 - x) if x < 1 else float('inf'),
+            star=lambda x: 1 / (1 - x) if x < 1 else float("inf"),
             zero=0,
-            one=1
+            one=1,
         )
         wg = WeightedGraph(algebra)
         wg = wg.add_vertex(0)
@@ -79,9 +96,9 @@ class TestWeightedGraph(unittest.TestCase):
         algebra = Algebra(
             mul=lambda x, y: x * y,
             add=lambda x, y: x + y,
-            star=lambda x: 1 / (1 - x) if x < 1 else float('inf'),
+            star=lambda x: 1 / (1 - x) if x < 1 else float("inf"),
             zero=0,
-            one=1
+            one=1,
         )
         wg = WeightedGraph(algebra)
         wg = wg.add_vertex(0)
@@ -103,9 +120,9 @@ class TestWeightedGraph(unittest.TestCase):
         algebra = Algebra(
             mul=lambda x, y: x * y,
             add=lambda x, y: x + y,
-            star=lambda x: 1 / (1 - x) if x < 1 else float('inf'),
+            star=lambda x: 1 / (1 - x) if x < 1 else float("inf"),
             zero=0,
-            one=1
+            one=1,
         )
         wg = WeightedGraph(algebra)
         wg = wg.add_vertex(0)
@@ -125,9 +142,9 @@ class TestWeightedGraph(unittest.TestCase):
         algebra = Algebra(
             mul=lambda x, y: x * y,
             add=lambda x, y: x + y,
-            star=lambda x: 1 / (1 - x) if x < 1 else float('inf'),
+            star=lambda x: 1 / (1 - x) if x < 1 else float("inf"),
             zero=0,
-            one=1
+            one=1,
         )
         wg = WeightedGraph(algebra)
 
@@ -163,9 +180,9 @@ class TestGraphOperations(unittest.TestCase):
         algebra = Algebra(
             mul=lambda x, y: x * y,
             add=lambda x, y: x + y,
-            star=lambda x: 1 / (1 - x) if x < 1 else float('inf'),
+            star=lambda x: 1 / (1 - x) if x < 1 else float("inf"),
             zero=0,
-            one=1
+            one=1,
         )
         wg = WeightedGraph(algebra)
         wg = wg.add_vertex(0)
@@ -189,9 +206,9 @@ class TestGraphOperations(unittest.TestCase):
         algebra = Algebra(
             mul=lambda x, y: x * y,
             add=lambda x, y: x + y,
-            star=lambda x: 1 / (1 - x) if x < 1 else float('inf'),
+            star=lambda x: 1 / (1 - x) if x < 1 else float("inf"),
             zero=0,
-            one=1
+            one=1,
         )
         wg = WeightedGraph(algebra)
         wg = wg.add_vertex(0)
@@ -206,5 +223,5 @@ class TestGraphOperations(unittest.TestCase):
         self.assertIsNotNone(wg)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -14,10 +14,34 @@ import logging
 
 # Import from other SRK modules
 from aria.srk.syntax import (
-    Context, Symbol, Expression, FormulaExpression, ArithExpression, Type,
-    mk_const, mk_symbol, mk_real, mk_add, mk_mul, mk_div, mk_mod, mk_eq,
-    mk_and, mk_or, mk_leq, mk_lt, mk_sub, mk_neg, mk_app, mk_ite, mk_false,
-    rewrite, destruct, expr_typ, symbols, ArithTerm
+    Context,
+    Symbol,
+    Expression,
+    FormulaExpression,
+    ArithExpression,
+    Type,
+    mk_const,
+    mk_symbol,
+    mk_real,
+    mk_add,
+    mk_mul,
+    mk_div,
+    mk_mod,
+    mk_eq,
+    mk_and,
+    mk_or,
+    mk_leq,
+    mk_lt,
+    mk_sub,
+    mk_neg,
+    mk_app,
+    mk_ite,
+    mk_false,
+    rewrite,
+    destruct,
+    expr_typ,
+    symbols,
+    ArithTerm,
 )
 from aria.srk.interval import Interval
 from aria.srk.qQ import QQ, equal as QQ_equal
@@ -37,17 +61,17 @@ class SymbolicInterval:
     interval: Interval  # Concrete interval bounds
 
     @classmethod
-    def of_interval(cls, context: Context, interval: Interval) -> 'SymbolicInterval':
+    def of_interval(cls, context: Context, interval: Interval) -> "SymbolicInterval":
         """Create a symbolic interval from a concrete interval."""
         return cls(context, [], [], interval)
 
     @classmethod
-    def bottom(cls, context: Context) -> 'SymbolicInterval':
+    def bottom(cls, context: Context) -> "SymbolicInterval":
         """Create the bottom (empty) symbolic interval."""
         return cls.of_interval(context, Interval.bottom())
 
     @classmethod
-    def top(cls, context: Context) -> 'SymbolicInterval':
+    def top(cls, context: Context) -> "SymbolicInterval":
         """Create the top (universal) symbolic interval."""
         return cls.of_interval(context, Interval.top())
 
@@ -59,7 +83,7 @@ class SymbolicInterval:
                 result.append(f([x, y]))
         return result
 
-    def add(self, other: 'SymbolicInterval') -> 'SymbolicInterval':
+    def add(self, other: "SymbolicInterval") -> "SymbolicInterval":
         """Add two symbolic intervals."""
         if self.context != other.context:
             raise ValueError("Cannot add intervals from different contexts")
@@ -69,13 +93,10 @@ class SymbolicInterval:
         new_lower = self.cartesian(lambda args: mk_add(args), self.lower, other.lower)
 
         return SymbolicInterval(
-            self.context,
-            new_lower,
-            new_upper,
-            self.interval + other.interval
+            self.context, new_lower, new_upper, self.interval + other.interval
         )
 
-    def mul_interval(self, ivl: Interval, x: 'SymbolicInterval') -> 'SymbolicInterval':
+    def mul_interval(self, ivl: Interval, x: "SymbolicInterval") -> "SymbolicInterval":
         """Multiply a symbolic interval by a concrete interval."""
         srk = x.context
 
@@ -112,7 +133,7 @@ class SymbolicInterval:
             # Mixed signs - conservative
             return SymbolicInterval(srk, [], [], ivl * x.interval)
 
-    def mul(self, other: 'SymbolicInterval') -> 'SymbolicInterval':
+    def mul(self, other: "SymbolicInterval") -> "SymbolicInterval":
         """Multiply two symbolic intervals."""
         if self.context != other.context:
             raise ValueError("Cannot multiply intervals from different contexts")
@@ -122,7 +143,7 @@ class SymbolicInterval:
         result2 = self.mul_interval(other.interval, self)
         return result1.meet(result2)
 
-    def meet(self, other: 'SymbolicInterval') -> 'SymbolicInterval':
+    def meet(self, other: "SymbolicInterval") -> "SymbolicInterval":
         """Meet (intersection) of two symbolic intervals."""
         if self.context != other.context:
             raise ValueError("Cannot meet intervals from different contexts")
@@ -132,10 +153,10 @@ class SymbolicInterval:
             self.context,
             self.lower + other.lower,
             self.upper + other.upper,
-            Interval.meet(self.interval, other.interval)
+            Interval.meet(self.interval, other.interval),
         )
 
-    def join(self, other: 'SymbolicInterval') -> 'SymbolicInterval':
+    def join(self, other: "SymbolicInterval") -> "SymbolicInterval":
         """Join (union) of two symbolic intervals."""
         if self.context != other.context:
             raise ValueError("Cannot join intervals from different contexts")
@@ -148,20 +169,20 @@ class SymbolicInterval:
             self.context,
             common_lower,
             common_upper,
-            Interval.join(self.interval, other.interval)
+            Interval.join(self.interval, other.interval),
         )
 
-    def negate(self) -> 'SymbolicInterval':
+    def negate(self) -> "SymbolicInterval":
         """Negate a symbolic interval."""
         # Swap bounds and negate terms (OCaml: upper = map mk_neg lower, lower = map mk_neg upper)
         return SymbolicInterval(
             self.context,
             [mk_neg(term) for term in self.upper],  # Negated upper becomes new lower
             [mk_neg(term) for term in self.lower],  # Negated lower becomes new upper
-            Interval.negate(self.interval)
+            Interval.negate(self.interval),
         )
 
-    def div(self, other: 'SymbolicInterval') -> 'SymbolicInterval':
+    def div(self, other: "SymbolicInterval") -> "SymbolicInterval":
         """Divide two symbolic intervals."""
         srk = self.context
         lower_y = Interval.lower(other.interval)
@@ -180,7 +201,7 @@ class SymbolicInterval:
                         srk,
                         [mk_div(term, mk_real(a)) for term in self.lower],
                         [mk_div(term, mk_real(a)) for term in self.upper],
-                        Interval.div(self.interval, other.interval)
+                        Interval.div(self.interval, other.interval),
                     )
                 else:
                     # Negative constant - swap bounds
@@ -188,15 +209,19 @@ class SymbolicInterval:
                         srk,
                         [mk_div(term, mk_real(a)) for term in self.upper],
                         [mk_div(term, mk_real(a)) for term in self.lower],
-                        Interval.div(self.interval, other.interval)
+                        Interval.div(self.interval, other.interval),
                     )
             else:
                 # Non-constant divisor
-                return SymbolicInterval.of_interval(srk, Interval.div(self.interval, other.interval))
+                return SymbolicInterval.of_interval(
+                    srk, Interval.div(self.interval, other.interval)
+                )
         else:
-            return SymbolicInterval.of_interval(srk, Interval.div(self.interval, other.interval))
+            return SymbolicInterval.of_interval(
+                srk, Interval.div(self.interval, other.interval)
+            )
 
-    def modulo(self, other: 'SymbolicInterval') -> 'SymbolicInterval':
+    def modulo(self, other: "SymbolicInterval") -> "SymbolicInterval":
         """Compute modulo of two symbolic intervals."""
         srk = self.context
         ivl = Interval.modulo(self.interval, other.interval)
@@ -214,37 +239,28 @@ class SymbolicInterval:
 
             if Interval.is_nonnegative(self.interval):
                 return SymbolicInterval(
-                    srk,
-                    [],
-                    self.upper + [minus_one(term) for term in y.upper],
-                    ivl
+                    srk, [], self.upper + [minus_one(term) for term in y.upper], ivl
                 )
             elif Interval.is_nonpositive(self.interval):
                 return SymbolicInterval(
-                    srk,
-                    self.lower + [one_minus(term) for term in y.upper],
-                    [],
-                    ivl
+                    srk, self.lower + [one_minus(term) for term in y.upper], [], ivl
                 )
             else:
                 return SymbolicInterval(
                     srk,
                     [one_minus(term) for term in y.upper],
                     [minus_one(term) for term in y.upper],
-                    ivl
-        )
+                    ivl,
+                )
 
-    def floor(self) -> 'SymbolicInterval':
+    def floor(self) -> "SymbolicInterval":
         """Compute floor of symbolic interval."""
-        return SymbolicInterval(
-            self.context,
-            [],
-            [],
-            Interval.floor(self.interval)
-        )
+        return SymbolicInterval(self.context, [], [], Interval.floor(self.interval))
 
     @staticmethod
-    def make(context: Context, lower: List, upper: List, interval: Interval) -> 'SymbolicInterval':
+    def make(
+        context: Context, lower: List, upper: List, interval: Interval
+    ) -> "SymbolicInterval":
         """Create a symbolic interval with specified bounds."""
         return SymbolicInterval(context, lower, upper, interval)
 
@@ -276,15 +292,15 @@ class NonlinearOperations:
             ("mul", Type.FUN),  # TyFun ([TyReal; TyReal], TyReal)
             ("inv", Type.FUN),  # TyFun ([TyReal], TyReal)
             ("mod", Type.FUN),  # TyFun ([TyReal; TyReal], TyReal)
-            ("imul", Type.FUN), # TyFun ([TyReal; TyReal], TyInt)
-            ("imod", Type.FUN), # TyFun ([TyReal; TyReal], TyInt)
+            ("imul", Type.FUN),  # TyFun ([TyReal; TyReal], TyInt)
+            ("imod", Type.FUN),  # TyFun ([TyReal; TyReal], TyInt)
             ("pow", Type.FUN),  # TyFun ([TyReal; TyReal], TyReal)
             ("log", Type.FUN),  # TyFun ([TyReal; TyReal], TyReal)
         ]
 
         for name, typ in symbols_to_register:
             # Check if already registered in context
-            if not hasattr(self.context, '_named_symbols'):
+            if not hasattr(self.context, "_named_symbols"):
                 self.context._named_symbols = {}
 
             if name not in self.context._named_symbols:
@@ -350,11 +366,11 @@ class NonlinearOperations:
             expr_type, expr_data = expr_info
 
             # Handle division: x / y -> x * inv(y) or mul(x, inv(y))
-            if expr_type == 'Div':
+            if expr_type == "Div":
                 x, y = expr_data
                 # Check if y is a constant
                 y_info = destruct(y)
-                if y_info and y_info[0] == 'Real':
+                if y_info and y_info[0] == "Real":
                     k = y_info[1]
                     if k != QQ.zero:
                         # division by constant -> scalar mul
@@ -362,7 +378,7 @@ class NonlinearOperations:
 
                 # Check if x is real constant
                 x_info = destruct(x)
-                if x_info and x_info[0] == 'Real':
+                if x_info and x_info[0] == "Real":
                     # Real constant / y -> x * inv(y)
                     return mk_mul([x, mk_app(inv_sym, [y])])
 
@@ -370,16 +386,16 @@ class NonlinearOperations:
                 return mk_app(mul_sym, [x, mk_app(inv_sym, [y])])
 
             # Handle modulo: x % y -> mod(x, y) or imod(x, y)
-            elif expr_type == 'Mod':
+            elif expr_type == "Mod":
                 x, y = expr_data
                 # Check if y is integer constant
                 y_info = destruct(y)
                 x_typ = expr_typ(x)
                 y_typ = expr_typ(y)
 
-                if y_info and y_info[0] == 'Real':
+                if y_info and y_info[0] == "Real":
                     k = y_info[1]
-                    zz_val = QQ.to_zz(k) if hasattr(QQ, 'to_zz') else None
+                    zz_val = QQ.to_zz(k) if hasattr(QQ, "to_zz") else None
                     if k != QQ.zero and zz_val is not None and x_typ == Type.INT:
                         # Keep as interpreted mod for integer constant
                         return expr
@@ -391,7 +407,7 @@ class NonlinearOperations:
                     return mk_app(mod_sym, [x, y])
 
             # Handle multiplication: convert to uninterpreted mul/imul
-            elif expr_type == 'Mul':
+            elif expr_type == "Mul":
                 terms = expr_data
                 # Separate coefficient from non-constant terms
                 coeff = QQ.one
@@ -399,7 +415,7 @@ class NonlinearOperations:
 
                 for term in terms:
                     term_info = destruct(term)
-                    if term_info and term_info[0] == 'Real':
+                    if term_info and term_info[0] == "Real":
                         coeff = QQ.mul(coeff, term_info[1])
                     else:
                         non_const_terms.append(term)
@@ -447,7 +463,7 @@ class NonlinearOperations:
             expr_type, expr_data = expr_info
 
             # Handle function applications
-            if expr_type == 'App':
+            if expr_type == "App":
                 func, args = expr_data
 
                 # mul(x, y) or imul(x, y) -> x * y
@@ -491,7 +507,7 @@ class NonlinearOperations:
             x_info = destruct(x)
 
             # log_b(1) = 0 when b > 1
-            if base_info and base_info[0] == 'Real' and x_info and x_info[0] == 'Real':
+            if base_info and base_info[0] == "Real" and x_info and x_info[0] == "Real":
                 b = base_info[1]
                 x_val = x_info[1]
                 if QQ.lt(QQ.one, b) and QQ.equal(x_val, QQ.one):
@@ -500,7 +516,7 @@ class NonlinearOperations:
                     return mk_real(QQ.one)
 
             # log_b(b^t) = t (when bases match)
-            if x_info and x_info[0] == 'App':
+            if x_info and x_info[0] == "App":
                 func, args = x_info[1]
                 if func == pow_sym and len(args) == 2:
                     base_arg, exp_arg = args
@@ -533,7 +549,7 @@ class NonlinearOperations:
             base_info = destruct(base)
 
             # 1^x = 1
-            if base_info and base_info[0] == 'Real':
+            if base_info and base_info[0] == "Real":
                 b = base_info[1]
                 if QQ.equal(b, QQ.one):
                     return mk_real(QQ.one)
@@ -546,7 +562,7 @@ class NonlinearOperations:
                     return mk_ite(
                         mk_eq(mk_mod(x, mk_real(QQ.of_int(2))), mk_real(QQ.zero)),
                         pos_pow,
-                        mk_neg(pos_pow)
+                        mk_neg(pos_pow),
                     )
 
                 # (1/b)^x when 0 < b < 1
@@ -557,13 +573,15 @@ class NonlinearOperations:
             x_info = destruct(x)
 
             # b^power when power is a constant
-            if x_info and x_info[0] == 'Const':
+            if x_info and x_info[0] == "Const":
                 power_symbol = x_info[1]
                 # Check if it's a real constant by looking at the symbol name
-                if hasattr(power_symbol, 'name') and power_symbol.name.startswith('real_'):
+                if hasattr(power_symbol, "name") and power_symbol.name.startswith(
+                    "real_"
+                ):
                     # Extract the value from the symbol name
                     try:
-                        power_value = float(power_symbol.name.replace('real_', ''))
+                        power_value = float(power_symbol.name.replace("real_", ""))
                         power = Fraction(power_value)
 
                         # Handle special cases for real constants
@@ -574,10 +592,11 @@ class NonlinearOperations:
                             # x^1 = x
                             return base
 
-                        power_int = QQ.to_int(power) if hasattr(QQ, 'to_int') else None
+                        power_int = QQ.to_int(power) if hasattr(QQ, "to_int") else None
                         if power_int is not None:
                             # Use syntax.mk_pow for integer powers
                             from .syntax import mk_pow as syntax_mk_pow
+
                             try:
                                 return syntax_mk_pow(base, power_int)
                             except:
@@ -586,17 +605,17 @@ class NonlinearOperations:
                         pass
 
             # b^(sum) = product of b^term
-            if x_info and x_info[0] == 'Add':
+            if x_info and x_info[0] == "Add":
                 terms = x_info[1]
                 return mk_mul([self.mk_pow(base, term) for term in terms])
 
             # b^(-x) = 1 / b^x
-            if x_info and x_info[0] == 'Neg':
+            if x_info and x_info[0] == "Neg":
                 negated_x = x_info[1]
                 return mk_div(mk_real(QQ.one), self.mk_pow(base, negated_x))
 
             # b^log_b(t) = t
-            if x_info and x_info[0] == 'App':
+            if x_info and x_info[0] == "App":
                 func, args = x_info[1]
                 if func == log_sym and len(args) == 2:
                     log_base, log_arg = args
@@ -627,7 +646,10 @@ class NonlinearOperations:
             from . import abstract
         except ImportError:
             # Dependencies not available, return original formula
-            logf("linearize: dependencies not available, returning original formula", level='warn')
+            logf(
+                "linearize: dependencies not available, returning original formula",
+                level="warn",
+            )
             return formula
 
         # Convert to uninterpreted form
@@ -659,13 +681,13 @@ class NonlinearOperations:
         try:
             result = srkZ3.optimize_box(lin_phi, objectives)
         except:
-            logf("linearize: optimization failed", level='warn')
+            logf("linearize: optimization failed", level="warn")
             return lin_phi
 
-        if result == 'Unsat':
+        if result == "Unsat":
             return mk_false()
-        elif result == 'Unknown':
-            logf("linearize: optimization returned unknown", level='warn')
+        elif result == "Unknown":
+            logf("linearize: optimization returned unknown", level="warn")
             return lin_phi
         elif not isinstance(result, list):
             return lin_phi
@@ -674,7 +696,9 @@ class NonlinearOperations:
         # This is a simplified version - full implementation would match OCaml more closely
         return lin_phi
 
-    def optimize_box(self, phi: FormulaExpression, objectives: List[ArithExpression]) -> Union[List[Interval], str]:
+    def optimize_box(
+        self, phi: FormulaExpression, objectives: List[ArithExpression]
+    ) -> Union[List[Interval], str]:
         """Find bounding intervals for objectives within a formula.
 
         Uses Z3 optimization to find concrete bounds for each objective.
@@ -722,7 +746,7 @@ class NonlinearOperations:
             expr_type, expr_data = expr_info
 
             # pow(x, y) -> mk_pow(x, y)
-            if expr_type == 'App':
+            if expr_type == "App":
                 func, args = expr_data
                 if func == pow_sym and len(args) == 2:
                     return self.mk_pow(args[0], args[1])
@@ -776,17 +800,23 @@ def linearize(context: Context, phi: FormulaExpression) -> FormulaExpression:
     return NonlinearOperations(context).linearize(phi)
 
 
-def mk_log(context: Context, base: ArithExpression, x: ArithExpression) -> ArithExpression:
+def mk_log(
+    context: Context, base: ArithExpression, x: ArithExpression
+) -> ArithExpression:
     """Create a logarithm expression."""
     return NonlinearOperations(context).mk_log(base, x)
 
 
-def mk_pow(context: Context, base: ArithExpression, x: ArithExpression) -> ArithExpression:
+def mk_pow(
+    context: Context, base: ArithExpression, x: ArithExpression
+) -> ArithExpression:
     """Create a power expression."""
     return NonlinearOperations(context).mk_pow(base, x)
 
 
-def optimize_box(context: Context, phi: FormulaExpression, objectives: List[ArithExpression]) -> Union[List[Interval], str]:
+def optimize_box(
+    context: Context, phi: FormulaExpression, objectives: List[ArithExpression]
+) -> Union[List[Interval], str]:
     """Find bounding intervals for objectives."""
     return NonlinearOperations(context).optimize_box(phi, objectives)
 
@@ -810,23 +840,24 @@ def simplify_term(context: Context, term: ArithExpression) -> ArithExpression:
 # Compatibility alias for SRK interface
 class Nonlinear(Exception):
     """Exception raised for nonlinear operations."""
+
     pass
 
 
 __all__ = [
-    'SymbolicInterval',
-    'NonlinearOperations',
-    'Nonlinear',
-    'ensure_symbols',
-    'uninterpret_rewriter',
-    'interpret_rewriter',
-    'uninterpret',
-    'interpret',
-    'linearize',
-    'mk_log',
-    'mk_pow',
-    'optimize_box',
-    'simplify_terms_rewriter',
-    'simplify_terms',
-    'simplify_term',
+    "SymbolicInterval",
+    "NonlinearOperations",
+    "Nonlinear",
+    "ensure_symbols",
+    "uninterpret_rewriter",
+    "interpret_rewriter",
+    "uninterpret",
+    "interpret",
+    "linearize",
+    "mk_log",
+    "mk_pow",
+    "optimize_box",
+    "simplify_terms_rewriter",
+    "simplify_terms",
+    "simplify_term",
 ]

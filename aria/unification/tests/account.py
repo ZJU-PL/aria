@@ -27,7 +27,11 @@ def respond():  # noqa: F811
 
 
 if __name__ == "__main__":
-    respond({"status": 200, "data": {"name": "Alice", "credit": 100}})  # pylint: disable=too-many-function-args
-    respond({"status": 200, "data": {"name": "Bob", "debit": 100}})  # pylint: disable=too-many-function-args
+    respond(
+        {"status": 200, "data": {"name": "Alice", "credit": 100}}
+    )  # pylint: disable=too-many-function-args
+    respond(
+        {"status": 200, "data": {"name": "Bob", "debit": 100}}
+    )  # pylint: disable=too-many-function-args
     respond({"status": 404})  # pylint: disable=too-many-function-args
     print(dict(balance))

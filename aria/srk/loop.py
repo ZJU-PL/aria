@@ -10,15 +10,26 @@ The implementation follows the algorithm described in:
 """
 
 from __future__ import annotations
-from typing import Protocol, TypeVar, Generic, List, Set, Dict, Optional, Union, Callable, Any
+from typing import (
+    Protocol,
+    TypeVar,
+    Generic,
+    List,
+    Set,
+    Dict,
+    Optional,
+    Union,
+    Callable,
+    Any,
+)
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
 import copy
 from enum import Enum
 
 # Type variables for generic graph interface
-V = TypeVar('V')
-G = TypeVar('G')
+V = TypeVar("V")
+G = TypeVar("G")
 
 
 class GraphProtocol(Protocol[V]):
@@ -40,8 +51,9 @@ class Loop:
     A loop consists of a header vertex and a body of vertices that form
     a strongly connected component.
     """
+
     header: V
-    children: List[Union[V, 'Loop']]  # Forest of nested loops/vertices
+    children: List[Union[V, "Loop"]]  # Forest of nested loops/vertices
     body: Set[V]  # Set of vertices in the loop body
 
 
@@ -149,11 +161,7 @@ def compute_loop_nesting_forest(graph: GraphProtocol[V]) -> List[Union[V, Loop[V
 
             if v in successors:
                 # Self-loop detected
-                loop = Loop(
-                    header=v,
-                    children=[],
-                    body=scc
-                )
+                loop = Loop(header=v, children=[], body=scc)
                 forest.append(loop)
             else:
                 forest.append(v)
@@ -169,15 +177,13 @@ def compute_loop_nesting_forest(graph: GraphProtocol[V]) -> List[Union[V, Loop[V
                 # Create a subgraph for nested analysis
                 # This is a simplified approach - a full implementation would
                 # create a proper subgraph and recurse
-                nested_forest = list(subgraph_vertices)  # Treat as individual vertices for now
+                nested_forest = list(
+                    subgraph_vertices
+                )  # Treat as individual vertices for now
             else:
                 nested_forest = []
 
-            loop = Loop(
-                header=header,
-                children=nested_forest,
-                body=body
-            )
+            loop = Loop(header=header, children=nested_forest, body=body)
             forest.append(loop)
 
     return forest
@@ -230,8 +236,9 @@ def find_cutpoints(forest: List[Union[V, Loop[V]]]) -> Set[V]:
     return cutpoints
 
 
-def format_forest(forest: List[Union[V, Loop[V]]],
-                  vertex_formatter: Callable[[V], str] = str) -> str:
+def format_forest(
+    forest: List[Union[V, Loop[V]]], vertex_formatter: Callable[[V], str] = str
+) -> str:
     """Pretty-print a loop nesting forest."""
     lines = []
 
@@ -239,7 +246,9 @@ def format_forest(forest: List[Union[V, Loop[V]]],
         spaces = "  " * indent
         if isinstance(item, Loop):
             lines.append(f"{spaces}Loop(header={vertex_formatter(item.header)}):")
-            lines.append(f"{spaces}  Body: {{{', '.join(vertex_formatter(v) for v in sorted(item.body, key=str))}}}")
+            lines.append(
+                f"{spaces}  Body: {{{', '.join(vertex_formatter(v) for v in sorted(item.body, key=str))}}}"
+            )
             lines.append(f"{spaces}  Children:")
             for child in item.children:
                 format_item(child, indent + 2)
@@ -260,9 +269,9 @@ def analyze_graph_loops(graph: GraphProtocol[V]) -> Dict[str, Any]:
     cutpoints = find_cutpoints(forest)
 
     return {
-        'forest': forest,
-        'loops': loops,
-        'cutpoints': cutpoints,
-        'num_loops': len(loops),
-        'num_cutpoints': len(cutpoints)
+        "forest": forest,
+        "loops": loops,
+        "cutpoints": cutpoints,
+        "num_loops": len(loops),
+        "num_cutpoints": len(cutpoints),
     }

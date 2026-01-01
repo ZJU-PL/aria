@@ -20,12 +20,57 @@ import enum
 import logging
 
 from aria.srk.syntax import (
-    Context, Symbol, Type, Expression, FormulaExpression, ArithExpression,
-    TermExpression, Var, Const, Add, Mul, Eq, Lt, Leq, And, Or, Not,
-    TrueExpr, FalseExpr, Ite, Forall, Exists, App, Select, Store, mk_real, mk_true, mk_false,
-    mk_eq, mk_leq, mk_lt, mk_not, mk_and, mk_or, mk_ite, mk_add, mk_mul,
-    mk_div, mk_mod, mk_floor, mk_neg, mk_const, mk_var, destruct, substitute,
-    rewrite, nnf_rewriter, symbols, mk_symbol, typ_symbol, Env
+    Context,
+    Symbol,
+    Type,
+    Expression,
+    FormulaExpression,
+    ArithExpression,
+    TermExpression,
+    Var,
+    Const,
+    Add,
+    Mul,
+    Eq,
+    Lt,
+    Leq,
+    And,
+    Or,
+    Not,
+    TrueExpr,
+    FalseExpr,
+    Ite,
+    Forall,
+    Exists,
+    App,
+    Select,
+    Store,
+    mk_real,
+    mk_true,
+    mk_false,
+    mk_eq,
+    mk_leq,
+    mk_lt,
+    mk_not,
+    mk_and,
+    mk_or,
+    mk_ite,
+    mk_add,
+    mk_mul,
+    mk_div,
+    mk_mod,
+    mk_floor,
+    mk_neg,
+    mk_const,
+    mk_var,
+    destruct,
+    substitute,
+    rewrite,
+    nnf_rewriter,
+    symbols,
+    mk_symbol,
+    typ_symbol,
+    Env,
 )
 from .qQ import QQ
 
@@ -74,29 +119,42 @@ class InterpretationValue:
     def as_expression(self) -> Expression:
         """Get the expression value, raising an error if not an expression."""
         if not self.is_expression:
-            raise TypeError(f"Expected expression value, got {type(self.value).__name__}")
+            raise TypeError(
+                f"Expected expression value, got {type(self.value).__name__}"
+            )
         return self.value
 
 
 class DivideByZeroError(Exception):
     """Raised when division by zero occurs during evaluation."""
+
     pass
 
 
 class Interpretation:
     """Maps symbols to their interpretations."""
 
-    def __init__(self, context: Context, default: Optional[Callable[[Symbol], InterpretationValue]] = None,
-                 bindings: Optional[Dict[Symbol, InterpretationValue]] = None):
+    def __init__(
+        self,
+        context: Context,
+        default: Optional[Callable[[Symbol], InterpretationValue]] = None,
+        bindings: Optional[Dict[Symbol, InterpretationValue]] = None,
+    ):
         self.context = context
-        self.default = default or (lambda sym: (_ for _ in ()).throw(KeyError(f"No interpretation for symbol {sym}")))
+        self.default = default or (
+            lambda sym: (_ for _ in ()).throw(
+                KeyError(f"No interpretation for symbol {sym}")
+            )
+        )
         self.bindings = bindings or {}
 
     def add_real(self, symbol: Symbol, value: Fraction) -> Interpretation:
         """Add a real value binding."""
         symbol_type = self.context.typ_symbol(symbol)
         if symbol_type not in (Type.REAL, Type.INT):
-            raise ValueError(f"add_real: constant symbol is non-arithmetic, got {symbol_type}")
+            raise ValueError(
+                f"add_real: constant symbol is non-arithmetic, got {symbol_type}"
+            )
         new_bindings = self.bindings.copy()
         new_bindings[symbol] = InterpretationValue(value)
         return Interpretation(self.context, self.default, new_bindings)
@@ -105,7 +163,9 @@ class Interpretation:
         """Add a boolean value binding."""
         symbol_type = self.context.typ_symbol(symbol)
         if symbol_type != Type.BOOL:
-            raise ValueError(f"add_bool: constant symbol is non-boolean, got {symbol_type}")
+            raise ValueError(
+                f"add_bool: constant symbol is non-boolean, got {symbol_type}"
+            )
         new_bindings = self.bindings.copy()
         new_bindings[symbol] = InterpretationValue(value)
         return Interpretation(self.context, self.default, new_bindings)
@@ -121,7 +181,7 @@ class Interpretation:
         """Add a binding to the interpretation."""
         symbol_type = self.context.typ_symbol(symbol)
         if isinstance(value.value, Expression):
-            if not (isinstance(symbol_type, tuple) and symbol_type[0] == 'TyFun'):
+            if not (isinstance(symbol_type, tuple) and symbol_type[0] == "TyFun"):
                 raise ValueError(f"add: function value for non-function symbol")
         elif isinstance(value.value, bool):
             if symbol_type != Type.BOOL:
@@ -153,7 +213,11 @@ class Interpretation:
         value = self.get_value(symbol)
         return value.as_bool()
 
-    def evaluate_term(self, term: ArithExpression, env: Optional[Dict[int, InterpretationValue]] = None) -> Fraction:
+    def evaluate_term(
+        self,
+        term: ArithExpression,
+        env: Optional[Dict[int, InterpretationValue]] = None,
+    ) -> Fraction:
         """Evaluate an arithmetic term to a rational value."""
         env = env or {}
 
@@ -182,21 +246,21 @@ class Interpretation:
                     return eval_term(t.then_branch)
                 else:
                     return eval_term(t.else_branch)
-            elif hasattr(t, 'op') and t.op == 'Div':
+            elif hasattr(t, "op") and t.op == "Div":
                 dividend = eval_term(t.left)
                 divisor = eval_term(t.right)
                 if QQ.equal(divisor, QQ.zero):
                     raise DivideByZeroError()
                 return QQ.div(dividend, divisor)
-            elif hasattr(t, 'op') and t.op == 'Mod':
+            elif hasattr(t, "op") and t.op == "Mod":
                 dividend = eval_term(t.left)
                 modulus = eval_term(t.right)
                 if QQ.equal(modulus, QQ.zero):
                     raise DivideByZeroError()
                 return QQ.modulo(dividend, modulus)
-            elif hasattr(t, 'op') and t.op == 'Floor':
+            elif hasattr(t, "op") and t.op == "Floor":
                 return QQ.floor(eval_term(t.arg))
-            elif hasattr(t, 'op') and t.op == 'Neg':
+            elif hasattr(t, "op") and t.op == "Neg":
                 return QQ.negate(eval_term(t.arg))
             elif isinstance(t, App):
                 # Function application
@@ -212,51 +276,69 @@ class Interpretation:
                                 arg_val = eval_term(arg)
                                 arg_env[i] = InterpretationValue(arg_val)
                             except (ValueError, TypeError) as e:
-                                raise ValueError(f"Cannot evaluate argument {i} of function {t.func}: {e}") from e
+                                raise ValueError(
+                                    f"Cannot evaluate argument {i} of function {t.func}: {e}"
+                                ) from e
 
                         # Merge with existing environment
                         merged_env = {**env, **arg_env}
 
                         # Evaluate the function body with the argument bindings
                         try:
-                            return self.evaluate_term(func_value.as_expression(), merged_env)
+                            return self.evaluate_term(
+                                func_value.as_expression(), merged_env
+                            )
                         except (ValueError, TypeError) as e:
-                            raise ValueError(f"Cannot evaluate function body for {t.func}: {e}") from e
+                            raise ValueError(
+                                f"Cannot evaluate function body for {t.func}: {e}"
+                            ) from e
                     else:
-                        raise ValueError(f"No function interpretation for symbol {t.func}")
+                        raise ValueError(
+                            f"No function interpretation for symbol {t.func}"
+                        )
                 except KeyError:
                     raise ValueError(f"No interpretation for function symbol {t.func}")
-            elif hasattr(t, 'op') and t.op == 'Div':
+            elif hasattr(t, "op") and t.op == "Div":
                 dividend = eval_term(t.left)
                 divisor = eval_term(t.right)
                 if QQ.equal(divisor, QQ.zero):
                     raise DivideByZeroError()
                 return QQ.div(dividend, divisor)
-            elif hasattr(t, 'op') and t.op == 'Mod':
+            elif hasattr(t, "op") and t.op == "Mod":
                 dividend = eval_term(t.left)
                 modulus = eval_term(t.right)
                 if QQ.equal(modulus, QQ.zero):
                     raise DivideByZeroError()
                 return QQ.modulo(dividend, modulus)
-            elif hasattr(t, 'op') and t.op == 'Floor':
+            elif hasattr(t, "op") and t.op == "Floor":
                 return QQ.floor(eval_term(t.arg))
-            elif hasattr(t, 'op') and t.op == 'Neg':
+            elif hasattr(t, "op") and t.op == "Neg":
                 return QQ.negate(eval_term(t.arg))
             elif isinstance(t, Select):
                 # Array selection: evaluate array and index, then look up value
                 array_val = eval_term(t.array)
                 index_val = eval_term(t.index)
-                if isinstance(array_val, dict) and isinstance(index_val, (int, Fraction)):
-                    idx = int(index_val) if isinstance(index_val, Fraction) else index_val
-                    return array_val.get(idx, QQ.zero)  # Default to 0 for unknown indices
+                if isinstance(array_val, dict) and isinstance(
+                    index_val, (int, Fraction)
+                ):
+                    idx = (
+                        int(index_val) if isinstance(index_val, Fraction) else index_val
+                    )
+                    return array_val.get(
+                        idx, QQ.zero
+                    )  # Default to 0 for unknown indices
                 return QQ.zero  # Conservative fallback
             elif isinstance(t, Store):
                 # Array store: evaluate all components
                 array_val = eval_term(t.array)
                 index_val = eval_term(t.index)
                 value_val = eval_term(t.value)
-                if isinstance(array_val, dict) and isinstance(index_val, (int, Fraction)):
-                    idx = int(index_val) if isinstance(index_val, Fraction) else index_val
+                if isinstance(array_val, dict) and isinstance(
+                    index_val, (int, Fraction)
+                ):
+                    idx = (
+                        int(index_val) if isinstance(index_val, Fraction) else index_val
+                    )
                     new_array = array_val.copy()
                     new_array[idx] = value_val
                     return new_array
@@ -264,9 +346,11 @@ class Interpretation:
             else:
                 # Try to provide more helpful error messages
                 term_type = type(t).__name__
-                if hasattr(t, '__str__'):
+                if hasattr(t, "__str__"):
                     term_str = str(t)[:100]  # Truncate long expressions
-                    raise NotImplementedError(f"Cannot evaluate term type {term_type}: {term_str}")
+                    raise NotImplementedError(
+                        f"Cannot evaluate term type {term_type}: {term_str}"
+                    )
                 else:
                     raise NotImplementedError(f"Cannot evaluate term type {term_type}")
 
@@ -275,7 +359,11 @@ class Interpretation:
         except KeyError as e:
             raise ValueError(f"No interpretation for constant symbol: {e}")
 
-    def evaluate_formula(self, formula: FormulaExpression, env: Optional[Dict[int, InterpretationValue]] = None) -> bool:
+    def evaluate_formula(
+        self,
+        formula: FormulaExpression,
+        env: Optional[Dict[int, InterpretationValue]] = None,
+    ) -> bool:
         """Evaluate a formula to a boolean value."""
         env = env or {}
 
@@ -340,20 +428,30 @@ class Interpretation:
 
                             # Evaluate the function body with the argument bindings
                             try:
-                                return self.evaluate_formula(func_value.as_expression(), merged_env)
+                                return self.evaluate_formula(
+                                    func_value.as_expression(), merged_env
+                                )
                             except (ValueError, TypeError) as e:
-                                raise ValueError(f"Cannot evaluate function body for {f.func}: {e}") from e
+                                raise ValueError(
+                                    f"Cannot evaluate function body for {f.func}: {e}"
+                                ) from e
                         else:
-                            raise ValueError(f"No function interpretation for symbol {f.func}")
+                            raise ValueError(
+                                f"No function interpretation for symbol {f.func}"
+                            )
                     except KeyError:
-                        raise ValueError(f"No interpretation for function symbol {f.func}")
+                        raise ValueError(
+                            f"No interpretation for function symbol {f.func}"
+                        )
             elif isinstance(f, Var):
                 if f.var_id in env:
                     val = env[f.var_id]
                     if isinstance(val.value, bool):
                         return val.value
                     else:
-                        raise ValueError(f"Variable {f.var_id} bound to non-boolean value")
+                        raise ValueError(
+                            f"Variable {f.var_id} bound to non-boolean value"
+                        )
                 else:
                     raise ValueError(f"Unbound variable {f.var_id}")
             elif isinstance(f, Forall):
@@ -367,39 +465,49 @@ class Interpretation:
                 # Array selection in formulas
                 array_val = self.evaluate_term(f.array, env)
                 index_val = self.evaluate_term(f.index, env)
-                if isinstance(array_val, dict) and isinstance(index_val, (int, Fraction)):
-                    idx = int(index_val) if isinstance(index_val, Fraction) else index_val
-                    return array_val.get(idx, False)  # Default to False for unknown indices
+                if isinstance(array_val, dict) and isinstance(
+                    index_val, (int, Fraction)
+                ):
+                    idx = (
+                        int(index_val) if isinstance(index_val, Fraction) else index_val
+                    )
+                    return array_val.get(
+                        idx, False
+                    )  # Default to False for unknown indices
                 return False  # Conservative fallback
             elif isinstance(f, Store):
                 # Array store in formulas - evaluate all components
                 array_val = self.evaluate_term(f.array, env)
                 index_val = self.evaluate_term(f.index, env)
                 value_val = self.evaluate_term(f.value, env)
-                if isinstance(array_val, dict) and isinstance(index_val, (int, Fraction)):
-                    idx = int(index_val) if isinstance(index_val, Fraction) else index_val
+                if isinstance(array_val, dict) and isinstance(
+                    index_val, (int, Fraction)
+                ):
+                    idx = (
+                        int(index_val) if isinstance(index_val, Fraction) else index_val
+                    )
                     new_array = array_val.copy()
                     new_array[idx] = value_val
                     return True  # Store operation succeeds
                 return True  # Conservative fallback
-            elif hasattr(f, 'op'):
+            elif hasattr(f, "op"):
                 # Handle operations generically
-                if f.op == 'Div':
+                if f.op == "Div":
                     left_val = self.evaluate_term(f.left, env)
                     right_val = self.evaluate_term(f.right, env)
                     if QQ.equal(right_val, QQ.zero):
                         raise DivideByZeroError()
                     return QQ.div(left_val, right_val) != QQ.zero
-                elif f.op == 'Mod':
+                elif f.op == "Mod":
                     left_val = self.evaluate_term(f.left, env)
                     right_val = self.evaluate_term(f.right, env)
                     if QQ.equal(right_val, QQ.zero):
                         raise DivideByZeroError()
                     return QQ.modulo(left_val, right_val) != QQ.zero
-                elif f.op == 'Floor':
+                elif f.op == "Floor":
                     arg_val = self.evaluate_term(f.arg, env)
                     return QQ.floor(arg_val) != QQ.zero
-                elif f.op == 'Neg':
+                elif f.op == "Neg":
                     arg_val = self.evaluate_term(f.arg, env)
                     return QQ.negate(arg_val) != QQ.zero
                 else:
@@ -412,18 +520,24 @@ class Interpretation:
             else:
                 # Try to provide more helpful error messages
                 formula_type = type(f).__name__
-                if hasattr(f, '__str__'):
+                if hasattr(f, "__str__"):
                     formula_str = str(f)[:100]  # Truncate long expressions
-                    raise NotImplementedError(f"Cannot evaluate formula type {formula_type}: {formula_str}")
+                    raise NotImplementedError(
+                        f"Cannot evaluate formula type {formula_type}: {formula_str}"
+                    )
                 else:
-                    raise NotImplementedError(f"Cannot evaluate formula type {formula_type}")
+                    raise NotImplementedError(
+                        f"Cannot evaluate formula type {formula_type}"
+                    )
 
         try:
             return eval_formula(formula)
         except KeyError as e:
             raise ValueError(f"No interpretation for constant symbol: {e}")
 
-    def _evaluate_universal_quantifier(self, f: Forall, env: Dict[int, InterpretationValue]) -> bool:
+    def _evaluate_universal_quantifier(
+        self, f: Forall, env: Dict[int, InterpretationValue]
+    ) -> bool:
         """Evaluate universal quantification ∀x. φ(x) using SMT solver when available."""
         try:
             # Import Z3_AVAILABLE locally to avoid cyclic import
@@ -437,12 +551,14 @@ class Interpretation:
                 # ∀x. φ(x) is valid iff ¬∃x. ¬φ(x) is unsat
                 negated = mk_not(f)
                 result = self._check_satisfiability([negated])
-                if result == 'unsat':
+                if result == "unsat":
                     return True
-                elif result == 'sat':
+                elif result == "sat":
                     return False
                 else:
-                    logger.warning(f"Universal quantifier evaluation: SMT solver returned unknown for {f}")
+                    logger.warning(
+                        f"Universal quantifier evaluation: SMT solver returned unknown for {f}"
+                    )
                     # Fallback: try bounded evaluation with a few test values
                     return self._bounded_universal_evaluation(f, env)
             else:
@@ -455,9 +571,13 @@ class Interpretation:
             try:
                 return self._bounded_universal_evaluation(f, env)
             except Exception as fallback_error:
-                raise NotImplementedError(f"Cannot evaluate universal quantifier {f}: {e}") from fallback_error
+                raise NotImplementedError(
+                    f"Cannot evaluate universal quantifier {f}: {e}"
+                ) from fallback_error
 
-    def _evaluate_existential_quantifier(self, f: Exists, env: Dict[int, InterpretationValue]) -> bool:
+    def _evaluate_existential_quantifier(
+        self, f: Exists, env: Dict[int, InterpretationValue]
+    ) -> bool:
         """Evaluate existential quantification ∃x. φ(x) using SMT solver when available."""
         try:
             # Import Z3_AVAILABLE locally to avoid cyclic import
@@ -469,12 +589,14 @@ class Interpretation:
             if Z3_AVAILABLE:
                 # Use SMT solver to check satisfiability
                 result = self._check_satisfiability([f])
-                if result == 'sat':
+                if result == "sat":
                     return True
-                elif result == 'unsat':
+                elif result == "unsat":
                     return False
                 else:
-                    logger.warning(f"Existential quantifier evaluation: SMT solver returned unknown for {f}")
+                    logger.warning(
+                        f"Existential quantifier evaluation: SMT solver returned unknown for {f}"
+                    )
                     # Fallback: try bounded evaluation
                     return self._bounded_existential_evaluation(f, env)
             else:
@@ -487,21 +609,26 @@ class Interpretation:
             try:
                 return self._bounded_existential_evaluation(f, env)
             except Exception as fallback_error:
-                raise NotImplementedError(f"Cannot evaluate existential quantifier {f}: {e}") from fallback_error
+                raise NotImplementedError(
+                    f"Cannot evaluate existential quantifier {f}: {e}"
+                ) from fallback_error
 
     def _check_satisfiability(self, formulas: List[FormulaExpression]) -> str:
         """Check satisfiability of formulas using SMT solver."""
         try:
             from .smt import check_sat
+
             return check_sat(self.context, formulas)
         except ImportError as e:
             logger.warning(f"SMT solver not available: {e}")
-            return 'unknown'
+            return "unknown"
         except Exception as e:
             logger.error(f"SMT solver error: {e}")
-            return 'unknown'
+            return "unknown"
 
-    def _bounded_universal_evaluation(self, f: Forall, env: Dict[int, InterpretationValue]) -> bool:
+    def _bounded_universal_evaluation(
+        self, f: Forall, env: Dict[int, InterpretationValue]
+    ) -> bool:
         """Bounded evaluation of universal quantifier with test values."""
         # Test a few representative values for the quantified variable
         test_values = [QQ.zero, QQ.one, QQ(-1)]
@@ -527,7 +654,9 @@ class Interpretation:
         logger.warning(f"Using heuristic for universal quantifier evaluation: {f}")
         return True
 
-    def _bounded_existential_evaluation(self, f: Exists, env: Dict[int, InterpretationValue]) -> bool:
+    def _bounded_existential_evaluation(
+        self, f: Exists, env: Dict[int, InterpretationValue]
+    ) -> bool:
         """Bounded evaluation of existential quantifier with test values."""
         # Test a few representative values for the quantified variable
         test_values = [QQ.zero, QQ.one, QQ(-1)]
@@ -566,6 +695,7 @@ class Interpretation:
 
     def substitute(self, expression: Expression) -> Expression:
         """Substitute constants in an expression with their interpretations."""
+
         def rewriter(expr):
             if isinstance(expr, Const):
                 try:
@@ -587,7 +717,11 @@ class Interpretation:
 
         return rewrite(self.context, rewriter, expression)
 
-    def select_implicant(self, formula: FormulaExpression, env: Optional[Dict[int, InterpretationValue]] = None) -> Optional[List[FormulaExpression]]:
+    def select_implicant(
+        self,
+        formula: FormulaExpression,
+        env: Optional[Dict[int, InterpretationValue]] = None,
+    ) -> Optional[List[FormulaExpression]]:
         """Select an implicant of a formula."""
         env = env or {}
 
@@ -608,7 +742,11 @@ class Interpretation:
         else:
             return None
 
-    def _extract_atoms(self, formula: FormulaExpression, env: Optional[Dict[int, InterpretationValue]] = None) -> List[FormulaExpression]:
+    def _extract_atoms(
+        self,
+        formula: FormulaExpression,
+        env: Optional[Dict[int, InterpretationValue]] = None,
+    ) -> List[FormulaExpression]:
         """Extract atomic formulas from a formula."""
         atoms = []
 
@@ -635,7 +773,9 @@ class Interpretation:
 
         return atoms
 
-    def destruct_atom(self, formula: FormulaExpression) -> Union[Tuple[str, Expression, Expression], Tuple[str, Expression], str]:
+    def destruct_atom(
+        self, formula: FormulaExpression
+    ) -> Union[Tuple[str, Expression, Expression], Tuple[str, Expression], str]:
         """Destruct an atomic formula."""
         if isinstance(formula, Eq):
             return ("ArithComparison", "Eq", formula.left, formula.right)
@@ -669,9 +809,14 @@ class Interpretation:
         else:
             raise ValueError(f"destruct_atom: {formula} is not atomic")
 
-    def select_ite(self, expression: Expression, env: Optional[Dict[int, InterpretationValue]] = None) -> Tuple[Expression, List[FormulaExpression]]:
+    def select_ite(
+        self,
+        expression: Expression,
+        env: Optional[Dict[int, InterpretationValue]] = None,
+    ) -> Tuple[Expression, List[FormulaExpression]]:
         """Select ite expressions and return simplified expression with conditions."""
         conditions = []
+
         def rewriter(expr):
             if isinstance(expr, Ite):
                 condition_result = self.evaluate_formula(expr.condition, env)
@@ -707,14 +852,19 @@ class Interpretation:
 class EvaluationContext:
     """Context for evaluating expressions with environments."""
 
-    def __init__(self, interpretation: Interpretation,
-                 env: Optional[Dict[int, InterpretationValue]] = None):
+    def __init__(
+        self,
+        interpretation: Interpretation,
+        env: Optional[Dict[int, InterpretationValue]] = None,
+    ):
         self.interpretation = interpretation
         self.env = env or {}
 
     def evaluate(self, expression: Expression) -> Union[Fraction, bool]:
         """Evaluate an expression."""
-        if isinstance(expression, (TrueExpr, FalseExpr, Eq, Lt, Leq, And, Or, Not, Ite)):
+        if isinstance(
+            expression, (TrueExpr, FalseExpr, Eq, Lt, Leq, And, Or, Not, Ite)
+        ):
             return self.interpretation.evaluate_formula(expression, self.env)
         else:
             return self.interpretation.evaluate_term(expression, self.env)
@@ -734,14 +884,18 @@ def make_interpretation(context: Context) -> Interpretation:
     return Interpretation(context)
 
 
-def make_evaluation_context(interpretation: Interpretation,
-                          env: Optional[Dict[int, InterpretationValue]] = None) -> EvaluationContext:
+def make_evaluation_context(
+    interpretation: Interpretation, env: Optional[Dict[int, InterpretationValue]] = None
+) -> EvaluationContext:
     """Create an evaluation context."""
     return EvaluationContext(interpretation, env)
 
 
-def evaluate_expression(expression: Expression, interpretation: Interpretation,
-                       env: Optional[Dict[int, InterpretationValue]] = None) -> Union[Fraction, bool]:
+def evaluate_expression(
+    expression: Expression,
+    interpretation: Interpretation,
+    env: Optional[Dict[int, InterpretationValue]] = None,
+) -> Union[Fraction, bool]:
     """Evaluate an expression under an interpretation."""
     ctx = EvaluationContext(interpretation, env)
     return ctx.evaluate(expression)
@@ -752,8 +906,11 @@ def empty_interpretation(context: Context) -> Interpretation:
     return Interpretation(context)
 
 
-def wrap_interpretation(context: Context, symbol_function: Callable[[Symbol], InterpretationValue],
-                       symbols: Optional[List[Symbol]] = None) -> Interpretation:
+def wrap_interpretation(
+    context: Context,
+    symbol_function: Callable[[Symbol], InterpretationValue],
+    symbols: Optional[List[Symbol]] = None,
+) -> Interpretation:
     """Wrap a symbol function in an interpretation."""
     bindings = {}
     if symbols:
@@ -762,7 +919,9 @@ def wrap_interpretation(context: Context, symbol_function: Callable[[Symbol], In
     return Interpretation(context, symbol_function, bindings)
 
 
-def destruct_atom(context: Context, formula: FormulaExpression) -> Union[Tuple[str, str, Expression, Expression], Tuple[str, str, str, Symbol], str]:
+def destruct_atom(
+    context: Context, formula: FormulaExpression
+) -> Union[Tuple[str, str, Expression, Expression], Tuple[str, str, str, Symbol], str]:
     """Destruct an atomic formula (module-level helper function).
 
     This is a helper function used by other modules like wedge.py.
@@ -814,7 +973,9 @@ def destruct_atom(context: Context, formula: FormulaExpression) -> Union[Tuple[s
         raise ValueError(f"destruct_atom: {formula} is not atomic")
 
 
-def select_implicant(interpretation: Interpretation, formula: FormulaExpression) -> Optional[List[FormulaExpression]]:
+def select_implicant(
+    interpretation: Interpretation, formula: FormulaExpression
+) -> Optional[List[FormulaExpression]]:
     """Select an implicant of a formula under the given interpretation.
 
     Module-level helper function used by other modules.
@@ -829,8 +990,11 @@ def select_implicant(interpretation: Interpretation, formula: FormulaExpression)
     return interpretation.select_implicant(formula)
 
 
-def evaluate_expression_safe(expression: Expression, interpretation: Interpretation,
-                           env: Optional[Dict[int, InterpretationValue]] = None) -> Union[Fraction, bool, None]:
+def evaluate_expression_safe(
+    expression: Expression,
+    interpretation: Interpretation,
+    env: Optional[Dict[int, InterpretationValue]] = None,
+) -> Union[Fraction, bool, None]:
     """Safely evaluate an expression, returning None if evaluation fails.
 
     This function wraps evaluate_expression and catches common evaluation errors,

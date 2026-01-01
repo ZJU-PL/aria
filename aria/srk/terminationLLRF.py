@@ -7,13 +7,40 @@ OCaml implementation in src/terminationLLRF.ml.
 """
 
 from __future__ import annotations
-from typing import Dict, List, Set, Tuple, Optional, Union, Any, TypeVar, Generic, Callable
+from typing import (
+    Dict,
+    List,
+    Set,
+    Tuple,
+    Optional,
+    Union,
+    Any,
+    TypeVar,
+    Generic,
+    Callable,
+)
 from dataclasses import dataclass, field
 from fractions import Fraction
 import itertools
 import logging
 
-from aria.srk.syntax import Context, Symbol, Type, FormulaExpression, ArithExpression, mk_symbol, mk_eq, mk_and, mk_not, mk_const, mk_sub, mk_true, mk_false, rewrite, nnf_rewriter
+from aria.srk.syntax import (
+    Context,
+    Symbol,
+    Type,
+    FormulaExpression,
+    ArithExpression,
+    mk_symbol,
+    mk_eq,
+    mk_and,
+    mk_not,
+    mk_const,
+    mk_sub,
+    mk_true,
+    mk_false,
+    rewrite,
+    nnf_rewriter,
+)
 from aria.srk.polynomial import Polynomial, Monomial
 from aria.srk.linear import QQVector, QQMatrix, QQ
 from aria.srk.transition import Transition
@@ -22,9 +49,10 @@ from aria.srk.coordinateSystem import CoordinateSystem
 from aria.srk.abstract import AbstractDomain
 from aria.srk.apron import SrkApron
 from aria.srk.polyhedron import Polyhedron
+
 # from .smt import SMTInterface, SMTResult, entails  # Commented out due to import issues
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -35,11 +63,11 @@ class LinearRankingFunction:
     """Linear ranking function of the form c^T * x + d."""
 
     coefficients: QQVector  # c - coefficient vector
-    constant: Fraction     # d - constant term
+    constant: Fraction  # d - constant term
 
     def __init__(self, coefficients: QQVector, constant: Fraction = Fraction(0)):
-        object.__setattr__(self, 'coefficients', coefficients)
-        object.__setattr__(self, 'constant', constant)
+        object.__setattr__(self, "coefficients", coefficients)
+        object.__setattr__(self, "constant", constant)
 
     def evaluate(self, values: QQVector) -> QQ:
         """Evaluate the ranking function on a vector of values."""
@@ -47,6 +75,7 @@ class LinearRankingFunction:
             raise ValueError("Vector size mismatch")
 
         from .qQ import QQ
+
         result = QQ.zero()
         for i in range(len(values)):
             result = result + self.coefficients[i] * values[i]
@@ -69,7 +98,7 @@ class LLRF:
     components: Tuple[LinearRankingFunction, ...]  # Tuple of linear ranking functions
 
     def __init__(self, components: List[LinearRankingFunction]):
-        object.__setattr__(self, 'components', tuple(components))
+        object.__setattr__(self, "components", tuple(components))
 
     def evaluate(self, values: QQVector) -> Tuple[QQ, ...]:
         """Evaluate all components of the LLRF."""
@@ -100,7 +129,9 @@ class LLRFAnalyzer:
         """Initialize LLRF analyzer."""
         self.context = context
 
-    def synthesize_llrf(self, transitions: List[Transition], max_components: int = 3) -> Optional[LLRF]:
+    def synthesize_llrf(
+        self, transitions: List[Transition], max_components: int = 3
+    ) -> Optional[LLRF]:
         """Synthesize a lexicographic linear ranking function.
 
         This implementation uses a template-based approach:
@@ -116,7 +147,7 @@ class LLRFAnalyzer:
         all_variables = []
         var_set = set()
         for trans in transitions:
-            if hasattr(trans, 'variables'):
+            if hasattr(trans, "variables"):
                 for var in trans.variables:
                     if var not in var_set:
                         all_variables.append(var)
@@ -156,7 +187,9 @@ class LLRFAnalyzer:
         else:
             return None
 
-    def _synthesize_single_lrf(self, transitions: List[Transition], num_vars: int) -> Optional[LinearRankingFunction]:
+    def _synthesize_single_lrf(
+        self, transitions: List[Transition], num_vars: int
+    ) -> Optional[LinearRankingFunction]:
         """Synthesize a single linear ranking function.
 
         Uses a template approach where we try simple heuristics:
@@ -185,12 +218,16 @@ class LLRFAnalyzer:
         # Could not find a simple LRF
         return None
 
-    def _check_lrf_validity(self, lrf: LinearRankingFunction, transitions: List[Transition]) -> bool:
+    def _check_lrf_validity(
+        self, lrf: LinearRankingFunction, transitions: List[Transition]
+    ) -> bool:
         """Check if an LRF is valid (decreases on at least one transition)."""
         # Simplified check - in practice would use SMT solving
         return True  # Conservative assumption
 
-    def _filter_handled_transitions(self, transitions: List[Transition], lrf: LinearRankingFunction) -> List[Transition]:
+    def _filter_handled_transitions(
+        self, transitions: List[Transition], lrf: LinearRankingFunction
+    ) -> List[Transition]:
         """Filter out transitions that are handled by the LRF."""
         # Simplified - in practice would check which transitions decrease
         return []  # Assume all are handled for simplicity
@@ -257,7 +294,9 @@ def create_llrf_analyzer(context: Context) -> LLRFAnalyzer:
     return LLRFAnalyzer(context)
 
 
-def llrf_residual(context: Context, tf: TransitionFormula) -> Optional[FormulaExpression]:
+def llrf_residual(
+    context: Context, tf: TransitionFormula
+) -> Optional[FormulaExpression]:
     """Compute the LLRF residual following the OCaml implementation.
 
     Given a formula F, find the weakest formula G such that G |= F and

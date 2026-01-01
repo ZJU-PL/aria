@@ -1,10 +1,11 @@
 """Additional unification functionality for objects."""
+
 from collections.abc import Mapping
 from typing import Any, Generator, Type, TypeVar
 
 from aria.unification.core import _reify, _unify, construction_sentinel
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 def unifiable(cls: Type[T]) -> Type[T]:

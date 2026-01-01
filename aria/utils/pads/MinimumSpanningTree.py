@@ -1,8 +1,7 @@
-"""Kruskal's algorithm for minimum spanning trees. D. Eppstein, April 2006.
-"""
-
+"""Kruskal's algorithm for minimum spanning trees. D. Eppstein, April 2006."""
 
 from aria.utils.pads.UnionFind import UnionFind
+
 
 def minimum_spanning_tree(graph):
     """
@@ -18,10 +17,10 @@ def minimum_spanning_tree(graph):
     # part (the sort) is sped up by being built in to Python.
     subtrees = UnionFind()
     tree = []
-    edges = [(graph[u][v],u,v) for u in graph for v in graph[u]]
+    edges = [(graph[u][v], u, v) for u in graph for v in graph[u]]
     edges.sort()
-    for weight,u,v in edges:
+    for weight, u, v in edges:
         if subtrees[u] != subtrees[v]:
-            tree.append((u,v))
-            subtrees.union(u,v)
+            tree.append((u, v))
+            subtrees.union(u, v)
     return tree

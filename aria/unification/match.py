@@ -1,4 +1,5 @@
 """Pattern matching and dispatch functionality."""
+
 from typing import Any, Callable, Dict, List, Tuple
 
 from toolz import first, groupby
@@ -44,6 +45,7 @@ class Dispatcher:
 
     def register(self, *signature: Any) -> Callable[[Callable], "Dispatcher"]:
         """Register a function with a signature."""
+
         def _(func: Callable) -> "Dispatcher":
             self.add(signature, func)
             return self

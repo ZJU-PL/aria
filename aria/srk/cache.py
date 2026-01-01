@@ -27,16 +27,27 @@ Example:
 """
 
 from __future__ import annotations
-from typing import Dict, List, Set, Tuple, Optional, Union, Any, Callable, TypeVar, Generic
+from typing import (
+    Dict,
+    List,
+    Set,
+    Tuple,
+    Optional,
+    Union,
+    Any,
+    Callable,
+    TypeVar,
+    Generic,
+)
 from dataclasses import dataclass, field
 from functools import wraps
 import hashlib
 import weakref
 
-T = TypeVar('T')
-U = TypeVar('U')
-K = TypeVar('K')
-V = TypeVar('V')
+T = TypeVar("T")
+U = TypeVar("U")
+K = TypeVar("K")
+V = TypeVar("V")
 
 
 class LRUCache(Generic[K, V]):
@@ -186,10 +197,11 @@ class Memoize:
             return tuple(sorted((k, self._make_hashable(v)) for k, v in obj.items()))
         elif isinstance(obj, set):
             return frozenset(self._make_hashable(item) for item in obj)
-        elif hasattr(obj, '__dict__'):
+        elif hasattr(obj, "__dict__"):
             # For objects with __dict__, use their attributes
-            return tuple(sorted((k, self._make_hashable(v))
-                              for k, v in obj.__dict__.items()))
+            return tuple(
+                sorted((k, self._make_hashable(v)) for k, v in obj.__dict__.items())
+            )
         else:
             # Fallback: use string representation
             return str(obj)
@@ -229,10 +241,10 @@ class FunctionCache:
         total = self.hits + self.misses
         hit_rate = self.hits / total if total > 0 else 0
         return {
-            'hits': self.hits,
-            'misses': self.misses,
-            'hit_rate': hit_rate,
-            'size': len(self.cache)
+            "hits": self.hits,
+            "misses": self.misses,
+            "hit_rate": hit_rate,
+            "size": len(self.cache),
         }
 
     def clear(self) -> None:
@@ -301,6 +313,7 @@ def memoize_lru(max_size: int = 128):
                 result = func(*args, **kwargs)
                 cache.put(key, result)
             return result
+
         return wrapper
 
     return decorator
@@ -323,6 +336,7 @@ def memoize_weak():
                 return result
             else:
                 return func(*args, **kwargs)
+
         return wrapper
 
     return decorator
@@ -338,7 +352,7 @@ def clear_caches() -> None:
 # Utility functions for hashing complex objects
 def hash_expression(expr: Any) -> int:
     """Compute hash for expression-like objects."""
-    if hasattr(expr, '__dict__'):
+    if hasattr(expr, "__dict__"):
         # For dataclass-like objects
         items = sorted(expr.__dict__.items())
         return hash(tuple((k, hash_expression(v)) for k, v in items))

@@ -17,6 +17,7 @@ from . import qQ
 @dataclass(frozen=True)
 class Constant:
     """SMT-LIB 2 constant values."""
+
     value: Union[int, Fraction, str]
 
     @staticmethod
@@ -46,6 +47,7 @@ Symbol = str
 @dataclass(frozen=True)
 class Index:
     """SMT-LIB 2 index - either numeric or symbolic."""
+
     value: Union[int, Symbol]
 
     @staticmethod
@@ -66,12 +68,13 @@ class Index:
 @dataclass(frozen=True)
 class Identifier:
     """SMT-LIB 2 identifier - symbol with optional indices."""
+
     symbol: Symbol
     indices: Tuple[Index, ...]
 
     def __init__(self, symbol: Symbol, indices: List[Index]):
-        object.__setattr__(self, 'symbol', symbol)
-        object.__setattr__(self, 'indices', tuple(indices))
+        object.__setattr__(self, "symbol", symbol)
+        object.__setattr__(self, "indices", tuple(indices))
 
     def __str__(self) -> str:
         if not self.indices:
@@ -84,12 +87,13 @@ class Identifier:
 @dataclass(frozen=True)
 class Sort:
     """SMT-LIB 2 sort - possibly parametric type."""
+
     identifier: Identifier
     arguments: Tuple[Sort, ...]
 
     def __init__(self, identifier: Identifier, arguments: List[Sort]):
-        object.__setattr__(self, 'identifier', identifier)
-        object.__setattr__(self, 'arguments', tuple(arguments))
+        object.__setattr__(self, "identifier", identifier)
+        object.__setattr__(self, "arguments", tuple(arguments))
 
     def __str__(self) -> str:
         if not self.arguments:
@@ -102,6 +106,7 @@ class Sort:
 @dataclass(frozen=True)
 class QualId:
     """Qualified identifier with optional sort."""
+
     identifier: Identifier
     sort: Optional[Sort]
 
@@ -115,12 +120,13 @@ class QualId:
 @dataclass(frozen=True)
 class Pattern:
     """Match pattern for quantifier matching."""
+
     constructor: Symbol
     arguments: Tuple[Symbol, ...]
 
     def __init__(self, constructor: Symbol, arguments: List[Symbol]):
-        object.__setattr__(self, 'constructor', constructor)
-        object.__setattr__(self, 'arguments', tuple(arguments))
+        object.__setattr__(self, "constructor", constructor)
+        object.__setattr__(self, "arguments", tuple(arguments))
 
     def __str__(self) -> str:
         if not self.arguments:
@@ -133,6 +139,7 @@ class Pattern:
 @dataclass(frozen=True)
 class SExpr:
     """S-expression in SMT-LIB 2."""
+
     content: Union[Constant, Symbol, str, List[SExpr]]
 
     @staticmethod
@@ -166,6 +173,7 @@ class SExpr:
 @dataclass(frozen=True)
 class AttributeValue:
     """Value of an attribute in SMT-LIB 2."""
+
     content: Union[Constant, Symbol, SExpr]
 
     @staticmethod
@@ -187,6 +195,7 @@ class AttributeValue:
 @dataclass(frozen=True)
 class Attribute:
     """Attribute in SMT-LIB 2."""
+
     keyword: Symbol
     value: Optional[AttributeValue]
 
@@ -200,12 +209,13 @@ class Attribute:
 @dataclass(frozen=True)
 class Term:
     """SMT-LIB 2 term."""
+
     qual_id: QualId
     arguments: Tuple[Term, ...]
 
     def __init__(self, qual_id: QualId, arguments: List[Term]):
-        object.__setattr__(self, 'qual_id', qual_id)
-        object.__setattr__(self, 'arguments', tuple(arguments))
+        object.__setattr__(self, "qual_id", qual_id)
+        object.__setattr__(self, "arguments", tuple(arguments))
 
     def __str__(self) -> str:
         if not self.arguments:
@@ -218,6 +228,7 @@ class Term:
 @dataclass(frozen=True)
 class QuantifiedTerm:
     """Quantified SMT-LIB 2 term."""
+
     quantifier: str  # "forall" or "exists"
     variables: List[Tuple[Symbol, Sort]]
     body: Term
@@ -230,6 +241,7 @@ class QuantifiedTerm:
 @dataclass(frozen=True)
 class LetTerm:
     """Let-binding term."""
+
     bindings: List[Tuple[Symbol, Term]]
     body: Term
 
@@ -241,6 +253,7 @@ class LetTerm:
 @dataclass(frozen=True)
 class LambdaTerm:
     """Lambda abstraction term."""
+
     variables: List[Tuple[Symbol, Sort]]
     body: Term
 
@@ -252,6 +265,7 @@ class LambdaTerm:
 @dataclass(frozen=True)
 class FunctionDefinition:
     """Function definition in SMT-LIB 2 model."""
+
     name: str
     parameters: List[Tuple[str, Sort]]
     return_type: Sort
@@ -265,6 +279,7 @@ class FunctionDefinition:
 @dataclass(frozen=True)
 class SortDefinition:
     """Sort definition in SMT-LIB 2 model."""
+
     name: str
     arity: int
 
@@ -278,6 +293,7 @@ class SortDefinition:
 @dataclass(frozen=True)
 class Model:
     """SMT-LIB 2 model response."""
+
     functions: List[FunctionDefinition]
     sorts: List[SortDefinition]
 
@@ -296,4 +312,17 @@ class Model:
 
 
 # Union type for all possible SMT-LIB 2 expressions
-SMTLib2Expr = Union[Constant, Symbol, SExpr, Term, QuantifiedTerm, LetTerm, LambdaTerm, QualId, Sort, Pattern, Attribute, AttributeValue]
+SMTLib2Expr = Union[
+    Constant,
+    Symbol,
+    SExpr,
+    Term,
+    QuantifiedTerm,
+    LetTerm,
+    LambdaTerm,
+    QualId,
+    Sort,
+    Pattern,
+    Attribute,
+    AttributeValue,
+]

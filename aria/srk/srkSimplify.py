@@ -11,71 +11,85 @@ from fractions import Fraction
 from dataclasses import dataclass, field
 
 from aria.srk.syntax import (
-    Context, Symbol, Type, Expression, FormulaExpression, ArithExpression,
-    ExpressionBuilder, Eq, Lt, Leq, And, Or, Not, TrueExpr, FalseExpr,
-    Add, Mul, Var, Const, Ite
+    Context,
+    Symbol,
+    Type,
+    Expression,
+    FormulaExpression,
+    ArithExpression,
+    ExpressionBuilder,
+    Eq,
+    Lt,
+    Leq,
+    And,
+    Or,
+    Not,
+    TrueExpr,
+    FalseExpr,
+    Add,
+    Mul,
+    Var,
+    Const,
+    Ite,
 )
 from aria.srk.cache import LRUCache
 
 __all__ = [
     # Main classes
-    'Simplifier',
-    'NNFConverter',
-    'CNFConverter',
-    'ExpressionSimplifier',
-    'RationalTermContext',
-    'RationalTerm',
-    'Nonlinear',
-
+    "Simplifier",
+    "NNFConverter",
+    "CNFConverter",
+    "ExpressionSimplifier",
+    "RationalTermContext",
+    "RationalTerm",
+    "Nonlinear",
     # Factory functions
-    'make_simplifier',
-    'make_nnf_converter',
-    'make_cnf_converter',
-    'make_expression_simplifier',
-
+    "make_simplifier",
+    "make_nnf_converter",
+    "make_cnf_converter",
+    "make_expression_simplifier",
     # Utility functions
-    'simplify_expression',
-    'to_negation_normal_form',
-    'to_conjunctive_normal_form',
-    'eliminate_ite_expressions',
-    'of_term',
-    'term_of',
-    'simplify_term',
-    'simplify_terms_rewriter',
-    'simplify_terms',
-    'purify_rewriter',
-    'purify',
-    'partition_implicant',
-    'simplify_conjunction',
-    'isolate_linear',
-    'simplify_dda',
-    'destruct_idiv',
-    'idiv_to_ite',
-    'eliminate_idiv',
-    'purify_floor',
-    'eliminate_floor',
-    'simplify_integer_atom',
-
+    "simplify_expression",
+    "to_negation_normal_form",
+    "to_conjunctive_normal_form",
+    "eliminate_ite_expressions",
+    "of_term",
+    "term_of",
+    "simplify_term",
+    "simplify_terms_rewriter",
+    "simplify_terms",
+    "purify_rewriter",
+    "purify",
+    "partition_implicant",
+    "simplify_conjunction",
+    "isolate_linear",
+    "simplify_dda",
+    "destruct_idiv",
+    "idiv_to_ite",
+    "eliminate_idiv",
+    "purify_floor",
+    "eliminate_floor",
+    "simplify_integer_atom",
     # Re-export syntax types for convenience
-    'Context',
-    'Symbol',
-    'Type',
-    'Expression',
-    'FormulaExpression',
-    'ArithExpression',
-    'ExpressionBuilder',
-    'Eq',
-    'Lt',
-    'Leq',
-    'And',
-    'Or',
-    'Not',
-    'TrueExpr',
-    'FalseExpr',
-    'Add',
-    'Mul',
-    'Var',
-    'Const',
+    "Context",
+    "Symbol",
+    "Type",
+    "Expression",
+    "FormulaExpression",
+    "ArithExpression",
+    "ExpressionBuilder",
+    "Eq",
+    "Lt",
+    "Leq",
+    "And",
+    "Or",
+    "Not",
+    "TrueExpr",
+    "FalseExpr",
+    "Add",
+    "Mul",
+    "Var",
+    "Const",
 ]
 
 
@@ -450,12 +464,16 @@ class NNFConverter:
 
         elif isinstance(expression, And):
             # ¬(A ∧ B) = ¬A ∨ ¬B
-            negated_args = [self._push_not_down(builder.mk_not(arg)) for arg in expression.args]
+            negated_args = [
+                self._push_not_down(builder.mk_not(arg)) for arg in expression.args
+            ]
             return builder.mk_or(negated_args)
 
         elif isinstance(expression, Or):
             # ¬(A ∨ B) = ¬A ∧ ¬B
-            negated_args = [self._push_not_down(builder.mk_not(arg)) for arg in expression.args]
+            negated_args = [
+                self._push_not_down(builder.mk_not(arg)) for arg in expression.args
+            ]
             return builder.mk_and(negated_args)
 
         elif isinstance(expression, TrueExpr):
@@ -533,7 +551,11 @@ class ExpressionSimplifier:
         if isinstance(expression, Ite):
             builder = ExpressionBuilder(self.context)
 
-            c, t, e = expression.condition, expression.then_branch, expression.else_branch
+            c, t, e = (
+                expression.condition,
+                expression.then_branch,
+                expression.else_branch,
+            )
 
             # Recursively eliminate ITE in subexpressions
             c_simplified = self.eliminate_ite(c)
@@ -587,32 +609,42 @@ def make_expression_simplifier(context: Context) -> ExpressionSimplifier:
 
 
 # Utility functions
-def simplify_expression(expression: Expression, context: Optional[Context] = None) -> Expression:
+def simplify_expression(
+    expression: Expression, context: Optional[Context] = None
+) -> Expression:
     """Simplify an expression."""
     ctx = context or Context()
     simplifier = Simplifier(ctx)
     return simplifier.simplify(expression)
 
 
-def to_negation_normal_form(expression: Expression, context: Optional[Context] = None) -> Expression:
+def to_negation_normal_form(
+    expression: Expression, context: Optional[Context] = None
+) -> Expression:
     """Convert expression to NNF."""
     ctx = context or Context()
     converter = NNFConverter(ctx)
     return converter.to_nnf(expression)
 
 
-def to_conjunctive_normal_form(expression: Expression, context: Optional[Context] = None) -> Expression:
+def to_conjunctive_normal_form(
+    expression: Expression, context: Optional[Context] = None
+) -> Expression:
     """Convert expression to CNF."""
     ctx = context or Context()
     converter = CNFConverter(ctx)
     return converter.to_cnf(expression)
 
 
-def eliminate_ite_expressions(expression: Expression, context: Optional[Context] = None) -> Expression:
+def eliminate_ite_expressions(
+    expression: Expression, context: Optional[Context] = None
+) -> Expression:
     """Eliminate ITE expressions from an expression."""
     ctx = context or Context()
     simplifier = ExpressionSimplifier(ctx)
     return simplifier.eliminate_ite(expression)
+
+
 """
 SRK simplification and term manipulation utilities.
 
@@ -625,13 +657,50 @@ from dataclasses import dataclass
 import logging
 
 # Import from other SRK modules
-from .syntax import Context, Symbol, Expression, FormulaExpression, ArithExpression, Type, Term, mk_const, mk_symbol, mk_real, mk_add, mk_mul, mk_div, mk_mod, mk_eq, mk_and, mk_or, mk_leq, mk_lt, mk_sub, mk_floor, mk_ite, mk_not, mk_true, mk_false, mk_if, mk_neg, mk_app, mk_select, mk_int, mk_var, destruct, expr_typ, symbols, rewrite
+from .syntax import (
+    Context,
+    Symbol,
+    Expression,
+    FormulaExpression,
+    ArithExpression,
+    Type,
+    Term,
+    mk_const,
+    mk_symbol,
+    mk_real,
+    mk_add,
+    mk_mul,
+    mk_div,
+    mk_mod,
+    mk_eq,
+    mk_and,
+    mk_or,
+    mk_leq,
+    mk_lt,
+    mk_sub,
+    mk_floor,
+    mk_ite,
+    mk_not,
+    mk_true,
+    mk_false,
+    mk_if,
+    mk_neg,
+    mk_app,
+    mk_select,
+    mk_int,
+    mk_var,
+    destruct,
+    expr_typ,
+    symbols,
+    rewrite,
+)
 from .interval import Interval
 from .polynomial import Polynomial as QQXs, Monomial
 from .linear import QQVector, QQMatrix
 from .linear_utils import linterm_of
 from .srkZ3 import SrkZ3, mk_solver, Solver
 from .quantifier import is_presburger_atom, mbp
+
 # Nonlinear is defined in this file below
 from .util import ZZ
 from .qQ import QQ
@@ -646,12 +715,13 @@ logger = logging.getLogger(__name__)
 @dataclass
 class RationalTermContext:
     """Context for rational term operations."""
+
     srk: Context
     table: Dict[ArithExpression, int]  # Expression -> ID mapping
     enum: BatDynArray[ArithExpression]  # ID -> Expression mapping
 
     @classmethod
-    def mk_context(cls, srk: Context) -> 'RationalTermContext':
+    def mk_context(cls, srk: Context) -> "RationalTermContext":
         """Create a new rational term context."""
         table = {}
         enum = BatDynArray()
@@ -675,25 +745,26 @@ class RationalTermContext:
 @dataclass
 class RationalTerm:
     """Represents a rational function as numerator/denominator polynomials."""
+
     num: QQXs  # Numerator polynomial
     den: Monomial  # Denominator monomial
 
     @staticmethod
-    def scalar(k: Fraction) -> 'RationalTerm':
+    def scalar(k: Fraction) -> "RationalTerm":
         """Create a scalar rational term."""
         return RationalTerm(QQXs.scalar(k), Monomial.one)
 
     @staticmethod
-    def zero() -> 'RationalTerm':
+    def zero() -> "RationalTerm":
         """Create zero rational term."""
         return RationalTerm.scalar(Fraction(0))
 
     @staticmethod
-    def one() -> 'RationalTerm':
+    def one() -> "RationalTerm":
         """Create one rational term."""
         return RationalTerm.scalar(Fraction(1))
 
-    def add(self, other: 'RationalTerm') -> 'RationalTerm':
+    def add(self, other: "RationalTerm") -> "RationalTerm":
         """Add two rational terms."""
         den = Monomial.lcm(self.den, other.den)
         # Create multiplier terms for common denominator
@@ -703,11 +774,11 @@ class RationalTerm:
         num = QQXs.add(QQXs.mul(f_mul, self.num), QQXs.mul(g_mul, other.num))
         return RationalTerm(num, den)
 
-    def negate(self) -> 'RationalTerm':
+    def negate(self) -> "RationalTerm":
         """Negate a rational term."""
         return RationalTerm(QQXs.negate(self.num), self.den)
 
-    def mul(self, other: 'RationalTerm') -> 'RationalTerm':
+    def mul(self, other: "RationalTerm") -> "RationalTerm":
         """Multiply two rational terms."""
         num = QQXs.mul(self.num, other.num)
         den = Monomial.mul(self.den, other.den)
@@ -722,30 +793,41 @@ def of_term(ctx: RationalTermContext, term: ArithExpression) -> RationalTerm:
         return RationalTerm(QQXs.of_dim(ctx.int_of(term)), Monomial.one)
 
     def alg(op) -> RationalTerm:
-        if op == 'Add':
-            return BatList.fold_left(lambda acc, x: acc.add(x), RationalTerm.zero(), op.args)
-        elif op == 'Mul':
-            return BatList.fold_left(lambda acc, x: acc.mul(x), RationalTerm.one(), op.args)
-        elif op == 'Real':
+        if op == "Add":
+            return BatList.fold_left(
+                lambda acc, x: acc.add(x), RationalTerm.zero(), op.args
+            )
+        elif op == "Mul":
+            return BatList.fold_left(
+                lambda acc, x: acc.mul(x), RationalTerm.one(), op.args
+            )
+        elif op == "Real":
             return RationalTerm.scalar(op.value)
-        elif op == 'Neg':
+        elif op == "Neg":
             return op.arg.negate()
-        elif op == 'Floor':
+        elif op == "Floor":
             return rat_term(mk_floor(srk, term_of(ctx, op.arg)))
-        elif op == 'App':
+        elif op == "App":
             return rat_term(mk_app(srk, op.func, op.args))
-        elif op == 'Div':
+        elif op == "Div":
             return RationalTerm(
                 op.left.num,
-                Monomial.mul_term(ctx.int_of(term_of(ctx, op.right)), 1, op.left.den)
+                Monomial.mul_term(ctx.int_of(term_of(ctx, op.right)), 1, op.left.den),
             )
-        elif op == 'Mod':
+        elif op == "Mod":
             return rat_term(mk_mod(srk, term_of(ctx, op.left), term_of(ctx, op.right)))
-        elif op == 'Ite':
-            return rat_term(mk_ite(srk, op.condition, term_of(ctx, op.then_branch), term_of(ctx, op.else_branch)))
-        elif op == 'Var':
+        elif op == "Ite":
+            return rat_term(
+                mk_ite(
+                    srk,
+                    op.condition,
+                    term_of(ctx, op.then_branch),
+                    term_of(ctx, op.else_branch),
+                )
+            )
+        elif op == "Var":
             return rat_term(mk_var(srk, op.var_id, op.typ))
-        elif op == 'Select':
+        elif op == "Select":
             return rat_term(mk_select(srk, op.array, term_of(ctx, op.index)))
         else:
             raise ValueError(f"Unknown operation: {op}")
@@ -785,9 +867,9 @@ def simplify_terms_rewriter(srk: Context) -> Callable[[Expression], Expression]:
 
     def rewriter(expr: Expression) -> Expression:
         destruct_result = destruct(srk, expr)
-        if destruct_result[0] == 'Atom' and len(destruct_result) > 1:
+        if destruct_result[0] == "Atom" and len(destruct_result) > 1:
             atom_type, atom_data = destruct_result[1]
-            if atom_type == 'Arith' and len(atom_data) == 3:
+            if atom_type == "Arith" and len(atom_data) == 3:
                 op, s, t = atom_data
                 # s - t as a rational function
                 rf = of_term(ctx, mk_sub(srk, s, t))
@@ -805,6 +887,7 @@ def simplify_terms_rewriter(srk: Context) -> Callable[[Expression], Expression]:
                     for coeff, _ in QQXs.enum(rf.num):
                         result = ZZ.lcm(result, coeff.denominator)
                     return result
+
                 denominator = calc_denominator()
 
                 num_term = QQXs.scalar_mul(Fraction(denominator), rf.num)
@@ -812,21 +895,60 @@ def simplify_terms_rewriter(srk: Context) -> Callable[[Expression], Expression]:
                 den_term = Monomial.term_of(srk, ctx.of_int, rf.den)
 
                 zero = mk_real(srk, Fraction(0))
-                if op == 'Leq':
-                    result = mk_or(srk, [
-                        mk_and(srk, [mk_leq(srk, num_term, zero), mk_lt(srk, zero, den_term)]),
-                        mk_and(srk, [mk_leq(srk, zero, num_term), mk_lt(srk, den_term, zero)])
-                    ])
-                elif op == 'Lt':
-                    result = mk_or(srk, [
-                        mk_and(srk, [mk_lt(srk, num_term, zero), mk_lt(srk, zero, den_term)]),
-                        mk_and(srk, [mk_lt(srk, zero, num_term), mk_lt(srk, den_term, zero)])
-                    ])
-                elif op == 'Eq':
-                    result = mk_and(srk, [
-                        mk_eq(srk, num_term, zero),
-                        mk_or(srk, [mk_lt(srk, zero, den_term), mk_lt(srk, den_term, zero)])
-                    ])
+                if op == "Leq":
+                    result = mk_or(
+                        srk,
+                        [
+                            mk_and(
+                                srk,
+                                [
+                                    mk_leq(srk, num_term, zero),
+                                    mk_lt(srk, zero, den_term),
+                                ],
+                            ),
+                            mk_and(
+                                srk,
+                                [
+                                    mk_leq(srk, zero, num_term),
+                                    mk_lt(srk, den_term, zero),
+                                ],
+                            ),
+                        ],
+                    )
+                elif op == "Lt":
+                    result = mk_or(
+                        srk,
+                        [
+                            mk_and(
+                                srk,
+                                [
+                                    mk_lt(srk, num_term, zero),
+                                    mk_lt(srk, zero, den_term),
+                                ],
+                            ),
+                            mk_and(
+                                srk,
+                                [
+                                    mk_lt(srk, zero, num_term),
+                                    mk_lt(srk, den_term, zero),
+                                ],
+                            ),
+                        ],
+                    )
+                elif op == "Eq":
+                    result = mk_and(
+                        srk,
+                        [
+                            mk_eq(srk, num_term, zero),
+                            mk_or(
+                                srk,
+                                [
+                                    mk_lt(srk, zero, den_term),
+                                    mk_lt(srk, den_term, zero),
+                                ],
+                            ),
+                        ],
+                    )
                 else:
                     result = expr
                 return result
@@ -841,13 +963,16 @@ def simplify_terms(srk: Context, expr: Expression) -> Expression:
     return rewrite(srk, expr, up=rewriter)
 
 
-def purify_rewriter(srk: Context, table: Dict[Expression, Symbol]) -> Callable[[Expression], Expression]:
+def purify_rewriter(
+    srk: Context, table: Dict[Expression, Symbol]
+) -> Callable[[Expression], Expression]:
     """Create a rewriter for purifying uninterpreted function applications."""
+
     def rewriter(expr: Expression) -> Expression:
         destruct_result = destruct(srk, expr)
-        if destruct_result[0] == 'Quantify':
+        if destruct_result[0] == "Quantify":
             raise ValueError("purify: free variable")
-        elif destruct_result[0] == 'App':
+        elif destruct_result[0] == "App":
             if len(destruct_result) > 1 and destruct_result[1] == []:
                 return expr
             else:
@@ -863,13 +988,15 @@ def purify_rewriter(srk: Context, table: Dict[Expression, Symbol]) -> Callable[[
     return rewriter
 
 
-def purify(srk: Context, expr: Expression) -> Tuple[Expression, Dict[Symbol, Expression]]:
+def purify(
+    srk: Context, expr: Expression
+) -> Tuple[Expression, Dict[Symbol, Expression]]:
     """Purify uninterpreted function applications in an expression."""
     table = {}
     expr_purified = rewrite(srk, expr, up=purify_rewriter(srk, table))
 
     symbol_map = {}
-    for (term, sym) in table.items():
+    for term, sym in table.items():
         symbol_map[sym] = term
 
     return expr_purified, symbol_map
@@ -931,7 +1058,7 @@ def simplify_conjunction(srk: Context, cube: List[Expression]) -> List[Expressio
 
     # Create indicator variables for each proposition
     for prop in cube:
-        indicator = mk_symbol(srk, 'TyBool')
+        indicator = mk_symbol(srk, "TyBool")
         indicator_map[indicator] = prop
 
     # Add negation of conjunction to solver
@@ -945,16 +1072,16 @@ def simplify_conjunction(srk: Context, cube: List[Expression]) -> List[Expressio
     assumptions = [mk_const(srk, indicator) for indicator in indicator_map.keys()]
 
     match solver.get_unsat_core(assumptions):
-        case 'Sat':
+        case "Sat":
             assert False, "Should be unsat"
-        case 'Unknown':
+        case "Unknown":
             return cube
-        case ('Unsat', core):
+        case ("Unsat", core):
             # Extract corresponding propositions from core
             simplified_cube = []
             for ind in core:
                 match destruct(srk, ind):
-                    case ('Proposition', ('App', sym, [])):
+                    case ("Proposition", ("App", sym, [])):
                         if sym in indicator_map:
                             simplified_cube.append(indicator_map[sym])
                     case _:
@@ -964,80 +1091,133 @@ def simplify_conjunction(srk: Context, cube: List[Expression]) -> List[Expressio
 
 class Nonlinear(Exception):
     """Exception raised for nonlinear operations."""
+
     pass
 
 
-def isolate_linear(srk: Context, x: Symbol, term: ArithExpression) -> Optional[Tuple[Fraction, ArithExpression]]:
+def isolate_linear(
+    srk: Context, x: Symbol, term: ArithExpression
+) -> Optional[Tuple[Fraction, ArithExpression]]:
     """Isolate linear term in x from a nonlinear term."""
+
     def go(term: ArithExpression) -> Union[str, Tuple[Fraction, List[ArithExpression]]]:
         destruct_result = destruct(srk, term)
-        if destruct_result[0] == 'Real':
-            return ('Real', destruct_result[1])
-        elif destruct_result[0] == 'App' and len(destruct_result) > 1:
-            if destruct_result[1] == [x] and len(destruct_result) > 2 and destruct_result[2] == []:
-                return ('Lin', (Fraction(1), []))
-        elif destruct_result[0] == 'Add':
+        if destruct_result[0] == "Real":
+            return ("Real", destruct_result[1])
+        elif destruct_result[0] == "App" and len(destruct_result) > 1:
+            if (
+                destruct_result[1] == [x]
+                and len(destruct_result) > 2
+                and destruct_result[2] == []
+            ):
+                return ("Lin", (Fraction(1), []))
+        elif destruct_result[0] == "Add":
             xs = destruct_result[1] if len(destruct_result) > 1 else []
-            result = ('Real', Fraction(0))
+            result = ("Real", Fraction(0))
             for t in xs:
                 go_t = go(t)
-                if result[0] == 'Real' and go_t[0] == 'Real':
-                    result = ('Real', result[1] + go_t[1])
-                elif result[0] == 'Real' and go_t[0] == 'Lin':
-                    result = ('Lin', (go_t[1][0], [mk_real(srk, result[1])] + go_t[1][1]))
-                elif result[0] == 'Lin' and go_t[0] == 'Real':
-                    result = ('Lin', (result[1][0], result[1][1] + [mk_real(srk, go_t[1])]))
-                elif result[0] == 'Lin' and go_t[0] == 'Lin':
-                    result = ('Lin', (result[1][0] + go_t[1][0], result[1][1] + go_t[1][1]))
+                if result[0] == "Real" and go_t[0] == "Real":
+                    result = ("Real", result[1] + go_t[1])
+                elif result[0] == "Real" and go_t[0] == "Lin":
+                    result = (
+                        "Lin",
+                        (go_t[1][0], [mk_real(srk, result[1])] + go_t[1][1]),
+                    )
+                elif result[0] == "Lin" and go_t[0] == "Real":
+                    result = (
+                        "Lin",
+                        (result[1][0], result[1][1] + [mk_real(srk, go_t[1])]),
+                    )
+                elif result[0] == "Lin" and go_t[0] == "Lin":
+                    result = (
+                        "Lin",
+                        (result[1][0] + go_t[1][0], result[1][1] + go_t[1][1]),
+                    )
             return result
-        elif destruct_result[0] == 'Mul':
+        elif destruct_result[0] == "Mul":
             xs = destruct_result[1] if len(destruct_result) > 1 else []
-            result = ('Real', Fraction(1))
+            result = ("Real", Fraction(1))
             for t in xs:
                 go_t = go(t)
-                if result[0] == 'Real' and go_t[0] == 'Real':
-                    result = ('Real', result[1] * go_t[1])
-                elif result[0] == 'Real' and result[1] == Fraction(0):
-                    result = ('Real', Fraction(0))
-                elif go_t[0] == 'Real' and go_t[1] == Fraction(0):
-                    result = ('Real', Fraction(0))
-                elif result[0] == 'Real' and go_t[0] == 'Lin':
-                    result = ('Lin', (result[1] * go_t[1][0], [mk_mul(srk, [mk_real(srk, result[1]), mk_add(srk, go_t[1][1])])]))
-                elif result[0] == 'Lin' and go_t[0] == 'Real':
-                    result = ('Lin', (result[1][0] * go_t[1], [mk_mul(srk, [mk_real(srk, go_t[1]), mk_add(srk, result[1][1])])]))
-                elif result[0] == 'Lin' and go_t[0] == 'Lin':
+                if result[0] == "Real" and go_t[0] == "Real":
+                    result = ("Real", result[1] * go_t[1])
+                elif result[0] == "Real" and result[1] == Fraction(0):
+                    result = ("Real", Fraction(0))
+                elif go_t[0] == "Real" and go_t[1] == Fraction(0):
+                    result = ("Real", Fraction(0))
+                elif result[0] == "Real" and go_t[0] == "Lin":
+                    result = (
+                        "Lin",
+                        (
+                            result[1] * go_t[1][0],
+                            [
+                                mk_mul(
+                                    srk,
+                                    [mk_real(srk, result[1]), mk_add(srk, go_t[1][1])],
+                                )
+                            ],
+                        ),
+                    )
+                elif result[0] == "Lin" and go_t[0] == "Real":
+                    result = (
+                        "Lin",
+                        (
+                            result[1][0] * go_t[1],
+                            [
+                                mk_mul(
+                                    srk,
+                                    [mk_real(srk, go_t[1]), mk_add(srk, result[1][1])],
+                                )
+                            ],
+                        ),
+                    )
+                elif result[0] == "Lin" and go_t[0] == "Lin":
                     raise Nonlinear()
             return result
-        elif destruct_result[0] == 'Binop' and len(destruct_result) > 1 and destruct_result[1] == 'Div':
+        elif (
+            destruct_result[0] == "Binop"
+            and len(destruct_result) > 1
+            and destruct_result[1] == "Div"
+        ):
             s, t = destruct_result[2], destruct_result[3]
             go_s, go_t = go(s), go(t)
-            if go_s[0] == 'Real' and go_t[0] == 'Real' and go_t[1] != Fraction(0):
-                return ('Real', go_s[1] / go_t[1])
-            elif go_s[0] == 'Lin' and go_t[0] == 'Real' and go_t[1] != Fraction(0):
-                return ('Lin', (go_s[1][0] / go_t[1], [mk_div(srk, mk_add(srk, go_s[1][1]), mk_real(srk, go_t[1]))]))
+            if go_s[0] == "Real" and go_t[0] == "Real" and go_t[1] != Fraction(0):
+                return ("Real", go_s[1] / go_t[1])
+            elif go_s[0] == "Lin" and go_t[0] == "Real" and go_t[1] != Fraction(0):
+                return (
+                    "Lin",
+                    (
+                        go_s[1][0] / go_t[1],
+                        [mk_div(srk, mk_add(srk, go_s[1][1]), mk_real(srk, go_t[1]))],
+                    ),
+                )
             else:
                 if x in symbols(term):
                     raise Nonlinear()
                 else:
-                    return ('Lin', (Fraction(0), [term]))
-        elif destruct_result[0] == 'Unop' and len(destruct_result) > 1 and destruct_result[1] == 'Neg':
+                    return ("Lin", (Fraction(0), [term]))
+        elif (
+            destruct_result[0] == "Unop"
+            and len(destruct_result) > 1
+            and destruct_result[1] == "Neg"
+        ):
             t = destruct_result[2]
             go_t = go(t)
-            if go_t[0] == 'Real':
-                return ('Real', -go_t[1])
-            elif go_t[0] == 'Lin':
-                return ('Lin', (-go_t[1][0], [mk_neg(srk, mk_add(srk, go_t[1][1]))]))
+            if go_t[0] == "Real":
+                return ("Real", -go_t[1])
+            elif go_t[0] == "Lin":
+                return ("Lin", (-go_t[1][0], [mk_neg(srk, mk_add(srk, go_t[1][1]))]))
         else:
             if x in symbols(term):
                 raise Nonlinear()
             else:
-                return ('Lin', (Fraction(0), [term]))
+                return ("Lin", (Fraction(0), [term]))
 
     try:
         go_result = go(term)
-        if go_result[0] == 'Lin':
+        if go_result[0] == "Lin":
             return (go_result[1][0], mk_add(srk, go_result[1][1]))
-        elif go_result[0] == 'Real':
+        elif go_result[0] == "Real":
             return (Fraction(0), mk_real(srk, go_result[1]))
     except Nonlinear:
         return None
@@ -1047,10 +1227,14 @@ def simplify_dda(srk: Context, phi: Expression) -> Expression:
     """Simplify using DDA (Dynamic Dependency Analysis)."""
     solver = mk_solver(srk)
 
-    def simplify_children(star: Callable, children: List[Expression]) -> List[Expression]:
+    def simplify_children(
+        star: Callable, children: List[Expression]
+    ) -> List[Expression]:
         changed = False
 
-        def go(simplified: List[Expression], remaining: List[Expression]) -> List[Expression]:
+        def go(
+            simplified: List[Expression], remaining: List[Expression]
+        ) -> List[Expression]:
             if not remaining:
                 return list(reversed(simplified))
 
@@ -1078,10 +1262,10 @@ def simplify_dda(srk: Context, phi: Expression) -> Expression:
 
     def simplify_dda_impl(phi: Expression) -> Expression:
         destruct_result = destruct(srk, phi)
-        if destruct_result[0] == 'Or':
+        if destruct_result[0] == "Or":
             xs = destruct_result[1] if len(destruct_result) > 1 else []
             return mk_or(srk, simplify_children(lambda x: mk_not(srk, x), xs))
-        elif destruct_result[0] == 'And':
+        elif destruct_result[0] == "And":
             xs = destruct_result[1] if len(destruct_result) > 1 else []
             return mk_and(srk, simplify_children(lambda x: x, xs))
         else:
@@ -1089,21 +1273,21 @@ def simplify_dda(srk: Context, phi: Expression) -> Expression:
             solver.add([phi])
 
             check_result = solver.check([])
-            if check_result == 'Unknown':
+            if check_result == "Unknown":
                 simplified = phi
-            elif check_result == 'Unsat':
+            elif check_result == "Unsat":
                 simplified = mk_false(srk)
-            elif check_result == 'Sat':
+            elif check_result == "Sat":
                 solver.pop()
                 solver.push()
                 solver.add([mk_not(srk, phi)])
 
                 check_result2 = solver.check([])
-                if check_result2 == 'Unknown':
+                if check_result2 == "Unknown":
                     simplified = phi
-                elif check_result2 == 'Unsat':
+                elif check_result2 == "Unsat":
                     simplified = mk_true(srk)
-                elif check_result2 == 'Sat':
+                elif check_result2 == "Sat":
                     simplified = phi
             else:
                 simplified = phi
@@ -1114,16 +1298,26 @@ def simplify_dda(srk: Context, phi: Expression) -> Expression:
     return simplify_dda_impl(phi)
 
 
-def destruct_idiv(srk: Context, t: ArithExpression) -> Optional[Tuple[ArithExpression, int]]:
+def destruct_idiv(
+    srk: Context, t: ArithExpression
+) -> Optional[Tuple[ArithExpression, int]]:
     """Extract integer division from floor expression."""
     destruct_result = destruct(srk, t)
-    if destruct_result[0] == 'Unop' and len(destruct_result) > 1 and destruct_result[1] == 'Floor':
+    if (
+        destruct_result[0] == "Unop"
+        and len(destruct_result) > 1
+        and destruct_result[1] == "Floor"
+    ):
         inner_t = destruct_result[2]
         inner_destr = destruct(srk, inner_t)
-        if inner_destr[0] == 'Binop' and len(inner_destr) > 1 and inner_destr[1] == 'Div':
+        if (
+            inner_destr[0] == "Binop"
+            and len(inner_destr) > 1
+            and inner_destr[1] == "Div"
+        ):
             num, den = inner_destr[2], inner_destr[3]
             den_destr = destruct(srk, den)
-            if den_destr[0] == 'Real':
+            if den_destr[0] == "Real":
                 den_val = den_destr[1]
                 if isinstance(den_val, int) and den_val > 0:
                     return (num, den_val)
@@ -1139,7 +1333,7 @@ def destruct_idiv(srk: Context, t: ArithExpression) -> Optional[Tuple[ArithExpre
 
 def idiv_to_ite(srk: Context, expr: Expression, max_val: int = 1000) -> Expression:
     """Convert integer division to if-then-else."""
-    if isinstance(expr, tuple) and len(expr) >= 2 and expr[0] == 'ArithTerm':
+    if isinstance(expr, tuple) and len(expr) >= 2 and expr[0] == "ArithTerm":
         t = expr[1]
         destruct_result = destruct_idiv(srk, t)
         if destruct_result is not None:
@@ -1151,17 +1345,21 @@ def idiv_to_ite(srk: Context, expr: Expression, max_val: int = 1000) -> Expressi
                 def fold_func(else_branch, r):
                     return mk_ite(
                         srk,
-                        mk_eq(srk,
-                              mk_mod(srk, mk_sub(srk, num, mk_real(srk, Fraction(r))), den_term),
-                              mk_real(srk, Fraction(0))),
+                        mk_eq(
+                            srk,
+                            mk_mod(
+                                srk,
+                                mk_sub(srk, num, mk_real(srk, Fraction(r))),
+                                den_term,
+                            ),
+                            mk_real(srk, Fraction(0)),
+                        ),
                         mk_real(srk, Fraction(-r, den)),
-                        else_branch
+                        else_branch,
                     )
 
                 offset = BatEnum.fold(
-                    fold_func,
-                    mk_real(srk, Fraction(0)),
-                    range(1, den)
+                    fold_func, mk_real(srk, Fraction(0)), range(1, den)
                 )
 
                 return mk_add(srk, [num_over_den, offset])
@@ -1170,7 +1368,9 @@ def idiv_to_ite(srk: Context, expr: Expression, max_val: int = 1000) -> Expressi
         return expr
 
 
-def eliminate_idiv(srk: Context, formula: Expression, max_val: int = 1000) -> Expression:
+def eliminate_idiv(
+    srk: Context, formula: Expression, max_val: int = 1000
+) -> Expression:
     """Eliminate integer division from a formula."""
     formula = rewrite(srk, formula, up=lambda e: idiv_to_ite(srk, e, max_val))
     # This would need eliminate_ite function from syntax module
@@ -1178,21 +1378,27 @@ def eliminate_idiv(srk: Context, formula: Expression, max_val: int = 1000) -> Ex
     return formula
 
 
-def purify_floor(srk: Context, expr: Expression) -> Tuple[Expression, Dict[Symbol, Expression]]:
+def purify_floor(
+    srk: Context, expr: Expression
+) -> Tuple[Expression, Dict[Symbol, Expression]]:
     """Purify floor operations by introducing fresh symbols."""
     table = {}
 
     def rewriter(expr: Expression) -> Expression:
         destruct_result = destruct(srk, expr)
-        if destruct_result[0] == 'Quantify':
+        if destruct_result[0] == "Quantify":
             raise ValueError("purify_floor: free variable")
-        elif destruct_result[0] == 'Unop' and len(destruct_result) > 1 and destruct_result[1] == 'Floor':
+        elif (
+            destruct_result[0] == "Unop"
+            and len(destruct_result) > 1
+            and destruct_result[1] == "Floor"
+        ):
             t = destruct_result[2]
-            if expr_typ(srk, t) == 'TyInt':
+            if expr_typ(srk, t) == "TyInt":
                 return t
             else:
                 if t not in table:
-                    sym = mk_symbol(srk, "floor", 'TyInt')
+                    sym = mk_symbol(srk, "floor", "TyInt")
                     table[t] = sym
                 return mk_const(srk, table[t])
         else:
@@ -1201,7 +1407,7 @@ def purify_floor(srk: Context, expr: Expression) -> Tuple[Expression, Dict[Symbo
     expr_purified = rewrite(srk, expr, up=rewriter)
 
     symbol_map = {}
-    for (term, sym) in table.items():
+    for term, sym in table.items():
         symbol_map[sym] = term
 
     return expr_purified, symbol_map
@@ -1217,21 +1423,22 @@ def eliminate_floor(srk: Context, formula: Expression) -> Expression:
 
     for sym, term in symbol_map.items():
         s = mk_const(srk, sym)
-        floor_constraints.extend([
-            mk_leq(srk, s, term),
-            mk_lt(srk, mk_sub(srk, term, one), s)
-        ])
+        floor_constraints.extend(
+            [mk_leq(srk, s, term), mk_lt(srk, mk_sub(srk, term, one), s)]
+        )
 
     return mk_and(srk, [formula] + floor_constraints)
 
 
-def simplify_integer_atom(srk: Context, op: str, s: ArithExpression, t: ArithExpression) -> Expression:
+def simplify_integer_atom(
+    srk: Context, op: str, s: ArithExpression, t: ArithExpression
+) -> Expression:
     """Simplify integer atoms with divisibility constraints."""
     zero = mk_real(srk, Fraction(0))
 
     def destruct_int(term: ArithExpression) -> int:
         destruct_result = destruct(srk, term)
-        if destruct_result[0] == 'Real':
+        if destruct_result[0] == "Real":
             q = destruct_result[1]
             if isinstance(q, int):
                 return q
@@ -1246,9 +1453,9 @@ def simplify_integer_atom(srk: Context, op: str, s: ArithExpression, t: ArithExp
     else:
         s_norm = mk_sub(srk, s, t)
 
-    if op == 'Lt' and expr_typ(srk, s_norm) == 'TyInt':
+    if op == "Lt" and expr_typ(srk, s_norm) == "TyInt":
         s_norm = simplify_term(srk, mk_add(srk, [s_norm, mk_real(srk, Fraction(1))]))
-        op = 'Leq'
+        op = "Leq"
     else:
         s_norm = simplify_term(srk, s_norm)
         op = op
@@ -1256,120 +1463,171 @@ def simplify_integer_atom(srk: Context, op: str, s: ArithExpression, t: ArithExp
     # Scale linear terms to have integer coefficients
     def zz_linterm(term: ArithExpression) -> Tuple[int, QQVector]:
         qq_linterm = linterm_of(srk, term)
+
         def calc_multiplier():
             result = ZZ.one
             for qq, _ in QQVector.enum(qq_linterm):
                 result = ZZ.lcm(result, qq.denominator)
             return result
+
         multiplier = calc_multiplier()
         return (multiplier, QQVector.scalar_mul(Fraction(multiplier), qq_linterm))
 
-    if op in ['Eq', 'Leq']:
+    if op in ["Eq", "Leq"]:
         destruct_result = destruct(srk, s_norm)
-        if destruct_result[0] == 'Binop' and len(destruct_result) > 1 and destruct_result[1] == 'Mod':
+        if (
+            destruct_result[0] == "Binop"
+            and len(destruct_result) > 1
+            and destruct_result[1] == "Mod"
+        ):
             dividend, modulus = destruct_result[2], destruct_result[3]
             modulus_val = destruct_int(modulus)
             multiplier, lt = zz_linterm(dividend)
-            return f'Divides({ZZ.mul(multiplier, modulus_val)}, {lt})'
-        elif destruct_result[0] == 'Unop' and len(destruct_result) > 1 and destruct_result[1] == 'Neg':
+            return f"Divides({ZZ.mul(multiplier, modulus_val)}, {lt})"
+        elif (
+            destruct_result[0] == "Unop"
+            and len(destruct_result) > 1
+            and destruct_result[1] == "Neg"
+        ):
             s_prime = destruct_result[2]
             s_prime_destr = destruct(srk, s_prime)
-            if s_prime_destr[0] == 'Binop' and len(s_prime_destr) > 1 and s_prime_destr[1] == 'Mod':
+            if (
+                s_prime_destr[0] == "Binop"
+                and len(s_prime_destr) > 1
+                and s_prime_destr[1] == "Mod"
+            ):
                 dividend, modulus = s_prime_destr[2], s_prime_destr[3]
-                if op == 'Leq':
-                    return 'CompareZero(`Leq, QQVector.zero)'
+                if op == "Leq":
+                    return "CompareZero(`Leq, QQVector.zero)"
                 else:
                     modulus_val = destruct_int(modulus)
                     multiplier, lt = zz_linterm(dividend)
-                    return f'Divides({ZZ.mul(multiplier, modulus_val)}, {lt})'
+                    return f"Divides({ZZ.mul(multiplier, modulus_val)}, {lt})"
             else:
-                return f'CompareZero({op}, {zz_linterm(s_norm)[1]})'
-        elif destruct_result[0] == 'Add' and len(destruct_result) > 1:
+                return f"CompareZero({op}, {zz_linterm(s_norm)[1]})"
+        elif destruct_result[0] == "Add" and len(destruct_result) > 1:
             xs = destruct_result[1]
             if len(xs) == 2:
                 x, y = xs
                 x_destr = destruct(srk, x)
                 y_destr = destruct(srk, y)
-                if x_destr[0] == 'Real' and y_destr[0] == 'Binop' and len(y_destr) > 1 and y_destr[1] == 'Mod':
+                if (
+                    x_destr[0] == "Real"
+                    and y_destr[0] == "Binop"
+                    and len(y_destr) > 1
+                    and y_destr[1] == "Mod"
+                ):
                     k, dividend, modulus = x_destr[1], y_destr[2], y_destr[3]
-                    if k < Fraction(0) and op == 'Eq':
+                    if k < Fraction(0) and op == "Eq":
                         multiplier, lt = zz_linterm(dividend)
                         modulus_val = destruct_int(modulus)
                         if multiplier == 1 and k < Fraction(modulus_val):
                             lt = QQVector.add_term(k, 0, lt)
-                            return f'Divides({modulus_val}, {lt})'
+                            return f"Divides({modulus_val}, {lt})"
                         else:
-                            return f'CompareZero({op}, {zz_linterm(s_norm)[1]})'
-                    elif QQ.equal(k, Fraction(1)) and op == 'Leq':
+                            return f"CompareZero({op}, {zz_linterm(s_norm)[1]})"
+                    elif QQ.equal(k, Fraction(1)) and op == "Leq":
                         multiplier, lt = zz_linterm(dividend)
                         modulus_val = destruct_int(modulus)
                         if multiplier == 1:
-                            return f'NotDivides({modulus_val}, {lt})'
+                            return f"NotDivides({modulus_val}, {lt})"
                         else:
-                            return f'CompareZero({op}, {zz_linterm(s_norm)[1]})'
+                            return f"CompareZero({op}, {zz_linterm(s_norm)[1]})"
                     else:
-                        return f'CompareZero({op}, {zz_linterm(s_norm)[1]})'
-                elif y_destr[0] == 'Real' and x_destr[0] == 'Binop' and len(x_destr) > 1 and x_destr[1] == 'Mod':
+                        return f"CompareZero({op}, {zz_linterm(s_norm)[1]})"
+                elif (
+                    y_destr[0] == "Real"
+                    and x_destr[0] == "Binop"
+                    and len(x_destr) > 1
+                    and x_destr[1] == "Mod"
+                ):
                     k, dividend, modulus = y_destr[1], x_destr[2], x_destr[3]
-                    if k < Fraction(0) and op == 'Eq':
+                    if k < Fraction(0) and op == "Eq":
                         multiplier, lt = zz_linterm(dividend)
                         modulus_val = destruct_int(modulus)
                         if multiplier == 1 and k < Fraction(modulus_val):
                             lt = QQVector.add_term(k, 0, lt)
-                            return f'Divides({modulus_val}, {lt})'
+                            return f"Divides({modulus_val}, {lt})"
                         else:
-                            return f'CompareZero({op}, {zz_linterm(s_norm)[1]})'
-                    elif QQ.equal(k, Fraction(1)) and op == 'Leq':
+                            return f"CompareZero({op}, {zz_linterm(s_norm)[1]})"
+                    elif QQ.equal(k, Fraction(1)) and op == "Leq":
                         multiplier, lt = zz_linterm(dividend)
                         modulus_val = destruct_int(modulus)
                         if multiplier == 1:
-                            return f'NotDivides({modulus_val}, {lt})'
+                            return f"NotDivides({modulus_val}, {lt})"
                         else:
-                            return f'CompareZero({op}, {zz_linterm(s_norm)[1]})'
+                            return f"CompareZero({op}, {zz_linterm(s_norm)[1]})"
                     else:
-                        return f'CompareZero({op}, {zz_linterm(s_norm)[1]})'
-                elif (x_destr[0] == 'Real' and y_destr[0] == 'Unop' and len(y_destr) > 1 and y_destr[1] == 'Neg') or \
-                     (y_destr[0] == 'Real' and x_destr[0] == 'Unop' and len(x_destr) > 1 and x_destr[1] == 'Neg'):
-                    k = x_destr[1] if x_destr[0] == 'Real' else y_destr[1]
-                    z = y_destr[2] if y_destr[0] == 'Unop' else x_destr[2]
-                    if QQ.equal(k, Fraction(1)) and op == 'Leq':
+                        return f"CompareZero({op}, {zz_linterm(s_norm)[1]})"
+                elif (
+                    x_destr[0] == "Real"
+                    and y_destr[0] == "Unop"
+                    and len(y_destr) > 1
+                    and y_destr[1] == "Neg"
+                ) or (
+                    y_destr[0] == "Real"
+                    and x_destr[0] == "Unop"
+                    and len(x_destr) > 1
+                    and x_destr[1] == "Neg"
+                ):
+                    k = x_destr[1] if x_destr[0] == "Real" else y_destr[1]
+                    z = y_destr[2] if y_destr[0] == "Unop" else x_destr[2]
+                    if QQ.equal(k, Fraction(1)) and op == "Leq":
                         z_destr = destruct(srk, z)
-                        if z_destr[0] == 'Binop' and len(z_destr) > 1 and z_destr[1] == 'Mod':
+                        if (
+                            z_destr[0] == "Binop"
+                            and len(z_destr) > 1
+                            and z_destr[1] == "Mod"
+                        ):
                             dividend, modulus = z_destr[2], z_destr[3]
                             modulus_val = destruct_int(modulus)
                             multiplier, lt = zz_linterm(dividend)
-                            return f'NotDivides({ZZ.mul(multiplier, modulus_val)}, {lt})'
+                            return (
+                                f"NotDivides({ZZ.mul(multiplier, modulus_val)}, {lt})"
+                            )
                         else:
-                            return f'CompareZero({op}, {zz_linterm(s_norm)[1]})'
+                            return f"CompareZero({op}, {zz_linterm(s_norm)[1]})"
                     else:
-                        return f'CompareZero({op}, {zz_linterm(s_norm)[1]})'
+                        return f"CompareZero({op}, {zz_linterm(s_norm)[1]})"
                 else:
-                    return f'CompareZero({op}, {zz_linterm(s_norm)[1]})'
+                    return f"CompareZero({op}, {zz_linterm(s_norm)[1]})"
             else:
-                return f'CompareZero({op}, {zz_linterm(s_norm)[1]})'
+                return f"CompareZero({op}, {zz_linterm(s_norm)[1]})"
         else:
-            return f'CompareZero({op}, {zz_linterm(s_norm)[1]})'
-    elif op == 'Lt':
+            return f"CompareZero({op}, {zz_linterm(s_norm)[1]})"
+    elif op == "Lt":
         destruct_result = destruct(srk, s_norm)
-        if destruct_result[0] == 'Binop' and len(destruct_result) > 1 and destruct_result[1] == 'Mod':
+        if (
+            destruct_result[0] == "Binop"
+            and len(destruct_result) > 1
+            and destruct_result[1] == "Mod"
+        ):
             dividend, modulus = destruct_result[2], destruct_result[3]
             modulus_val = destruct_int(modulus)
             multiplier, lt = zz_linterm(dividend)
-            return f'NotDivides({ZZ.mul(multiplier, modulus_val)}, {lt})'
-        elif destruct_result[0] == 'Unop' and len(destruct_result) > 1 and destruct_result[1] == 'Neg':
+            return f"NotDivides({ZZ.mul(multiplier, modulus_val)}, {lt})"
+        elif (
+            destruct_result[0] == "Unop"
+            and len(destruct_result) > 1
+            and destruct_result[1] == "Neg"
+        ):
             s_prime = destruct_result[2]
             s_prime_destr = destruct(srk, s_prime)
-            if s_prime_destr[0] == 'Binop' and len(s_prime_destr) > 1 and s_prime_destr[1] == 'Mod':
+            if (
+                s_prime_destr[0] == "Binop"
+                and len(s_prime_destr) > 1
+                and s_prime_destr[1] == "Mod"
+            ):
                 dividend, modulus = s_prime_destr[2], s_prime_destr[3]
                 modulus_val = destruct_int(modulus)
                 multiplier, lt = zz_linterm(dividend)
-                return f'NotDivides({ZZ.mul(multiplier, modulus_val)}, {lt})'
+                return f"NotDivides({ZZ.mul(multiplier, modulus_val)}, {lt})"
             else:
-                return f'CompareZero(`Lt, {zz_linterm(s_norm)[1]})'
+                return f"CompareZero(`Lt, {zz_linterm(s_norm)[1]})"
         else:
-            return f'CompareZero(`Lt, {zz_linterm(s_norm)[1]})'
+            return f"CompareZero(`Lt, {zz_linterm(s_norm)[1]})"
     else:
-        return f'CompareZero({op}, {zz_linterm(s_norm)[1]})'
+        return f"CompareZero({op}, {zz_linterm(s_norm)[1]})"
 
 
 # Note: The functions below are already implemented in the syntax module

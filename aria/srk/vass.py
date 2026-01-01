@@ -15,6 +15,7 @@ from functools import reduce
 from . import linear
 from . import syntax
 from . import smt as Smt
+
 # from . import interpretation  # Temporarily disabled due to missing functions
 from . import srkSimplify
 from . import nonlinear
@@ -25,30 +26,40 @@ from . import transitionFormula as TF
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class SCCVAS:
     """Strongly Connected Component VAS"""
+
     control_states: List[syntax.Formula]  # Control state formulas
     graph: List[List[vas.VAS]]  # Adjacency matrix of VAS transformers
     s_lst: List[linear.QQMatrix]  # Simulation matrices
 
+
 @dataclass
 class VASSType:
     """VASS abstraction type"""
+
     vasses: List[SCCVAS]  # Array of SCC VAS abstractions
     formula: syntax.Formula  # Initial formula
     sink: syntax.Formula  # Sink state formula
     skolem_constants: Set[syntax.Symbol]  # Skolem constants
 
+
 class VASSContext:
     """Context for VASS operations"""
+
     def __init__(self, srk_context: syntax.Context):
         self.srk = srk_context
         self.log = logging.getLogger(f"srk.vass.{id(self)}")
 
+
 def mk_all_nonnegative(srk: syntax.Context, terms: List[syntax.Term]) -> syntax.Formula:
     """Create conjunction requiring all terms >= 0"""
-    return syntax.mk_and(srk, [syntax.mk_leq(srk, syntax.mk_zero(srk), term) for term in terms])
+    return syntax.mk_and(
+        srk, [syntax.mk_leq(srk, syntax.mk_zero(srk), term) for term in terms]
+    )
+
 
 def unify_matrices(matrices: List[linear.QQMatrix]) -> linear.QQMatrix:
     """Stack matrices vertically to form a single matrix"""
@@ -57,14 +68,16 @@ def unify_matrices(matrices: List[linear.QQMatrix]) -> linear.QQMatrix:
 
     rows = []
     for matrix in matrices:
-        if hasattr(matrix, 'rows'):
+        if hasattr(matrix, "rows"):
             rows.extend(list(matrix.rows))
 
     return linear.QQMatrix(rows)
 
+
 def map_terms(srk: syntax.Context, symbols: List[syntax.Symbol]) -> List[syntax.Term]:
     """Map symbols to constant terms"""
     return [syntax.mk_const(srk, sym) for sym in symbols]
+
 
 def ident_matrix_real(n: int) -> linear.QQMatrix:
     """Create identity matrix of size n"""
@@ -75,39 +88,60 @@ def ident_matrix_real(n: int) -> linear.QQMatrix:
         # Fallback minimal identity
         rows = []
         from fractions import Fraction
+
         for i in range(n):
             rows.append(linear.QQVector({i: Fraction(1)}))
         return linear.QQMatrix(rows)
 
-def exists_transition(srk: syntax.Context, cs1: syntax.Formula, cs2: syntax.Formula,
-                     tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol]],
-                     phi: syntax.Formula) -> bool:
+
+def exists_transition(
+    srk: syntax.Context,
+    cs1: syntax.Formula,
+    cs2: syntax.Formula,
+    tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol]],
+    phi: syntax.Formula,
+) -> bool:
     """Check if there exists a transition from cs1 to cs2"""
     postify = syntax.substitute(srk, TF.post_map(srk, tr_symbols))
     return Smt.is_sat(srk, syntax.mk_and(srk, [cs1, postify(cs2), phi])) != Smt.Unsat
 
-def compute_edges(srk: syntax.Context, tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol]],
-                 c_states: List[syntax.Formula], phi: syntax.Formula) -> List[List[bool]]:
+
+def compute_edges(
+    srk: syntax.Context,
+    tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol]],
+    c_states: List[syntax.Formula],
+    phi: syntax.Formula,
+) -> List[List[bool]]:
     """Compute boolean adjacency graph of control states"""
     n = len(c_states)
     graph = [[False for _ in range(n)] for _ in range(n)]
 
     for i in range(n):
         for j in range(n):
-            graph[i][j] = exists_transition(srk, c_states[i], c_states[j], tr_symbols, phi)
+            graph[i][j] = exists_transition(
+                srk, c_states[i], c_states[j], tr_symbols, phi
+            )
 
     return graph
 
-def pp(srk: syntax.Context, tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol]],
-      formatter, vasses: VASSType) -> None:
+
+def pp(
+    srk: syntax.Context,
+    tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol]],
+    formatter,
+    vasses: VASSType,
+) -> None:
     """Pretty print VASS abstraction"""
     formatter.write("VASS abstraction with {} SCCs".format(len(vasses.vasses)))
 
-def compute_single_scc_vass(exists: Callable[[syntax.Symbol], bool],
-                           srk: syntax.Context,
-                           tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol]],
-                           cs_lst: List[syntax.Formula],
-                           phi: syntax.Formula) -> SCCVAS:
+
+def compute_single_scc_vass(
+    exists: Callable[[syntax.Symbol], bool],
+    srk: syntax.Context,
+    tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol]],
+    cs_lst: List[syntax.Formula],
+    phi: syntax.Formula,
+) -> SCCVAS:
     """Compute VASS for a single strongly connected component"""
     n = len(cs_lst)
     if n == 0:
@@ -123,20 +157,14 @@ def compute_single_scc_vass(exists: Callable[[syntax.Symbol], bool],
         for j in range(n):
             # Restrict phi to transitions from cs_lst[i] to cs_lst[j]
             # This creates a formula: cs_i ∧ cs'_j ∧ phi
-            restricted_phi = syntax.mk_and(srk, [
-                cs_lst[i],
-                postify(cs_lst[j]),
-                phi
-            ])
+            restricted_phi = syntax.mk_and(srk, [cs_lst[i], postify(cs_lst[j]), phi])
 
             # Check if this transition is possible
             sat_result = Smt.is_sat(srk, restricted_phi)
             if sat_result != Smt.Unsat:
                 # Create a transition formula for this edge
                 tf = TF.TransitionFormula(
-                    formula=restricted_phi,
-                    symbols=tr_symbols,
-                    exists=exists
+                    formula=restricted_phi, symbols=tr_symbols, exists=exists
                 )
 
                 # Abstract this transition to a VAS
@@ -144,7 +172,9 @@ def compute_single_scc_vass(exists: Callable[[syntax.Symbol], bool],
                 try:
                     vas_abstract = vas.abstract_to_vas(srk, tf)
                     graph[i][j] = vas_abstract
-                    logger.debug(f"Computed VAS for edge {i}->{j}: {len(vas_abstract.transformers)} transformers")
+                    logger.debug(
+                        f"Computed VAS for edge {i}->{j}: {len(vas_abstract.transformers)} transformers"
+                    )
                 except Exception as e:
                     logger.warning(f"Failed to compute VAS for edge {i}->{j}: {e}")
                     graph[i][j] = vas.VAS.empty()
@@ -221,8 +251,10 @@ def compute_single_scc_vass(exists: Callable[[syntax.Symbol], bool],
 
         return cycles
 
-def project_dnf(srk: syntax.Context, exists: Callable[[syntax.Symbol], bool],
-                phi: syntax.Formula) -> List[syntax.Formula]:
+
+def project_dnf(
+    srk: syntax.Context, exists: Callable[[syntax.Symbol], bool], phi: syntax.Formula
+) -> List[syntax.Formula]:
     """Project formula onto symbols satisfying exists predicate and convert to DNF"""
     phi = syntax.rewrite(srk, phi, down=syntax.nnf_rewriter(srk))
     phi = srkSimplify.simplify_terms(srk, phi)
@@ -237,12 +269,18 @@ def project_dnf(srk: syntax.Context, exists: Callable[[syntax.Symbol], bool],
         # Unknown: conservatively return the original formula as one cube
         return [phi]
 
-def get_largest_polyhedrons(srk: syntax.Context, control_states: List[syntax.Formula]) -> List[syntax.Formula]:
+
+def get_largest_polyhedrons(
+    srk: syntax.Context, control_states: List[syntax.Formula]
+) -> List[syntax.Formula]:
     """Combine overlapping control states"""
     # Simplified implementation - would need proper polyhedron intersection logic
     return control_states
 
-def get_control_states(srk: syntax.Context, tf: TF.TransitionFormula) -> Tuple[List[syntax.Formula], syntax.Formula]:
+
+def get_control_states(
+    srk: syntax.Context, tf: TF.TransitionFormula
+) -> Tuple[List[syntax.Formula], syntax.Formula]:
     """Compute control states using projection"""
     tr_symbols = TF.symbols(tf)
     pre_symbols = TF.pre_symbols(tr_symbols)
@@ -260,13 +298,13 @@ def get_control_states(srk: syntax.Context, tf: TF.TransitionFormula) -> Tuple[L
 
     return control_states, sink
 
+
 def abstract_to_vass(srk: syntax.Context, tf: TF.TransitionFormula) -> VASSType:
     """Abstract a transition formula to VASS abstraction"""
     exists_func = TF.exists
     tr_symbols = TF.symbols(tf)
     skolem_constants = syntax.Symbol.Set.filter(
-        lambda a: not exists_func(a),
-        syntax.symbols(TF.formula(tf))
+        lambda a: not exists_func(a), syntax.symbols(TF.formula(tf))
     )
 
     phi = syntax.rewrite(srk, TF.formula(tf), down=syntax.nnf_rewriter(srk))
@@ -334,61 +372,98 @@ def abstract_to_vass(srk: syntax.Context, tf: TF.TransitionFormula) -> VASSType:
     logger.info("Created VASS abstraction: %s", result)
     return result
 
-def create_local_s_t(srk: syntax.Context, num: int) -> List[Tuple[syntax.Term, syntax.Term]]:
+
+def create_local_s_t(
+    srk: syntax.Context, num: int
+) -> List[Tuple[syntax.Term, syntax.Term]]:
     """Create source and sink variables for a SCC"""
-    sources = map_terms(srk, [
-        syntax.mk_symbol(srk, f"source{i}", syntax.TyInt) for i in range(num)
-    ])
-    sinks = map_terms(srk, [
-        syntax.mk_symbol(srk, f"sink{i}", syntax.TyInt) for i in range(num)
-    ])
+    sources = map_terms(
+        srk, [syntax.mk_symbol(srk, f"source{i}", syntax.TyInt) for i in range(num)]
+    )
+    sinks = map_terms(
+        srk, [syntax.mk_symbol(srk, f"sink{i}", syntax.TyInt) for i in range(num)]
+    )
     return list(zip(sources, sinks))
 
-def source_sink_conds_satisfied(srk: syntax.Context, local_s_t: List[Tuple[syntax.Term, syntax.Term]],
-                               cs: List[syntax.Formula],
-                               tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol]]) -> syntax.Formula:
+
+def source_sink_conds_satisfied(
+    srk: syntax.Context,
+    local_s_t: List[Tuple[syntax.Term, syntax.Term]],
+    cs: List[syntax.Formula],
+    tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol]],
+) -> syntax.Formula:
     """Source and sink conditions must be satisfied"""
     postify = syntax.substitute(srk, TF.post_map(srk, tr_symbols))
 
     constraints = []
     for i, (source, sink) in enumerate(local_s_t):
         constraints.append(
-            syntax.mk_and(srk, [
-                syntax.mk_if(srk, syntax.mk_eq(srk, source, syntax.mk_one(srk)), cs[i]),
-                syntax.mk_if(srk, syntax.mk_eq(srk, sink, syntax.mk_one(srk)), postify(cs[i]))
-            ])
+            syntax.mk_and(
+                srk,
+                [
+                    syntax.mk_if(
+                        srk, syntax.mk_eq(srk, source, syntax.mk_one(srk)), cs[i]
+                    ),
+                    syntax.mk_if(
+                        srk, syntax.mk_eq(srk, sink, syntax.mk_one(srk)), postify(cs[i])
+                    ),
+                ],
+            )
         )
 
     return syntax.mk_and(srk, constraints)
 
-def split_terms_add_to_one(srk: syntax.Context, local_s_t: List[Tuple[syntax.Term, syntax.Term]]) -> syntax.Formula:
+
+def split_terms_add_to_one(
+    srk: syntax.Context, local_s_t: List[Tuple[syntax.Term, syntax.Term]]
+) -> syntax.Formula:
     """Each control state contributes exactly one source and one sink"""
     sources, sinks = zip(*local_s_t)
-    return syntax.mk_and(srk, [
-        syntax.mk_eq(srk, syntax.mk_add(srk, sources), syntax.mk_one(srk)),
-        syntax.mk_eq(srk, syntax.mk_add(srk, sinks), syntax.mk_one(srk))
-    ])
+    return syntax.mk_and(
+        srk,
+        [
+            syntax.mk_eq(srk, syntax.mk_add(srk, sources), syntax.mk_one(srk)),
+            syntax.mk_eq(srk, syntax.mk_add(srk, sinks), syntax.mk_one(srk)),
+        ],
+    )
 
-def exp_each_ests_one_or_zero(srk: syntax.Context, local_s_t: List[Tuple[syntax.Term, syntax.Term]]) -> syntax.Formula:
+
+def exp_each_ests_one_or_zero(
+    srk: syntax.Context, local_s_t: List[Tuple[syntax.Term, syntax.Term]]
+) -> syntax.Formula:
     """Each source/sink pair is either 0 or 1"""
     constraints = []
     for source, sink in local_s_t:
         constraints.append(
-            syntax.mk_and(srk, [
-                syntax.mk_or(srk, [
-                    syntax.mk_eq(srk, source, syntax.mk_zero(srk)),
-                    syntax.mk_eq(srk, source, syntax.mk_one(srk))
-                ]),
-                syntax.mk_or(srk, [
-                    syntax.mk_eq(srk, sink, syntax.mk_zero(srk)),
-                    syntax.mk_eq(srk, sink, syntax.mk_one(srk))
-                ])
-            ])
+            syntax.mk_and(
+                srk,
+                [
+                    syntax.mk_or(
+                        srk,
+                        [
+                            syntax.mk_eq(srk, source, syntax.mk_zero(srk)),
+                            syntax.mk_eq(srk, source, syntax.mk_one(srk)),
+                        ],
+                    ),
+                    syntax.mk_or(
+                        srk,
+                        [
+                            syntax.mk_eq(srk, sink, syntax.mk_zero(srk)),
+                            syntax.mk_eq(srk, sink, syntax.mk_one(srk)),
+                        ],
+                    ),
+                ],
+            )
         )
     return syntax.mk_and(srk, constraints)
 
-def closure_of_an_scc(srk: syntax.Context, tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol]],
-                     loop_counter: syntax.Term, vass: SCCVAS) -> Tuple[syntax.Formula, List[syntax.Term]]:
+
+def closure_of_an_scc(
+    srk: syntax.Context,
+    tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol]],
+    loop_counter: syntax.Term,
+    vass: SCCVAS,
+) -> Tuple[syntax.Formula, List[syntax.Term]]:
     """Compute closure of a single SCC"""
     cs = vass.control_states
     local_s_t = create_local_s_t(srk, len(cs))
@@ -399,22 +474,41 @@ def closure_of_an_scc(srk: syntax.Context, tr_symbols: List[Tuple[syntax.Symbol,
 
     # If no VAS transformers, require that a control state is used
     unified_s = unify_matrices(vass.s_lst)
-    if len(getattr(unified_s, 'rows', ())) == 0:
-        return (syntax.mk_and(srk, [constr1, constr2, constr3]), [source for source, _ in local_s_t])
+    if len(getattr(unified_s, "rows", ())) == 0:
+        return (
+            syntax.mk_and(srk, [constr1, constr2, constr3]),
+            [source for source, _ in local_s_t],
+        )
 
     # More complex logic would go here for the full VAS case
     # For now, return simplified version
-    return (syntax.mk_and(srk, [constr1, constr2, constr3]), [source for source, _ in local_s_t])
+    return (
+        syntax.mk_and(srk, [constr1, constr2, constr3]),
+        [source for source, _ in local_s_t],
+    )
 
-def no_trans_taken(srk: syntax.Context, loop_counter: syntax.Term,
-                  tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol]]) -> syntax.Formula:
+
+def no_trans_taken(
+    srk: syntax.Context,
+    loop_counter: syntax.Term,
+    tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol]],
+) -> syntax.Formula:
     """No transitions taken constraint"""
-    eqs = [syntax.mk_eq(srk, syntax.mk_const(srk, x), syntax.mk_const(srk, x_prime))
-           for x, x_prime in tr_symbols]
-    return syntax.mk_and(srk, [syntax.mk_eq(srk, loop_counter, syntax.mk_zero(srk))] + eqs)
+    eqs = [
+        syntax.mk_eq(srk, syntax.mk_const(srk, x), syntax.mk_const(srk, x_prime))
+        for x, x_prime in tr_symbols
+    ]
+    return syntax.mk_and(
+        srk, [syntax.mk_eq(srk, loop_counter, syntax.mk_zero(srk))] + eqs
+    )
 
-def exp(srk: syntax.Context, tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol]],
-        loop_counter: syntax.Term, sccsform: VASSType) -> syntax.Formula:
+
+def exp(
+    srk: syntax.Context,
+    tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol]],
+    loop_counter: syntax.Term,
+    sccsform: VASSType,
+) -> syntax.Formula:
     """Compute VASS abstraction closure"""
     if not sccsform.vasses:
         return no_trans_taken(srk, loop_counter, tr_symbols)
@@ -422,11 +516,17 @@ def exp(srk: syntax.Context, tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol
     # Create symbol mappings for each SCC
     symmappings = []
     for i, _ in enumerate(sccsform.vasses):
-        symmappings.append([
-            (syntax.mk_symbol(srk, f"{x.name}_{i}", syntax.typ_symbol(srk, x)),
-             syntax.mk_symbol(srk, f"{x_prime.name}_{i}", syntax.typ_symbol(srk, x_prime)))
-            for x, x_prime in tr_symbols
-        ])
+        symmappings.append(
+            [
+                (
+                    syntax.mk_symbol(srk, f"{x.name}_{i}", syntax.typ_symbol(srk, x)),
+                    syntax.mk_symbol(
+                        srk, f"{x_prime.name}_{i}", syntax.typ_symbol(srk, x_prime)
+                    ),
+                )
+                for x, x_prime in tr_symbols
+            ]
+        )
 
     # Create loop counters for each SCC
     subloop_counters = [
@@ -437,10 +537,12 @@ def exp(srk: syntax.Context, tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol
     # Create Skolem mappings
     skolem_mappings_transitions = []
     for i in range(len(sccsform.vasses)):
-        skolem_mappings_transitions.append([
-            (x, syntax.mk_symbol(srk, f"{x.name}_{i}", syntax.typ_symbol(srk, x)))
-            for x in sccsform.skolem_constants
-        ])
+        skolem_mappings_transitions.append(
+            [
+                (x, syntax.mk_symbol(srk, f"{x.name}_{i}", syntax.typ_symbol(srk, x)))
+                for x in sccsform.skolem_constants
+            ]
+        )
 
     # Compute closures for each SCC
     sccclosures_sources = [
@@ -465,7 +567,10 @@ def exp(srk: syntax.Context, tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol
 
     # More constraints would be added here
 
-    return syntax.mk_or(srk, [
-        syntax.mk_and(srk, [constr1]),  # Full constraint
-        no_trans_taken(srk, loop_counter, tr_symbols)  # No transitions case
-    ])
+    return syntax.mk_or(
+        srk,
+        [
+            syntax.mk_and(srk, [constr1]),  # Full constraint
+            no_trans_taken(srk, loop_counter, tr_symbols),  # No transitions case
+        ],
+    )

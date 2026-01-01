@@ -55,10 +55,8 @@ class TestLTS(unittest.TestCase):
 
     def test_determinize1(self):
         """Test LTS determinization case 1."""
-        a = mk_matrix([[1, 0],
-                       [0, 0]])
-        b = mk_matrix([[1, 1],
-                       [0, 1]])
+        a = mk_matrix([[1, 0], [0, 0]])
+        b = mk_matrix([[1, 1], [0, 1]])
 
         dlts, sim = LTSOperations.determinize((a, b))
 
@@ -73,26 +71,17 @@ class TestLTS(unittest.TestCase):
 
     def test_determinize2(self):
         """Test LTS determinization case 2."""
-        a = mk_matrix([[1, 0],
-                       [0, 1],
-                       [0, 0]])
-        b = mk_matrix([[1, 1],
-                       [1, 0],
-                       [0, 1]])
+        a = mk_matrix([[1, 0], [0, 1], [0, 0]])
+        b = mk_matrix([[1, 1], [1, 0], [0, 1]])
 
         dlts, sim = LTSOperations.determinize((a, b))
 
         # Expected similarity matrix
-        sim_expected = mk_matrix([[1, 0, 0],
-                                  [0, 1, 0],
-                                  [0, 0, 1]])
+        sim_expected = mk_matrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
 
         # Expected deterministic LTS
         dlts_expected = PartialLinearMap.make(
-            mk_matrix([[1, 0, 0],
-                       [0, 1, 0],
-                       [0, 0, 0]]),
-            []
+            mk_matrix([[1, 0, 0], [0, 1, 0], [0, 0, 0]]), []
         )
 
         self.assertEqual(sim, sim_expected)
@@ -100,30 +89,23 @@ class TestLTS(unittest.TestCase):
 
     def test_determinize3(self):
         """Test LTS determinization case 3."""
-        a = mk_matrix([[0, 1, 0],
-                       [0, 0, 1],
-                       [1, 0, 0]])
-        b = mk_matrix([[2, 1, 0],
-                       [3, 3, 1],
-                       [1, 0, 0]])
+        a = mk_matrix([[0, 1, 0], [0, 0, 1], [1, 0, 0]])
+        b = mk_matrix([[2, 1, 0], [3, 3, 1], [1, 0, 0]])
 
         dlts, sim = LTSOperations.determinize((a, b))
 
         # Expected deterministic LTS
         dlts_expected = PartialLinearMap.make(
-            mk_matrix([[0, 1, 0],
-                       [0, 0, 1],
-                       [1, 0, 0]]),
-            []
+            mk_matrix([[0, 1, 0], [0, 0, 1], [1, 0, 0]]), []
         )
 
         # Check that the LTS is equivalent up to similarity
         id_matrix = identity_matrix(3)
         self.assertEqual(
             LTSOperations.dlts_inverse_image(id_matrix, dlts_expected),
-            LTSOperations.dlts_inverse_image(sim, dlts)
+            LTSOperations.dlts_inverse_image(sim, dlts),
         )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
