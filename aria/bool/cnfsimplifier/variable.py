@@ -7,9 +7,10 @@ class Variable:
     """
     A Boolean variable
     """
+
     variable_value: int  # 变量值
-    variable_abs: int   # 变量绝对值
-    signal: int        # 变量符号(+1/-1)
+    variable_abs: int  # 变量绝对值
+    signal: int  # 变量符号(+1/-1)
 
     def __init__(self, variable: int) -> None:
         self.variable_value = variable
@@ -18,7 +19,7 @@ class Variable:
         if self.variable_value < 0:
             self.signal = -1
 
-    def copy(self) -> 'Variable':
+    def copy(self) -> "Variable":
         """
         Copy the variable
         """
@@ -36,55 +37,55 @@ class Variable:
         """
         return self.__str__()
 
-    def __eq__(self, other: 'Variable') -> bool:
+    def __eq__(self, other: "Variable") -> bool:
         """
         Equality of the variable
         """
         return self.variable_value == other.variable_value
 
-    def __ne__(self, other: 'Variable') -> bool:
+    def __ne__(self, other: "Variable") -> bool:
         """
         Inequality of the variable
         """
         return self.variable_value != other.variable_value
 
-    def __lt__(self, other: 'Variable') -> bool:
+    def __lt__(self, other: "Variable") -> bool:
         """
         Less than of the variable
         """
         return self.variable_value < other.variable_value
 
-    def __le__(self, other: 'Variable') -> bool:
+    def __le__(self, other: "Variable") -> bool:
         """
         Less than or equal to of the variable
         """
         return self.variable_value <= other.variable_value
 
-    def __gt__(self, other: 'Variable') -> bool:
+    def __gt__(self, other: "Variable") -> bool:
         """
         Greater than of the variable
         """
         return self.variable_value > other.variable_value
 
-    def __ge__(self, other: 'Variable') -> bool:
+    def __ge__(self, other: "Variable") -> bool:
         """
         Greater than or equal to of the variable
         """
         return self.variable_value >= other.variable_value
 
-    def __neg__(self) -> 'Variable':
+    def __neg__(self) -> "Variable":
         """
         Negation of the variable
         """
         return Variable(-self.variable_value)
 
-    def __pos__(self) -> 'Variable':
+    def __pos__(self) -> "Variable":
         """
         Positive of the variable
         """
         return self
 
-    def __abs__(self) -> 'Variable':
+    def __abs__(self) -> "Variable":
         """
         Absolute value of the variable
         """

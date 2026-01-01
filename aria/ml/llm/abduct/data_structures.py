@@ -42,12 +42,14 @@ class AbductionProblem:
         if str(self.domain_constraints) != "True":
             smt2.append(f"(assert {self.domain_constraints.sexpr()})")
         smt2.append(f"(assert {self.premise.sexpr()})")
-        smt2.extend([
-            ";; Goal: find ψ such that:",
-            ";; 1. (premise ∧ ψ) is satisfiable",
-            ";; 2. (premise ∧ ψ) |= conclusion",
-            f";; where conclusion is: {self.conclusion.sexpr()}"
-        ])
+        smt2.extend(
+            [
+                ";; Goal: find ψ such that:",
+                ";; 1. (premise ∧ ψ) is satisfiable",
+                ";; 2. (premise ∧ ψ) |= conclusion",
+                f";; where conclusion is: {self.conclusion.sexpr()}",
+            ]
+        )
         return "\n".join(smt2)
 
 

@@ -6,6 +6,7 @@ Result encoding:
 - 0: unsatisfiable under the precondition
 - 2: unknown (solver returned unknown or not yet decided)
 """
+
 from typing import List
 
 from pysmt.exceptions import SolverReturnedUnknownResultError
@@ -62,7 +63,9 @@ def disjunctive_check_cached(precond, cnt_list: List) -> List[int]:
     return res
 
 
-def compact_check_incremental_cached(solver: Solver, precond, cnt_list: List, res_label: List[int]):
+def compact_check_incremental_cached(
+    solver: Solver, precond, cnt_list: List, res_label: List[int]
+):
     """Recursive disjunctive check using a shared solver with push/pop for efficiency."""
     conditions = [cnt_list[i] for i, lbl in enumerate(res_label) if lbl == 2]
 

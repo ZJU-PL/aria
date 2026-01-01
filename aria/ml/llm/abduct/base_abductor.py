@@ -37,9 +37,7 @@ class LLMAbductor:
                 if hypothesis is None:
                     continue
 
-                is_consistent, is_sufficient = validate_hypothesis(
-                    problem, hypothesis
-                )
+                is_consistent, is_sufficient = validate_hypothesis(problem, hypothesis)
                 result = AbductionResult(
                     problem=problem,
                     hypothesis=hypothesis,
@@ -47,7 +45,7 @@ class LLMAbductor:
                     is_sufficient=is_sufficient,
                     llm_response=llm_response,
                     prompt=prompt,
-                    execution_time=time.time() - start_time
+                    execution_time=time.time() - start_time,
                 )
 
                 if is_consistent and is_sufficient:
@@ -59,17 +57,19 @@ class LLMAbductor:
                     error=str(e),
                     llm_response=llm_response,
                     prompt=prompt,
-                    execution_time=time.time() - start_time
+                    execution_time=time.time() - start_time,
                 )
 
-        return (result if 'result' in locals() else
-                AbductionResult(
-                    problem=problem,
-                    error=(
-                        "Failed to generate a valid hypothesis after "
-                        "multiple attempts"
-                    ),
-                    llm_response=llm_response,
-                    prompt=prompt,
-                    execution_time=time.time() - start_time
-                ))
+        return (
+            result
+            if "result" in locals()
+            else AbductionResult(
+                problem=problem,
+                error=(
+                    "Failed to generate a valid hypothesis after " "multiple attempts"
+                ),
+                llm_response=llm_response,
+                prompt=prompt,
+                execution_time=time.time() - start_time,
+            )
+        )

@@ -25,9 +25,13 @@ class AnytimeMaxSAT:
     best_cost: int
     best_model: Optional[List[int]]
 
-    def __init__(self, hard: List[List[int]], soft: List[List[int]],
-                 weights: Optional[List[int]] = None,
-                 solver_name: str = 'glucose4') -> None:
+    def __init__(
+        self,
+        hard: List[List[int]],
+        soft: List[List[int]],
+        weights: Optional[List[int]] = None,
+        solver_name: str = "glucose4",
+    ) -> None:
         """Initialize the solver with hard and soft clauses"""
         self.hard = hard
         self.soft = soft
@@ -59,8 +63,7 @@ class AnytimeMaxSAT:
 
         # Add soft clauses with selector variables
         selector_vars = []
-        max_var = max(abs(lit) for clause in self.hard + self.soft
-                      for lit in clause)
+        max_var = max(abs(lit) for clause in self.hard + self.soft for lit in clause)
         next_var = max_var + 1
 
         for clause in self.soft:
@@ -96,9 +99,12 @@ class AnytimeMaxSAT:
         return self.best_model, self.best_cost
 
 
-def solve_maxsat(hard: List[List[int]], soft: List[List[int]],
-                 weights: Optional[List[int]] = None,
-                 timeout: int = 300) -> Tuple[bool, Optional[List[int]], int]:
+def solve_maxsat(
+    hard: List[List[int]],
+    soft: List[List[int]],
+    weights: Optional[List[int]] = None,
+    timeout: int = 300,
+) -> Tuple[bool, Optional[List[int]], int]:
     """Convenience function to solve MaxSAT problems"""
     solver = AnytimeMaxSAT(hard, soft, weights)
     return solver.solve(timeout)

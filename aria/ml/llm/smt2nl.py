@@ -38,77 +38,141 @@ class SMT2NLConverter:
         self.max_nesting_depth = 2000
         self.ops = {
             # Core
-            '=': 'equals', '!=': 'not equals', 'distinct': 'are distinct',
-            'ite': 'if-then-else',
-
+            "=": "equals",
+            "!=": "not equals",
+            "distinct": "are distinct",
+            "ite": "if-then-else",
             # Arithmetic
-            '>': '>', '>=': '≥', '<': '<', '<=': '≤',
-            '+': '+', '-': '-', '*': '×', '/': '÷', 'mod': 'mod', 'div': 'div',
-            'abs': 'abs', 'to_real': 'real', 'to_int': 'int', 'is_int': 'is_int',
-
+            ">": ">",
+            ">=": "≥",
+            "<": "<",
+            "<=": "≤",
+            "+": "+",
+            "-": "-",
+            "*": "×",
+            "/": "÷",
+            "mod": "mod",
+            "div": "div",
+            "abs": "abs",
+            "to_real": "real",
+            "to_int": "int",
+            "is_int": "is_int",
             # Boolean
-            'and': '∧', 'or': '∨', 'not': '¬', '=>': '⟹', 'iff': '⟺', 'xor': '⊕',
-
+            "and": "∧",
+            "or": "∨",
+            "not": "¬",
+            "=>": "⟹",
+            "iff": "⟺",
+            "xor": "⊕",
             # Arrays
-            'select': '[]', 'store': 'store',
-
+            "select": "[]",
+            "store": "store",
             # Bit-vectors
-            'bvnot': '~', 'bvand': '&', 'bvor': '|', 'bvxor': '^',
-            'bvadd': '+', 'bvsub': '-', 'bvmul': '×', 'bvudiv': '÷', 'bvurem': '%',
-            'bvshl': '<<', 'bvlshr': '>>', 'bvashr': '>>>',
-            'bvult': '<', 'bvule': '≤', 'bvugt': '>', 'bvuge': '≥',
-            'bvslt': '<ₛ', 'bvsle': '≤ₛ', 'bvsgt': '>ₛ', 'bvsge': '≥ₛ',
-            'concat': '∘', 'extract': 'extract',
-
+            "bvnot": "~",
+            "bvand": "&",
+            "bvor": "|",
+            "bvxor": "^",
+            "bvadd": "+",
+            "bvsub": "-",
+            "bvmul": "×",
+            "bvudiv": "÷",
+            "bvurem": "%",
+            "bvshl": "<<",
+            "bvlshr": ">>",
+            "bvashr": ">>>",
+            "bvult": "<",
+            "bvule": "≤",
+            "bvugt": ">",
+            "bvuge": "≥",
+            "bvslt": "<ₛ",
+            "bvsle": "≤ₛ",
+            "bvsgt": ">ₛ",
+            "bvsge": "≥ₛ",
+            "concat": "∘",
+            "extract": "extract",
             # Strings
-            'str.len': 'length', 'str.++': 'concat', 'str.at': 'charAt',
-            'str.substr': 'substring', 'str.contains': 'contains',
-            'str.prefixof': 'prefixOf', 'str.suffixof': 'suffixOf',
-            'str.indexof': 'indexOf', 'str.replace': 'replace',
-            'str.to_re': 'toRegex', 'str.in_re': 'matches', 're.++': 'reConcat',
-            're.*': 'star', 're.+': 'plus', 're.opt': 'optional', 're.union': 'union',
-            're.inter': 'intersect', 're.comp': 'complement',
-
+            "str.len": "length",
+            "str.++": "concat",
+            "str.at": "charAt",
+            "str.substr": "substring",
+            "str.contains": "contains",
+            "str.prefixof": "prefixOf",
+            "str.suffixof": "suffixOf",
+            "str.indexof": "indexOf",
+            "str.replace": "replace",
+            "str.to_re": "toRegex",
+            "str.in_re": "matches",
+            "re.++": "reConcat",
+            "re.*": "star",
+            "re.+": "plus",
+            "re.opt": "optional",
+            "re.union": "union",
+            "re.inter": "intersect",
+            "re.comp": "complement",
             # Sets
-            'union': '∪', 'intersection': '∩', 'setminus': '\\', 'subset': '⊆',
-            'member': '∈', 'singleton': '{·}', 'insert': 'insert',
+            "union": "∪",
+            "intersection": "∩",
+            "setminus": "\\",
+            "subset": "⊆",
+            "member": "∈",
+            "singleton": "{·}",
+            "insert": "insert",
             # Real/Float
-            'fp.abs': 'abs', 'fp.neg': '-', 'fp.add': '+', 'fp.sub': '-',
-            'fp.mul': '×', 'fp.div': '÷', 'fp.sqrt': '√', 'fp.rem': 'rem',
-            'fp.roundToIntegral': 'round', 'fp.min': 'min', 'fp.max': 'max',
-            'fp.leq': '≤', 'fp.lt': '<', 'fp.geq': '≥', 'fp.gt': '>',
-            'fp.eq': '=', 'fp.isNormal': 'isNormal', 'fp.isZero': 'isZero',
-            'fp.isInfinite': 'isInf', 'fp.isNaN': 'isNaN',
+            "fp.abs": "abs",
+            "fp.neg": "-",
+            "fp.add": "+",
+            "fp.sub": "-",
+            "fp.mul": "×",
+            "fp.div": "÷",
+            "fp.sqrt": "√",
+            "fp.rem": "rem",
+            "fp.roundToIntegral": "round",
+            "fp.min": "min",
+            "fp.max": "max",
+            "fp.leq": "≤",
+            "fp.lt": "<",
+            "fp.geq": "≥",
+            "fp.gt": ">",
+            "fp.eq": "=",
+            "fp.isNormal": "isNormal",
+            "fp.isZero": "isZero",
+            "fp.isInfinite": "isInf",
+            "fp.isNaN": "isNaN",
             # Sequences
-            'seq.len': 'length', 'seq.++': 'concat', 'seq.at': 'at',
-            'seq.nth': 'nth', 'seq.extract': 'extract', 'seq.contains': 'contains',
-            'seq.prefixof': 'prefixOf', 'seq.suffixof': 'suffixOf',
+            "seq.len": "length",
+            "seq.++": "concat",
+            "seq.at": "at",
+            "seq.nth": "nth",
+            "seq.extract": "extract",
+            "seq.contains": "contains",
+            "seq.prefixof": "prefixOf",
+            "seq.suffixof": "suffixOf",
         }
 
         self.unary_phrases = {
-            'not': 'not {arg}',
-            '-': 'the negation of {arg}',
-            'abs': 'the absolute value of {arg}',
-            'fp.neg': 'the negation of {arg}',
-            'fp.abs': 'the absolute value of {arg}',
+            "not": "not {arg}",
+            "-": "the negation of {arg}",
+            "abs": "the absolute value of {arg}",
+            "fp.neg": "the negation of {arg}",
+            "fp.abs": "the absolute value of {arg}",
         }
 
         self.binary_phrases = {
-            '=': '{left} equals {right}',
-            '!=': '{left} does not equal {right}',
-            'distinct': '{left} and {right} are distinct',
-            '>': '{left} is greater than {right}',
-            '>=': '{left} is greater than or equal to {right}',
-            '<': '{left} is less than {right}',
-            '<=': '{left} is less than or equal to {right}',
-            '=>': 'if {left}, then {right}',
-            'iff': '{left} if and only if {right}',
-            'xor': 'either {left} or {right}, but not both',
+            "=": "{left} equals {right}",
+            "!=": "{left} does not equal {right}",
+            "distinct": "{left} and {right} are distinct",
+            ">": "{left} is greater than {right}",
+            ">=": "{left} is greater than or equal to {right}",
+            "<": "{left} is less than {right}",
+            "<=": "{left} is less than or equal to {right}",
+            "=>": "if {left}, then {right}",
+            "iff": "{left} if and only if {right}",
+            "xor": "either {left} or {right}, but not both",
         }
 
         self.nary_prefaces = {
-            'and': ('All of the following hold: ', 'and'),
-            'or': ('At least one of the following holds: ', 'or'),
+            "and": ("All of the following hold: ", "and"),
+            "or": ("At least one of the following holds: ", "or"),
         }
 
     def parse_sexpr(self, s: str) -> Union[str, List[Any]]:
@@ -124,24 +188,26 @@ class SMT2NLConverter:
         # Validate before parsing to surface structural issues early.
         self._validate_and_count_top_level(tokens)
 
-        if not s.startswith('('):
+        if not s.startswith("("):
             return s
 
         parsed, _ = self._parse_tokens(tokens, depth=1)
         return parsed
 
     def _tokenize(self, s: str) -> List[str]:
-        return re.findall(r'\(|\)|[^()\s]+', s)
+        return re.findall(r"\(|\)|[^()\s]+", s)
 
-    def _parse_tokens(self, tokens: List[str], depth: int = 1) -> Tuple[Union[str, List[Any]], int]:
+    def _parse_tokens(
+        self, tokens: List[str], depth: int = 1
+    ) -> Tuple[Union[str, List[Any]], int]:
         """Parse tokens into nested structure with basic validation."""
         if not tokens:
             raise SMT2NLParseError("Unexpected end of tokens")
 
         token = tokens[0]
-        if token == ')':
+        if token == ")":
             raise SMT2NLParseError("Unexpected ')'")
-        if token != '(':
+        if token != "(":
             return token, 1
 
         if depth > self.max_nesting_depth:
@@ -150,7 +216,7 @@ class SMT2NLConverter:
         result: List[Any] = []
         i = 1
         while i < len(tokens):
-            if tokens[i] == ')':
+            if tokens[i] == ")":
                 return result, i + 1
             expr, consumed = self._parse_tokens(tokens[i:], depth + 1)
             result.append(expr)
@@ -166,13 +232,13 @@ class SMT2NLConverter:
         top_level_count = 0
 
         for t in tokens:
-            if t == '(':
+            if t == "(":
                 if depth == 0:
                     top_level_count += 1
                 depth += 1
                 if depth > self.max_nesting_depth:
                     raise SMT2NLParseError("Exceeded maximum nesting depth")
-            elif t == ')':
+            elif t == ")":
                 depth -= 1
                 if depth < 0:
                     raise SMT2NLParseError("Unbalanced parentheses: extra ')'")
@@ -192,11 +258,11 @@ class SMT2NLConverter:
             Natural language description of the expression.
         """
         if isinstance(expr, str):
-            if expr.startswith('#b'):
+            if expr.startswith("#b"):
                 return f"0b{expr[2:]}"
-            if expr.startswith('#x'):
+            if expr.startswith("#x"):
                 return f"0x{expr[2:]}"
-            if expr.startswith('_'):
+            if expr.startswith("_"):
                 return expr[1:]  # Remove underscore prefix
             return expr
 
@@ -205,7 +271,7 @@ class SMT2NLConverter:
         op, *args = expr
 
         if isinstance(op, list):
-            if op and op[0] == '_':
+            if op and op[0] == "_":
                 op = f"(_ {' '.join(str(part) for part in op[1:])})"
             else:
                 op_text = self.convert_expr(op)
@@ -213,27 +279,26 @@ class SMT2NLConverter:
                 return f"{op_text}({', '.join(arg_texts)})" if args else op_text
 
         # Special forms
-        if op == 'assert':
+        if op == "assert":
             return self.convert_expr(args[0]) if args else ""
-        if op == 'let':
+        if op == "let":
             if len(args) >= 2:
-                binds = ", ".join(f"{b[0]}={self.convert_expr(b[1])}"
-                                for b in args[0] if len(b) == 2)
+                binds = ", ".join(
+                    f"{b[0]}={self.convert_expr(b[1])}" for b in args[0] if len(b) == 2
+                )
                 return f"let {binds} in {self.convert_expr(args[1])}"
-        if op == 'ite' and len(args) == 3:
+        if op == "ite" and len(args) == 3:
             cond = self.convert_expr(args[0])
             then_expr = self.convert_expr(args[1])
             else_expr = self.convert_expr(args[2])
             return f"({cond} ? {then_expr} : {else_expr})"
-        if op in ['forall', 'exists'] and len(args) >= 2:
-            vars_text = ", ".join(
-                f"{v[0]}:{v[1]}" for v in args[0] if len(v) >= 2
-            )
-            quantifier = '∀' if op == 'forall' else '∃'
+        if op in ["forall", "exists"] and len(args) >= 2:
+            vars_text = ", ".join(f"{v[0]}:{v[1]}" for v in args[0] if len(v) >= 2)
+            quantifier = "∀" if op == "forall" else "∃"
             return f"{quantifier}{vars_text}. {self.convert_expr(args[1])}"
 
         # Extract bit-vector sizes
-        if op.startswith('(_ ') and op.endswith(')'):
+        if op.startswith("(_ ") and op.endswith(")"):
             parts = op[3:-1].split()
             if len(parts) >= 2:
                 op = parts[0] + f"[{':'.join(parts[1:])}]"
@@ -248,20 +313,20 @@ class SMT2NLConverter:
                 )
 
         # Operators
-        if op == 'select' and len(args) == 2:
+        if op == "select" and len(args) == 2:
             array = self.convert_expr(args[0])
             index = self.convert_expr(args[1])
             return f"the element of {array} at index {index}"
 
-        if op == 'store' and len(args) >= 3:
+        if op == "store" and len(args) >= 3:
             array = self.convert_expr(args[0])
             index = self.convert_expr(args[1])
             value = self.convert_expr(args[2])
             return f"{array} with index {index} set to {value}"
 
-        if op.startswith('extract[') and len(args) == 1:
+        if op.startswith("extract[") and len(args) == 1:
             range_text = op[8:-1]
-            hi, _, lo = range_text.partition(':')
+            hi, _, lo = range_text.partition(":")
             target = self.convert_expr(args[0])
             if hi and lo:
                 return f"the bits from {hi} down to {lo} of {target}"
@@ -280,9 +345,9 @@ class SMT2NLConverter:
             preface, conj = self.nary_prefaces[op]
             parts = [self.convert_expr(a) for a in args]
             if len(parts) == 2:
-                if op == 'and':
+                if op == "and":
                     return f"both {parts[0]} and {parts[1]}"
-                if op == 'or':
+                if op == "or":
                     return f"either {parts[0]} or {parts[1]}"
             body = self._join_with_conjunction(parts, conj)
             return f"{preface}{body}" if preface else body
@@ -294,9 +359,9 @@ class SMT2NLConverter:
             if len(args) == 2:
                 l = self.convert_expr(args[0])
                 r = self.convert_expr(args[1])
-                if op in ['select']:
+                if op in ["select"]:
                     return f"{l}[{r}]"
-                if op in ['store']:
+                if op in ["store"]:
                     if len(args) > 2:
                         val = self.convert_expr(args[2])
                         return f"{l}[{r} := {val}]"
@@ -304,7 +369,7 @@ class SMT2NLConverter:
                 return f"({l} {sym} {r})"
             # N-ary
             arg_strs = [self.convert_expr(a) for a in args]
-            if op in ['and', 'or', '+', '*', 'bvadd', 'bvmul']:
+            if op in ["and", "or", "+", "*", "bvadd", "bvmul"]:
                 return f"({f' {sym} '.join(arg_strs)})"
             return f"{sym}({', '.join(arg_strs)})"
 
@@ -322,7 +387,7 @@ class SMT2NLConverter:
             Natural language description or error message.
         """
         try:
-            smt_text = re.sub(r';.*$', '', smt_text, flags=re.MULTILINE).strip()
+            smt_text = re.sub(r";.*$", "", smt_text, flags=re.MULTILINE).strip()
             if not smt_text:
                 raise SMT2NLParseError("Empty SMT-LIB input")
 
@@ -343,22 +408,22 @@ class SMT2NLConverter:
         tokens, exprs, i = self._tokenize(smt_text), [], 0
         self._validate_and_count_top_level(tokens)
         while i < len(tokens):
-            if tokens[i] == '(':
+            if tokens[i] == "(":
                 depth, start = 1, i
                 i += 1
                 while i < len(tokens) and depth > 0:
-                    depth += 1 if tokens[i] == '(' else -1 if tokens[i] == ')' else 0
+                    depth += 1 if tokens[i] == "(" else -1 if tokens[i] == ")" else 0
                     i += 1
                 if depth != 0:
                     raise SMT2NLParseError(
                         "Unbalanced parentheses while splitting expressions"
                     )
-                expr_text = ' '.join(tokens[start:i])
+                expr_text = " ".join(tokens[start:i])
                 exprs.append(self.convert_expr(self.parse_sexpr(expr_text)))
             else:
                 exprs.append(self.convert_expr(tokens[i]))
                 i += 1
-        return ' ∧ '.join(exprs) if len(exprs) > 1 else exprs[0] if exprs else ""
+        return " ∧ ".join(exprs) if len(exprs) > 1 else exprs[0] if exprs else ""
 
     def _join_with_conjunction(self, parts: List[str], conj: str) -> str:
         cleaned = [p for p in parts if p]

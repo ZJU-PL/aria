@@ -67,7 +67,7 @@ class SCSolver:
             # according to https://doi.org/10.1137/050644719,
             # one target is returned after at most 0.9\sqrt{N/M} queries,
             # where N is the search space size and M is the number of targets.
-            res += floor(0.9*sqrt(cand/it))
+            res += floor(0.9 * sqrt(cand / it))
             it -= 1
         return res
 
@@ -83,51 +83,92 @@ class SCSolver:
         # process graph
         for v in graph.ds_structure.vertices:
             index = str(graph.ds_structure.edge_indices[v])
-            constraint['con0']['X'+index].add('X'+index+','+'node'+index)
-            set_variable.add('X'+index)
+            constraint["con0"]["X" + index].add("X" + index + "," + "node" + index)
+            set_variable.add("X" + index)
         for p, elist in graph.ds_structure.symbol_pair.items():
             for e in elist:
                 index1 = str(graph.ds_structure.edge_indices[e[0]])
                 index2 = str(graph.ds_structure.edge_indices[e[1]])
-                constraint['con1']['X'+index1].add('X'+index1+','+p+','+'X'+index2)
-        for left,v in grammar.items():
+                constraint["con1"]["X" + index1].add(
+                    "X" + index1 + "," + p + "," + "X" + index2
+                )
+        for left, v in grammar.items():
             for right in v:
                 if len(right) == 2:
                     for i in graph.ds_structure.edge_indices.values():
-                        constraint['pro']['X'+str(i)].add('Rchd'+right[0]+str(1)+str(i)+','+right[0]+str(1)+','+'X'+str(i))
-                        constraint['pro']['Rchd'+right[0]+str(1)+str(i)].add('Dst'+left+str(i)+','+right[1]+str(1)+','+'Rchd'+right[0]+str(1)+str(i))
-                        constraint['con1']['X'+str(i)].add('X'+str(i)+','+left+','+'Dst'+left+str(i))
-                        set_variable.add('Rchd'+right[0]+str(1)+str(i))
-                        set_variable.add('Dst'+left+str(i))
+                        constraint["pro"]["X" + str(i)].add(
+                            "Rchd"
+                            + right[0]
+                            + str(1)
+                            + str(i)
+                            + ","
+                            + right[0]
+                            + str(1)
+                            + ","
+                            + "X"
+                            + str(i)
+                        )
+                        constraint["pro"]["Rchd" + right[0] + str(1) + str(i)].add(
+                            "Dst"
+                            + left
+                            + str(i)
+                            + ","
+                            + right[1]
+                            + str(1)
+                            + ","
+                            + "Rchd"
+                            + right[0]
+                            + str(1)
+                            + str(i)
+                        )
+                        constraint["con1"]["X" + str(i)].add(
+                            "X" + str(i) + "," + left + "," + "Dst" + left + str(i)
+                        )
+                        set_variable.add("Rchd" + right[0] + str(1) + str(i))
+                        set_variable.add("Dst" + left + str(i))
                 elif len(right) == 1:
-                    if right[0] == 'ε':
+                    if right[0] == "ε":
                         for i in graph.ds_structure.edge_indices.values():
-                            constraint['con1']['X'+str(i)].add('X'+str(i)+','+left+','+'X'+str(i))
+                            constraint["con1"]["X" + str(i)].add(
+                                "X" + str(i) + "," + left + "," + "X" + str(i)
+                            )
                     else:
                         for i in graph.ds_structure.edge_indices.values():
-                            constraint['con1']['X'+str(i)].add('X'+str(i)+','+left+','+'Dst'+left+str(i))
-                            constraint['pro']['X'+str(i)].add('Dst'+left+str(i)+','+right[0]+str(1)+','+'X'+str(i))
-                            set_variable.add('Dst'+left+str(i))
+                            constraint["con1"]["X" + str(i)].add(
+                                "X" + str(i) + "," + left + "," + "Dst" + left + str(i)
+                            )
+                            constraint["pro"]["X" + str(i)].add(
+                                "Dst"
+                                + left
+                                + str(i)
+                                + ","
+                                + right[0]
+                                + str(1)
+                                + ","
+                                + "X"
+                                + str(i)
+                            )
+                            set_variable.add("Dst" + left + str(i))
                 else:
-                    raise Exception('grammar error')
+                    raise Exception("grammar error")
         # save the constraint info
         self.constraint = constraint
         self.set_variable = set_variable
-        self.nnn = len(constraint['con1'])
+        self.nnn = len(constraint["con1"])
 
     # DTC-based SC-reduction
     def __cubic_solve(self, graph: Any, grammar: Any) -> None:
         # convert the graph to constraints
         # using https://doi.org/10.1109/LICS.1997.614960
-        self.convert(graph,grammar)
+        self.convert(graph, grammar)
         constraint = deepcopy(self.constraint)
 
         # step 1
         W: Set[Tuple[str, str, str]] = set()
-        for k in constraint['con0']:
-            for i in constraint['con0'][k]:
-                left, right = i.split(',')
-                W.add(('con', left, right))
+        for k in constraint["con0"]:
+            for i in constraint["con0"][k]:
+                left, right = i.split(",")
+                W.add(("con", left, right))
         # step 2
         ground: Dict[str, int] = {}
         for i in self.set_variable:
@@ -140,18 +181,18 @@ class SCSolver:
         # start the worklist analysis of SC-reduction
         while len(W) > 0:
             a = W.pop()
-            if a[0] == 'con':
+            if a[0] == "con":
                 if len(a) < 4:
                     X = a[1]
                     iteration: int = 0
                     num_of_sol: int = 0
-                    for k in constraint['con1']:
+                    for k in constraint["con1"]:
                         iteration += 1
-                        for i in constraint['con1'][k]:
-                            if i.split(',')[0] == X:
-                                if ground[i.split(',')[2]] == 0:
-                                    ground[i.split(',')[2]] = 1
-                                    W.add(('con', i.split(',')[0], i.split(',')[2]))
+                        for i in constraint["con1"][k]:
+                            if i.split(",")[0] == X:
+                                if ground[i.split(",")[2]] == 0:
+                                    ground[i.split(",")[2]] = 1
+                                    W.add(("con", i.split(",")[0], i.split(",")[2]))
                                     num_of_sol += 1
                     gs_iteration += self.estimate(num_of_sol, iteration)
                     whole_iteration += iteration
@@ -161,14 +202,14 @@ class SCSolver:
                     Z = a[3]
                     iteration = 0
                     num_of_sol = 0
-                    for k in constraint['pro']:
+                    for k in constraint["pro"]:
                         iteration += 1
-                        for i in constraint['pro'][k]:
-                            if i.split(',')[0] == X and i.split(',')[2] == Y:
-                                if ground[i.split(',')[2]] == 1:
+                        for i in constraint["pro"][k]:
+                            if i.split(",")[0] == X and i.split(",")[2] == Y:
+                                if ground[i.split(",")[2]] == 1:
                                     if ground[Z] == 0:
                                         ground[Z] = 1
-                                        W.add(('con', X, Z))
+                                        W.add(("con", X, Z))
                                         num_of_sol += 1
                     gs_iteration += self.estimate(num_of_sol, iteration)
                     whole_iteration += iteration
@@ -177,17 +218,17 @@ class SCSolver:
                 Y = a[2]
                 iteration = 0
                 num_of_sol = 0
-                for k in constraint['pro']:
+                for k in constraint["pro"]:
                     iteration += 1
-                    for i in constraint['pro'][k]:
-                        if i.split(',')[0] == X and i.split(',')[2] == Y:
-                            if ground[i.split(',')[2]] == 1:
+                    for i in constraint["pro"][k]:
+                        if i.split(",")[0] == X and i.split(",")[2] == Y:
+                            if ground[i.split(",")[2]] == 1:
                                 if ground[Y] == 0:
                                     ground[Y] = 1
-                                    W.add(('con', X, Y))
+                                    W.add(("con", X, Y))
                                     num_of_sol += 1
                 gs_iteration += self.estimate(num_of_sol, iteration)
                 whole_iteration += iteration
         # print estimation result
-        print('the number of classical iterations: ', whole_iteration)
-        print('the number of quantum iterations: ', gs_iteration * 3)
+        print("the number of classical iterations: ", whole_iteration)
+        print("the number of quantum iterations: ", gs_iteration * 3)

@@ -17,7 +17,7 @@ from aria.ml.llm.smto.oracles import (
     OracleInfo,
     WhiteboxOracleInfo,
     OracleType,
-    OracleAnalysisMode
+    OracleAnalysisMode,
 )
 
 # Import utility classes
@@ -26,14 +26,12 @@ from aria.ml.llm.smto.utils import OracleCache, ExplanationLogger
 __all__ = [
     # Main solver
     "OraxSolver",
-
     # Oracle definitions
     "OracleInfo",
     "WhiteboxOracleInfo",
     "OracleType",
     "OracleAnalysisMode",
-
     # Utility classes
     "OracleCache",
-    "ExplanationLogger"
+    "ExplanationLogger",
 ]

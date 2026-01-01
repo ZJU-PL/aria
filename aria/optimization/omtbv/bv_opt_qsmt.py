@@ -8,6 +8,7 @@ and calls SMT solvers that support quantified bit-vector formulas:
 - Q3B
 - ...?
 """
+
 import logging
 
 import z3
@@ -59,15 +60,13 @@ def bv_opt_with_qsmt(
         # Minimize: for all other values, if they satisfy the formula,
         # then obj <= that value
         qfml = z3.And(
-            fml,
-            z3.ForAll([obj_misc], z3.Implies(new_fml, z3.ULE(obj, obj_misc)))
+            fml, z3.ForAll([obj_misc], z3.Implies(new_fml, z3.ULE(obj, obj_misc)))
         )
     else:
         # Maximize: for all other values, if they satisfy the formula,
         # then that value <= obj
         qfml = z3.And(
-            fml,
-            z3.ForAll([obj_misc], z3.Implies(new_fml, z3.ULE(obj_misc, obj)))
+            fml, z3.ForAll([obj_misc], z3.Implies(new_fml, z3.ULE(obj_misc, obj)))
         )
 
     logger.debug("Quantified formula: %s", qfml)
@@ -95,5 +94,5 @@ def demo_qsmt() -> None:
     logger.info("Solving time: %.3f seconds", elapsed_time)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     demo_qsmt()

@@ -2,6 +2,7 @@
 This module transforms a file containing regular expressions for flex parser
 into a DFA object (pyfst automaton)
 """
+
 import os
 import random
 import re
@@ -59,7 +60,7 @@ class Flexparser:
         """
         states = []
         i = 0
-        regex = re.compile('[ \t\n\r:,]+')
+        regex = re.compile("[ \t\n\r:,]+")
         found = 0  # For maintaining the state of yy_nxt declaration
         state = 0  # For maintaining the state of opening and closing tag of yy_nxt
         substate = 0  # For maintaining the state of opening and closing tag of each set in yy_nxt
@@ -67,7 +68,10 @@ class Flexparser:
         cur_line = None
         with open(self.outfile) as flex_file:
             for cur_line in flex_file:
-                if cur_line[0:35] == "static yyconst flex_int16_t yy_nxt[" or cur_line[0:33] == "static const flex_int16_t yy_nxt[":
+                if (
+                    cur_line[0:35] == "static yyconst flex_int16_t yy_nxt["
+                    or cur_line[0:33] == "static const flex_int16_t yy_nxt["
+                ):
                     found = 1
                     # print 'Found yy_next declaration'
                     continue
@@ -86,11 +90,12 @@ class Flexparser:
                     if substate == 1:
                         if cur_line[0:6] != "    },":
                             cur_line = "".join(cur_line.split())
-                            if cur_line == '':
+                            if cur_line == "":
                                 continue
-                            if cur_line[cur_line.__len__() - 1] == ',':
+                            if cur_line[cur_line.__len__() - 1] == ",":
                                 splitted_line = regex.split(
-                                    cur_line[:cur_line.__len__() - 1])
+                                    cur_line[: cur_line.__len__() - 1]
+                                )
                             else:
                                 splitted_line = regex.split(cur_line)
                             mapping = mapping + splitted_line
@@ -115,14 +120,17 @@ class Flexparser:
         """
         states = []
         i = 0
-        regex = re.compile('[ \t\n\r:,]+')
+        regex = re.compile("[ \t\n\r:,]+")
         found = 0  # For maintaining the state of yy_accept declaration
         state = 0  # For maintaining the state of opening and closing tag of yy_accept
-        mapping = [] # For writing each set of yy_accept
+        mapping = []  # For writing each set of yy_accept
         cur_line = None
         with open(self.outfile) as flex_file:
             for cur_line in flex_file:
-                if cur_line[0:37] == "static yyconst flex_int16_t yy_accept" or cur_line[0:35] == "static const flex_int16_t yy_accept":
+                if (
+                    cur_line[0:37] == "static yyconst flex_int16_t yy_accept"
+                    or cur_line[0:35] == "static const flex_int16_t yy_accept"
+                ):
                     found = 1
                     continue
                 if found == 1:
@@ -135,11 +143,12 @@ class Flexparser:
                     if state == 1:
                         if cur_line[0:7] != "    } ;":
                             cur_line = "".join(cur_line.split())
-                            if cur_line == '':
+                            if cur_line == "":
                                 continue
-                            if cur_line[cur_line.__len__() - 1] == ',':
+                            if cur_line[cur_line.__len__() - 1] == ",":
                                 splitted_line = regex.split(
-                                    cur_line[:cur_line.__len__() - 1])
+                                    cur_line[: cur_line.__len__() - 1]
+                                )
                             else:
                                 splitted_line = regex.split(cur_line)
                             mapping = mapping + splitted_line
@@ -161,14 +170,17 @@ class Flexparser:
         """
         states = []
         i = 0
-        regex = re.compile('[ \t\n\r:,]+')
+        regex = re.compile("[ \t\n\r:,]+")
         found = 0  # For maintaining the state of yy_accept declaration
         state = 0  # For maintaining the state of opening and closing tag of yy_accept
-        mapping = [] # For writing each set of yy_accept
+        mapping = []  # For writing each set of yy_accept
         cur_line = None
         with open(self.outfile) as flex_file:
             for cur_line in flex_file:
-                if cur_line[0:37] == "static yyconst flex_int16_t yy_accept" or cur_line[0:35] == "static const flex_int16_t yy_accept":
+                if (
+                    cur_line[0:37] == "static yyconst flex_int16_t yy_accept"
+                    or cur_line[0:35] == "static const flex_int16_t yy_accept"
+                ):
                     found = 1
                     continue
                 if found == 1:
@@ -181,11 +193,12 @@ class Flexparser:
                     if state == 1:
                         if cur_line[0:7] != "    } ;":
                             cur_line = "".join(cur_line.split())
-                            if cur_line == '':
+                            if cur_line == "":
                                 continue
-                            if cur_line[cur_line.__len__() - 1] == ',':
+                            if cur_line[cur_line.__len__() - 1] == ",":
                                 splitted_line = regex.split(
-                                    cur_line[:cur_line.__len__() - 1])
+                                    cur_line[: cur_line.__len__() - 1]
+                                )
                             else:
                                 splitted_line = regex.split(cur_line)
                             mapping = mapping + splitted_line
@@ -196,8 +209,7 @@ class Flexparser:
                                 cleared.append(int(j))
                             max_value = max(cleared)
                             for i in range(0, len(cleared)):
-                                if cleared[i] > 0 and cleared[
-                                        i] < (max_value - 1):
+                                if cleared[i] > 0 and cleared[i] < (max_value - 1):
                                     states.append(i)
                             return states
         return []
@@ -211,16 +223,21 @@ class Flexparser:
             list: The list of state transitions for no character
         """
         states = []
-        regex = re.compile('[ \t\n\r:,]+')
+        regex = re.compile("[ \t\n\r:,]+")
         found = 0  # For maintaining the state of yy_NUL_trans declaration
-        state = 0  # For maintaining the state of opening and closing tag of yy_NUL_trans
+        state = (
+            0  # For maintaining the state of opening and closing tag of yy_NUL_trans
+        )
         mapping = []  # For writing each set of yy_NUL_trans
         cur_line = None
         with open(self.outfile) as flex_file:
             for cur_line in flex_file:
-                if cur_line[0:len("static yyconst yy_state_type yy_NUL_trans")
-                            ] == "static yyconst yy_state_type yy_NUL_trans" or cur_line[0:len("static const yy_state_type yy_NUL_trans")
-                            ] == "static const yy_state_type yy_NUL_trans":
+                if (
+                    cur_line[0 : len("static yyconst yy_state_type yy_NUL_trans")]
+                    == "static yyconst yy_state_type yy_NUL_trans"
+                    or cur_line[0 : len("static const yy_state_type yy_NUL_trans")]
+                    == "static const yy_state_type yy_NUL_trans"
+                ):
                     found = 1
                     # print 'Found yy_next declaration'
                     continue
@@ -232,11 +249,12 @@ class Flexparser:
                     if state == 1:
                         if cur_line[0:7] != "    } ;":
                             cur_line = "".join(cur_line.split())
-                            if cur_line == '':
+                            if cur_line == "":
                                 continue
-                            if cur_line[cur_line.__len__() - 1] == ',':
+                            if cur_line[cur_line.__len__() - 1] == ",":
                                 splitted_line = regex.split(
-                                    cur_line[:cur_line.__len__() - 1])
+                                    cur_line[: cur_line.__len__() - 1]
+                                )
                             else:
                                 splitted_line = regex.split(cur_line)
                                 #  print y
@@ -299,12 +317,12 @@ class Flexparser:
             Returns:
                 str: The next state
             """
-            if character != '':
+            if character != "":
                 newstate = states[current_state][ord(character)]
                 return newstate
-                #if newstate > 0:
+                # if newstate > 0:
                 #    return newstate
-                #else:
+                # else:
                 #    return total_states
             else:
                 return nulltrans[current_state]
@@ -319,15 +337,20 @@ class Flexparser:
             DFA: A dfa automaton
         """
         temp = tempfile.gettempdir()
-        self.outfile = temp+'/'+''.join(
-            random.choice(
-                string.ascii_uppercase + string.digits) for _ in range(5)) + '_lex.yy.c'
+        self.outfile = (
+            temp
+            + "/"
+            + "".join(
+                random.choice(string.ascii_uppercase + string.digits) for _ in range(5)
+            )
+            + "_lex.yy.c"
+        )
         self._create_automaton_from_regex(lexfile)
         states_num, delta = self._create_delta()
         states = self._create_states(states_num)
-        #print(states)
+        # print(states)
         accepted_states = self._read_accept_states()
-        #print(accepted_states)
+        # print(accepted_states)
         if self.alphabet != []:
             alphabet = self.alphabet
         else:
@@ -336,8 +359,8 @@ class Flexparser:
         mma.yy_accept = accepted_states
         for state in states:
             if state != 0:
-                #print ""
-                #print state in accepted_states
+                # print ""
+                # print state in accepted_states
                 for char in alphabet:
                     # TODO: yy_last_accepting_state impl
                     # Normally, if ( yy_accept[yy_current_state] ), (yy_last_accepting_state) = yy_current_state.
@@ -346,23 +369,23 @@ class Flexparser:
                     nextstate = delta(state, char)
                     if nextstate > 0:
                         mma.add_arc(state, nextstate, char)
-                        #print("add", state, nextstate, char)
+                        # print("add", state, nextstate, char)
                     else:
-                        nextstate = - nextstate
+                        nextstate = -nextstate
                         yy_act = accepted_states[nextstate]
                         if yy_act == 1:
-                            #print("is fin", state, char)
+                            # print("is fin", state, char)
                             mma.states[state].final = True
                         elif yy_act == 0:
-                            #print("Lookback:", state, char, yy_act)
+                            # print("Lookback:", state, char, yy_act)
                             mma.add_arc(state, 0, char)
                         elif yy_act == 2:
-                            #print("Dead:", state, nextstate, char, yy_act)
+                            # print("Dead:", state, nextstate, char, yy_act)
                             pass
                         else:
-                            #print("TODO:", state, nextstate, char, yy_act)
+                            # print("TODO:", state, nextstate, char, yy_act)
                             pass
-                #if state in accepted_states:
+                # if state in accepted_states:
                 #    mma[state - 1].final = True
         if os.path.exists(self.outfile):
             os.remove(self.outfile)
@@ -372,8 +395,8 @@ class Flexparser:
 
 def mma_2_digraph(mma):
     G = nx.DiGraph()
-    states = sorted(mma.states, key=attrgetter('initial'), reverse=True)
-    #states = sorted(mma.states, reverse=True)
+    states = sorted(mma.states, key=attrgetter("initial"), reverse=True)
+    # states = sorted(mma.states, reverse=True)
 
     for state in states:
         # Separate node creation so that can mark node correctly
@@ -389,9 +412,9 @@ def mma_2_digraph(mma):
             if arc.nextstate not in G:
                 G.add_node(arc.nextstate)
             itext = mma.isyms.find(arc.ilabel)
-            #print(itext)
+            # print(itext)
             label = itext
-            #print(label)
+            # print(label)
             if G.has_edge(state.stateid, arc.nextstate):
                 cur_l = G.get_edge_data(state.stateid, arc.nextstate)["label"]
                 if label not in cur_l:
@@ -406,7 +429,7 @@ def mma_trace_2_digraph(mma, traces, colors):
 
     # Start coloring with traces
     cur_union = traces[-1]
-    for trace_id in range(len(traces)-1, -1, -1):
+    for trace_id in range(len(traces) - 1, -1, -1):
         trace = traces[trace_id]
         color = colors[trace_id]
         new_union = []
@@ -418,12 +441,12 @@ def mma_trace_2_digraph(mma, traces, colors):
             G.nodes[t[0]]["style"] = "filled"
 
         for edge in G.edges():
-            for t,s in new_union:
-                if t == edge[0] and s in G.edges[edge]['label']:
+            for t, s in new_union:
+                if t == edge[0] and s in G.edges[edge]["label"]:
                     G.edges[edge]["color"] = color
 
         cur_union = new_union
-    
+
     return G
 
 
@@ -442,8 +465,9 @@ def simplify_digraph(G, mma):
     if init_states:
         useless_states = []
         for node_id, in_degree in G.in_degree():
-            if (in_degree == 0 or (in_degree == 1 and node_id in self_loops)) \
-                    and node_id not in init_states:
+            if (
+                in_degree == 0 or (in_degree == 1 and node_id in self_loops)
+            ) and node_id not in init_states:
                 useless_states.append(node_id)
         G.remove_nodes_from(useless_states)
 
@@ -457,17 +481,21 @@ def simplify_digraph(G, mma):
 
     for n, nbrsdict in G.adjacency():
         for nbr, eattr in nbrsdict.items():
-            label = eattr['label']
+            label = eattr["label"]
 
             label = do_replace(label, string.ascii_uppercase, "{A-Z}")
             label = do_replace(label, string.ascii_lowercase, "{a-z}")
             label = do_replace(label, string.digits, "{0-9}")
             label = do_replace(label, "abcdef", "{a-f}")
             label = do_replace(label, "abcdef".upper(), "{a-f}".upper())
-            label = do_replace(label, string.ascii_lowercase.replace("abcdef",""), "{!a-f}")
-            label = do_replace(label, string.ascii_uppercase.replace("ABCDEF",""), "{!A-F}")
+            label = do_replace(
+                label, string.ascii_lowercase.replace("abcdef", ""), "{!a-f}"
+            )
+            label = do_replace(
+                label, string.ascii_uppercase.replace("ABCDEF", ""), "{!A-F}"
+            )
 
-            eattr['label'] = label
+            eattr["label"] = label
     return G
 
 
@@ -476,19 +504,19 @@ def main():
     Testing function for Flex Regular Expressions to FST DFA
     """
     if len(argv) < 2:
-        print('Usage: %s fst_file [optional: save_file]' % argv[0])
+        print("Usage: %s fst_file [optional: save_file]" % argv[0])
         return
-    flex_a = Flexparser(["a","b","c","d", "/"])
+    flex_a = Flexparser(["a", "b", "c", "d", "/"])
     mma = flex_a.yyparse(argv[1])
-    #mma.minimize()
+    # mma.minimize()
     print(mma)
     if len(argv) == 3:
-        mma.save(argv[2]+".txt")
+        mma.save(argv[2] + ".txt")
 
         graph = mma_2_digraph(mma)
         p = nx.nx_pydot.to_pydot(graph)
-        #p.write_dot(args.output)
-        p.write_png(argv[2] + '.png')
+        # p.write_dot(args.output)
+        p.write_png(argv[2] + ".png")
 
     print("F", mma.consume_input("aba"))
     print("T", mma.consume_input("/aba/"))
@@ -496,5 +524,6 @@ def main():
     print("T", mma.consume_input("/cccc/d"))
     print("F", mma.consume_input("/ccdc/d"))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

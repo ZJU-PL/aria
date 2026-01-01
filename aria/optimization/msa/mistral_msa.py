@@ -8,6 +8,7 @@ the MSASolver class which is used to find the minimal satisfying assignment for 
 Note:
     MSA finding is a special case of optimization modulo theory.
 """
+
 import logging
 from typing import FrozenSet, Optional
 
@@ -140,9 +141,7 @@ class MSASolver:
 
         return best
 
-    def get_model_forall(
-        self, x_univl: FrozenSet[z3.ExprRef]
-    ) -> Optional[z3.ModelRef]:
+    def get_model_forall(self, x_univl: FrozenSet[z3.ExprRef]) -> Optional[z3.ModelRef]:
         """Get a model for a universally quantified formula.
 
         Args:
@@ -165,11 +164,8 @@ class MSASolver:
 
 if __name__ == "__main__":
     # Demo: Find minimal satisfying assignment
-    a, b, c, d = z3.Ints('a b c d')
-    fml = z3.Or(
-        z3.And(a == 3, b == 3),
-        z3.And(a == 1, b == 1, c == 1, d == 1)
-    )
+    a, b, c, d = z3.Ints("a b c d")
+    fml = z3.Or(z3.And(a == 3, b == 3), z3.And(a == 1, b == 1, c == 1, d == 1))
     ms = MSASolver()
     ms.init_from_formula(fml)
     result = ms.find_small_model()

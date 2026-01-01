@@ -20,7 +20,7 @@ from aria.bool.nnf import NNF, dimacs
 #       model enumeration
 #       ...
 
-DOT_FORMATS = {'ps', 'pdf', 'svg', 'fig', 'png', 'gif', 'jpg', 'jpeg'}
+DOT_FORMATS = {"ps", "pdf", "svg", "fig", "png", "gif", "jpg", "jpeg"}
 
 
 @contextlib.contextmanager
@@ -38,74 +38,77 @@ def timer(args: argparse.Namespace) -> t.Iterator[SimpleNamespace]:
 
 
 def open_read(fname: str) -> t.TextIO:
-    if fname == '-':
+    if fname == "-":
         return sys.stdin
     return open(fname)
 
 
 def open_write(fname: str) -> t.TextIO:
-    if fname == '-':
+    if fname == "-":
         return sys.stdout
-    return open(fname, 'w')
+    return open(fname, "w")
 
 
 def main(argv: t.Sequence[str] = sys.argv[1:]) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument('-v', '--verbose', action='store_true',
-                        help="Print extra statistics.")
-    parser.add_argument('-q', '--quiet', action='store_true',
-                        help="Suppress all non-essential output.")
+    parser.add_argument(
+        "-v", "--verbose", action="store_true", help="Print extra statistics."
+    )
+    parser.add_argument(
+        "-q", "--quiet", action="store_true", help="Suppress all non-essential output."
+    )
     subparsers = parser.add_subparsers(title="subcommands")
 
     sat_parser = subparsers.add_parser(
-        'sat',
-        help="Test whether a sentence is satisfiable."
+        "sat", help="Test whether a sentence is satisfiable."
     )
     sat_parser.add_argument(
-        'file', type=str, help="The file with the sentence to test."
+        "file", type=str, help="The file with the sentence to test."
     )
     sat_parser.set_defaults(func=sat)
 
     sharpsat_parser = subparsers.add_parser(
-        'sharpsat', help="Count how many models a sentence has."
+        "sharpsat", help="Count how many models a sentence has."
     )
     sharpsat_parser.add_argument(
-        'file', type=str, help="The file with the sentence to test."
+        "file", type=str, help="The file with the sentence to test."
     )
     sharpsat_parser.add_argument(
-        '-d', '--deterministic', help="Treat the sentence as deterministic.",
-        action='store_true'
+        "-d",
+        "--deterministic",
+        help="Treat the sentence as deterministic.",
+        action="store_true",
     )
     sharpsat_parser.set_defaults(func=sharpsat)
 
     info_parser = subparsers.add_parser(
-        'info', help="View basic information about a sentence."
+        "info", help="View basic information about a sentence."
     )
     info_parser.add_argument(
-        'file', type=str, help="The file with the sentence to inspect."
+        "file", type=str, help="The file with the sentence to inspect."
     )
     info_parser.set_defaults(func=info)
 
-    draw_parser = subparsers.add_parser(
-        'draw', help="Draw a sentence with graphviz."
+    draw_parser = subparsers.add_parser("draw", help="Draw a sentence with graphviz.")
+    draw_parser.add_argument(
+        "file", type=str, help="The file with the sentence to draw."
     )
     draw_parser.add_argument(
-        'file', type=str, help="The file with the sentence to draw."
+        "out", type=str, help="The destination to write the drawing to."
     )
     draw_parser.add_argument(
-        'out', type=str, help="The destination to write the drawing to."
+        "-s", "--symbol", action="store_true", help="Use symbols instead of text."
     )
     draw_parser.add_argument(
-        '-s', '--symbol', action='store_true',
-        help="Use symbols instead of text."
+        "-c", "--color", action="store_true", help="Color the nodes."
     )
     draw_parser.add_argument(
-        '-c', '--color', action='store_true', help="Color the nodes."
-    )
-    draw_parser.add_argument(
-        '-f', '--format', type=str, default=None,
+        "-f",
+        "--format",
+        type=str,
+        default=None,
         help="Override the output format. May be useful if writing to - "
-             "(stdout). Should be a valid value for dot's -T argument."
+        "(stdout). Should be a valid value for dot's -T argument.",
     )
     draw_parser.set_defaults(func=draw)
 
@@ -114,7 +117,7 @@ def main(argv: t.Sequence[str] = sys.argv[1:]) -> int:
         print("Error: can't be quiet and verbose at the same time")
         return 1
 
-    if not hasattr(args, 'func'):
+    if not hasattr(args, "func"):
         parser.print_help()
         return 1
 
@@ -183,29 +186,31 @@ def info(args: argparse.Namespace) -> int:
 
 
 def extension(fname: str) -> t.Optional[str]:
-    if '.' not in fname:
+    if "." not in fname:
         return None
-    return fname.rsplit('.', 1)[-1].casefold()
+    return fname.rsplit(".", 1)[-1].casefold()
 
 
 def draw(args: argparse.Namespace) -> int:
     with open_read(args.file) as f:
         sentence = dimacs.load(f)
-    label = 'symbol' if args.symbol else 'text'
+    label = "symbol" if args.symbol else "text"
     dot = sentence.to_DOT(color=args.color, label=label)
 
     ext = extension(args.out)
     if ext in DOT_FORMATS or args.format is not None:
-        argv = ['dot', '-T' + (ext if args.format is None  # type: ignore
-                               else args.format)]
-        if args.out != '-':
-            argv.append('-o' + args.out)
+        argv = [
+            "dot",
+            "-T" + (ext if args.format is None else args.format),  # type: ignore
+        ]
+        if args.out != "-":
+            argv.append("-o" + args.out)
         try:
-            proc = subprocess.Popen(argv, stdin=subprocess.PIPE,
-                                    universal_newlines=True)
+            proc = subprocess.Popen(
+                argv, stdin=subprocess.PIPE, universal_newlines=True
+            )
         except FileNotFoundError:
-            print("Can't find `dot` executable. Is it installed and in your "
-                  "PATH?")
+            print("Can't find `dot` executable. Is it installed and in your " "PATH?")
             return 1
         assert proc.stdin
         proc.stdin.write(dot)

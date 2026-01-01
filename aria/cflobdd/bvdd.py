@@ -25,11 +25,15 @@
 
 import threading
 
+
 def utilization(hits, misses):
     if hits + misses == 0:
         return "0.0%"
     else:
-        return f"{round(hits / (hits + misses) * 100, 2)}% ({hits} hits, {misses} misses)"
+        return (
+            f"{round(hits / (hits + misses) * 100, 2)}% ({hits} hits, {misses} misses)"
+        )
+
 
 class BVDD_Node:
     node_cache_lock = threading.Lock()
@@ -41,8 +45,16 @@ class BVDD_Node:
             # all inputs map to the same output
             return "{" + f"[0,255] -> {self.get_dont_care_output()}" + "}"
         else:
-            return "{" + ", ".join([f"{BVDD_Node.get_input_values(inputs)} -> {output}"
-                for output, inputs in self.get_o2s().items()]) + "}"
+            return (
+                "{"
+                + ", ".join(
+                    [
+                        f"{BVDD_Node.get_input_values(inputs)} -> {output}"
+                        for output, inputs in self.get_o2s().items()
+                    ]
+                )
+                + "}"
+            )
 
     def cache(self):
         if self in BVDD_Node.node_cache:
@@ -93,7 +105,7 @@ class BVDD_Node:
     def number_of_exits(self):
         return self.number_of_distinct_outputs()
 
-    def number_of_distinct_inputs(self, output_value = None):
+    def number_of_distinct_inputs(self, output_value=None):
         if self.is_dont_care():
             # dont-care inputs do not count
             output = self.get_dont_care_output()
@@ -108,7 +120,9 @@ class BVDD_Node:
                 output = s2o[inputs]
                 if isinstance(output, BVDD):
                     other_count = output.number_of_distinct_inputs(output_value)
-                    assert output_value is not None or other_count > 0 # assert output.is_reduced()
+                    assert (
+                        output_value is not None or other_count > 0
+                    )  # assert output.is_reduced()
                 elif output_value is None or output == output_value:
                     other_count = 1
                 else:
@@ -121,20 +135,24 @@ class BVDD_Node:
 
     def get_input_values(inputs):
         assert inputs > 0
-        input_values = [input_value for input_value in range(256)
-            if 2**input_value & inputs != 0]
+        input_values = [
+            input_value for input_value in range(256) if 2**input_value & inputs != 0
+        ]
         if len(input_values) <= 128:
             return str(input_values)
         else:
-            not_input_values = [not_input_value for not_input_value in range(256)
-                if 2**not_input_value & inputs == 0]
+            not_input_values = [
+                not_input_value
+                for not_input_value in range(256)
+                if 2**not_input_value & inputs == 0
+            ]
             return "not " + str(not_input_values)
 
-    def get_paths(self, exit_i, index_i = 0):
+    def get_paths(self, exit_i, index_i=0):
         path = []
         o2s = self.get_o2s()
         for output in o2s:
-            inputs = o2s[output] if o2s[output] < 2**256-1 else 0
+            inputs = o2s[output] if o2s[output] < 2**256 - 1 else 0
             if isinstance(output, BVDD):
                 other_path = output.get_paths(exit_i, index_i + 1)
                 if other_path:
@@ -175,7 +193,7 @@ class BVDD_Node:
         # use offset 1 for CFLOBVDDs
         return BVDD.projection(index, 1)
 
-    def apply(self, return_tuple, index = 0, level = 0):
+    def apply(self, return_tuple, index=0, level=0):
         new_bvdd = type(self)({})
         s2o = self.get_s2o()
         for inputs in s2o:
@@ -183,7 +201,9 @@ class BVDD_Node:
             if isinstance(output, BVDD):
                 new_bvdd.set(inputs, output.apply(return_tuple, index + 1, level))
             elif index < 2**level - 1:
-                new_bvdd.set(inputs, BVDD.constant(output).apply(return_tuple, index + 1, level))
+                new_bvdd.set(
+                    inputs, BVDD.constant(output).apply(return_tuple, index + 1, level)
+                )
             else:
                 new_bvdd.set(inputs, return_tuple[output])
         return new_bvdd.reduce_SBDD().reduce_BVDD(index)
@@ -204,7 +224,7 @@ class BVDD_Node:
         swap2right_bvdd = type(self)({})
         swap2right_exit_i = 1
         new_bvdd = BVDD.constant(1)
-        return_tuples = {1:{}}
+        return_tuples = {1: {}}
         s2o = self.get_s2o()
         for inputs in s2o:
             swap2right_bvdd.set(inputs, swap2right_exit_i)
@@ -213,14 +233,21 @@ class BVDD_Node:
             if not isinstance(output, BVDD):
                 output = BVDD.constant(output)
             new_bvdd, pt = new_bvdd.pair_product(output)
-            return_tuples = dict([(i,
-                # pt[i][0] is the exit index of the already paired swap2left BVDDs
-                # pt[i][1] is the exit index or output of the next swap2left BVDD being paired
-                return_tuples[pt[i][0]] | {len(return_tuples[pt[i][0]]) + 1:pt[i][1]})
-                    for i in pt])
+            return_tuples = dict(
+                [
+                    (
+                        i,
+                        # pt[i][0] is the exit index of the already paired swap2left BVDDs
+                        # pt[i][1] is the exit index or output of the next swap2left BVDD being paired
+                        return_tuples[pt[i][0]]
+                        | {len(return_tuples[pt[i][0]]) + 1: pt[i][1]},
+                    )
+                    for i in pt
+                ]
+            )
         return new_bvdd.link(swap2right_bvdd, return_tuples)
 
-    def unapply(self, b_rt_inv, rt = None, rt_inv = None, index = 0):
+    def unapply(self, b_rt_inv, rt=None, rt_inv=None, index=0):
         new_bvdd = type(self)({})
         b_rt_inv = b_rt_inv if b_rt_inv is not None else {}
         rt = rt if rt is not None else {}
@@ -229,7 +256,9 @@ class BVDD_Node:
         for inputs in s2o:
             output = s2o[inputs]
             if isinstance(output, BVDD):
-                output, b_rt_inv, rt, rt_inv = output.unapply(b_rt_inv, rt, rt_inv, index + 1)
+                output, b_rt_inv, rt, rt_inv = output.unapply(
+                    b_rt_inv, rt, rt_inv, index + 1
+                )
                 new_bvdd.set(inputs, output)
             else:
                 if output not in rt_inv:
@@ -240,7 +269,9 @@ class BVDD_Node:
                 new_bvdd.set(inputs, rt_inv[output])
         return new_bvdd.reduce_SBDD().reduce_BVDD(index), b_rt_inv, rt, rt_inv
 
-    def upsample(self, level, a_rt_inv = None, b_rt_inv = None, b_cs = None, b_rts = None, index = 0):
+    def upsample(
+        self, level, a_rt_inv=None, b_rt_inv=None, b_cs=None, b_rts=None, index=0
+    ):
         a_c = type(self)({})
         a_rt_inv = a_rt_inv if a_rt_inv is not None else {}
         b_rt_inv = b_rt_inv if b_rt_inv is not None else {}
@@ -251,9 +282,10 @@ class BVDD_Node:
             output = s2o[inputs]
             if isinstance(output, BVDD):
                 assert level > 0
-                if index < 2**(level - 1) - 1:
-                    output, a_rt_inv, b_rt_inv, b_cs, b_rts = output.upsample(level,
-                        a_rt_inv, b_rt_inv, b_cs, b_rts, index + 1)
+                if index < 2 ** (level - 1) - 1:
+                    output, a_rt_inv, b_rt_inv, b_cs, b_rts = output.upsample(
+                        level, a_rt_inv, b_rt_inv, b_cs, b_rts, index + 1
+                    )
                     a_c.set(inputs, output)
                 else:
                     output, b_rt_inv, rt, rt_inv = output.unapply(b_rt_inv)
@@ -269,15 +301,23 @@ class BVDD_Node:
                     if output not in b_rt_inv:
                         b_rt_inv[output] = len(b_rt_inv) + 1
                     b_cs[a_rt_inv[output]] = BVDD.constant(1)
-                    b_rts[a_rt_inv[output]] = {1:b_rt_inv[output]}
+                    b_rts[a_rt_inv[output]] = {1: b_rt_inv[output]}
                 a_c.set(inputs, a_rt_inv[output])
         return a_c.reduce_SBDD().reduce_BVDD(index), a_rt_inv, b_rt_inv, b_cs, b_rts
 
     def downsample(self, level, bvdds, return_tuples):
         assert level > 0
         # apply to bvdds may reduce to constants
-        return self.apply(dict([(exit_i, bvdds[exit_i].apply(return_tuples[exit_i], 1))
-            for exit_i in bvdds]), 0, level - 1)
+        return self.apply(
+            dict(
+                [
+                    (exit_i, bvdds[exit_i].apply(return_tuples[exit_i], 1))
+                    for exit_i in bvdds
+                ]
+            ),
+            0,
+            level - 1,
+        )
 
     def tuple2exit(tuple_inv, tuple_ins):
         if tuple_ins not in tuple_inv:
@@ -287,25 +327,35 @@ class BVDD_Node:
     def pair_product(self, bvdd2):
         assert type(bvdd2) is type(self)
         pair_inv = {}
-        return (self.compute_binary(lambda x, y: BVDD_Node.tuple2exit(pair_inv, (x, y)), bvdd2),
-            dict([(pair_inv[pair], pair) for pair in pair_inv]))
+        return (
+            self.compute_binary(
+                lambda x, y: BVDD_Node.tuple2exit(pair_inv, (x, y)), bvdd2
+            ),
+            dict([(pair_inv[pair], pair) for pair in pair_inv]),
+        )
 
     def triple_product(self, bvdd2, bvdd3):
         assert type(bvdd2) is type(self)
         assert type(bvdd3) is type(self)
         triple_inv = {}
-        return (self.compute_ternary(lambda x, y, z: BVDD_Node.tuple2exit(triple_inv, (x, y, z)), bvdd2, bvdd3),
-            dict([(triple_inv[triple], triple) for triple in triple_inv]))
+        return (
+            self.compute_ternary(
+                lambda x, y, z: BVDD_Node.tuple2exit(triple_inv, (x, y, z)),
+                bvdd2,
+                bvdd3,
+            ),
+            dict([(triple_inv[triple], triple) for triple in triple_inv]),
+        )
 
     def reduce_SBDD(self):
         # only for i2o and o2s
         return self.cache()
 
-    def reduce_BVDD(self, index = 1):
+    def reduce_BVDD(self, index=1):
         # dont-care SBDDs are not reduced
         return self.cache()
 
-    def reduce(self, reduction_tuple, index = 0):
+    def reduce(self, reduction_tuple, index=0):
         new_bvdd = type(self)({})
         s2o = self.get_s2o()
         for inputs in s2o:
@@ -324,7 +374,9 @@ class BVDD_Node:
 
     def print_profile():
         print("BVDD cache profile:")
-        print(f"nodes: {utilization(BVDD_Node.node_cache_hits, len(BVDD_Node.node_cache))}")
+        print(
+            f"nodes: {utilization(BVDD_Node.node_cache_hits, len(BVDD_Node.node_cache))}"
+        )
 
     def extract(self, output_value):
         new_bvdd = BVDD({})
@@ -341,13 +393,16 @@ class BVDD_Node:
         return new_bvdd
 
     def get_printed_BVDD(self, output_value):
-        return (f"{type(self).__name__}:\n" +
-            f"{self.number_of_connections()} connections\n" +
-            f"{self.number_of_outputs()} output values\n" +
-            f"{self.number_of_distinct_outputs()} distinct output values (exits)\n" +
-            f"{self.number_of_distinct_inputs()} distinct inputs\n" +
-            f"{self.number_of_solutions(output_value)} solutions\n" +
-            f"{self.extract(output_value)}")
+        return (
+            f"{type(self).__name__}:\n"
+            + f"{self.number_of_connections()} connections\n"
+            + f"{self.number_of_outputs()} output values\n"
+            + f"{self.number_of_distinct_outputs()} distinct output values (exits)\n"
+            + f"{self.number_of_distinct_inputs()} distinct inputs\n"
+            + f"{self.number_of_solutions(output_value)} solutions\n"
+            + f"{self.extract(output_value)}"
+        )
+
 
 class SBDD_i2o(BVDD_Node):
     # single-byte decision diagram with naive input-to-output mapping
@@ -355,7 +410,12 @@ class SBDD_i2o(BVDD_Node):
         self.i2o = i2o
 
     def __hash__(self):
-        return hash((tuple(self.i2o.items()), tuple(isinstance(o, bool) for o in self.i2o.values())))
+        return hash(
+            (
+                tuple(self.i2o.items()),
+                tuple(isinstance(o, bool) for o in self.i2o.values()),
+            )
+        )
 
     def __eq__(self, bvdd2):
         return self is bvdd2 or (type(bvdd2) is type(self) and self.i2o == bvdd2.i2o)
@@ -396,25 +456,30 @@ class SBDD_i2o(BVDD_Node):
         return self.is_constant() and True in self.i2o.values()
 
     def constant_BVDD(self, output):
-        assert (isinstance(output, bool) or
-            isinstance(output, int) or
-            isinstance(output, type(self)))
+        assert (
+            isinstance(output, bool)
+            or isinstance(output, int)
+            or isinstance(output, type(self))
+        )
         self.i2o = dict([(input_value, output) for input_value in range(256)])
         return self.reduce_SBDD()
 
     def constant(output_value):
         return SBDD_i2o({}).constant_BVDD(output_value)
 
-    def projection_BVDD(self, index = 0, offset = 0):
-        self.i2o = dict([(input_value, input_value + offset) for input_value in range(256)])
+    def projection_BVDD(self, index=0, offset=0):
+        self.i2o = dict(
+            [(input_value, input_value + offset) for input_value in range(256)]
+        )
         return self.reduce_SBDD()
 
-    def projection(index = 0, offset = 0):
+    def projection(index=0, offset=0):
         return SBDD_i2o({}).projection_BVDD(index, offset)
 
     def compute_unary(self, op):
-        return type(self)(dict([(input_value, op(self.i2o[input_value]))
-            for input_value in self.i2o])).reduce_SBDD()
+        return type(self)(
+            dict([(input_value, op(self.i2o[input_value])) for input_value in self.i2o])
+        ).reduce_SBDD()
 
     def intersect_binary(self, bvdd2):
         assert type(bvdd2) is type(self)
@@ -424,9 +489,14 @@ class SBDD_i2o(BVDD_Node):
     def compute_binary(self, op, bvdd2):
         assert type(bvdd2) is type(self)
         bvdd1 = self
-        return type(self)(dict([(input_value,
-            op(bvdd1.i2o[input_value], bvdd2.i2o[input_value]))
-                for input_value, _ in bvdd1.intersect_binary(bvdd2)])).reduce_SBDD()
+        return type(self)(
+            dict(
+                [
+                    (input_value, op(bvdd1.i2o[input_value], bvdd2.i2o[input_value]))
+                    for input_value, _ in bvdd1.intersect_binary(bvdd2)
+                ]
+            )
+        ).reduce_SBDD()
 
     def intersect_ternary(self, bvdd2, bvdd3):
         assert type(bvdd2) is type(self)
@@ -438,9 +508,22 @@ class SBDD_i2o(BVDD_Node):
         assert type(bvdd2) is type(self)
         assert type(bvdd3) is type(self)
         bvdd1 = self
-        return type(self)(dict([(input_value,
-            op(bvdd1.i2o[input_value], bvdd2.i2o[input_value], bvdd3.i2o[input_value]))
-                for input_value, _, _ in bvdd1.intersect_ternary(bvdd2, bvdd3)])).reduce_SBDD()
+        return type(self)(
+            dict(
+                [
+                    (
+                        input_value,
+                        op(
+                            bvdd1.i2o[input_value],
+                            bvdd2.i2o[input_value],
+                            bvdd3.i2o[input_value],
+                        ),
+                    )
+                    for input_value, _, _ in bvdd1.intersect_ternary(bvdd2, bvdd3)
+                ]
+            )
+        ).reduce_SBDD()
+
 
 class SBDD_s2o(BVDD_Node):
     # single-byte decision diagram with input-sets-to-output mapping
@@ -448,7 +531,12 @@ class SBDD_s2o(BVDD_Node):
         self.s2o = s2o
 
     def __hash__(self):
-        return hash((tuple(self.s2o.items()), tuple(isinstance(o, bool) for o in self.s2o.values())))
+        return hash(
+            (
+                tuple(self.s2o.items()),
+                tuple(isinstance(o, bool) for o in self.s2o.values()),
+            )
+        )
 
     def __eq__(self, bvdd2):
         return self is bvdd2 or (type(bvdd2) is type(self) and self.s2o == bvdd2.s2o)
@@ -485,20 +573,24 @@ class SBDD_s2o(BVDD_Node):
         return self.is_constant() and True in self.s2o.values()
 
     def constant_BVDD(self, output):
-        assert (isinstance(output, bool) or
-            isinstance(output, int) or
-            type(output) is type(self))
-        self.s2o = {2**256-1:output}
+        assert (
+            isinstance(output, bool)
+            or isinstance(output, int)
+            or type(output) is type(self)
+        )
+        self.s2o = {2**256 - 1: output}
         return self.reduce_SBDD()
 
     def constant(output_value):
         return SBDD_s2o({}).constant_BVDD(output_value)
 
-    def projection_BVDD(self, index = 0, offset = 0):
-        self.s2o = dict([(2**input_value, input_value + offset) for input_value in range(256)])
+    def projection_BVDD(self, index=0, offset=0):
+        self.s2o = dict(
+            [(2**input_value, input_value + offset) for input_value in range(256)]
+        )
         return self.reduce_SBDD()
 
-    def projection(index = 0, offset = 0):
+    def projection(index=0, offset=0):
         return SBDD_s2o({}).projection_BVDD(index, offset)
 
     def reduce_SBDD(self):
@@ -510,40 +602,62 @@ class SBDD_s2o(BVDD_Node):
         return self.cache()
 
     def compute_unary(self, op):
-        return type(self)(dict([(inputs, op(self.s2o[inputs])) for inputs in self.s2o])).reduce_SBDD()
+        return type(self)(
+            dict([(inputs, op(self.s2o[inputs])) for inputs in self.s2o])
+        ).reduce_SBDD()
 
     def intersect_binary(self, bvdd2):
         assert type(bvdd2) is type(self)
         bvdd1 = self
-        return [(inputs1, inputs2)
+        return [
+            (inputs1, inputs2)
             for inputs1 in bvdd1.s2o
-                for inputs2 in bvdd2.s2o
-                    if inputs1 & inputs2]
+            for inputs2 in bvdd2.s2o
+            if inputs1 & inputs2
+        ]
 
     def compute_binary(self, op, bvdd2):
         assert type(bvdd2) is type(self)
         bvdd1 = self
-        return type(self)(dict([(inputs1 & inputs2,
-            op(bvdd1.s2o[inputs1], bvdd2.s2o[inputs2]))
-                for inputs1, inputs2 in bvdd1.intersect_binary(bvdd2)])).reduce_SBDD()
+        return type(self)(
+            dict(
+                [
+                    (inputs1 & inputs2, op(bvdd1.s2o[inputs1], bvdd2.s2o[inputs2]))
+                    for inputs1, inputs2 in bvdd1.intersect_binary(bvdd2)
+                ]
+            )
+        ).reduce_SBDD()
 
     def intersect_ternary(self, bvdd2, bvdd3):
         assert type(bvdd2) is type(self)
         assert type(bvdd3) is type(self)
         bvdd1 = self
-        return [(inputs1, inputs2, inputs3)
+        return [
+            (inputs1, inputs2, inputs3)
             for inputs1 in bvdd1.s2o
-                for inputs2 in bvdd2.s2o
-                    for inputs3 in bvdd3.s2o
-                        if inputs1 & inputs2 & inputs3]
+            for inputs2 in bvdd2.s2o
+            for inputs3 in bvdd3.s2o
+            if inputs1 & inputs2 & inputs3
+        ]
 
     def compute_ternary(self, op, bvdd2, bvdd3):
         assert type(bvdd2) is type(self)
         assert type(bvdd3) is type(self)
         bvdd1 = self
-        return type(self)(dict([(inputs1 & inputs2 & inputs3,
-            op(bvdd1.s2o[inputs1], bvdd2.s2o[inputs2], bvdd3.s2o[inputs3]))
-                for inputs1, inputs2, inputs3 in bvdd1.intersect_ternary(bvdd2, bvdd3)])).reduce_SBDD()
+        return type(self)(
+            dict(
+                [
+                    (
+                        inputs1 & inputs2 & inputs3,
+                        op(bvdd1.s2o[inputs1], bvdd2.s2o[inputs2], bvdd3.s2o[inputs3]),
+                    )
+                    for inputs1, inputs2, inputs3 in bvdd1.intersect_ternary(
+                        bvdd2, bvdd3
+                    )
+                ]
+            )
+        ).reduce_SBDD()
+
 
 class SBDD_o2s(BVDD_Node):
     # single-byte decision diagram with output-to-input-sets mapping
@@ -551,7 +665,9 @@ class SBDD_o2s(BVDD_Node):
         self.o2s = o2s
 
     def __hash__(self):
-        return hash((tuple(self.o2s.items()), tuple(isinstance(o, bool) for o in self.o2s)))
+        return hash(
+            (tuple(self.o2s.items()), tuple(isinstance(o, bool) for o in self.o2s))
+        )
 
     def __eq__(self, bvdd2):
         return self is bvdd2 or (type(bvdd2) is type(self) and self.o2s == bvdd2.o2s)
@@ -585,20 +701,24 @@ class SBDD_o2s(BVDD_Node):
         return self.is_constant() and True in self.o2s
 
     def constant_BVDD(self, output):
-        assert (isinstance(output, bool) or
-            isinstance(output, int) or
-            type(output) is type(self))
-        self.o2s = {output:2**256-1}
+        assert (
+            isinstance(output, bool)
+            or isinstance(output, int)
+            or type(output) is type(self)
+        )
+        self.o2s = {output: 2**256 - 1}
         return self.reduce_SBDD()
 
     def constant(output_value):
         return SBDD_o2s({}).constant_BVDD(output_value)
 
-    def projection_BVDD(self, index = 0, offset = 0):
-        self.o2s = dict([(input_value + offset, 2**input_value) for input_value in range(256)])
+    def projection_BVDD(self, index=0, offset=0):
+        self.o2s = dict(
+            [(input_value + offset, 2**input_value) for input_value in range(256)]
+        )
         return self.reduce_SBDD()
 
-    def projection(index = 0, offset = 0):
+    def projection(index=0, offset=0):
         return SBDD_o2s({}).projection_BVDD(index, offset)
 
     def compute_unary(self, op):
@@ -610,10 +730,12 @@ class SBDD_o2s(BVDD_Node):
     def intersect_binary(self, bvdd2):
         assert type(bvdd2) is type(self)
         bvdd1 = self
-        return [(output1, output2)
+        return [
+            (output1, output2)
             for output1 in bvdd1.o2s
-                for output2 in bvdd2.o2s
-                    if bvdd1.o2s[output1] & bvdd2.o2s[output2]]
+            for output2 in bvdd2.o2s
+            if bvdd1.o2s[output1] & bvdd2.o2s[output2]
+        ]
 
     def compute_binary(self, op, bvdd2):
         assert type(bvdd2) is type(self)
@@ -627,11 +749,13 @@ class SBDD_o2s(BVDD_Node):
         assert type(bvdd2) is type(self)
         assert type(bvdd3) is type(self)
         bvdd1 = self
-        return [(output1, output2, output3)
+        return [
+            (output1, output2, output3)
             for output1 in bvdd1.o2s
-                for output2 in bvdd2.o2s
-                    for output3 in bvdd3.o2s
-                        if bvdd1.o2s[output1] & bvdd2.o2s[output2] & bvdd3.o2s[output3]]
+            for output2 in bvdd2.o2s
+            for output3 in bvdd3.o2s
+            if bvdd1.o2s[output1] & bvdd2.o2s[output2] & bvdd3.o2s[output3]
+        ]
 
     def compute_ternary(self, op, bvdd2, bvdd3):
         assert type(bvdd2) is type(self)
@@ -639,21 +763,24 @@ class SBDD_o2s(BVDD_Node):
         bvdd1 = self
         new_bvdd = type(self)({})
         for output1, output2, output3 in bvdd1.intersect_ternary(bvdd2, bvdd3):
-            new_bvdd.map(bvdd1.o2s[output1] & bvdd2.o2s[output2] & bvdd3.o2s[output3],
-                op(output1, output2, output3))
+            new_bvdd.map(
+                bvdd1.o2s[output1] & bvdd2.o2s[output2] & bvdd3.o2s[output3],
+                op(output1, output2, output3),
+            )
         return new_bvdd.reduce_SBDD()
+
 
 class BVDD_uncached(SBDD_o2s):
     def constant(output_value):
         return BVDD({}).constant_BVDD(output_value)
 
-    def projection(index, offset = 0):
+    def projection(index, offset=0):
         if index == 0:
             return BVDD({}).projection_BVDD(0, offset)
         else:
             return BVDD({}).constant_BVDD(BVDD.projection(index - 1, offset))
 
-    def reduce_BVDD(self, index = 1):
+    def reduce_BVDD(self, index=1):
         assert self.is_reduced()
         if index > 0 and self.is_constant():
             # all inputs map to a constant
@@ -683,7 +810,9 @@ class BVDD_uncached(SBDD_o2s):
             return op(output1, output2)
 
     def compute_binary(self, op, bvdd2):
-        assert isinstance(bvdd2, bool) or isinstance(bvdd2, int) or isinstance(bvdd2, BVDD)
+        assert (
+            isinstance(bvdd2, bool) or isinstance(bvdd2, int) or isinstance(bvdd2, BVDD)
+        )
         return super().compute_binary(lambda x, y: BVDD.op_binary(op, x, y), bvdd2)
 
     def op_ternary(op, output1, output2, output3):
@@ -692,32 +821,51 @@ class BVDD_uncached(SBDD_o2s):
                 if isinstance(output3, BVDD):
                     return output1.compute_ternary(op, output2, output3).reduce_BVDD()
                 else:
-                    return output1.compute_binary(lambda x, y: op(x, y, output3), output2).reduce_BVDD()
+                    return output1.compute_binary(
+                        lambda x, y: op(x, y, output3), output2
+                    ).reduce_BVDD()
             elif isinstance(output3, BVDD):
-                return output1.compute_binary(lambda x, y: op(x, output2, y), output3).reduce_BVDD()
+                return output1.compute_binary(
+                    lambda x, y: op(x, output2, y), output3
+                ).reduce_BVDD()
             else:
-                return output1.compute_unary(lambda x: op(x, output2, output3)).reduce_BVDD()
+                return output1.compute_unary(
+                    lambda x: op(x, output2, output3)
+                ).reduce_BVDD()
         elif isinstance(output2, BVDD):
             if isinstance(output3, BVDD):
-                return output2.compute_binary(lambda x, y: op(output1, x, y), output3).reduce_BVDD()
+                return output2.compute_binary(
+                    lambda x, y: op(output1, x, y), output3
+                ).reduce_BVDD()
             else:
-                return output2.compute_unary(lambda x: op(output1, x, output3)).reduce_BVDD()
+                return output2.compute_unary(
+                    lambda x: op(output1, x, output3)
+                ).reduce_BVDD()
         elif isinstance(output3, BVDD):
-            return output3.compute_unary(lambda x: op(output1, output2, x)).reduce_BVDD()
+            return output3.compute_unary(
+                lambda x: op(output1, output2, x)
+            ).reduce_BVDD()
         else:
             return op(output1, output2, output3)
 
     def compute_ternary(self, op, bvdd2, bvdd3):
-        assert isinstance(bvdd2, bool) or isinstance(bvdd2, int) or isinstance(bvdd2, BVDD)
-        assert isinstance(bvdd3, bool) or isinstance(bvdd3, int) or isinstance(bvdd3, BVDD)
-        return super().compute_ternary(lambda x, y, z: BVDD.op_ternary(op, x, y, z), bvdd2, bvdd3)
+        assert (
+            isinstance(bvdd2, bool) or isinstance(bvdd2, int) or isinstance(bvdd2, BVDD)
+        )
+        assert (
+            isinstance(bvdd3, bool) or isinstance(bvdd3, int) or isinstance(bvdd3, BVDD)
+        )
+        return super().compute_ternary(
+            lambda x, y, z: BVDD.op_ternary(op, x, y, z), bvdd2, bvdd3
+        )
+
 
 class BVDD_cached(BVDD_uncached):
     intersect_binary_lock = threading.Lock()
     intersect_binary_cache = {}
     intersect_binary_hits = 0
 
-    def intersect_binary(self, bvdd2, intersection = None):
+    def intersect_binary(self, bvdd2, intersection=None):
         if (self, bvdd2) in BVDD_cached.intersect_binary_cache:
             BVDD_cached.intersect_binary_hits += 1
         elif intersection:
@@ -734,7 +882,7 @@ class BVDD_cached(BVDD_uncached):
     intersect_ternary_cache = {}
     intersect_ternary_hits = 0
 
-    def intersect_ternary(self, bvdd2, bvdd3, intersection = None):
+    def intersect_ternary(self, bvdd2, bvdd3, intersection=None):
         if (self, bvdd2, bvdd3) in BVDD_cached.intersect_ternary_cache:
             BVDD_cached.intersect_ternary_hits += 1
         elif intersection:
@@ -751,7 +899,7 @@ class BVDD_cached(BVDD_uncached):
     constant_cache = {}
     constant_hits = 0
 
-    def constant_BVDD(self, output, constant = None):
+    def constant_BVDD(self, output, constant=None):
         if output in BVDD_cached.constant_cache:
             BVDD_cached.constant_hits += 1
         elif constant:
@@ -768,7 +916,7 @@ class BVDD_cached(BVDD_uncached):
     projection_cache = {}
     projection_hits = 0
 
-    def projection_BVDD(self, index = 0, offset = 0, projection = None):
+    def projection_BVDD(self, index=0, offset=0, projection=None):
         if index in BVDD_cached.projection_cache:
             BVDD_cached.projection_hits += 1
         elif projection:
@@ -785,7 +933,7 @@ class BVDD_cached(BVDD_uncached):
     compute_unary_cache = {}
     compute_unary_hits = 0
 
-    def compute_unary(self, op, unary = None):
+    def compute_unary(self, op, unary=None):
         if (op, self) in BVDD_cached.compute_unary_cache:
             BVDD_cached.compute_unary_hits += 1
         elif unary:
@@ -802,7 +950,7 @@ class BVDD_cached(BVDD_uncached):
     compute_binary_cache = {}
     compute_binary_hits = 0
 
-    def compute_binary(self, op, bvdd2, binary = None):
+    def compute_binary(self, op, bvdd2, binary=None):
         if (op, self, bvdd2) in BVDD_cached.compute_binary_cache:
             BVDD_cached.compute_binary_hits += 1
         elif binary:
@@ -819,7 +967,7 @@ class BVDD_cached(BVDD_uncached):
     compute_ternary_cache = {}
     compute_ternary_hits = 0
 
-    def compute_ternary(self, op, bvdd2, bvdd3, ternary = None):
+    def compute_ternary(self, op, bvdd2, bvdd3, ternary=None):
         if (op, self, bvdd2, bvdd3) in BVDD_cached.compute_ternary_cache:
             BVDD_cached.compute_ternary_hits += 1
         elif ternary:
@@ -834,14 +982,31 @@ class BVDD_cached(BVDD_uncached):
 
     def print_profile():
         print("BVDD cache profile:")
-        print(f"nodes:                {utilization(BVDD_Node.node_cache_hits, len(BVDD_Node.node_cache))}")
-        print(f"binary intersection:  {utilization(BVDD_cached.intersect_binary_hits, len(BVDD_cached.intersect_binary_cache))}")
-        print(f"ternary intersection: {utilization(BVDD_cached.intersect_ternary_hits, len(BVDD_cached.intersect_ternary_cache))}")
-        print(f"constants:            {utilization(BVDD_cached.constant_hits, len(BVDD_cached.constant_cache))}")
-        print(f"projection:           {utilization(BVDD_cached.projection_hits, len(BVDD_cached.projection_cache))}")
-        print(f"unary operators:      {utilization(BVDD_cached.compute_unary_hits, len(BVDD_cached.compute_unary_cache))}")
-        print(f"binary operators:     {utilization(BVDD_cached.compute_binary_hits, len(BVDD_cached.compute_binary_cache))}")
-        print(f"ternary operators:    {utilization(BVDD_cached.compute_ternary_hits, len(BVDD_cached.compute_ternary_cache))}")
+        print(
+            f"nodes:                {utilization(BVDD_Node.node_cache_hits, len(BVDD_Node.node_cache))}"
+        )
+        print(
+            f"binary intersection:  {utilization(BVDD_cached.intersect_binary_hits, len(BVDD_cached.intersect_binary_cache))}"
+        )
+        print(
+            f"ternary intersection: {utilization(BVDD_cached.intersect_ternary_hits, len(BVDD_cached.intersect_ternary_cache))}"
+        )
+        print(
+            f"constants:            {utilization(BVDD_cached.constant_hits, len(BVDD_cached.constant_cache))}"
+        )
+        print(
+            f"projection:           {utilization(BVDD_cached.projection_hits, len(BVDD_cached.projection_cache))}"
+        )
+        print(
+            f"unary operators:      {utilization(BVDD_cached.compute_unary_hits, len(BVDD_cached.compute_unary_cache))}"
+        )
+        print(
+            f"binary operators:     {utilization(BVDD_cached.compute_binary_hits, len(BVDD_cached.compute_binary_cache))}"
+        )
+        print(
+            f"ternary operators:    {utilization(BVDD_cached.compute_ternary_hits, len(BVDD_cached.compute_ternary_cache))}"
+        )
+
 
 class BVDD(BVDD_uncached):
     pass

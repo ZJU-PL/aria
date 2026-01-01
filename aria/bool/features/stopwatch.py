@@ -1,11 +1,13 @@
 """
 Stopwatch class for timing operations.
 """
+
 import time
 from typing import Optional
 
 
 # perhaps the timeit library would be more suitable
+
 
 class Stopwatch:
     """Stopwatch for measuring elapsed time."""

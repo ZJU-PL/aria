@@ -38,18 +38,18 @@ def test_algorithm(hard, soft, weights, algorithm, timeout_sec=30):
 
         if elapsed > timeout_sec:
             print(f" timed out after {elapsed:.2f}s")
-            return False, None, float('inf'), elapsed
+            return False, None, float("inf"), elapsed
 
         if sat:
             standard_cost = calculate_cost(model, soft, weights)
             print(f" done in {elapsed:.2f}s, cost={standard_cost:.2f}")
             return True, model, standard_cost, elapsed
         print(f" unsatisfiable, time={elapsed:.2f}s")
-        return False, None, float('inf'), elapsed
+        return False, None, float("inf"), elapsed
 
     except (ValueError, RuntimeError) as e:
         print(f" failed: {str(e)}")
-        return False, None, float('inf'), timeout_sec
+        return False, None, float("inf"), timeout_sec
 
 
 def generate_scheduling_problem():
@@ -71,11 +71,13 @@ def generate_scheduling_problem():
 
     # Jobs cannot overlap
     for i in range(n_jobs):
-        for j in range(i+1, n_jobs):
-            hard.append(z3.Or(
-                starts[i] + durations[i] <= starts[j],  # job i before job j
-                starts[j] + durations[j] <= starts[i]   # job j before job i
-            ))
+        for j in range(i + 1, n_jobs):
+            hard.append(
+                z3.Or(
+                    starts[i] + durations[i] <= starts[j],  # job i before job j
+                    starts[j] + durations[j] <= starts[i],  # job j before job i
+                )
+            )
 
     # Soft constraints: try to meet deadlines
     soft = []
@@ -91,7 +93,7 @@ def generate_scheduling_problem():
 
 def generate_boolean_problem():
     """Generate a boolean problem for testing"""
-    a, b, c, d, e = z3.Bools('a b c d e')
+    a, b, c, d, e = z3.Bools("a b c d e")
 
     # Hard constraints
     hard = [
@@ -103,11 +105,11 @@ def generate_boolean_problem():
 
     # Soft constraints - intentionally conflicting
     soft = [
-        a,           # prefer a to be true
-        z3.Not(b),   # prefer b to be false
-        c,           # prefer c to be true
-        d,           # prefer d to be true
-        e,           # prefer e to be true
+        a,  # prefer a to be true
+        z3.Not(b),  # prefer b to be false
+        c,  # prefer c to be true
+        d,  # prefer d to be true
+        e,  # prefer e to be true
     ]
 
     weights = [3.0, 1.0, 2.0, 1.5, 1.5]
@@ -117,13 +119,16 @@ def generate_boolean_problem():
 
 def generate_integer_problem():
     """Generate an integer linear arithmetic problem for testing"""
-    x, y, z = z3.Ints('x y z')
+    x, y, z = z3.Ints("x y z")
 
     # Hard constraints
     hard = [
-        x >= 0, x <= 10,
-        y >= 0, y <= 10,
-        z >= 0, z <= 10,
+        x >= 0,
+        x <= 10,
+        y >= 0,
+        y <= 10,
+        z >= 0,
+        z <= 10,
         x + y + z <= 20,
         x <= y + 5,
     ]
@@ -179,7 +184,7 @@ def compare_algorithms(timeout_sec=30):
     problems = [
         ("Scheduling Problem", generate_scheduling_problem()),
         ("Boolean Problem", generate_boolean_problem()),
-        ("Integer Problem", generate_integer_problem())
+        ("Integer Problem", generate_integer_problem()),
     ]
 
     for problem_name, (hard, soft, weights, problem_vars) in problems:
@@ -198,17 +203,10 @@ def compare_algorithms(timeout_sec=30):
             if sat:
                 successful_models.append(model)
                 successful_algs.append(alg)
-                results[alg] = {
-                    "sat": True,
-                    "time": elapsed_time,
-                    "cost": cost
-                }
+                results[alg] = {"sat": True, "time": elapsed_time, "cost": cost}
             else:
                 successful_models.append(None)
-                results[alg] = {
-                    "sat": False,
-                    "time": elapsed_time
-                }
+                results[alg] = {"sat": False, "time": elapsed_time}
 
         # Compare variable assignments across algorithms
         if successful_models:
@@ -221,7 +219,9 @@ def compare_algorithms(timeout_sec=30):
 
         for alg in algorithms:
             if results[alg]["sat"]:
-                print(f"{alg:10} | Yes     | {results[alg]['time']:8.4f} | {results[alg]['cost']:6.2f}")
+                print(
+                    f"{alg:10} | Yes     | {results[alg]['time']:8.4f} | {results[alg]['cost']:6.2f}"
+                )
             else:
                 print(f"{alg:10} | No      | {results[alg]['time']:8.4f} | --")
 

@@ -1,4 +1,5 @@
 """The interface"""
+
 import json
 from aria.bool.features import parse_cnf, active_features, base_features
 from aria.bool.features.dpll import DPLLProbing
@@ -100,9 +101,9 @@ class SATInstance:
         if self.verbose:
             print("Generating basic features")
 
-        base_features_dict = base_features.compute_base_features(self.clauses, self.c, self.v,
-                                                                 self.num_active_vars,
-                                                                 self.num_active_clauses)
+        base_features_dict = base_features.compute_base_features(
+            self.clauses, self.c, self.v, self.num_active_vars, self.num_active_clauses
+        )
         self.features_dict.update(base_features_dict)
 
     def gen_dpll_probing_features(self):
@@ -159,9 +160,10 @@ def demo_features():
     Demo function to compute and display features.
     """
     from aria.global_params import BENCHMARKS_PATH
+
     cnf_path = BENCHMARKS_PATH / "dimacs" / "parity_5.cnf"
     get_base_features(cnf_path)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     demo_features()

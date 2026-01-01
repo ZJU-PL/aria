@@ -6,6 +6,7 @@ It is an interface for push down automata.
 
 class PDAState:  # pylint: disable=too-few-public-methods
     """This is the structure for a PDA state"""
+
     type = 0
     sym = 0
     trans = None
@@ -28,7 +29,9 @@ class PDAState:  # pylint: disable=too-few-public-methods
         for j in self.trans:
             if len(self.trans[j]) > 1 or (len(self.trans[j]) == 1):
                 for symbol in self.trans[j]:
-                    print(" On Symbol " + repr(symbol) + " Transition To State " + repr(j))
+                    print(
+                        " On Symbol " + repr(symbol) + " Transition To State " + repr(j)
+                    )
 
     def __init__(self):
         """State Initialization"""
@@ -84,14 +87,15 @@ class Syms:  # pylint: disable=invalid-name
         """
         return self.symbols
 
+
 class PythonPDA:
     """This is the structure for a PDA"""
+
     n = 0
     s = None
     accepted = None
     terminals = None
     nonterminals = None
-
 
     def printer(self):
         """Prints PDA states and their attributes"""
@@ -101,7 +105,9 @@ class PythonPDA:
             self.s[i].printer()
             i = i + 1
 
-    def consume_input(self, mystr, stack=None, state=1, curchar=0, depth=0):  # pylint: disable=too-many-arguments,too-many-branches,too-many-return-statements
+    def consume_input(
+        self, mystr, stack=None, state=1, curchar=0, depth=0
+    ):  # pylint: disable=too-many-arguments,too-many-branches,too-many-return-statements
         if stack is None:
             stack = []
         """
@@ -115,18 +121,15 @@ class PythonPDA:
         Returns:
             bool: A value indicating the correct or erroneous execution
         """
-        mystrsplit = mystr.split(' ')
+        mystrsplit = mystr.split(" ")
         if self.s[state].type == 1:
             stack.append(self.s[state].sym)
             if len(self.s[state].trans) > 0:
                 print(state, self.s[state].trans)
                 state = list(self.s[state].trans.keys())[0]
                 if self.consume_input(
-                        mystr,
-                        stack=stack,
-                        state=state,
-                        curchar=curchar,
-                        depth=depth + 1):
+                    mystr, stack=stack, state=state, curchar=curchar, depth=depth + 1
+                ):
                     return True
             return False
         if self.s[state].type == 2:
@@ -136,33 +139,35 @@ class PythonPDA:
             for key in self.s[state].trans:
                 if sym in self.s[state].trans[key]:
                     if self.consume_input(
-                            mystr,
-                            stack=stack,
-                            state=key,
-                            curchar=curchar,
-                            depth=depth + 1):
+                        mystr, stack=stack, state=key, curchar=curchar, depth=depth + 1
+                    ):
                         return True
             return False
         if self.s[state].type == 3:
             for key in self.s[state].trans:
                 if mystrsplit[curchar] in self.s[state].trans[key]:
                     # print 'found '
-                    if curchar + 1 == len(mystrsplit) \
-                            and 'closing' in self.s[key].trans:
+                    if (
+                        curchar + 1 == len(mystrsplit)
+                        and "closing" in self.s[key].trans
+                    ):
                         return True
                     if curchar + 1 == len(mystrsplit):
                         return False
 
                     # print 'lets try as next state the state ' + repr(key)
-                    if self.parse(
+                    if (
+                        self.parse(
                             mystr,
                             stack=stack,
                             state=key,
                             curchar=curchar + 1,
-                            depth=depth + 1) == 1:
+                            depth=depth + 1,
+                        )
+                        == 1
+                    ):
                         return True
             return False
-
 
     def __init__(self, alphabet):
         """

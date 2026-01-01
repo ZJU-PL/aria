@@ -1,6 +1,7 @@
 """
 Yet another parser
 """
+
 from typing import List, Tuple
 from pysat.formula import CNF
 
@@ -17,9 +18,9 @@ def parse_cnf_file(cnf_path: str) -> Tuple[List[List[int]], int, int]:
         c = 0
         v = 0
         for line in f:
-            if line[0] == 'c':
+            if line[0] == "c":
                 continue
-            if line[0] == 'p':
+            if line[0] == "p":
                 sizes = line.split(" ")
                 v = int(sizes[2])
                 c = int(sizes[3])
@@ -40,9 +41,9 @@ def parse_cnf_string(cnf_str: str) -> Tuple[List[List[int]], int, int]:
     c = 0
     v = 0
     for line in cnf_str.split("\n"):
-        if line[0] == 'c':
+        if line[0] == "c":
             continue
-        if line[0] == 'p':
+        if line[0] == "p":
             sizes = line.split(" ")
             v = int(sizes[2])
             c = int(sizes[3])
@@ -52,7 +53,7 @@ def parse_cnf_string(cnf_str: str) -> Tuple[List[List[int]], int, int]:
 
 
 def parse_cnf_numeric_clauses(
-    clauses: List[List[int]]
+    clauses: List[List[int]],
 ) -> Tuple[List[List[int]], int, int]:
     """
     Parse CNF from numeric clauses list.

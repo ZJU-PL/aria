@@ -32,31 +32,34 @@ from aria.optimization.omtbv.bv_opt_maxsat import bv_opt_with_maxsat
 
 logger = logging.getLogger(__name__)
 
+
 class SolverStatus(Enum):
     RUNNING = "running"
     COMPLETED = "completed"
     ERROR = "error"
     TIMEOUT = "timeout"
 
+
 def parse_smt2_value_output(output: str) -> Optional[int]:
     """Parse integer value from SMT-LIB2 solver output like 'sat\n ((var #x40))'."""
     if not output or "sat" not in output.lower():
         return None
 
-    pattern = r'\(\([^\s)]+\s+([^\s)]+)\)\)'
+    pattern = r"\(\([^\s)]+\s+([^\s)]+)\)\)"
     match = re.search(pattern, output)
     if not match:
         return None
 
     value_str = match.group(1).strip()
     try:
-        if value_str.startswith('#x'):
+        if value_str.startswith("#x"):
             return int(value_str[2:], 16)
-        if value_str.startswith('#b'):
+        if value_str.startswith("#b"):
             return int(value_str[2:], 2)
         return int(value_str)
     except (ValueError, AttributeError):
         return None
+
 
 @dataclass
 class ObjectiveResult:
@@ -64,6 +67,7 @@ class ObjectiveResult:
     value: Optional[int]
     status: SolverStatus
     solve_time: float
+
 
 def solve_objective(  # pylint: disable=too-many-positional-arguments
     complete_smt2: str,
@@ -86,7 +90,7 @@ def solve_objective(  # pylint: disable=too-many-positional-arguments
         for assertion in formula_vec:
             if z3.is_eq(assertion) and len(assertion.children()) == 2:
                 left, right = assertion.children()
-                if z3.is_const(left) and left.decl().name() == 'obj_var':
+                if z3.is_const(left) and left.decl().name() == "obj_var":
                     obj = right  # Extract actual objective (x, y, etc.)
                 else:
                     other_assertions.append(assertion)
@@ -105,15 +109,11 @@ def solve_objective(  # pylint: disable=too-many-positional-arguments
         elif engine == "maxsat":
             result = bv_opt_with_maxsat(formula, obj, minimize, solver_name)
         elif engine == "iter":
-            solver_type = solver_name.split('-')[0]
+            solver_type = solver_name.split("-")[0]
             if solver_name.endswith("-ls"):
-                result = bv_opt_with_linear_search(
-                    formula, obj, minimize, solver_type
-                )
+                result = bv_opt_with_linear_search(formula, obj, minimize, solver_type)
             elif solver_name.endswith("-bs"):
-                result = bv_opt_with_binary_search(
-                    formula, obj, minimize, solver_type
-                )
+                result = bv_opt_with_binary_search(formula, obj, minimize, solver_type)
 
         solve_time = time.time() - start_time
 
@@ -135,6 +135,7 @@ def solve_objective(  # pylint: disable=too-many-positional-arguments
         result_queue.put(ObjectiveResult(obj_id, value, status, solve_time))
     except Exception as e:
         error_queue.put((obj_id, str(e)))
+
 
 def solve_boxed_parallel(  # pylint: disable=too-many-positional-arguments
     formula: z3.BoolRef,
@@ -170,20 +171,32 @@ def solve_boxed_parallel(  # pylint: disable=too-many-positional-arguments
     base_smt2 = base_solver.to_smt2()
 
     for i, obj in enumerate(objectives):
-        lines = base_smt2.split('\n')
+        lines = base_smt2.split("\n")
         insert_idx = next(
-            (idx for idx, line in enumerate(lines)
-             if line.strip().startswith("(assert")),
+            (
+                idx
+                for idx, line in enumerate(lines)
+                if line.strip().startswith("(assert")
+            ),
             len(lines),
         )
         sort_str = obj.sort().sexpr()
         lines.insert(insert_idx, f"(declare-const obj_var {sort_str})")
         lines.insert(insert_idx + 1, f"(assert (= obj_var {obj.sexpr()}))")
-        complete_smt2 = '\n'.join(lines)
+        complete_smt2 = "\n".join(lines)
 
-        p = Process(target=solve_objective,
-                   args=(complete_smt2, i, minimize, engine, solver_name,
-                         result_queue, error_queue))
+        p = Process(
+            target=solve_objective,
+            args=(
+                complete_smt2,
+                i,
+                minimize,
+                engine,
+                solver_name,
+                result_queue,
+                error_queue,
+            ),
+        )
         processes.append(p)
         p.start()
 
@@ -228,9 +241,10 @@ def solve_boxed_parallel(  # pylint: disable=too-many-positional-arguments
 
     return results
 
+
 def demo():
     """Demo: parallel boxed optimization with 8-bit wrapped arithmetic."""
-    x, y = z3.BitVecs('x y', 8)
+    x, y = z3.BitVecs("x y", 8)
     formula = z3.And(z3.UGE(x, 0), z3.UGE(y, 0), z3.ULE(x + y, 10))
 
     for engine, solver in [("qsmt", "z3"), ("maxsat", "FM"), ("iter", "z3-ls")]:
@@ -240,6 +254,7 @@ def demo():
             print(f"Results: {results}")
         except Exception as e:
             print(f"Error: {e}")
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

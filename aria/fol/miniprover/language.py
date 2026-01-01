@@ -110,23 +110,23 @@ class Function:
         """Get all free variables in this function."""
         if len(self.terms) == 0:
             return set()
-        return reduce((lambda x, y: x | y),
-                      [term.freeVariables() for term in self.terms])
+        return reduce(
+            (lambda x, y: x | y), [term.freeVariables() for term in self.terms]
+        )
 
     def freeUnificationTerms(self):  # pylint: disable=invalid-name
         """Get all free unification terms in this function."""
         if len(self.terms) == 0:
             return set()
-        return reduce((lambda x, y: x | y),
-                      [term.freeUnificationTerms() for term in self.terms])
+        return reduce(
+            (lambda x, y: x | y), [term.freeUnificationTerms() for term in self.terms]
+        )
 
     def replace(self, old, new):
         """Replace old term with new term recursively."""
         if self == old:
             return new
-        return Function(self.name,
-                        [term.replace(old, new) for term in self.terms]
-                        )
+        return Function(self.name, [term.replace(old, new) for term in self.terms])
 
     def occurs(self, unification_term):
         """Check if unification term occurs in this function."""
@@ -146,20 +146,18 @@ class Function:
             return False
         if len(self.terms) != len(other.terms):
             return False
-        return all(self.terms[i] == other.terms[i]
-                   for i in range(len(self.terms)))
+        return all(self.terms[i] == other.terms[i] for i in range(len(self.terms)))
 
     def __str__(self):
         """String representation of the function."""
         if len(self.terms) == 0:
             return self.name
-        return self.name + '(' + ', '.join(
-            [str(term) for term in self.terms]
-        ) + ')'
+        return self.name + "(" + ", ".join([str(term) for term in self.terms]) + ")"
 
     def __hash__(self):
         """Hash the function."""
         return hash(str(self))
+
 
 ##############################################################################
 # Formulae
@@ -178,23 +176,23 @@ class Predicate:
         """Get all free variables in this predicate."""
         if len(self.terms) == 0:
             return set()
-        return reduce((lambda x, y: x | y),
-                      [term.freeVariables() for term in self.terms])
+        return reduce(
+            (lambda x, y: x | y), [term.freeVariables() for term in self.terms]
+        )
 
     def freeUnificationTerms(self):  # pylint: disable=invalid-name
         """Get all free unification terms in this predicate."""
         if len(self.terms) == 0:
             return set()
-        return reduce((lambda x, y: x | y),
-                      [term.freeUnificationTerms() for term in self.terms])
+        return reduce(
+            (lambda x, y: x | y), [term.freeUnificationTerms() for term in self.terms]
+        )
 
     def replace(self, old, new):
         """Replace old term with new term recursively."""
         if self == old:
             return new
-        return Predicate(self.name,
-                         [term.replace(old, new) for term in self.terms]
-                         )
+        return Predicate(self.name, [term.replace(old, new) for term in self.terms])
 
     def occurs(self, unification_term):
         """Check if unification term occurs in this predicate."""
@@ -208,8 +206,7 @@ class Predicate:
             return False
         if len(self.terms) != len(other.terms):
             return False
-        return all(self.terms[i] == other.terms[i]
-                   for i in range(len(self.terms)))
+        return all(self.terms[i] == other.terms[i] for i in range(len(self.terms)))
 
     def setInstantiationTime(self, time):  # pylint: disable=invalid-name
         """Set the instantiation time for all terms in this predicate."""
@@ -220,9 +217,7 @@ class Predicate:
         """String representation of the predicate."""
         if len(self.terms) == 0:
             return self.name
-        return self.name + '(' + ', '.join(
-            [str(term) for term in self.terms]
-        ) + ')'
+        return self.name + "(" + ", ".join([str(term) for term in self.terms]) + ")"
 
     def __hash__(self):
         """Hash the predicate."""
@@ -266,7 +261,7 @@ class Not:
 
     def __str__(self):
         """String representation of the negation."""
-        return '¬' + str(self.formula)
+        return "¬" + str(self.formula)
 
     def __hash__(self):
         """Hash the negation."""
@@ -283,27 +278,26 @@ class And:
 
     def freeVariables(self):  # pylint: disable=invalid-name
         """Get all free variables in this conjunction."""
-        return self.formula_a.freeVariables() | \
-            self.formula_b.freeVariables()
+        return self.formula_a.freeVariables() | self.formula_b.freeVariables()
 
     def freeUnificationTerms(self):  # pylint: disable=invalid-name
         """Get all free unification terms in this conjunction."""
-        return self.formula_a.freeUnificationTerms() | \
-            self.formula_b.freeUnificationTerms()
+        return (
+            self.formula_a.freeUnificationTerms()
+            | self.formula_b.freeUnificationTerms()
+        )
 
     def replace(self, old, new):
         """Replace old term with new term recursively."""
         if self == old:
             return new
-        return And(
-            self.formula_a.replace(old, new),
-            self.formula_b.replace(old, new)
-        )
+        return And(self.formula_a.replace(old, new), self.formula_b.replace(old, new))
 
     def occurs(self, unification_term):
         """Check if unification term occurs in this conjunction."""
-        return self.formula_a.occurs(unification_term) or \
-            self.formula_b.occurs(unification_term)
+        return self.formula_a.occurs(unification_term) or self.formula_b.occurs(
+            unification_term
+        )
 
     def setInstantiationTime(self, time):  # pylint: disable=invalid-name
         """Set the instantiation time for both formulae in this conjunction."""
@@ -314,12 +308,11 @@ class And:
         """Check equality with another conjunction."""
         if not isinstance(other, And):
             return False
-        return self.formula_a == other.formula_a and \
-            self.formula_b == other.formula_b
+        return self.formula_a == other.formula_a and self.formula_b == other.formula_b
 
     def __str__(self):
         """String representation of the conjunction."""
-        return f'({self.formula_a} ∧ {self.formula_b})'
+        return f"({self.formula_a} ∧ {self.formula_b})"
 
     def __hash__(self):
         """Hash the conjunction."""
@@ -336,27 +329,26 @@ class Or:
 
     def freeVariables(self):  # pylint: disable=invalid-name
         """Get all free variables in this disjunction."""
-        return self.formula_a.freeVariables() | \
-            self.formula_b.freeVariables()
+        return self.formula_a.freeVariables() | self.formula_b.freeVariables()
 
     def freeUnificationTerms(self):  # pylint: disable=invalid-name
         """Get all free unification terms in this disjunction."""
-        return self.formula_a.freeUnificationTerms() | \
-            self.formula_b.freeUnificationTerms()
+        return (
+            self.formula_a.freeUnificationTerms()
+            | self.formula_b.freeUnificationTerms()
+        )
 
     def replace(self, old, new):
         """Replace old term with new term recursively."""
         if self == old:
             return new
-        return Or(
-            self.formula_a.replace(old, new),
-            self.formula_b.replace(old, new)
-        )
+        return Or(self.formula_a.replace(old, new), self.formula_b.replace(old, new))
 
     def occurs(self, unification_term):
         """Check if unification term occurs in this disjunction."""
-        return self.formula_a.occurs(unification_term) or \
-            self.formula_b.occurs(unification_term)
+        return self.formula_a.occurs(unification_term) or self.formula_b.occurs(
+            unification_term
+        )
 
     def setInstantiationTime(self, time):  # pylint: disable=invalid-name
         """Set the instantiation time for both formulae in this disjunction."""
@@ -367,12 +359,11 @@ class Or:
         """Check equality with another disjunction."""
         if not isinstance(other, Or):
             return False
-        return self.formula_a == other.formula_a and \
-            self.formula_b == other.formula_b
+        return self.formula_a == other.formula_a and self.formula_b == other.formula_b
 
     def __str__(self):
         """String representation of the disjunction."""
-        return f'({self.formula_a} ∨ {self.formula_b})'
+        return f"({self.formula_a} ∨ {self.formula_b})"
 
     def __hash__(self):
         """Hash the disjunction."""
@@ -389,27 +380,28 @@ class Implies:
 
     def freeVariables(self):  # pylint: disable=invalid-name
         """Get all free variables in this implication."""
-        return self.formula_a.freeVariables() | \
-            self.formula_b.freeVariables()
+        return self.formula_a.freeVariables() | self.formula_b.freeVariables()
 
     def freeUnificationTerms(self):  # pylint: disable=invalid-name
         """Get all free unification terms in this implication."""
-        return self.formula_a.freeUnificationTerms() | \
-            self.formula_b.freeUnificationTerms()
+        return (
+            self.formula_a.freeUnificationTerms()
+            | self.formula_b.freeUnificationTerms()
+        )
 
     def replace(self, old, new):
         """Replace old term with new term recursively."""
         if self == old:
             return new
         return Implies(
-            self.formula_a.replace(old, new),
-            self.formula_b.replace(old, new)
+            self.formula_a.replace(old, new), self.formula_b.replace(old, new)
         )
 
     def occurs(self, unification_term):
         """Check if unification term occurs in this implication."""
-        return self.formula_a.occurs(unification_term) or \
-            self.formula_b.occurs(unification_term)
+        return self.formula_a.occurs(unification_term) or self.formula_b.occurs(
+            unification_term
+        )
 
     def setInstantiationTime(self, time):  # pylint: disable=invalid-name
         """Set the instantiation time for both formulae in this implication."""
@@ -420,12 +412,11 @@ class Implies:
         """Check equality with another implication."""
         if not isinstance(other, Implies):
             return False
-        return self.formula_a == other.formula_a and \
-            self.formula_b == other.formula_b
+        return self.formula_a == other.formula_a and self.formula_b == other.formula_b
 
     def __str__(self):
         """String representation of the implication."""
-        return f'({self.formula_a} → {self.formula_b})'
+        return f"({self.formula_a} → {self.formula_b})"
 
     def __hash__(self):
         """Hash the implication."""
@@ -452,10 +443,7 @@ class ForAll:
         """Replace old term with new term recursively."""
         if self == old:
             return new
-        return ForAll(
-            self.variable.replace(old, new),
-            self.formula.replace(old, new)
-        )
+        return ForAll(self.variable.replace(old, new), self.formula.replace(old, new))
 
     def occurs(self, unification_term):
         """Check if unification term occurs in this quantification."""
@@ -470,12 +458,11 @@ class ForAll:
         """Check equality with another universal quantification."""
         if not isinstance(other, ForAll):
             return False
-        return self.variable == other.variable and \
-            self.formula == other.formula
+        return self.variable == other.variable and self.formula == other.formula
 
     def __str__(self):
         """String representation of the universal quantification."""
-        return f'(∀{self.variable}. {self.formula})'
+        return f"(∀{self.variable}. {self.formula})"
 
     def __hash__(self):
         """Hash the universal quantification."""
@@ -503,8 +490,7 @@ class ThereExists:
         if self == old:
             return new
         return ThereExists(
-            self.variable.replace(old, new),
-            self.formula.replace(old, new)
+            self.variable.replace(old, new), self.formula.replace(old, new)
         )
 
     def occurs(self, unification_term):
@@ -520,12 +506,11 @@ class ThereExists:
         """Check equality with another existential quantification."""
         if not isinstance(other, ThereExists):
             return False
-        return self.variable == other.variable and \
-            self.formula == other.formula
+        return self.variable == other.variable and self.formula == other.formula
 
     def __str__(self):
         """String representation of the existential quantification."""
-        return f'(∃{self.variable}. {self.formula})'
+        return f"(∃{self.variable}. {self.formula})"
 
     def __hash__(self):
         """Hash the existential quantification."""

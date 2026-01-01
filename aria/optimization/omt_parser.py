@@ -22,7 +22,7 @@ class OMTParser:
         # keep legacy flags – callers (e.g. omt_solver.py) currently expect all goals
         # to be converted to "maximise" form.  Setting `to_max_obj=True` preserves
         # that behaviour while still allowing mixed-direction inputs.
-        self.to_max_obj: bool = True   # convert every objective to maximise form
+        self.to_max_obj: bool = True  # convert every objective to maximise form
         self.to_min_obj: bool = False  # convert every objective to minimise form
 
         # original_directions[i] is either "max" or "min" indicating the *source*
@@ -110,13 +110,12 @@ class OMTParser:
 
         if self.debug:
             import logging  # pylint: disable=import-outside-toplevel
+
             logger = logging.getLogger(__name__)
             for expr, dirn in zip(self.objectives, self.original_directions):
                 logger.debug("objective (%s): %s", dirn, expr)
 
 
-
-
 if __name__ == "__main__":
-    a, b, c, d = z3.Ints('a b c d')
+    a, b, c, d = z3.Ints("a b c d")
     fml = z3.Or(z3.And(a == 3, b == 3), z3.And(a == 1, b == 1, c == 1, d == 1))

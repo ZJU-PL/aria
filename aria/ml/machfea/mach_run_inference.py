@@ -24,6 +24,7 @@ import numpy as np
 # Seed for reproducible feature extraction
 seed = [0]
 
+
 def run_seed(data_index, seed_val, test_set_param, par2_dict_param, dataset_param):
     """
     Extract features for a single SMT problem instance using Sibyl.
@@ -51,7 +52,7 @@ def run_seed(data_index, seed_val, test_set_param, par2_dict_param, dataset_para
     if data_index in test_set_param.keys():
         par2list = test_set_param[data_index]  # Test set performance data
     else:
-        par2list = par2_dict_param['train'][data_index]  # Training set performance data
+        par2list = par2_dict_param["train"][data_index]  # Training set performance data
 
     # Skip problems that no solver could solve (all timeouts)
     if np.min(par2list) == 2400:
@@ -68,30 +69,30 @@ def run_seed(data_index, seed_val, test_set_param, par2_dict_param, dataset_para
 
     print(f"Extracting features: {command}")
     output = popen(command).read()
-    tmp = output.split('\n')
+    tmp = output.split("\n")
     return tmp
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Default dataset configuration
     DATASET = "ELA"  # Short name for Equality+LinearArith
 
     # Load performance data for all SMT-COMP datasets
-    with open("../data/SMTCompLabels.json", 'r', encoding='UTF-8') as f:
+    with open("../data/SMTCompLabels.json", "r", encoding="UTF-8") as f:
         par2_dict = json.load(f)
 
     # Get random seed from command line arguments
     seed_ = int(sys.argv[1])
 
     # Set target dataset name
-    DATASET_NAME = 'Equality+LinearArith'
+    DATASET_NAME = "Equality+LinearArith"
 
     # Extract performance data for the target dataset
     par2_dict = par2_dict[DATASET_NAME]
 
     # Combine test and training problem sets
-    test_set = par2_dict['test']
-    key_set = list(test_set.keys()) + list(par2_dict['train'].keys())
+    test_set = par2_dict["test"]
+    key_set = list(test_set.keys()) + list(par2_dict["train"].keys())
     print(f"Total problems to process: {len(key_set)}")
 
     # Set up parallel processing (20 worker processes)
@@ -102,7 +103,7 @@ if __name__ == '__main__':
             seed_val=seed_,
             test_set_param=test_set,
             par2_dict_param=par2_dict,
-            dataset_param=DATASET
+            dataset_param=DATASET,
         )
 
         # Extract features for all problems in parallel
@@ -118,14 +119,15 @@ if __name__ == '__main__':
                 problem_name = result[-1]  # Last line contains benchmark name
 
                 # Parse feature vector string into list of floats
-                feature_str = (feature_line.replace('[', '')
-                               .replace(']', '').replace(' ', ''))
-                feature_vector = list(map(float, feature_str.split(',')))
+                feature_str = (
+                    feature_line.replace("[", "").replace("]", "").replace(" ", "")
+                )
+                feature_vector = list(map(float, feature_str.split(",")))
                 fea_dict[problem_name] = feature_vector
 
         # Save extracted features to JSON file
-        OUTPUT_FILE = f'infer_result/{DATASET_NAME}_feature.json'
-        with open(OUTPUT_FILE, 'w', encoding='utf-8', newline='') as f:
+        OUTPUT_FILE = f"infer_result/{DATASET_NAME}_feature.json"
+        with open(OUTPUT_FILE, "w", encoding="utf-8", newline="") as f:
             json.dump(fea_dict, f)
 
         print(f"Feature extraction completed. Saved to: {OUTPUT_FILE}")

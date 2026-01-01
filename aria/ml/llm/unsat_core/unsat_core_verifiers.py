@@ -1,6 +1,7 @@
 """
 Validate the unsat core returned by the cvc5_minimizer.
 """
+
 try:
     import cvc5  # pylint: disable=import-error
 except ImportError:
@@ -22,16 +23,15 @@ class UNSATVerifier:
         solver (cvc5.Solver): An SMT2 solver instance.
         statistics (dict): Statistics for solving the given set of constraints.
     """
+
     def __init__(self):
-        """Initialize :class: ``intellismt.modules.verifiers.UNSATVerifier``.
-        """
+        """Initialize :class: ``intellismt.modules.verifiers.UNSATVerifier``."""
         self.solver = cvc5.Solver()
         set_cvc5_options_for_unsat(self.solver)
         self.statistics = None
 
     def reset(self):
-        """Reset all assertions added to the solver, helps with incremental solving.
-        """
+        """Reset all assertions added to the solver, helps with incremental solving."""
         self.solver.resetAssertions()
 
     def check(self, constraints, all_constraints, all_smt2_constraints, placeholder):
@@ -80,16 +80,15 @@ class MUSVerifier:
         solver (cvc5.Solver): An SMT2 solver instance.
         statistics (dict): Statistics for solving the given set of constraints.
     """
+
     def __init__(self):
-        """Initialize :class: ``intellismt.modules.verifiers.MUSVerifier``.
-        """
+        """Initialize :class: ``intellismt.modules.verifiers.MUSVerifier``."""
         self.solver = cvc5.Solver()
         set_cvc5_options_for_mus(self.solver, True)
         self.statistics = None
 
     def reset(self):
-        """Reset all assertions added to the solver, helps with incremental solving.
-        """
+        """Reset all assertions added to the solver, helps with incremental solving."""
         self.solver.resetAssertions()
 
     def check(self, constraints, all_constraints, all_smt2_constraints, placeholder):
@@ -108,7 +107,7 @@ class MUSVerifier:
             (bool): ``True``, if MUS, else ``False``.
         """
         for idx in range(len(constraints)):
-            subset = constraints[:idx] + constraints[idx+1:]
+            subset = constraints[:idx] + constraints[idx + 1 :]
             assert len(constraints) == len(subset) + 1
 
             smt2_formula = build_smt2_formula_from_string_constraints(

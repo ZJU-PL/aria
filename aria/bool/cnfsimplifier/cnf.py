@@ -1,6 +1,7 @@
 """
 CNF
 """
+
 from typing import List
 
 from .clause import Clause
@@ -40,20 +41,19 @@ class Cnf:
         :return: number of literals
         """
         total_set = {
-            abs(lit) for clause in self.get_clauses()
-            for lit in clause.literals_set
+            abs(lit) for clause in self.get_clauses() for lit in clause.literals_set
         }
         return len(total_set)
 
-    def copy(self) -> 'Cnf':
+    def copy(self) -> "Cnf":
         """
         get a copy of the cnf with clauses with new ids
         :complexity: O(c*l)
         :return: copy of the cnf
         """
-        new_clause_list = Cnf([
-            clause.copy_with_new_id() for clause in self.clause_list
-        ])
+        new_clause_list = Cnf(
+            [clause.copy_with_new_id() for clause in self.clause_list]
+        )
         return new_clause_list
 
     def get_number_of_clauses(self) -> int:
@@ -78,13 +78,11 @@ class Cnf:
         :return: add a new clause
         """
         if not isinstance(clause, Clause):
-            raise TypeError(
-                f"Expected type Clause, and got {type(clause)}"
-            )
+            raise TypeError(f"Expected type Clause, and got {type(clause)}")
 
         self.clause_list.append(clause)
 
-    def tautology_elimination(self) -> 'Cnf':
+    def tautology_elimination(self) -> "Cnf":
         """
         Simplify CNF by removing all clauses that are tautology
         :complexity: O(c)
@@ -99,7 +97,7 @@ class Cnf:
 
         return new_cnf
 
-    def hidden_tautology_elimination(self) -> 'Cnf':
+    def hidden_tautology_elimination(self) -> "Cnf":
         """
         Simplify CNF by removing all clauses that are hidden tautology
         :complexity: O( (c*l)^2 )
@@ -127,7 +125,7 @@ class Cnf:
 
         return new_cnf
 
-    def asymmetric_tautology_elimination(self) -> 'Cnf':
+    def asymmetric_tautology_elimination(self) -> "Cnf":
         """
         Simplify CNF by removing all clauses that are asymmetric tautology
         :complexity: O( c^2 * l^2 * 2^l )
@@ -156,7 +154,7 @@ class Cnf:
 
         return new_cnf
 
-    def blocked_clause_elimination(self) -> 'Cnf':
+    def blocked_clause_elimination(self) -> "Cnf":
         """
         Simplify CNF by removing all clauses that are blocked
         :complexity: O( (c*l)^2 )
@@ -186,7 +184,7 @@ class Cnf:
 
         return new_cnf
 
-    def hidden_blocked_clause_elimination(self) -> 'Cnf':
+    def hidden_blocked_clause_elimination(self) -> "Cnf":
         """
         Simplify CNF by removing all clauses that are hidden blocked
         :complexity: O( (c*l)^2 )
@@ -215,7 +213,7 @@ class Cnf:
 
         return new_cnf
 
-    def asymmetric_blocked_clause_elimination(self) -> 'Cnf':
+    def asymmetric_blocked_clause_elimination(self) -> "Cnf":
         """
         Simplify CNF by removing all clauses that are asymmetric blocked
         :complexity: O( c^2 * l^2 * 2^l )
@@ -244,7 +242,7 @@ class Cnf:
 
         return new_cnf
 
-    def subsumption_elimination(self) -> 'Cnf':
+    def subsumption_elimination(self) -> "Cnf":
         """
         Simplify CNF by removing all clauses that are subsumed
         :complexity: O(  )
@@ -272,7 +270,7 @@ class Cnf:
 
         return new_cnf
 
-    def hidden_subsumption_elimination(self) -> 'Cnf':
+    def hidden_subsumption_elimination(self) -> "Cnf":
         """
         Simplify CNF by removing all clauses that are hidden subsumed
         :complexity: O( (l*c)^2 )
@@ -300,7 +298,7 @@ class Cnf:
 
         return new_cnf
 
-    def asymmetric_subsumption_elimination(self) -> 'Cnf':
+    def asymmetric_subsumption_elimination(self) -> "Cnf":
         """
         Simplify CNF by removing all clauses that are asymmetric subsumed
 

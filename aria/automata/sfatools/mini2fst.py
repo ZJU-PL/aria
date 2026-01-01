@@ -11,14 +11,14 @@ def main():
     Testing function for Flex Regular Expressions to FST DFA
     """
     if len(argv) < 2:
-        print('Usage: %s fst_file' % argv[0])
+        print("Usage: %s fst_file" % argv[0])
         return
-    flex_a = Flexparser(["a","b","c","d", "/"])
+    flex_a = Flexparser(["a", "b", "c", "d", "/"])
     mma = flex_a.yyparse(argv[1])
 
     print("---")
     print(mma)
-    model_name = "model_" + argv[1].replace('.', '_')
+    model_name = "model_" + argv[1].replace(".", "_")
     mma.save(model_name + ".txt")
 
     graph = mma_2_digraph(mma)
@@ -33,5 +33,5 @@ def main():
     print("F", mma.consume_input("/ccdc/d"))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

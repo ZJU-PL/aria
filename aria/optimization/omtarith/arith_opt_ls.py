@@ -12,12 +12,13 @@ from aria.utils.z3_expr_utils import get_expr_vars
 
 logger = logging.getLogger(__name__)
 
+
 def _arith_opt_with_ls_impl(
     fml: z3.ExprRef,
     obj: z3.ExprRef,
     minimize: bool,
     solver_name: str,
-    max_iterations: int = 1000
+    max_iterations: int = 1000,
 ):
     """
     Local search for optimization of linear arithmetic (implementation).
@@ -33,7 +34,7 @@ def _arith_opt_with_ls_impl(
         String representation of the optimal value found
     """
     logger.debug("Starting local search optimization with %s", solver_name)
-    logger.debug("Direction: %s", 'minimize' if minimize else 'maximize')
+    logger.debug("Direction: %s", "minimize" if minimize else "maximize")
 
     # First check if the constraints are satisfiable
     solver = z3.Solver()
@@ -75,7 +76,7 @@ def _arith_opt_with_ls_impl(
 
             # Add random constraints to get different starting points
             # Limit to avoid over-constraining
-            for var in arith_vars[:min(3, len(arith_vars))]:
+            for var in arith_vars[: min(3, len(arith_vars))]:
                 if z3.is_int(var):
                     random_val = random.randint(-50, 50)
                     temp_solver.push()
@@ -130,23 +131,21 @@ def _arith_opt_with_ls_impl(
                     else:
                         # For reals, adaptive fractional offsets
                         base_steps = [-3.0, -2.0, -1.0, -0.5, 0.5, 1.0, 2.0, 3.0]
-                        large_steps = (
-                            [-10.0, -5.0, 5.0, 10.0] if iteration < 10 else []
-                        )
+                        large_steps = [-10.0, -5.0, 5.0, 10.0] if iteration < 10 else []
                         offsets = base_steps + large_steps
 
                         try:
-                            if hasattr(current_value, 'as_fraction'):
+                            if hasattr(current_value, "as_fraction"):
                                 num, den = current_value.as_fraction()
                                 base_val = float(num) / float(den)
                             else:
                                 base_val = float(str(current_value))
-                            candidates = [
-                                base_val + offset for offset in offsets
-                            ]
+                            candidates = [base_val + offset for offset in offsets]
                         except (
-                            AttributeError, ValueError, TypeError,
-                            ZeroDivisionError
+                            AttributeError,
+                            ValueError,
+                            TypeError,
+                            ZeroDivisionError,
                         ):
                             # If conversion fails, skip this variable
                             continue
@@ -172,11 +171,10 @@ def _arith_opt_with_ls_impl(
                             is_better = False
                             try:
                                 if minimize:
-                                    if (z3.is_int(obj) or
-                                            z3.is_int_value(new_obj_value)):
+                                    if z3.is_int(obj) or z3.is_int_value(new_obj_value):
                                         is_better = (
-                                            new_obj_value.as_long() <
-                                            local_best_value.as_long()
+                                            new_obj_value.as_long()
+                                            < local_best_value.as_long()
                                         )
                                     else:
                                         # Handle real values
@@ -184,11 +182,10 @@ def _arith_opt_with_ls_impl(
                                         best_val = float(str(local_best_value))
                                         is_better = new_val < best_val
                                 else:
-                                    if (z3.is_int(obj) or
-                                            z3.is_int_value(new_obj_value)):
+                                    if z3.is_int(obj) or z3.is_int_value(new_obj_value):
                                         is_better = (
-                                            new_obj_value.as_long() >
-                                            local_best_value.as_long()
+                                            new_obj_value.as_long()
+                                            > local_best_value.as_long()
                                         )
                                     else:
                                         # Handle real values
@@ -206,7 +203,9 @@ def _arith_opt_with_ls_impl(
                                 logger.debug(
                                     "Restart %d, Iteration %d: "
                                     "Improved objective to %s",
-                                    restart, iteration, local_best_value
+                                    restart,
+                                    iteration,
+                                    local_best_value,
                                 )
                                 break
 
@@ -222,22 +221,18 @@ def _arith_opt_with_ls_impl(
         try:
             is_global_better = False
             if minimize:
-                if (z3.is_int(obj) or
-                        z3.is_int_value(local_best_value)):
+                if z3.is_int(obj) or z3.is_int_value(local_best_value):
                     is_global_better = (
-                        local_best_value.as_long() <
-                        best_obj_value.as_long()
+                        local_best_value.as_long() < best_obj_value.as_long()
                     )
                 else:
                     new_val = float(str(local_best_value))
                     best_val = float(str(best_obj_value))
                     is_global_better = new_val < best_val
             else:
-                if (z3.is_int(obj) or
-                        z3.is_int_value(local_best_value)):
+                if z3.is_int(obj) or z3.is_int_value(local_best_value):
                     is_global_better = (
-                        local_best_value.as_long() >
-                        best_obj_value.as_long()
+                        local_best_value.as_long() > best_obj_value.as_long()
                     )
                 else:
                     new_val = float(str(local_best_value))
@@ -247,10 +242,7 @@ def _arith_opt_with_ls_impl(
             if is_global_better:
                 best_model = current_model
                 best_obj_value = local_best_value
-                logger.debug(
-                    "Restart %d: New global best: %s",
-                    restart, best_obj_value
-                )
+                logger.debug("Restart %d: New global best: %s", restart, best_obj_value)
         except (AttributeError, ValueError, TypeError):
             # If comparison fails, keep previous best
             pass
@@ -262,7 +254,9 @@ def _arith_opt_with_ls_impl(
     return str(best_obj_value)
 
 
-def arith_opt_with_ls(fml: z3.ExprRef, obj: z3.ExprRef, minimize: bool, solver_name: str):
+def arith_opt_with_ls(
+    fml: z3.ExprRef, obj: z3.ExprRef, minimize: bool, solver_name: str
+):
     """
     Local search for optimization of linear arithmetic.
 
@@ -315,7 +309,7 @@ def demo():
     print("   Constraints: x >= 0, y >= 0, x + y >= 8")
     print("   Objective: minimize x + y")
 
-    x, y = z3.Ints('x y')
+    x, y = z3.Ints("x y")
     fml = z3.And(x >= 0, y >= 0, x + y >= 8)
     obj = x + y
 
@@ -332,8 +326,8 @@ def demo():
     print("   Constraints: x >= 0, y >= 0, 2*x + 3*y <= 12, x <= 4")
     print("   Objective: maximize x + y")
 
-    x, y = z3.Reals('x y')
-    fml = z3.And(x >= 0, y >= 0, 2*x + 3*y <= 12, x <= 4)
+    x, y = z3.Reals("x y")
+    fml = z3.And(x >= 0, y >= 0, 2 * x + 3 * y <= 12, x <= 4)
     obj = x + y
 
     start_time = time.time()
@@ -349,9 +343,10 @@ def demo():
     print("   Constraints: x + 2*y + 3*z >= 15, x <= 6, y <= 4, z <= 3, all >= 0")
     print("   Objective: minimize x + y + z")
 
-    x, y, z = z3.Ints('x y z')
-    fml = z3.And(x + 2*y + 3*z >= 15, x <= 6, y <= 4, z <= 3,
-                 x >= 0, y >= 0, z >= 0)
+    x, y, z = z3.Ints("x y z")
+    fml = z3.And(
+        x + 2 * y + 3 * z >= 15, x <= 6, y <= 4, z <= 3, x >= 0, y >= 0, z >= 0
+    )
     obj = x + y + z
 
     start_time = time.time()
@@ -365,5 +360,5 @@ def demo():
     print("Demo completed!")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     demo()

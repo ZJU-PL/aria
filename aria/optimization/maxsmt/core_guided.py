@@ -74,7 +74,7 @@ class CoreGuidedSolver(MaxSMTSolverBase):
         # Check if hard constraints are satisfiable
         if solver.check() != z3.sat:
             logger.warning("Hard constraints are unsatisfiable")
-            return False, None, float('inf')
+            return False, None, float("inf")
 
         # Initialize with all soft constraints with relaxation variables
         relaxed_soft: List[z3.ExprRef] = []
@@ -114,7 +114,7 @@ class CoreGuidedSolver(MaxSMTSolverBase):
 
             if not core:
                 # No core found, problem is unsatisfiable
-                return False, None, float('inf')
+                return False, None, float("inf")
 
             # Find soft constraints in the core
             core_indices: List[int] = []
@@ -124,7 +124,7 @@ class CoreGuidedSolver(MaxSMTSolverBase):
 
             if not core_indices:
                 # No soft constraints in the core, problem is unsatisfiable
-                return False, None, float('inf')
+                return False, None, float("inf")
 
             # Find the minimum weight in the core
             min_weight = min(self.weights[i] for i in core_indices)
@@ -150,7 +150,5 @@ class CoreGuidedSolver(MaxSMTSolverBase):
                 at_most_one.append(relax_vars[i])
 
             # Add constraint: block_var OR at_most_one(relax_vars in core)
-            at_most_one_constraint = z3.PbLe(
-                [(var, 1) for var in at_most_one], 1
-            )
+            at_most_one_constraint = z3.PbLe([(var, 1) for var in at_most_one], 1)
             solver.add(z3.Or(block_var, at_most_one_constraint))

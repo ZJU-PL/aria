@@ -33,13 +33,13 @@ class DecodeError(DimacsError):
 
 
 def dump(
-        obj: NNF,
-        fp: t.TextIO,
-        *,
-        num_variables: t.Optional[int] = None,
-        var_labels: t.Optional[t.Dict[Name, int]] = None,
-        comment_header: t.Optional[str] = None,
-        mode: str = 'sat'
+    obj: NNF,
+    fp: t.TextIO,
+    *,
+    num_variables: t.Optional[int] = None,
+    var_labels: t.Optional[t.Dict[Name, int]] = None,
+    comment_header: t.Optional[str] = None,
+    mode: str = "sat",
 ) -> None:
     """Dump a sentence into an open file in a DIMACS format.
 
@@ -73,25 +73,33 @@ def dump(
     else:
         num_vars = num_variables
 
-    if mode == 'sat':
-        _dump_sat(obj, fp, num_variables=num_vars, var_labels=var_labels,
-                  comment_header=comment_header)
-    elif mode == 'cnf':
-        _dump_cnf(obj, fp, num_variables=num_vars, var_labels=var_labels,
-                  comment_header=comment_header)
+    if mode == "sat":
+        _dump_sat(
+            obj,
+            fp,
+            num_variables=num_vars,
+            var_labels=var_labels,
+            comment_header=comment_header,
+        )
+    elif mode == "cnf":
+        _dump_cnf(
+            obj,
+            fp,
+            num_variables=num_vars,
+            var_labels=var_labels,
+            comment_header=comment_header,
+        )
 
 
 def _write_comments(comment_header: str, fp: t.TextIO) -> None:
-    for line in comment_header.split('\n'):
-        fp.write('c ')
+    for line in comment_header.split("\n"):
+        fp.write("c ")
         fp.write(line)
-        fp.write('\n')
+        fp.write("\n")
 
 
 def _format_var(
-        node: Var,
-        num_variables: int,
-        var_labels: t.Optional[t.Dict[Name, int]] = None
+    node: Var, num_variables: int, var_labels: t.Optional[t.Dict[Name, int]] = None
 ) -> str:
     if var_labels is not None:
         name = var_labels[node.name]
@@ -107,12 +115,12 @@ def _format_var(
 
 
 def _dump_sat(
-        obj: NNF,
-        fp: t.TextIO,
-        *,
-        num_variables: int,
-        var_labels: t.Optional[t.Dict[Name, int]] = None,
-        comment_header: t.Optional[str] = None
+    obj: NNF,
+    fp: t.TextIO,
+    *,
+    num_variables: int,
+    var_labels: t.Optional[t.Dict[Name, int]] = None,
+    comment_header: t.Optional[str] = None,
 ) -> None:
     if comment_header is not None:
         _write_comments(comment_header, fp)
@@ -123,30 +131,30 @@ def _dump_sat(
         if isinstance(node, Var):
             fp.write(_format_var(node, num_variables, var_labels))
         elif isinstance(node, (Or, And)):
-            fp.write('+(' if isinstance(node, Or) else '*(')
+            fp.write("+(" if isinstance(node, Or) else "*(")
             first = True
             for child in node.children:
                 if first:
                     first = False
                 else:
-                    fp.write(' ')
+                    fp.write(" ")
                 serialize(child)
-            fp.write(')')
+            fp.write(")")
         else:
             raise EncodeError("Can't serialize type {}".format(type(node)))
 
-    fp.write('(')
+    fp.write("(")
     serialize(obj)
-    fp.write(')')
+    fp.write(")")
 
 
 def _dump_cnf(
-        obj: NNF,
-        fp: t.TextIO,
-        *,
-        num_variables: int,
-        var_labels: t.Optional[t.Dict[Name, int]] = None,
-        comment_header: t.Optional[str] = None
+    obj: NNF,
+    fp: t.TextIO,
+    *,
+    num_variables: int,
+    var_labels: t.Optional[t.Dict[Name, int]] = None,
+    comment_header: t.Optional[str] = None,
 ) -> None:
     if not isinstance(obj, And):
         raise EncodeError("CNF sentences must be conjunctions")
@@ -158,36 +166,39 @@ def _dump_cnf(
 
     for clause in obj.children:
         if not isinstance(clause, Or):
-            raise EncodeError(
-                "CNF sentences must be conjunctions of disjunctions"
-            )
+            raise EncodeError("CNF sentences must be conjunctions of disjunctions")
         first = True
         for child in clause.children:
             if not isinstance(child, Var):
                 raise EncodeError(
-                    "CNF sentences must be conjunctions of "
-                    "disjunctions of variables"
+                    "CNF sentences must be conjunctions of " "disjunctions of variables"
                 )
             if not first:
-                fp.write(' ')
+                fp.write(" ")
             else:
                 first = False
             fp.write(_format_var(child, num_variables, var_labels))
-        fp.write(' 0\n')
+        fp.write(" 0\n")
 
 
 def dumps(
-        obj: NNF,
-        *,
-        num_variables: t.Optional[int] = None,
-        var_labels: t.Optional[t.Dict[Name, int]] = None,
-        comment_header: t.Optional[str] = None,
-        mode: str = 'sat'
+    obj: NNF,
+    *,
+    num_variables: t.Optional[int] = None,
+    var_labels: t.Optional[t.Dict[Name, int]] = None,
+    comment_header: t.Optional[str] = None,
+    mode: str = "sat",
 ) -> str:
     """Like :func:`dump`, but to a string instead of to a file."""
     buffer = io.StringIO()
-    dump(obj, buffer, num_variables=num_variables, var_labels=var_labels,
-         comment_header=comment_header, mode=mode)
+    dump(
+        obj,
+        buffer,
+        num_variables=num_variables,
+        var_labels=var_labels,
+        comment_header=comment_header,
+        mode=mode,
+    )
     return buffer.getvalue()
 
 
@@ -197,26 +208,27 @@ def load(fp: t.TextIO) -> t.Union[NNF, And[Or[Var]]]:
     The format is automatically detected.
     """
     for line in fp:
-        if line.startswith('c'):
+        if line.startswith("c"):
             continue
-        if line.startswith('p '):
+        if line.startswith("p "):
             problem = line.split()
             if len(line) < 2:
                 raise DecodeError("Malformed problem line")
             fmt = problem[1]
-            if 'sat' in fmt or 'SAT' in fmt:
+            if "sat" in fmt or "SAT" in fmt:
                 # problem[2] contains the number of variables
                 # but that's currently not explicitly represented
                 return _load_sat(fp)
-            elif 'cnf' in fmt or 'CNF' in fmt:
+            elif "cnf" in fmt or "CNF" in fmt:
                 # problem[2] has the number of variables
                 # problem[3] has the number of clauses
                 return _load_cnf(fp)
             else:
                 raise DecodeError("Unknown format '{}'".format(fmt))
-        elif line.startswith('nnf '):
+        elif line.startswith("nnf "):
             # Might be a DSHARP output file
             from nnf import dsharp
+
             fp.seek(0)
             return dsharp.load(fp)
         else:
@@ -224,9 +236,7 @@ def load(fp: t.TextIO) -> t.Union[NNF, And[Or[Var]]]:
                 "Couldn't find a problem line before an unknown kind of line"
             )
     else:
-        raise DecodeError(
-            "Couldn't find a problem line before the end of the file"
-        )
+        raise DecodeError("Couldn't find a problem line before the end of the file")
 
 
 def loads(s: str) -> t.Union[NNF, And[Or[Var]]]:
@@ -237,15 +247,15 @@ def loads(s: str) -> t.Union[NNF, And[Or[Var]]]:
 def _load_sat(fp: t.TextIO) -> NNF:
     tokens = collections.deque()  # type: t.Deque[str]
     for line in fp:
-        if line.startswith('c'):
+        if line.startswith("c"):
             continue
         tokens.extend(
-            line.replace('(', '( ')
-                .replace(')', ' ) ')
-                .replace('+(', ' +(')
-                .replace('*(', ' *(')
-                .replace('-', ' - ')
-                .split()
+            line.replace("(", "( ")
+            .replace(")", " ) ")
+            .replace("+(", " +(")
+            .replace("*(", " *(")
+            .replace("-", " - ")
+            .split()
         )
     result = _parse_sat(tokens)
     if tokens:
@@ -253,35 +263,31 @@ def _load_sat(fp: t.TextIO) -> NNF:
     return result
 
 
-def _parse_sat(tokens: 't.Deque[str]') -> NNF:
+def _parse_sat(tokens: "t.Deque[str]") -> NNF:
     cur = tokens.popleft()
-    if cur == '(':
+    if cur == "(":
         content = _parse_sat(tokens)
         close = tokens.popleft()
-        if close != ')':
-            raise DecodeError(
-                "Expected closing paren, found {!r}".format(close)
-            )
+        if close != ")":
+            raise DecodeError("Expected closing paren, found {!r}".format(close))
         return content
-    elif cur == '-':
+    elif cur == "-":
         content = _parse_sat(tokens)
         if not isinstance(content, Var):
-            raise DecodeError(
-                "Only variables can be negated, not {!r}".format(content)
-            )
+            raise DecodeError("Only variables can be negated, not {!r}".format(content))
         return ~content
-    elif cur == '*(':
+    elif cur == "*(":
         children = []
-        while tokens[0] != ')':
+        while tokens[0] != ")":
             children.append(_parse_sat(tokens))
         tokens.popleft()
         if children:
             return And(children)
         else:
             return true
-    elif cur == '+(':
+    elif cur == "+(":
         children = []
-        while tokens[0] != ')':
+        while tokens[0] != ")":
             children.append(_parse_sat(tokens))
         tokens.popleft()
         if children:
@@ -295,12 +301,9 @@ def _parse_sat(tokens: 't.Deque[str]') -> NNF:
 def _load_cnf(fp: t.TextIO) -> And[Or[Var]]:
     tokens = []  # type: t.List[str]
     for line in fp:
-        if line.startswith('c'):
+        if line.startswith("c"):
             continue
-        tokens.extend(
-            line.replace('-', ' -')
-                .split()
-        )
+        tokens.extend(line.replace("-", " -").split())
     return _parse_cnf(tokens)
 
 
@@ -308,17 +311,17 @@ def _parse_cnf(tokens: t.Iterable[str]) -> And[Or[Var]]:
     clauses = set()  # type: t.Set[Or[Var]]
     clause = set()  # type: t.Set[Var]
     for token in tokens:
-        if token == '0':
+        if token == "0":
             clauses.add(Or(clause))
             clause = set()
-        elif token == '%':
+        elif token == "%":
             # Some example files end with:
             # 0
             # %
             # 0
             # I don't know why.
             break
-        elif token.startswith('-'):
+        elif token.startswith("-"):
             clause.add(Var(_parse_int(token[1:]), False))
         else:
             clause.add(Var(_parse_int(token)))
@@ -340,6 +343,4 @@ def _parse_int(token: str) -> int:
     try:
         return int(token)
     except ValueError:
-        raise DecodeError(
-            "Found unexpected token {!r}".format(token)
-        ) from None
+        raise DecodeError("Found unexpected token {!r}".format(token)) from None

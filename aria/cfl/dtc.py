@@ -14,6 +14,7 @@ from qiskit.utils import QuantumInstance
 import numpy as np
 import time
 
+
 class DTC_simulation:
     def __init__(self) -> None:
         self.reduced_time: float = 0
@@ -25,7 +26,7 @@ class DTC_simulation:
     def subroutine(self, n: int, sol: List[int]) -> Tuple[int, int]:
         time1 = time.perf_counter()
         # use the qasm_simulator to simulate Grover search
-        backend = BasicAer.get_backend('qasm_simulator')
+        backend = BasicAer.get_backend("qasm_simulator")
         # for each Grover search, only running one shot
         quantum_instance = QuantumInstance(backend, shots=1)
         # create oracle for Grover search
@@ -36,7 +37,7 @@ class DTC_simulation:
         self.reduced_time += time.perf_counter() - time1
         # initialization
         m: int = 1
-        lab: float = 6/5
+        lab: float = 6 / 5
         total: int = 0
         # repeat until reaching sqrt{2^n}
         while 1:
@@ -44,16 +45,16 @@ class DTC_simulation:
             total += j
             time1 = time.perf_counter()
             # run Grover search on a simulator
-            grover = Grover(quantum_instance=quantum_instance,iterations=j)
+            grover = Grover(quantum_instance=quantum_instance, iterations=j)
             # the Grover search result is saved in 'result'
             result = grover.amplify(problem)
             self.reduced_time += time.perf_counter() - time1
             # get the return value of Grover search by 'result.top_measurement'
-            return_value = int(result.top_measurement,2)
+            return_value = int(result.top_measurement, 2)
             if sol[return_value] == 1:
                 return return_value, total
             else:
-                m = min(lab*m, sqrt(2**n))
+                m = min(lab * m, sqrt(2**n))
                 # stop because reaching the threshold
                 if total > sqrt(2**n):
                     return -1, total
@@ -61,7 +62,7 @@ class DTC_simulation:
     # Algorithm 3 in the paper
     def estimate(self, sol_list: List[int], answer_num: int) -> int:
         sol = deepcopy(sol_list)
-        n = ceil(log(len(sol),2))
+        n = ceil(log(len(sol), 2))
         # the number of targets that are not found is 'current_num'
         current_num: int = answer_num
         # this is the total number of iterations needed to find all targets
@@ -70,9 +71,9 @@ class DTC_simulation:
         iteration: int = 0
         # targets are stored in 'return_list'
         return_list: List[int] = []
-        while iteration < 3*n:
+        while iteration < 3 * n:
             # xx is the index found, t is the current number of quantum iterations
-            xx, t = self.subroutine(n ,sol)
+            xx, t = self.subroutine(n, sol)
             # successfully find a target index
             if xx != -1:
                 return_list.append(xx)
@@ -112,7 +113,7 @@ class DTC_simulation:
         for i in range(size):
             for j in range(size):
                 if graph[i][j] == 1:
-                    Worklist.add((i,j))
+                    Worklist.add((i, j))
         # worklist algorithm for DTC
         while len(Worklist) > 0:
             i, j = Worklist.pop()
@@ -127,7 +128,7 @@ class DTC_simulation:
                     sol[k] = 1
                     answer_num += 1
                     graph[i][k] = 1
-                    Worklist.add((i,k))
+                    Worklist.add((i, k))
             self.reduced_time += time.perf_counter() - time1
             # simulate the process of Grover search
             # and store the number of quantum iterations needed for finding all targets
@@ -141,7 +142,7 @@ class DTC_simulation:
                     sol[k] = 1
                     answer_num += 1
                     graph[k][j] = 1
-                    Worklist.add((k,j))
+                    Worklist.add((k, j))
             self.reduced_time += time.perf_counter() - time1
             total_quantum += self.estimate(sol, answer_num)
         end_time = time.perf_counter()
@@ -161,13 +162,14 @@ def main(argv: List[str]) -> None:
         if num > 0 and (num & (num - 1)) == 0:
             size = int(sys.argv[1])
         else:
-            print('please input an integer = 2^k')
+            print("please input an integer = 2^k")
             return
-    a = [0,1]
+    a = [0, 1]
     # random generate array
-    g = np.random.choice(a,(size,size),p=[0.8,0.2])
+    g = np.random.choice(a, (size, size), p=[0.8, 0.2])
     solver = DTC_simulation()
     solver.solve(g)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main(sys.argv)

@@ -10,16 +10,17 @@ def test_boxed_sequential_two_objectives():
     1. First optimize x independently to its maximum (5)
     2. Then fix x=5 and optimize y independently to its maximum (5)
     """
-    x = z3.BitVec('x', 4)
-    y = z3.BitVec('y', 4)
+    x = z3.BitVec("x", 4)
+    y = z3.BitVec("y", 4)
 
     # Constraint: x <= 5, y <= 5
     formula = z3.And(z3.ULE(x, 5), z3.ULE(y, 5))
     objectives = [x, y]
 
     # Test with iterative binary search engine
-    results = solve_boxed_sequential(formula, objectives, minimize=False,
-                                     engine="iter", solver_name="z3-bs")
+    results = solve_boxed_sequential(
+        formula, objectives, minimize=False, engine="iter", solver_name="z3-bs"
+    )
 
     assert results is not None
     assert len(results) == 2
@@ -37,14 +38,15 @@ def test_boxed_sequential_minimize():
     1. First minimize x independently
     2. Then fix x at its minimum and minimize y independently
     """
-    x = z3.BitVec('x', 4)
-    y = z3.BitVec('y', 4)
+    x = z3.BitVec("x", 4)
+    y = z3.BitVec("y", 4)
 
     formula = z3.And(z3.UGT(x, 3), z3.UGT(y, 3), z3.ULE(x + y, 15))
     objectives = [x, y]
 
-    results = solve_boxed_sequential(formula, objectives, minimize=True,
-                                     engine="iter", solver_name="z3-bs")
+    results = solve_boxed_sequential(
+        formula, objectives, minimize=True, engine="iter", solver_name="z3-bs"
+    )
 
     assert results is not None
     assert len(results) == 2

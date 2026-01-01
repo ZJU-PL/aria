@@ -1,6 +1,7 @@
 """
 Solving SAT problems via brute-force enumeration
 """
+
 from typing import List, Dict, Set, Optional, Union
 import time
 import multiprocessing as mp
@@ -41,7 +42,7 @@ def solve_sat_brute_force(
                 neg_occurrences[var].append(clause_idx)
 
     # Try all possible assignments
-    for i in range(2 ** num_vars):
+    for i in range(2**num_vars):
         # Generate assignment from binary representation
         assignment = {}
         clause_status = [False] * len(formula)
@@ -73,7 +74,7 @@ def check_range(
     formula: Formula,
     variables: List[int],
     pos_occurrences: Dict[int, List[int]],
-    neg_occurrences: Dict[int, List[int]]
+    neg_occurrences: Dict[int, List[int]],
 ) -> Optional[Assignment]:
     """Helper function to check a range of assignments"""
     num_vars = len(variables)
@@ -101,14 +102,14 @@ def check_range(
 def solve_sat_brute_force_parallel(
     formula: Formula,
     variables: Union[List[int], Set[int]],
-    num_processes: Optional[int] = None
+    num_processes: Optional[int] = None,
 ) -> Optional[Assignment]:
     """
     Parallel version of SAT solver using brute force enumeration
     """
     variables = sorted(set(variables))
     num_vars = len(variables)
-    total_assignments = 2 ** num_vars
+    total_assignments = 2**num_vars
 
     if num_processes is None:
         num_processes = mp.cpu_count()
@@ -134,7 +135,7 @@ def solve_sat_brute_force_parallel(
             formula,
             variables,
             pos_occurrences,
-            neg_occurrences
+            neg_occurrences,
         )
         for i in range(num_processes)
     ]

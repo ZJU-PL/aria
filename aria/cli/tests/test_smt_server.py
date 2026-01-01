@@ -24,8 +24,11 @@ def start_server():
 
     print("Starting SMT server...")
     try:
-        server_process = subprocess.Popen([sys.executable, "-m", "aria.cli.smt_server"],
-                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        server_process = subprocess.Popen(
+            [sys.executable, "-m", "aria.cli.smt_server"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
 
         # Wait for pipes to be created
         time.sleep(1.0)  # Give server time to start and create pipes
@@ -62,13 +65,13 @@ def cleanup():
 def send_command(command):
     """Send a command to the SMT server and return the response."""
     try:
-        with open(INPUT_PIPE, 'w') as f:
-            f.write(command + '\n')
+        with open(INPUT_PIPE, "w") as f:
+            f.write(command + "\n")
             f.flush()
 
         time.sleep(0.5)  # Wait for server to process
 
-        with open(OUTPUT_PIPE, 'r') as f:
+        with open(OUTPUT_PIPE, "r") as f:
             for _ in range(200):  # 2 second timeout
                 line = f.readline()
                 if line:

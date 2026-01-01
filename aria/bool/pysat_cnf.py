@@ -1,14 +1,22 @@
 """CNF manipulation via pysat"""
+
 import sys
 import random
 from copy import deepcopy
 from typing import List
 from pysat.formula import CNF  # IDPool
 from pysat.solvers import Solver
-from aria.bool.cnfsimplifier import PySATCNFReader, cnf_subsumption_elimination, cnf_hidden_subsumption_elimination, \
-    cnf_asymmetric_subsumption_elimination, cnf_asymmetric_tautoly_elimination, \
-    cnf_tautoly_elimination, cnf_hidden_tautoly_elimination, cnf_blocked_clause_elimination, \
-    cnf_hidden_blocked_clause_elimination
+from aria.bool.cnfsimplifier import (
+    PySATCNFReader,
+    cnf_subsumption_elimination,
+    cnf_hidden_subsumption_elimination,
+    cnf_asymmetric_subsumption_elimination,
+    cnf_asymmetric_tautoly_elimination,
+    cnf_tautoly_elimination,
+    cnf_hidden_tautoly_elimination,
+    cnf_blocked_clause_elimination,
+    cnf_hidden_blocked_clause_elimination,
+)
 
 
 def gen_cubes(fml: CNF, k_vars: int) -> List[List[int]]:
@@ -20,7 +28,7 @@ def gen_cubes(fml: CNF, k_vars: int) -> List[List[int]]:
     cube_vars = random.sample([i + 1 for i in range(total_vars)], k_vars)
     all_cubes = []
     # Loop over all possible variable assignments
-    for i in range(2 ** k_vars):
+    for i in range(2**k_vars):
         cube = []
         # Convert the integer value to a list of Boolean values
         bool_list = [bool(i & (1 << j)) for j in range(k_vars)]
@@ -44,7 +52,7 @@ def simplify_pysat_cnf(fml: CNF) -> CNF:
     """
     Simplify the PySAT CNF formula using multiple CNFSimplifier techniques:
     - Subsumption elimination
-    - Hidden subsumption elimination  
+    - Hidden subsumption elimination
     - Asymmetric subsumption elimination
     - Tautology elimination
     - Hidden tautology elimination

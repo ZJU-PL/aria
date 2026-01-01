@@ -1,13 +1,20 @@
 """
 Dtree
 """
+
 from typing import List, Optional, Dict
 
 
 class Node:
     """Represents a node in a decision tree (dtree)."""
-    def __init__(self, node_id: Optional[int] = None, left_child: Optional['Node'] = None,
-                 right_child: Optional['Node'] = None, clause: Optional[List[int]] = None) -> None:
+
+    def __init__(
+        self,
+        node_id: Optional[int] = None,
+        left_child: Optional["Node"] = None,
+        right_child: Optional["Node"] = None,
+        clause: Optional[List[int]] = None,
+    ) -> None:
         """
         Initialize a Dtree node.
 
@@ -18,8 +25,8 @@ class Node:
             clause: Clause (for leaf nodes)
         """
         self.node_id: Optional[int] = None
-        self.left_child: Optional['Node'] = None
-        self.right_child: Optional['Node'] = None
+        self.left_child: Optional["Node"] = None
+        self.right_child: Optional["Node"] = None
         self.clauses: Optional[List[List[int]]] = None
         self.atoms: Optional[List[int]] = None
         self.separators: Optional[List[int]] = None
@@ -43,7 +50,9 @@ class Node:
             # atoms(t) = atoms(t_left) union atoms(t_right)
             self.clauses = self.left_child.clauses + self.right_child.clauses
             self.atoms = list(set(self.left_child.atoms).union(self.right_child.atoms))
-            self.separators = list(set(self.left_child.atoms).intersection(self.right_child.atoms))
+            self.separators = list(
+                set(self.left_child.atoms).intersection(self.right_child.atoms)
+            )
             self.clause_key = self.left_child.clause_key + self.right_child.clause_key
 
         # self.cache = None
@@ -95,7 +104,9 @@ class Node:
         # print(sep_counter)
         return sort_counter[0]
 
-    def print_info(self, leaf: List[int], output_file: Optional[str] = None) -> List[int]:
+    def print_info(
+        self, leaf: List[int], output_file: Optional[str] = None
+    ) -> List[int]:
         """
         Print node information.
 
@@ -108,10 +119,10 @@ class Node:
         """
         if self.is_leaf():
             if output_file is not None:
-                with open(output_file, 'a', encoding='utf-8') as out:
-                    out.write(f'L {self.node_id}\n')
+                with open(output_file, "a", encoding="utf-8") as out:
+                    out.write(f"L {self.node_id}\n")
             else:
-                print('L ', self.node_id)
+                print("L ", self.node_id)
             leaf.append(self.node_id)
         else:
             leaf = self.left_child.print_info(leaf, output_file)
@@ -123,15 +134,16 @@ class Node:
             if self.right_child.node_id in leaf:
                 right_child_pos = leaf.index(self.right_child.node_id)
             if output_file is not None:
-                with open(output_file, 'a', encoding='utf-8') as out:
-                    out.write(f'I {left_child_pos} {right_child_pos}\n')
+                with open(output_file, "a", encoding="utf-8") as out:
+                    out.write(f"I {left_child_pos} {right_child_pos}\n")
             else:
-                print('I ', left_child_pos, right_child_pos)
+                print("I ", left_child_pos, right_child_pos)
         return leaf
 
 
 class Dtree_Compiler:
     """Compiler for constructing decision trees from CNF formulas."""
+
     def __init__(self, clausal_form: List[List[int]]) -> None:
         """
         Initialize Dtree compiler.
@@ -157,14 +169,16 @@ class Dtree_Compiler:
             composed_node = list_tree[0]
         elif len(list_tree) == 2:
             composed_node = Node(
-                node_id=self.node_id, left_child=list_tree[0],
-                right_child=list_tree[1])
+                node_id=self.node_id, left_child=list_tree[0], right_child=list_tree[1]
+            )
             self.node_id += 1
         else:
             right_composed_node = self.compose(list_tree[1:])
             composed_node = Node(
-                node_id=self.node_id, left_child=list_tree[0],
-                right_child=right_composed_node)
+                node_id=self.node_id,
+                left_child=list_tree[0],
+                right_child=right_composed_node,
+            )
             self.node_id += 1
         return composed_node
 

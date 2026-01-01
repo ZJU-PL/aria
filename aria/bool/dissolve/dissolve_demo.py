@@ -11,9 +11,13 @@ This script demonstrates the key features of the full Dissolve implementation:
 
 from aria.bool.dissolve.dissolve import (
     DissolveConfig,
-    DilemmaTriple, DilemmaQuery,
-    DilemmaEngine, UBTree, Scheduler
+    DilemmaTriple,
+    DilemmaQuery,
+    DilemmaEngine,
+    UBTree,
+    Scheduler,
 )
+
 
 def demo_dilemma_engine():
     """Demonstrate the Dilemma rule engine."""
@@ -31,7 +35,10 @@ def demo_dilemma_engine():
 
     # Demonstrate dilemma triple
     triple = DilemmaTriple(3, 0, 1)  # v3 with values (0, 1)
-    print(f"Dilemma triple: v{triple.variable} with values ({triple.value_a}, {triple.value_b})")
+    print(
+        f"Dilemma triple: v{triple.variable} with values ({triple.value_a}, {triple.value_b})"
+    )
+
 
 def demo_ubtree():
     """Demonstrate the UBTree data structure."""
@@ -56,6 +63,7 @@ def demo_ubtree():
     best = ubtree.get_best_clauses_for_round(0, 10)
     print(f"Best clauses for round 0: {best}")
 
+
 def demo_dilemma_queries():
     """Demonstrate dilemma query generation."""
     print("\n=== Dilemma Query Generation Demo ===")
@@ -67,6 +75,7 @@ def demo_dilemma_queries():
     # pylint: disable=too-few-public-methods,duplicate-code
     class DemoDissolve:
         """Demo class for demonstrating dilemma query generation."""
+
         def __init__(self):
             self.cfg = config
             self.variable_scores = {1: 10, 2: 8, 3: 5}
@@ -76,7 +85,7 @@ def demo_dilemma_queries():
             candidates = list(range(1, self.cfg.k_split_vars + 1))
             if self.variable_scores:
                 candidates.sort(key=lambda v: -self.variable_scores.get(v, 0))
-            return candidates[:self.cfg.k_split_vars]
+            return candidates[: self.cfg.k_split_vars]
 
         def _assumptions_from_mask(self, vars_to_split, mask):
             assumps = []
@@ -110,7 +119,7 @@ def demo_dilemma_queries():
             assumptions=assumptions,
             dilemma_triple=dilemma_triple,
             round_id=0,
-            query_id=mask
+            query_id=mask,
         )
         queries.append(query)
 
@@ -121,6 +130,7 @@ def demo_dilemma_queries():
             dt = query.dilemma_triple
             print(f"  Dilemma: v{dt.variable} with values ({dt.value_a}, {dt.value_b})")
 
+
 def demo_scheduler():
     """Demonstrate the scheduler architecture."""
     print("\n=== Scheduler Architecture Demo ===")
@@ -129,6 +139,7 @@ def demo_scheduler():
     print(f"Created scheduler with {scheduler.num_workers} workers")
     print(f"Idle workers: {len(scheduler.idle_workers)}")
     print(f"Active queries: {len(scheduler.active_queries)}")
+
 
 def main():
     """Run all demos."""
@@ -154,7 +165,9 @@ def main():
     except (RuntimeError, ValueError, AttributeError) as e:
         print(f"Demo error: {e}")
         import traceback  # pylint: disable=import-outside-toplevel
+
         traceback.print_exc()
+
 
 if __name__ == "__main__":
     main()

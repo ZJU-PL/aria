@@ -45,6 +45,7 @@ class Vertex:
         """
         self.name: str = n
 
+
 class PAG_Matrix:
     """
     A Program Assignment Graph (PAG) matrix representation for CFL-reachability analysis.
@@ -81,11 +82,11 @@ class PAG_Matrix:
         self.__read_graph()
 
     def __read_graph(self) -> None:
-        suffix = self.source_file.split('.')[-1]
-        if suffix == 'txt':
-            with open(self.source_file,'r', encoding='utf-8') as f:
+        suffix = self.source_file.split(".")[-1]
+        if suffix == "txt":
+            with open(self.source_file, "r", encoding="utf-8") as f:
                 for line in f.readlines():
-                    node1_name, node2_name, edge = line.strip().split(',')
+                    node1_name, node2_name, edge = line.strip().split(",")
                     node1_name = node1_name.strip()
                     node2_name = node2_name.strip()
                     edge = edge.strip()
@@ -95,43 +96,49 @@ class PAG_Matrix:
                     if node2_name not in self.vertices:
                         node2 = Vertex(node2_name)
                         self.add_vertex(node2)
-                    self.add_edge(node1_name,node2_name,edge)
+                    self.add_edge(node1_name, node2_name, edge)
             return
         self.__read_dot_file()
 
     def __read_dot_file(self) -> None:
-        edge_pattern = re.compile(r'(\w+)\s*->\s*(\w+)\s*\[.*color=(.*)\]')
-        node_pattern = re.compile(r'(\w+)')
-        with open(self.source_file, 'r', encoding='utf-8') as f:
+        edge_pattern = re.compile(r"(\w+)\s*->\s*(\w+)\s*\[.*color=(.*)\]")
+        node_pattern = re.compile(r"(\w+)")
+        with open(self.source_file, "r", encoding="utf-8") as f:
             lines = f.readlines()
             line_1 = lines[0]
             line_2 = lines[-1]
-            line_1 = line_1.split('{')[1]
-            line_2 = line_2.split('}')[0]
+            line_1 = line_1.split("{")[1]
+            line_2 = line_2.split("}")[0]
             lines[0] = line_1
             lines[-1] = line_2
             for line in lines:
-                if ('=' in line and "[" in line) or ("=" not in line and "[" not in line):
+                if ("=" in line and "[" in line) or (
+                    "=" not in line and "[" not in line
+                ):
                     if "->" in line:
                         match = edge_pattern.search(line)
                         if match is not None:
-                            node_1, node_2, label = match.group(1), match.group(2), match.group(3)
+                            node_1, node_2, label = (
+                                match.group(1),
+                                match.group(2),
+                                match.group(3),
+                            )
                             node_i1 = Vertex(node_1)
                             node_i2 = Vertex(node_2)
                             self.add_vertex(node_i1)
                             self.add_vertex(node_i2)
                             if label.startswith("red") or label.startswith("green"):
-                                label = 'd'
-                                self.add_edge(node_2,node_1,label+'bar')
-                                self.add_edge(node_1,node_2,label)
+                                label = "d"
+                                self.add_edge(node_2, node_1, label + "bar")
+                                self.add_edge(node_1, node_2, label)
                             elif label.startswith("black"):
-                                label = 'a'
-                                self.add_edge(node_2,node_1,label+'bar')
-                                self.add_edge(node_1,node_2,label)
+                                label = "a"
+                                self.add_edge(node_2, node_1, label + "bar")
+                                self.add_edge(node_1, node_2, label)
                             elif label.startswith("blue"):
-                                label = 'dbar'
-                                self.add_edge(node_2,node_1, label)
-                                self.add_edge(node_1, node_2, 'd')
+                                label = "dbar"
+                                self.add_edge(node_2, node_1, label)
+                                self.add_edge(node_1, node_2, "d")
                     else:
                         match = node_pattern.search(line)
                         if match is not None:
@@ -157,33 +164,35 @@ class PAG_Matrix:
             self.edges[self.edge_indices[u]][self.edge_indices[v]].append(label)
             if label in self.symbol_pair:
                 if self.new_check_edge(u, v, label):
-                    self.symbol_pair[label].append((u,v))
+                    self.symbol_pair[label].append((u, v))
             else:
                 self.symbol_pair[label] = []
-                self.symbol_pair[label].append((u,v))
+                self.symbol_pair[label].append((u, v))
             return True
         if u not in self.vertices and v in self.vertices:
-            raise ValueError(f'Node {u} is not in the graph')
+            raise ValueError(f"Node {u} is not in the graph")
         if v not in self.vertices and u in self.vertices:
-            raise ValueError(f'Node {v} is not in the graph')
-        raise ValueError(f'Node {u} and Node {v} are not in the graph')
+            raise ValueError(f"Node {v} is not in the graph")
+        raise ValueError(f"Node {u} and Node {v} are not in the graph")
 
     def output_edge(self) -> List[List[Union[str, str]]]:
         output_list: List[List[Union[str, str]]] = []
         for edge, pair_list in self.symbol_pair.items():
             for pair in pair_list:
-                output_list.append([edge,pair[0],pair[1]])
+                output_list.append([edge, pair[0], pair[1]])
         return output_list
 
     def check_edge(self, u: str, v: str, lable: str) -> bool:
         if lable not in self.symbol_pair:
             return False
-        if (u,v) in self.symbol_pair[lable]:
+        if (u, v) in self.symbol_pair[lable]:
             return True
         return False
 
-    def new_check_edge(self, u: Union[Vertex, str], v: Union[Vertex, str], lable: str) -> bool:
-        if isinstance(u,Vertex) and isinstance(v,Vertex):
+    def new_check_edge(
+        self, u: Union[Vertex, str], v: Union[Vertex, str], lable: str
+    ) -> bool:
+        if isinstance(u, Vertex) and isinstance(v, Vertex):
             u_index = self.edge_indices[u.name]
             v_index = self.edge_indices[v.name]
         else:
@@ -195,23 +204,23 @@ class PAG_Matrix:
         return self.symbol_pair["M"]
 
     def dump_dot(self) -> None:
-        with open('generated_file/dump_dot.dot','w', encoding='utf-8') as f:
-            f.write('digraph CFG{\n')
+        with open("generated_file/dump_dot.dot", "w", encoding="utf-8") as f:
+            f.write("digraph CFG{\n")
             for node in self.vertices:
-                f.write(f'\tn{node};\n')
+                f.write(f"\tn{node};\n")
             for symbol, pair_list in self.symbol_pair.items():
-                if symbol in 'MVaabarddbar':
+                if symbol in "MVaabarddbar":
                     for pair in pair_list:
                         f.write(f'\tn{pair[0]}->n{pair[1]}[label="{symbol}"]\n')
-            f.write('}')
+            f.write("}")
 
     def dump_dot1(self) -> None:
-        with open('generated_file/dump_dot1.dot','w', encoding='utf-8') as f:
-            f.write('digraph CFG{\n')
+        with open("generated_file/dump_dot1.dot", "w", encoding="utf-8") as f:
+            f.write("digraph CFG{\n")
             for node in self.vertices:
-                f.write(f'\tn{node};\n')
+                f.write(f"\tn{node};\n")
             for symbol, pair_list in self.symbol_pair.items():
-                if symbol in 'MVaabarddbar':
+                if symbol in "MVaabarddbar":
                     for pair in pair_list:
                         f.write(f'\tn{pair[0]}->n{pair[1]}[label="{symbol}"]\n')
-            f.write('}')
+            f.write("}")

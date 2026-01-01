@@ -33,7 +33,7 @@ def solve_omt_problem(filename: str, engine: str, solver_name: str, theory: str 
         else:
             # Try to infer from formula - check for BV operations in string representation
             obj_str = str(obj)
-            if 'BitVec' in obj_str or 'BV' in obj_str:
+            if "BitVec" in obj_str or "BV" in obj_str:
                 theory = "bv"
             else:
                 theory = "bv"  # default to BV for OMT solver compatibility
@@ -41,10 +41,14 @@ def solve_omt_problem(filename: str, engine: str, solver_name: str, theory: str 
     if theory == "arith":
         # Use arithmetic optimization
         if engine == "qsmt":
-            result = arith_opt_with_qsmt(fml, obj, minimize=False, solver_name=solver_name)
+            result = arith_opt_with_qsmt(
+                fml, obj, minimize=False, solver_name=solver_name
+            )
             logging.info("Arithmetic QSMT result: %s", result)
         elif engine == "iter":
-            result = arith_opt_with_ls(fml, obj, minimize=False, solver_name=solver_name)
+            result = arith_opt_with_ls(
+                fml, obj, minimize=False, solver_name=solver_name
+            )
             logging.info("Arithmetic iterative search result: %s", result)
         else:
             # Fall back to general OMT solver
@@ -58,7 +62,7 @@ def main():
     """Main entry point for optimization CLI."""
     parser = argparse.ArgumentParser(
         description="Solve optimization problems (OMT, MaxSMT, etc.)",
-        formatter_class=argparse.RawDescriptionHelpFormatter
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("file", type=str, help="Optimization problem file (.smt2)")
 
@@ -67,7 +71,7 @@ def main():
         type=str,
         choices=["omt", "maxsmt"],
         default="omt",
-        help="Problem type: omt (Optimization Modulo Theory) or maxsmt (default: omt)"
+        help="Problem type: omt (Optimization Modulo Theory) or maxsmt (default: omt)",
     )
 
     parser.add_argument(
@@ -75,7 +79,7 @@ def main():
         type=str,
         choices=["bv", "arith", "auto"],
         default="auto",
-        help="Theory type for OMT: bv (bitvector), arith (arithmetic), auto (detect, default)"
+        help="Theory type for OMT: bv (bitvector), arith (arithmetic), auto (detect, default)",
     )
 
     parser.add_argument(
@@ -83,13 +87,13 @@ def main():
         type=str,
         default="qsmt",
         choices=["qsmt", "maxsat", "iter", "z3py"],
-        help="Optimization engine (default: qsmt)"
+        help="Optimization engine (default: qsmt)",
     )
 
     parser.add_argument(
         "--solver",
         type=str,
-        help="Solver name (engine-specific, auto-selected if not specified)"
+        help="Solver name (engine-specific, auto-selected if not specified)",
     )
 
     parser.add_argument(
@@ -97,7 +101,7 @@ def main():
         type=str,
         default="INFO",
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
-        help="Logging level (default: INFO)"
+        help="Logging level (default: INFO)",
     )
 
     args = parser.parse_args()
@@ -109,25 +113,23 @@ def main():
     # Configure logging
     logging.basicConfig(
         level=getattr(logging, args.log_level.upper()),
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
     # Set default solver based on engine
     solver = args.solver
     if not solver:
-        solver_map = {
-            "qsmt": "z3",
-            "maxsat": "FM",
-            "iter": "z3-ls",
-            "z3py": "z3py"
-        }
+        solver_map = {"qsmt": "z3", "maxsat": "FM", "iter": "z3-ls", "z3py": "z3py"}
         solver = solver_map.get(args.engine, "z3")
 
     try:
         if args.type == "maxsmt":
             # MaxSMT requires different handling - would need to parse hard/soft constraints
             print("Error: MaxSMT support not yet implemented in CLI", file=sys.stderr)
-            print("Note: MaxSMT problems need hard/soft constraint specification", file=sys.stderr)
+            print(
+                "Note: MaxSMT problems need hard/soft constraint specification",
+                file=sys.stderr,
+            )
             return 1
         # OMT problem
         theory = None if args.theory == "auto" else args.theory
@@ -137,6 +139,7 @@ def main():
         print(f"Error: {e}", file=sys.stderr)
         if args.log_level == "DEBUG":
             import traceback  # pylint: disable=import-outside-toplevel
+
             traceback.print_exc()
         return 1
 

@@ -18,6 +18,7 @@ from dataclasses import dataclass
 @dataclass
 class TseitinResult:
     """Contains the result of Tseitin transformation and metadata"""
+
     cnf: List[List[int]]
     auxiliary_vars: Set[int]
     original_vars: Set[int]
@@ -91,9 +92,7 @@ def tseitin(dnf: List[List[int]]) -> TseitinResult:
         next_aux_var += 1
 
     return TseitinResult(
-        cnf=cnf_clauses,
-        auxiliary_vars=auxiliary_vars,
-        original_vars=original_vars
+        cnf=cnf_clauses, auxiliary_vars=auxiliary_vars, original_vars=original_vars
     )
 
 

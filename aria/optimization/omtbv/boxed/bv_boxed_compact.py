@@ -9,6 +9,7 @@ TODO: we use pysmt in this file and have a pysmt-based parser here, which is
 a bit strange (since we have other algorithms that rely on z3-based parsing
 and solving, like bv_boxed_z3.py)
 """
+
 import os
 import time
 from typing import List, Tuple
@@ -36,6 +37,7 @@ class TSSmtLibParser(SmtLibParser):
     This parser adds support for maximize, minimize, and get-objectives
     commands while removing incompatible commands like get-value.
     """
+
     def __init__(self, env=None, interactive=False):
         SmtLibParser.__init__(self, env, interactive)
 
@@ -98,11 +100,11 @@ def get_input(file: str) -> Tuple:
     and_op = get_env().formula_manager.And
 
     for cmd in script:
-        if cmd.name == 'assert':
+        if cmd.name == "assert":
             stack.append(cmd.args[0])
-        if cmd.name == 'maximize':
+        if cmd.name == "maximize":
             objectives_list.append([cmd.args[0], 1])
-        if cmd.name == 'minimize':
+        if cmd.name == "minimize":
             objectives_list.append([cmd.args[0], 0])
     ori_formula = and_op(stack)
     return ori_formula, objectives_list
@@ -140,15 +142,16 @@ def map_bitvector(input_vars: List) -> List[List]:
                     x = size - 1 - i
                     v = Equals(BVExtract(var[0], x, x), BV(0, 1))
                     bool_vars.append(v)
-                bv2bool['-' + str(name)] = bool_vars
+                bv2bool["-" + str(name)] = bool_vars
     objectives = []
     for key, value in bv2bool.items():
         objectives.append(value)
     return objectives
 
 
-def check_assum(model, assums_obj: List[List[int]], unsol: List[int],
-                objectives: List[List]) -> List[int]:
+def check_assum(
+    model, assums_obj: List[List[int]], unsol: List[int], objectives: List[List]
+) -> List[int]:
     """Check which assumptions are satisfied by the model.
 
     Args:
@@ -191,7 +194,7 @@ def res_2int(result: List[List[int]], objectives: List[List]) -> List[int]:
             res_int.append(score)
         else:  # Minimize: invert the score
             length = len(result[i])
-            score = 2 ** length - 1 - score
+            score = 2**length - 1 - score
             res_int.append(score)
     return res_int
 
@@ -279,20 +282,16 @@ def solve(formula, objectives: List[List]) -> List[List[int]]:
     return result
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     current_file_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.dirname(
-        os.path.dirname(
-            os.path.dirname(os.path.dirname(current_file_dir))
-        )
+        os.path.dirname(os.path.dirname(os.path.dirname(current_file_dir)))
     )
-    benchmark_dir = os.path.join(
-        project_root, 'benchmarks', 'smtlib2', 'omt', 'bv'
-    )
+    benchmark_dir = os.path.join(project_root, "benchmarks", "smtlib2", "omt", "bv")
 
-    for bench_file in ['box1.smt2', 'box2.smt2', 'box3.smt2']:
+    for bench_file in ["box1.smt2", "box2.smt2", "box3.smt2"]:
         filename = os.path.join(benchmark_dir, bench_file)
-        print(f'\n=== {bench_file} ===')
+        print(f"\n=== {bench_file} ===")
 
         formu, objec = get_input(filename)
         objectives_mapped = map_bitvector(objec)
@@ -307,6 +306,6 @@ if __name__ == '__main__':
         z3_res = solve_boxed_z3(filename, objective_order=obj_names)
         t_z3 = time.time() - t
 
-        print(f'Compact: {r} (t={t_compact:.3f}s)')
-        print(f'Z3:      {z3_res} (t={t_z3:.3f}s)')
-        print(f'Match:   {z3_res == r}')
+        print(f"Compact: {r} (t={t_compact:.3f}s)")
+        print(f"Z3:      {z3_res} (t={t_z3:.3f}s)")
+        print(f"Match:   {z3_res == r}")

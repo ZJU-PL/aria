@@ -1,11 +1,11 @@
 """Utility functions for abduction module."""
+
 import re
 from typing import Optional
 
 import z3
 
 from aria.utils.z3_expr_utils import get_variables
-
 
 
 def extract_smt_from_llm_response(response: str) -> str:
@@ -22,7 +22,7 @@ def extract_smt_from_llm_response(response: str) -> str:
 
     # If response starts with (assert ...)
     if response.startswith("(assert ") and response.endswith(")"):
-        return response[len("(assert "):-1].strip()
+        return response[len("(assert ") : -1].strip()
 
     # Look for code blocks with SMT content
     code_block_pattern = r"```(?:smt|lisp|smt-lib|smt2|smtlib|smtlib2)?\s*([\s\S]*?)```"
@@ -48,17 +48,17 @@ def extract_smt_from_llm_response(response: str) -> str:
     smt_expressions = []
 
     for i, char in enumerate(response):
-        if char == '(' and len(stack) == 0:
+        if char == "(" and len(stack) == 0:
             start_idx = i
             stack.append(char)
-        elif char == '(' and len(stack) > 0:
+        elif char == "(" and len(stack) > 0:
             stack.append(char)
-        elif char == ')' and len(stack) > 0:
+        elif char == ")" and len(stack) > 0:
             stack.pop()
             if len(stack) == 0:
-                expression = response[start_idx:i+1].strip()
+                expression = response[start_idx : i + 1].strip()
                 if expression.startswith("(assert "):
-                    expression = expression[len("(assert "):-1].strip()
+                    expression = expression[len("(assert ") : -1].strip()
                 smt_expressions.append(expression)
 
     # Return the last complete SMT expression if any
@@ -71,14 +71,14 @@ def extract_smt_from_llm_response(response: str) -> str:
     if matches:
         expression = matches[-1]
         if expression.startswith("(assert "):
-            expression = expression[len("(assert "):-1].strip()
+            expression = expression[len("(assert ") : -1].strip()
         return expression
 
     return ""
 
 
 def parse_smt2_string(
-    smt_string: str, problem: Optional['AbductionProblem'] = None
+    smt_string: str, problem: Optional["AbductionProblem"] = None
 ) -> Optional[z3.ExprRef]:
     """
     Parse an SMT-LIB2 expression string into a Z3 expression.
@@ -96,7 +96,7 @@ def parse_smt2_string(
 
         # Handle 'assert' clauses - remove outer assert if present
         if smt_string.startswith("(assert ") and smt_string.endswith(")"):
-            smt_string = smt_string[len("(assert "):-1].strip()
+            smt_string = smt_string[len("(assert ") : -1].strip()
 
         # If we have a problem context, use its variables to build declarations
         if problem is not None:
@@ -146,9 +146,7 @@ def parse_smt2_string(
 
                     # Apply substitution if needed
                     if subst:
-                        return z3.substitute(
-                            parsed_formula, *list(subst.items())
-                        )
+                        return z3.substitute(parsed_formula, *list(subst.items()))
                     return parsed_formula
             except Exception:
                 pass
@@ -157,7 +155,6 @@ def parse_smt2_string(
 
             # Fall back to True as a default
             return z3.BoolVal(True)
-
 
     except Exception:
         # Return a default hypothesis

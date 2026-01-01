@@ -36,7 +36,10 @@ class MathSATAllSMTSolver(AllSMTSolver[MathSATModel]):
         # If mathsat_path is not provided, try to get it from global config
         if not mathsat_path:
             try:
-                from aria.global_params import global_config  # pylint: disable=import-outside-toplevel
+                from aria.global_params import (
+                    global_config,
+                )  # pylint: disable=import-outside-toplevel
+
                 path = global_config.get_solver_path("mathsat")
                 if path:
                     self._mathsat_path = path
@@ -91,8 +94,8 @@ class MathSATAllSMTSolver(AllSMTSolver[MathSATModel]):
         return smtlib2
 
     def solve(
-            self, expr: ExprRef, keys: List[ExprRef],
-            model_limit: int = 100) -> List[MathSATModel]:
+        self, expr: ExprRef, keys: List[ExprRef], model_limit: int = 100
+    ) -> List[MathSATModel]:
         """
         Enumerate all satisfying models for the given expression over the specified keys.
 
@@ -112,7 +115,7 @@ class MathSATAllSMTSolver(AllSMTSolver[MathSATModel]):
         self._reset_model_storage()
 
         # Create temporary file for SMT-LIB2 instance
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.smt2', delete=False) as tmp:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".smt2", delete=False) as tmp:
             tmp_path = tmp.name
             try:
                 # Convert constraints to SMT-LIB2 and write to file
@@ -125,8 +128,8 @@ class MathSATAllSMTSolver(AllSMTSolver[MathSATModel]):
 
                 # Run MathSAT and capture output
                 with subprocess.Popen(
-                        cmd, stdout=subprocess.PIPE,
-                        stderr=subprocess.PIPE, text=True) as process:
+                    cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+                ) as process:
                     output, _ = process.communicate()
 
                     # Parse output and store models
@@ -160,7 +163,7 @@ def demo() -> None:
     """Demonstrate the usage of the MathSAT-based AllSMT solver."""
     from z3 import Ints, And  # pylint: disable=import-outside-toplevel
 
-    x, y = Ints('x y')
+    x, y = Ints("x y")
     expr = And(x + y == 5, x > 0, y > 0)
 
     solver = MathSATAllSMTSolver()

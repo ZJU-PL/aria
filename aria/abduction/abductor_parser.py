@@ -9,28 +9,28 @@ from aria.utils.sexpr import SExprParser
 
 def balance_parentheses(expr: str) -> str:
     """Balance parentheses in expression."""
-    open_count = expr.count('(')
-    close_count = expr.count(')')
-    return expr + ')' * (open_count - close_count) if open_count > close_count else expr
+    open_count = expr.count("(")
+    close_count = expr.count(")")
+    return expr + ")" * (open_count - close_count) if open_count > close_count else expr
 
 
 def extract_balanced_expr(text: str, start_idx: int = 0) -> str:
     """Extract balanced expression with matching parentheses."""
     stack = []
     for i in range(start_idx, len(text)):
-        if text[i] == '(':
+        if text[i] == "(":
             stack.append(i)
-        elif text[i] == ')':
+        elif text[i] == ")":
             if stack:
                 stack.pop()
                 if not stack:
-                    return text[start_idx:i+1]
+                    return text[start_idx : i + 1]
     return text[start_idx:]
 
 
 def get_sort_str(var: z3.ExprRef) -> str:
     """Get SMT-LIB2 sort string for Z3 variable."""
-    if hasattr(var, 'sort'):
+    if hasattr(var, "sort"):
         sort = var.sort()
         if z3.is_bv_sort(sort):
             return f"(_ BitVec {sort.size()})"
@@ -50,28 +50,30 @@ def parse_smt2_expr(expr_str: str, variables: Dict[str, Any]) -> z3.ExprRef:
 
 def extract_assertion(smt2_str: str, start: int) -> Tuple[str, int]:
     """Extract assertion from SMT-LIB2 string."""
-    expr_start = smt2_str.find('(', start + 7) or start + 7
+    expr_start = smt2_str.find("(", start + 7) or start + 7
     expr = extract_balanced_expr(smt2_str, expr_start)
-    next_pos = smt2_str.find(')', expr_start + len(expr)) + 1
+    next_pos = smt2_str.find(")", expr_start + len(expr)) + 1
     return expr, next_pos
 
 
 def extract_abduction_goal(smt2_str: str) -> str:
     """Extract abduction goal from SMT-LIB2 string."""
-    idx = smt2_str.find('(get-abduct')
+    idx = smt2_str.find("(get-abduct")
     if idx == -1:
         return None
-    expr_start = smt2_str.find('(', idx + 10)
+    expr_start = smt2_str.find("(", idx + 10)
     return extract_balanced_expr(smt2_str, expr_start) if expr_start != -1 else None
 
 
-def parse_abduction_problem(smt2_str: str) -> Tuple[z3.BoolRef, z3.BoolRef, Dict[str, Any]]:
+def parse_abduction_problem(
+    smt2_str: str,
+) -> Tuple[z3.BoolRef, z3.BoolRef, Dict[str, Any]]:
     """Parse abduction problem from SMT-LIB2 to Z3 formulas."""
     variables = extract_variables_from_smt2(smt2_str)
 
     # Extract preconditions
     assertions = []
-    pos = smt2_str.find('(assert')
+    pos = smt2_str.find("(assert")
     while pos != -1:
         expr, next_pos = extract_assertion(smt2_str, pos)
         if expr:
@@ -81,7 +83,7 @@ def parse_abduction_problem(smt2_str: str) -> Tuple[z3.BoolRef, z3.BoolRef, Dict
                 print(f"Warning: Failed to parse assertion: {expr}. {e}")
             except Exception as e:
                 print(f"Warning: Failed to parse assertion: {expr}. {e}")
-        pos = smt2_str.find('(assert', next_pos)
+        pos = smt2_str.find("(assert", next_pos)
 
     # Extract goal
     goal_expr = extract_abduction_goal(smt2_str)
@@ -123,9 +125,9 @@ def _convert_sexpr_to_z3(sexpr: Any, variables: Dict[str, Any]) -> z3.ExprRef:
             return variables[sexpr]
         elif sexpr in ["true", "false"]:
             return z3.BoolVal(sexpr == "true")
-        elif sexpr.startswith('#x'):
+        elif sexpr.startswith("#x"):
             return z3.BitVecVal(int(sexpr[2:], 16), 32)
-        elif sexpr.startswith('#b'):
+        elif sexpr.startswith("#b"):
             return z3.BitVecVal(int(sexpr[2:], 2), len(sexpr) - 2)
         return z3.Int(sexpr)
 
@@ -182,7 +184,7 @@ def _convert_sexpr_to_z3(sexpr: Any, variables: Dict[str, Any]) -> z3.ExprRef:
             "bvmul": lambda a, b: a * b,
             "bvudiv": z3.UDiv,
             "bvurem": z3.URem,
-            "bvslt": lambda a, b: a < b
+            "bvslt": lambda a, b: a < b,
         }
         if op in bv_ops:
             return bv_ops[op](args[0], args[1])
@@ -194,7 +196,7 @@ def _convert_sexpr_to_z3(sexpr: Any, variables: Dict[str, Any]) -> z3.ExprRef:
             "bvugt": z3.UGT,
             "bvuge": z3.UGE,
             "bvsle": lambda a, b: a <= b,
-            "bvsgt": lambda a, b: a > b
+            "bvsgt": lambda a, b: a > b,
         }
         if op in bv_cmp:
             return bv_cmp[op](args[0], args[1])

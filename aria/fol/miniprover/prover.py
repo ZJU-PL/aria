@@ -1,4 +1,5 @@
 """First-order logic theorem prover implementation."""
+
 # pylint: disable=wildcard-import,unused-wildcard-import
 from aria.fol.miniprover.language import *
 
@@ -21,8 +22,9 @@ def unify(term_a, term_b):
         if term_a == term_b:
             return {}
         return None
-    if (isinstance(term_a, Function) and isinstance(term_b, Function)) or \
-       (isinstance(term_a, Predicate) and isinstance(term_b, Predicate)):
+    if (isinstance(term_a, Function) and isinstance(term_b, Function)) or (
+        isinstance(term_a, Predicate) and isinstance(term_b, Predicate)
+    ):
         if term_a.name != term_b.name:
             return None
         if len(term_a.terms) != len(term_b.terms):
@@ -58,6 +60,7 @@ def unify_list(pairs):
         for k, v in sub.items():
             substitution[k] = v
     return substitution
+
 
 ##############################################################################
 # Sequents
@@ -129,24 +132,27 @@ class Sequent:
 
     def __str__(self):
         """String representation of the sequent."""
-        left_part = ', '.join([str(formula) for formula in self.left])
-        right_part = ', '.join([str(formula) for formula in self.right])
-        if left_part != '':
-            left_part = left_part + ' '
-        if right_part != '':
-            right_part = ' ' + right_part
-        return left_part + '⊢' + right_part
+        left_part = ", ".join([str(formula) for formula in self.left])
+        right_part = ", ".join([str(formula) for formula in self.right])
+        if left_part != "":
+            left_part = left_part + " "
+        if right_part != "":
+            right_part = " " + right_part
+        return left_part + "⊢" + right_part
 
     def __hash__(self):
         """Hash the sequent."""
         return hash(str(self))
+
 
 ##############################################################################
 # Proof search
 ##############################################################################
 
 
-def proveSequent(sequent):  # pylint: disable=invalid-name,too-many-locals,too-many-branches,too-many-statements
+def proveSequent(
+    sequent,
+):  # pylint: disable=invalid-name,too-many-locals,too-many-branches,too-many-statements
     """
     Prove a sequent.
 
@@ -172,7 +178,7 @@ def proveSequent(sequent):  # pylint: disable=invalid-name,too-many-locals,too-m
             old_sequent = frontier.pop(0)
         if old_sequent is None:
             break
-        print(f'{old_sequent.depth}. {old_sequent}')
+        print(f"{old_sequent.depth}. {old_sequent}")
 
         # check if this sequent is axiomatically true without unification
         if len(set(old_sequent.left.keys()) & set(old_sequent.right.keys())) > 0:
@@ -182,8 +188,9 @@ def proveSequent(sequent):  # pylint: disable=invalid-name,too-many-locals,too-m
         # check if this sequent has unification terms
         if old_sequent.siblings is not None:
             # get the unifiable pairs for each sibling
-            sibling_pair_lists = [sequent.getUnifiablePairs()
-                                  for sequent in old_sequent.siblings]
+            sibling_pair_lists = [
+                sequent.getUnifiablePairs() for sequent in old_sequent.siblings
+            ]
 
             # check if there is a unifiable pair for each sibling
             if all(len(pair_list) > 0 for pair_list in sibling_pair_lists):
@@ -192,8 +199,12 @@ def proveSequent(sequent):  # pylint: disable=invalid-name,too-many-locals,too-m
                 index = [0] * len(sibling_pair_lists)
                 while True:
                     # attempt to unify at the index
-                    substitution = unify_list([sibling_pair_lists[i][index[i]]
-                                              for i in range(len(sibling_pair_lists))])
+                    substitution = unify_list(
+                        [
+                            sibling_pair_lists[i][index[i]]
+                            for i in range(len(sibling_pair_lists))
+                        ]
+                    )
                     if substitution is not None:
                         break
 
@@ -209,10 +220,13 @@ def proveSequent(sequent):  # pylint: disable=invalid-name,too-many-locals,too-m
                         break
                 if substitution is not None:
                     for k, v in substitution.items():
-                        print(f'  {k} = {v}')
+                        print(f"  {k} = {v}")
                     proven |= old_sequent.siblings
-                    frontier = [sequent for sequent in frontier
-                                if sequent not in old_sequent.siblings]
+                    frontier = [
+                        sequent
+                        for sequent in frontier
+                        if sequent not in old_sequent.siblings
+                    ]
                     continue
             else:
                 # unlink this sequent
@@ -255,11 +269,12 @@ def proveSequent(sequent):  # pylint: disable=invalid-name,too-many-locals,too-m
                         old_sequent.left.copy(),
                         old_sequent.right.copy(),
                         old_sequent.siblings,
-                        old_sequent.depth + 1
+                        old_sequent.depth + 1,
                     )
                     del new_sequent.left[left_formula]
-                    new_sequent.right[left_formula.formula] = \
+                    new_sequent.right[left_formula.formula] = (
                         old_sequent.left[left_formula] + 1
+                    )
                     if new_sequent.siblings is not None:
                         new_sequent.siblings.add(new_sequent)
                     frontier.append(new_sequent)
@@ -269,13 +284,15 @@ def proveSequent(sequent):  # pylint: disable=invalid-name,too-many-locals,too-m
                         old_sequent.left.copy(),
                         old_sequent.right.copy(),
                         old_sequent.siblings,
-                        old_sequent.depth + 1
+                        old_sequent.depth + 1,
                     )
                     del new_sequent.left[left_formula]
-                    new_sequent.left[left_formula.formula_a] = \
+                    new_sequent.left[left_formula.formula_a] = (
                         old_sequent.left[left_formula] + 1
-                    new_sequent.left[left_formula.formula_b] = \
+                    )
+                    new_sequent.left[left_formula.formula_b] = (
                         old_sequent.left[left_formula] + 1
+                    )
                     if new_sequent.siblings is not None:
                         new_sequent.siblings.add(new_sequent)
                     frontier.append(new_sequent)
@@ -285,20 +302,22 @@ def proveSequent(sequent):  # pylint: disable=invalid-name,too-many-locals,too-m
                         old_sequent.left.copy(),
                         old_sequent.right.copy(),
                         old_sequent.siblings,
-                        old_sequent.depth + 1
+                        old_sequent.depth + 1,
                     )
                     new_sequent_b = Sequent(
                         old_sequent.left.copy(),
                         old_sequent.right.copy(),
                         old_sequent.siblings,
-                        old_sequent.depth + 1
+                        old_sequent.depth + 1,
                     )
                     del new_sequent_a.left[left_formula]
                     del new_sequent_b.left[left_formula]
-                    new_sequent_a.left[left_formula.formula_a] = \
+                    new_sequent_a.left[left_formula.formula_a] = (
                         old_sequent.left[left_formula] + 1
-                    new_sequent_b.left[left_formula.formula_b] = \
+                    )
+                    new_sequent_b.left[left_formula.formula_b] = (
                         old_sequent.left[left_formula] + 1
+                    )
                     if new_sequent_a.siblings is not None:
                         new_sequent_a.siblings.add(new_sequent_a)
                     frontier.append(new_sequent_a)
@@ -311,20 +330,22 @@ def proveSequent(sequent):  # pylint: disable=invalid-name,too-many-locals,too-m
                         old_sequent.left.copy(),
                         old_sequent.right.copy(),
                         old_sequent.siblings,
-                        old_sequent.depth + 1
+                        old_sequent.depth + 1,
                     )
                     new_sequent_b = Sequent(
                         old_sequent.left.copy(),
                         old_sequent.right.copy(),
                         old_sequent.siblings,
-                        old_sequent.depth + 1
+                        old_sequent.depth + 1,
                     )
                     del new_sequent_a.left[left_formula]
                     del new_sequent_b.left[left_formula]
-                    new_sequent_a.right[left_formula.formula_a] = \
+                    new_sequent_a.right[left_formula.formula_a] = (
                         old_sequent.left[left_formula] + 1
-                    new_sequent_b.left[left_formula.formula_b] = \
+                    )
+                    new_sequent_b.left[left_formula.formula_b] = (
                         old_sequent.left[left_formula] + 1
+                    )
                     if new_sequent_a.siblings is not None:
                         new_sequent_a.siblings.add(new_sequent_a)
                     frontier.append(new_sequent_a)
@@ -337,12 +358,12 @@ def proveSequent(sequent):  # pylint: disable=invalid-name,too-many-locals,too-m
                         old_sequent.left.copy(),
                         old_sequent.right.copy(),
                         old_sequent.siblings or set(),
-                        old_sequent.depth + 1
+                        old_sequent.depth + 1,
                     )
                     new_sequent.left[left_formula] += 1
                     formula = left_formula.formula.replace(
                         left_formula.variable,
-                        UnificationTerm(old_sequent.getVariableName('t'))
+                        UnificationTerm(old_sequent.getVariableName("t")),
                     )
                     formula.setInstantiationTime(old_sequent.depth + 1)
                     if formula not in new_sequent.left:
@@ -356,12 +377,13 @@ def proveSequent(sequent):  # pylint: disable=invalid-name,too-many-locals,too-m
                         old_sequent.left.copy(),
                         old_sequent.right.copy(),
                         old_sequent.siblings,
-                        old_sequent.depth + 1
+                        old_sequent.depth + 1,
                     )
                     del new_sequent.left[left_formula]
-                    variable = Variable(old_sequent.getVariableName('v'))
-                    formula = left_formula.formula.replace(left_formula.variable,
-                                                           variable)
+                    variable = Variable(old_sequent.getVariableName("v"))
+                    formula = left_formula.formula.replace(
+                        left_formula.variable, variable
+                    )
                     formula.setInstantiationTime(old_sequent.depth + 1)
                     new_sequent.left[formula] = old_sequent.left[left_formula] + 1
                     if new_sequent.siblings is not None:
@@ -376,11 +398,12 @@ def proveSequent(sequent):  # pylint: disable=invalid-name,too-many-locals,too-m
                         old_sequent.left.copy(),
                         old_sequent.right.copy(),
                         old_sequent.siblings,
-                        old_sequent.depth + 1
+                        old_sequent.depth + 1,
                     )
                     del new_sequent.right[right_formula]
-                    new_sequent.left[right_formula.formula] = \
+                    new_sequent.left[right_formula.formula] = (
                         old_sequent.right[right_formula] + 1
+                    )
                     if new_sequent.siblings is not None:
                         new_sequent.siblings.add(new_sequent)
                     frontier.append(new_sequent)
@@ -390,20 +413,22 @@ def proveSequent(sequent):  # pylint: disable=invalid-name,too-many-locals,too-m
                         old_sequent.left.copy(),
                         old_sequent.right.copy(),
                         old_sequent.siblings,
-                        old_sequent.depth + 1
+                        old_sequent.depth + 1,
                     )
                     new_sequent_b = Sequent(
                         old_sequent.left.copy(),
                         old_sequent.right.copy(),
                         old_sequent.siblings,
-                        old_sequent.depth + 1
+                        old_sequent.depth + 1,
                     )
                     del new_sequent_a.right[right_formula]
                     del new_sequent_b.right[right_formula]
-                    new_sequent_a.right[right_formula.formula_a] = \
+                    new_sequent_a.right[right_formula.formula_a] = (
                         old_sequent.right[right_formula] + 1
-                    new_sequent_b.right[right_formula.formula_b] = \
+                    )
+                    new_sequent_b.right[right_formula.formula_b] = (
                         old_sequent.right[right_formula] + 1
+                    )
                     if new_sequent_a.siblings is not None:
                         new_sequent_a.siblings.add(new_sequent_a)
                     frontier.append(new_sequent_a)
@@ -416,13 +441,15 @@ def proveSequent(sequent):  # pylint: disable=invalid-name,too-many-locals,too-m
                         old_sequent.left.copy(),
                         old_sequent.right.copy(),
                         old_sequent.siblings,
-                        old_sequent.depth + 1
+                        old_sequent.depth + 1,
                     )
                     del new_sequent.right[right_formula]
-                    new_sequent.right[right_formula.formula_a] = \
+                    new_sequent.right[right_formula.formula_a] = (
                         old_sequent.right[right_formula] + 1
-                    new_sequent.right[right_formula.formula_b] = \
+                    )
+                    new_sequent.right[right_formula.formula_b] = (
                         old_sequent.right[right_formula] + 1
+                    )
                     if new_sequent.siblings is not None:
                         new_sequent.siblings.add(new_sequent)
                     frontier.append(new_sequent)
@@ -432,13 +459,15 @@ def proveSequent(sequent):  # pylint: disable=invalid-name,too-many-locals,too-m
                         old_sequent.left.copy(),
                         old_sequent.right.copy(),
                         old_sequent.siblings,
-                        old_sequent.depth + 1
+                        old_sequent.depth + 1,
                     )
                     del new_sequent.right[right_formula]
-                    new_sequent.left[right_formula.formula_a] = \
+                    new_sequent.left[right_formula.formula_a] = (
                         old_sequent.right[right_formula] + 1
-                    new_sequent.right[right_formula.formula_b] = \
+                    )
+                    new_sequent.right[right_formula.formula_b] = (
                         old_sequent.right[right_formula] + 1
+                    )
                     if new_sequent.siblings is not None:
                         new_sequent.siblings.add(new_sequent)
                     frontier.append(new_sequent)
@@ -448,12 +477,13 @@ def proveSequent(sequent):  # pylint: disable=invalid-name,too-many-locals,too-m
                         old_sequent.left.copy(),
                         old_sequent.right.copy(),
                         old_sequent.siblings,
-                        old_sequent.depth + 1
+                        old_sequent.depth + 1,
                     )
                     del new_sequent.right[right_formula]
-                    variable = Variable(old_sequent.getVariableName('v'))
-                    formula = right_formula.formula.replace(right_formula.variable,
-                                                            variable)
+                    variable = Variable(old_sequent.getVariableName("v"))
+                    formula = right_formula.formula.replace(
+                        right_formula.variable, variable
+                    )
                     formula.setInstantiationTime(old_sequent.depth + 1)
                     new_sequent.right[formula] = old_sequent.right[right_formula] + 1
                     if new_sequent.siblings is not None:
@@ -465,12 +495,12 @@ def proveSequent(sequent):  # pylint: disable=invalid-name,too-many-locals,too-m
                         old_sequent.left.copy(),
                         old_sequent.right.copy(),
                         old_sequent.siblings or set(),
-                        old_sequent.depth + 1
+                        old_sequent.depth + 1,
                     )
                     new_sequent.right[right_formula] += 1
                     formula = right_formula.formula.replace(
                         right_formula.variable,
-                        UnificationTerm(old_sequent.getVariableName('t'))
+                        UnificationTerm(old_sequent.getVariableName("t")),
                     )
                     formula.setInstantiationTime(old_sequent.depth + 1)
                     if formula not in new_sequent.right:
@@ -491,9 +521,4 @@ def proveFormula(axioms, formula):  # pylint: disable=invalid-name
     Returns True if the formula is provable.
     Returns False or loops forever if the formula is not provable.
     """
-    return proveSequent(Sequent(
-        {axiom: 0 for axiom in axioms},
-        {formula: 0},
-        None,
-        0
-    ))
+    return proveSequent(Sequent({axiom: 0 for axiom in axioms}, {formula: 0}, None, 0))

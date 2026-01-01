@@ -61,7 +61,8 @@ def run_seed(seed_val, category_key):
         output = process.read()
     print(output)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     # Main execution: Run SMTgazer across multiple SMT logic categories in parallel.
     #
     # This script processes the following SMT categories:
@@ -75,12 +76,12 @@ if __name__ == '__main__':
     # Uses multiprocessing with 10 parallel processes for efficiency.
     # Define the SMT logic categories to process
     key_set = [
-        'Equality+LinearArith',    # Simple arithmetic and equality logic
-        'QF_NonLinearIntArith',    # Nonlinear integer arithmetic
-        'QF_Bitvec',               # Bit-vector operations
-        'SyGuS',                   # Program synthesis problems
-        'BMC',                     # Bounded model checking
-        'SymEx'                    # Symbolic execution problems
+        "Equality+LinearArith",  # Simple arithmetic and equality logic
+        "QF_NonLinearIntArith",  # Nonlinear integer arithmetic
+        "QF_Bitvec",  # Bit-vector operations
+        "SyGuS",  # Program synthesis problems
+        "BMC",  # Bounded model checking
+        "SymEx",  # Symbolic execution problems
     ]
 
     # Create process pool for parallel execution

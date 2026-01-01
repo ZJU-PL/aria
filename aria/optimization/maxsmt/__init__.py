@@ -24,12 +24,12 @@ from .z3_optimize import Z3OptimizeSolver
 
 # Export main classes and functions
 __all__ = [
-    'MaxSMTAlgorithm',
-    'MaxSMTSolver',
-    'solve_maxsmt',
-    'demo',
-    'example_scheduling',
-    'example_minimal_correction'
+    "MaxSMTAlgorithm",
+    "MaxSMTSolver",
+    "solve_maxsmt",
+    "demo",
+    "example_scheduling",
+    "example_minimal_correction",
 ]
 
 
@@ -37,6 +37,7 @@ class MaxSMTSolver:
     """
     Main class for solving MaxSMT problems
     """
+
     def __init__(self, algorithm: str = "core-guided", solver_name: str = "z3"):
         """Initialize the MaxSMT solver
 
@@ -120,11 +121,13 @@ class MaxSMTSolver:
         return self.solver.solve()
 
 
-def solve_maxsmt(hard_constraints: List[z3.ExprRef],
-                 soft_constraints: List[z3.ExprRef],
-                 weights: List[float] = None,
-                 algorithm: str = "core-guided",
-                 solver_name: str = "z3") -> Tuple[bool, Optional[z3.ModelRef], float]:
+def solve_maxsmt(
+    hard_constraints: List[z3.ExprRef],
+    soft_constraints: List[z3.ExprRef],
+    weights: List[float] = None,
+    algorithm: str = "core-guided",
+    solver_name: str = "z3",
+) -> Tuple[bool, Optional[z3.ModelRef], float]:
     """Convenience function to solve a MaxSMT problem
 
     Args:
@@ -155,7 +158,7 @@ def demo():
     import time  # pylint: disable=import-outside-toplevel
 
     # Create variables
-    x, y = z3.Ints('x y')
+    x, y = z3.Ints("x y")
 
     # Hard constraints
     hard = [x >= 0, y >= 0, x + y <= 10]
@@ -212,12 +215,14 @@ def example_scheduling():
 
     # Jobs cannot overlap (for each pair of jobs)
     for i in range(n_jobs):
-        for j in range(i+1, n_jobs):
+        for j in range(i + 1, n_jobs):
             # Either job i finishes before job j starts, or vice versa
-            hard.append(z3.Or(
-                starts[i] + durations[i] <= starts[j],  # job i before job j
-                starts[j] + durations[j] <= starts[i]   # job j before job i
-            ))
+            hard.append(
+                z3.Or(
+                    starts[i] + durations[i] <= starts[j],  # job i before job j
+                    starts[j] + durations[j] <= starts[i],  # job j before job i
+                )
+            )
 
     # Soft constraints: try to meet deadlines
     soft = []
@@ -242,15 +247,18 @@ def example_scheduling():
 
         if sat:
             print("Optimal Schedule:")
-            jobs_info = [(i, model.eval(starts[i]).as_long(),
-                         model.eval(starts[i]).as_long() + durations[i],
-                         deadlines[i]) for i in range(n_jobs)]
+            jobs_info = [
+                (
+                    i,
+                    model.eval(starts[i]).as_long(),
+                    model.eval(starts[i]).as_long() + durations[i],
+                    deadlines[i],
+                )
+                for i in range(n_jobs)
+            ]
 
             # Store results for comparison
-            all_results[alg] = {
-                'cost': cost,
-                'jobs_info': jobs_info
-            }
+            all_results[alg] = {"cost": cost, "jobs_info": jobs_info}
 
             # Sort by start time
             jobs_info.sort(key=lambda x: x[1])
@@ -280,9 +288,11 @@ def example_scheduling():
         z3_results = all_results.get("z3-opt")
 
         if cg_results and z3_results:
-            print(f"Core-guided cost: {cg_results['cost']}, Z3-Opt cost: {z3_results['cost']}")
+            print(
+                f"Core-guided cost: {cg_results['cost']}, Z3-Opt cost: {z3_results['cost']}"
+            )
 
-            if abs(cg_results['cost'] - z3_results['cost']) < 1e-6:
+            if abs(cg_results["cost"] - z3_results["cost"]) < 1e-6:
                 print("Both algorithms found solutions with the same cost.")
             else:
                 print("The algorithms found solutions with different costs!")
@@ -293,8 +303,8 @@ def example_scheduling():
                 print("-----------+-------------+-------")
 
                 # Get job results by job ID for easier comparison
-                cg_jobs = {job[0]: job for job in cg_results['jobs_info']}
-                z3_jobs = {job[0]: job for job in z3_results['jobs_info']}
+                cg_jobs = {job[0]: job for job in cg_results["jobs_info"]}
+                z3_jobs = {job[0]: job for job in z3_results["jobs_info"]}
 
                 for i in range(n_jobs):
                     cg_job = cg_jobs[i]
@@ -323,10 +333,12 @@ def example_scheduling():
                     z3_end = z3_job[2]
                     deadline = deadlines[i]
 
-                    cg_status = ' (Late)' if cg_end > deadline else '       '
-                    z3_status = ' (Late)' if z3_end > deadline else '       '
-                    print(f"{i:3} | {cg_start:2}-{cg_end:2}{cg_status} | "
-                          f"{z3_start:2}-{z3_end:2}{z3_status} | {deadline}")
+                    cg_status = " (Late)" if cg_end > deadline else "       "
+                    z3_status = " (Late)" if z3_end > deadline else "       "
+                    print(
+                        f"{i:3} | {cg_start:2}-{cg_end:2}{cg_status} | "
+                        f"{z3_start:2}-{z3_end:2}{z3_status} | {deadline}"
+                    )
 
 
 def example_minimal_correction():
@@ -338,16 +350,16 @@ def example_minimal_correction():
     print("\n=== Minimal Correction Subset Example ===")
 
     # Create variables
-    a, b, c, d = z3.Bools('a b c d')
+    a, b, c, d = z3.Bools("a b c d")
 
     # Create a set of clauses that is unsatisfiable
     # (a AND b AND NOT a) is unsatisfiable
     clauses = [
-        a,             # clause 1
-        b,             # clause 2
-        z3.Not(a),     # clause 3
+        a,  # clause 1
+        b,  # clause 2
+        z3.Not(a),  # clause 3
         z3.Implies(b, c),  # clause 4
-        z3.Implies(c, d)   # clause 5
+        z3.Implies(c, d),  # clause 5
     ]
 
     # No hard constraints
@@ -371,12 +383,14 @@ def example_minimal_correction():
                 print(f"Clause {i+1}: {clause}")
 
         print(f"\nCost (number of clauses removed): {cost}")
-        print(f"Model: a={model.eval(a)}, b={model.eval(b)}, c={model.eval(c)}, d={model.eval(d)}")
+        print(
+            f"Model: a={model.eval(a)}, b={model.eval(b)}, c={model.eval(c)}, d={model.eval(d)}"
+        )
     else:
         print("Unexpected: Could not find a solution")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print("\n=== Basic Example ===")
     demo()
     example_scheduling()

@@ -5,6 +5,7 @@ Perhaps integrating the following implementations
  -  https://github.com/fslivovsky/interpolatingsolver/tree/9050db1d39213e94f9cadd036754aed69a1faa5f
     (it uses C++ and some third-party libraries)
 """
+
 from typing import List
 
 import z3
@@ -29,8 +30,9 @@ class BooleanInterpolant:
         return z3.Not(expr)
 
     @staticmethod
-    def pogo(solver_a: z3.Solver, solver_b: z3.Solver,
-             interpolation_vars: List[z3.ExprRef]):
+    def pogo(
+        solver_a: z3.Solver, solver_b: z3.Solver, interpolation_vars: List[z3.ExprRef]
+    ):
         """
         The pogo function takes two solvers, A and B.
         It then checks if the formula in A is satisfiable.
@@ -54,8 +56,9 @@ class BooleanInterpolant:
                 break
 
     @staticmethod
-    def compute_itp(fml_a: z3.ExprRef, fml_b: z3.ExprRef,
-                    var_list: List[z3.ExprRef]) -> List[z3.ExprRef]:
+    def compute_itp(
+        fml_a: z3.ExprRef, fml_b: z3.ExprRef, var_list: List[z3.ExprRef]
+    ) -> List[z3.ExprRef]:
         """
         Compute interpolants between two formulas.
 
@@ -113,5 +116,5 @@ def demo_itp():
     print(list(itp))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     demo_itp()

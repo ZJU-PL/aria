@@ -47,7 +47,9 @@ class Z3OptimizeSolver(MaxSMTSolverBase):
             relax_vars.append((b, weight))
 
         # Set the objective: maximize the sum of weights of satisfied soft constraints
-        objective = opt.maximize(z3.Sum([z3.If(b, weight, 0) for b, weight in relax_vars]))
+        objective = opt.maximize(
+            z3.Sum([z3.If(b, weight, 0) for b, weight in relax_vars])
+        )
 
         # Check if the formula is satisfiable
         if opt.check() == z3.sat:
@@ -62,22 +64,24 @@ class Z3OptimizeSolver(MaxSMTSolverBase):
                 obj_val = opt.upper(objective)
 
                 # Convert to float - different Z3 versions may return different types
-                if hasattr(obj_val, 'as_decimal'):
-                    satisfied_weight = float(obj_val.as_decimal(10).strip('?'))
-                elif hasattr(obj_val, 'as_fraction'):
+                if hasattr(obj_val, "as_decimal"):
+                    satisfied_weight = float(obj_val.as_decimal(10).strip("?"))
+                elif hasattr(obj_val, "as_fraction"):
                     fraction = obj_val.as_fraction()
-                    satisfied_weight = float(fraction.numerator) / float(fraction.denominator)
-                elif hasattr(obj_val, 'as_long'):
+                    satisfied_weight = float(fraction.numerator) / float(
+                        fraction.denominator
+                    )
+                elif hasattr(obj_val, "as_long"):
                     satisfied_weight = float(obj_val.as_long())
-                elif hasattr(obj_val, 'as_float'):
+                elif hasattr(obj_val, "as_float"):
                     satisfied_weight = obj_val.as_float()
                 else:
                     # Last resort: convert to string and parse
-                    satisfied_weight = float(str(obj_val).replace('?', ''))
+                    satisfied_weight = float(str(obj_val).replace("?", ""))
             except (ValueError, AttributeError):
                 # Alternative method: evaluate the objective expression in the model
                 satisfied_weight = 0.0
-                for (b, weight) in relax_vars:
+                for b, weight in relax_vars:
                     if z3.is_true(model.eval(b)):
                         satisfied_weight += weight
 
@@ -86,4 +90,4 @@ class Z3OptimizeSolver(MaxSMTSolverBase):
 
             return True, model, cost
         # Formula is unsatisfiable
-        return False, None, float('inf')
+        return False, None, float("inf")

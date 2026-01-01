@@ -1,4 +1,5 @@
 """Prompts for unsat core exploration."""
+
 EXPLORER_SYSTEM = """
 ### ROLE ###
 You are playing the role of an SMT solver.

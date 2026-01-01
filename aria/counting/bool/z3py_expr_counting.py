@@ -4,8 +4,10 @@ from typing import List, Tuple
 import z3
 from aria.utils.z3_expr_utils import get_variables
 
-from aria.counting.bool.dimacs_counting import count_dimacs_solutions, \
-    count_dimacs_solutions_parallel
+from aria.counting.bool.dimacs_counting import (
+    count_dimacs_solutions,
+    count_dimacs_solutions_parallel,
+)
 
 
 def count_z3_models_by_enumeration(formula) -> int:
@@ -52,9 +54,9 @@ def z3_to_dimacs(formula: z3.BoolRef) -> Tuple[List[str], List[str]]:
     # Convert to CNF
     goal = z3.Goal()
     goal.add(formula)
-    tactic = z3.Then(z3.Tactic('simplify'),
-                     z3.Tactic('tseitin-cnf'),
-                     z3.Tactic('simplify'))
+    tactic = z3.Then(
+        z3.Tactic("simplify"), z3.Tactic("tseitin-cnf"), z3.Tactic("simplify")
+    )
     result = tactic(goal)[0]
 
     # Handle tautology

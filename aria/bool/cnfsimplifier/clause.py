@@ -1,10 +1,12 @@
 """
 Clause
 """
+
 import uuid
 from typing import List, Set, Union
 
 from .variable import Variable
+
 
 def create_id() -> str:
     return str(uuid.uuid4())
@@ -12,10 +14,11 @@ def create_id() -> str:
 
 class Clause:
     """Representation of a Boolean clause"""
+
     variable_list: List[Variable]  # 变量列表
-    literals_set: Set[int]        # 文字集合
-    id: str                      # 唯一标识符
-    __tautology: bool           # 是否为重言式
+    literals_set: Set[int]  # 文字集合
+    id: str  # 唯一标识符
+    __tautology: bool  # 是否为重言式
 
     def __init__(self, variable_list: List[Union[Variable, int, float]]) -> None:
         """
@@ -83,7 +86,7 @@ class Clause:
         self.literals_set.add(lit.variable_value)
         self.__tautology = self.__update_tautology(lit)
 
-    def get_diff(self, other_clause: 'Clause') -> List[Variable]:
+    def get_diff(self, other_clause: "Clause") -> List[Variable]:
         """
         Get the difference between two literal sets, this literal set and
         the other literal set
@@ -95,7 +98,7 @@ class Clause:
         diff_set = self.literals_set.difference(other_clause.literals_set)
         return [Variable(var) for var in diff_set]
 
-    def get_resolvent(self, other_clause: 'Clause', lit: Variable) -> 'Clause':
+    def get_resolvent(self, other_clause: "Clause", lit: Variable) -> "Clause":
         """
         Get the resolvent of two clauses
         :complexity: O(n) where n is the size of the clauses
@@ -103,12 +106,12 @@ class Clause:
         :param lit: literal to get the resolvent based on it
         :return: return a new clause, the resolvent clause
         """
-        if (other_clause == self
-                or not other_clause.is_literal_value_present(-lit.variable_value)
-                or not self.is_literal_value_present(lit.variable_value)):
-            raise ValueError(
-                "Cannot compute resolvent: invalid clause or literal"
-            )
+        if (
+            other_clause == self
+            or not other_clause.is_literal_value_present(-lit.variable_value)
+            or not self.is_literal_value_present(lit.variable_value)
+        ):
+            raise ValueError("Cannot compute resolvent: invalid clause or literal")
 
         self_set = self.literals_set.copy()
         other_set = other_clause.literals_set.copy()

@@ -32,8 +32,10 @@ def split_list(alist, wanted_parts=1):
     if wanted_parts == 0:
         raise ZeroDivisionError("wanted_parts must be greater than zero.")
     length = len(alist)
-    return [alist[i * length // wanted_parts: (i + 1) * length // wanted_parts]
-            for i in range(wanted_parts)]
+    return [
+        alist[i * length // wanted_parts : (i + 1) * length // wanted_parts]
+        for i in range(wanted_parts)
+    ]
 
 
 def check_candidate_model(formula, all_vars, candidate):
@@ -51,8 +53,7 @@ def check_candidate_models_set(formula: z3.ExprRef, assignments: List) -> int:
     """Count satisfying assignments in the given assignment set."""
     variables = get_variables(formula)
     num_solutions = sum(
-        1 for cand in assignments
-        if check_candidate_model(formula, variables, cand)
+        1 for cand in assignments if check_candidate_model(formula, variables, cand)
     )
     logging.info("num solutions in subset: %d", num_solutions)
     return num_solutions
@@ -122,13 +123,13 @@ class BVModelCounter:
         logging.debug("Start BV enumeration-based")
         domains = [tuple(range(0, 2 ** v.sort().size())) for v in self.vars]
         solutions = sum(
-            1 for assignment in itertools.product(*domains)
+            1
+            for assignment in itertools.product(*domains)
             if check_candidate_model(self.formula, self.vars, assignment)
         )
         logging.info("Time: %s", counting_timer() - time_start)
         logging.info("BV enumeration total solutions: %d", solutions)
         return solutions, counting_timer() - time_start
-
 
     def count_model_by_enumeration_parallel(self):
         """Parallel enumeration is not implemented."""
@@ -162,5 +163,5 @@ def feat_test():
     mc.count_models_by_sharp_sat()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     feat_test()

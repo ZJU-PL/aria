@@ -1,6 +1,7 @@
 """
 This module performs all basic DFA operations, without pyfst
 """
+
 #!/usr/bin/python
 import copy
 from collections import defaultdict
@@ -8,7 +9,8 @@ from itertools import product
 from operator import attrgetter
 
 from aria.automata.symautomata.alphabet import createalphabet
-EPSILON = 0xffff
+
+EPSILON = 0xFFFF
 
 
 def tropical_weight(param):  # pylint: disable=invalid-name
@@ -19,7 +21,7 @@ def tropical_weight(param):  # pylint: disable=invalid-name
     Returns:
         bool: The arc weight
     """
-    if param == (float('inf')):
+    if param == (float("inf")):
         return False
     return True
 
@@ -48,7 +50,6 @@ class DFAState:
     def __iter__(self):
         """Iterator"""
         return iter(self.arcs)
-
 
 
 class DFAArc:
@@ -120,6 +121,7 @@ class Syms:  # pylint: disable=invalid-name
 class PythonDFA:
     """A DFA implementation that uses the
     same interface with python symautomata"""
+
     def __init__(self, alphabet=None):
         if alphabet is None:
             alphabet = createalphabet()
@@ -193,8 +195,8 @@ class PythonDFA:
         #     "State type should be integer."
         # assert char in self.I
         #
-        #print self.states
-        #print src
+        # print self.states
+        # print src
         for s_idx in [src, dst]:
             if s_idx >= len(self.states):
                 for i in range(len(self.states), s_idx + 1):
@@ -203,8 +205,7 @@ class PythonDFA:
             if arc.ilabel == self.isyms[char] or char == EPSILON:
                 self.nfa = True
                 break
-        self.states[src].arcs.append(
-            DFAArc(src, dst, self.isyms[char]))
+        self.states[src].arcs.append(DFAArc(src, dst, self.isyms[char]))
 
     def fixminimized(self, alphabet):  # pylint: disable=unused-argument
         """
@@ -267,10 +268,7 @@ class PythonDFA:
             bool: A true or false value depending on if the DFA
                 accepts the provided input
         """
-        cur_state = sorted(
-            self.states,
-            key=attrgetter('initial'),
-            reverse=True)[0]
+        cur_state = sorted(self.states, key=attrgetter("initial"), reverse=True)[0]
         while len(inp) > 0:
             found = False
             if self.yy_accept[cur_state.stateid] > 0:
@@ -287,17 +285,13 @@ class PythonDFA:
             return self.yy_accept[self.yy_last_accepting_state.stateid] == 1
         return cur_state.final
 
-
     def trace_partial_input(self, inp):
         """
         Return a list of (state, char) traversed by the inp
         """
         traversed = []
 
-        cur_state = sorted(
-            self.states,
-            key=attrgetter('initial'),
-            reverse=True)[0]
+        cur_state = sorted(self.states, key=attrgetter("initial"), reverse=True)[0]
 
         while len(inp) > 0:
             found = False
@@ -314,7 +308,6 @@ class PythonDFA:
                 return False
         return traversed
 
-
     def empty(self):
         """
         Return True if the DFA accepts the empty language.
@@ -330,7 +323,7 @@ class PythonDFA:
         Returns:
             None
         """
-        states = sorted(self.states, key=attrgetter('initial'), reverse=True)
+        states = sorted(self.states, key=attrgetter("initial"), reverse=True)
         for state in states:
             if state.final:
                 state.final = False
@@ -359,16 +352,17 @@ class PythonDFA:
         Returns:
             None
         """
-        with open(txt_fst_file_name, 'w+', encoding='utf-8') as output_filename:
-            states = sorted(self.states, key=attrgetter('initial'), reverse=True)
+        with open(txt_fst_file_name, "w+", encoding="utf-8") as output_filename:
+            states = sorted(self.states, key=attrgetter("initial"), reverse=True)
             for state in states:
                 for arc in state.arcs:
                     itext = self.isyms.find(arc.ilabel)
                     otext = self.osyms.find(arc.ilabel)
                     output_filename.write(
-                        f'{state.stateid}\t{arc.nextstate}\t{itext.encode("hex")}\t{otext.encode("hex")}\n')
+                        f'{state.stateid}\t{arc.nextstate}\t{itext.encode("hex")}\t{otext.encode("hex")}\n'
+                    )
                 if state.final:
-                    output_filename.write(f'{state.stateid}\n')
+                    output_filename.write(f"{state.stateid}\n")
 
     def load(self, txt_fst_file_name):
         """
@@ -382,16 +376,18 @@ class PythonDFA:
         Returns:
             None
         """
-        with open(txt_fst_file_name, 'r', encoding='utf-8') as input_filename:
+        with open(txt_fst_file_name, "r", encoding="utf-8") as input_filename:
             for line in input_filename:
                 line = line.strip()
                 split_line = line.split()
                 if len(split_line) == 1:
                     self[int(split_line[0])].final = True
                 else:
-                    self.add_arc(int(split_line[0]), int(split_line[1]),
-                                 split_line[2].decode('hex'))
-
+                    self.add_arc(
+                        int(split_line[0]),
+                        int(split_line[1]),
+                        split_line[2].decode("hex"),
+                    )
 
     def minimize(self):
         """Minimizes the DFA using Hopcroft algorithm"""
@@ -409,17 +405,17 @@ class PythonDFA:
         """
         operation = bool.__and__
         self.cross_product(other, operation)
-        return  self
+        return self
 
     def __and__(self, other):
         """Constructs an unminimized DFA recognizing
-               the intersection of the languages of two given DFAs.
-               Args:
-                   other (DFA): The other DFA that will be used
-                                for the intersect operation
-               Returns:
-                   DFA: The resulting DFA
-               """
+        the intersection of the languages of two given DFAs.
+        Args:
+            other (DFA): The other DFA that will be used
+                         for the intersect operation
+        Returns:
+            DFA: The resulting DFA
+        """
         self.intersect(other)
         return self
 
@@ -434,7 +430,7 @@ class PythonDFA:
         """
         operation = bool.__xor__
         self.cross_product(other, operation)
-        return  self
+        return self
 
     def union(self, other):
         """Constructs an unminimized DFA recognizing the union of the languages of two given DFAs.
@@ -450,15 +446,14 @@ class PythonDFA:
 
     def __or__(self, other):
         """Constructs an unminimized DFA recognizing the union of the languages of two given DFAs.
-                Args:
-                    other (DFA): The other DFA that will be used
-                                 for the union operation
-                Returns:
-                    DFA: The resulting DFA
-                """
+        Args:
+            other (DFA): The other DFA that will be used
+                         for the union operation
+        Returns:
+            DFA: The resulting DFA
+        """
         self.union(other)
         return self
-
 
     def _epsilon_closure(self, state):
         r"""
@@ -471,13 +466,11 @@ class PythonDFA:
                 break
             s = stack.pop()
             for arc in s:
-                if self.isyms.find(arc.ilabel) != EPSILON or \
-                        arc.nextstate in closure:
+                if self.isyms.find(arc.ilabel) != EPSILON or arc.nextstate in closure:
                     continue
                 closure.add(arc.nextstate)
                 stack.append(self.states[arc.nextstate])
         return closure
-
 
     def determinize(self):
         """
@@ -525,7 +518,7 @@ class PythonDFA:
         new_initial = epsilon_closure[nfa_states[0].stateid]
         self.states[0].final = is_final(nfa_states, new_initial)
 
-        dfa_state_idx_map = { frozenset(new_initial) : 0 }
+        dfa_state_idx_map = {frozenset(new_initial): 0}
         stack = [new_initial]
         while True:
             # Iterate until all added DFA states are processed.
@@ -539,7 +532,8 @@ class PythonDFA:
                 target_dfa_state = set([])
                 for nfa_state in src_dfa_state:
                     next_states = {
-                        y for x in trans_table[nfa_state][char]
+                        y
+                        for x in trans_table[nfa_state][char]
                         for y in epsilon_closure[x]
                     }
                     target_dfa_state.update(next_states)
@@ -548,15 +542,15 @@ class PythonDFA:
                 if frozenset(target_dfa_state) not in dfa_state_idx_map:
                     self.add_state()
                     dfa_state_idx_map[frozenset(target_dfa_state)] = state_idx
-                    self.states[state_idx].final = is_final(nfa_states,
-                                                            target_dfa_state)
+                    self.states[state_idx].final = is_final(
+                        nfa_states, target_dfa_state
+                    )
                     state_idx += 1
                     stack.append(target_dfa_state)
 
                 dst_state_idx = dfa_state_idx_map[frozenset(target_dfa_state)]
                 self.add_arc(src_dfa_state_idx, dst_state_idx, char)
         return self
-
 
     def invert(self):
         """Inverts the DFA final states"""
@@ -588,7 +582,6 @@ class PythonDFA:
         """
         self.difference(other)
         return self
-
 
     def hopcroft(self):
         """
@@ -623,8 +616,10 @@ class PythonDFA:
             Returns:
                 dict: The generated transition map
             """
-            return {x.stateid:{self.isyms.find(arc.ilabel): arc.nextstate \
-                               for arc in x} for x in graph.states}
+            return {
+                x.stateid: {self.isyms.find(arc.ilabel): arc.nextstate for arc in x}
+                for x in graph.states
+            }
 
         def _create_reverse_transitions_representation(graph):
             """
@@ -636,8 +631,10 @@ class PythonDFA:
             Returns:
                 dict: The generated transition map
             """
-            return {x.stateid: {self.isyms.find(arc.ilabel): arc.nextstate \
-                                for arc in x} for x in graph.states}
+            return {
+                x.stateid: {self.isyms.find(arc.ilabel): arc.nextstate for arc in x}
+                for x in graph.states
+            }
 
         def _reverse_to_source(target, group1):
             """
@@ -684,7 +681,7 @@ class PythonDFA:
             Return:
                 tuple: A set of two groups
             """
-            for (group1, group2) in bookeeping:
+            for group1, group2 in bookeeping:
                 if group & group1 != set() and not group.issubset(group1):
                     new_g1 = group & group1
                     new_g2 = group - group1
@@ -712,8 +709,9 @@ class PythonDFA:
             Return:
                 list: Returns the list of the accepted states
             """
-            return [state for state in graph \
-                    if  state.final != TropicalWeight(float('inf'))]
+            return [
+                state for state in graph if state.final != TropicalWeight(float("inf"))
+            ]
 
         graph = self
 
@@ -745,15 +743,15 @@ class PythonDFA:
                         deststate = _delta(graph, graph[sid], character)
                         if deststate is None:
                             continue
-                        destgroup = _get_group_from_state(groups,
-                            deststate.stateid)
+                        destgroup = _get_group_from_state(groups, deststate.stateid)
                         target[destgroup].append(sid)
                         target_states[destgroup] = deststate.stateid
                     if len(target) > 1:
 
-                        inv_target_states = {
-                            v: k for k, v in target_states.items()}
-                        new_g = [set(selectedstate) for selectedstate in target.values()]  # pylint: disable=unnecessary-comprehension
+                        inv_target_states = {v: k for k, v in target_states.items()}
+                        new_g = [
+                            set(selectedstate) for selectedstate in target.values()
+                        ]  # pylint: disable=unnecessary-comprehension
                         done = False
                         # Get all the partitions of destgroups
                         queue = [set(target_states.values())]
@@ -761,9 +759,11 @@ class PythonDFA:
                             top = queue.pop(0)
                             (group1, group2) = _partition_group(bookeeping, top)
                             ng1 = _reverse_to_source(
-                                target, [inv_target_states[x] for x in group1])
+                                target, [inv_target_states[x] for x in group1]
+                            )
                             ng2 = _reverse_to_source(
-                                target, [inv_target_states[x] for x in group2])
+                                target, [inv_target_states[x] for x in group2]
+                            )
 
                             bookeeping.append((ng1, ng2))
 
@@ -797,7 +797,7 @@ class PythonDFA:
             for group in partitions:
                 if stateid in group:
                     return frozenset(group)
-            return frozenset(set(            ))
+            return frozenset(set())
 
         def add_state_if_not_exists(group, statesmap, final):
             """
@@ -823,21 +823,23 @@ class PythonDFA:
         statesmap = {}
         self.states = []
         group = findpart(0, groups)
-        sid = add_state_if_not_exists(frozenset(list(group)), statesmap,
-                                      oldstates[0].final)
+        sid = add_state_if_not_exists(
+            frozenset(list(group)), statesmap, oldstates[0].final
+        )
         self[sid].initial = True
         for group in groups:
             if len(group) == 0:
                 continue
-            sid = add_state_if_not_exists(frozenset(group), statesmap,
-                                          oldstates[list(group)[0]].final)
+            sid = add_state_if_not_exists(
+                frozenset(group), statesmap, oldstates[list(group)[0]].final
+            )
             state = next(iter(group))
             for arc in oldstates[state]:
                 dst_group = findpart(arc.nextstate, groups)
                 dst_sid = add_state_if_not_exists(
-                    dst_group, statesmap, oldstates[arc.nextstate].final)
+                    dst_group, statesmap, oldstates[arc.nextstate].final
+                )
                 self.add_arc(sid, dst_sid, graph.isyms.find(arc.ilabel))
-
 
     def cross_product(self, dfa_2, accept_method):
         """A generalized cross-product constructor over two DFAs.
@@ -854,7 +856,6 @@ class PythonDFA:
         self.states = []
         states = {}
 
-
         def _create_transitions_representation(graph, state):
             """
             In order to speedup the transition iteration using
@@ -866,7 +867,6 @@ class PythonDFA:
                 dict: The generated transition map
             """
             return {self.isyms.find(arc.ilabel): graph[arc.nextstate] for arc in state}
-
 
         def _add_state_if_nonexistent(state_a, state_b):
             """
@@ -881,12 +881,13 @@ class PythonDFA:
                 int: The new state identifier
             """
             if (state_a.stateid, state_b.stateid) not in states:
-                states[(state_a.stateid, state_b.stateid)] \
-                    = self.add_state()
-                self[states[(state_a.stateid, state_b.stateid)]].initial \
-                    = state_a.initial and state_b.initial
-                self[states[(state_a.stateid, state_b.stateid)]].final \
-                    = accept_method(state_a.final, state_b.final)
+                states[(state_a.stateid, state_b.stateid)] = self.add_state()
+                self[states[(state_a.stateid, state_b.stateid)]].initial = (
+                    state_a.initial and state_b.initial
+                )
+                self[states[(state_a.stateid, state_b.stateid)]].final = accept_method(
+                    state_a.final, state_b.final
+                )
             return states[(state_a.stateid, state_b.stateid)]
 
         for state1, state2 in product(dfa_1states, dfa_2states):
@@ -895,5 +896,6 @@ class PythonDFA:
             transitions_s2 = _create_transitions_representation(dfa_2states, state2)
             for char in self.alphabet:
                 sid2 = _add_state_if_nonexistent(
-                    transitions_s1[char], transitions_s2[char])
+                    transitions_s1[char], transitions_s2[char]
+                )
                 self.add_arc(sid1, sid2, char)

@@ -1,4 +1,5 @@
 """Core checking functions for monadic predicate abstraction."""
+
 from .unary_check import (
     unary_check,
     unary_check_incremental,

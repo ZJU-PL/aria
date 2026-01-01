@@ -37,8 +37,9 @@ def is_backbone_clause(fml: ExprRef, clause: List[ExprRef]) -> bool:
     return solver.check() == unsat
 
 
-def enumerate_backbone_clauses(fml: ExprRef, atoms: List[ExprRef], max_length: int = None) \
-        -> List[List[ExprRef]]:
+def enumerate_backbone_clauses(
+    fml: ExprRef, atoms: List[ExprRef], max_length: int = None
+) -> List[List[ExprRef]]:
     """
     Enumerates all backbone clauses up to the specified maximum length.
     Uses lazy model enumeration to prune the search space.
@@ -64,8 +65,10 @@ def enumerate_backbone_clauses(fml: ExprRef, atoms: List[ExprRef], max_length: i
     for length in range(1, max_length + 1):
         for clause_lits in combinations(literals, length):
             # Skip if any subset is already a backbone clause (optimization)
-            if any(all(lit in clause_lits for lit in existing_clause)
-                   for existing_clause in backbone_clauses):
+            if any(
+                all(lit in clause_lits for lit in existing_clause)
+                for existing_clause in backbone_clauses
+            ):
                 continue
 
             if is_backbone_clause(fml, list(clause_lits)):
@@ -74,8 +77,9 @@ def enumerate_backbone_clauses(fml: ExprRef, atoms: List[ExprRef], max_length: i
     return backbone_clauses
 
 
-def sample_backbone_clauses(fml: ExprRef, atoms: List[ExprRef],
-                            num_samples: int, max_length: int = None) -> List[List[ExprRef]]:
+def sample_backbone_clauses(
+    fml: ExprRef, atoms: List[ExprRef], num_samples: int, max_length: int = None
+) -> List[List[ExprRef]]:
     """
     Samples a specified number of backbone clauses randomly.
 

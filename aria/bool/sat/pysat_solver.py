@@ -34,27 +34,40 @@ logger = logging.getLogger(__name__)
     minisat22   = ('m22', 'msat22', 'minisat22')
     minisatgh   = ('mgh', 'msat-gh', 'minisat-gh')
 """
-sat_solvers = ['cd', 'cd15', 'gc3', 'gc4', 'g3',
-               'g4', 'lgl', 'mcb', 'mpl', 'mg3',
-               'mc', 'm22', 'msh']
+sat_solvers = [
+    "cd",
+    "cd15",
+    "gc3",
+    "gc4",
+    "g3",
+    "g4",
+    "lgl",
+    "mcb",
+    "mpl",
+    "mg3",
+    "mc",
+    "m22",
+    "msh",
+]
 
 
 class SATSolver(Enum):
     """Enumeration of SAT solvers and their aliases."""
-    CADICAL103 = ('cd', 'cd103', 'cdl', 'cdl103', 'cadical103')
-    CADICAL153 = ('cd15', 'cd153', 'cdl15', 'cdl153', 'cadical153')
-    GLUECARD3 = ('gc3', 'gc30', 'gluecard3', 'gluecard30')
-    GLUECARD4 = ('gc4', 'gc41', 'gluecard4', 'gluecard41')
-    GLUCOSE3 = ('g3', 'g30', 'glucose3', 'glucose30')
-    GLUCOSE4 = ('g4', 'g41', 'glucose4', 'glucose41')
-    LINGELING = ('lgl', 'lingeling')
-    MAPLECHRONO = ('mcb', 'chrono', 'chronobt', 'maplechrono')
-    MAPLECM = ('mcm', 'maplecm')
-    MAPLESAT = ('mpl', 'maple', 'maplesat')
-    MERGESAT3 = ('mg3', 'mgs3', 'mergesat3', 'mergesat30')
-    MINICARD = ('mc', 'mcard', 'minicard')
-    MINISAT22 = ('m22', 'msat22', 'minisat22')
-    MINISATGH = ('mgh', 'msat-gh', 'minisat-gh')
+
+    CADICAL103 = ("cd", "cd103", "cdl", "cdl103", "cadical103")
+    CADICAL153 = ("cd15", "cd153", "cdl15", "cdl153", "cadical153")
+    GLUECARD3 = ("gc3", "gc30", "gluecard3", "gluecard30")
+    GLUECARD4 = ("gc4", "gc41", "gluecard4", "gluecard41")
+    GLUCOSE3 = ("g3", "g30", "glucose3", "glucose30")
+    GLUCOSE4 = ("g4", "g41", "glucose4", "glucose41")
+    LINGELING = ("lgl", "lingeling")
+    MAPLECHRONO = ("mcb", "chrono", "chronobt", "maplechrono")
+    MAPLECM = ("mcm", "maplecm")
+    MAPLESAT = ("mpl", "maple", "maplesat")
+    MERGESAT3 = ("mg3", "mgs3", "mergesat3", "mergesat30")
+    MINICARD = ("mc", "mcard", "minicard")
+    MINISAT22 = ("m22", "msat22", "minisat22")
+    MINISATGH = ("mgh", "msat-gh", "minisat-gh")
 
     @classmethod
     def get_solver_names(cls):
@@ -184,7 +197,9 @@ class PySATSolver:
         """Get the current model if satisfiable."""
         return self._solver.get_model()
 
-    def internal_parallel_solve(self, clauses: List[List], assumptions_lists: List[List]):
+    def internal_parallel_solve(
+        self, clauses: List[List], assumptions_lists: List[List]
+    ):
         """
         Solve clauses under a set of assumptions (deal with each one in parallel)
         TODO: - Should we enforce that clauses are satisfiable?
@@ -193,6 +208,7 @@ class PySATSolver:
         """
         answers_async = [None for _ in assumptions_lists]
         with Pool(len(assumptions_lists)) as p:
+
             def terminate_others(val):
                 if val:
                     p.terminate()
@@ -200,16 +216,15 @@ class PySATSolver:
             for i, assumptions in enumerate(assumptions_lists):
                 answers_async[i] = p.apply_async(
                     internal_single_solve,
-                    (
-                        self.solver_name,
-                        clauses,
-                        assumptions
-                    ),
-                    callback=lambda val: terminate_others(val[0]))
+                    (self.solver_name, clauses, assumptions),
+                    callback=lambda val: terminate_others(val[0]),
+                )
             p.close()
             p.join()
 
-        answers = [answer_async.get() for answer_async in answers_async if answer_async.ready()]
+        answers = [
+            answer_async.get() for answer_async in answers_async if answer_async.ready()
+        ]
         res = [pres for pans, pres in answers]
         return res
 

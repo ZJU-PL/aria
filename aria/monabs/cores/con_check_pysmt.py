@@ -6,6 +6,7 @@ Result encoding (shared across helpers):
 - 0: unsatisfiable
 - 2: unknown (e.g., solver returned unknown)
 """
+
 from typing import List, Optional
 
 from pysmt.exceptions import SolverReturnedUnknownResultError
@@ -47,7 +48,9 @@ def _core_indices(core) -> List[int]:
     return indices
 
 
-def unary_check_cached(precond, cnt_list: List, results: List[Optional[int]], check_list: List[int]):
+def unary_check_cached(
+    precond, cnt_list: List, results: List[Optional[int]], check_list: List[int]
+):
     """Non-incremental check with model-based caching over a subset of constraints."""
     for i in check_list:
         if results[i] is not None:
@@ -68,7 +71,9 @@ def unary_check_cached(precond, cnt_list: List, results: List[Optional[int]], ch
             results[i] = 2
 
 
-def unary_check_incremental_cached(solver: Solver, cnt_list: List, results: List[Optional[int]], check_list: List[int]):
+def unary_check_incremental_cached(
+    solver: Solver, cnt_list: List, results: List[Optional[int]], check_list: List[int]
+):
     """Incremental version of unary_check_cached using a shared solver with push/pop."""
     for i in check_list:
         if results[i] is not None:
@@ -93,7 +98,9 @@ def unary_check_incremental_cached(solver: Solver, cnt_list: List, results: List
             solver.pop()
 
 
-def disjunctive_check_incremental_cached(solver: Solver, cnt_list: List, results: List[Optional[int]], check_list: List[int]):
+def disjunctive_check_incremental_cached(
+    solver: Solver, cnt_list: List, results: List[Optional[int]], check_list: List[int]
+):
     """Recursively solve a disjunction of pending constraints, caching satisfiable members."""
     conditions = [cnt_list[i] for i in check_list if results[i] is None]
     if len(conditions) == 0:
@@ -127,7 +134,9 @@ def disjunctive_check_incremental_cached(solver: Solver, cnt_list: List, results
                 results[i] = 2
 
 
-def conjunctive_check_incremental(precond, cnt_list: List, alogorithm: int = 0) -> List[int]:
+def conjunctive_check_incremental(
+    precond, cnt_list: List, alogorithm: int = 0
+) -> List[int]:
     """
     Perform a conjunctive satisfiability check on a list of constraints under a given precondition.
     Mirrors the Z3-based version but uses PySMT solvers and APIs.
@@ -143,7 +152,9 @@ def conjunctive_check_incremental(precond, cnt_list: List, alogorithm: int = 0) 
         for idx in current_subset:
             solver.add_assertion(cnt_list[idx], named=f"idx_{idx}")
         solver_result = _check(solver)
-        if solver_result == "sat":  # no conflicts within the predicates, no need to split
+        if (
+            solver_result == "sat"
+        ):  # no conflicts within the predicates, no need to split
             while True:
                 solver.add_assertion(precond)
                 solver_result = _check(solver)
@@ -182,7 +193,9 @@ def conjunctive_check_incremental(precond, cnt_list: List, alogorithm: int = 0) 
                 if sat_set_indices:
                     queue.append(sat_set_indices)
             else:
-                subsets = [[unsat_set_indices[i]] for i in range(len(unsat_set_indices))]
+                subsets = [
+                    [unsat_set_indices[i]] for i in range(len(unsat_set_indices))
+                ]
                 for i, sat_item in enumerate(sat_set_indices):
                     subsets[i % len(unsat_set_indices)].append(sat_item)
                 queue.extend(subsets)
@@ -198,7 +211,9 @@ def conjunctive_check_incremental(precond, cnt_list: List, alogorithm: int = 0) 
     elif alogorithm == 1:
         unary_check_incremental_cached(solver, cnt_list, results, waiting_list_idx)
     elif alogorithm == 2:
-        disjunctive_check_incremental_cached(solver, cnt_list, results, waiting_list_idx)
+        disjunctive_check_incremental_cached(
+            solver, cnt_list, results, waiting_list_idx
+        )
     else:
         raise ValueError("Invalid algorithm choice. Choose 0, 1, or 2.")
 
@@ -220,7 +235,9 @@ def conjunctive_check(precond, cnt_list: List, alogorithm: int = 0) -> List[int]
         for idx in current_subset:
             solver_split.add_assertion(cnt_list[idx], named=f"idx_{idx}")
         solver_result = _check(solver_split)
-        if solver_result == "sat":  # no conflicts within the predicates, no need to split
+        if (
+            solver_result == "sat"
+        ):  # no conflicts within the predicates, no need to split
             while True:
                 solver_check = Solver(name="z3", unsat_cores_mode="named")
                 solver_check.add_assertion(precond)
@@ -256,7 +273,9 @@ def conjunctive_check(precond, cnt_list: List, alogorithm: int = 0) -> List[int]
                 if sat_set_indices:
                     queue.append(sat_set_indices)
             else:
-                subsets = [[unsat_set_indices[i]] for i in range(len(unsat_set_indices))]
+                subsets = [
+                    [unsat_set_indices[i]] for i in range(len(unsat_set_indices))
+                ]
                 for i, sat_item in enumerate(sat_set_indices):
                     subsets[i % len(unsat_set_indices)].append(sat_item)
                 queue.extend(subsets)
@@ -270,9 +289,13 @@ def conjunctive_check(precond, cnt_list: List, alogorithm: int = 0) -> List[int]
     if alogorithm == 0:
         unary_check_cached(precond, cnt_list, results, waiting_list_idx)
     elif alogorithm == 1:
-        unary_check_incremental_cached(solver_fallback, cnt_list, results, waiting_list_idx)
+        unary_check_incremental_cached(
+            solver_fallback, cnt_list, results, waiting_list_idx
+        )
     elif alogorithm == 2:
-        disjunctive_check_incremental_cached(solver_fallback, cnt_list, results, waiting_list_idx)
+        disjunctive_check_incremental_cached(
+            solver_fallback, cnt_list, results, waiting_list_idx
+        )
     else:
         raise ValueError("Invalid algorithm choice. Choose 0, 1, or 2.")
 

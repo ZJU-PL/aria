@@ -10,8 +10,10 @@ from ..smtlib import grammatical_construct_list
 from ..features import bonus_features
 from ..config import args
 
-keyword_to_index = dict((grammatical_construct_list[i], i) for i in range(
-    len(grammatical_construct_list)))
+keyword_to_index = dict(
+    (grammatical_construct_list[i], i) for i in range(len(grammatical_construct_list))
+)
+
 
 class Benchmark:
     def __init__(self, path: str):
@@ -19,7 +21,7 @@ class Benchmark:
             raise FileNotFoundError(f"Could not find: {path}")
         self.path = path
         self.features = []
-        self.logic = 'UNPARSED'
+        self.logic = "UNPARSED"
         self.parsed = False
         self.total_feature_time = 0.0
         self.tokens = None
@@ -55,7 +57,7 @@ class Benchmark:
         self.total_feature_time = time.time() - start
 
     def compute_core_features(self):
-        assert hasattr(self, 'tokens')
+        assert hasattr(self, "tokens")
 
         self.features = [0] * (len(grammatical_construct_list) + 2)
         # benchmark file size
@@ -74,28 +76,29 @@ class Benchmark:
                     die(f"parsing error on: {self.path} {str(type(cur))}")
 
         try:
-            timeout_val = getattr(args, 'feature_timeout', 10)
-            func_timeout(timeout=timeout_val,
-                         func=count_occurrences,
-                         args=(self.tokens, self.features))
+            timeout_val = getattr(args, "feature_timeout", 10)
+            func_timeout(
+                timeout=timeout_val,
+                func=count_occurrences,
+                args=(self.tokens, self.features),
+            )
         except FunctionTimedOut:
-            timeout_val = getattr(args, 'feature_timeout', 10)
+            timeout_val = getattr(args, "feature_timeout", 10)
             warning(
-                f'Timeout after {timeout_val} seconds of '
-                f'compute_core_features on {self}')
+                f"Timeout after {timeout_val} seconds of "
+                f"compute_core_features on {self}"
+            )
             self.features[-2] = 1
         except RecursionError:
             print(f"Recurrsion Error on :{self}")
 
     def compute_semantic_features(self):
-        assert hasattr(self, 'tokens')
-        timeout_val = getattr(args, 'feature_timeout', 10)
+        assert hasattr(self, "tokens")
+        timeout_val = getattr(args, "feature_timeout", 10)
         timeout = (timeout_val / 2.0) / len(bonus_features)
         for feat in bonus_features:
             try:
-                ret = func_timeout(timeout=timeout,
-                                   func=feat,
-                                   args=(self.tokens,))
+                ret = func_timeout(timeout=timeout, func=feat, args=(self.tokens,))
                 if isinstance(ret, Iterable):
                     for r in ret:
                         self.features.append(float(r))
@@ -111,29 +114,33 @@ class Benchmark:
                 else:
                     self.features.append(-1.0)
                 warning(
-                    f'Timeout after {timeout} seconds of '
-                    f'{feat.__name__} on {self.path}')
+                    f"Timeout after {timeout} seconds of "
+                    f"{feat.__name__} on {self.path}"
+                )
 
     # Get and if necessary, compute features.
     def get_features(self):
         return self.features
 
     def parse(self):
-        assert not hasattr(self, 'tokens')
+        assert not hasattr(self, "tokens")
         self.tokens = list(SExprTokenizer(self.path))
-        self.logic = 'UNSET_LOGIC'
+        self.logic = "UNSET_LOGIC"
         for sexpr in self.tokens:
-            if len(sexpr) >= 2 and sexpr[0] == 'set-logic':
+            if len(sexpr) >= 2 and sexpr[0] == "set-logic":
                 self.logic = sexpr[1]
                 break
         self.compute_features()
         del self.tokens
-        assert not hasattr(self, 'tokens')
+        assert not hasattr(self, "tokens")
 
     def __str__(self):
-        return (f"Benchmark(self.path={self.path}, "
-                f"len(self.solvers)={len(self.solvers)}, "
-                f"self.logic={self.logic})")
+        return (
+            f"Benchmark(self.path={self.path}, "
+            f"len(self.solvers)={len(self.solvers)}, "
+            f"self.logic={self.logic})"
+        )
+
     __repr__ = __str__
 
     def __hash__(self):

@@ -10,6 +10,7 @@ import z3
 
 class EvaluationMode:
     """Evaluation modes for tactic sequences."""
+
     PYTHON_API = "python_api"
     BINARY_Z3 = "binary_z3"
 
@@ -21,8 +22,14 @@ def get_evaluation_mode():
 
 def get_z3_binary_path():
     """Find Z3 binary in common locations."""
-    paths = ["z3", "/usr/bin/z3", "/usr/local/bin/z3", "/opt/local/bin/z3",
-             "../bin_solvers/z3", "../../bin_solvers/z3"]
+    paths = [
+        "z3",
+        "/usr/bin/z3",
+        "/usr/local/bin/z3",
+        "/opt/local/bin/z3",
+        "../bin_solvers/z3",
+        "../../bin_solvers/z3",
+    ]
 
     for path in paths:
         if os.path.isfile(path) and os.access(path, os.X_OK):
@@ -37,7 +44,7 @@ def get_z3_binary_path():
 
 def pretty_print_tactic(tactic):
     """Print Z3 tactic applied to a test formula."""
-    x, y = z3.Int('x'), z3.Int('y')
+    x, y = z3.Int("x"), z3.Int("y")
     goal = z3.Goal()
     goal.add(z3.And(x > 0, y > 0, x + y == 10))
     result = tactic(goal)
@@ -51,13 +58,18 @@ def pretty_print_tactic(tactic):
 
 class TacticEvaluator:
     """Evaluates tactic sequences using Python API or binary Z3."""
+
     PENALTY = 4294967295  # Large penalty for failures
 
     def __init__(self, mode=None):
         self.mode = mode or get_evaluation_mode()
-        self.z3_binary_path = get_z3_binary_path() if self.mode == EvaluationMode.BINARY_Z3 else None
+        self.z3_binary_path = (
+            get_z3_binary_path() if self.mode == EvaluationMode.BINARY_Z3 else None
+        )
         if self.mode == EvaluationMode.BINARY_Z3 and not self.z3_binary_path:
-            raise RuntimeError("Z3 binary not found. Ensure Z3 is installed and in PATH.")
+            raise RuntimeError(
+                "Z3 binary not found. Ensure Z3 is installed and in PATH."
+            )
 
     def evaluate_sequence(self, tactic_seq, smtlib_file=None, timeout=8):
         """Evaluate tactic sequence, return execution time or penalty on failure."""
@@ -71,7 +83,9 @@ class TacticEvaluator:
         """Run Z3 command and return timing or penalty."""
         try:
             start = time.time()
-            ret = subprocess.call(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            ret = subprocess.call(
+                cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+            )
             return time.time() - start if ret == 0 else self.PENALTY
         finally:
             if os.path.exists(temp_file):
@@ -79,8 +93,9 @@ class TacticEvaluator:
 
     def _evaluate_python_api(self, tactic_seq, smtlib_file=None, timeout=8):
         """Evaluate using Z3 Python API."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.tactics',
-                                        delete=False, encoding='utf-8') as f:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".tactics", delete=False, encoding="utf-8"
+        ) as f:
             f.write(tactic_seq.to_string())
             tactics_file = f.name
         cmd = f"timeout {timeout}s ./run-tests *".split()
@@ -91,11 +106,12 @@ class TacticEvaluator:
         if not smtlib_file or not os.path.exists(smtlib_file):
             return self._evaluate_simple_formula(tactic_seq, timeout)
 
-        with open(smtlib_file, 'r', encoding='utf-8') as f:
+        with open(smtlib_file, "r", encoding="utf-8") as f:
             content = self._replace_check_sat_with_apply(f.read(), tactic_seq)
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.smt2',
-                                        delete=False, encoding='utf-8') as f:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".smt2", delete=False, encoding="utf-8"
+        ) as f:
             f.write(content)
             temp_file = f.name
 
@@ -103,13 +119,15 @@ class TacticEvaluator:
 
     def _evaluate_simple_formula(self, tactic_seq, timeout=8):
         """Evaluate on simple test formula."""
-        content = ("(set-logic QF_LIA)\n(declare-const x Int)\n"
-                  "(declare-const y Int)\n")
+        content = (
+            "(set-logic QF_LIA)\n(declare-const x Int)\n" "(declare-const y Int)\n"
+        )
         content += "(assert (and (> x 0) (> y 0) (= (+ x y) 10)))\n"
         content += tactic_seq.to_smtlib_apply() + "\n"
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.smt2',
-                                       delete=False, encoding='utf-8') as f:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".smt2", delete=False, encoding="utf-8"
+        ) as f:
             f.write(content)
             temp_file = f.name
 
@@ -118,18 +136,19 @@ class TacticEvaluator:
     def _replace_check_sat_with_apply(self, smtlib_content, tactic_seq):
         """Replace first (check-sat) with tactic apply."""
         lines, check_sat_found = [], False
-        for line in smtlib_content.split('\n'):
-            if line.strip() == '(check-sat)' and not check_sat_found:
+        for line in smtlib_content.split("\n"):
+            if line.strip() == "(check-sat)" and not check_sat_found:
                 lines.append(tactic_seq.to_smtlib_apply())
                 check_sat_found = True
             else:
                 lines.append(line)
-        return '\n'.join(lines)
+        return "\n".join(lines)
 
 
 def run_tests(tactic_seq=None, mode=None, smtlib_file=None, timeout=8):
     """Run tests and return execution time or penalty."""
     from .models import TacticSeq as TacticSeqModel
+
     return TacticEvaluator(mode).evaluate_sequence(
         tactic_seq or TacticSeqModel(), smtlib_file, timeout
     )
@@ -140,9 +159,11 @@ def evaluate_tactic_fitness(tactic_seq, test_files=None, mode=None, timeout=8):
     if not test_files:
         for dir_path in ["benchmarks/smtlib2", "benchmarks"]:
             if os.path.exists(dir_path):
-                test_files = [os.path.join(dir_path, f)
-                             for f in os.listdir(dir_path)[:5]
-                             if f.endswith('.smt2')]
+                test_files = [
+                    os.path.join(dir_path, f)
+                    for f in os.listdir(dir_path)[:5]
+                    if f.endswith(".smt2")
+                ]
                 if test_files:
                     break
 

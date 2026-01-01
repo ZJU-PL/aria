@@ -1,4 +1,5 @@
 """Tests for PySMT-based monadic predicate abstraction checking functions."""
+
 import pytest
 from pysmt.shortcuts import And, Bool, Not, Or, Symbol
 from pysmt.typing import BOOL

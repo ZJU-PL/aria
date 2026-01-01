@@ -16,7 +16,7 @@ from aria.ml.llm.smto.utils import (
     z3_value_to_python,
     python_to_z3_value,
     values_equal,
-    generate_cache_key
+    generate_cache_key,
 )
 
 
@@ -29,18 +29,20 @@ class OraxSolver:
     - Whitebox: Enhanced SMTO using LLM to analyze available component information
     """
 
-    def __init__(self,
-                 api_key: Optional[str] = None,
-                 model: str = "gpt-4",
-                 provider: str = "openai",
-                 cache_dir: Optional[str] = None,
-                 explanation_level: str = "basic",
-                 whitebox_analysis: bool = False,
-                 temperature: float = 0.1,
-                 system_role: str = (
-                     "You are a experienced programmer and good at understanding "
-                     "programs written in mainstream programming languages."
-                 )):  # noqa: E501
+    def __init__(
+        self,
+        api_key: Optional[str] = None,
+        model: str = "gpt-4",
+        provider: str = "openai",
+        cache_dir: Optional[str] = None,
+        explanation_level: str = "basic",
+        whitebox_analysis: bool = False,
+        temperature: float = 0.1,
+        system_role: str = (
+            "You are a experienced programmer and good at understanding "
+            "programs written in mainstream programming languages."
+        ),
+    ):  # noqa: E501
         """
         Initialize Orax solver
 
@@ -63,7 +65,7 @@ class OraxSolver:
             online_model_name=model,
             logger=self.logger,
             temperature=temperature,
-            system_role=system_role
+            system_role=system_role,
         )
 
         # Set up explanations
@@ -79,17 +81,17 @@ class OraxSolver:
         self.whitebox_analysis = whitebox_analysis
         if whitebox_analysis:
             self.whitebox_analyzer = WhiteboxAnalyzer(
-                llm=self.llm,
-                explanation_callback=self._add_explanation
+                llm=self.llm, explanation_callback=self._add_explanation
             )
             self.model_evaluator = ModelEvaluator(
-                llm=self.llm,
-                explanation_callback=self._add_explanation
+                llm=self.llm, explanation_callback=self._add_explanation
             )
 
         # Set up oracle registry
         self.oracles: Dict[str, OracleInfo] = {}
-        self.whitebox_models: Dict[str, str] = {}  # Symbolic models for whitebox oracles
+        self.whitebox_models: Dict[str, str] = (
+            {}
+        )  # Symbolic models for whitebox oracles
 
     def _add_explanation(self, message: str, level: str = "basic"):
         """Add explanation to the logger."""
@@ -104,8 +106,7 @@ class OraxSolver:
         self.oracles[oracle_info.name] = oracle_info
 
         # If whitebox analysis is enabled and this is a whitebox oracle, analyze it
-        if (self.whitebox_analysis and
-            isinstance(oracle_info, WhiteboxOracleInfo)):
+        if self.whitebox_analysis and isinstance(oracle_info, WhiteboxOracleInfo):
             symbolic_model = self.whitebox_analyzer.analyze_oracle(oracle_info)
             if symbolic_model:
                 self.whitebox_models[oracle_info.name] = symbolic_model
@@ -122,7 +123,9 @@ class OraxSolver:
         max_iterations = 10
         for iteration in range(max_iterations):
             # Log iteration start
-            self._add_explanation(f"Starting SMTO iteration {iteration+1}/{max_iterations}")
+            self._add_explanation(
+                f"Starting SMTO iteration {iteration+1}/{max_iterations}"
+            )
 
             result = self.solver.check()
             if result == z3.unsat:
@@ -131,9 +134,7 @@ class OraxSolver:
 
             model = self.solver.model()
 
-            model_dict = {
-                str(decl()): str(model[decl]) for decl in model.decls()
-            }
+            model_dict = {str(decl()): str(model[decl]) for decl in model.decls()}
             self._add_explanation(
                 f"Candidate model found: {model_dict}", level="detailed"
             )
@@ -150,8 +151,7 @@ class OraxSolver:
             self._add_oracle_constraints(model)
 
             self._add_explanation(
-                "Model validation failed, adding oracle constraints and "
-                "trying again"
+                "Model validation failed, adding oracle constraints and " "trying again"
             )
 
         self._add_explanation("Maximum iterations reached without finding valid model")
@@ -164,7 +164,9 @@ class OraxSolver:
                 return False
         return True
 
-    def _validate_oracle_calls(self, model: z3.ModelRef, oracle_info: OracleInfo) -> bool:
+    def _validate_oracle_calls(
+        self, model: z3.ModelRef, oracle_info: OracleInfo
+    ) -> bool:
         """Validate all oracle calls in the model."""
         oracle_calls = self._find_oracle_calls(model, oracle_info.name)
         for call_inputs in oracle_calls:
@@ -188,36 +190,40 @@ class OraxSolver:
 
         return True
 
-    def _query_oracle(self, oracle_info: OracleInfo, inputs: Dict[str, Any]) -> Optional[Any]:
+    def _query_oracle(
+        self, oracle_info: OracleInfo, inputs: Dict[str, Any]
+    ) -> Optional[Any]:
         """Query oracle based on type, with caching and fallbacks."""
         cache_key = generate_cache_key(oracle_info.name, inputs)
 
         if self.cache.contains(cache_key):
             self._add_explanation(
-                f"Using cached result for {oracle_info.name}{inputs}",
-                level="detailed"
+                f"Using cached result for {oracle_info.name}{inputs}", level="detailed"
             )
             return self.cache.get(cache_key)
 
         result = None
 
-        if oracle_info.oracle_type == OracleType.FUNCTION and oracle_info.function is not None:
+        if (
+            oracle_info.oracle_type == OracleType.FUNCTION
+            and oracle_info.function is not None
+        ):
             result = oracle_info.function(**inputs)
         elif oracle_info.oracle_type == OracleType.LLM:
             result = self._query_llm_oracle(oracle_info, inputs)
         elif oracle_info.oracle_type == OracleType.WHITEBOX:
-            if (self.whitebox_analysis and
-                isinstance(oracle_info, WhiteboxOracleInfo) and
-                oracle_info.symbolic_model):
+            if (
+                self.whitebox_analysis
+                and isinstance(oracle_info, WhiteboxOracleInfo)
+                and oracle_info.symbolic_model
+            ):
                 result = self.model_evaluator.evaluate_model(oracle_info, inputs)
                 if result is None:
                     result = self._query_llm_oracle(oracle_info, inputs)
             else:
                 result = self._query_llm_oracle(oracle_info, inputs)
         elif oracle_info.oracle_type == OracleType.EXTERNAL:
-            raise NotImplementedError(
-                "External oracle type not yet implemented"
-            )
+            raise NotImplementedError("External oracle type not yet implemented")
         else:
             raise ValueError(f"Unsupported oracle type: {oracle_info.oracle_type}")
 
@@ -226,8 +232,9 @@ class OraxSolver:
 
         return result
 
-    def _query_llm_oracle(self, oracle_info: OracleInfo,
-                          inputs: Dict[str, Any]) -> Optional[Any]:
+    def _query_llm_oracle(
+        self, oracle_info: OracleInfo, inputs: Dict[str, Any]
+    ) -> Optional[Any]:
         """Query LLM to simulate oracle function."""
         examples_text = "\n".join(
             [
@@ -254,8 +261,9 @@ class OraxSolver:
             self._add_explanation(f"LLM query failed: {e}")
             return None
 
-    def _parse_llm_response(self, response: str,
-                           output_type: z3.SortRef) -> Optional[Any]:
+    def _parse_llm_response(
+        self, response: str, output_type: z3.SortRef
+    ) -> Optional[Any]:
         """Parse LLM response according to expected output type."""
         try:
             response = response.strip()
@@ -303,16 +311,19 @@ class OraxSolver:
         if constraints_added > 0:
             self._add_explanation(f"Added {constraints_added} oracle constraints")
 
-    def _find_oracle_calls(self, model: z3.ModelRef, oracle_name: str) -> List[Dict[str, Any]]:
+    def _find_oracle_calls(
+        self, model: z3.ModelRef, oracle_name: str
+    ) -> List[Dict[str, Any]]:
         """Find all applications of an oracle function in the model."""
-        return [inputs for inputs, _ in self._iter_oracle_applications(model, oracle_name)]
+        return [
+            inputs for inputs, _ in self._iter_oracle_applications(model, oracle_name)
+        ]
 
-    def _get_model_result(self, model: z3.ModelRef, oracle_name: str,
-                         inputs: Dict[str, Any]) -> Optional[Any]:
+    def _get_model_result(
+        self, model: z3.ModelRef, oracle_name: str, inputs: Dict[str, Any]
+    ) -> Optional[Any]:
         """Get the result of an oracle function application from the model."""
-        for decl_inputs, decl in self._iter_oracle_applications(
-            model, oracle_name
-        ):
+        for decl_inputs, decl in self._iter_oracle_applications(model, oracle_name):
             if decl_inputs == inputs:
                 return z3_value_to_python(model.eval(decl(), True))
         return None
@@ -324,8 +335,10 @@ class OraxSolver:
     def get_symbolic_model(self, oracle_name: str) -> Optional[str]:
         """Get the symbolic model for a whitebox oracle, if any."""
         oracle_info = self.oracles.get(oracle_name)
-        if (oracle_info and
-            isinstance(oracle_info, WhiteboxOracleInfo) and
-            oracle_info.symbolic_model):
+        if (
+            oracle_info
+            and isinstance(oracle_info, WhiteboxOracleInfo)
+            and oracle_info.symbolic_model
+        ):
             return oracle_info.symbolic_model
         return None

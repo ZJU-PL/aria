@@ -2,6 +2,7 @@
 This module transforms a pyfst DFA to regular expressions
 using the State Removal Method
 """
+
 from sys import argv
 from operator import attrgetter
 from aria.automata.symautomata.alphabet import createalphabet
@@ -11,6 +12,7 @@ from aria.automata.symautomata.flex2fst import Flexparser
 
 class StateRemoval:
     """Transforms a pyfst DFA to regular expressions"""
+
     def __init__(self, input_fst_a, alphabet=None):
         """
         Args:
@@ -26,7 +28,7 @@ class StateRemoval:
         self.alphabet = alphabet
 
         self.l_transitions = {}
-        self.epsilon = ''
+        self.epsilon = ""
         self.empty = None
 
     def star(self, input_string):
@@ -48,20 +50,23 @@ class StateRemoval:
         for state_i in self.mma.states:
             for state_j in self.mma.states:
                 if state_i.stateid == state_j.stateid:
-                    self.l_transitions[
-                        state_i.stateid, state_j.stateid] = self.epsilon
+                    self.l_transitions[state_i.stateid, state_j.stateid] = self.epsilon
                 else:
-                    self.l_transitions[
-                        state_i.stateid, state_j.stateid] = self.empty
+                    self.l_transitions[state_i.stateid, state_j.stateid] = self.empty
 
                 for arc in state_i.arcs:
                     if arc.nextstate == state_j.stateid:
-                        if self.l_transitions[state_i.stateid, state_j.stateid] != self.empty:
-                            self.l_transitions[state_i.stateid, state_j.stateid] \
-                                += self.mma.isyms.find(arc.ilabel)
+                        if (
+                            self.l_transitions[state_i.stateid, state_j.stateid]
+                            != self.empty
+                        ):
+                            self.l_transitions[
+                                state_i.stateid, state_j.stateid
+                            ] += self.mma.isyms.find(arc.ilabel)
                         else:
-                            self.l_transitions[state_i.stateid, state_j.stateid] = \
+                            self.l_transitions[state_i.stateid, state_j.stateid] = (
                                 self.mma.isyms.find(arc.ilabel)
+                            )
 
     def _state_removal_remove(self, k):
         """
@@ -95,39 +100,46 @@ class StateRemoval:
                     l_kj = ""
 
                 if self.l_transitions[state_i.stateid, state_i.stateid] != self.empty:
-                    self.l_transitions[state_i.stateid, state_i.stateid] += l_ik + \
-                        self.star(self.l_transitions[k, k]) + l_ki
+                    self.l_transitions[state_i.stateid, state_i.stateid] += (
+                        l_ik + self.star(self.l_transitions[k, k]) + l_ki
+                    )
                 else:
-                    self.l_transitions[state_i.stateid, state_i.stateid] = l_ik + \
-                        self.star(self.l_transitions[k, k]) + l_ki
+                    self.l_transitions[state_i.stateid, state_i.stateid] = (
+                        l_ik + self.star(self.l_transitions[k, k]) + l_ki
+                    )
 
                 if self.l_transitions[state_j.stateid, state_j.stateid] != self.empty:
-                    self.l_transitions[state_j.stateid, state_j.stateid] += l_jk + \
-                        self.star(self.l_transitions[k, k]) + l_kj
+                    self.l_transitions[state_j.stateid, state_j.stateid] += (
+                        l_jk + self.star(self.l_transitions[k, k]) + l_kj
+                    )
                 else:
-                    self.l_transitions[state_j.stateid, state_j.stateid] = l_jk + \
-                        self.star(self.l_transitions[k, k]) + l_kj
+                    self.l_transitions[state_j.stateid, state_j.stateid] = (
+                        l_jk + self.star(self.l_transitions[k, k]) + l_kj
+                    )
 
                 if self.l_transitions[state_i.stateid, state_j.stateid] != self.empty:
-                    self.l_transitions[state_i.stateid, state_j.stateid] += l_ik + \
-                        self.star(self.l_transitions[k, k]) + l_kj
+                    self.l_transitions[state_i.stateid, state_j.stateid] += (
+                        l_ik + self.star(self.l_transitions[k, k]) + l_kj
+                    )
                 else:
-                    self.l_transitions[state_i.stateid, state_j.stateid] = l_ik + \
-                        self.star(self.l_transitions[k, k]) + l_kj
+                    self.l_transitions[state_i.stateid, state_j.stateid] = (
+                        l_ik + self.star(self.l_transitions[k, k]) + l_kj
+                    )
 
                 if self.l_transitions[state_j.stateid, state_i.stateid] != self.empty:
-                    self.l_transitions[state_j.stateid, state_i.stateid] += l_jk + \
-                        self.star(self.l_transitions[k, k]) + l_ki
+                    self.l_transitions[state_j.stateid, state_i.stateid] += (
+                        l_jk + self.star(self.l_transitions[k, k]) + l_ki
+                    )
                 else:
-                    self.l_transitions[state_j.stateid, state_i.stateid] = l_jk + \
-                        self.star(self.l_transitions[k, k]) + l_ki
+                    self.l_transitions[state_j.stateid, state_i.stateid] = (
+                        l_jk + self.star(self.l_transitions[k, k]) + l_ki
+                    )
 
     def _state_removal_solve(self):
         """The State Removal Operation"""
-        initial = sorted(
-            self.mma.states,
-            key=attrgetter('initial'),
-            reverse=True)[0].stateid
+        initial = sorted(self.mma.states, key=attrgetter("initial"), reverse=True)[
+            0
+        ].stateid
         for state_k in self.mma.states:
             if state_k.final:
                 continue
@@ -148,20 +160,21 @@ class StateRemoval:
 def main():
     """Testing function for DFA _Brzozowski Operation"""
     if len(argv) < 2:
-        targetfile = 'target.y'
+        targetfile = "target.y"
     else:
         targetfile = argv[1]
-    print('Parsing ruleset: ' + targetfile, end=' ')
+    print("Parsing ruleset: " + targetfile, end=" ")
     flex_a = Flexparser()
     mma = flex_a.yyparse(targetfile)
-    print('OK')
-    print('Perform minimization on initial automaton:', end=' ')
+    print("OK")
+    print("Perform minimization on initial automaton:", end=" ")
     mma.minimize()
-    print('OK')
-    print('Perform StateRemoval on minimal automaton:', end=' ')
+    print("OK")
+    print("Perform StateRemoval on minimal automaton:", end=" ")
     state_removal = StateRemoval(mma)
     mma_regex = state_removal.get_regex()
     print(mma_regex)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

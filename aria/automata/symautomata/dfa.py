@@ -1,4 +1,5 @@
 """This module contains the DFA implementation"""
+
 # !/usr/bin/python
 import copy
 import importlib
@@ -23,7 +24,7 @@ def bfs(graph, start) -> Optional[str]:
     visited: List[int] = []
     # maintain a queue of nodes
     # push the first path into the queue
-    queue.append([['', start]])
+    queue.append([["", start]])
     while queue:
         # get the first path from the queue
         path = queue.pop(0)
@@ -32,7 +33,7 @@ def bfs(graph, start) -> Optional[str]:
         if node.stateid not in visited:
             visited.append(node.stateid)
             # path found
-            if node.final != TropicalWeight(float('inf')):
+            if node.final != TropicalWeight(float("inf")):
                 return "".join([mnode[0] for mnode in path])
             # enumerate all adjacent nodes, construct a new path and push
             # it into the queue
@@ -47,15 +48,14 @@ def bfs(graph, start) -> Optional[str]:
 
 
 try:
-    print('Checking for pywrapfst module:')
-    spec = importlib.util.find_spec('pywrapfst')
+    print("Checking for pywrapfst module:")
+    spec = importlib.util.find_spec("pywrapfst")
     if spec is not None:
         # Module exists
-        #print 'Checking for openfst_python module:',
-        #importlib.util.find_spec('openfst_python')
-        print('OK')
+        # print 'Checking for openfst_python module:',
+        # importlib.util.find_spec('openfst_python')
+        print("OK")
         from aria.automata.symautomata.pywrapfstdfa import PywrapfstDFA, TropicalWeight
-
 
         class DFA(PywrapfstDFA):
             """The DFA class implemented using openFst library"""
@@ -66,7 +66,7 @@ try:
                 self.alphabet = alphabet
                 super().__init__(alphabet)
 
-            def copy(self) -> 'DFA':
+            def copy(self) -> "DFA":
                 mma = DFA(self.alphabet)
                 mma.automaton = self.automaton.copy()
                 mma.alphabet = copy.deepcopy(self.alphabet)
@@ -83,14 +83,13 @@ try:
                     str: The shortest string
                 """
                 initialstates = sorted(
-                    self.states,
-                    key=attrgetter('initial'),
-                    reverse=True)
+                    self.states, key=attrgetter("initial"), reverse=True
+                )
                 if len(initialstates) > 0:
                     return bfs(self, initialstates[0])
                 return None
 
-            def diff(self, input_mm) -> 'DFA':
+            def diff(self, input_mm) -> "DFA":
                 """
                 Automata Diff operation
                 """
@@ -114,21 +113,24 @@ try:
                     str: A regex approximation
                 """
                 # Import here to avoid circular import
-                from aria.automata.symautomata.regex import Regex  # pylint: disable=import-outside-toplevel
+                from aria.automata.symautomata.regex import (
+                    Regex,
+                )  # pylint: disable=import-outside-toplevel
+
                 converter = Regex(self)
                 return converter.get_regex()
 
 except ImportError:
-    print('FAIL')
+    print("FAIL")
     try:
-        print('Checking for fst module:')
-        importlib.util.find_spec('fst')
-        print('OK')
+        print("Checking for fst module:")
+        importlib.util.find_spec("fst")
+        print("OK")
         from aria.automata.symautomata.fstdfa import FstDFA, TropicalWeight
-
 
         class DFA(FstDFA):
             """The DFA class implemented using openFst library"""
+
             def __init__(self, alphabet: List[str] = None):
                 if alphabet is None:
                     alphabet = createalphabet()
@@ -144,14 +146,13 @@ except ImportError:
                     str: The shortest string
                 """
                 initialstates = sorted(
-                    self.states,
-                    key=attrgetter('initial'),
-                    reverse=True)
+                    self.states, key=attrgetter("initial"), reverse=True
+                )
                 if len(initialstates) > 0:
                     return bfs(self, initialstates[0])
                 return None
 
-            def diff(self, input_mm) -> 'DFA':
+            def diff(self, input_mm) -> "DFA":
                 """
                 Automata Diff operation
                 """
@@ -175,13 +176,16 @@ except ImportError:
                     str: A regex approximation
                 """
                 # Import here to avoid circular import
-                from aria.automata.symautomata.regex import Regex  # pylint: disable=import-outside-toplevel
+                from aria.automata.symautomata.regex import (
+                    Regex,
+                )  # pylint: disable=import-outside-toplevel
+
                 converter = Regex(self)
                 return converter.get_regex()
 
     except ImportError:
-        print('FAIL')
-        print('Fallback to python implementation:OK')
+        print("FAIL")
+        print("Fallback to python implementation:OK")
         from aria.automata.symautomata.pythondfa import PythonDFA, TropicalWeight
 
         class DFA(PythonDFA):
@@ -193,7 +197,7 @@ except ImportError:
                 self.alphabet = alphabet
                 super().__init__(alphabet)
 
-            def copy(self) -> 'DFA':
+            def copy(self) -> "DFA":
                 mma = DFA(self.alphabet)
                 mma.states = copy.deepcopy(self.states)
                 mma.alphabet = copy.deepcopy(self.alphabet)
@@ -210,14 +214,13 @@ except ImportError:
                     str: The shortest string
                 """
                 initialstates = sorted(
-                    self.states,
-                    key=attrgetter('initial'),
-                    reverse=True)
+                    self.states, key=attrgetter("initial"), reverse=True
+                )
                 if len(initialstates) > 0:
                     return bfs(self, initialstates[0])
                 return None
 
-            def diff(self, input_mm) -> 'DFA':
+            def diff(self, input_mm) -> "DFA":
                 """
                 Automata Diff operation
                 """
@@ -241,6 +244,9 @@ except ImportError:
                     str: A regex approximation
                 """
                 # Import here to avoid circular import
-                from aria.automata.symautomata.regex import Regex  # pylint: disable=import-outside-toplevel
+                from aria.automata.symautomata.regex import (
+                    Regex,
+                )  # pylint: disable=import-outside-toplevel
+
                 converter = Regex(self)
                 return converter.get_regex()

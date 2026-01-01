@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 from typing import List, Any, TypeVar, Generic
 
 # Type variable for model types
-ModelTypeVar = TypeVar('ModelTypeVar')
+ModelTypeVar = TypeVar("ModelTypeVar")
 
 
 class AllSMTSolver(ABC, Generic[ModelTypeVar]):
@@ -25,7 +25,9 @@ class AllSMTSolver(ABC, Generic[ModelTypeVar]):
         self._model_limit_reached: bool = False
 
     @abstractmethod
-    def solve(self, expr: Any, keys: List[Any], model_limit: int = 100) -> List[ModelTypeVar]:
+    def solve(
+        self, expr: Any, keys: List[Any], model_limit: int = 100
+    ) -> List[ModelTypeVar]:
         """
         Enumerate all satisfying models for the given expression over the specified keys.
 
@@ -111,7 +113,9 @@ class AllSMTSolver(ABC, Generic[ModelTypeVar]):
                 print(f"Model {i + 1}: {model}")
 
         if self._model_limit_reached:
-            print(f"Model limit reached. Found {self._model_count} models "
-                  f"(there may be more).")
+            print(
+                f"Model limit reached. Found {self._model_count} models "
+                f"(there may be more)."
+            )
         else:
             print(f"Total number of models: {self._model_count}")

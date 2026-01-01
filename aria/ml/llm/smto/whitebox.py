@@ -62,8 +62,10 @@ class WhiteboxAnalyzer:
             ]
         )
         sections: list[str] = [
-            ("As an expert in software analysis, create a precise symbolic model "
-             "for the following component:"),  # noqa: E501
+            (
+                "As an expert in software analysis, create a precise symbolic model "
+                "for the following component:"
+            ),  # noqa: E501
             f"Component name: {oracle_info.name}",
             f"Input types: {[str(t) for t in oracle_info.input_types]}",
             f"Output type: {str(oracle_info.output_type)}",
@@ -73,14 +75,20 @@ class WhiteboxAnalyzer:
             examples_text,
         ]
         # Attach whitebox content per analysis mode
-        if (oracle_info.analysis_mode == OracleAnalysisMode.DOCUMENTATION and
-                oracle_info.documentation):
+        if (
+            oracle_info.analysis_mode == OracleAnalysisMode.DOCUMENTATION
+            and oracle_info.documentation
+        ):
             sections += ["", "Documentation:", oracle_info.documentation]
-        if (oracle_info.analysis_mode == OracleAnalysisMode.SOURCE_CODE and
-                oracle_info.source_code):
+        if (
+            oracle_info.analysis_mode == OracleAnalysisMode.SOURCE_CODE
+            and oracle_info.source_code
+        ):
             sections += ["", "Source code:", oracle_info.source_code]
-        if (oracle_info.analysis_mode == OracleAnalysisMode.BINARY and
-                oracle_info.binary_code):
+        if (
+            oracle_info.analysis_mode == OracleAnalysisMode.BINARY
+            and oracle_info.binary_code
+        ):
             sections += ["", "Binary code is available for analysis (metadata only)."]
         if oracle_info.analysis_mode == OracleAnalysisMode.MIXED:
             if oracle_info.documentation:
@@ -88,7 +96,10 @@ class WhiteboxAnalyzer:
             if oracle_info.source_code:
                 sections += ["", "Source code:", oracle_info.source_code]
             if oracle_info.binary_code:
-                sections += ["", "Binary code is available for analysis (metadata only)."]
+                sections += [
+                    "",
+                    "Binary code is available for analysis (metadata only).",
+                ]
         if oracle_info.external_knowledge:
             sections += ["", "Additional relevant knowledge:"]
             sections += [f"- {item}" for item in oracle_info.external_knowledge]
@@ -100,8 +111,10 @@ class WhiteboxAnalyzer:
             "3. Express this model using SMT expressions compatible with Z3",
             "4. Ensure the model matches all provided examples",
             "",
-            ("Output only the model in a form directly evaluable with Z3, "
-             "with no extra text:"),
+            (
+                "Output only the model in a form directly evaluable with Z3, "
+                "with no extra text:"
+            ),
         ]
         return "\n".join(sections)
 
@@ -114,9 +127,9 @@ class ModelEvaluator:
         self.llm = llm
         self.explanation_callback = explanation_callback
 
-    def evaluate_model(self,
-                       oracle_info: WhiteboxOracleInfo,
-                       inputs: Dict[str, Any]) -> Optional[Any]:
+    def evaluate_model(
+        self, oracle_info: WhiteboxOracleInfo, inputs: Dict[str, Any]
+    ) -> Optional[Any]:
         """Evaluate the symbolic model with inputs. Return result or None."""
         if not oracle_info.symbolic_model:
             return None
@@ -138,9 +151,9 @@ class ModelEvaluator:
                 self.explanation_callback(f"Model evaluation failed: {str(e)}")
             return None
 
-    def _evaluate_with_z3(self,
-                          oracle_info: WhiteboxOracleInfo,
-                          inputs: Dict[str, Any]) -> Optional[Any]:
+    def _evaluate_with_z3(
+        self, oracle_info: WhiteboxOracleInfo, inputs: Dict[str, Any]
+    ) -> Optional[Any]:
         """Attempt direct Z3 evaluation of the symbolic model. Return result or None."""
         try:
             solver = z3.Solver()
@@ -193,21 +206,18 @@ class ModelEvaluator:
                         # For bit-vectors, handle different value types
                         if isinstance(value, int):
                             solver.add(
-                                z3_vars[var_name] == z3.BitVecVal(
-                                    value, input_type.size()
-                                )
+                                z3_vars[var_name]
+                                == z3.BitVecVal(value, input_type.size())
                             )
-                        elif isinstance(value, str) and value.startswith('#b'):
+                        elif isinstance(value, str) and value.startswith("#b"):
                             solver.add(
-                                z3_vars[var_name] == z3.BitVecVal(
-                                    value, input_type.size()
-                                )
+                                z3_vars[var_name]
+                                == z3.BitVecVal(value, input_type.size())
                             )
                         else:
                             solver.add(
-                                z3_vars[var_name] == z3.BitVecVal(
-                                    int(value), input_type.size()
-                                )
+                                z3_vars[var_name]
+                                == z3.BitVecVal(int(value), input_type.size())
                             )
                     elif z3.is_fp_sort(input_type):
                         # For floating points
@@ -216,14 +226,17 @@ class ModelEvaluator:
                         elif isinstance(value, str):
                             try:
                                 solver.add(
-                                    z3_vars[var_name] == z3.FPVal(float(value), input_type)
+                                    z3_vars[var_name]
+                                    == z3.FPVal(float(value), input_type)
                                 )
                             except Exception:
                                 solver.add(
                                     z3_vars[var_name] == z3.FPVal(value, input_type)
                                 )
                         else:
-                            solver.add(z3_vars[var_name] == z3.FPVal(float(value), input_type))
+                            solver.add(
+                                z3_vars[var_name] == z3.FPVal(float(value), input_type)
+                            )
                     elif z3.is_array_sort(input_type):
                         # For arrays, this is complex - simplified implementation
                         # A full implementation would need sophisticated array handling
@@ -243,9 +256,11 @@ class ModelEvaluator:
             elif z3.is_fp_sort(oracle_info.output_type):
                 z3.FP("output", oracle_info.output_type)
             elif z3.is_array_sort(oracle_info.output_type):
-                z3.Array("output",
-                         oracle_info.output_type.domain(),
-                         oracle_info.output_type.range())
+                z3.Array(
+                    "output",
+                    oracle_info.output_type.domain(),
+                    oracle_info.output_type.range(),
+                )
             else:
                 return None
 
@@ -258,9 +273,9 @@ class ModelEvaluator:
                 self.explanation_callback(f"Z3 evaluation failed: {str(e)}")
             return None
 
-    def _evaluate_with_llm(self,
-                          oracle_info: WhiteboxOracleInfo,
-                          inputs: Dict[str, Any]) -> Optional[Any]:
+    def _evaluate_with_llm(
+        self, oracle_info: WhiteboxOracleInfo, inputs: Dict[str, Any]
+    ) -> Optional[Any]:
         """Evaluate symbolic model using LLM. Return parsed result or None."""
         prompt = (
             f"Based on the following symbolic model for function "
@@ -278,6 +293,7 @@ class ModelEvaluator:
             self.llm.systemRole = original_system_role
 
             from aria.ml.llm.smto.utils import parse_text_by_sort
+
             return parse_text_by_sort(result, oracle_info.output_type)
 
         except Exception as e:

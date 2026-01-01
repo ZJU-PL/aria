@@ -42,6 +42,7 @@ from math import ceil
 
 import threading
 
+
 class BV_Grouping:
     NO_SWAP_CACHING = True
     swap_cache_lock = threading.Lock()
@@ -219,14 +220,20 @@ class BV_Grouping:
             return (triple_product, tt_ans)
         with BV_Grouping.triple_product_cache_lock:
             if (self, g2, g3) not in BV_Grouping.triple_product_cache:
-                BV_Grouping.triple_product_cache[(self, g2, g3)] = (triple_product, tt_ans)
+                BV_Grouping.triple_product_cache[(self, g2, g3)] = (
+                    triple_product,
+                    tt_ans,
+                )
         return BV_Grouping.triple_product_cache[(self, g2, g3)]
 
     def reduction_hash(reduction_tuple):
         return hash(tuple(reduction_tuple.values()))
 
     def is_reduction_cached(self, reduction_tuple):
-        if (self, BV_Grouping.reduction_hash(reduction_tuple)) in BV_Grouping.reduction_cache:
+        if (
+            self,
+            BV_Grouping.reduction_hash(reduction_tuple),
+        ) in BV_Grouping.reduction_cache:
             BV_Grouping.reduction_cache_hits += 1
             return True
         else:
@@ -234,7 +241,9 @@ class BV_Grouping:
 
     def get_cached_reduction(self, reduction_tuple):
         assert self.is_reduction_cached(reduction_tuple)
-        return BV_Grouping.reduction_cache[(self, BV_Grouping.reduction_hash(reduction_tuple))]
+        return BV_Grouping.reduction_cache[
+            (self, BV_Grouping.reduction_hash(reduction_tuple))
+        ]
 
     def cache_reduction(self, reduction_tuple, reduction):
         if BV_Grouping.NO_REDUCTION_CACHING:
@@ -246,8 +255,9 @@ class BV_Grouping:
         return BV_Grouping.reduction_cache[(self, reduction_hash)]
 
     def is_no_distinction_proto(self):
-        return (isinstance(self, BV_Dont_Care_Grouping) or
-            isinstance(self, BV_No_Distinction_Proto))
+        return isinstance(self, BV_Dont_Care_Grouping) or isinstance(
+            self, BV_No_Distinction_Proto
+        )
 
     def reduce(self, reduction_tuple):
         assert len(reduction_tuple) == self.number_of_exits
@@ -256,10 +266,12 @@ class BV_Grouping:
         else:
             reduction_length = len(set(reduction_tuple.values()))
             if reduction_length == 1:
-                return 1, BV_No_Distinction_Proto.representative(self.level,
-                    self.swap_level, self.fork_level)
+                return 1, BV_No_Distinction_Proto.representative(
+                    self.level, self.swap_level, self.fork_level
+                )
             else:
                 return reduction_length, self
+
 
 class BV_Dont_Care_Grouping(BV_Grouping):
     representatives_lock = threading.Lock()
@@ -282,7 +294,7 @@ class BV_Dont_Care_Grouping(BV_Grouping):
         assert exit_i == 1
         return 1
 
-    def get_paths(self, exit_i, index_i = 0):
+    def get_paths(self, exit_i, index_i=0):
         assert exit_i == 1
         return [(index_i, 0)]
 
@@ -299,7 +311,7 @@ class BV_Dont_Care_Grouping(BV_Grouping):
     def downsample_uncached(self):
         return BV_No_Distinction_Proto.downsample_uncached(self)
 
-    def pair_product(self, g2, inorder = True):
+    def pair_product(self, g2, inorder=True):
         assert isinstance(g2, BV_Grouping)
 
         if inorder:
@@ -320,7 +332,7 @@ class BV_Dont_Care_Grouping(BV_Grouping):
 
         return g1.cache_pair_product(g2, g, pt_ans)
 
-    def triple_product(self, g2, g3, order = 1):
+    def triple_product(self, g2, g3, order=1):
         assert isinstance(g2, BV_Grouping) or isinstance(g3, BV_Grouping)
 
         if order == 1:
@@ -360,11 +372,12 @@ class BV_Dont_Care_Grouping(BV_Grouping):
         return g1.cache_triple_product(g2, g3, g, tt_ans)
 
     def reduce(self, reduction_tuple):
-        assert reduction_tuple == {1:1}
+        assert reduction_tuple == {1: 1}
         return self
 
     def compress(self):
         return self
+
 
 class BV_Fork_Grouping(BV_Grouping):
     # generalizing CFLOBDD forking to BVDDs
@@ -382,20 +395,37 @@ class BV_Fork_Grouping(BV_Grouping):
 
     def __repr__(self):
         indentation = " " * (CFLOBVDD.max_level - self.level + 1)
-        return (indentation + "\n" +
-            indentation + "fork @ " + super().__repr__() + ":\n" +
-            indentation + f"{self.bvdd}")
+        return (
+            indentation
+            + "\n"
+            + indentation
+            + "fork @ "
+            + super().__repr__()
+            + ":\n"
+            + indentation
+            + f"{self.bvdd}"
+        )
 
     def __hash__(self):
-        return hash((self.level, self.swap_level, self.fork_level, self.number_of_exits, self.bvdd))
+        return hash(
+            (
+                self.level,
+                self.swap_level,
+                self.fork_level,
+                self.number_of_exits,
+                self.bvdd,
+            )
+        )
 
     def __eq__(self, g2):
-        return self is g2 or (isinstance(g2, BV_Fork_Grouping) and
-            self.level == g2.level and
-            self.swap_level == g2.swap_level and
-            self.fork_level == g2.fork_level and
-            self.number_of_exits == g2.number_of_exits and
-            self.bvdd == g2.bvdd)
+        return self is g2 or (
+            isinstance(g2, BV_Fork_Grouping)
+            and self.level == g2.level
+            and self.swap_level == g2.swap_level
+            and self.fork_level == g2.fork_level
+            and self.number_of_exits == g2.number_of_exits
+            and self.bvdd == g2.bvdd
+        )
 
     def is_consistent(self):
         assert super().is_consistent()
@@ -413,7 +443,7 @@ class BV_Fork_Grouping(BV_Grouping):
     def get_input_values(inputs):
         return BVDD.BVDD.get_input_values(inputs)
 
-    def get_paths(self, exit_i, index_i = 0):
+    def get_paths(self, exit_i, index_i=0):
         assert 1 <= exit_i <= self.number_of_exits
         return self.bvdd.get_paths(exit_i, index_i)
 
@@ -432,11 +462,14 @@ class BV_Fork_Grouping(BV_Grouping):
     def projection_proto(level, swap_level, fork_level):
         assert level == 0
         bvdd = BVDD.BVDD.projection_proto(0)
-        return BV_Fork_Grouping(level, swap_level, fork_level,
-            bvdd.number_of_exits(), bvdd).representative()
+        return BV_Fork_Grouping(
+            level, swap_level, fork_level, bvdd.number_of_exits(), bvdd
+        ).representative()
 
     def upsample_uncached(self):
-        g_a_bvdd, g_a_rt_inv, g_b_rt_inv, g_b_bvdds, g_b_return_tuples = self.bvdd.upsample(self.level)
+        g_a_bvdd, g_a_rt_inv, g_b_rt_inv, g_b_bvdds, g_b_return_tuples = (
+            self.bvdd.upsample(self.level)
+        )
 
         assert g_a_bvdd.number_of_exits() == len(g_a_rt_inv)
 
@@ -447,14 +480,22 @@ class BV_Fork_Grouping(BV_Grouping):
                 return self
 
         # TODO: enable different input orderings
-        g = BV_Internal_Grouping(self.level, self.swap_level, self.fork_level, True, len(g_b_rt_inv))
+        g = BV_Internal_Grouping(
+            self.level, self.swap_level, self.fork_level, True, len(g_b_rt_inv)
+        )
 
         if g_a_bvdd.is_constant():
-            g.a_connection = BV_No_Distinction_Proto.representative(self.level - 1,
-                self.swap_level, self.fork_level)
+            g.a_connection = BV_No_Distinction_Proto.representative(
+                self.level - 1, self.swap_level, self.fork_level
+            )
         else:
-            g.a_connection = BV_Fork_Grouping(self.level - 1, self.swap_level, self.fork_level,
-                g_a_bvdd.number_of_exits(), g_a_bvdd).representative()
+            g.a_connection = BV_Fork_Grouping(
+                self.level - 1,
+                self.swap_level,
+                self.fork_level,
+                g_a_bvdd.number_of_exits(),
+                g_a_bvdd,
+            ).representative()
 
         assert g.a_connection.number_of_exits == len(g_b_bvdds)
 
@@ -464,21 +505,31 @@ class BV_Fork_Grouping(BV_Grouping):
 
         for g_b_i in g_b_bvdds:
             if g_b_bvdds[g_b_i].is_constant():
-                g_b = BV_No_Distinction_Proto.representative(self.level - 1,
-                    self.swap_level, self.fork_level)
+                g_b = BV_No_Distinction_Proto.representative(
+                    self.level - 1, self.swap_level, self.fork_level
+                )
             else:
-                g_b = BV_Fork_Grouping(self.level - 1, self.swap_level, self.fork_level,
-                    g_b_bvdds[g_b_i].number_of_exits(), g_b_bvdds[g_b_i]).representative()
+                g_b = BV_Fork_Grouping(
+                    self.level - 1,
+                    self.swap_level,
+                    self.fork_level,
+                    g_b_bvdds[g_b_i].number_of_exits(),
+                    g_b_bvdds[g_b_i],
+                ).representative()
             g.b_connections[g_b_i] = g_b
 
             assert g_b.number_of_exits == len(g_b_return_tuples[g_b_i])
 
         g.b_return_tuples = g_b_return_tuples
 
-        if (g.a_connection.is_no_distinction_proto() and
-            g.number_of_b_connections == 1 and
-            g.b_connections[1].is_no_distinction_proto()):
-            return BV_No_Distinction_Proto.representative(self.level, self.swap_level, self.fork_level)
+        if (
+            g.a_connection.is_no_distinction_proto()
+            and g.number_of_b_connections == 1
+            and g.b_connections[1].is_no_distinction_proto()
+        ):
+            return BV_No_Distinction_Proto.representative(
+                self.level, self.swap_level, self.fork_level
+            )
         else:
             return g.representative()
 
@@ -575,7 +626,9 @@ class BV_Fork_Grouping(BV_Grouping):
 
             g = BV_Fork_Grouping(g1.level, g1.swap_level, g1.fork_level, len(tt), bvdd)
 
-            return g1_orig.cache_triple_product(g2_orig, g3_orig, g.representative(), tt)
+            return g1_orig.cache_triple_product(
+                g2_orig, g3_orig, g.representative(), tt
+            )
 
     def reduce(self, reduction_tuple):
         reduction_length, reduction = super().reduce(reduction_tuple)
@@ -589,11 +642,13 @@ class BV_Fork_Grouping(BV_Grouping):
             bvdd = self.bvdd.reduce(reduction_tuple)
 
             if bvdd.is_constant():
-                g = No_Distinction_Proto.representative(self.level,
-                    self.swap_level, self.fork_level)
+                g = No_Distinction_Proto.representative(
+                    self.level, self.swap_level, self.fork_level
+                )
             else:
-                g = BV_Fork_Grouping(self.level, self.swap_level, self.fork_level,
-                    reduction_length, bvdd).representative()
+                g = BV_Fork_Grouping(
+                    self.level, self.swap_level, self.fork_level, reduction_length, bvdd
+                ).representative()
 
             assert g.number_of_exits == reduction_length
 
@@ -620,12 +675,13 @@ class BV_Fork_Grouping(BV_Grouping):
 
         return self.cache_compressed(g)
 
+
 class BV_Internal_Grouping(BV_Grouping):
     representatives_lock = threading.Lock()
     representatives = {}
     representatives_hits = 0
 
-    def __init__(self, level, swap_level, fork_level, a2b, number_of_exits = 0):
+    def __init__(self, level, swap_level, fork_level, a2b, number_of_exits=0):
         assert level > 0
         super().__init__(level, number_of_exits)
         assert 0 <= swap_level
@@ -641,41 +697,66 @@ class BV_Internal_Grouping(BV_Grouping):
 
     def __repr__(self):
         indentation = " " * (CFLOBVDD.max_level - self.level + 1)
-        return (indentation + "\n" +
-            indentation + f"{type(self).__name__} @ " + super().__repr__() + ":\n" +
-            indentation + f"a2b: {self.a2b}\n" +
-            indentation + f"a_c: {self.a_connection}\n" +
-            indentation + f"a_rt: {self.a_return_tuple}\n" +
-            indentation + f"n_of_b: {self.number_of_b_connections}\n" +
-            indentation + f"b_c: {self.b_connections}\n" +
-            indentation + f"b_rt: {self.b_return_tuples}")
+        return (
+            indentation
+            + "\n"
+            + indentation
+            + f"{type(self).__name__} @ "
+            + super().__repr__()
+            + ":\n"
+            + indentation
+            + f"a2b: {self.a2b}\n"
+            + indentation
+            + f"a_c: {self.a_connection}\n"
+            + indentation
+            + f"a_rt: {self.a_return_tuple}\n"
+            + indentation
+            + f"n_of_b: {self.number_of_b_connections}\n"
+            + indentation
+            + f"b_c: {self.b_connections}\n"
+            + indentation
+            + f"b_rt: {self.b_return_tuples}"
+        )
 
     def __hash__(self):
-        return hash((self.level,
-            self.number_of_exits,
-            self.a2b,
-            self.a_connection,
-            tuple(self.a_return_tuple.values()),
-            self.number_of_b_connections,
-            tuple(self.b_connections.values()),
-            tuple([(tuple(rt), tuple(rt.values())) for rt in self.b_return_tuples.values()])))
+        return hash(
+            (
+                self.level,
+                self.number_of_exits,
+                self.a2b,
+                self.a_connection,
+                tuple(self.a_return_tuple.values()),
+                self.number_of_b_connections,
+                tuple(self.b_connections.values()),
+                tuple(
+                    [
+                        (tuple(rt), tuple(rt.values()))
+                        for rt in self.b_return_tuples.values()
+                    ]
+                ),
+            )
+        )
 
     def __eq__(self, g2):
-        return self is g2 or (isinstance(g2, BV_Internal_Grouping) and
-            self.level == g2.level and
-            self.number_of_exits == g2.number_of_exits and
-            self.a2b == g2.a2b and
-            self.a_connection == g2.a_connection and
-            self.a_return_tuple == g2.a_return_tuple and
-            self.number_of_b_connections == g2.number_of_b_connections and
-            self.b_connections == g2.b_connections and
-            self.b_return_tuples == g2.b_return_tuples)
+        return self is g2 or (
+            isinstance(g2, BV_Internal_Grouping)
+            and self.level == g2.level
+            and self.number_of_exits == g2.number_of_exits
+            and self.a2b == g2.a2b
+            and self.a_connection == g2.a_connection
+            and self.a_return_tuple == g2.a_return_tuple
+            and self.number_of_b_connections == g2.number_of_b_connections
+            and self.b_connections == g2.b_connections
+            and self.b_return_tuples == g2.b_return_tuples
+        )
 
     def is_consistent(self):
         assert super().is_consistent()
         g_a = self.a_connection
         assert isinstance(g_a, BV_Grouping)
-        assert not self.a_return_tuple or len(self.a_return_tuple) == g_a.number_of_exits
+        assert (
+            not self.a_return_tuple or len(self.a_return_tuple) == g_a.number_of_exits
+        )
         assert len(self.a_return_tuple) == len(set(self.a_return_tuple.values()))
         assert self.number_of_b_connections == g_a.number_of_exits
         assert len(self.b_connections) == self.number_of_b_connections
@@ -719,25 +800,30 @@ class BV_Internal_Grouping(BV_Grouping):
             g_b_i_rt = self.b_return_tuples[g_b_i]
             for g_b_i_rt_e_j in g_b_i_rt:
                 if exit_i == g_b_i_rt[g_b_i_rt_e_j]:
-                    count += (g_a.number_of_distinct_inputs(g_b_i) *
-                        g_b.number_of_distinct_inputs(g_b_i_rt_e_j))
+                    count += g_a.number_of_distinct_inputs(
+                        g_b_i
+                    ) * g_b.number_of_distinct_inputs(g_b_i_rt_e_j)
         return count
 
-    def get_paths(self, exit_i, index_i = 0):
+    def get_paths(self, exit_i, index_i=0):
         assert 1 <= exit_i <= self.number_of_exits
         if self.a2b:
             a_index_i = index_i
-            b_index_i = index_i + 2**(self.level - 1)
+            b_index_i = index_i + 2 ** (self.level - 1)
         else:
-            a_index_i = index_i + 2**(self.level - 1)
+            a_index_i = index_i + 2 ** (self.level - 1)
             b_index_i = index_i
         inputs = []
         for b_i in self.b_return_tuples:
             b_rt = self.b_return_tuples[b_i]
             for b_e_i in b_rt:
                 if exit_i == b_rt[b_e_i]:
-                    inputs += [(self.a_connection.get_paths(b_i, a_index_i),
-                        self.b_connections[b_i].get_paths(b_e_i, b_index_i))]
+                    inputs += [
+                        (
+                            self.a_connection.get_paths(b_i, a_index_i),
+                            self.b_connections[b_i].get_paths(b_e_i, b_index_i),
+                        )
+                    ]
                     break
         return inputs
 
@@ -761,48 +847,66 @@ class BV_Internal_Grouping(BV_Grouping):
         else:
             g = BV_Internal_Grouping(level, swap_level, fork_level, True)
 
-            if input_i < 2**(level - 1):
-                g.a_connection = BV_Internal_Grouping.projection_proto(level - 1,
-                    swap_level, fork_level, input_i)
+            if input_i < 2 ** (level - 1):
+                g.a_connection = BV_Internal_Grouping.projection_proto(
+                    level - 1, swap_level, fork_level, input_i
+                )
                 g.number_of_exits = g.a_connection.number_of_exits
                 # g.a_return_tuple == {} representing g.a_return_tuple = dict([(e, e)
-                    # for e in range(1, g.number_of_exits + 1)])
+                # for e in range(1, g.number_of_exits + 1)])
 
                 g.number_of_b_connections = g.number_of_exits
 
-                projection_proto = BV_No_Distinction_Proto.representative(level - 1,
-                    swap_level, fork_level)
+                projection_proto = BV_No_Distinction_Proto.representative(
+                    level - 1, swap_level, fork_level
+                )
 
-                g.b_connections = dict([(c, projection_proto)
-                    for c in range(1, g.number_of_b_connections + 1)])
-                g.b_return_tuples = dict([(e, {1:e}) for e in range(1, g.number_of_exits + 1)])
+                g.b_connections = dict(
+                    [
+                        (c, projection_proto)
+                        for c in range(1, g.number_of_b_connections + 1)
+                    ]
+                )
+                g.b_return_tuples = dict(
+                    [(e, {1: e}) for e in range(1, g.number_of_exits + 1)]
+                )
             else:
-                g.a_connection = BV_No_Distinction_Proto.representative(level - 1,
-                    swap_level, fork_level)
+                g.a_connection = BV_No_Distinction_Proto.representative(
+                    level - 1, swap_level, fork_level
+                )
                 # g.a_return_tuple == {} representing g.a_return_tuple[1] = 1
 
                 g.number_of_b_connections = 1
 
-                projection_proto = BV_Internal_Grouping.projection_proto(level - 1,
-                    swap_level, fork_level, input_i - 2**(level - 1))
+                projection_proto = BV_Internal_Grouping.projection_proto(
+                    level - 1, swap_level, fork_level, input_i - 2 ** (level - 1)
+                )
 
                 g.number_of_exits = projection_proto.number_of_exits
 
-                g.b_connections = {1:projection_proto}
-                g.b_return_tuples = {1:dict([(e, e) for e in range(1, g.number_of_exits + 1)])}
+                g.b_connections = {1: projection_proto}
+                g.b_return_tuples = {
+                    1: dict([(e, e) for e in range(1, g.number_of_exits + 1)])
+                }
 
             return g.representative()
 
     def swap_uncached(self):
         assert self.level > self.swap_level
 
-        g = BV_Internal_Grouping(self.level, self.swap_level, self.fork_level,
-            not self.a2b, self.number_of_exits)
+        g = BV_Internal_Grouping(
+            self.level,
+            self.swap_level,
+            self.fork_level,
+            not self.a2b,
+            self.number_of_exits,
+        )
 
-        g.a_connection = BV_No_Distinction_Proto.representative(self.level - 1,
-            self.swap_level, self.fork_level)
+        g.a_connection = BV_No_Distinction_Proto.representative(
+            self.level - 1, self.swap_level, self.fork_level
+        )
 
-        g_b_return_tuples = {1:{}}
+        g_b_return_tuples = {1: {}}
 
         # a_connection becomes product of all b_connections which
         # is already reduced because a_return_tuple is idempotent
@@ -810,13 +914,20 @@ class BV_Internal_Grouping(BV_Grouping):
             g_b = self.b_connections[g_b_i]
             g_b_i_rt = self.b_return_tuples[g_b_i]
             g.a_connection, pt = g.a_connection.pair_product(g_b)
-            g_b_return_tuples = dict([(i,
-                # pt[i][0] is the exit index of the already paired b_connections
-                # pt[i][1] is the exit index of the next b_connection being paired
-                # extend b_return_tuples for reduced versions of a_connection below
-                g_b_return_tuples[pt[i][0]] |
-                    # with the original exit of the next b_connection being paired
-                    {len(g_b_return_tuples[pt[i][0]]) + 1:g_b_i_rt[pt[i][1]]}) for i in pt])
+            g_b_return_tuples = dict(
+                [
+                    (
+                        i,
+                        # pt[i][0] is the exit index of the already paired b_connections
+                        # pt[i][1] is the exit index of the next b_connection being paired
+                        # extend b_return_tuples for reduced versions of a_connection below
+                        g_b_return_tuples[pt[i][0]] |
+                        # with the original exit of the next b_connection being paired
+                        {len(g_b_return_tuples[pt[i][0]]) + 1: g_b_i_rt[pt[i][1]]},
+                    )
+                    for i in pt
+                ]
+            )
 
         reduction_tuple_a = {}
 
@@ -824,15 +935,17 @@ class BV_Internal_Grouping(BV_Grouping):
         for g_b_i in g_b_return_tuples:
             g_b_i_rt = g_b_return_tuples[g_b_i]
 
-            induced_return_tuple, induced_reduction_tuple = \
+            induced_return_tuple, induced_reduction_tuple = (
                 CFLOBVDD.linear_collapse_classes_leftmost(g_b_i_rt)
+            )
 
             h = self.a_connection.reduce(induced_reduction_tuple)
             position = g.insert_b_connection(h, induced_return_tuple)
             reduction_tuple_a[len(reduction_tuple_a) + 1] = position
 
-        induced_return_tuple, induced_reduction_tuple = \
+        induced_return_tuple, induced_reduction_tuple = (
             CFLOBVDD.linear_collapse_classes_leftmost(reduction_tuple_a)
+        )
 
         g.a_connection = g.a_connection.reduce(induced_reduction_tuple)
         assert all([i == induced_return_tuple[i] for i in induced_return_tuple])
@@ -889,7 +1002,9 @@ class BV_Internal_Grouping(BV_Grouping):
 
         assert bvdd.number_of_exits() == g.number_of_exits
 
-        g = BV_Fork_Grouping(g.level, g.swap_level, g.fork_level, g.number_of_exits, bvdd)
+        g = BV_Fork_Grouping(
+            g.level, g.swap_level, g.fork_level, g.number_of_exits, bvdd
+        )
 
         return g.representative()
 
@@ -971,7 +1086,9 @@ class BV_Internal_Grouping(BV_Grouping):
             pt_ans_inv = {}
 
             for j in pt_a:
-                g_b, pt_b = g1.b_connections[pt_a[j][0]].pair_product(g2.b_connections[pt_a[j][1]])
+                g_b, pt_b = g1.b_connections[pt_a[j][0]].pair_product(
+                    g2.b_connections[pt_a[j][1]]
+                )
 
                 g.b_connections[j] = g_b
                 g.b_return_tuples[j] = {}
@@ -981,39 +1098,59 @@ class BV_Internal_Grouping(BV_Grouping):
                     c2 = g2.b_return_tuples[pt_a[j][1]][pt_b[i][1]]
 
                     if (c1, c2) in pt_ans_inv:
-                        g.b_return_tuples[j][len(g.b_return_tuples[j]) + 1] = pt_ans_inv[(c1, c2)]
+                        g.b_return_tuples[j][len(g.b_return_tuples[j]) + 1] = (
+                            pt_ans_inv[(c1, c2)]
+                        )
                     else:
                         g.number_of_exits += 1
-                        g.b_return_tuples[j][len(g.b_return_tuples[j]) + 1] = g.number_of_exits
+                        g.b_return_tuples[j][
+                            len(g.b_return_tuples[j]) + 1
+                        ] = g.number_of_exits
                         pt_ans[len(pt_ans) + 1] = (c1, c2)
                         pt_ans_inv[(c1, c2)] = len(pt_ans)
 
             return g1_orig.cache_pair_product(g2_orig, g.representative(), pt_ans)
 
     def triple_compressed(self, g2, g3, g1_other, g2_other, g3_other):
-        assert isinstance(g2, BV_Internal_Grouping) and isinstance(g3, BV_Internal_Grouping)
+        assert isinstance(g2, BV_Internal_Grouping) and isinstance(
+            g3, BV_Internal_Grouping
+        )
 
         g1 = self
 
-        size = (g1.number_of_b_connections +
-            g2.number_of_b_connections +
-            g3.number_of_b_connections)
-        size_other = (g1_other.number_of_b_connections +
-            g2_other.number_of_b_connections +
-            g3_other.number_of_b_connections)
+        size = (
+            g1.number_of_b_connections
+            + g2.number_of_b_connections
+            + g3.number_of_b_connections
+        )
+        size_other = (
+            g1_other.number_of_b_connections
+            + g2_other.number_of_b_connections
+            + g3_other.number_of_b_connections
+        )
 
         if size < size_other:
             return g1.representative(), g2.representative(), g3.representative()
         elif size > size_other:
-            return g1_other.representative(), g2_other.representative(), g3_other.representative()
+            return (
+                g1_other.representative(),
+                g2_other.representative(),
+                g3_other.representative(),
+            )
         elif g1.a2b:
             # prefer original input ordering
             return g1.representative(), g2.representative(), g3.representative()
         else:
-            return g1_other.representative(), g2_other.representative(), g3_other.representative()
+            return (
+                g1_other.representative(),
+                g2_other.representative(),
+                g3_other.representative(),
+            )
 
     def triple_align(self, g2, g3):
-        assert isinstance(g2, BV_Internal_Grouping) and isinstance(g3, BV_Internal_Grouping)
+        assert isinstance(g2, BV_Internal_Grouping) and isinstance(
+            g3, BV_Internal_Grouping
+        )
 
         g1 = self
 
@@ -1068,13 +1205,17 @@ class BV_Internal_Grouping(BV_Grouping):
                 g, tt_ans = g1.downsample().triple_product(g2.downsample(), g3)
                 return g1_orig.cache_triple_product(g2_orig, g3_orig, g, tt_ans)
 
-            assert isinstance(g2, BV_Internal_Grouping) and isinstance(g3, BV_Internal_Grouping)
+            assert isinstance(g2, BV_Internal_Grouping) and isinstance(
+                g3, BV_Internal_Grouping
+            )
 
             assert g1.a2b == g2.a2b == g3.a2b
 
             if g1.level <= g1.fork_level:
                 # g1, g2, g3 are downsampled in original order (decompressing)
-                g, tt_ans = g1.downsample().triple_product(g2.downsample(), g3.downsample())
+                g, tt_ans = g1.downsample().triple_product(
+                    g2.downsample(), g3.downsample()
+                )
                 return g1_orig.cache_triple_product(g2_orig, g3_orig, g, tt_ans)
 
             g = BV_Internal_Grouping(g1.level, g1.swap_level, g1.fork_level, g1.a2b)
@@ -1090,8 +1231,9 @@ class BV_Internal_Grouping(BV_Grouping):
             tt_ans_inv = {}
 
             for j in tt_a:
-                g_b, tt_b = g1.b_connections[tt_a[j][0]].triple_product(g2.b_connections[tt_a[j][1]],
-                    g3.b_connections[tt_a[j][2]])
+                g_b, tt_b = g1.b_connections[tt_a[j][0]].triple_product(
+                    g2.b_connections[tt_a[j][1]], g3.b_connections[tt_a[j][2]]
+                )
 
                 g.b_connections[j] = g_b
                 g.b_return_tuples[j] = {}
@@ -1102,14 +1244,20 @@ class BV_Internal_Grouping(BV_Grouping):
                     c3 = g3.b_return_tuples[tt_a[j][2]][tt_b[i][2]]
 
                     if (c1, c2, c3) in tt_ans_inv:
-                        g.b_return_tuples[j][len(g.b_return_tuples[j]) + 1] = tt_ans_inv[(c1, c2, c3)]
+                        g.b_return_tuples[j][len(g.b_return_tuples[j]) + 1] = (
+                            tt_ans_inv[(c1, c2, c3)]
+                        )
                     else:
                         g.number_of_exits += 1
-                        g.b_return_tuples[j][len(g.b_return_tuples[j]) + 1] = g.number_of_exits
+                        g.b_return_tuples[j][
+                            len(g.b_return_tuples[j]) + 1
+                        ] = g.number_of_exits
                         tt_ans[len(tt_ans) + 1] = (c1, c2, c3)
                         tt_ans_inv[(c1, c2, c3)] = len(tt_ans)
 
-            return g1_orig.cache_triple_product(g2_orig, g3_orig, g.representative(), tt_ans)
+            return g1_orig.cache_triple_product(
+                g2_orig, g3_orig, g.representative(), tt_ans
+            )
 
     def insert_b_connection(self, h, return_tuple):
         assert isinstance(h, BV_Grouping)
@@ -1135,15 +1283,26 @@ class BV_Internal_Grouping(BV_Grouping):
             if g.is_reduction_cached(reduction_tuple):
                 return g.get_cached_reduction(reduction_tuple)
 
-            g_prime = BV_Internal_Grouping(g.level, g.swap_level, g.fork_level,
-                g.a2b, reduction_length)
+            g_prime = BV_Internal_Grouping(
+                g.level, g.swap_level, g.fork_level, g.a2b, reduction_length
+            )
 
             reduction_tuple_a = {}
 
             for i in g.b_connections:
-                induced_return_tuple, induced_reduction_tuple = \
-                    CFLOBVDD.linear_collapse_classes_leftmost(dict(enumerate([reduction_tuple[v]
-                        for v in g.b_return_tuples[i].values()], 1)))
+                induced_return_tuple, induced_reduction_tuple = (
+                    CFLOBVDD.linear_collapse_classes_leftmost(
+                        dict(
+                            enumerate(
+                                [
+                                    reduction_tuple[v]
+                                    for v in g.b_return_tuples[i].values()
+                                ],
+                                1,
+                            )
+                        )
+                    )
+                )
 
                 h = g.b_connections[i].reduce(induced_reduction_tuple)
 
@@ -1151,8 +1310,9 @@ class BV_Internal_Grouping(BV_Grouping):
 
                 reduction_tuple_a[len(reduction_tuple_a) + 1] = position
 
-            induced_return_tuple, induced_reduction_tuple = \
+            induced_return_tuple, induced_reduction_tuple = (
                 CFLOBVDD.linear_collapse_classes_leftmost(reduction_tuple_a)
+            )
 
             g_prime.a_connection = g.a_connection.reduce(induced_reduction_tuple)
             assert all([i == induced_return_tuple[i] for i in induced_return_tuple])
@@ -1177,10 +1337,17 @@ class BV_Internal_Grouping(BV_Grouping):
 
         g_swapped = self.swap()
 
-        g = (g_swapped if g_swapped.number_of_b_connections < self.number_of_b_connections else
-            self if g_swapped.number_of_b_connections > self.number_of_b_connections else
-            # prefer original input ordering
-            g_swapped if g_swapped.a2b else self)
+        g = (
+            g_swapped
+            if g_swapped.number_of_b_connections < self.number_of_b_connections
+            else (
+                self
+                if g_swapped.number_of_b_connections > self.number_of_b_connections
+                else
+                # prefer original input ordering
+                g_swapped if g_swapped.a2b else self
+            )
+        )
 
         compressed_a_connection = g.a_connection.compress()
 
@@ -1195,8 +1362,9 @@ class BV_Internal_Grouping(BV_Grouping):
             has_been_compressed |= compressed_b_connections[g_b_i] is not g_b
 
         if has_been_compressed:
-            compressed_g = BV_Internal_Grouping(g.level, g.swap_level, g.fork_level,
-                g.a2b, g.number_of_exits)
+            compressed_g = BV_Internal_Grouping(
+                g.level, g.swap_level, g.fork_level, g.a2b, g.number_of_exits
+            )
 
             compressed_g.a_connection = compressed_a_connection
             compressed_g.number_of_b_connections = g.number_of_b_connections
@@ -1210,25 +1378,27 @@ class BV_Internal_Grouping(BV_Grouping):
     def swap_flow(self, outputs):
         assert self.a2b
 
-        g = BV_Internal_Grouping(self.level, self.swap_level, self.fork_level,
-            self.a2b, self.number_of_exits)
+        g = BV_Internal_Grouping(
+            self.level, self.swap_level, self.fork_level, self.a2b, self.number_of_exits
+        )
 
         if None not in outputs.values():
             assert self.number_of_exits == 2
             assert self.number_of_b_connections == 1
-            assert self.b_return_tuples == {1:{1:1,2:2}}
+            assert self.b_return_tuples == {1: {1: 1, 2: 2}}
             g.a_connection = self.b_connections[1]
             none_exit_i = 2
-            g_b_rt = {1:1,2:3}
+            g_b_rt = {1: 1, 2: 3}
             g.number_of_exits += 1
-            outputs = {1:outputs[1],2:None,3:outputs[2]}
+            outputs = {1: outputs[1], 2: None, 3: outputs[2]}
         else:
             none_exit_i = [i for i in outputs if outputs[i] is None][0]
 
-            g.a_connection = BV_No_Distinction_Proto.representative(self.level - 1,
-                self.swap_level, self.fork_level)
+            g.a_connection = BV_No_Distinction_Proto.representative(
+                self.level - 1, self.swap_level, self.fork_level
+            )
 
-            g_b_rt = {1:none_exit_i}
+            g_b_rt = {1: none_exit_i}
 
             # a_connection becomes product of all b_connections
             for g_b_i in self.b_connections:
@@ -1248,11 +1418,13 @@ class BV_Internal_Grouping(BV_Grouping):
 
         # b_connections become reduced versions of a_connection
         for g_b_i in g_b_rt:
-            g_b_i_rt = dict([i, g_b_rt[i]]
-                if i == g_b_i else [i, none_exit_i] for i in g_b_rt)
+            g_b_i_rt = dict(
+                [i, g_b_rt[i]] if i == g_b_i else [i, none_exit_i] for i in g_b_rt
+            )
 
-            induced_return_tuple, induced_reduction_tuple = \
+            induced_return_tuple, induced_reduction_tuple = (
                 CFLOBVDD.linear_collapse_classes_leftmost(g_b_i_rt)
+            )
 
             assert g.a_connection.number_of_exits == len(induced_reduction_tuple)
 
@@ -1260,13 +1432,15 @@ class BV_Internal_Grouping(BV_Grouping):
             position = g.insert_b_connection(h, induced_return_tuple)
             reduction_tuple_a[len(reduction_tuple_a) + 1] = position
 
-        induced_return_tuple, induced_reduction_tuple = \
+        induced_return_tuple, induced_reduction_tuple = (
             CFLOBVDD.linear_collapse_classes_leftmost(reduction_tuple_a)
+        )
 
         g.a_connection = g.a_connection.reduce(induced_reduction_tuple)
         assert all([i == induced_return_tuple[i] for i in induced_return_tuple])
 
         return g.representative(), outputs
+
 
 class BV_No_Distinction_Proto(BV_Internal_Grouping):
     representatives_lock = threading.Lock()
@@ -1291,13 +1465,14 @@ class BV_No_Distinction_Proto(BV_Internal_Grouping):
         else:
             g = BV_No_Distinction_Proto(level, swap_level, fork_level)
 
-            g.a_connection = BV_No_Distinction_Proto.representative(level - 1,
-                swap_level, fork_level)
+            g.a_connection = BV_No_Distinction_Proto.representative(
+                level - 1, swap_level, fork_level
+            )
             # g.a_return_tuple == {} representing g.a_return_tuple[1] = 1
 
             g.number_of_b_connections = 1
             g.b_connections[1] = g.a_connection
-            g.b_return_tuples[1] = {1:1}
+            g.b_return_tuples[1] = {1: 1}
 
             if BV_Grouping.NO_REPRESENTATIVES:
                 return g
@@ -1313,10 +1488,11 @@ class BV_No_Distinction_Proto(BV_Internal_Grouping):
         return self
 
     def downsample_uncached(self):
-        return BV_Fork_Grouping(self.level, self.swap_level, self.fork_level,
-            1, BVDD.BVDD.constant(1)).representative()
+        return BV_Fork_Grouping(
+            self.level, self.swap_level, self.fork_level, 1, BVDD.BVDD.constant(1)
+        ).representative()
 
-    def pair_product(self, g2, inorder = True):
+    def pair_product(self, g2, inorder=True):
         assert isinstance(g2, BV_Grouping)
 
         g1 = self
@@ -1325,7 +1501,7 @@ class BV_No_Distinction_Proto(BV_Internal_Grouping):
 
         return BV_Dont_Care_Grouping.pair_product(g1, g2, inorder)
 
-    def triple_product(self, g2, g3, order = 1):
+    def triple_product(self, g2, g3, order=1):
         assert isinstance(g2, BV_Grouping) and isinstance(g3, BV_Grouping)
 
         g1 = self
@@ -1335,7 +1511,7 @@ class BV_No_Distinction_Proto(BV_Internal_Grouping):
         return BV_Dont_Care_Grouping.triple_product(g1, g2, g3, order)
 
     def reduce(self, reduction_tuple):
-        assert reduction_tuple == {1:1}
+        assert reduction_tuple == {1: 1}
         return self
 
     def compress(self):
@@ -1343,6 +1519,7 @@ class BV_No_Distinction_Proto(BV_Internal_Grouping):
 
     def swap_flow(self, outputs):
         return self, outputs
+
 
 class Collapsed_Classes:
     cache_lock = threading.Lock()
@@ -1353,11 +1530,17 @@ class Collapsed_Classes:
         self.classes = classes
 
     def __hash__(self):
-        return hash((tuple(self.classes.values()),
-            any(isinstance(self.classes[i], bool) for i in self.classes)))
+        return hash(
+            (
+                tuple(self.classes.values()),
+                any(isinstance(self.classes[i], bool) for i in self.classes),
+            )
+        )
 
     def __eq__(self, c2):
-        return self is c2 or (isinstance(c2, Collapsed_Classes) and self.classes == c2.classes)
+        return self is c2 or (
+            isinstance(c2, Collapsed_Classes) and self.classes == c2.classes
+        )
 
     def are_collapsed_classes_cached(equiv_classes):
         if Collapsed_Classes(equiv_classes) in Collapsed_Classes.cache:
@@ -1375,8 +1558,12 @@ class Collapsed_Classes:
         collapsed_classes = Collapsed_Classes(equiv_classes)
         with Collapsed_Classes.cache_lock:
             if collapsed_classes not in Collapsed_Classes.cache:
-                Collapsed_Classes.cache[collapsed_classes] = (projected_classes, renumbered_classes)
+                Collapsed_Classes.cache[collapsed_classes] = (
+                    projected_classes,
+                    renumbered_classes,
+                )
         return Collapsed_Classes.cache[collapsed_classes]
+
 
 class CFLOBVDD:
     REDUCE = True
@@ -1393,34 +1580,62 @@ class CFLOBVDD:
         self.outputs = outputs
 
     def __str__(self):
-        return ("CFLOBVDD with\n" +
-            f"g: {self.grouping}\n" +
-            f"o: {self.outputs}\n")
+        return "CFLOBVDD with\n" + f"g: {self.grouping}\n" + f"o: {self.outputs}\n"
 
     def __hash__(self):
-        return hash((self.grouping,
-            tuple(self.outputs.values()),
-            any(isinstance(self.outputs[i], bool) for i in self.outputs)))
+        return hash(
+            (
+                self.grouping,
+                tuple(self.outputs.values()),
+                any(isinstance(self.outputs[i], bool) for i in self.outputs),
+            )
+        )
 
     def __eq__(self, n2):
-        return self is n2 or (isinstance(n2, CFLOBVDD) and
-            self.grouping == n2.grouping and
-            self.outputs == n2.outputs)
+        return self is n2 or (
+            isinstance(n2, CFLOBVDD)
+            and self.grouping == n2.grouping
+            and self.outputs == n2.outputs
+        )
 
     def print_profile():
         print("CFLOBVDD cache profile:")
-        print(f"forks:          {BVDD.utilization(BV_Fork_Grouping.representatives_hits, len(BV_Fork_Grouping.representatives))}")
-        print(f"internals:      {BVDD.utilization(BV_Internal_Grouping.representatives_hits, len(BV_Internal_Grouping.representatives))}")
-        print(f"protos:         {BVDD.utilization(BV_No_Distinction_Proto.representatives_hits, len(BV_No_Distinction_Proto.representatives))}")
-        print(f"swap:           {BVDD.utilization(BV_Grouping.swap_cache_hits, len(BV_Grouping.swap_cache))}")
-        print(f"upsample:       {BVDD.utilization(BV_Grouping.upsample_cache_hits, len(BV_Grouping.upsample_cache))}")
-        print(f"downsample:     {BVDD.utilization(BV_Grouping.downsample_cache_hits, len(BV_Grouping.downsample_cache))}")
-        print(f"compressed:     {BVDD.utilization(BV_Grouping.compressed_cache_hits, len(BV_Grouping.compressed_cache))}")
-        print(f"pair product:   {BVDD.utilization(BV_Grouping.pair_product_cache_hits, len(BV_Grouping.pair_product_cache))}")
-        print(f"triple product: {BVDD.utilization(BV_Grouping.triple_product_cache_hits, len(BV_Grouping.triple_product_cache))}")
-        print(f"reduction:      {BVDD.utilization(BV_Grouping.reduction_cache_hits, len(BV_Grouping.reduction_cache))}")
-        print(f"classes:        {BVDD.utilization(Collapsed_Classes.cache_hits, len(Collapsed_Classes.cache))}")
-        print(f"CFLOBVDDs:      {BVDD.utilization(CFLOBVDD.representatives_hits, len(CFLOBVDD.representatives))}")
+        print(
+            f"forks:          {BVDD.utilization(BV_Fork_Grouping.representatives_hits, len(BV_Fork_Grouping.representatives))}"
+        )
+        print(
+            f"internals:      {BVDD.utilization(BV_Internal_Grouping.representatives_hits, len(BV_Internal_Grouping.representatives))}"
+        )
+        print(
+            f"protos:         {BVDD.utilization(BV_No_Distinction_Proto.representatives_hits, len(BV_No_Distinction_Proto.representatives))}"
+        )
+        print(
+            f"swap:           {BVDD.utilization(BV_Grouping.swap_cache_hits, len(BV_Grouping.swap_cache))}"
+        )
+        print(
+            f"upsample:       {BVDD.utilization(BV_Grouping.upsample_cache_hits, len(BV_Grouping.upsample_cache))}"
+        )
+        print(
+            f"downsample:     {BVDD.utilization(BV_Grouping.downsample_cache_hits, len(BV_Grouping.downsample_cache))}"
+        )
+        print(
+            f"compressed:     {BVDD.utilization(BV_Grouping.compressed_cache_hits, len(BV_Grouping.compressed_cache))}"
+        )
+        print(
+            f"pair product:   {BVDD.utilization(BV_Grouping.pair_product_cache_hits, len(BV_Grouping.pair_product_cache))}"
+        )
+        print(
+            f"triple product: {BVDD.utilization(BV_Grouping.triple_product_cache_hits, len(BV_Grouping.triple_product_cache))}"
+        )
+        print(
+            f"reduction:      {BVDD.utilization(BV_Grouping.reduction_cache_hits, len(BV_Grouping.reduction_cache))}"
+        )
+        print(
+            f"classes:        {BVDD.utilization(Collapsed_Classes.cache_hits, len(Collapsed_Classes.cache))}"
+        )
+        print(
+            f"CFLOBVDDs:      {BVDD.utilization(CFLOBVDD.representatives_hits, len(CFLOBVDD.representatives))}"
+        )
 
     def number_of_connections(self):
         return self.grouping.number_of_connections()
@@ -1435,13 +1650,18 @@ class CFLOBVDD:
         return len(self.get_distinct_outputs())
 
     def number_of_distinct_inputs(self):
-        return sum(self.grouping.number_of_distinct_inputs(exit_i) for exit_i in self.outputs)
+        return sum(
+            self.grouping.number_of_distinct_inputs(exit_i) for exit_i in self.outputs
+        )
 
     def number_of_solutions(self, value):
-        return sum(self.grouping.number_of_distinct_inputs(exit_i)
-            for exit_i in self.outputs if self.outputs[exit_i] == value)
+        return sum(
+            self.grouping.number_of_distinct_inputs(exit_i)
+            for exit_i in self.outputs
+            if self.outputs[exit_i] == value
+        )
 
-    def get_printed_paths(paths, full_paths = True):
+    def get_printed_paths(paths, full_paths=True):
         printed_paths = []
         for path in paths:
             if isinstance(path[0], int):
@@ -1452,8 +1672,12 @@ class CFLOBVDD:
                     if full_paths:
                         printed_paths += [f"[dontcare @ {index_i}]"]
                 else:
-                    printed_paths += ["[" + f"input @ {index_i}: " +
-                        BV_Fork_Grouping.get_input_values(inputs) + "]"]
+                    printed_paths += [
+                        "["
+                        + f"input @ {index_i}: "
+                        + BV_Fork_Grouping.get_input_values(inputs)
+                        + "]"
+                    ]
             else:
                 a_paths = CFLOBVDD.get_printed_paths(path[0], full_paths)
                 b_paths = CFLOBVDD.get_printed_paths(path[1], full_paths)
@@ -1469,32 +1693,41 @@ class CFLOBVDD:
         else:
             return printed_paths
 
-    def get_printed_value_paths(self, value = None):
+    def get_printed_value_paths(self, value=None):
         value_paths = ""
         for exit_i in self.outputs:
             if value is None or self.outputs[exit_i] == value:
                 if value_paths:
                     value_paths += "\n"
-                value_paths += (f"{self.outputs[exit_i]} <- " +
-                    CFLOBVDD.get_printed_paths(self.grouping.get_paths(exit_i))[0])
+                value_paths += (
+                    f"{self.outputs[exit_i]} <- "
+                    + CFLOBVDD.get_printed_paths(self.grouping.get_paths(exit_i))[0]
+                )
                 # without reductions value may appear more than once
         return value_paths
 
-    def get_printed_CFLOBVDD(self, value = None):
-        return (f"CFLOBVDD:\n" +
-            f"{2**self.grouping.level} input variables\n" +
-            f"{self.number_of_connections()} connections\n" +
-            f"{self.number_of_outputs()} output values\n" +
-            f"{self.number_of_distinct_outputs()} disctinct output values (exits)\n"
-            f"{self.number_of_distinct_inputs()} distinct inputs\n" +
-            f"{self.number_of_solutions(value)} solutions\n" +
-            f"{self.get_printed_value_paths(value)}")
+    def get_printed_CFLOBVDD(self, value=None):
+        return (
+            f"CFLOBVDD:\n"
+            + f"{2**self.grouping.level} input variables\n"
+            + f"{self.number_of_connections()} connections\n"
+            + f"{self.number_of_outputs()} output values\n"
+            + f"{self.number_of_distinct_outputs()} disctinct output values (exits)\n"
+            f"{self.number_of_distinct_inputs()} distinct inputs\n"
+            + f"{self.number_of_solutions(value)} solutions\n"
+            + f"{self.get_printed_value_paths(value)}"
+        )
 
     def is_consistent(self):
         assert self.grouping.is_consistent()
-        assert self.number_of_outputs() == self.grouping.number_of_exits, f"{self.number_of_outputs()} == {self.grouping.number_of_exits}"
+        assert (
+            self.number_of_outputs() == self.grouping.number_of_exits
+        ), f"{self.number_of_outputs()} == {self.grouping.number_of_exits}"
         assert self.number_of_outputs() >= self.number_of_distinct_outputs()
-        assert not CFLOBVDD.REDUCE or self.number_of_outputs() == self.number_of_distinct_outputs()
+        assert (
+            not CFLOBVDD.REDUCE
+            or self.number_of_outputs() == self.number_of_distinct_outputs()
+        )
         return True
 
     def representative(grouping, outputs):
@@ -1512,23 +1745,31 @@ class CFLOBVDD:
 
     def is_always_false(self):
         # without reductions False may appear more than once
-        return (False in self.outputs.values() and
-            (self.number_of_distinct_outputs() == 1 or
-                (self.number_of_distinct_outputs() == 2 and None in self.outputs.values())))
+        return False in self.outputs.values() and (
+            self.number_of_distinct_outputs() == 1
+            or (
+                self.number_of_distinct_outputs() == 2 and None in self.outputs.values()
+            )
+        )
 
     def is_always_true(self):
         # without reductions True may appear more than once
-        return (True in self.outputs.values() and
-            (self.number_of_distinct_outputs() == 1 or
-                (self.number_of_distinct_outputs() == 2 and None in self.outputs.values())))
+        return True in self.outputs.values() and (
+            self.number_of_distinct_outputs() == 1
+            or (
+                self.number_of_distinct_outputs() == 2 and None in self.outputs.values()
+            )
+        )
 
-    def constant(level, swap_level, fork_level, output = 0):
+    def constant(level, swap_level, fork_level, output=0):
         assert 0 <= swap_level <= level
         assert 0 <= fork_level <= level
         with CFLOBVDD.max_level_lock:
             CFLOBVDD.max_level = max(CFLOBVDD.max_level, level)
         return CFLOBVDD.representative(
-            BV_No_Distinction_Proto.representative(level, swap_level, fork_level), {1:output})
+            BV_No_Distinction_Proto.representative(level, swap_level, fork_level),
+            {1: output},
+        )
 
     def byte_constant(level, swap_level, fork_level, number_of_input_bytes, output):
         assert number_of_input_bytes > 0
@@ -1544,37 +1785,55 @@ class CFLOBVDD:
     def flip_value_tuple(self):
         # self must be reduced
         assert self.number_of_outputs() == 2
-        return CFLOBVDD.representative(self.grouping, {1:self.outputs[2], 2:self.outputs[1]})
+        return CFLOBVDD.representative(
+            self.grouping, {1: self.outputs[2], 2: self.outputs[1]}
+        )
 
     def complement(self):
-        if self == CFLOBVDD.false(self.grouping.level, self.grouping.swap_level, self.grouping.fork_level):
-            return CFLOBVDD.true(self.grouping.level, self.grouping.swap_level, self.grouping.fork_level)
-        elif self == CFLOBVDD.true(self.grouping.level, self.grouping.swap_level, self.grouping.fork_level):
-            return CFLOBVDD.false(self.grouping.level, self.grouping.swap_level, self.grouping.fork_level)
+        if self == CFLOBVDD.false(
+            self.grouping.level, self.grouping.swap_level, self.grouping.fork_level
+        ):
+            return CFLOBVDD.true(
+                self.grouping.level, self.grouping.swap_level, self.grouping.fork_level
+            )
+        elif self == CFLOBVDD.true(
+            self.grouping.level, self.grouping.swap_level, self.grouping.fork_level
+        ):
+            return CFLOBVDD.false(
+                self.grouping.level, self.grouping.swap_level, self.grouping.fork_level
+            )
         else:
             # self must be reduced
             return self.flip_value_tuple()
 
     def unary_apply_and_reduce(self, op, number_of_output_bits):
         return self.binary_apply_and_reduce(
-            CFLOBVDD.constant(self.grouping.level,
-                self.grouping.swap_level, self.grouping.fork_level),
+            CFLOBVDD.constant(
+                self.grouping.level, self.grouping.swap_level, self.grouping.fork_level
+            ),
             lambda x, y: op(x) if x is not None else None,
-            number_of_output_bits)
+            number_of_output_bits,
+        )
 
-    def projection(level, swap_level, fork_level, input_i, reorder = False):
+    def projection(level, swap_level, fork_level, input_i, reorder=False):
         assert 0 <= swap_level <= level
         assert 0 <= fork_level <= level
         assert 0 <= input_i < 2**level
         with CFLOBVDD.max_level_lock:
             CFLOBVDD.max_level = max(CFLOBVDD.max_level, level)
-        grouping = BV_Internal_Grouping.projection_proto(level, swap_level, fork_level, input_i)
+        grouping = BV_Internal_Grouping.projection_proto(
+            level, swap_level, fork_level, input_i
+        )
         if reorder:
             grouping = grouping.compress()
-        return CFLOBVDD.representative(grouping,
-            dict([(output + 1, output) for output in range(grouping.number_of_exits)]))
+        return CFLOBVDD.representative(
+            grouping,
+            dict([(output + 1, output) for output in range(grouping.number_of_exits)]),
+        )
 
-    def byte_projection(level, swap_level, fork_level, number_of_input_bytes, byte_i, reorder = False):
+    def byte_projection(
+        level, swap_level, fork_level, number_of_input_bytes, byte_i, reorder=False
+    ):
         level = max(level, swap_level, fork_level, ceil(log2(number_of_input_bytes)))
         assert 0 <= byte_i < 2**level
         return CFLOBVDD.projection(level, swap_level, fork_level, byte_i, reorder)
@@ -1585,16 +1844,37 @@ class CFLOBVDD:
             return Collapsed_Classes.get_collapsed_classes(equiv_classes)
 
         # square-time iteration over equivalence classes
-        projected_classes = dict(enumerate([equiv_classes[i]
-            for i in equiv_classes if i == min([j for j in equiv_classes
-                if equiv_classes[j] == equiv_classes[i]])], 1))
+        projected_classes = dict(
+            enumerate(
+                [
+                    equiv_classes[i]
+                    for i in equiv_classes
+                    if i
+                    == min(
+                        [
+                            j
+                            for j in equiv_classes
+                            if equiv_classes[j] == equiv_classes[i]
+                        ]
+                    )
+                ],
+                1,
+            )
+        )
 
-        order_of_projected_classes = dict([(projected_classes[i], i)
-            for i in projected_classes])
+        order_of_projected_classes = dict(
+            [(projected_classes[i], i) for i in projected_classes]
+        )
 
-        return Collapsed_Classes.cache_collapsed_classes(equiv_classes,
+        return Collapsed_Classes.cache_collapsed_classes(
+            equiv_classes,
             projected_classes,
-            dict(enumerate([order_of_projected_classes[v] for v in equiv_classes.values()], 1)))
+            dict(
+                enumerate(
+                    [order_of_projected_classes[v] for v in equiv_classes.values()], 1
+                )
+            ),
+        )
 
     def linear_collapse_classes_leftmost(equiv_classes):
         if Collapsed_Classes.are_collapsed_classes_cached(equiv_classes):
@@ -1617,8 +1897,9 @@ class CFLOBVDD:
 
             renumbered_classes[index] = leftmost_equiv_class_index[value]
 
-        return Collapsed_Classes.cache_collapsed_classes(equiv_classes,
-            projected_classes, renumbered_classes)
+        return Collapsed_Classes.cache_collapsed_classes(
+            equiv_classes, projected_classes, renumbered_classes
+        )
 
     def binary_apply_and_reduce(self, n2, op, number_of_output_bits):
         assert isinstance(n2, CFLOBVDD)
@@ -1627,19 +1908,33 @@ class CFLOBVDD:
 
         g, pt = n1.grouping.pair_product(n2.grouping)
 
-        equiv_classes = dict([(i, op(n1.outputs[pt[i][0]], n2.outputs[pt[i][1]])
-            if n1.outputs[pt[i][0]] is not None and
-                n2.outputs[pt[i][1]] is not None else None)
-                    for i in pt])
+        equiv_classes = dict(
+            [
+                (
+                    i,
+                    (
+                        op(n1.outputs[pt[i][0]], n2.outputs[pt[i][1]])
+                        if n1.outputs[pt[i][0]] is not None
+                        and n2.outputs[pt[i][1]] is not None
+                        else None
+                    ),
+                )
+                for i in pt
+            ]
+        )
 
-        assert all(0 <= equiv_classes[i] < 2**number_of_output_bits
-            for i in pt if equiv_classes[i] is not None)
+        assert all(
+            0 <= equiv_classes[i] < 2**number_of_output_bits
+            for i in pt
+            if equiv_classes[i] is not None
+        )
 
         g = g.compress()
 
         if CFLOBVDD.REDUCE:
-            induced_value_tuple, induced_return_tuple = \
+            induced_value_tuple, induced_return_tuple = (
                 CFLOBVDD.linear_collapse_classes_leftmost(equiv_classes)
+            )
             g = g.reduce(induced_return_tuple).compress()
         else:
             induced_value_tuple = equiv_classes
@@ -1653,21 +1948,38 @@ class CFLOBVDD:
 
         g, tt = n1.grouping.triple_product(n2.grouping, n3.grouping)
 
-        equiv_classes = dict([(i,
-            op(n1.outputs[tt[i][0]], n2.outputs[tt[i][1]], n3.outputs[tt[i][2]])
-                if n1.outputs[tt[i][0]] is not None and
-                    n2.outputs[tt[i][1]] is not None and
-                        n3.outputs[tt[i][2]] is not None else None)
-                            for i in tt])
+        equiv_classes = dict(
+            [
+                (
+                    i,
+                    (
+                        op(
+                            n1.outputs[tt[i][0]],
+                            n2.outputs[tt[i][1]],
+                            n3.outputs[tt[i][2]],
+                        )
+                        if n1.outputs[tt[i][0]] is not None
+                        and n2.outputs[tt[i][1]] is not None
+                        and n3.outputs[tt[i][2]] is not None
+                        else None
+                    ),
+                )
+                for i in tt
+            ]
+        )
 
-        assert all(0 <= equiv_classes[i] < 2**number_of_output_bits
-            for i in tt if equiv_classes[i] is not None)
+        assert all(
+            0 <= equiv_classes[i] < 2**number_of_output_bits
+            for i in tt
+            if equiv_classes[i] is not None
+        )
 
         g = g.compress()
 
         if CFLOBVDD.REDUCE:
-            induced_value_tuple, induced_return_tuple = \
+            induced_value_tuple, induced_return_tuple = (
                 CFLOBVDD.linear_collapse_classes_leftmost(equiv_classes)
+            )
             g = g.reduce(induced_return_tuple).compress()
         else:
             induced_value_tuple = equiv_classes

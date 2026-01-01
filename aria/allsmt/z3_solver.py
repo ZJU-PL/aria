@@ -17,7 +17,9 @@ class Z3AllSMTSolver(AllSMTSolver[ModelRef]):
     This class implements the AllSMT solver interface using Z3 as the underlying solver.
     """
 
-    def solve(self, expr: ExprRef, keys: List[ExprRef], model_limit: int = 100) -> List[ModelRef]:
+    def solve(
+        self, expr: ExprRef, keys: List[ExprRef], model_limit: int = 100
+    ) -> List[ModelRef]:
         """
         Enumerate all satisfying models for the given expression over the specified keys.
 
@@ -61,7 +63,7 @@ def demo() -> None:
     """Demonstrate the usage of the Z3-based AllSMT solver."""
     from z3 import Ints, And  # pylint: disable=import-outside-toplevel
 
-    x, y = Ints('x y')
+    x, y = Ints("x y")
     expr = And(x + y == 5, x > 0, y > 0)
 
     solver = Z3AllSMTSolver()

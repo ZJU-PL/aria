@@ -2,6 +2,7 @@
 
 Supports both binary and sequence interpolants.
 """
+
 import logging
 import os
 from typing import Optional, List
@@ -14,12 +15,15 @@ logger = logging.getLogger(__name__)
 
 class SMTInterpolInterpolantSynthesizer:
     """SMTInterpol-based interpolant synthesizer."""
+
     SOLVER_NAME = "smtinterpol"
 
     def __init__(self, timeout: int = 300) -> None:
         smtinterpol_path = global_config.get_solver_path("smtinterpol")
         if not smtinterpol_path or not os.path.exists(smtinterpol_path):
-            logger.warning("SMTInterpol not found in global config. Using 'smtinterpol' from PATH.")
+            logger.warning(
+                "SMTInterpol not found in global config. Using 'smtinterpol' from PATH."
+            )
             smtinterpol_path = "smtinterpol"
         self.smtinterpol_path = smtinterpol_path
         self.timeout = timeout
@@ -36,7 +40,7 @@ class SMTInterpolInterpolantSynthesizer:
         return signature
 
     def interpolate(
-            self, formula_a: z3.BoolRef, formula_b: z3.BoolRef, logic=None
+        self, formula_a: z3.BoolRef, formula_b: z3.BoolRef, logic=None
     ) -> Optional[z3.ExprRef]:
         """Generate a binary interpolant for formulas A and B."""
         if not formula_a or not formula_b:
@@ -70,7 +74,7 @@ class SMTInterpolInterpolantSynthesizer:
             smtlib.stop()
 
     def sequence_interpolate(
-            self, formulas: List[z3.ExprRef], logic=None
+        self, formulas: List[z3.ExprRef], logic=None
     ) -> Optional[List[z3.ExprRef]]:
         """Generate a sequence interpolant for a list of formulas."""
         if not formulas:
@@ -92,8 +96,7 @@ class SMTInterpolInterpolantSynthesizer:
                 smtlib.send(f"(set-logic {logic})")
             smtlib.send(signature)
             for i, fml in enumerate(formulas):
-                smtlib.send(
-                    f"(assert (! {fml.sexpr()} :named {partition_names[i]}))\n")
+                smtlib.send(f"(assert (! {fml.sexpr()} :named {partition_names[i]}))\n")
             smtlib.send("(check-sat)")
             status = smtlib.recv()
             if status != "unsat":

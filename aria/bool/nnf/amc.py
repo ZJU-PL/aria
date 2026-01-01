@@ -9,9 +9,9 @@ import typing as t
 from aria.bool.nnf import NNF, And, Var, Or, Internal, true, false
 from aria.bool.nnf.util import Name, memoize
 
-neg_inf = float('-inf')
+neg_inf = float("-inf")
 
-T = t.TypeVar('T')
+T = t.TypeVar("T")
 
 __all__ = (
     "eval",
@@ -27,12 +27,12 @@ __all__ = (
 
 
 def amc_eval(  # pylint: disable=too-many-positional-arguments
-        node: NNF,
-        add: t.Callable[[T, T], T],
-        mul: t.Callable[[T, T], T],
-        add_neut: T,
-        mul_neut: T,
-        labeling: t.Callable[[Var], T],
+    node: NNF,
+    add: t.Callable[[T, T], T],
+    mul: t.Callable[[T, T], T],
+    add_neut: T,
+    mul_neut: T,
+    labeling: t.Callable[[Var], T],
 ) -> T:
     """Execute an AMC technique, given a semiring and a labeling function.
 
@@ -44,6 +44,7 @@ def amc_eval(  # pylint: disable=too-many-positional-arguments
     :param labeling: The labeling function, to assign a value to each
                      variable node.
     """
+
     @memoize
     def do_eval(node: NNF) -> T:
         if node == true:
@@ -57,15 +58,11 @@ def amc_eval(  # pylint: disable=too-many-positional-arguments
             return do_eval(*node.children)
         if isinstance(node, Or):
             return functools.reduce(
-                add,
-                (do_eval(child) for child in node.children),
-                add_neut
+                add, (do_eval(child) for child in node.children), add_neut
             )
         assert isinstance(node, And)
         return functools.reduce(
-            mul,
-            (do_eval(child) for child in node.children),
-            mul_neut
+            mul, (do_eval(child) for child in node.children), mul_neut
         )
 
     return do_eval(node)
@@ -77,6 +74,7 @@ eval = amc_eval  # pylint: disable=redefined-builtin
 
 def _prob_label(probs: t.Dict[Name, float]) -> t.Callable[[Var], float]:
     """Generate a labeling function for probabilities from a dictionary."""
+
     def label(leaf: Var) -> float:
         if leaf.true:
             return probs[leaf.name]
@@ -87,8 +85,7 @@ def _prob_label(probs: t.Dict[Name, float]) -> t.Callable[[Var], float]:
 
 def SAT(node: NNF) -> bool:  # pylint: disable=invalid-name
     """Determine whether a DNNF sentence is satisfiable."""
-    return amc_eval(node, operator.or_, operator.and_, False, True,
-                    lambda leaf: True)
+    return amc_eval(node, operator.or_, operator.and_, False, True, lambda leaf: True)
 
 
 def NUM_SAT(node: NNF) -> int:  # pylint: disable=invalid-name
@@ -100,7 +97,9 @@ def NUM_SAT(node: NNF) -> int:  # pylint: disable=invalid-name
     return amc_eval(node, operator.add, operator.mul, 0, 1, lambda leaf: 1)
 
 
-def WMC(node: NNF, weights: t.Callable[[Var], float]) -> float:  # pylint: disable=invalid-name
+def WMC(
+    node: NNF, weights: t.Callable[[Var], float]
+) -> float:  # pylint: disable=invalid-name
     """Model counting of sd-DNNF sentences, weighted by variables.
 
     :param node: The sentence to measure.
@@ -113,7 +112,9 @@ def WMC(node: NNF, weights: t.Callable[[Var], float]) -> float:  # pylint: disab
     return amc_eval(node, operator.add, operator.mul, 0.0, 1.0, weights)
 
 
-def PROB(node: NNF, probs: t.Dict[Name, float]) -> float:  # pylint: disable=invalid-name
+def PROB(
+    node: NNF, probs: t.Dict[Name, float]
+) -> float:  # pylint: disable=invalid-name
     """Model counting of d-DNNF sentences, weighted by probabilities.
 
     :param node: The sentence to measure.
@@ -130,9 +131,7 @@ GradProb = t.Tuple[float, float]
 
 
 def GRAD(  # pylint: disable=invalid-name
-        node: NNF,
-        probs: t.Dict[Name, float],
-        k: t.Optional[Name] = None
+    node: NNF, probs: t.Dict[Name, float], k: t.Optional[Name] = None
 ) -> GradProb:
     """Calculate a gradient of a d-DNNF sentence being true depending on the
     value of a variable, given probabilities for all variables.
@@ -175,12 +174,12 @@ def MPE(node: NNF, probs: t.Dict[Name, float]) -> float:  # pylint: disable=inva
 
 
 def reduce(  # pylint: disable=too-many-positional-arguments
-        node: NNF,
-        add_key: t.Optional[t.Callable[[T], t.Any]],
-        mul: t.Callable[[T, T], T],
-        add_neut: T,
-        mul_neut: T,
-        labeling: t.Callable[[Var], T],
+    node: NNF,
+    add_key: t.Optional[t.Callable[[T], t.Any]],
+    mul: t.Callable[[T, T], T],
+    add_neut: T,
+    mul_neut: T,
+    labeling: t.Callable[[Var], T],
 ) -> NNF:
     """Execute AMC reduction on a sentence.
 
@@ -203,6 +202,7 @@ def reduce(  # pylint: disable=too-many-positional-arguments
     if add_key is not None:
         add_key_ = add_key
     else:
+
         def add_key_(n: T) -> t.Any:
             return n
 
@@ -239,6 +239,8 @@ def maxplus_reduce(node: NNF, labels: t.Dict[Var, float]) -> NNF:
     :param node: The sentence.
     :param labels: A dictionary mapping variable nodes to numbers.
     """
+
     def labeling(v: Var) -> float:
         return labels[v]
+
     return reduce(node, None, operator.add, neg_inf, 0, labeling)

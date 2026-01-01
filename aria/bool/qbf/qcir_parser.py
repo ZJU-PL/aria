@@ -3,12 +3,13 @@
 
 class PaserQCIR:
     """Parser for QCIR format QBF files."""
+
     # ==========================================================================================
     # Parses prefix lines:
     def parse_prefix(self, prefix_lines):
         """Parse prefix lines and merge consecutive quantifier blocks of the same type."""
         # we can merge prefix lines if there are the same quatifier type:
-        previous_qtype = ''
+        previous_qtype = ""
 
         for line in prefix_lines:
             # asserting the line is part of prefix:
@@ -17,11 +18,11 @@ class PaserQCIR:
             cleaned_line = line.replace(" ", "")
             if "exists" in cleaned_line:
                 cur_var_list = cleaned_line.strip("exists(").strip(")").split(",")
-                cur_qtype = 'e'
+                cur_qtype = "e"
             else:
                 assert "forall" in cleaned_line
                 cur_var_list = cleaned_line.strip("forall(").strip(")").split(",")
-                cur_qtype = 'a'
+                cur_qtype = "a"
 
             # changing to integers:
             int_cur_var_list = []
@@ -60,18 +61,18 @@ class PaserQCIR:
                 [cur_gate, cur_list] = cleaned_line.split("=")
                 cur_var_list = cur_list.strip("or(").strip(")").split(",")
                 # if empty gate, we make the list empty:
-                if cur_var_list == ['']:
+                if cur_var_list == [""]:
                     cur_var_list = []
-                cur_type = 'or'
+                cur_type = "or"
             else:
                 assert "and" in cleaned_line
                 # first seperating intermediate gate:
                 [cur_gate, cur_list] = cleaned_line.split("=")
                 cur_var_list = cur_list.strip("and(").strip(")").split(",")
                 # if empty gate, we make the list empty:
-                if cur_var_list == ['']:
+                if cur_var_list == [""]:
                     cur_var_list = []
-                cur_type = 'and'
+                cur_type = "and"
             # all gates:
             if int(cur_gate) not in self.all_gates:
                 self.all_gates.append(int(cur_gate))
@@ -114,7 +115,7 @@ class PaserQCIR:
     def flip_and_assume(self, k, assum, assertion):
         """Flip universal layers in first k layers and add assumptions as gates."""
 
-        flipped_and_assumed_string = ''
+        flipped_and_assumed_string = ""
         append_at_end = ""
 
         for i, layer in enumerate(self.parsed_prefix):
@@ -147,7 +148,9 @@ class PaserQCIR:
 
         # printing all the gates to the file:
         for line in self.parsed_gates:
-            flipped_and_assumed_string += line[1] + "=" + line[0] + "(" + ",".join(line[2]) + ")\n"
+            flipped_and_assumed_string += (
+                line[1] + "=" + line[0] + "(" + ",".join(line[2]) + ")\n"
+            )
 
         flipped_and_assumed_string += assertion_gates_string
 

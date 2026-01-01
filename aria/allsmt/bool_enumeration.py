@@ -5,18 +5,37 @@ This module provides functions for enumerating and counting models (satisfying a
 of Boolean formulas using different approaches. It includes benchmarking capabilities to
 compare the performance of different enumeration strategies.
 """
+
 import itertools
 import time
 from typing import List, Callable, Tuple, Optional, Set
 from z3 import (
-    Solver, BoolRef, sat, Not, Or, And, Bools, BoolVal, is_true, is_false,
-    is_const, ExprRef, simplify, substitute, BoolSort, Z3_OP_UNINTERPRETED
+    Solver,
+    BoolRef,
+    sat,
+    Not,
+    Or,
+    And,
+    Bools,
+    BoolVal,
+    is_true,
+    is_false,
+    is_const,
+    ExprRef,
+    simplify,
+    substitute,
+    BoolSort,
+    Z3_OP_UNINTERPRETED,
 )
 
 
-def benchmark(name: str, function: Callable[[Solver, List[BoolRef], bool], int],
-             solver: Solver, variables: List[BoolRef],
-              verbose: bool = True) -> Tuple[int, float]:
+def benchmark(
+    name: str,
+    function: Callable[[Solver, List[BoolRef], bool], int],
+    solver: Solver,
+    variables: List[BoolRef],
+    verbose: bool = True,
+) -> Tuple[int, float]:
     """
     Benchmark a model counting function and return results.
 
@@ -31,7 +50,7 @@ def benchmark(name: str, function: Callable[[Solver, List[BoolRef], bool], int],
         Tuple of (number of models, execution time in seconds)
     """
     if verbose:
-        print(f'--{name} approach--')
+        print(f"--{name} approach--")
 
     start_time = time.perf_counter()
     model_count = function(solver, variables, verbose)
@@ -39,14 +58,15 @@ def benchmark(name: str, function: Callable[[Solver, List[BoolRef], bool], int],
     execution_time = round(end_time - start_time, 2)
 
     if verbose:
-        print(f'Number of models: {model_count}')
-        print(f'Time: {execution_time} s')
+        print(f"Number of models: {model_count}")
+        print(f"Time: {execution_time} s")
 
     return model_count, execution_time
 
 
-def count_models_with_solver(solver: Solver, variables: List[BoolRef],
-                             show_progress: bool = False) -> int:
+def count_models_with_solver(
+    solver: Solver, variables: List[BoolRef], show_progress: bool = False
+) -> int:
     """
     Count the number of solutions of a formula using solver-based enumeration.
 
@@ -80,8 +100,9 @@ def count_models_with_solver(solver: Solver, variables: List[BoolRef],
     return solutions
 
 
-def count_models_by_enumeration(solver: Solver, variables: List[BoolRef],
-                                show_progress: bool = False) -> int:
+def count_models_by_enumeration(
+    solver: Solver, variables: List[BoolRef], show_progress: bool = False
+) -> int:
     """
     Count the number of solutions by enumerating all possible assignments.
 
@@ -101,20 +122,24 @@ def count_models_by_enumeration(solver: Solver, variables: List[BoolRef],
 
     # Generate all possible combinations of variable assignments
     for i, assignment in enumerate(
-            itertools.product(*[(x, Not(x)) for x in variables])):
+        itertools.product(*[(x, Not(x)) for x in variables])
+    ):
         # conditional check (does not add assignment permanently)
         if solver.check(assignment) == sat:
             solutions += 1
 
         if show_progress and (i + 1) % 10000 == 0:
-            print(f"Checked {i + 1}/{total_assignments} assignments, "
-                  f"found {solutions} models so far...")
+            print(
+                f"Checked {i + 1}/{total_assignments} assignments, "
+                f"found {solutions} models so far..."
+            )
 
     return solutions
 
 
-def count_models_by_enumeration2(solver: Solver, variables: List[BoolRef],
-                                 show_progress: bool = False) -> int:
+def count_models_by_enumeration2(
+    solver: Solver, variables: List[BoolRef], show_progress: bool = False
+) -> int:
     """
     Count the number of solutions by enumerating all possible assignments.
 
@@ -133,7 +158,8 @@ def count_models_by_enumeration2(solver: Solver, variables: List[BoolRef],
 
     # Generate all possible combinations of True/False values
     for i, assignment in enumerate(
-            itertools.product([False, True], repeat=len(variables))):
+        itertools.product([False, True], repeat=len(variables))
+    ):
         # Create Z3 constraints based on the assignment
         constraints = [
             x if assign_true else Not(x)
@@ -144,14 +170,17 @@ def count_models_by_enumeration2(solver: Solver, variables: List[BoolRef],
             solutions += 1
 
         if show_progress and (i + 1) % 10000 == 0:
-            print(f"Checked {i + 1}/{total_assignments} assignments, "
-                  f"found {solutions} models so far...")
+            print(
+                f"Checked {i + 1}/{total_assignments} assignments, "
+                f"found {solutions} models so far..."
+            )
 
     return solutions
 
 
-def count_models_by_enumeration3(solver: Solver, variables: List[BoolRef],
-                                 show_progress: bool = False) -> int:
+def count_models_by_enumeration3(
+    solver: Solver, variables: List[BoolRef], show_progress: bool = False
+) -> int:
     """
     Count the number of solutions by enumerating all possible assignments.
 
@@ -170,8 +199,7 @@ def count_models_by_enumeration3(solver: Solver, variables: List[BoolRef],
 
     # Generate all possible combinations of True/False values
     bool_vals = [BoolVal(False), BoolVal(True)]
-    for i, assignment in enumerate(
-            itertools.product(bool_vals, repeat=len(variables))):
+    for i, assignment in enumerate(itertools.product(bool_vals, repeat=len(variables))):
         satisfied = True
 
         # Check if the assignment satisfies all assertions in the solver
@@ -185,14 +213,17 @@ def count_models_by_enumeration3(solver: Solver, variables: List[BoolRef],
             solutions += 1
 
         if show_progress and (i + 1) % 10000 == 0:
-            print(f"Checked {i + 1}/{total_assignments} assignments, "
-                  f"found {solutions} models so far...")
+            print(
+                f"Checked {i + 1}/{total_assignments} assignments, "
+                f"found {solutions} models so far..."
+            )
 
     return solutions
 
 
-def run_benchmarks(formula_name: str, formula: BoolRef, variables: List[BoolRef],
-                   max_vars: int = 20) -> None:
+def run_benchmarks(
+    formula_name: str, formula: BoolRef, variables: List[BoolRef], max_vars: int = 20
+) -> None:
     """
     Run benchmarks for a given formula with different enumeration approaches.
 
@@ -203,32 +234,46 @@ def run_benchmarks(formula_name: str, formula: BoolRef, variables: List[BoolRef]
         max_vars: Maximum number of variables to use (to prevent excessive runtime)
     """
     if len(variables) > max_vars:
-        print(f"Warning: Formula has {len(variables)} variables, "
-              f"which may cause excessive runtime.")
+        print(
+            f"Warning: Formula has {len(variables)} variables, "
+            f"which may cause excessive runtime."
+        )
         print(f"Using only the first {max_vars} variables for benchmarking.")
         variables = variables[:max_vars]
 
     solver = Solver()
     solver.add(formula)
 
-    print(f'\n## {formula_name} formula ##')
-    print(f'Variables: {len(variables)}')
-    print(f'Formula: {formula}')
+    print(f"\n## {formula_name} formula ##")
+    print(f"Variables: {len(variables)}")
+    print(f"Formula: {formula}")
 
     # Run benchmarks for each approach
-    benchmark('Solver-based', count_models_with_solver, solver, variables)
-    benchmark('Enumeration-based (conditional check, direct assignment)',
-              count_models_by_enumeration, solver, variables)
-    benchmark('Enumeration-based (conditional check, separate assignment)',
-              count_models_by_enumeration2, solver, variables)
-    benchmark('Enumeration-based (substitute + simplify)',
-              count_models_by_enumeration3, solver, variables)
+    benchmark("Solver-based", count_models_with_solver, solver, variables)
+    benchmark(
+        "Enumeration-based (conditional check, direct assignment)",
+        count_models_by_enumeration,
+        solver,
+        variables,
+    )
+    benchmark(
+        "Enumeration-based (conditional check, separate assignment)",
+        count_models_by_enumeration2,
+        solver,
+        variables,
+    )
+    benchmark(
+        "Enumeration-based (substitute + simplify)",
+        count_models_by_enumeration3,
+        solver,
+        variables,
+    )
 
 
 def test_enu() -> None:
     """Run benchmarks on sample formulas to compare different enumeration approaches."""
     # Create 10 Boolean variables
-    x = Bools(' '.join('x' + str(i) for i in range(10)))
+    x = Bools(" ".join("x" + str(i) for i in range(10)))
 
     # Test OR formula
     run_benchmarks("OR", Or(x), x)
@@ -237,12 +282,18 @@ def test_enu() -> None:
     run_benchmarks("AND", And(x), x)
 
     # Test a more complex formula
-    complex_formula = And(Or(x[0], x[1], x[2]), Or(Not(x[0]), x[3], x[4]), Or(x[5], Not(x[6])))
+    complex_formula = And(
+        Or(x[0], x[1], x[2]), Or(Not(x[0]), x[3], x[4]), Or(x[5], Not(x[6]))
+    )
     run_benchmarks("Complex", complex_formula, x[:7])
 
 
-def count_models(formula: BoolRef, variables: Optional[List[BoolRef]] = None,
-                 method: str = 'solver', show_progress: bool = False) -> int:
+def count_models(
+    formula: BoolRef,
+    variables: Optional[List[BoolRef]] = None,
+    method: str = "solver",
+    show_progress: bool = False,
+) -> int:
     """
     Count the number of models (satisfying assignments) for a given formula.
 
@@ -267,15 +318,17 @@ def count_models(formula: BoolRef, variables: Optional[List[BoolRef]] = None,
     solver.add(formula)
 
     # Select counting method
-    if method == 'solver':
+    if method == "solver":
         return count_models_with_solver(solver, variables, show_progress)
-    if method == 'enum1':
+    if method == "enum1":
         return count_models_by_enumeration(solver, variables, show_progress)
-    if method == 'enum2':
+    if method == "enum2":
         return count_models_by_enumeration2(solver, variables, show_progress)
-    if method == 'enum3':
+    if method == "enum3":
         return count_models_by_enumeration3(solver, variables, show_progress)
-    raise ValueError(f"Unknown method: {method}. Use 'solver', 'enum1', 'enum2', or 'enum3'.")
+    raise ValueError(
+        f"Unknown method: {method}. Use 'solver', 'enum1', 'enum2', or 'enum3'."
+    )
 
 
 def get_vars(formula: BoolRef) -> List[BoolRef]:
@@ -291,9 +344,11 @@ def get_vars(formula: BoolRef) -> List[BoolRef]:
     vars_set: Set[BoolRef] = set()
 
     def collect_vars(expr: ExprRef) -> None:
-        if (is_const(expr) and
-                expr.decl().kind() == Z3_OP_UNINTERPRETED and
-                expr.sort() == BoolSort()):
+        if (
+            is_const(expr)
+            and expr.decl().kind() == Z3_OP_UNINTERPRETED
+            and expr.sort() == BoolSort()
+        ):
             vars_set.add(expr)  # type: ignore
         for child in expr.children():
             collect_vars(child)
@@ -302,5 +357,5 @@ def get_vars(formula: BoolRef) -> List[BoolRef]:
     return list(vars_set)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_enu()

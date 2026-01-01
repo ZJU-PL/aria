@@ -6,6 +6,7 @@ weighted MaxSAT problems using:
 1. OBV-BS and its variants
 2. Existing weighted MaxSAT solvers
 """
+
 import logging
 from typing import Optional, Union
 
@@ -59,5 +60,5 @@ def demo_maxsat() -> None:
     logger.info("Solving time: %.3f seconds", elapsed_time)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     demo_maxsat()

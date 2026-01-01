@@ -67,9 +67,7 @@ def generalize_model(model, pre_cond, post_cond):
                     return result
 
             # Second approach: eliminate variables from model_formula -> post_cond
-            qfml = z3.ForAll(
-                list(vars_to_forget), z3.Implies(model_formula, post_cond)
-            )
+            qfml = z3.ForAll(list(vars_to_forget), z3.Implies(model_formula, post_cond))
             qe_result = z3.Tactic("qe2").apply(qfml)
 
             if qe_result and len(qe_result) > 0:
@@ -170,21 +168,21 @@ def dillig_abduce(pre_cond, post_cond):
             if qe_result and len(qe_result) > 0:
                 result = qe_result[0].as_expr()
                 # Check if the result is consistent and sufficient
-                if (is_sat(z3.And(pre_cond, result)) and
-                        is_entail(z3.And(pre_cond, result), post_cond)):
+                if is_sat(z3.And(pre_cond, result)) and is_entail(
+                    z3.And(pre_cond, result), post_cond
+                ):
                     return result
 
             # Second approach: eliminate variables from model_formula -> post_cond
-            qfml = z3.ForAll(
-                list(vars_to_forget), z3.Implies(model_formula, post_cond)
-            )
+            qfml = z3.ForAll(list(vars_to_forget), z3.Implies(model_formula, post_cond))
             qe_result = z3.Tactic("qe2").apply(qfml)
 
             if qe_result and len(qe_result) > 0:
                 result = qe_result[0].as_expr()
                 # Check if the result is consistent and sufficient
-                if (is_sat(z3.And(pre_cond, result)) and
-                        is_entail(z3.And(pre_cond, result), post_cond)):
+                if is_sat(z3.And(pre_cond, result)) and is_entail(
+                    z3.And(pre_cond, result), post_cond
+                ):
                     return result
         except z3.Z3Exception as e:
             print(f"QE in Dillig abduction failed: {e}")

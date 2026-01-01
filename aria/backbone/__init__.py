@@ -1,5 +1,5 @@
 """
-The backbone module provides algorithms for computing backbones of 
+The backbone module provides algorithms for computing backbones of
 Boolean formulas in both SAT and SMT contexts.
 
 For SAT formulas, the backbone consists of literals that must be true
@@ -15,5 +15,5 @@ from .sat_backbone import (
     compute_backbone_refinement,
     compute_backbone_with_approximation,
     is_backbone_literal,
-    BackboneAlgorithm
+    BackboneAlgorithm,
 )

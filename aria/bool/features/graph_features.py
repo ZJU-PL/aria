@@ -1,6 +1,7 @@
 """
 Graph features computation for SAT instances.
 """
+
 try:
     import networkx as nx
 except ImportError:

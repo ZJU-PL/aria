@@ -1,6 +1,7 @@
 """
 For calling bin solvers
 """
+
 import os
 import subprocess
 import logging
@@ -16,6 +17,7 @@ logger = logging.getLogger(__name__)
 BIN_SOLVER_TIMEOUT = 100
 # Result = Literal["sat", "unsat", "unknown"]
 
+
 def terminate(process, is_timeout: List):
     """Terminate a process and set timeout flag."""
     if process.poll() is None:
@@ -27,7 +29,9 @@ def terminate(process, is_timeout: List):
             logger.error("Error interrupting process: %s", ex)
 
 
-def get_solver_command(solver_type: str, solver_name: str, tmp_filename: str) -> List[str]:
+def get_solver_command(
+    solver_type: str, solver_name: str, tmp_filename: str
+) -> List[str]:
     """Get the command to run the specified solver."""
     # Map solver names to GlobalConfig names
     solver_name_map = {
@@ -39,7 +43,9 @@ def get_solver_command(solver_type: str, solver_name: str, tmp_filename: str) ->
     def get_path(solver: str) -> str:
         path = global_config.get_solver_path(solver)
         if path is None:
-            raise RuntimeError(f"Solver {solver} not found. Please ensure it is installed.")
+            raise RuntimeError(
+                f"Solver {solver} not found. Please ensure it is installed."
+            )
         return path
 
     # Define solver commands (lazy evaluation - paths are resolved when needed)
@@ -52,7 +58,7 @@ def get_solver_command(solver_type: str, solver_name: str, tmp_filename: str) ->
         },
         "maxsat": {
             "z3": lambda: [get_path("z3"), tmp_filename],
-        }
+        },
     }
 
     # Get command factory for the specific solver
@@ -73,7 +79,7 @@ def run_solver(cmd: List[str]) -> str:
         try:
             timer.start()
             out = p.stdout.readlines()
-            out = ' '.join([line.decode('UTF-8') for line in out])
+            out = " ".join([line.decode("UTF-8") for line in out])
 
             if is_timeout[0]:
                 return "unknown"
@@ -88,7 +94,9 @@ def run_solver(cmd: List[str]) -> str:
                 p.terminate()
 
 
-def solve_with_bin_smt(logic: str, qfml: z3.ExprRef, obj_name: str, solver_name: str) -> str:
+def solve_with_bin_smt(
+    logic: str, qfml: z3.ExprRef, obj_name: str, solver_name: str
+) -> str:
     """Call binary SMT solvers to solve quantified SMT problems."""
     logger.debug("Solving QSMT via %s", solver_name)
 
@@ -136,7 +144,7 @@ def demo_solver():
     z3_path = global_config.get_solver_path("z3")
     if z3_path is None:
         raise RuntimeError("Z3 solver not found. Please ensure Z3 is installed.")
-    cmd = [z3_path, 'tmp.smt2']
+    cmd = [z3_path, "tmp.smt2"]
     with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as p:
         is_timeout = [False]
         timer = Timer(BIN_SOLVER_TIMEOUT, terminate, args=[p, is_timeout])
@@ -144,7 +152,7 @@ def demo_solver():
         try:
             timer.start()
             out = p.stdout.readlines()
-            out = ' '.join([line.decode('UTF-8') for line in out])
+            out = " ".join([line.decode("UTF-8") for line in out])
             print(out)
         finally:
             timer.cancel()

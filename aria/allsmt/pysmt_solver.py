@@ -36,13 +36,14 @@ class Z3ToPySMTConverter:
             NotImplementedError: If unsupported Z3 type is encountered
         """
         from pysmt.shortcuts import Symbol  # pylint: disable=import-outside-toplevel
-        from pysmt.typing import INT, REAL, BVType, BOOL  # pylint: disable=import-outside-toplevel
+        from pysmt.typing import (
+            INT,
+            REAL,
+            BVType,
+            BOOL,
+        )  # pylint: disable=import-outside-toplevel
 
-        type_mapping = {
-            z3.is_int: INT,
-            z3.is_real: REAL,
-            z3.is_bool: BOOL
-        }
+        type_mapping = {z3.is_int: INT, z3.is_real: REAL, z3.is_bool: BOOL}
 
         result = []
         for var in z3vars:
@@ -74,13 +75,15 @@ class Z3ToPySMTConverter:
         Returns:
             Tuple of (PySMT variables, PySMT formula)
         """
-        from aria.utils.z3_expr_utils import get_variables  # pylint: disable=import-outside-toplevel
+        from aria.utils.z3_expr_utils import (
+            get_variables,
+        )  # pylint: disable=import-outside-toplevel
 
         z3_vars = get_variables(z3_formula)
         pysmt_vars = Z3ToPySMTConverter.to_pysmt_vars(z3_vars)
 
         # Convert formula using Z3 solver
-        z3_solver = Solver(name='z3')
+        z3_solver = Solver(name="z3")
         pysmt_formula = z3_solver.converter.back(z3_formula)
 
         return pysmt_vars, pysmt_formula
@@ -105,7 +108,9 @@ class PySMTAllSMTSolver(AllSMTSolver[PySMTModel]):
         self._solver_name: Optional[str] = solver_name
         self._pysmt_vars: List[FNode] = []
 
-    def solve(self, expr: ExprRef, keys: List[ExprRef], model_limit: int = 100) -> List[PySMTModel]:
+    def solve(
+        self, expr: ExprRef, keys: List[ExprRef], model_limit: int = 100
+    ) -> List[PySMTModel]:
         """
         Enumerate all satisfying models for the given expression over the specified keys.
 
@@ -163,19 +168,19 @@ class PySMTAllSMTSolver(AllSMTSolver[PySMTModel]):
 
 def demo() -> None:
     """Demonstrate the usage of the PySMT-based AllSMT solver with Z3 input."""
-    from z3 import Ints, Bools, And as Z3And, Or as Z3Or  # pylint: disable=import-outside-toplevel
+    from z3 import (
+        Ints,
+        Bools,
+        And as Z3And,
+        Or as Z3Or,
+    )  # pylint: disable=import-outside-toplevel
 
     # Define Z3 variables
-    x, y = Ints('x y')
-    a, b = Bools('a b')
+    x, y = Ints("x y")
+    a, b = Bools("a b")
 
     # Define Z3 constraints
-    expr = Z3And(
-        a == (x + y > 0),
-        Z3Or(a, b),
-        x > 0,
-        y > 0
-    )
+    expr = Z3And(a == (x + y > 0), Z3Or(a, b), x > 0, y > 0)
 
     # Create solver and solve with a model limit
     solver = PySMTAllSMTSolver()

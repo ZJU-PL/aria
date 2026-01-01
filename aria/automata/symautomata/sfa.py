@@ -3,6 +3,7 @@ This module performs all basic SFA operations.
 It is an interface for sfa automata.
 TODO: This module is not fully implemented yet. Maybe we need to use Z3's Python API for this.
 """
+
 # !/usr/bin/python
 import random
 import string
@@ -20,31 +21,31 @@ class Predicate:
         """
         This __init__ method is not implemented
         """
-        raise NotImplementedError('__init__ method not implemented')
+        raise NotImplementedError("__init__ method not implemented")
 
     def is_sat(self, symbol: str) -> bool:
         """
         This is_sat method is not implemented
         """
-        raise NotImplementedError('is_sat method not implemented')
+        raise NotImplementedError("is_sat method not implemented")
 
     def refactor(self, symbol: str, value: bool) -> None:
         """
         This refactor method is not implemented
         """
-        raise NotImplementedError('refactor method not implemented')
+        raise NotImplementedError("refactor method not implemented")
 
     def get_witness(self) -> str:
         """
         This get_witness method is not implemented
         """
-        raise NotImplementedError('get_witness method not implemented')
+        raise NotImplementedError("get_witness method not implemented")
 
     def __iter__(self) -> Iterator[str]:
         """
         This __iter__ method is not implemented
         """
-        raise NotImplementedError('__iter__ method not implemented')
+        raise NotImplementedError("__iter__ method not implemented")
 
 
 class SetPredicate(Predicate):
@@ -106,6 +107,7 @@ class SetPredicate(Predicate):
 
 class SFAState:
     """The SFA state structure"""
+
     def __init__(self, sid: Optional[int] = None):
         """
         Args:
@@ -118,7 +120,7 @@ class SFAState:
         self.state_id: Optional[int] = sid
         self.arcs: List[SFAArc] = []  # type: ignore[name-defined]
 
-    def __iter__(self) -> Iterator['SFAArc']:
+    def __iter__(self) -> Iterator["SFAArc"]:
         """
         Args:
             None
@@ -130,7 +132,14 @@ class SFAState:
 
 class SFAArc:
     """The SFA Arc structure"""
-    def __init__(self, src_state_id: int, dst_state_id: int, guard_p: Predicate, term: Optional[object] = None):
+
+    def __init__(
+        self,
+        src_state_id: int,
+        dst_state_id: int,
+        guard_p: Predicate,
+        term: Optional[object] = None,
+    ):
         """
         Initialization function for Arc's guardgen structure
         Args:
@@ -149,10 +158,10 @@ class SFAArc:
 
 class SFA:
     """
-       Symbolic Finite Automata (SFAs) are finite state symautomata
-       in which the alphabet is given by a Boolean algebra that may
-       have an infinite domain, and transitions are labeled with
-       first-order predicates over such algebra
+    Symbolic Finite Automata (SFAs) are finite state symautomata
+    in which the alphabet is given by a Boolean algebra that may
+    have an infinite domain, and transitions are labeled with
+    first-order predicates over such algebra
     """
 
     def __init__(self, alphabet: Optional[List[str]] = None):
@@ -182,8 +191,9 @@ class SFA:
         Returns:
             None
         """
-        assert type(src) == type(int()) and type(dst) == type(int()), \
-            "State type should be integer."
+        assert type(src) == type(int()) and type(dst) == type(
+            int()
+        ), "State type should be integer."
         while src >= len(self.states) or dst >= len(self.states):
             self.add_state()
         self.states[src].arcs.append(SFAArc(src, dst, char))
@@ -217,7 +227,7 @@ class SFA:
                     break
 
             if not found:
-                raise RuntimeError('SFA not complete')
+                raise RuntimeError("SFA not complete")
 
         return cur_state.final
 
@@ -240,7 +250,6 @@ class SFA:
                 dfa[i].final = True
         return dfa
 
-
     def save(self, txt_fst_filename: str) -> None:
         """
         Save the machine in the openFST format in the file denoted by
@@ -252,7 +261,6 @@ class SFA:
         """
         dfa = self.concretize()
         return dfa.save(txt_fst_filename)
-
 
     def load(self, txt_fst_filename: str) -> None:
         """
@@ -266,9 +274,7 @@ class SFA:
         Returns:
             None
         """
-        raise NotImplementedError('SFA load method not implemented')
-
-
+        raise NotImplementedError("SFA load method not implemented")
 
 
 def main() -> None:
@@ -291,7 +297,9 @@ def main() -> None:
     #
     # sfa.states[3].final = True
 
-    sfa.add_arc(0, 7, SetPredicate([i for i in alphabet if i != "d" and i != "input_string"]))
+    sfa.add_arc(
+        0, 7, SetPredicate([i for i in alphabet if i != "d" and i != "input_string"])
+    )
     sfa.add_arc(1, 7, SetPredicate([i for i in alphabet if i != "i"]))
     sfa.add_arc(2, 7, SetPredicate([i for i in alphabet if i != "p"]))
     sfa.add_arc(3, 7, SetPredicate([i for i in alphabet if i != "v"]))
@@ -313,25 +321,45 @@ def main() -> None:
 
     dfa = sfa.concretize()
     # dfa.minimize()
-    dfa.save('concrete_re_sfa.dfa')
+    dfa.save("concrete_re_sfa.dfa")
 
     # Consume some input
     input_string = "koukouroukou"
-    print('SFA-DFA result on {}: {} - {}'.format(input_string, sfa.consume_input(input_string),
-                                                 dfa.consume_input(input_string)))
+    print(
+        "SFA-DFA result on {}: {} - {}".format(
+            input_string,
+            sfa.consume_input(input_string),
+            dfa.consume_input(input_string),
+        )
+    )
 
     input_string = "divspan"
-    print('SFA-DFA result on {}: {} - {}'.format(input_string, sfa.consume_input(input_string),
-                                                 dfa.consume_input(input_string)))
+    print(
+        "SFA-DFA result on {}: {} - {}".format(
+            input_string,
+            sfa.consume_input(input_string),
+            dfa.consume_input(input_string),
+        )
+    )
 
     input_string = "div"
-    print('SFA-DFA result on {}: {} - {}'.format(input_string, sfa.consume_input(input_string),
-                                                 dfa.consume_input(input_string)))
+    print(
+        "SFA-DFA result on {}: {} - {}".format(
+            input_string,
+            sfa.consume_input(input_string),
+            dfa.consume_input(input_string),
+        )
+    )
 
     input_string = "span"
-    print('SFA-DFA result on {}: {} - {}'.format(input_string, sfa.consume_input(input_string),
-                                                 dfa.consume_input(input_string)))
+    print(
+        "SFA-DFA result on {}: {} - {}".format(
+            input_string,
+            sfa.consume_input(input_string),
+            dfa.consume_input(input_string),
+        )
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -57,9 +57,7 @@ def _solver_for(
                 "There is a `pysat` module, but it isn't PySAT. "
                 "Did you pip install `pysat` instead of `python-sat`?"
             )
-        raise RuntimeError(
-            "`pysat` is not installed. Try `pip install python-sat`?"
-        )
+        raise RuntimeError("`pysat` is not installed. Try `pip install python-sat`?")
 
     if name is None:
         name = config.pysat_solver

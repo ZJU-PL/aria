@@ -116,11 +116,12 @@ def create_solver(name: str = "z3", **kwargs: Any) -> AllSMTSolver:
         An instance of the specified AllSMT solver
     """
     import warnings  # pylint: disable=import-outside-toplevel
+
     warnings.warn(
         "create_solver() is deprecated and will be removed in a future version. "
         "Please use create_allsmt_solver() instead.",
         DeprecationWarning,
-        stacklevel=2
+        stacklevel=2,
     )
     return create_allsmt_solver(name, **kwargs)
 

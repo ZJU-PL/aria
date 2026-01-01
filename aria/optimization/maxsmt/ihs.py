@@ -32,7 +32,7 @@ class ImplicitHittingSetSolver(MaxSMTSolverBase):
 
         if solver.check() != z3.sat:
             logger.warning("Hard constraints are unsatisfiable")
-            return False, None, float('inf')
+            return False, None, float("inf")
 
         # Create relaxation variables for soft constraints
         relax_vars = [z3.Bool(f"_relax_{i}") for i in range(len(self.soft_constraints))]
@@ -53,7 +53,7 @@ class ImplicitHittingSetSolver(MaxSMTSolverBase):
 
         # Current best model and cost
         best_model = None
-        best_cost = float('inf')
+        best_cost = float("inf")
 
         # Solver for the hitting set problem
         hs_solver = z3.Optimize()
@@ -62,7 +62,9 @@ class ImplicitHittingSetSolver(MaxSMTSolverBase):
         hs_vars = [z3.Bool(f"_hs_{i}") for i in range(len(self.soft_constraints))]
 
         # Add objective: minimize sum of weights of selected soft constraints
-        obj_terms = [(hs_vars[i], self.weights[i]) for i in range(len(self.soft_constraints))]
+        obj_terms = [
+            (hs_vars[i], self.weights[i]) for i in range(len(self.soft_constraints))
+        ]
         hs_solver.minimize(z3.Sum([z3.If(var, weight, 0) for var, weight in obj_terms]))
 
         while True:
@@ -70,7 +72,8 @@ class ImplicitHittingSetSolver(MaxSMTSolverBase):
             if hs_solver.check() == z3.sat:
                 hs_model = hs_solver.model()
                 hitting_set = [
-                    i for i in range(len(self.soft_constraints))
+                    i
+                    for i in range(len(self.soft_constraints))
                     if hs_model.evaluate(hs_vars[i])
                 ]
 
@@ -82,7 +85,8 @@ class ImplicitHittingSetSolver(MaxSMTSolverBase):
 
                 # Check if the current hitting set gives a satisfiable formula
                 assumptions = [
-                    z3.Not(relax_vars[i]) for i in range(len(self.soft_constraints))
+                    z3.Not(relax_vars[i])
+                    for i in range(len(self.soft_constraints))
                     if i not in hitting_set
                 ]
 
@@ -108,7 +112,8 @@ class ImplicitHittingSetSolver(MaxSMTSolverBase):
                     # Extract the unsatisfiable core
                     core = core_solver.unsat_core()
                     core_indices = [
-                        i for i in range(len(self.soft_constraints))
+                        i
+                        for i in range(len(self.soft_constraints))
                         if z3.Not(relax_vars[i]) in core
                     ]
 
@@ -116,7 +121,7 @@ class ImplicitHittingSetSolver(MaxSMTSolverBase):
                         # No soft constraints in the core
                         if best_model is not None:
                             return True, best_model, best_cost
-                        return False, None, float('inf')
+                        return False, None, float("inf")
 
                     # Add the core to the set of all cores
                     all_cores.append(core_indices)
@@ -126,4 +131,4 @@ class ImplicitHittingSetSolver(MaxSMTSolverBase):
             # Hitting set problem is unsatisfiable
             if best_model is not None:
                 return True, best_model, best_cost
-            return False, None, float('inf')
+            return False, None, float("inf")

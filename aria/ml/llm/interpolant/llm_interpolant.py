@@ -14,6 +14,7 @@ TODO: currently, we use s-expr for easy communication, but it might be more
 easier for LLM to return other formats, e.g., Z3's Python APIs, natural
 languages, etc.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -46,7 +47,7 @@ def _parse_smt2_asserts(smt2_text: SMTText) -> List[Z3Expr]:
 
 
 def _to_asserts(
-    formulas: Union[Sequence[Union[SMTText, Z3Expr]], SMTText, Z3Expr]
+    formulas: Union[Sequence[Union[SMTText, Z3Expr]], SMTText, Z3Expr],
 ) -> List[Z3Expr]:
     """Convert formulas to Z3 expressions."""
     if not isinstance(formulas, (list, tuple)):
@@ -61,6 +62,7 @@ def _to_asserts(
 @dataclass
 class InterpolantResult:
     """Result of interpolant generation."""
+
     interpolant: Optional[Z3Expr]
     valid_A_implies_I: bool  # pylint: disable=invalid-name
     unsat_I_and_B: bool  # pylint: disable=invalid-name
@@ -69,10 +71,13 @@ class InterpolantResult:
 
 class LLMInterpolantGenerator:
     """Generate Craig interpolants using LLM."""
-    def __init__(self,
-                 model_name: str = os.environ.get("ARIA_LLM_MODEL", "glm-4-flash"),
-                 temperature: float = 0.2,
-                 prompt_type: str = "basic") -> None:
+
+    def __init__(
+        self,
+        model_name: str = os.environ.get("ARIA_LLM_MODEL", "glm-4-flash"),
+        temperature: float = 0.2,
+        prompt_type: str = "basic",
+    ) -> None:
         log_dir = os.environ.get("ARIA_LOG_DIR", ".aria_logs")
         os.makedirs(log_dir, exist_ok=True)
         logger = Logger(os.path.join(log_dir, "interpolant_llm.log"))
@@ -152,7 +157,7 @@ def main():
         "(declare-fun x () Int)",
         "(declare-fun y () Int)",
         "(assert (> x 6))",
-        "(assert (= y (+ x 1)))"
+        "(assert (= y (+ x 1)))",
     ]
     formulas_b = ["(declare-fun y () Int)", "(assert (<= y 4))"]
 
@@ -165,8 +170,10 @@ def main():
         res = gen.generate(formulas_a, formulas_b)
         print("Interpolant:", res.raw_text)
         print(
-            "A => I:", res.valid_A_implies_I,  # noqa: E501
-            "; I & B unsat:", res.unsat_I_and_B
+            "A => I:",
+            res.valid_A_implies_I,  # noqa: E501
+            "; I & B unsat:",
+            res.unsat_I_and_B,
         )
 
 

@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class MaxSATSolverResult:
     """Stores the results of a MaxSAT solving operation"""
+
     cost: float
     solution: Optional[List[int]] = None
     runtime: Optional[float] = None
@@ -100,7 +101,9 @@ class MaxSATSolver:
         try:
             assert self.sat_engine_name != "z3"
             """Use a SAT solver supported by pySAT"""
-            sat_oracle = Solver(name=self.sat_engine_name, bootstrap_with=self.hard, use_timer=True)
+            sat_oracle = Solver(
+                name=self.sat_engine_name, bootstrap_with=self.hard, use_timer=True
+            )
             # For each bit in bits, decide if it can be true
             for b in bits:
                 assumption_lits.append(b)
@@ -124,16 +127,20 @@ class MaxSATSolver:
             SolverResult containing cost, solution, runtime and statistics
         """
         start_time = time.time()
-        result = MaxSATSolverResult(float('inf'))
+        result = MaxSATSolverResult(float("inf"))
 
         try:
             if self.maxsat_engine == "FM":
                 fm = FM(self.wcnf, verbose=0)
                 found_solution = fm.compute()
                 result.cost = fm.cost
-                result.solution = getattr(fm, 'model', None)
+                result.solution = getattr(fm, "model", None)
                 # FM algorithm finds optimum when it completes successfully
-                result.status = "optimal" if found_solution and hasattr(fm, 'model') and fm.model is not None else "satisfied"
+                result.status = (
+                    "optimal"
+                    if found_solution and hasattr(fm, "model") and fm.model is not None
+                    else "satisfied"
+                )
 
             elif self.maxsat_engine == "RC2":
                 rc2 = RC2(self.wcnf)
@@ -161,9 +168,13 @@ class MaxSATSolver:
                 fm = FM(self.wcnf, verbose=0)
                 found_solution = fm.compute()
                 result.cost = fm.cost
-                result.solution = getattr(fm, 'model', None)
+                result.solution = getattr(fm, "model", None)
                 # FM algorithm finds optimum when it completes successfully
-                result.status = "optimal" if found_solution and hasattr(fm, 'model') and fm.model is not None else "satisfied"
+                result.status = (
+                    "optimal"
+                    if found_solution and hasattr(fm, "model") and fm.model is not None
+                    else "satisfied"
+                )
 
         except Exception as e:
             logger.error(f"Error solving MaxSAT problem: {str(e)}")
@@ -172,6 +183,5 @@ class MaxSATSolver:
 
         finally:
             result.runtime = time.time() - start_time
-
 
         return result

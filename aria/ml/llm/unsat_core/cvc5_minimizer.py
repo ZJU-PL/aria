@@ -1,5 +1,5 @@
-"""Contains utilities for cvc5.
-"""
+"""Contains utilities for cvc5."""
+
 import re
 import time
 
@@ -10,8 +10,7 @@ except ImportError:
 
 
 class OutputFormatError(Exception):
-    """Exception raised when GPT-x's response does not conform to prompt instructions.
-    """
+    """Exception raised when GPT-x's response does not conform to prompt instructions."""
 
 
 def extract_output_constraints(response):
@@ -42,8 +41,8 @@ def extract_output_constraints(response):
 
 
 def build_smt2_formula_from_string_constraints(
-        constraints, all_constraints, all_smt2_constraints, placeholder
-    ):
+    constraints, all_constraints, all_smt2_constraints, placeholder
+):
     """Builds SMT2-Lib formula from constraints' subset, retrieved from GPT-x's response.
 
     Arguments:
@@ -60,15 +59,17 @@ def build_smt2_formula_from_string_constraints(
             to ``constraints`` are inserted in ``placeholder``.
     """
     constraints_idx = [all_constraints.index(constraint) for constraint in constraints]
-    smt2_assertions = [f"(assert {all_smt2_constraints[idx]})" for idx in constraints_idx]
+    smt2_assertions = [
+        f"(assert {all_smt2_constraints[idx]})" for idx in constraints_idx
+    ]
     assertions = "\n".join(smt2_assertions)
     smt2_formula = placeholder.replace("<ASSERT>", assertions, 1)
     return smt2_formula
 
 
 def build_smt2_formula_from_cvc5_constraints(
-        cvc5_constraints, all_smt2_constraints, all_cvc5_constraints, placeholder
-    ):
+    cvc5_constraints, all_smt2_constraints, all_cvc5_constraints, placeholder
+):
     """Builds SMT2-Lib formula from
 
     Arguments:
@@ -85,7 +86,9 @@ def build_smt2_formula_from_cvc5_constraints(
     constraints_idx = [
         all_cvc5_constraints.index(constraint) for constraint in cvc5_constraints
     ]
-    smt2_assertions = [f"(assert {all_smt2_constraints[idx]})" for idx in constraints_idx]
+    smt2_assertions = [
+        f"(assert {all_smt2_constraints[idx]})" for idx in constraints_idx
+    ]
     assertions = "\n".join(smt2_assertions)
     smt2_formula = placeholder.replace("<ASSERT>", assertions, 1)
     return smt2_formula
@@ -119,7 +122,9 @@ def parse_input_formula(solver, formula, formula_name):
     """
     parser = cvc5.InputParser(solver)
     parser.setStringInput(
-        cvc5.InputLanguage.SMT_LIB_2_6, formula, formula_name,
+        cvc5.InputLanguage.SMT_LIB_2_6,
+        formula,
+        formula_name,
     )
     symbol_manager = parser.getSymbolManager()
 

@@ -20,7 +20,9 @@ class LocalSearchSolver(MaxSMTSolverBase):
     Currently only implemented for SMT formulas over linear integer arithmetic.
     """
 
-    def solve(self, max_iterations: int = 1000) -> Tuple[bool, Optional[z3.ModelRef], float]:
+    def solve(
+        self, max_iterations: int = 1000
+    ) -> Tuple[bool, Optional[z3.ModelRef], float]:
         """Local search algorithm for MaxSMT
 
         Args:
@@ -36,7 +38,7 @@ class LocalSearchSolver(MaxSMTSolverBase):
 
         if solver.check() != z3.sat:
             logger.warning("Hard constraints are unsatisfiable")
-            return False, None, float('inf')
+            return False, None, float("inf")
 
         # Start with a model that satisfies hard constraints
         current_model = solver.model()
@@ -67,7 +69,9 @@ class LocalSearchSolver(MaxSMTSolverBase):
 
                 try:
                     # Get current value
-                    current_value = current_model.eval(var, model_completion=True).as_long()
+                    current_value = current_model.eval(
+                        var, model_completion=True
+                    ).as_long()
 
                     # Try neighboring values
                     for offset in [-2, -1, 1, 2]:
@@ -87,7 +91,9 @@ class LocalSearchSolver(MaxSMTSolverBase):
                         # (except the one we're modifying)
                         for other_var in all_vars:
                             if other_var != var and other_var in current_model.decls():
-                                val = current_model.eval(other_var, model_completion=True)
+                                val = current_model.eval(
+                                    other_var, model_completion=True
+                                )
                                 temp_solver.add(other_var == val)
 
                         # Check if satisfiable

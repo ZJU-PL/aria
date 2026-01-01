@@ -2,10 +2,11 @@
 This module retrieves a simple string from a PDA
 using the state removal method
 """
+
 from aria.automata.symautomata.pda import PDAState
 
 
-class PdaString():
+class PdaString:
     """Retrieves a string from a PDA"""
 
     def __init__(self):
@@ -14,7 +15,7 @@ class PdaString():
         self.quickresponse = {}
         self.quickresponse_types = {}
         pass
-    
+
     def _combine_rest_push(self):
         """Combining Rest and Push States"""
         new = []
@@ -40,29 +41,29 @@ class PdaString():
                                     # if nextnextstate_id != examine.id :
 
                                     for x_char in state.trans[nextstate_id]:
-                                        for z_char in examine.trans[
-                                                nextnextstate_id]:
+                                        for z_char in examine.trans[nextnextstate_id]:
                                             if nextnextstate_id not in temp.trans:
-                                                temp.trans[
-                                                    nextnextstate_id] = []
+                                                temp.trans[nextnextstate_id] = []
                                             if x_char != 0 and z_char != 0:
-                                                temp.trans[
-                                                    nextnextstate_id].append(x_char + z_char)
+                                                temp.trans[nextnextstate_id].append(
+                                                    x_char + z_char
+                                                )
                                                 # DEBUGprint 'transition is now
                                                 # '+x_char +' + '+ z_char
                                             elif x_char != 0 and z_char == 0:
-                                                temp.trans[
-                                                    nextnextstate_id].append(x_char)
+                                                temp.trans[nextnextstate_id].append(
+                                                    x_char
+                                                )
                                                 # DEBUGprint 'transition is now
                                                 # '+x_char
                                             elif x_char == 0 and z_char != 0:
-                                                temp.trans[
-                                                    nextnextstate_id].append(z_char)
+                                                temp.trans[nextnextstate_id].append(
+                                                    z_char
+                                                )
                                                 # DEBUGprint 'transition is now
                                                 # '+z_char
                                             elif x_char == 0 and z_char == 0:
-                                                temp.trans[
-                                                    nextnextstate_id].append(0)
+                                                temp.trans[nextnextstate_id].append(0)
                                                 # DEBUGprint 'transition is now
                                                 # empty'
                                             else:
@@ -105,29 +106,29 @@ class PdaString():
                                 for nextnextstate_id in examine.trans:
                                     # if nextnextstate_id != examine.id :
                                     for x_char in state.trans[nextstate_id]:
-                                        for z_char in examine.trans[
-                                                nextnextstate_id]:
+                                        for z_char in examine.trans[nextnextstate_id]:
                                             if nextnextstate_id not in temp.trans:
-                                                temp.trans[
-                                                    nextnextstate_id] = []
+                                                temp.trans[nextnextstate_id] = []
                                             if x_char != 0 and z_char != 0:
-                                                temp.trans[
-                                                    nextnextstate_id].append(x_char + z_char)
+                                                temp.trans[nextnextstate_id].append(
+                                                    x_char + z_char
+                                                )
                                                 # DEBUGprint 'transition is now
                                                 # '+x_char +' + '+ z_char
                                             elif x_char != 0 and z_char == 0:
-                                                temp.trans[
-                                                    nextnextstate_id].append(x_char)
+                                                temp.trans[nextnextstate_id].append(
+                                                    x_char
+                                                )
                                                 # DEBUGprint 'transition is now
                                                 # '+x_char
                                             elif x_char == 0 and z_char != 0:
-                                                temp.trans[
-                                                    nextnextstate_id].append(z_char)
+                                                temp.trans[nextnextstate_id].append(
+                                                    z_char
+                                                )
                                                 # DEBUGprint 'transition is now
                                                 # '+z_char
                                             elif x_char == 0 and z_char == 0:
-                                                temp.trans[
-                                                    nextnextstate_id].append(0)
+                                                temp.trans[nextnextstate_id].append(0)
                                                 # DEBUGprint 'transition is now
                                                 # empty'
                                             else:
@@ -146,7 +147,6 @@ class PdaString():
             return []
         else:
             return new
-
 
     def _combine_pop_rest(self):
         """Combining Pop and Rest"""
@@ -175,28 +175,32 @@ class PdaString():
 
                                         for x_char in state.trans[nextstate_id]:
                                             for z_char in examine.trans[
-                                                    nextnextstate_id]:
+                                                nextnextstate_id
+                                            ]:
                                                 if nextnextstate_id not in temp.trans:
-                                                    temp.trans[
-                                                        nextnextstate_id] = []
+                                                    temp.trans[nextnextstate_id] = []
                                                 if x_char != 0 and z_char != 0:
-                                                    temp.trans[
-                                                        nextnextstate_id].append(x_char + z_char)
+                                                    temp.trans[nextnextstate_id].append(
+                                                        x_char + z_char
+                                                    )
                                                     # DEBUGprint 'transition is
                                                     # now '+x_char +' + '+ z_char
                                                 elif x_char != 0 and z_char == 0:
-                                                    temp.trans[
-                                                        nextnextstate_id].append(x_char)
+                                                    temp.trans[nextnextstate_id].append(
+                                                        x_char
+                                                    )
                                                     # DEBUGprint 'transition is
                                                     # now '+x_char
                                                 elif x_char == 0 and z_char != 0:
-                                                    temp.trans[
-                                                        nextnextstate_id].append(z_char)
+                                                    temp.trans[nextnextstate_id].append(
+                                                        z_char
+                                                    )
                                                     # DEBUGprint 'transition is
                                                     # now '+z_char
                                                 elif x_char == 0 and z_char == 0:
-                                                    temp.trans[
-                                                        nextnextstate_id].append(0)
+                                                    temp.trans[nextnextstate_id].append(
+                                                        0
+                                                    )
                                                     # DEBUGprint 'transition is
                                                     # now empty'
                                                 else:
@@ -214,15 +218,18 @@ class PdaString():
                                             temp.sym = x_char
                                             temp.trans[nextnextstate_id] = []
                                             for z_char in examine.trans[
-                                                    nextnextstate_id]:
+                                                nextnextstate_id
+                                            ]:
                                                 if z_char != 0:
-                                                    temp.trans[
-                                                        nextnextstate_id].append(z_char)
+                                                    temp.trans[nextnextstate_id].append(
+                                                        z_char
+                                                    )
                                                     # DEBUGprint 'transition is
                                                     # now '+z_char
                                                 elif z_char == 0:
-                                                    temp.trans[
-                                                        nextnextstate_id].append(0)
+                                                    temp.trans[nextnextstate_id].append(
+                                                        0
+                                                    )
                                                     # DEBUGprint 'transition is
                                                     # now empty'
                                                 else:
@@ -268,28 +275,32 @@ class PdaString():
                                     if nextnextstate_id != examine.id:
                                         for x_char in state.trans[nextstate_id]:
                                             for z_char in examine.trans[
-                                                    nextnextstate_id]:
+                                                nextnextstate_id
+                                            ]:
                                                 if nextnextstate_id not in temp.trans:
-                                                    temp.trans[
-                                                        nextnextstate_id] = []
+                                                    temp.trans[nextnextstate_id] = []
                                                 if x_char != 0 and z_char != 0:
-                                                    temp.trans[
-                                                        nextnextstate_id].append(x_char + z_char)
+                                                    temp.trans[nextnextstate_id].append(
+                                                        x_char + z_char
+                                                    )
                                                     # DEBUGprint 'transition is
                                                     # now '+x_char +' + '+ z_char
                                                 elif x_char != 0 and z_char == 0:
-                                                    temp.trans[
-                                                        nextnextstate_id].append(x_char)
+                                                    temp.trans[nextnextstate_id].append(
+                                                        x_char
+                                                    )
                                                     # DEBUGprint 'transition is
                                                     # now '+x_char
                                                 elif x_char == 0 and z_char != 0:
-                                                    temp.trans[
-                                                        nextnextstate_id].append(z_char)
+                                                    temp.trans[nextnextstate_id].append(
+                                                        z_char
+                                                    )
                                                     # DEBUGprint 'transition is
                                                     # now '+z_char
                                                 elif x_char == 0 and z_char == 0:
-                                                    temp.trans[
-                                                        nextnextstate_id].append(0)
+                                                    temp.trans[nextnextstate_id].append(
+                                                        0
+                                                    )
                                                     # DEBUGprint 'transition is
                                                     # now empty'
                                                 else:
@@ -336,25 +347,29 @@ class PdaString():
                                 if examine.sym == 0:
                                     for nextnextstate_id in examine.trans:
                                         # if nextnextstate_id != examine.id :
-                                        for z_char in examine.trans[
-                                                nextnextstate_id]:
+                                        for z_char in examine.trans[nextnextstate_id]:
                                             if state.sym == z_char:
-                                                for x_char in state.trans[
-                                                        nextstate_id]:
+                                                for x_char in state.trans[nextstate_id]:
                                                     # DEBUGprint state.sym+' vs
                                                     # '+z_char
-                                                    if nextnextstate_id not in temp.trans:
-                                                        temp.trans[
-                                                            nextnextstate_id] = []
+                                                    if (
+                                                        nextnextstate_id
+                                                        not in temp.trans
+                                                    ):
+                                                        temp.trans[nextnextstate_id] = (
+                                                            []
+                                                        )
                                                     if x_char != 0:
                                                         temp.trans[
-                                                            nextnextstate_id].append(x_char)
+                                                            nextnextstate_id
+                                                        ].append(x_char)
                                                         # DEBUGprint
                                                         # 'transition is now
                                                         # '+x_char
                                                     else:
                                                         temp.trans[
-                                                            nextnextstate_id].append(0)
+                                                            nextnextstate_id
+                                                        ].append(0)
                                                         # DEBUGprint
                                                         # 'transition is now
                                                         # empty'
@@ -366,28 +381,32 @@ class PdaString():
                                         # if nextnextstate_id != examine.id :
                                         for x_char in state.trans[nextstate_id]:
                                             for z_char in examine.trans[
-                                                    nextnextstate_id]:
+                                                nextnextstate_id
+                                            ]:
                                                 if nextnextstate_id not in temp.trans:
-                                                    temp.trans[
-                                                        nextnextstate_id] = []
+                                                    temp.trans[nextnextstate_id] = []
                                                 if x_char != 0 and z_char != 0:
-                                                    temp.trans[
-                                                        nextnextstate_id].append(x_char + z_char)
+                                                    temp.trans[nextnextstate_id].append(
+                                                        x_char + z_char
+                                                    )
                                                     # DEBUGprint 'transition is
                                                     # now '+x_char +' + '+ z_char
                                                 elif x_char != 0 and z_char == 0:
-                                                    temp.trans[
-                                                        nextnextstate_id].append(x_char)
+                                                    temp.trans[nextnextstate_id].append(
+                                                        x_char
+                                                    )
                                                     # DEBUGprint 'transition is
                                                     # now '+x_char
                                                 elif x_char == 0 and z_char != 0:
-                                                    temp.trans[
-                                                        nextnextstate_id].append(z_char)
+                                                    temp.trans[nextnextstate_id].append(
+                                                        z_char
+                                                    )
                                                     # DEBUGprint 'transition is
                                                     # now '+z_char
                                                 elif x_char == 0 and z_char == 0:
-                                                    temp.trans[
-                                                        nextnextstate_id].append(0)
+                                                    temp.trans[nextnextstate_id].append(
+                                                        0
+                                                    )
                                                     # DEBUGprint 'transition is
                                                     # now empty'
                                                 else:
@@ -504,8 +523,15 @@ class PdaString():
         """Visualizes the current state"""
         for key in self.statediag:
             if key.trans is not None and len(key.trans) > 0:
-                print('****** ' + repr(key.id) + '(' + repr(key.type)
-                      + ' on sym ' + repr(key.sym) + ') ******')
+                print(
+                    "****** "
+                    + repr(key.id)
+                    + "("
+                    + repr(key.type)
+                    + " on sym "
+                    + repr(key.sym)
+                    + ") ******"
+                )
                 print(key.trans)
 
     def init(self, states, accepted):

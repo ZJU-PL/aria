@@ -29,9 +29,7 @@ else:
 memoize = t.cast(t.Callable[[T], T], functools.lru_cache(maxsize=None))
 
 
-def weakref_memoize(
-    func: t.Callable[[T_NNF], T]
-) -> "_WeakrefMemoized[T_NNF, T]":
+def weakref_memoize(func: t.Callable[[T_NNF], T]) -> "_WeakrefMemoized[T_NNF, T]":
     """Make a function cache its return values using weakrefs.
 
     This makes it possible to remember sentences' properties without keeping
@@ -63,9 +61,7 @@ def weakref_memoize(
     For a solution that can't easily be applied here, see the implementation of
     :meth:`nnf.NNF.mark_deterministic`.
     """
-    memo = (
-        weakref.WeakKeyDictionary()
-    )  # type: weakref.WeakKeyDictionary[T_NNF, T]
+    memo = weakref.WeakKeyDictionary()  # type: weakref.WeakKeyDictionary[T_NNF, T]
 
     @functools.wraps(func)
     def wrapped(self: T_NNF) -> T:
@@ -83,31 +79,27 @@ def weakref_memoize(
 
 class _WeakrefMemoized(t.Generic[T_NNF, T]):  # pragma: no cover
     """Fake class for typechecking. Should never be instantiated."""
+
     def __init__(self) -> None:
         assert t.TYPE_CHECKING, "Not a real class"
         self.memo = NotImplemented  # type: weakref.WeakKeyDictionary[T_NNF, T]
         self.__wrapped__ = NotImplemented  # type: t.Callable[[T_NNF], T]
 
     @t.overload
-    def __get__(self: U, instance: None, owner: t.Type[T_NNF]) -> "U":
-        ...
+    def __get__(self: U, instance: None, owner: t.Type[T_NNF]) -> "U": ...
 
     @t.overload  # noqa: F811
     def __get__(  # noqa: F811
         self, instance: T_NNF, owner: t.Optional[t.Type[T_NNF]] = None
-    ) -> t.Callable[[], T]:
-        ...
+    ) -> t.Callable[[], T]: ...
 
     def __get__(  # noqa: F811
         self, instance: object, owner: object = None
-    ) -> t.Any:
-        ...
+    ) -> t.Any: ...
 
-    def __call__(self, sentence: T_NNF) -> T:
-        ...
+    def __call__(self, sentence: T_NNF) -> T: ...
 
-    def set(self, sentence: T_NNF, value: T) -> None:
-        ...
+    def set(self, sentence: T_NNF, value: T) -> None: ...
 
 
 class ReusableLazyIterable(t.Generic[T]):
@@ -119,6 +111,7 @@ class ReusableLazyIterable(t.Generic[T]):
     We use this so we can have return values that are both lazy and memoized.
     Computed at most once, but not immediately.
     """
+
     def __init__(self, iterator: t.Iterator[T]) -> None:
         self.iterator = iterator
         self.memory = []  # type: t.List[T]

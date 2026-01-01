@@ -7,6 +7,7 @@ This information is used when probing, and performing unit propagation.
 
 FIXME: do we need to use SATElite for pre-processing first?
 """
+
 from aria.bool.features.enums import ClauseState, VarState
 
 
@@ -134,4 +135,11 @@ def get_active_features(sat_instance, clauses, c, v):
     sat_instance.clauses_with_positive_var = clauses_with_positive_var
     sat_instance.clauses_with_negative_var = clauses_with_negative_var
 
-    return num_active_vars, num_active_clauses, clause_states, clauses, num_bin_clauses_with_var, var_states
+    return (
+        num_active_vars,
+        num_active_clauses,
+        clause_states,
+        clauses,
+        num_bin_clauses_with_var,
+        var_states,
+    )

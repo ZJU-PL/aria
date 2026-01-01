@@ -2,6 +2,7 @@
 This module transforms a pyfst DFA to regular expressions
 using the Brzozowski Algebraic Method
 """
+
 import sys
 from collections import OrderedDict
 from operator import attrgetter
@@ -37,7 +38,7 @@ class Brzozowski:
         # B[n] holds the regular expression that describes how a final state
         # can be reached from state n
         self.B = {}  # pylint: disable=invalid-name
-        self.epsilon = ''
+        self.epsilon = ""
         self.empty = None
 
     def _bfs_sort(self, start):
@@ -69,10 +70,8 @@ class Brzozowski:
                     queue.append([pathlen + 1, next_state])
                     pathstates[next_state.stateid] = pathlen + 1
         orderedstatesdict = OrderedDict(
-            sorted(
-                pathstates.items(),
-                key=lambda x: x[1],
-                reverse=False))
+            sorted(pathstates.items(), key=lambda x: x[1], reverse=False)
+        )
         for state in self.mma.states:
             orderedstatesdict[state.stateid] = state
         orderedstates = [x[1] for x in list(orderedstatesdict.items())]
@@ -103,42 +102,52 @@ class Brzozowski:
                 self.A[state_a.stateid, state_b.stateid] = self.empty
                 for arc in state_a.arcs:
                     if arc.nextstate == state_b.stateid:
-                        self.A[state_a.stateid, state_b.stateid] = \
-                            self.mma.isyms.find(arc.ilabel)
+                        self.A[state_a.stateid, state_b.stateid] = self.mma.isyms.find(
+                            arc.ilabel
+                        )
 
     def _brzozowski_algebraic_method_solve(self):
         """Perform Brzozowski Algebraic Method"""
         orderedstates = self._bfs_sort(
-            sorted(
-                self.mma.states,
-                key=attrgetter('initial'),
-                reverse=True)[0])
+            sorted(self.mma.states, key=attrgetter("initial"), reverse=True)[0]
+        )
         for n in range(len(orderedstates) - 1, 0, -1):
             # print "n:" + repr(n)
-            if self.A[
-                    orderedstates[n].stateid,
-                    orderedstates[n].stateid] != self.empty:
+            if self.A[orderedstates[n].stateid, orderedstates[n].stateid] != self.empty:
                 # B[n] := star(A[n,n]) . B[n]
                 if self.B[orderedstates[n].stateid] != self.empty:
-                    self.B[orderedstates[n].stateid] = \
-                        self.star(self.A[orderedstates[n].stateid, orderedstates[n].stateid]) \
+                    self.B[orderedstates[n].stateid] = (
+                        self.star(
+                            self.A[orderedstates[n].stateid, orderedstates[n].stateid]
+                        )
                         + self.B[orderedstates[n].stateid]
+                    )
                 else:
                     self.B[orderedstates[n].stateid] = self.star(
-                        self.A[orderedstates[n].stateid, orderedstates[n].stateid])
+                        self.A[orderedstates[n].stateid, orderedstates[n].stateid]
+                    )
                 for j in range(0, n):
                     # A[n,j] := star(A[n,n]) . A[n,j]
-                    if self.A[
-                            orderedstates[n].stateid,
-                            orderedstates[j].stateid] != self.empty:
-                        self.A[
-                            orderedstates[n].stateid,
-                            orderedstates[j].stateid] = \
-                            self.star(self.A[orderedstates[n].stateid, orderedstates[n].stateid]) \
+                    if (
+                        self.A[orderedstates[n].stateid, orderedstates[j].stateid]
+                        != self.empty
+                    ):
+                        self.A[orderedstates[n].stateid, orderedstates[j].stateid] = (
+                            self.star(
+                                self.A[
+                                    orderedstates[n].stateid, orderedstates[n].stateid
+                                ]
+                            )
                             + self.A[orderedstates[n].stateid, orderedstates[j].stateid]
+                        )
                     else:
-                        self.A[orderedstates[n].stateid, orderedstates[j].stateid] = self.star(
-                            self.A[orderedstates[n].stateid, orderedstates[n].stateid])
+                        self.A[orderedstates[n].stateid, orderedstates[j].stateid] = (
+                            self.star(
+                                self.A[
+                                    orderedstates[n].stateid, orderedstates[n].stateid
+                                ]
+                            )
+                        )
             for i in range(0, n):
                 # B[i] += A[i,n] . B[n]
                 newnode = None
@@ -166,18 +175,18 @@ class Brzozowski:
                         newnode = a_in_n
                     elif a_n_j != self.empty:
                         newnode = a_n_j
-                    if self.A[
-                            orderedstates[i].stateid,
-                            orderedstates[j].stateid] != self.empty:
+                    if (
+                        self.A[orderedstates[i].stateid, orderedstates[j].stateid]
+                        != self.empty
+                    ):
                         if newnode is not None:
                             self.A[
-                                orderedstates[i].stateid,
-                                orderedstates[j].stateid] += newnode
+                                orderedstates[i].stateid, orderedstates[j].stateid
+                            ] += newnode
                     else:
-                        self.A[
-                            orderedstates[i].stateid,
-                            orderedstates[j].stateid] = newnode
-
+                        self.A[orderedstates[i].stateid, orderedstates[j].stateid] = (
+                            newnode
+                        )
 
     def get_regex(self):
         """Generate regular expressions from DFA automaton"""
@@ -192,21 +201,21 @@ def main():
     """
     argv = sys.argv
     if len(argv) < 2:
-        targetfile = 'target.y'
+        targetfile = "target.y"
     else:
         targetfile = argv[1]
-    print('Parsing ruleset: ' + targetfile, end='')
+    print("Parsing ruleset: " + targetfile, end="")
     flex_a = Flexparser()
     mma = flex_a.yyparse(targetfile)
-    print('OK')
-    print('Perform minimization on initial automaton:', end='')
+    print("OK")
+    print("Perform minimization on initial automaton:", end="")
     mma.minimize()
-    print('OK')
-    print('Perform Brzozowski on minimal automaton:', end='')
+    print("OK")
+    print("Perform Brzozowski on minimal automaton:", end="")
     brzozowski_a = Brzozowski(mma)
     mma_regex = brzozowski_a.get_regex()
     print(mma_regex)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

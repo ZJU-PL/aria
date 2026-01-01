@@ -65,7 +65,9 @@ def z3_to_smtlib2_abduction(formula: z3.ExprRef, target_var: str) -> str:
 def solve_abduction(formula: z3.ExprRef) -> Tuple[bool, str]:
     """Solve abduction problem using CVC5."""
     # Create temporary file
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.smt2', delete=False) as tmp_file:
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".smt2", delete=False
+    ) as tmp_file:
         smt2_content = z3_to_smtlib2_abduction(formula, "A")
         tmp_file.write(smt2_content)
         tmp_path = tmp_file.name
@@ -74,6 +76,7 @@ def solve_abduction(formula: z3.ExprRef) -> Tuple[bool, str]:
         # Get CVC5 path
         try:
             from aria.global_params.paths import global_config
+
             cvc5_path = global_config.get_solver_path("cvc5")
         except (ImportError, AttributeError):
             cvc5_path = "cvc5"  # try system cvc5
@@ -84,7 +87,7 @@ def solve_abduction(formula: z3.ExprRef) -> Tuple[bool, str]:
                 return False, "CVC5 not found in PATH"
 
         # Run CVC5
-        cmd = [cvc5_path, '--produce-abducts', '--sygus-inference', tmp_path]
+        cmd = [cvc5_path, "--produce-abducts", "--sygus-inference", tmp_path]
         cmd_result = subprocess.run(cmd, capture_output=True, text=True, check=False)
 
         # Handle result
@@ -92,7 +95,7 @@ def solve_abduction(formula: z3.ExprRef) -> Tuple[bool, str]:
             return False, f"CVC5 error (code {cmd_result.returncode})"
 
         output = cmd_result.stdout.strip()
-        if not output or 'unsat' in output.lower():
+        if not output or "unsat" in output.lower():
             return False, "No solution found"
         return True, output
 
@@ -108,8 +111,8 @@ def solve_abduction(formula: z3.ExprRef) -> Tuple[bool, str]:
 
 # Example usage
 if __name__ == "__main__":
-    x = z3.Int('x')
-    y = z3.Int('y')
+    x = z3.Int("x")
+    y = z3.Int("y")
     goal = z3.And(x > 0, y > x)
 
     print("Finding formula A such that A implies (x > 0 and y > x)")

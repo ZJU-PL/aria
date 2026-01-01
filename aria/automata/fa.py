@@ -4,6 +4,7 @@ Manipulation of Finite Automata (FA)
 - DFA
 - NFA
 """
+
 from typing import Set, Dict, Tuple
 from collections import defaultdict
 
@@ -11,18 +12,23 @@ from collections import defaultdict
 class DFA:
     """Deterministic Finite Automaton"""
 
-    def __init__(self, states: Set[str], alphabet: Set[str],
-                 transitions: Dict[Tuple[str, str], str],
-                 initial_state: str, accepting_states: Set[str]):
+    def __init__(
+        self,
+        states: Set[str],
+        alphabet: Set[str],
+        transitions: Dict[Tuple[str, str], str],
+        initial_state: str,
+        accepting_states: Set[str],
+    ):
         """Initialize DFA with validation
-        
+
         Args:
             states: Set of states
             alphabet: Input alphabet
             transitions: Transition function as (state, symbol) -> state
             initial_state: Initial state
             accepting_states: Set of accepting states
-            
+
         Raises:
             ValueError: If any validation fails
         """
@@ -65,7 +71,7 @@ class DFA:
             current = self.transitions[(current, symbol)]
         return current in self.accepting_states
 
-    def minimize(self) -> 'DFA':
+    def minimize(self) -> "DFA":
         """Minimize DFA using Hopcroft's algorithm"""
         # Initial partition: accepting and non-accepting states
         partition = [self.accepting_states, self.states - self.accepting_states]
@@ -77,8 +83,11 @@ class DFA:
                 splits = defaultdict(set)
                 for state in group:
                     signature = tuple(
-                        next(i for i, g in enumerate(partition)
-                             if self.transitions.get((state, a)) in g)
+                        next(
+                            i
+                            for i, g in enumerate(partition)
+                            if self.transitions.get((state, a)) in g
+                        )
                         for a in sorted(self.alphabet)
                     )
                     splits[signature].add(state)
@@ -102,24 +111,31 @@ class DFA:
         new_accepting = {state_map[s] for s in self.accepting_states}
         new_initial = state_map[self.initial_state]
 
-        return DFA(new_states, self.alphabet, new_transitions, new_initial, new_accepting)
+        return DFA(
+            new_states, self.alphabet, new_transitions, new_initial, new_accepting
+        )
 
 
 class NFA:
     """Nondeterministic Finite Automaton"""
 
-    def __init__(self, states: Set[str], alphabet: Set[str],
-                 transitions: Dict[Tuple[str, str], Set[str]],
-                 initial_states: Set[str], accepting_states: Set[str]):
+    def __init__(
+        self,
+        states: Set[str],
+        alphabet: Set[str],
+        transitions: Dict[Tuple[str, str], Set[str]],
+        initial_states: Set[str],
+        accepting_states: Set[str],
+    ):
         """Initialize NFA with validation
-        
+
         Args:
             states: Set of states
             alphabet: Input alphabet
             transitions: Transition function as (state, symbol) -> set of states
             initial_states: Set of initial states
             accepting_states: Set of accepting states
-            
+
         Raises:
             ValueError: If any validation fails
         """
@@ -200,7 +216,9 @@ class NFA:
                         next_states.update(eps_states)
                         for eps_state in eps_states:
                             if (eps_state, symbol) in self.transitions:
-                                next_states.update(self.transitions[(eps_state, symbol)])
+                                next_states.update(
+                                    self.transitions[(eps_state, symbol)]
+                                )
 
                 next_states_frozen = frozenset(next_states)
                 if next_states and next_states_frozen not in dfa_states:
@@ -213,19 +231,15 @@ class NFA:
         state_map = {states: f"q{i}" for i, states in enumerate(dfa_states)}
 
         new_transitions = {
-            (state_map[s], a): state_map[ns]
-            for (s, a), ns in dfa_transitions.items()
+            (state_map[s], a): state_map[ns] for (s, a), ns in dfa_transitions.items()
         }
 
-        new_accepting = {
-            state_map[s] for s in dfa_states
-            if s & self.accepting_states
-        }
+        new_accepting = {state_map[s] for s in dfa_states if s & self.accepting_states}
 
         return DFA(
             set(state_map.values()),
             self.alphabet,
             new_transitions,
             state_map[frozenset(self.initial_states)],
-            new_accepting
+            new_accepting,
         )

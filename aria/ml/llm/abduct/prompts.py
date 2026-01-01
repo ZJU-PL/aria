@@ -6,7 +6,10 @@
 """
 
 from typing import List, Dict, Any
-from aria.ml.llm.abduct.data_structures import AbductionProblem, AbductionIterationResult
+from aria.ml.llm.abduct.data_structures import (
+    AbductionProblem,
+    AbductionIterationResult,
+)
 
 
 def create_basic_prompt(problem: AbductionProblem) -> str:
@@ -35,7 +38,7 @@ NO explanations, NO declare-const statements."""
 def create_feedback_prompt(
     problem: AbductionProblem,
     previous_iterations: List[AbductionIterationResult],
-    last_counterexample: Dict[str, Any]
+    last_counterexample: Dict[str, Any],
 ) -> str:
     """Build a feedback-augmented prompt for iterative abduction."""
     last_iteration = previous_iterations[-1]

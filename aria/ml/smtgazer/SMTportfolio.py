@@ -19,6 +19,7 @@ The system works in two phases:
 Author: SMTgazer Team
 Publication: ASE 2025
 """
+
 # pylint: disable=invalid-name,redefined-outer-name
 
 import json
@@ -29,12 +30,13 @@ from multiprocessing import Pool
 from os import popen
 
 import numpy as np
+
 # pylint: disable=import-error
-from pyclustering.cluster.center_initializer import (
-    kmeans_plusplus_initializer
-)
+from pyclustering.cluster.center_initializer import kmeans_plusplus_initializer
 from pyclustering.cluster.xmeans import xmeans
+
 # pylint: enable=import-error
+
 
 def normalize(tf, seed_val):
     """
@@ -54,7 +56,7 @@ def normalize(tf, seed_val):
         - _norm{seed_val}.json: Normalized feature vectors
         - _lim{seed_val}.json: Min/max limits used for normalization
     """
-    with open(tf, 'r', encoding='UTF-8') as f:
+    with open(tf, "r", encoding="UTF-8") as f:
         fea_dict_input = json.load(f)  # Load feature dictionary
 
     # Extract problem names and feature vectors
@@ -91,12 +93,13 @@ def normalize(tf, seed_val):
 
     # Save normalized features and normalization limits
     norm_file = f"tmp/{clean_tf.replace('.json', f'_norm{seed_val}.json')}"
-    with open(norm_file, 'w', encoding='UTF-8') as f:
+    with open(norm_file, "w", encoding="UTF-8") as f:
         json.dump(dict_output, f)
 
     lim_file = f"tmp/{clean_tf.replace('.json', f'_lim{seed_val}.json')}"
-    with open(lim_file, 'w', encoding='UTF-8') as f:
+    with open(lim_file, "w", encoding="UTF-8") as f:
         json.dump(lim, f)
+
 
 def cluster(tfnorm, seed_val=0, cluster_num=20):
     """
@@ -125,7 +128,7 @@ def cluster(tfnorm, seed_val=0, cluster_num=20):
     amount_initial_centers = min(3, cluster_num)
 
     # Load normalized feature vectors
-    with open(tfnorm, 'r', encoding='UTF-8') as f:
+    with open(tfnorm, "r", encoding="UTF-8") as f:
         fea_dict = json.load(f)
 
     # Prepare feature matrix and problem names
@@ -153,14 +156,14 @@ def cluster(tfnorm, seed_val=0, cluster_num=20):
         x_train,
         initial_centers=initial_centers,
         kmax=cluster_num,  # Maximum clusters to consider
-        ccore=False,       # Use Python implementation
-        random_state=seed_val  # For reproducibility
+        ccore=False,  # Use Python implementation
+        random_state=seed_val,  # For reproducibility
     )
     xmeans_instance.process()
 
     # Extract clustering results
     clusters = xmeans_instance.get_clusters()  # List of cluster assignments
-    centers = xmeans_instance.get_centers()   # Cluster centers
+    centers = xmeans_instance.get_centers()  # Cluster centers
 
     cluster_center = {"center": list(centers)}
 
@@ -170,17 +173,19 @@ def cluster(tfnorm, seed_val=0, cluster_num=20):
             train_dict[key_set[problem_idx]] = cluster_id
 
     # Save cluster assignments and centers
-    train_file = tfnorm.replace(f"_norm{seed_val}.json",
-                                 f"_train_{seed_val}.json")
-    with open(train_file, 'w', encoding='utf-8') as f:
+    train_file = tfnorm.replace(f"_norm{seed_val}.json", f"_train_{seed_val}.json")
+    with open(train_file, "w", encoding="utf-8") as f:
         json.dump(train_dict, f)
-    center_file = tfnorm.replace(f"_norm{seed_val}.json",
-                                  f"_cluster_center_{seed_val}.json")
-    with open(center_file, 'w', encoding='utf-8') as f:
+    center_file = tfnorm.replace(
+        f"_norm{seed_val}.json", f"_cluster_center_{seed_val}.json"
+    )
+    with open(center_file, "w", encoding="utf-8") as f:
         json.dump(cluster_center, f)
 
-def get_test_portfolio(tfnorm, cluster_portfolio, solver_list, dataset_name,
-                       seed_val, outputfile=""):  # pylint: disable=too-many-positional-arguments
+
+def get_test_portfolio(
+    tfnorm, cluster_portfolio, solver_list, dataset_name, seed_val, outputfile=""
+):  # pylint: disable=too-many-positional-arguments
     """
     Generate test portfolios by classifying new problems into learned clusters.
 
@@ -206,14 +211,14 @@ def get_test_portfolio(tfnorm, cluster_portfolio, solver_list, dataset_name,
         JSON file containing solver portfolios for each test problem
     """
     # Load test problem features
-    with open(tfnorm, 'r', encoding='UTF-8') as f:
+    with open(tfnorm, "r", encoding="UTF-8") as f:
         fea_dict = json.load(f)
 
     # Load trained portfolio configuration
-    with open(cluster_portfolio, 'r', encoding='UTF-8') as f:
+    with open(cluster_portfolio, "r", encoding="UTF-8") as f:
         output_dict = json.load(f)
-    portfolio_dict = output_dict['portfolio']
-    center_dict = output_dict['center']
+    portfolio_dict = output_dict["portfolio"]
+    center_dict = output_dict["center"]
 
     # Prepare portfolio mapping: cluster_id -> [solver_indices, timeout]
     portfolio_map = {}
@@ -221,7 +226,7 @@ def get_test_portfolio(tfnorm, cluster_portfolio, solver_list, dataset_name,
     for cluster_id in portfolio_dict.keys():
         cluster_config = portfolio_dict[cluster_id]
         time_map[cluster_id] = cluster_config[1]  # Timeout configuration
-        solver_indices = cluster_config[0]     # Solver indices for this cluster
+        solver_indices = cluster_config[0]  # Solver indices for this cluster
 
         # Convert solver indices to actual solver names
         solver_names = []
@@ -237,7 +242,7 @@ def get_test_portfolio(tfnorm, cluster_portfolio, solver_list, dataset_name,
         feature_mat.append(fea_dict[problem_name])
 
     # Get cluster centers
-    centers = center_dict['center']
+    centers = center_dict["center"]
     x_test = np.array(feature_mat)
 
     # Assign each test problem to closest cluster
@@ -247,7 +252,7 @@ def get_test_portfolio(tfnorm, cluster_portfolio, solver_list, dataset_name,
         distances = []
         for center in centers:
             # Euclidean distance calculation
-            dist = np.sqrt(np.sum((x_test[problem_idx] - np.array(center))**2))
+            dist = np.sqrt(np.sum((x_test[problem_idx] - np.array(center)) ** 2))
             distances.append(dist)
 
         # Find closest cluster
@@ -257,22 +262,24 @@ def get_test_portfolio(tfnorm, cluster_portfolio, solver_list, dataset_name,
         cluster_id = str(closest_cluster_idx)
         test_dict[key_set[problem_idx]] = [
             portfolio_map[cluster_id],  # Solver names for this cluster
-            time_map[cluster_id]        # Timeout configuration
+            time_map[cluster_id],  # Timeout configuration
         ]
 
     # Ensure output directory exists
-    dirpath = 'output'
+    dirpath = "output"
     if not os.path.isdir(dirpath):
         os.mkdir(dirpath)
 
     # Generate output filename if not provided
     if outputfile == "":
-        outputfile = (f"output/test_result_{dataset_name}_{seed_val}_"
-                      f"{len(centers)}.json")
+        outputfile = (
+            f"output/test_result_{dataset_name}_{seed_val}_" f"{len(centers)}.json"
+        )
 
     # Save test portfolio assignments
-    with open(outputfile, 'w', encoding='utf-8') as f:
+    with open(outputfile, "w", encoding="utf-8") as f:
         json.dump(test_dict, f)
+
 
 def run_seed3(sf, seed_val, start_idx):
     """
@@ -303,12 +310,23 @@ def run_seed3(sf, seed_val, start_idx):
     print(f"Running SMAC3: {command}")
     with popen(command) as process:
         output = process.read()
-    output_lines = output.split('\n')
+    output_lines = output.split("\n")
     return [output_lines, sf[1]]
 
-def get_portfolio_3(solver_list, td, tc, tlim, tcenter, dataset_name,
-                    outputfile="", portfolio_size=4, cluster_num=20,
-                    seed_val=0, timelimit=1200):  # pylint: disable=too-many-positional-arguments
+
+def get_portfolio_3(
+    solver_list,
+    td,
+    tc,
+    tlim,
+    tcenter,
+    dataset_name,
+    outputfile="",
+    portfolio_size=4,
+    cluster_num=20,
+    seed_val=0,
+    timelimit=1200,
+):  # pylint: disable=too-many-positional-arguments
     """
     Optimize solver portfolios for each cluster using SMAC3 algorithm.
 
@@ -337,14 +355,14 @@ def get_portfolio_3(solver_list, td, tc, tlim, tcenter, dataset_name,
     4. Optimize timeout configurations using SMAC3
     """
     # Load all necessary data files
-    with open(td, 'r', encoding='UTF-8') as td_file:
+    with open(td, "r", encoding="UTF-8") as td_file:
         par2_dict = json.load(td_file)  # PAR2 scores for all problems
-    with open(tc, 'r', encoding='UTF-8') as tc_file:
+    with open(tc, "r", encoding="UTF-8") as tc_file:
         train_cluster_dict = json.load(tc_file)  # Cluster assignments
 
-    with open(tlim, 'r', encoding='UTF-8') as tlim_file:
+    with open(tlim, "r", encoding="UTF-8") as tlim_file:
         lim_dict = json.load(tlim_file)  # Normalization limits
-    with open(tcenter, 'r', encoding='UTF-8') as tcenter_file:
+    with open(tcenter, "r", encoding="UTF-8") as tcenter_file:
         center_dict = json.load(tcenter_file)  # Cluster centers
 
     # Validate portfolio size against available solvers
@@ -353,12 +371,14 @@ def get_portfolio_3(solver_list, td, tc, tlim, tcenter, dataset_name,
         portfolio_size = len(solver_list)
 
     # Ensure output directory exists and generate output filename
-    output_dir = 'output'
+    output_dir = "output"
     if not os.path.isdir(output_dir):
         os.mkdir(output_dir)
     if outputfile == "":
-        outputfile = (f"output/train_result_{dataset_name}_{portfolio_size}_"
-                      f"{cluster_num}_{seed_val}.json")
+        outputfile = (
+            f"output/train_result_{dataset_name}_{portfolio_size}_"
+            f"{cluster_num}_{seed_val}.json"
+        )
 
     # Initialize portfolio storage for each cluster
     final_portfolio = {}
@@ -377,12 +397,12 @@ def get_portfolio_3(solver_list, td, tc, tlim, tcenter, dataset_name,
         final_config = []
 
         # Get training data for this cluster
-        train_set = par2_dict['train']
+        train_set = par2_dict["train"]
 
         # Build portfolio by selecting best solver for each position
         for portfolio_position in range(portfolio_size):
-            min_time = float('inf')  # Track best (minimum) PAR2 time
-            min_idx = -1             # Track best solver index
+            min_time = float("inf")  # Track best (minimum) PAR2 time
+            min_idx = -1  # Track best solver index
             sf = []  # SMAC3 configurations to evaluate
             for j in range(len(solver_list)):
                 tmpdict = {}
@@ -390,13 +410,13 @@ def get_portfolio_3(solver_list, td, tc, tlim, tcenter, dataset_name,
                     continue
                 tmp = list(output_idx)
                 tmp.append(j)
-                tmpdict['t1'] = 1200
-                tmpdict['t2'] = 0
-                tmpdict['t3'] = 0
+                tmpdict["t1"] = 1200
+                tmpdict["t2"] = 0
+                tmpdict["t3"] = 0
                 for solver_pos, solver_idx in enumerate(tmp):
                     tmpdict[f"s{solver_pos+1}"] = str(solver_idx)
                 tmpdict["cluster"] = cluster_id
-                if dataset_name == 'Equality+LinearArith':
+                if dataset_name == "Equality+LinearArith":
                     tmpdict["dataset"] = "ELA"
                 else:
                     tmpdict["dataset"] = str(dataset_name)
@@ -405,8 +425,9 @@ def get_portfolio_3(solver_list, td, tc, tlim, tcenter, dataset_name,
             valid_scores = [0 for _ in range(len(sf))]
             for si in range(0, 5):
                 with Pool(processes=10) as p:
-                    partial_run_seed = partial(run_seed3, seed_val=seed_val,
-                                               start_idx=si)
+                    partial_run_seed = partial(
+                        run_seed3, seed_val=seed_val, start_idx=si
+                    )
                     ret = p.map(partial_run_seed, sf)
 
                 ret_seed = []
@@ -432,21 +453,31 @@ def get_portfolio_3(solver_list, td, tc, tlim, tcenter, dataset_name,
                 else:
                     dataplace = dataset_name
                 for j in full_key_set:
-                    if (j in train_cluster_dict.keys() and
-                            train_cluster_dict[j] == cluster_id):
+                    if (
+                        j in train_cluster_dict.keys()
+                        and train_cluster_dict[j] == cluster_id
+                    ):
                         key_set.append(j)
-                    key_alt1 = (f"./infer_result/{dataset_name}/"
-                                f"_data_sibly_sibyl_data_{dataset_name}_"
-                                f"{dataset_name}_" +
-                                j.replace("/", "_") + ".json")
-                    if (key_alt1 in train_cluster_dict.keys() and
-                            train_cluster_dict[key_alt1] == cluster_id):
+                    key_alt1 = (
+                        f"./infer_result/{dataset_name}/"
+                        f"_data_sibly_sibyl_data_{dataset_name}_"
+                        f"{dataset_name}_" + j.replace("/", "_") + ".json"
+                    )
+                    if (
+                        key_alt1 in train_cluster_dict.keys()
+                        and train_cluster_dict[key_alt1] == cluster_id
+                    ):
                         key_set.append(j)
-                    key_alt2 = (f"./infer_result/{dataplace}/"
-                                f"_data_sibly_sibyl_data_Comp_non-incremental_"
-                                + j.replace("/", "_") + ".json")
-                    if (key_alt2 in train_cluster_dict.keys() and
-                            train_cluster_dict[key_alt2] == cluster_id):
+                    key_alt2 = (
+                        f"./infer_result/{dataplace}/"
+                        f"_data_sibly_sibyl_data_Comp_non-incremental_"
+                        + j.replace("/", "_")
+                        + ".json"
+                    )
+                    if (
+                        key_alt2 in train_cluster_dict.keys()
+                        and train_cluster_dict[key_alt2] == cluster_id
+                    ):
                         key_set.append(j)
 
                 print("configs len:", len(configs))
@@ -463,8 +494,7 @@ def get_portfolio_3(solver_list, td, tc, tlim, tcenter, dataset_name,
 
                     ri = int(len(key_set) * (0.2 * (si + 1)))
                     ri = min(ri, int(len(key_set)))
-                    for problem_idx in range(int(len(key_set) * (0.2 * si)),
-                                             ri):
+                    for problem_idx in range(int(len(key_set) * (0.2 * si)), ri):
                         tmp_time = 0
                         flag = 0
                         par2list = train_set[key_set[problem_idx]]
@@ -488,20 +518,19 @@ def get_portfolio_3(solver_list, td, tc, tlim, tcenter, dataset_name,
             cov[ret_seed[chosen_idx]] = 1
 
         tmpdict = {}
-        tmpdict['t1'] = 1200
-        tmpdict['t2'] = 0
-        tmpdict['t3'] = 0
+        tmpdict["t1"] = 1200
+        tmpdict["t2"] = 0
+        tmpdict["t3"] = 0
         for solver_pos, solver_idx in enumerate(output_idx):
             tmpdict[f"s{solver_pos+1}"] = str(solver_idx)
         tmpdict["cluster"] = cluster_id
-        if dataset_name == 'Equality+LinearArith':
+        if dataset_name == "Equality+LinearArith":
             tmpdict["dataset"] = "ELA"
         else:
             tmpdict["dataset"] = str(dataset_name)
         sf = [[tmpdict, -1]]
         with Pool(processes=1) as p:
-            partial_run_seed = partial(run_seed3, seed_val=seed_val,
-                                       start_idx=-1)
+            partial_run_seed = partial(run_seed3, seed_val=seed_val, start_idx=-1)
             ret = p.map(partial_run_seed, sf)
         for result_idx, result in enumerate(ret):
             k = result[0][-2].split(",")
@@ -513,12 +542,12 @@ def get_portfolio_3(solver_list, td, tc, tlim, tcenter, dataset_name,
             configs.append(tmp_config)
         final_config = configs[0]
         final_portfolio[cluster_id] = [output_idx, final_config]
-    output_dict = {"portfolio": final_portfolio, "lim": lim_dict,
-                   "center": center_dict}
-    with open(outputfile, 'w', encoding='utf-8') as f:
+    output_dict = {"portfolio": final_portfolio, "lim": lim_dict, "center": center_dict}
+    with open(outputfile, "w", encoding="utf-8") as f:
         json.dump(output_dict, f)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     # Main execution entry point for SMTgazer training and inference.
     #
     # Usage:
@@ -533,43 +562,43 @@ if __name__ == '__main__':
     #     -solverdict: Path to solver configuration file
     #     -dataset: Dataset name (e.g., "Equality+LinearArith")
     #     -clusterPortfolio: Path to trained portfolio file (for inference)
-    work_type = 'infer'  # Default to inference mode
+    work_type = "infer"  # Default to inference mode
 
     # Parse command line arguments
-    if len(sys.argv) > 1 and sys.argv[1] in ('train', 'infer'):
+    if len(sys.argv) > 1 and sys.argv[1] in ("train", "infer"):
         work_type = sys.argv[1]
 
     # Initialize default values
-    tf = ""           # Training features file
-    td = ""           # Training data file
-    seed = 0          # Random seed
+    tf = ""  # Training features file
+    td = ""  # Training data file
+    seed = 0  # Random seed
     cluster_num = 20  # Maximum clusters
-    solverdict = ""   # Solver configuration file
-    dataset = ""      # Dataset name
+    solverdict = ""  # Solver configuration file
+    dataset = ""  # Dataset name
     cluster_portfolio = ""  # Trained portfolio file
     for i in range(len(sys.argv) - 1):
-        if sys.argv[i] == '-train_features':
-            tf = sys.argv[i+1]
-        if sys.argv[i] == '-train_data':
-            td = sys.argv[i+1]
+        if sys.argv[i] == "-train_features":
+            tf = sys.argv[i + 1]
+        if sys.argv[i] == "-train_data":
+            td = sys.argv[i + 1]
 
-        if sys.argv[i] == '-seed':
-            seed = int(sys.argv[i+1])
-        if sys.argv[i] == '-cluster_num':
-            cluster_num = int(sys.argv[i+1])
+        if sys.argv[i] == "-seed":
+            seed = int(sys.argv[i + 1])
+        if sys.argv[i] == "-cluster_num":
+            cluster_num = int(sys.argv[i + 1])
 
-        if sys.argv[i] == '-solverdict':
-            solverdict = sys.argv[i+1]
+        if sys.argv[i] == "-solverdict":
+            solverdict = sys.argv[i + 1]
 
-        if sys.argv[i] == '-dataset':
-            dataset = sys.argv[i+1]
+        if sys.argv[i] == "-dataset":
+            dataset = sys.argv[i + 1]
 
-        if sys.argv[i] == '-clusterPortfolio':
-            cluster_portfolio = sys.argv[i+1]
+        if sys.argv[i] == "-clusterPortfolio":
+            cluster_portfolio = sys.argv[i + 1]
 
     tf = "./machfea/infer_result/" + str(dataset) + "_train_feature.json"
     td = "./data/" + str(dataset) + "Labels.json"
-    dirpath = 'tmp'
+    dirpath = "tmp"
     if not os.path.exists(dirpath):
         os.mkdir(dirpath)
 
@@ -587,22 +616,29 @@ if __name__ == '__main__':
         tmp = tf.replace("../", "").replace("./", "").replace("/", "_")
         tfnorm = f"tmp/{tmp.replace('.json', f'_norm{seed}.json')}"
         tflim = tfnorm.replace("_norm", "_lim")
-        tcenter = tfnorm.replace(f"_norm{seed}.json",
-                                  f"_cluster_center_{seed}.json")
+        tcenter = tfnorm.replace(f"_norm{seed}.json", f"_cluster_center_{seed}.json")
 
         cluster(tfnorm, seed, cluster_num)
         tc = tfnorm.replace(f"_norm{seed}.json", f"_train_{seed}.json")
 
         # Step 3: Optimize solver portfolios
         print("Step 3: Optimizing solver portfolios...")
-        with open(solverdict, 'r', encoding='UTF-8') as f:
+        with open(solverdict, "r", encoding="UTF-8") as f:
             solver_dict = json.load(f)
         solver_list = solver_dict["solver_list"]
 
         get_portfolio_3(
-            solver_list, td, tc, tflim, tcenter, dataset,
-            outputfile="", portfolio_size=4, cluster_num=cluster_num,
-            seed_val=seed, timelimit=1200
+            solver_list,
+            td,
+            tc,
+            tflim,
+            tcenter,
+            dataset,
+            outputfile="",
+            portfolio_size=4,
+            cluster_num=cluster_num,
+            seed_val=seed,
+            timelimit=1200,
         )
         print("Training completed!")
 
@@ -610,17 +646,17 @@ if __name__ == '__main__':
         print(f"Starting SMTgazer inference for dataset: {dataset}")
 
         # Load trained portfolio configuration
-        with open(cluster_portfolio, 'r', encoding='UTF-8') as portfolio_file:
+        with open(cluster_portfolio, "r", encoding="UTF-8") as portfolio_file:
             output_dict_main = json.load(portfolio_file)
 
         # Extract normalization parameters used during training
-        lim = output_dict_main['lim']
-        min_vals = lim['min']
-        sub_vals = lim['sub']
+        lim = output_dict_main["lim"]
+        min_vals = lim["min"]
+        sub_vals = lim["sub"]
 
         # Load test features and apply same normalization as training
         testf = f"./machfea/infer_result/{dataset}_test_feature.json"
-        with open(testf, 'r', encoding='UTF-8') as test_file:
+        with open(testf, "r", encoding="UTF-8") as test_file:
             fea_dict_input = json.load(test_file)
 
         # Prepare feature matrix for normalization
@@ -648,15 +684,14 @@ if __name__ == '__main__':
         testnorm = f"tmp/{clean_testf.replace('.json', f'_norm{seed}.json')}"
 
         # Save normalized test features
-        with open(testnorm, 'w', encoding='UTF-8') as testnorm_file:
+        with open(testnorm, "w", encoding="UTF-8") as testnorm_file:
             json.dump(dict_output, testnorm_file)
 
         # Load solver configuration and run inference
-        with open(solverdict, 'r', encoding='UTF-8') as solver_file:
+        with open(solverdict, "r", encoding="UTF-8") as solver_file:
             solver_dict_main = json.load(solver_file)
         solver_list = solver_dict_main["solver_list"]
 
         print("Running portfolio inference...")
-        get_test_portfolio(testnorm, cluster_portfolio, solver_list, dataset,
-                           seed)
+        get_test_portfolio(testnorm, cluster_portfolio, solver_list, dataset, seed)
         print("Inference completed!")

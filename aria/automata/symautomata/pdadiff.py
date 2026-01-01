@@ -2,6 +2,7 @@
 This module performs Diff operation
 between a PDA and a DFA
 """
+
 import time
 from sys import argv
 
@@ -12,12 +13,18 @@ from aria.automata.symautomata.cfggenerator import CFGGenerator, CNFGenerator
 from aria.automata.symautomata.cfgpda import CfgPDA
 from aria.automata.symautomata.flex2fst import Flexparser
 from aria.automata.symautomata.pda import PDA, PDAState
-from aria.automata.symautomata.pdacnf import PdaCnf, IntersectionHandling, SimplifyStateIDs, ReadReplace, ReducePDA
+from aria.automata.symautomata.pdacnf import (
+    PdaCnf,
+    IntersectionHandling,
+    SimplifyStateIDs,
+    ReadReplace,
+    ReducePDA,
+)
 from aria.automata.symautomata.pdastring import PdaString
 from aria.automata.symautomata.dfa import TropicalWeight
 
 
-class PdaDiff():
+class PdaDiff:
     """Performs Diff operation between a PDA and a DFA"""
 
     def __init__(self, input_pda_a, input_dfa_b, alphabet):
@@ -57,32 +64,31 @@ class PdaDiff():
                     for transition in self.mma.s[state].trans.keys():
                         for record in self.mma.s[state].trans[transition]:
                             if len(record) > 1:
-                                    value = record
-                                    i = self.mma.s[state].trans[transition].index(record)
-                                    del self.mma.s[state].trans[transition][i]
-                                    if len(self.mma.s[state].trans[transition]) == 0:
-                                        del self.mma.s[state].trans[transition]
+                                value = record
+                                i = self.mma.s[state].trans[transition].index(record)
+                                del self.mma.s[state].trans[transition][i]
+                                if len(self.mma.s[state].trans[transition]) == 0:
+                                    del self.mma.s[state].trans[transition]
+                                tempstate = PDAState()
+                                tempstate.id = counter
+                                tempstate.sym = 0
+                                tempstate.type = 3
+                                tempstate.trans = {}
+                                tempstate.trans[transition] = [value[-1]]
+                                self.mma.s[counter] = tempstate
+                                counter = counter + 1
+                                for character in reversed(value[1:-1]):
                                     tempstate = PDAState()
                                     tempstate.id = counter
                                     tempstate.sym = 0
                                     tempstate.type = 3
                                     tempstate.trans = {}
-                                    tempstate.trans[transition] = [value[-1]]
+                                    tempstate.trans[counter - 1] = [character]
                                     self.mma.s[counter] = tempstate
                                     counter = counter + 1
-                                    for character in reversed(value[1:-1]):
-                                        tempstate = PDAState()
-                                        tempstate.id = counter
-                                        tempstate.sym = 0
-                                        tempstate.type = 3
-                                        tempstate.trans = {}
-                                        tempstate.trans[counter-1] = [character]
-                                        self.mma.s[counter] = tempstate
-                                        counter = counter + 1
 
-                                    self.mma.s[state].trans[counter-1] = [value[0]]
-        self.mma.n = counter-1
-
+                                self.mma.s[state].trans[counter - 1] = [value[0]]
+        self.mma.n = counter - 1
 
     def _intesect(self):
         """The intesection of a PDA and a DFA"""
@@ -93,10 +99,10 @@ class PdaDiff():
         p1counter = 0
         p3counter = 0
         p2states = list(p2automaton.states)
-        print('PDA States: ' + repr(p1automaton.n))
-        print('DFA States: ' + repr(len(list(p2states))))
-        ignorechars = p1automaton.nonterminals+ [0] + ['@closing']
-        del(ignorechars[ignorechars.index('S')])
+        print("PDA States: " + repr(p1automaton.n))
+        print("DFA States: " + repr(len(list(p2states))))
+        ignorechars = p1automaton.nonterminals + [0] + ["@closing"]
+        del ignorechars[ignorechars.index("S")]
         while p1counter < p1automaton.n + 1:
             p1state = p1automaton.s[p1counter]
             p2counter = 0
@@ -120,37 +126,34 @@ class PdaDiff():
                             if char in p1state.trans[potential]:
                                 found = 1
                                 p1dest = potential
-                                if (p1dest,
-                                        p2dest.stateid) not in tempstate.trans:
-                                    tempstate.trans[
-                                        (p1dest, p2dest.stateid)] = []
+                                if (p1dest, p2dest.stateid) not in tempstate.trans:
+                                    tempstate.trans[(p1dest, p2dest.stateid)] = []
                                     # print 'Appending A Transition to
                                     # ('+`p1dest`+','+`p2dest.stateid`+') for
                                     # input '+`char`
-                                tempstate.trans[
-                                    (p1dest, p2dest.stateid)].append(char)
+                                tempstate.trans[(p1dest, p2dest.stateid)].append(char)
 
                                 # THEN THE NONTERMINALS + 0 3 transitions
                                 # print p1state.trans
                                 #               print p1automaton.nonterminals
-                if found == 0 and  p1state.type == 3 and len(p1state.trans) >0:
-                    assert 1==1,'Check Failed: A READ state with transitions' \
-                                ' did not participate in the cross product'
+                if found == 0 and p1state.type == 3 and len(p1state.trans) > 0:
+                    assert 1 == 1, (
+                        "Check Failed: A READ state with transitions"
+                        " did not participate in the cross product"
+                    )
                 if p2dest is not None:
-                    for nonterm in p1automaton.nonterminals + \
-                            [0] + ['@closing']:
+                    for nonterm in p1automaton.nonterminals + [0] + ["@closing"]:
                         for potential in p1state.trans:
                             if nonterm in p1state.trans[potential]:
                                 p1dest = potential
-                                if (p1dest,
-                                        p2state.stateid) not in tempstate.trans:
-                                    tempstate.trans[
-                                        (p1dest, p2state.stateid)] = []
+                                if (p1dest, p2state.stateid) not in tempstate.trans:
+                                    tempstate.trans[(p1dest, p2state.stateid)] = []
                                 # print 'Appending B Transition to
                                 # ('+`p1dest`+','+`p2state.stateid`+') for
                                 # input '+`nonterm`
-                                tempstate.trans[
-                                    (p1dest, p2state.stateid)].append(nonterm)
+                                tempstate.trans[(p1dest, p2state.stateid)].append(
+                                    nonterm
+                                )
                 p3automaton.s[p3counter] = tempstate
                 p3counter = p3counter + 1
                 p2counter = p2counter + 1
@@ -160,7 +163,7 @@ class PdaDiff():
 
         p3automaton.accepted = []
         for state in p2automaton.states:
-            if state.final != TropicalWeight(float('inf')):
+            if state.final != TropicalWeight(float("inf")):
                 p3automaton.accepted.append(state.stateid)
         return p3automaton
 
@@ -168,9 +171,9 @@ class PdaDiff():
         """The Difference between a PDA and a DFA"""
         self.mmb.complement(self.alphabet)
         self.mmb.minimize()
-        print('start intersection')
+        print("start intersection")
         self.mmc = self._intesect()
-        print('end intersection')
+        print("end intersection")
         return self.mmc
 
     def get_string(self):
@@ -188,68 +191,75 @@ class PdaDiff():
         return_string = None
         if not self.mmc:
             return ""
-        method = 'PDASTRING'
-        if method == 'PDASTRING':
+        method = "PDASTRING"
+        if method == "PDASTRING":
             stringgen = PdaString()
-            print('* Reduce PDA using DFA BFS (remove unreachable states):')
+            print("* Reduce PDA using DFA BFS (remove unreachable states):")
             newpda = self.mmc.s
             handle = IntersectionHandling()
             newpda = handle.get(newpda, self.mmc.accepted)
             reduce_b = ReducePDA()
             newpda = reduce_b.get(newpda)
-            #simply = SimplifyStateIDs()
-            #newpda, biggestid, newaccepted = simply.get(
+            # simply = SimplifyStateIDs()
+            # newpda, biggestid, newaccepted = simply.get(
             #    newpda, self.mmc.accepted)
             print("- Total PDA states after reduction are " + repr(len(newpda)))
             return_string = stringgen.init(newpda, self.mmc.accepted)
             if return_string is not None:
                 return_string = return_string[0]
-        elif method == 'PDACFGSTRING':
+        elif method == "PDACFGSTRING":
 
             optimized = 1
             dt1 = datetime.datetime.fromtimestamp(time.time())
-            print('* Initiating PDA simplification')
-            print(' - Total PDA states are ' + repr(len(self.mmc.s)))
+            print("* Initiating PDA simplification")
+            print(" - Total PDA states are " + repr(len(self.mmc.s)))
             handle = IntersectionHandling()
             newpda = handle.get(self.mmc.s, self.mmc.accepted)
             newpda = self.mmc.s
             simply = SimplifyStateIDs()
-            newpda, biggestid, newaccepted = simply.get(
-                newpda, self.mmc.accepted)
-            print(' - Total PDA states after id clearence are ' + repr(len(newpda)))
+            newpda, biggestid, newaccepted = simply.get(newpda, self.mmc.accepted)
+            print(" - Total PDA states after id clearence are " + repr(len(newpda)))
             replace = ReadReplace(newpda, biggestid)
             newpda = replace.replace_read()
-            print(' - Total PDA states after read elimination are ' + repr(len(newpda)))
+            print(" - Total PDA states after read elimination are " + repr(len(newpda)))
             maxstate = replace.nextstate() - 1
-            print('* Reduce PDA using DFA BFS (remove unreachable states):')
+            print("* Reduce PDA using DFA BFS (remove unreachable states):")
             reduce_b = ReducePDA()
             newpda = reduce_b.get(newpda)
             print("- Total PDA states after reduction are " + repr(len(newpda)))
 
             dt2 = datetime.datetime.fromtimestamp(time.time())
             rdelta = dateutil.relativedelta.relativedelta(dt2, dt1)
-            print("* PDA was simplyfied in %d days, %d hours, %d minutes and %d seconds" % (
-                rdelta.days, rdelta.hours, rdelta.minutes, rdelta.seconds))
+            print(
+                "* PDA was simplyfied in %d days, %d hours, %d minutes and %d seconds"
+                % (rdelta.days, rdelta.hours, rdelta.minutes, rdelta.seconds)
+            )
             dt1 = datetime.datetime.fromtimestamp(time.time())
-            print('* Initiating CNF from PDA generation')
+            print("* Initiating CNF from PDA generation")
             cnfgenerator = PdaCnf(newpda, newaccepted)
             dt2 = datetime.datetime.fromtimestamp(time.time())
             rdelta = dateutil.relativedelta.relativedelta(dt2, dt1)
-            print("* CNF was generated in %d days, %d hours, %d minutes and %d seconds" % (
-                rdelta.days, rdelta.hours, rdelta.minutes, rdelta.seconds))
+            print(
+                "* CNF was generated in %d days, %d hours, %d minutes and %d seconds"
+                % (rdelta.days, rdelta.hours, rdelta.minutes, rdelta.seconds)
+            )
             dt1 = datetime.datetime.fromtimestamp(time.time())
-            print('* Initiating string from CFG generation')
+            print("* Initiating string from CFG generation")
             grammar = cnfgenerator.get_rules(optimized)
-            print(' - Total grammar rules are ' + repr(len(grammar)))
-            gen = CFGGenerator(CNFGenerator(grammar),
-                               optimized=optimized,
-                               splitstring=0,
-                               maxstate=maxstate)
+            print(" - Total grammar rules are " + repr(len(grammar)))
+            gen = CFGGenerator(
+                CNFGenerator(grammar),
+                optimized=optimized,
+                splitstring=0,
+                maxstate=maxstate,
+            )
             return_string = gen.generate()
             dt2 = datetime.datetime.fromtimestamp(time.time())
             rdelta = dateutil.relativedelta.relativedelta(dt2, dt1)
-            print("* A string was generated in %d days, %d hours, %d minutes and %d seconds" % (
-                rdelta.days, rdelta.hours, rdelta.minutes, rdelta.seconds))
+            print(
+                "* A string was generated in %d days, %d hours, %d minutes and %d seconds"
+                % (rdelta.days, rdelta.hours, rdelta.minutes, rdelta.seconds)
+            )
 
             print(return_string)
         else:
@@ -262,33 +272,33 @@ def main():
     Testing function for PDA - DFA Diff Operation
     """
     if len(argv) < 2:
-        print('Usage: ')
-        print('         Get A String              %s CFG_fileA FST_fileB' % argv[0])
+        print("Usage: ")
+        print("         Get A String              %s CFG_fileA FST_fileB" % argv[0])
         return
 
     alphabet = createalphabet()
 
     cfgtopda = CfgPDA(alphabet)
-    print('* Parsing Grammar:')
+    print("* Parsing Grammar:")
     mma = cfgtopda.yyparse(argv[1])
-    print('OK')
+    print("OK")
 
     flex_a = Flexparser(alphabet)
-    print('* Parsing Regex:')
+    print("* Parsing Regex:")
     mmb = flex_a.yyparse(argv[2])
     print(mmb)
-    print('OK')
-    print('* Minimize Automaton:')
+    print("OK")
+    print("* Minimize Automaton:")
     mmb.minimize()
-    print('OK')
+    print("OK")
     print(mmb)
-    print('* Diff:')
+    print("* Diff:")
     ops = PdaDiff(mma, mmb, alphabet)
     mmc = ops.diff()
-    print('OK')
-    print('* Get String:')
+    print("OK")
+    print("* Get String:")
     print(ops.get_string())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -28,12 +28,10 @@ import typing as t
 from aria.bool.nnf import NNF, And, Or, Var, false, true, dimacs
 from aria.bool.nnf.util import Name
 
-__all__ = ('load', 'loads', 'compile')
+__all__ = ("load", "loads", "compile")
 
 
-def load(
-        fp: t.TextIO, var_labels: t.Optional[t.Dict[int, Name]] = None
-) -> NNF:
+def load(fp: t.TextIO, var_labels: t.Optional[t.Dict[int, Name]] = None) -> NNF:
     """Load a sentence from an open file.
 
     An optional ``var_labels`` dictionary can map integers to other names.
@@ -46,17 +44,17 @@ def load(
 
     fmt, nodecount, edges, varcount = fp.readline().split()
     node_specs = dict(enumerate(line.split() for line in fp))
-    assert fmt == 'nnf'
+    assert fmt == "nnf"
     nodes = {}  # type: t.Dict[int, NNF]
     for num, spec in node_specs.items():
-        if spec[0] == 'L':
-            if spec[1].startswith('-'):
+        if spec[0] == "L":
+            if spec[1].startswith("-"):
                 nodes[num] = Var(decode_name(int(spec[1][1:])), False)
             else:
                 nodes[num] = Var(decode_name(int(spec[1])))
-        elif spec[0] == 'A':
+        elif spec[0] == "A":
             nodes[num] = And(nodes[int(n)] for n in spec[2:])
-        elif spec[0] == 'O':
+        elif spec[0] == "O":
             nodes[num] = Or(nodes[int(n)] for n in spec[3:])
         else:
             raise ValueError("Can't parse line {}: {}".format(num, spec))
@@ -71,11 +69,11 @@ def loads(s: str, var_labels: t.Optional[t.Dict[int, Name]] = None) -> NNF:
 
 
 def compile(
-        sentence: And[Or[Var]],
-        executable: str = 'dsharp',
-        smooth: bool = False,
-        timeout: t.Optional[int] = None,
-        extra_args: t.Sequence[str] = ()
+    sentence: And[Or[Var]],
+    executable: str = "dsharp",
+    smooth: bool = False,
+    timeout: t.Optional[int] = None,
+    extra_args: t.Sequence[str] = (),
 ) -> NNF:
     """Run DSHARP to compile a CNF sentence to (s)d-DNNF.
 
@@ -92,9 +90,9 @@ def compile(
     """
     args = [executable]
     if smooth:
-        args.append('-smoothNNF')
+        args.append("-smoothNNF")
     if timeout is not None:
-        args.extend(['-t', str(timeout)])
+        args.extend(["-t", str(timeout)])
     args.extend(extra_args)
 
     if not sentence.is_CNF():
@@ -111,15 +109,15 @@ def compile(
 
     infd, infname = tempfile.mkstemp(text=True)
     try:
-        with open(infd, 'w') as f:
-            dimacs.dump(sentence, f, mode='cnf', var_labels=var_labels_inverse)
+        with open(infd, "w") as f:
+            dimacs.dump(sentence, f, mode="cnf", var_labels=var_labels_inverse)
         outfd, outfname = tempfile.mkstemp()
         try:
             os.close(outfd)
             proc = subprocess.Popen(
-                args + ['-Fnnf', outfname, infname],
+                args + ["-Fnnf", outfname, infname],
                 stdout=subprocess.PIPE,
-                universal_newlines=True
+                universal_newlines=True,
             )
             log, _ = proc.communicate()
             with open(outfname) as f:
@@ -131,18 +129,16 @@ def compile(
 
     if proc.returncode != 0:
         raise RuntimeError(
-            "DSHARP failed with code {}. Log:\n\n{}".format(
-                proc.returncode, log
-            )
+            "DSHARP failed with code {}. Log:\n\n{}".format(proc.returncode, log)
         )
 
-    if out == 'nnf 0 0 0\n' or 'problem line expected' in log:
+    if out == "nnf 0 0 0\n" or "problem line expected" in log:
         raise RuntimeError("Something went wrong. Log:\n\n{}".format(log))
 
-    if 'TIMEOUT' in log:
+    if "TIMEOUT" in log:
         raise RuntimeError("DSHARP timed out after {} seconds".format(timeout))
 
-    if 'Theory is unsat' in log:
+    if "Theory is unsat" in log:
         return false
 
     if not out:

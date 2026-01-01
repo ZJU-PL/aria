@@ -26,7 +26,9 @@ class LatteCounter:
 
     def _formula_to_polytope(self, formula: z3.ExprRef) -> str:
         """Convert Z3 formula to LattE polytope format (not implemented)."""
-        raise NotImplementedError("Conversion to LattE polytope format is not implemented.")
+        raise NotImplementedError(
+            "Conversion to LattE polytope format is not implemented."
+        )
 
     def count_models(self, formula: z3.ExprRef) -> int:
         """Count models of a linear integer arithmetic formula (not implemented)."""

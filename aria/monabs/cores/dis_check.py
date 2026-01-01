@@ -10,11 +10,14 @@ classify each constraint as:
 They explore the disjunction of all still-unknown constraints, using caching
 and (optionally) incremental push/pop to reduce solver calls.
 """
+
 from typing import List
 import z3
 
 
-def compact_check_cached(precond: z3.ExprRef, cnt_list: List[z3.ExprRef], res_label: List):
+def compact_check_cached(
+    precond: z3.ExprRef, cnt_list: List[z3.ExprRef], res_label: List
+):
     """Recursive disjunctive check (fresh solver each recursion), with model caching."""
     f = z3.BoolVal(False)
 
@@ -42,21 +45,30 @@ def compact_check_cached(precond: z3.ExprRef, cnt_list: List[z3.ExprRef], res_la
     elif res == z3.sat:
         m = solver.model()
         for i in range(len(res_label)):
-            if res_label[i] == 2 and z3.is_true(m.eval(cnt_list[i], model_completion=True)):
+            if res_label[i] == 2 and z3.is_true(
+                m.eval(cnt_list[i], model_completion=True)
+            ):
                 res_label[i] = 1
     else:
         return
     compact_check_cached(precond, cnt_list, res_label)
 
 
-def disjunctive_check_cached(precond: z3.ExprRef, cnt_list: List[z3.ExprRef]) -> List[int]:
+def disjunctive_check_cached(
+    precond: z3.ExprRef, cnt_list: List[z3.ExprRef]
+) -> List[int]:
     """Entry point for cached disjunctive checking (non-incremental solver usage)."""
     res = [2] * len(cnt_list)  # 0 means unsat, 1 means sat, 2 means "unknown"
     compact_check_cached(precond, cnt_list, res)
     return res
 
 
-def compact_check_incremental_cached(solver: z3.Solver, precond: z3.ExprRef, cnt_list: List[z3.ExprRef], res_label: List[int]):
+def compact_check_incremental_cached(
+    solver: z3.Solver,
+    precond: z3.ExprRef,
+    cnt_list: List[z3.ExprRef],
+    res_label: List[int],
+):
     """Recursive disjunctive check using a shared solver with push/pop for efficiency."""
     f = z3.BoolVal(False)
 
@@ -83,7 +95,9 @@ def compact_check_incremental_cached(solver: z3.Solver, precond: z3.ExprRef, cnt
     elif res == z3.sat:
         m = solver.model()
         for i in range(len(res_label)):
-            if res_label[i] == 2 and z3.is_true(m.eval(cnt_list[i], model_completion=True)):
+            if res_label[i] == 2 and z3.is_true(
+                m.eval(cnt_list[i], model_completion=True)
+            ):
                 res_label[i] = 1
     else:
         return
@@ -91,7 +105,9 @@ def compact_check_incremental_cached(solver: z3.Solver, precond: z3.ExprRef, cnt
     compact_check_incremental_cached(solver, precond, cnt_list, res_label)
 
 
-def disjunctive_check_incremental_cached(precond: z3.ExprRef, cnt_list: List[z3.ExprRef]) -> List[int]:
+def disjunctive_check_incremental_cached(
+    precond: z3.ExprRef, cnt_list: List[z3.ExprRef]
+) -> List[int]:
     """Entry point for cached disjunctive checking with a shared incremental solver."""
     results = [2] * len(cnt_list)
     solver = z3.Solver()

@@ -20,8 +20,9 @@ from aria.abduction.qe_abduct import qe_abduce
 from aria.utils.z3_solver_utils import is_sat, is_entail
 
 
-def check_abduct(pre_cond: z3.BoolRef, post_cond: z3.BoolRef,
-                 abdcut: z3.BoolRef) -> bool:
+def check_abduct(
+    pre_cond: z3.BoolRef, post_cond: z3.BoolRef, abdcut: z3.BoolRef
+) -> bool:
     """
     Validates an abductive solution by checking consistency and sufficiency.
 
@@ -68,36 +69,25 @@ def demo_abduct():
     """
     Test cases for the abduction implementation.
     """
-    x, y, z = z3.Ints('x y z')
+    x, y, z = z3.Ints("x y z")
 
     test_cases = [
         # Test case 1: Simple linear constraints
         {
-            'pre': z3.And(x <= 0, y > 1),
-            'post': 2 * x - y + 3 * z <= 10,
-            'expected_success': True
+            "pre": z3.And(x <= 0, y > 1),
+            "post": 2 * x - y + 3 * z <= 10,
+            "expected_success": True,
         },
-
         # Test case 2: More complex constraints
         {
-            'pre': z3.And(x >= 0, y >= 0),
-            'post': x + y + z <= 5,
-            'expected_success': True
+            "pre": z3.And(x >= 0, y >= 0),
+            "post": x + y + z <= 5,
+            "expected_success": True,
         },
-
         # Test case 3: Unsatisfiable case
-        {
-            'pre': z3.And(x > 0, x < 0),
-            'post': z == 0,
-            'expected_success': False
-        },
-
+        {"pre": z3.And(x > 0, x < 0), "post": z == 0, "expected_success": False},
         # Test case 4: Non-linear constraints
-        {
-            'pre': x * x <= 4,
-            'post': z >= -2,
-            'expected_success': True
-        }
+        {"pre": x * x <= 4, "post": z >= -2, "expected_success": True},
     ]
 
     for i, test in enumerate(test_cases, 1):
@@ -105,7 +95,7 @@ def demo_abduct():
         print(f"Pre-condition: {test['pre']}")
         print(f"Post-condition: {test['post']}")
 
-        result = abduce(test['pre'], test['post'])
+        result = abduce(test["pre"], test["post"])
         success = result is not None
 
         print(f"Result: {result}")

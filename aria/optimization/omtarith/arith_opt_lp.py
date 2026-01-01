@@ -8,6 +8,7 @@ This module provides two approaches:
 
 Note: This module contains incomplete implementations that need to be completed.
 """
+
 from typing import Tuple, List, Optional, Dict
 
 import pulp  # For LP solving
@@ -15,10 +16,7 @@ import z3
 
 
 def arith_opt_with_lp(
-        fml: z3.ExprRef,
-        obj: z3.ExprRef,
-        minimize: bool = True,
-        solver_name: str = "pulp"
+    fml: z3.ExprRef, obj: z3.ExprRef, minimize: bool = True, solver_name: str = "pulp"
 ) -> Tuple[Optional[float], Optional[Dict[str, float]]]:
     """
     Solve an arithmetic optimization problem using linear programming.
@@ -51,10 +49,7 @@ def _is_convex_problem(fml: z3.ExprRef) -> bool:
 
 
 def _solve_direct_lp(
-        fml: z3.ExprRef,
-        obj: z3.ExprRef,
-        minimize: bool,
-        solver_name: str
+    fml: z3.ExprRef, obj: z3.ExprRef, minimize: bool, solver_name: str
 ) -> Tuple[Optional[float], Optional[Dict[str, float]]]:
     """Solve convex problem directly using LP solver."""
     # Convert Z3 formula to LP format
@@ -87,24 +82,22 @@ def _solve_direct_lp(
 
 
 def _solve_iterative_lp(
-        fml: z3.ExprRef,
-        obj: z3.ExprRef,
-        minimize: bool,
-        solver_name: str
+    fml: z3.ExprRef, obj: z3.ExprRef, minimize: bool, solver_name: str
 ) -> Tuple[Optional[float], Optional[Dict[str, float]]]:
     """Solve non-convex problem by converting to DNF and solving multiple LPs."""
     # Convert formula to DNF
     dnf_clauses = _convert_to_dnf(fml)
 
-    best_value = float('inf') if minimize else float('-inf')
+    best_value = float("inf") if minimize else float("-inf")
     best_model = None
 
     # Solve LP for each disjunct
     for clause in dnf_clauses:
         value, model = _solve_direct_lp(clause, obj, minimize, solver_name)
         if value is not None:
-            if ((minimize and value < best_value) or
-                    (not minimize and value > best_value)):
+            if (minimize and value < best_value) or (
+                not minimize and value > best_value
+            ):
                 best_value = value
                 best_model = model
 
@@ -113,8 +106,7 @@ def _solve_iterative_lp(
 
 def _is_linear_term(expr: z3.ExprRef) -> bool:
     """Check if an expression is linear (constant or variable or linear combination)."""
-    if (z3.is_const(expr) or z3.is_int_value(expr) or
-            z3.is_rational_value(expr)):
+    if z3.is_const(expr) or z3.is_int_value(expr) or z3.is_rational_value(expr):
         return True
 
     if z3.is_mul(expr):
@@ -153,15 +145,22 @@ class ConvexityChecker:
             return False  # Disjunctions make problem non-convex
 
         # Handle comparison operators
-        if (z3.is_eq(expr) or z3.is_le(expr) or z3.is_lt(expr) or
-                z3.is_ge(expr) or z3.is_gt(expr)):
+        if (
+            z3.is_eq(expr)
+            or z3.is_le(expr)
+            or z3.is_lt(expr)
+            or z3.is_ge(expr)
+            or z3.is_gt(expr)
+        ):
             # Check if both sides of comparison are linear
             return all(_is_linear_term(arg) for arg in expr.children())
 
         return False
 
 
-def _extract_variables(fml: z3.ExprRef, obj: z3.ExprRef) -> Dict[z3.ExprRef, pulp.LpVariable]:
+def _extract_variables(
+    fml: z3.ExprRef, obj: z3.ExprRef
+) -> Dict[z3.ExprRef, pulp.LpVariable]:
     """Extract variables from formula and objective, create LP variables."""
     vars_set = set()
 
@@ -175,15 +174,11 @@ def _extract_variables(fml: z3.ExprRef, obj: z3.ExprRef) -> Dict[z3.ExprRef, pul
     collect_vars(fml)
     collect_vars(obj)
 
-    return {
-        var: pulp.LpVariable(str(var))
-        for var in vars_set
-    }
+    return {var: pulp.LpVariable(str(var)) for var in vars_set}
 
 
 def _convert_to_lp_constraints(
-    fml: z3.ExprRef,
-    vars_map: Dict[z3.ExprRef, pulp.LpVariable]
+    fml: z3.ExprRef, vars_map: Dict[z3.ExprRef, pulp.LpVariable]
 ) -> List[pulp.LpConstraint]:
     """
     Convert Z3 formula to LP constraints.
@@ -207,8 +202,7 @@ def _convert_to_lp_constraints(
 
 
 def _convert_to_lp_objective(
-    obj: z3.ExprRef,
-    vars_map: Dict[z3.ExprRef, pulp.LpVariable]
+    obj: z3.ExprRef, vars_map: Dict[z3.ExprRef, pulp.LpVariable]
 ) -> pulp.LpAffineExpression:
     """
     Convert Z3 objective expression to LP objective.
@@ -232,10 +226,10 @@ def _convert_to_dnf(fml: z3.ExprRef) -> List[z3.ExprRef]:
     """Convert formula to Disjunctive Normal Form."""
     # Use Z3's tactics to transform the formula
     tactic = z3.Then(
-        z3.Tactic('simplify'),
-        z3.Tactic('elim-and'),
-        z3.Tactic('tseitin-cnf'),
-        z3.Tactic('split-clause')
+        z3.Tactic("simplify"),
+        z3.Tactic("elim-and"),
+        z3.Tactic("tseitin-cnf"),
+        z3.Tactic("split-clause"),
     )
 
     # Apply the tactic

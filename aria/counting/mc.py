@@ -1,6 +1,7 @@
 """
 CLI tool for counting models of Boolean/SMT formulas
 """
+
 import argparse
 import sys
 from typing import Optional, Sequence
@@ -15,14 +16,12 @@ def create_parser() -> argparse.ArgumentParser:
     Returns:
         argparse.ArgumentParser: Configured argument parser
     """
-    parser = argparse.ArgumentParser(
-        description='Count models of Boolean/SMT formulas'
+    parser = argparse.ArgumentParser(description="Count models of Boolean/SMT formulas")
+    parser.add_argument("input_file", help="Input formula file")
+    parser.add_argument(
+        "--format", choices=["smtlib2", "dimacs"], required=True, help="Input format"
     )
-    parser.add_argument('input_file', help='Input formula file')
-    parser.add_argument('--format', choices=['smtlib2', 'dimacs'],
-                        required=True, help='Input format')
-    parser.add_argument('--timeout', type=int, default=300,
-                        help='Timeout in seconds')
+    parser.add_argument("--timeout", type=int, default=300, help="Timeout in seconds")
     return parser
 
 
@@ -40,15 +39,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     args = parser.parse_args(argv)
 
     try:
-        with open(args.input_file, encoding='utf-8') as f:
+        with open(args.input_file, encoding="utf-8") as f:
             formula = f.read()
 
-        if args.format == 'smtlib2':
+        if args.format == "smtlib2":
             count = count_solutions(formula, timeout=args.timeout)
         else:
             # Handle DIMACS format
-            count = count_solutions(formula, format='dimacs',
-                                    timeout=args.timeout)
+            count = count_solutions(formula, format="dimacs", timeout=args.timeout)
 
         print(f"Number of models: {count}")
         return 0
@@ -58,5 +56,5 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return 1
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

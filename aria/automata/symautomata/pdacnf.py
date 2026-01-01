@@ -1,4 +1,5 @@
 """This module generates a CNF grammar from a PDA object"""
+
 from sys import argv
 
 from aria.automata.symautomata.alphabet import createalphabet
@@ -7,7 +8,7 @@ from aria.automata.symautomata.cfgpda import CfgPDA
 from aria.automata.symautomata.pda import PDAState
 
 
-class IntersectionHandling():
+class IntersectionHandling:
     """
     After the intersection (product operation) there would be final
     transitions to non accepted states (according to the DFA
@@ -34,9 +35,9 @@ class IntersectionHandling():
         newstatediag = {}
 
         newstate = PDAState()
-        newstate.id = 'AI,I'  # BECAREFUL WHEN SIMPLIFYING...
+        newstate.id = "AI,I"  # BECAREFUL WHEN SIMPLIFYING...
         newstate.type = 1
-        newstate.sym = '@wrapping'
+        newstate.sym = "@wrapping"
         transitions = {}
         transitions[(0, 0)] = [0]
         newstate.trans = transitions
@@ -52,7 +53,7 @@ class IntersectionHandling():
                     # print state.id[1]
                     if state.id[1] == state2id:
                         # print 'adding...'
-                        state.trans['AI,I'] = ['@wrapping']
+                        state.trans["AI,I"] = ["@wrapping"]
                         # print state.trans
                         break
             i = i + 1
@@ -60,8 +61,9 @@ class IntersectionHandling():
         return newstatediag
 
 
-class ReducePDA():
+class ReducePDA:
     """Use BFS to search for unreachable states and remove them"""
+
     def __init__(self):
         pass
 
@@ -112,13 +114,13 @@ class ReducePDA():
             list: A reduced list of states using BFS
         """
         if len(statediag) < 1:
-            print('PDA is empty and can not be reduced')
+            print("PDA is empty and can not be reduced")
             return statediag
         newstatediag = self.bfs(statediag, statediag[0])
         return newstatediag
 
 
-class SimplifyStateIDs():
+class SimplifyStateIDs:
     """
     Transform state IDs to a more simple form (sequencial numbers).
     Should be used after product operation (intersection)
@@ -171,13 +173,13 @@ class SimplifyStateIDs():
         newaccepted = None
         if accepted is not None:
             newaccepted = []
-            for accepted_state in accepted :
+            for accepted_state in accepted:
                 if (0, accepted_state) in statesmap:
                     newaccepted.append(statesmap[(0, accepted_state)])
         return newstatediag, count, newaccepted
 
 
-class ReadReplace():
+class ReadReplace:
     """
     Removes all READ (type - 3) states and replaces them with PUSH (type - 1) and POP (type - 2).
     Should be used before PDA to CFG operation.
@@ -256,8 +258,9 @@ class ReadReplace():
         return self.statediag
 
 
-class PdaCnf():
+class PdaCnf:
     """This class manages PDA to CNF generation"""
+
     rules = []
     statediag = []
     accepted = []
@@ -268,7 +271,7 @@ class PdaCnf():
             or alphabet -> AI,I (IF intersected, the DFA Accepted states
             will be eliminated by adding a wrapping state with push pop symbol)
         """
-        self.rules.append('S: A0,0')
+        self.rules.append("S: A0,0")
 
     def insert_self_to_empty_and_insert_all_intemediate(self, optimized):
         """
@@ -278,7 +281,9 @@ class PdaCnf():
             optimized (bool): Enable or Disable optimization - Do not produce O(n^3)
         """
         for state_a in self.statediag:
-            self.rules.append('A' +repr(state_a.id) +',' + repr(state_a.id) + ': @empty_set')
+            self.rules.append(
+                "A" + repr(state_a.id) + "," + repr(state_a.id) + ": @empty_set"
+            )
 
             # If CFG is not requested, avoid the following O(n^3) rule.
             # It can be solved and a string can be generated faster with BFS of DFS
@@ -287,15 +292,22 @@ class PdaCnf():
                 for state_b in self.statediag:
                     if state_b.id != state_a.id:
                         for state_c in self.statediag:
-                            if state_c.id != state_a.id \
-                                    and state_b.id != state_c.id:
-                                self.rules.append('A' + repr(state_a.id)
-                                                  + ',' + repr(state_c.id)
-                                                  + ': A' + repr(state_a.id)
-                                                  + ',' + repr(state_b.id)
-                                                  + ' A' + repr(state_b.id)
-                                                  + ',' + repr(state_c.id)
-                                                  + '')
+                            if state_c.id != state_a.id and state_b.id != state_c.id:
+                                self.rules.append(
+                                    "A"
+                                    + repr(state_a.id)
+                                    + ","
+                                    + repr(state_c.id)
+                                    + ": A"
+                                    + repr(state_a.id)
+                                    + ","
+                                    + repr(state_b.id)
+                                    + " A"
+                                    + repr(state_b.id)
+                                    + ","
+                                    + repr(state_c.id)
+                                    + ""
+                                )
 
     def insert_symbol_pushpop(self):
         """
@@ -314,34 +326,41 @@ class PdaCnf():
                         found = 1
                         for j in state_a.trans:
                             if state_a.trans[j] == [0]:
-                                read_a = ''
+                                read_a = ""
                             else:
                                 new = []
                                 for selected_transition in state_a.trans[j]:
-                                    if selected_transition == ' ':
-                                        new.append('&')
+                                    if selected_transition == " ":
+                                        new.append("&")
                                     else:
                                         new.append(selected_transition)
 
                                 read_a = " | ".join(new)
                             for i in state_b.trans:
                                 if state_b.trans[i] == [0]:
-                                    read_b = ''
+                                    read_b = ""
                                 else:
                                     new = []
                                     for selected_transition in state_b.trans[i]:
-                                        if selected_transition == ' ':
-                                            new.append('&')
+                                        if selected_transition == " ":
+                                            new.append("&")
                                         else:
                                             new.append(selected_transition)
                                     read_b = " | ".join(new)
                                 self.rules.append(
-                                    'A' + repr(state_a.id)
-                                    + ',' + repr(i)
-                                    + ':' + read_a
-                                    + ' A' + repr(j)
-                                    + ',' + repr(state_b.id)
-                                    + ' ' + read_b)
+                                    "A"
+                                    + repr(state_a.id)
+                                    + ","
+                                    + repr(i)
+                                    + ":"
+                                    + read_a
+                                    + " A"
+                                    + repr(j)
+                                    + ","
+                                    + repr(state_b.id)
+                                    + " "
+                                    + read_b
+                                )
                 if found == 0:
 
                     # A special case is required for State 2, where the POPed symbols
@@ -353,23 +372,31 @@ class PdaCnf():
                                 if state_a.sym in state_b.trans[i]:
                                     for j in state_a.trans:
                                         if state_a.trans[j] == [0]:
-                                            read_a = ''
+                                            read_a = ""
                                         else:
-                                            read_a = " | ".join(
-                                                state_a.trans[j])
+                                            read_a = " | ".join(state_a.trans[j])
                                         self.rules.append(
-                                            'A' + repr(state_a.id)
-                                            + ',' + repr(i)
-                                            + ':' + read_a
-                                            + ' A' + repr(j)
-                                            + ',' + repr(state_b.id))
+                                            "A"
+                                            + repr(state_a.id)
+                                            + ","
+                                            + repr(i)
+                                            + ":"
+                                            + read_a
+                                            + " A"
+                                            + repr(j)
+                                            + ","
+                                            + repr(state_b.id)
+                                        )
                                         # print
                                         # 'A'+`state_a.id`+','+`i`+':'+read_a+'
                                         # A'+`j`+','+`state_b.id`
                                         found = 1
                 if found == 0:
-                    print("ERROR: symbol " + repr(state_a.sym) \
-                          + ". It was not found anywhere in the graph.")
+                    print(
+                        "ERROR: symbol "
+                        + repr(state_a.sym)
+                        + ". It was not found anywhere in the graph."
+                    )
 
     def get_rules(self, optimized):
         """
@@ -404,7 +431,7 @@ def _read_file(fname):
         list: The grammar rules
     """
     with open(fname) as input_file:
-        re_grammar = [x.strip('\n') for x in input_file.readlines()]
+        re_grammar = [x.strip("\n") for x in input_file.readlines()]
     return re_grammar
 
 
@@ -415,13 +442,15 @@ def main():
     :param argv: Parameters
     """
     if len(argv) < 3:
-        print('Usage for getting CFG: %s CFG_fileA CFG ' % argv[0])
-        print('Usage for getting STR: %s CFG_fileA STR ' \
-              'Optimize[0 or 1] splitstring[0 or 1] ' % argv[0])
-        print('')
-        print('For example: python pdacnf.py grammar.y STR 1 0')
-        print('             python pdacnf.py grammar.y STR 1 1')
-        print('             python pdacnf.py grammar.y CFG')
+        print("Usage for getting CFG: %s CFG_fileA CFG " % argv[0])
+        print(
+            "Usage for getting STR: %s CFG_fileA STR "
+            "Optimize[0 or 1] splitstring[0 or 1] " % argv[0]
+        )
+        print("")
+        print("For example: python pdacnf.py grammar.y STR 1 0")
+        print("             python pdacnf.py grammar.y STR 1 1")
+        print("             python pdacnf.py grammar.y CFG")
         return
 
     alphabet = createalphabet()
@@ -430,52 +459,53 @@ def main():
 
     optimized = 0
     splitstring = 0
-    if mode == 'STR':
+    if mode == "STR":
         optimized = int(argv[3])
         splitstring = int(argv[4])
 
     cfgtopda = CfgPDA(alphabet)
-    print('* Parsing Grammar:', end=' ')
+    print("* Parsing Grammar:", end=" ")
     mma = cfgtopda.yyparse(argv[1])
-    print('OK')
-    print(' - Total PDA states are ' + repr(len(mma.s)))
+    print("OK")
+    print(" - Total PDA states are " + repr(len(mma.s)))
 
-    print('* Simplify State IDs:', end=' ')
+    print("* Simplify State IDs:", end=" ")
     simple_a = SimplifyStateIDs()
     mma.s, biggestid, newaccepted = simple_a.get(mma.s)
     if newaccepted:
-        print('OK')
+        print("OK")
     else:
-        print('OK')
+        print("OK")
 
-    print('* Eliminate READ states:', end=' ')
+    print("* Eliminate READ states:", end=" ")
     replace = ReadReplace(mma.s, biggestid)
     mma.s = replace.replace_read()
-    print('OK')
-    print(' - Total PDA states now are ' + repr(len(mma.s)))
+    print("OK")
+    print(" - Total PDA states now are " + repr(len(mma.s)))
     maxstate = replace.nextstate() - 1
 
-    print('* Reduce PDA:', end=' ')
+    print("* Reduce PDA:", end=" ")
     simple_b = ReducePDA()
     mma.s = simple_b.get(mma.s)
-    print('OK')
-    print(' - Total PDA states now are ' + repr(len(mma.s)))
+    print("OK")
+    print(" - Total PDA states now are " + repr(len(mma.s)))
 
-    print('* PDA to CFG transformation:', end=' ')
+    print("* PDA to CFG transformation:", end=" ")
     cnfgenerator = PdaCnf(mma.s)
     grammar = cnfgenerator.get_rules(optimized)
-    print('OK')
-    print(' - Total CFG rules generated: ' + repr(len(grammar)))
+    print("OK")
+    print(" - Total CFG rules generated: " + repr(len(grammar)))
 
-    if mode == 'STR':
-        gen = CFGGenerator(CNFGenerator(grammar),
-                           optimized=optimized,
-                           splitstring=splitstring,
-                           maxstate=maxstate)
+    if mode == "STR":
+        gen = CFGGenerator(
+            CNFGenerator(grammar),
+            optimized=optimized,
+            splitstring=splitstring,
+            maxstate=maxstate,
+        )
         print(gen.generate())
     else:
         print(grammar)
-
 
     # For example, for given cfg:
     #
@@ -506,6 +536,5 @@ def main():
     #     S: 1u1
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

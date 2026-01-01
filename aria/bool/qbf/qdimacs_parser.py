@@ -11,11 +11,11 @@ class PaserQDIMACS:
     def parse_prefix(self, prefix_lines):
         """Parse prefix lines and merge consecutive quantifier blocks of the same type."""
         # we can merge prefix lines if there are the same quatifier type:
-        previous_qtype = ''
+        previous_qtype = ""
 
         for line in prefix_lines:
             # asserting the line is part of prefix:
-            assert ("e " in line or "a " in line)
+            assert "e " in line or "a " in line
             # removing spaces
             cur_qtype = line[0]
             cur_var_list = line[2:].split(" ")[:-1]
@@ -82,11 +82,15 @@ class PaserQDIMACS:
     def flip_and_assume(self, k, assum, assertions):
         """Flip universal layers in first k layers and add assumptions."""
 
-        flipped_and_assumed_string = ''
+        flipped_and_assumed_string = ""
 
         # printing preamble:
-        flipped_and_assumed_string += " ".join(self.preamble[:-1]) + " " + str(
-            int(self.preamble[-1]) + len(assum) + len(assertions)) + "\n"
+        flipped_and_assumed_string += (
+            " ".join(self.preamble[:-1])
+            + " "
+            + str(int(self.preamble[-1]) + len(assum) + len(assertions))
+            + "\n"
+        )
 
         first_layers = ""
         for i, layer in enumerate(self.parsed_prefix):
@@ -120,7 +124,9 @@ class PaserQDIMACS:
     # write the large instance to the file directly:
     def sat_renumber_and_append_wrf(self, certificate, shared_vars):
         """Append certificate to instance, renumbering variables and writing to file."""
-        with open("intermediate_files/appended_instance.qdimacs", "w", encoding="utf-8") as f:
+        with open(
+            "intermediate_files/appended_instance.qdimacs", "w", encoding="utf-8"
+        ) as f:
             clauses_string = ""
             # first writing the instance clauses to the new file:
             for clause in self.clauses:
@@ -165,15 +171,22 @@ class PaserQDIMACS:
             # f.close()
 
             # lastly appending the preamble with computed vars and clauses:
-            prefix_string = ''
+            prefix_string = ""
 
             # printing preamble:
-            prefix_string += "p cnf " + str(cur_max_var - 1) + " " + str(
-                int(self.preamble[3]) + len(certificate.clauses)) + "\n"
+            prefix_string += (
+                "p cnf "
+                + str(cur_max_var - 1)
+                + " "
+                + str(int(self.preamble[3]) + len(certificate.clauses))
+                + "\n"
+            )
 
             # then appending the prefix with new variables:
             for layer in self.parsed_prefix:
-                prefix_string += layer[0] + " " + " ".join(str(var) for var in layer[1]) + " 0\n"
+                prefix_string += (
+                    layer[0] + " " + " ".join(str(var) for var in layer[1]) + " 0\n"
+                )
 
             # print(self.parsed_prefix)
 
@@ -196,7 +209,9 @@ class PaserQDIMACS:
     # write the large instance to the file directly:
     def unsat_renumber_and_append_wrf(self, certificate, shared_vars):
         """Append certificate with flipped universal variables and write to file."""
-        with open("intermediate_files/appended_instance.qdimacs", "w", encoding="utf-8") as f:
+        with open(
+            "intermediate_files/appended_instance.qdimacs", "w", encoding="utf-8"
+        ) as f:
             clauses_string = ""
             # first writing the instance clauses to the new file:
             for clause in self.clauses:
@@ -241,11 +256,16 @@ class PaserQDIMACS:
             # f.close()
 
             # lastly appending the preamble with computed vars and clauses:
-            prefix_string = ''
+            prefix_string = ""
 
             # printing preamble:
-            prefix_string += "p cnf " + str(cur_max_var - 1) + " " + str(
-                int(self.preamble[3]) + len(certificate.clauses)) + "\n"
+            prefix_string += (
+                "p cnf "
+                + str(cur_max_var - 1)
+                + " "
+                + str(int(self.preamble[3]) + len(certificate.clauses))
+                + "\n"
+            )
 
             # remembering shared universal varibles:
             shared_universal_variables = []
@@ -253,7 +273,7 @@ class PaserQDIMACS:
             # then appending the prefix with new variables:
             for layer in self.parsed_prefix:
                 # we only add universal variables which are not in the share variables:
-                if layer[0] == 'a':
+                if layer[0] == "a":
                     universal_string = ""
                     for var in layer[1]:
                         if var not in shared_vars:

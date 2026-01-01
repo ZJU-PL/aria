@@ -14,10 +14,10 @@ from aria.bool.cnfsimplifier.clause import Clause
 def parse_dimacs(input_file) -> Cnf:
     """Parse DIMACS format CNF file"""
     clauses = []
-    with open(input_file, 'r') as f:
+    with open(input_file, "r") as f:
         for line in f:
             line = line.strip()
-            if line.startswith('c') or line.startswith('p'):
+            if line.startswith("c") or line.startswith("p"):
                 continue
             if not line:
                 continue
@@ -33,7 +33,7 @@ def parse_dimacs(input_file) -> Cnf:
 
 def write_dimacs(cnf: Cnf, output_file=None):
     """Write CNF to DIMACS format"""
-    out = sys.stdout if output_file is None else open(output_file, 'w')
+    out = sys.stdout if output_file is None else open(output_file, "w")
 
     # Write header
     num_vars = cnf.get_number_of_literals()
@@ -57,19 +57,47 @@ def phase_ordering() -> List[int]:
 
 def main():
     """Main function"""
-    parser = argparse.ArgumentParser(description='CNF Formula Simplification Tool')
-    parser.add_argument('input', help='Input CNF file in DIMACS format')
-    parser.add_argument('-o', '--output', help='Output file (default: stdout)')
-    parser.add_argument('--tautology', action='store_true', help='Remove tautological clauses')
-    parser.add_argument('--hidden-tautology', action='store_true', help='Remove hidden tautological clauses')
-    parser.add_argument('--asymmetric-tautology', action='store_true', help='Remove asymmetric tautological clauses')
-    parser.add_argument('--subsumption', action='store_true', help='Remove subsumed clauses')
-    parser.add_argument('--hidden-subsumption', action='store_true', help='Remove hidden subsumed clauses')
-    parser.add_argument('--asymmetric-subsumption', action='store_true', help='Remove asymmetric subsumed clauses')
-    parser.add_argument('--blocked', action='store_true', help='Remove blocked clauses')
-    parser.add_argument('--hidden-blocked', action='store_true', help='Remove hidden blocked clauses')
-    parser.add_argument('--asymmetric-blocked', action='store_true', help='Remove asymmetric blocked clauses')
-    parser.add_argument('--all', action='store_true', help='Apply all simplification techniques')
+    parser = argparse.ArgumentParser(description="CNF Formula Simplification Tool")
+    parser.add_argument("input", help="Input CNF file in DIMACS format")
+    parser.add_argument("-o", "--output", help="Output file (default: stdout)")
+    parser.add_argument(
+        "--tautology", action="store_true", help="Remove tautological clauses"
+    )
+    parser.add_argument(
+        "--hidden-tautology",
+        action="store_true",
+        help="Remove hidden tautological clauses",
+    )
+    parser.add_argument(
+        "--asymmetric-tautology",
+        action="store_true",
+        help="Remove asymmetric tautological clauses",
+    )
+    parser.add_argument(
+        "--subsumption", action="store_true", help="Remove subsumed clauses"
+    )
+    parser.add_argument(
+        "--hidden-subsumption",
+        action="store_true",
+        help="Remove hidden subsumed clauses",
+    )
+    parser.add_argument(
+        "--asymmetric-subsumption",
+        action="store_true",
+        help="Remove asymmetric subsumed clauses",
+    )
+    parser.add_argument("--blocked", action="store_true", help="Remove blocked clauses")
+    parser.add_argument(
+        "--hidden-blocked", action="store_true", help="Remove hidden blocked clauses"
+    )
+    parser.add_argument(
+        "--asymmetric-blocked",
+        action="store_true",
+        help="Remove asymmetric blocked clauses",
+    )
+    parser.add_argument(
+        "--all", action="store_true", help="Apply all simplification techniques"
+    )
 
     args = parser.parse_args()
 
@@ -100,5 +128,5 @@ def main():
     write_dimacs(cnf, args.output)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

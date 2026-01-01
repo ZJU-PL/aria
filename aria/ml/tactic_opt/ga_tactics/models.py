@@ -8,6 +8,7 @@ import z3
 
 class Param:
     """Represents a parameter for a Z3 tactic."""
+
     def __init__(self, key, value, kind):
         self.key = key
         self.value = value
@@ -22,6 +23,7 @@ class Param:
 
 class Tactic:
     """Represents a single Z3 tactic with parameters."""
+
     _mutate_probability = 0.02
     _tactic_names = z3.tactics()
     _rand = random.Random()  # pylint: disable=used-before-assignment
@@ -57,7 +59,7 @@ class Tactic:
             z3.Z3_PK_STRING: lambda: "",
             z3.Z3_PK_SYMBOL: lambda: "",
             z3.Z3_PK_OTHER: lambda: None,
-            z3.Z3_PK_INVALID: lambda: None
+            z3.Z3_PK_INVALID: lambda: None,
         }
         if param.kind in kind_map:
             return kind_map[param.kind]()
@@ -74,14 +76,22 @@ class Tactic:
 
 class TacticSeq:
     """Represents a sequence of Z3 tactics for genetic algorithm evolution."""
+
     _max_size = 16
     _rand = random.Random()  # pylint: disable=used-before-assignment
     _rand.seed()
 
     def __init__(self, tactics_list=None):
         if tactics_list is None:
-            tactics_list = ["simplify", "propagate-values", "solve-eqs",
-                          "elim-uncnstr", "simplify", "max-bv-sharing", "smt"]
+            tactics_list = [
+                "simplify",
+                "propagate-values",
+                "solve-eqs",
+                "elim-uncnstr",
+                "simplify",
+                "max-bv-sharing",
+                "smt",
+            ]
         self.storage = [Tactic(name) for name in tactics_list]
         self.fitness = 0.0
 
@@ -93,15 +103,19 @@ class TacticSeq:
     def to_z3_tactic(self):
         """Convert to Z3 Tactic object."""
         if not self.storage:
-            return z3.Tactic('skip')
+            return z3.Tactic("skip")
 
         result = None
         for tactic in self.storage:
-            has_params = (tactic.params and
-                         any(p.value is not None for p in tactic.params.values()))
+            has_params = tactic.params and any(
+                p.value is not None for p in tactic.params.values()
+            )
             if has_params:
-                param_dict = {p.key: p.value for p in tactic.params.values()
-                             if p.value is not None}
+                param_dict = {
+                    p.key: p.value
+                    for p in tactic.params.values()
+                    if p.value is not None
+                }
                 current = z3.With(tactic.name, **param_dict)
             else:
                 current = z3.Tactic(tactic.name)
@@ -120,11 +134,13 @@ class TacticSeq:
                 for p in tactic.params.values():
                     if p.value is not None:
                         if p.kind == z3.Z3_PK_BOOL:
-                            param_list.append(f":{p.key} {'true' if p.value else 'false'}")
+                            param_list.append(
+                                f":{p.key} {'true' if p.value else 'false'}"
+                            )
                         elif p.kind in [z3.Z3_PK_UINT, z3.Z3_PK_DOUBLE]:
                             param_list.append(f":{p.key} {p.value}")
                         elif p.kind in [z3.Z3_PK_STRING, z3.Z3_PK_SYMBOL]:
-                            param_list.append(f":{p.key} \\\"{p.value}\\\"")
+                            param_list.append(f':{p.key} \\"{p.value}\\"')
             params_str = " " + " ".join(param_list) if param_list else ""
             tactic_parts.append(f"{tactic.name}{params_str}")
 
@@ -135,8 +151,9 @@ class TacticSeq:
         """Create offspring by crossing over two parent sequences."""
         res = TacticSeq()
         crossover_point = TacticSeq._rand.randint(0, len(a.storage) - 1)
-        res.storage = [t.clone() for t in
-                      a.storage[:crossover_point] + b.storage[crossover_point:]]
+        res.storage = [
+            t.clone() for t in a.storage[:crossover_point] + b.storage[crossover_point:]
+        ]
         return res
 
     @staticmethod
@@ -148,11 +165,12 @@ class TacticSeq:
         """Return string representation of the sequence."""
         result = []
         for tactic in self.storage:
-            params_str = ", ".join(f"{p.key}={p.value}"
-                                  for p in tactic.params.values()
-                                  if p.value is not None)
-            result.append(f"{tactic.name}({params_str})" if params_str
-                         else tactic.name)
+            params_str = ", ".join(
+                f"{p.key}={p.value}"
+                for p in tactic.params.values()
+                if p.value is not None
+            )
+            result.append(f"{tactic.name}({params_str})" if params_str else tactic.name)
         return " -> ".join(result)
 
     def clone(self):
@@ -168,6 +186,7 @@ class TacticSeq:
 
 class CustomJsonEncoder(json.JSONEncoder):
     """Custom JSON encoder for tactic objects."""
+
     def default(self, o):
         if isinstance(o, Param):
             return {"key": o.key, "value": o.value}
@@ -175,7 +194,7 @@ class CustomJsonEncoder(json.JSONEncoder):
             return {
                 "name": o.name,
                 "type": o.name,
-                "params": [p for p in o.params.values() if p.value is not None]
+                "params": [p for p in o.params.values() if p.value is not None],
             }
         if isinstance(o, TacticSeq):
             return {"tactics": o.storage, "fitness": o.fitness}

@@ -1,10 +1,11 @@
 """This module contains the PDA implementation"""
+
 # !/usr/bin/python
 from typing import Optional
 
 try:
-    print('Checking for pythonpda module:', end=' ')
-    print('OK')
+    print("Checking for pythonpda module:", end=" ")
+    print("OK")
     from aria.automata.symautomata.pythonpda import PythonPDA, PDAState
 
     class PDA(PythonPDA):
@@ -19,6 +20,7 @@ try:
                 str: The shortest string
             """
             from aria.automata.symautomata.pdadiff import PdaDiff
+
             ops = PdaDiff(None, None, self.alphabet)
             ops.mmc = self
             return ops.get_string()
@@ -28,15 +30,16 @@ try:
             Automata Diff operation
             """
             from aria.automata.symautomata.pdadiff import PdaDiff
+
             ops = PdaDiff(self, mmb, self.alphabet)
             mmc = ops.diff()
             return mmc
 
-        #def  consume_input(self, str):
+        # def  consume_input(self, str):
         #    """
         #    Not implemented
         #    """
         #    return 0xffff
 
 except ImportError:
-    print('FAIL')
+    print("FAIL")

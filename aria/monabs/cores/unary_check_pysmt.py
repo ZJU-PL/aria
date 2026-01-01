@@ -6,6 +6,7 @@ Result encoding (shared across helpers):
 - 0: unsatisfiable
 - 2: unknown (e.g., solver returned unknown)
 """
+
 from typing import List, Optional
 
 from pysmt.exceptions import SolverReturnedUnknownResultError

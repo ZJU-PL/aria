@@ -5,7 +5,9 @@ import argparse
 
 class SExprTokenizer:
     def __init__(self, infile):
-        self.file = open(infile, 'r', encoding='utf-8')  # pylint: disable=consider-using-with
+        self.file = open(
+            infile, "r", encoding="utf-8"
+        )  # pylint: disable=consider-using-with
 
     def __iter__(self):
         return self
@@ -24,7 +26,7 @@ class SExprTokenizer:
         cur_comment = []
         cur_string_literal = []
         cur_token = None
-        whitespace_chars = [' ', '\t', '\n']
+        whitespace_chars = [" ", "\t", "\n"]
 
         while True:
             char = self.file.read(1)
@@ -37,28 +39,28 @@ class SExprTokenizer:
                 # Note: Escaped quotes "A "" B "" C" is one string literal
                 if char == '"' and len(cur_string_literal) > 1:
                     assert cur_expr is not None
-                    cur_expr.append(''.join(cur_string_literal))
+                    cur_expr.append("".join(cur_string_literal))
                     cur_string_literal = []
                 continue
 
             # Handle piped symbols
-            if char == '|' or cur_quoted_symbol:
+            if char == "|" or cur_quoted_symbol:
                 if len(cur_comment) > 0:
                     continue
                 cur_quoted_symbol.append(char)
-                if char == '|' and len(cur_quoted_symbol) > 1:
+                if char == "|" and len(cur_quoted_symbol) > 1:
                     # Piped symbols only appear in s-expressions
                     if cur_expr is None:
                         cur_expr = []
-                    cur_expr.append(''.join(cur_quoted_symbol))
+                    cur_expr.append("".join(cur_quoted_symbol))
                     cur_quoted_symbol = []
                 continue
 
             # Handle comments
-            if char == ';' or cur_comment:
+            if char == ";" or cur_comment:
                 cur_comment.append(char)
-                if char == '\n':
-                    comment = ''.join(cur_comment)
+                if char == "\n":
+                    comment = "".join(cur_comment)
                     cur_comment = []
                     if cur_expr:
                         cur_expr.append(comment)
@@ -67,24 +69,24 @@ class SExprTokenizer:
                 continue
 
             # Open s-expression
-            if char == '(':
+            if char == "(":
                 # Check if token is not yet consumed
                 if cur_token is not None:
-                    cur_expr.append(''.join(cur_token))
+                    cur_expr.append("".join(cur_token))
                     cur_token = None
 
                 cur_expr = []
                 exprs.append(cur_expr)
 
             # Close s-expression
-            elif char == ')':
+            elif char == ")":
                 assert exprs
                 assert cur_expr == exprs[-1]
                 cur_expr = exprs.pop()
 
                 # Check if token is not yet consumed
                 if cur_token is not None:
-                    cur_expr.append(''.join(cur_token))
+                    cur_expr.append("".join(cur_token))
                     cur_token = None
 
                 # Do we have nested s-expressions?
@@ -100,7 +102,7 @@ class SExprTokenizer:
 
             # Close current token
             elif cur_token and char in whitespace_chars:
-                token = ''.join(cur_token)
+                token = "".join(cur_token)
 
                 # Append token to current sexpr
                 if cur_expr is not None:
@@ -118,13 +120,14 @@ class SExprTokenizer:
         return None
 
     def __del__(self):
-        if hasattr(self, 'file') and self.file:
+        if hasattr(self, "file") and self.file:
             self.file.close()
+
 
 def main():
 
     ap = argparse.ArgumentParser()
-    ap.add_argument('input')
+    ap.add_argument("input")
     args = ap.parse_args()
 
     tokenizer = SExprTokenizer(args.input)
@@ -133,5 +136,5 @@ def main():
         print(sexpr)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

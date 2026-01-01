@@ -3,6 +3,7 @@ Sequential (solve one-by-one) optimization strategy for bit-vector objectives
 
 FIXME: by LLM, to check if this is correct
 """
+
 import logging
 import time
 from typing import List
@@ -35,16 +36,16 @@ def _parse_smtlib_value(result: str) -> int:
     import re
 
     # Find SMT-LIB value patterns: #x[0-9a-f]+ or #b[0-1]+
-    hex_match = re.search(r'#x([0-9a-fA-F]+)', result)
+    hex_match = re.search(r"#x([0-9a-fA-F]+)", result)
     if hex_match:
         return int(hex_match.group(1), 16)
 
-    bin_match = re.search(r'#b([0-1]+)', result)
+    bin_match = re.search(r"#b([0-1]+)", result)
     if bin_match:
         return int(bin_match.group(1), 2)
 
     # Fallback: try to parse as decimal
-    dec_match = re.search(r'\b(\d+)\b', result)
+    dec_match = re.search(r"\b(\d+)\b", result)
     if dec_match:
         return int(dec_match.group(1))
 
@@ -85,21 +86,17 @@ def solve_boxed_sequential(
 
         # Select optimization method based on engine
         if engine == "qsmt":
-            result = bv_opt_with_qsmt(
-                current_formula, obj, minimize, solver_name
-            )
+            result = bv_opt_with_qsmt(current_formula, obj, minimize, solver_name)
         elif engine == "maxsat":
-            result = bv_opt_with_maxsat(
-                current_formula, obj, minimize, solver_name
-            )
+            result = bv_opt_with_maxsat(current_formula, obj, minimize, solver_name)
         elif engine == "iter":
             if solver_name.endswith("-ls"):
-                solver_type = solver_name.split('-')[0]
+                solver_type = solver_name.split("-")[0]
                 result = bv_opt_with_linear_search(
                     current_formula, obj, minimize, solver_type
                 )
             elif solver_name.endswith("-bs"):
-                solver_type = solver_name.split('-')[0]
+                solver_type = solver_name.split("-")[0]
                 result = bv_opt_with_binary_search(
                     current_formula, obj, minimize, solver_type
                 )
@@ -132,9 +129,7 @@ def solve_boxed_sequential(
                     # Add constraint to maintain this objective's value
                     current_formula = z3.And(current_formula, obj == value)
                 except (ValueError, IndexError) as e:
-                    logger.error(
-                        "Could not parse result: %s (%s)", result, e
-                    )
+                    logger.error("Could not parse result: %s (%s)", result, e)
                     results.append(None)
             else:
                 logger.warning("Unexpected result format: %s", result)
@@ -147,21 +142,18 @@ def solve_boxed_sequential(
 
     return results
 
+
 def demo():
     """Demo usage of sequential boxed optimization"""
-    x = z3.BitVec('x', 8)
-    y = z3.BitVec('y', 8)
+    x = z3.BitVec("x", 8)
+    y = z3.BitVec("y", 8)
 
     # Create a simple formula with two objectives
     formula = z3.And(x >= 0, y >= 0, x + y <= 10)
     objectives = [x, y]
 
     # Try different engines
-    engines = [
-        ("qsmt", "z3"),
-        ("maxsat", "FM"),
-        ("iter", "z3-ls")
-    ]
+    engines = [("qsmt", "z3"), ("maxsat", "FM"), ("iter", "z3-ls")]
 
     for engine, solver in engines:
         print(f"\nTrying {engine} engine with {solver} solver:")
@@ -170,6 +162,7 @@ def demo():
             print(f"Results: {results}")
         except Exception as e:
             print(f"Error: {e}")
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

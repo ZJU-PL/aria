@@ -1,6 +1,7 @@
 """
 Iterative search-based optimization for bit-vector OMT problems.
 """
+
 import logging
 from typing import Any, Union
 
@@ -94,7 +95,9 @@ def _maximize_linear_search(solver: Solver, obj: Any) -> Union[int, str]:
     return "unsatisfiable"
 
 
-def _minimize_binary_search(solver: Solver, obj: Any, bv_width: int, max_bv: int) -> int:
+def _minimize_binary_search(
+    solver: Solver, obj: Any, bv_width: int, max_bv: int
+) -> int:
     """Binary search minimization."""
     cur_min, cur_max = 0, max_bv
     lower = BV(max_bv, bv_width)
@@ -105,10 +108,7 @@ def _minimize_binary_search(solver: Solver, obj: Any, bv_width: int, max_bv: int
         solver.push()
         cur_mid = cur_min + ((cur_max - cur_min) >> 1)
 
-        cond = And(
-            BVUGE(obj, BV(cur_min, bv_width)),
-            BVULE(obj, BV(cur_mid, bv_width))
-        )
+        cond = And(BVUGE(obj, BV(cur_min, bv_width)), BVULE(obj, BV(cur_mid, bv_width)))
         solver.add_assertion(cond)
 
         if not solver.solve():
@@ -124,7 +124,9 @@ def _minimize_binary_search(solver: Solver, obj: Any, bv_width: int, max_bv: int
     return int(lower.constant_value())
 
 
-def _maximize_binary_search(solver: Solver, obj: Any, bv_width: int, max_bv: int) -> int:
+def _maximize_binary_search(
+    solver: Solver, obj: Any, bv_width: int, max_bv: int
+) -> int:
     """Binary search maximization."""
     cur_min, cur_max = 0, max_bv
     upper = BV(0, bv_width)
@@ -135,10 +137,7 @@ def _maximize_binary_search(solver: Solver, obj: Any, bv_width: int, max_bv: int
         solver.push()
         cur_mid = cur_min + ((cur_max - cur_min) >> 1)
 
-        cond = And(
-            BVUGE(obj, BV(cur_mid, bv_width)),
-            BVULE(obj, BV(cur_max, bv_width))
-        )
+        cond = And(BVUGE(obj, BV(cur_mid, bv_width)), BVULE(obj, BV(cur_max, bv_width)))
         solver.add_assertion(cond)
 
         if not solver.solve():
@@ -176,17 +175,17 @@ def demo_iterative() -> None:
         logger.error("Demo failed: %s", e)
 
 
-def init_logger(log_level: str = 'INFO') -> None:
+def init_logger(log_level: str = "INFO") -> None:
     """Initialize logger."""
     logger.handlers.clear()
     level = getattr(logging, log_level.upper(), logging.INFO)
     logger.setLevel(level)
 
     handler = logging.StreamHandler()
-    handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+    handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
     logger.addHandler(handler)
 
 
-if __name__ == '__main__':
-    init_logger('DEBUG')
+if __name__ == "__main__":
+    init_logger("DEBUG")
     demo_iterative()

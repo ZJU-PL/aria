@@ -45,6 +45,7 @@ class Vertex:
         """
         self.name: str = n
 
+
 class Matrix:
     """
     A matrix-based graph representation for CFL-reachability analysis.
@@ -80,11 +81,11 @@ class Matrix:
         self.__read_graph()
 
     def __read_graph(self) -> None:
-        suffix = self.source_file.split('.')[-1]
-        if suffix == 'txt':
-            with open(self.source_file,'r') as f:
+        suffix = self.source_file.split(".")[-1]
+        if suffix == "txt":
+            with open(self.source_file, "r") as f:
                 for line in f.readlines():
-                    node1_name, node2_name, edge = line.strip().split(',')
+                    node1_name, node2_name, edge = line.strip().split(",")
                     node1_name = node1_name.strip()
                     node2_name = node2_name.strip()
                     edge = edge.strip()
@@ -94,39 +95,45 @@ class Matrix:
                     if node2_name not in self.vertices:
                         node2 = Vertex(node2_name)
                         self.add_vertex(node2)
-                    self.add_edge(node1_name,node2_name,edge)
+                    self.add_edge(node1_name, node2_name, edge)
             return
         else:
             return self.__read_dot_file()
 
     def __read_dot_file(self) -> None:
-        edge_pattern = re.compile(r'(\w+)\s*->\s*(\w+)\s*\[.*color=(.*)\]')
-        node_pattern = re.compile(r'(\w+)')
-        with open(self.source_file, 'r') as f:
+        edge_pattern = re.compile(r"(\w+)\s*->\s*(\w+)\s*\[.*color=(.*)\]")
+        node_pattern = re.compile(r"(\w+)")
+        with open(self.source_file, "r") as f:
             lines = f.readlines()
             line_1 = lines[0]
             line_2 = lines[-1]
-            line_1 = line_1.split('{')[1]
-            line_2 = line_2.split('}')[0]
+            line_1 = line_1.split("{")[1]
+            line_2 = line_2.split("}")[0]
             lines[0] = line_1
             lines[-1] = line_2
             for line in lines:
-                if ('=' in line and "[" in line) or ("=" not in line and "[" not in line):
+                if ("=" in line and "[" in line) or (
+                    "=" not in line and "[" not in line
+                ):
                     if "->" in line:
                         match = edge_pattern.search(line)
                         if match is not None:
-                            node_1, node_2, label = match.group(1), match.group(2), match.group(3)
+                            node_1, node_2, label = (
+                                match.group(1),
+                                match.group(2),
+                                match.group(3),
+                            )
                             node_i1 = Vertex(node_1)
                             node_i2 = Vertex(node_2)
                             self.add_vertex(node_i1)
                             self.add_vertex(node_i2)
                             if label == "red":
-                                label = 'd'
-                                self.add_edge(node_2,node_1,label+'bar')
+                                label = "d"
+                                self.add_edge(node_2, node_1, label + "bar")
                             elif label == "black" or label == "purple":
-                                label = 'a'
-                                self.add_edge(node_2,node_1,label+'bar')
-                            self.add_edge(node_1,node_2,label)
+                                label = "a"
+                                self.add_edge(node_2, node_1, label + "bar")
+                            self.add_edge(node_1, node_2, label)
                     else:
                         match = node_pattern.search(line)
                         if match is not None:
@@ -183,34 +190,36 @@ class Matrix:
             self.edges[self.edge_indices[u]][self.edge_indices[v]].append(label)
             if label in self.symbol_pair.keys():
                 if self.new_check_edge(u, v, label):
-                    self.symbol_pair[label].append((u,v))
+                    self.symbol_pair[label].append((u, v))
             else:
                 self.symbol_pair[label] = []
-                self.symbol_pair[label].append((u,v))
+                self.symbol_pair[label].append((u, v))
             return True
         elif u not in self.vertices and v in self.vertices:
-            raise Exception(f'Node {u} is not in the graph')
+            raise Exception(f"Node {u} is not in the graph")
         elif v not in self.vertices and u in self.vertices:
-            raise Exception(f'Node {v} is not in the graph')
+            raise Exception(f"Node {v} is not in the graph")
         else:
-            raise Exception(f'Node {u} and Node {v} are not in the graph')
+            raise Exception(f"Node {u} and Node {v} are not in the graph")
 
     def output_edge(self) -> List[List[Union[str, str]]]:
         output_list: List[List[Union[str, str]]] = []
         for edge, pair_list in self.symbol_pair.items():
             for pair in pair_list:
-                output_list.append([edge,pair[0],pair[1]])
+                output_list.append([edge, pair[0], pair[1]])
         return output_list
 
     def check_edge(self, u: str, v: str, lable: str) -> bool:
         if lable not in self.symbol_pair:
             return False
-        if (u,v) in self.symbol_pair[lable]:
+        if (u, v) in self.symbol_pair[lable]:
             return True
         return False
 
-    def new_check_edge(self, u: Union[Vertex, str], v: Union[Vertex, str], lable: str) -> bool:
-        if isinstance(u,Vertex) and isinstance(v,Vertex):
+    def new_check_edge(
+        self, u: Union[Vertex, str], v: Union[Vertex, str], lable: str
+    ) -> bool:
+        if isinstance(u, Vertex) and isinstance(v, Vertex):
             u_index = self.edge_indices[u.name]
             v_index = self.edge_indices[v.name]
         else:
@@ -225,12 +234,12 @@ class Matrix:
         return self.symbol_pair["M"]
 
     def dump_dot(self) -> None:
-        with open('generated_file/dump_dot.dot','w') as f:
-            f.write('digraph CFG{\n')
+        with open("generated_file/dump_dot.dot", "w") as f:
+            f.write("digraph CFG{\n")
             for node in self.vertices:
-                f.write(f'\tn{node};\n')
+                f.write(f"\tn{node};\n")
             for symbol in self.symbol_pair:
-                if symbol in 'MVaabarddbar':
+                if symbol in "MVaabarddbar":
                     for pair in self.symbol_pair[symbol]:
                         f.write(f'\tn{pair[0]}->n{pair[1]}[label="{symbol}"]\n')
-            f.write('}')
+            f.write("}")

@@ -1,6 +1,7 @@
 """
 OMT(BV) solver using bit-blasting and MaxSAT reduction.
 """
+
 import logging
 import random
 import time
@@ -17,9 +18,19 @@ from aria.utils.z3_expr_utils import get_expr_vars
 logger = logging.getLogger(__name__)
 
 SAT_SOLVERS_IN_PYSAT = [
-    'cd', 'cd15', 'gc3', 'gc4', 'g3',
-    'g4', 'lgl', 'mcb', 'mpl', 'mg3',
-    'mc', 'm22', 'msh'
+    "cd",
+    "cd15",
+    "gc3",
+    "gc4",
+    "g3",
+    "g4",
+    "lgl",
+    "mcb",
+    "mpl",
+    "mg3",
+    "mc",
+    "m22",
+    "msh",
 ]
 
 
@@ -183,7 +194,7 @@ class BitBlastOMTBVSolver:
             # Signed interpretation: MSB is sign bit
             weight_sign = -1 if do_minimize else 1
             for i in range(num_bits - 1):
-                weight = weight_sign * (2 ** i)
+                weight = weight_sign * (2**i)
                 wcnf.append([self.bool2id[bool_vars[i]]], weight=weight)
                 total_score += weight
             # Sign bit: 1 means negative, 0 means positive
@@ -193,7 +204,7 @@ class BitBlastOMTBVSolver:
         else:
             # Unsigned interpretation
             for i in range(num_bits):
-                weight = 2 ** i
+                weight = 2**i
                 wcnf.append([self.bool2id[bool_vars[i]]], weight=weight)
                 total_score += weight
 
@@ -270,7 +281,7 @@ class BitBlastOMTBVSolver:
             # Signed: process all bits except sign bit
             for i in range(num_bits - 1):
                 if assumption_lits[i] > 0:
-                    sum_score += 2 ** i
+                    sum_score += 2**i
             # Sign bit: 1 means negative, 0 means positive
             if assumption_lits[-1] > 0:
                 sum_score = -sum_score
@@ -278,7 +289,7 @@ class BitBlastOMTBVSolver:
             # Unsigned: process all bits
             for i in range(num_bits):
                 if assumption_lits[i] > 0:
-                    sum_score += 2 ** i
+                    sum_score += 2**i
 
         logger.debug("maximum of %s: %d", obj_str, sum_score)
         logger.debug("OBV-BS MaxSAT time: %.3f", time.time() - start)

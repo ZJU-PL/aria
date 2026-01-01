@@ -24,6 +24,7 @@ def test_evaluation_modes():
     print("=== Testing Evaluation Modes ===")
     try:
         from aria.ml.tactic_opt.ga_tactics.core import get_evaluation_mode
+
         os.environ["Z3_EVALUATION_MODE"] = EvaluationMode.PYTHON_API
         assert get_evaluation_mode() == EvaluationMode.PYTHON_API
         print("✓ Python API mode configuration works")
@@ -61,6 +62,7 @@ def test_genetic_algorithm():
     except Exception as e:
         print(f"✗ Genetic algorithm failed: {e}")
         import traceback
+
         traceback.print_exc()
     print()
 

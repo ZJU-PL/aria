@@ -65,7 +65,9 @@ def qe_abduce(pre_cond: z3.BoolRef, post_cond: z3.BoolRef) -> Optional[z3.ExprRe
         aux_fml = z3.Implies(pre_cond, post_cond)
 
         # Variables to keep: those in post but not in pre
-        post_vars_minus_pre_vars = set(get_variables(post_cond)) - set(get_variables(pre_cond))
+        post_vars_minus_pre_vars = set(get_variables(post_cond)) - set(
+            get_variables(pre_cond)
+        )
 
         # Variables to eliminate: all others
         vars_to_forget = set(get_variables(aux_fml)) - post_vars_minus_pre_vars

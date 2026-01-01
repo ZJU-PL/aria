@@ -29,6 +29,7 @@ def _optional_import(module_name: str, from_name: str = None) -> Optional[Any]:
     except ImportError:
         return None
 
+
 # Import optional dependencies
 # FIXME: should we do this? Just installing the dependencies should be easy...
 genai = _optional_import("google.generativeai")
@@ -38,9 +39,13 @@ anthropic = _optional_import("anthropic", "Anthropic")
 class LLM:
     """Multi-provider LLM inference: Gemini, OpenAI, DeepSeek, Claude, GLM"""
 
-    def __init__(self, online_model_name: str, logger: Logger,
-                 temperature: float = 0.0,
-                 system_role="You are an experienced programmer.") -> None:
+    def __init__(
+        self,
+        online_model_name: str,
+        logger: Logger,
+        temperature: float = 0.0,
+        system_role="You are an experienced programmer.",
+    ) -> None:
         self.online_model_name = online_model_name
         if tiktoken is None:
             raise ImportError("tiktoken is required for LLM")
@@ -50,7 +55,6 @@ class LLM:
         self.temperature = temperature
         self.systemRole = system_role
         self.logger = logger
-
 
     def infer(
         self, message: str, is_measure_cost: bool = False
@@ -107,11 +111,16 @@ class LLM:
             return ""
 
         model = genai.GenerativeModel("gemini-pro")
+
         def call_api():
             return model.generate_content(
                 f"{self.systemRole}\n{message}",
-                safety_settings=[{"category": "HARM_CATEGORY_DANGEROUS", "threshold": "BLOCK_NONE"}],
-                generation_config=genai.types.GenerationConfig(temperature=self.temperature)
+                safety_settings=[
+                    {"category": "HARM_CATEGORY_DANGEROUS", "threshold": "BLOCK_NONE"}
+                ],
+                generation_config=genai.types.GenerationConfig(
+                    temperature=self.temperature
+                ),
             ).text
 
         return self._retry_api_call(call_api, timeout=50)
@@ -124,12 +133,18 @@ class LLM:
 
         def call_api():
             client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY", "").split(":")[0])
-            return client.chat.completions.create(
-                model=self.online_model_name,
-                messages=[{"role": "system", "content": self.systemRole},
-                         {"role": "user", "content": message}],
-                temperature=self.temperature
-            ).choices[0].message.content
+            return (
+                client.chat.completions.create(
+                    model=self.online_model_name,
+                    messages=[
+                        {"role": "system", "content": self.systemRole},
+                        {"role": "user", "content": message},
+                    ],
+                    temperature=self.temperature,
+                )
+                .choices[0]
+                .message.content
+            )
 
         return self._retry_api_call(call_api)
 
@@ -141,25 +156,40 @@ class LLM:
 
         def call_api():
             client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY", "").split(":")[0])
-            return client.chat.completions.create(
-                model=self.online_model_name,
-                messages=[{"role": "system", "content": self.systemRole},
-                         {"role": "user", "content": message}]
-            ).choices[0].message.content
+            return (
+                client.chat.completions.create(
+                    model=self.online_model_name,
+                    messages=[
+                        {"role": "system", "content": self.systemRole},
+                        {"role": "user", "content": message},
+                    ],
+                )
+                .choices[0]
+                .message.content
+            )
 
         return self._retry_api_call(call_api)
 
     def infer_with_deepseek_model(self, message):
         """Infer using DeepSeek model"""
+
         def call_api():
-            client = OpenAI(api_key=os.environ.get("DEEPSEEK_API_KEY2"),
-                          base_url="https://api.deepseek.com")
-            return client.chat.completions.create(
-                model=self.online_model_name,
-                messages=[{"role": "system", "content": self.systemRole},
-                         {"role": "user", "content": message}],
-                temperature=self.temperature
-            ).choices[0].message.content
+            client = OpenAI(
+                api_key=os.environ.get("DEEPSEEK_API_KEY2"),
+                base_url="https://api.deepseek.com",
+            )
+            return (
+                client.chat.completions.create(
+                    model=self.online_model_name,
+                    messages=[
+                        {"role": "system", "content": self.systemRole},
+                        {"role": "user", "content": message},
+                    ],
+                    temperature=self.temperature,
+                )
+                .choices[0]
+                .message.content
+            )
 
         return self._retry_api_call(call_api, timeout=300)
 
@@ -174,7 +204,7 @@ class LLM:
             "claude-3.5": "claude-3-5-sonnet-20241022",
             "claude-3-5": "claude-3-5-sonnet-20241022",
             "claude-3": "claude-3-sonnet-20240229",
-            "claude": "claude-3-5-sonnet-20241022"  # default to latest
+            "claude": "claude-3-5-sonnet-20241022",  # default to latest
         }
 
         # Find matching model or use default
@@ -191,12 +221,11 @@ class LLM:
                 max_tokens=4000,
                 temperature=self.temperature,
                 system=self.systemRole,
-                messages=[{"role": "user", "content": message}]
+                messages=[{"role": "user", "content": message}],
             )
             return response.content[0].text
 
         return self._retry_api_call(call_api)
-
 
     def infer_with_glm_model(self, message):
         """Infer using GLM model"""
@@ -205,13 +234,21 @@ class LLM:
             return ""
 
         def call_api():
-            client = ZhipuAI(api_key=os.environ.get("GLM_API_KEY") or os.environ.get("ZHIPU_API_KEY"))
-            return client.chat.completions.create(
-                model=self.online_model_name,
-                messages=[{"role": "system", "content": self.systemRole},
-                         {"role": "user", "content": message}],
-                temperature=self.temperature
-            ).choices[0].message.content
+            client = ZhipuAI(
+                api_key=os.environ.get("GLM_API_KEY") or os.environ.get("ZHIPU_API_KEY")
+            )
+            return (
+                client.chat.completions.create(
+                    model=self.online_model_name,
+                    messages=[
+                        {"role": "system", "content": self.systemRole},
+                        {"role": "user", "content": message},
+                    ],
+                    temperature=self.temperature,
+                )
+                .choices[0]
+                .message.content
+            )
 
         return self._retry_api_call(call_api)
 

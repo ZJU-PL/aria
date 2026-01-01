@@ -57,7 +57,7 @@ def python_to_z3_value(py_val, sort: z3.SortRef):
         bitwidth = sort.size()
         if isinstance(py_val, int):
             return z3.BitVecVal(py_val, bitwidth)
-        if isinstance(py_val, str) and py_val.startswith('#b'):
+        if isinstance(py_val, str) and py_val.startswith("#b"):
             # Handle binary string representation
             return z3.BitVecVal(py_val, bitwidth)
         # Default to integer interpretation
@@ -95,8 +95,9 @@ def values_equal(val1, val2) -> bool:
     if z3.is_fp_value(val1) and z3.is_fp_value(val2):
         # For floating points, use fpEQ for proper NaN handling
         return z3.fpEQ(val1, val2)
-    if (z3.is_array_value(val1) and  # pylint: disable=no-member
-            z3.is_array_value(val2)):  # pylint: disable=no-member
+    if z3.is_array_value(val1) and z3.is_array_value(  # pylint: disable=no-member
+        val2
+    ):  # pylint: disable=no-member
         # For arrays, this would need more sophisticated comparison
         # For now, use string comparison as a fallback
         return str(val1) == str(val2)
@@ -175,11 +176,9 @@ class ExplanationLogger:
         if level == "detailed" and self.level != "detailed":
             return
 
-        self.history.append({
-            "timestamp": time.time(),
-            "message": message,
-            "level": level
-        })
+        self.history.append(
+            {"timestamp": time.time(), "message": message, "level": level}
+        )
 
     def get_history(self) -> List[Dict[str, Any]]:
         """Return the explanation history entries."""
@@ -205,10 +204,10 @@ def parse_text_by_sort(text: str, sort: z3.SortRef) -> Any:
         return text
     if z3.is_bv_sort(sort):
         # Handle bit-vector text representations
-        if text.startswith('#b'):
+        if text.startswith("#b"):
             # Binary representation like #b1010
             return int(text[2:], 2)
-        if text.startswith('#x'):
+        if text.startswith("#x"):
             # Hexadecimal representation like #xA
             return int(text[2:], 16)
         # Try to parse as regular integer

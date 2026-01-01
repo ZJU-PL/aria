@@ -4,6 +4,7 @@ Utility functions for bit-vector optimization.
 This module provides helper functions for converting between different
 representations used in bit-vector optimization problems.
 """
+
 import logging
 import os
 import re
@@ -28,7 +29,7 @@ def cnt(result_list: List[int]) -> int:
     total = 0
     for i, bit in enumerate(result_list):
         if bit > 0:
-            total += 2 ** i
+            total += 2**i
     return total
 
 
@@ -79,14 +80,11 @@ def cnf_from_z3(constraint_file: str) -> Optional[str]:
     """
     path = os.getcwd()
     path = os.path.dirname(os.path.dirname(os.path.dirname(path)))
-    z3_path = os.path.join(path, 'z3', 'build', 'z3')
+    z3_path = os.path.join(path, "z3", "build", "z3")
     try:
         command = [z3_path, "opt.priority=box", constraint_file]
         process_result = subprocess.run(
-            command,
-            capture_output=True,
-            text=True,
-            check=True
+            command, capture_output=True, text=True, check=True
         )
         return process_result.stdout
     except subprocess.CalledProcessError as e:
@@ -95,7 +93,7 @@ def cnf_from_z3(constraint_file: str) -> Optional[str]:
 
 
 def read_cnf(  # noqa: PLR0912
-    data: str
+    data: str,
 ) -> Optional[Tuple[List[List[int]], List[List[int]], List[int]]]:
     """Parse CNF data from Z3 output.
 
@@ -114,7 +112,7 @@ def read_cnf(  # noqa: PLR0912
     clauses: List[List[int]] = []
     obj_type: List[int] = []  # 0 for minimize, 1 for maximize
     soft: List[List[int]] = []
-    constraint_type = '0'
+    constraint_type = "0"
     soft_temp: List[int] = []
 
     # Parse first line to get number of clauses
@@ -136,13 +134,13 @@ def read_cnf(  # noqa: PLR0912
     # Parse comment lines for soft clauses
     j = i
     comment_dict: dict[int, str] = {}
-    min_index = 10 ** 10
-    while j < len(lines) and lines[j].startswith('c'):
+    min_index = 10**10
+    while j < len(lines) and lines[j].startswith("c"):
         line_parts = lines[j].split()
         if len(line_parts) < 6:
             j += 1
             continue
-        split_by_excl = lines[j].split('!')
+        split_by_excl = lines[j].split("!")
         try:
             index = int(split_by_excl[-1])
             comment_dict[index] = lines[j]
@@ -163,7 +161,7 @@ def read_cnf(  # noqa: PLR0912
         if len(parts) < 6:
             break
 
-        if parts[4].endswith(':0]'):
+        if parts[4].endswith(":0]"):
             # End of current soft clause group
             if soft_temp:
                 soft.append(soft_temp)
@@ -219,7 +217,9 @@ def res_z3_trans(r_z3: str, objective_order: Optional[List[str]] = None) -> List
                 try:
                     objective_values[name] = int(objective_match.group("value"))
                 except ValueError:
-                    logger.warning("Could not parse objective value from line: %s", line)
+                    logger.warning(
+                        "Could not parse objective value from line: %s", line
+                    )
             continue
 
         model_match = model_re.search(line)
@@ -233,9 +233,7 @@ def res_z3_trans(r_z3: str, objective_order: Optional[List[str]] = None) -> List
         # Multi-line (define-fun ...) blocks: capture the name first,
         # then parse the value line.
         if line.startswith("(define-fun"):
-            pattern = (
-                r"\(define-fun\s+(?P<name>\S+)\s+\(\)\s+\(_\s*BitVec\s+\d+\)"
-            )
+            pattern = r"\(define-fun\s+(?P<name>\S+)\s+\(\)\s+\(_\s*BitVec\s+\d+\)"
             pending_match = re.match(pattern, line)
             if pending_match:
                 pending_define = pending_match.group("name")
@@ -276,6 +274,7 @@ def res_z3_trans(r_z3: str, objective_order: Optional[List[str]] = None) -> List
             if name in objective_values
         ]
     else:
+
         def _sort_key(var_name: str):
             match = re.search(r"(\d+)", var_name)
             return int(match.group(1)) if match else var_name
@@ -288,12 +287,12 @@ def res_z3_trans(r_z3: str, objective_order: Optional[List[str]] = None) -> List
     return ordered
 
 
-if __name__ == '__main__':
-    BENCHMARK_PATH = '/aria/benchmarks/omt/'
+if __name__ == "__main__":
+    BENCHMARK_PATH = "/aria/benchmarks/omt/"
     result = subprocess.run(
-        ['z3', 'opt.priority=box', BENCHMARK_PATH],
+        ["z3", "opt.priority=box", BENCHMARK_PATH],
         capture_output=True,
         text=True,
-        check=True
+        check=True,
     )
     print(res_z3_trans(result.stdout))

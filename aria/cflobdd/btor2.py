@@ -18,6 +18,7 @@ import math
 
 # supported BTOR2 keywords and operators
 
+
 def init_btor2_keywords_operators():
     global BITVEC
     global ARRAY
@@ -82,74 +83,77 @@ def init_btor2_keywords_operators():
     global OP_BAD
     global OP_CONSTRAINT
 
-    BITVEC = 'bitvec'
-    ARRAY  = 'array'
+    BITVEC = "bitvec"
+    ARRAY = "array"
 
-    OP_SORT = 'sort'
+    OP_SORT = "sort"
 
-    OP_ZERO = 'zero'
-    OP_ONE  = 'one'
+    OP_ZERO = "zero"
+    OP_ONE = "one"
 
-    OP_CONST  = 'const'
-    OP_CONSTD = 'constd'
-    OP_CONSTH = 'consth'
-    OP_INPUT  = 'input'
-    OP_STATE  = 'state'
+    OP_CONST = "const"
+    OP_CONSTD = "constd"
+    OP_CONSTH = "consth"
+    OP_INPUT = "input"
+    OP_STATE = "state"
 
-    OP_INIT  = 'init'
-    OP_NEXT  = 'next'
+    OP_INIT = "init"
+    OP_NEXT = "next"
 
-    OP_SEXT  = 'sext'
-    OP_UEXT  = 'uext'
-    OP_SLICE = 'slice'
+    OP_SEXT = "sext"
+    OP_UEXT = "uext"
+    OP_SLICE = "slice"
 
-    OP_NOT = 'not'
-    OP_INC = 'inc'
-    OP_DEC = 'dec'
-    OP_NEG = 'neg'
+    OP_NOT = "not"
+    OP_INC = "inc"
+    OP_DEC = "dec"
+    OP_NEG = "neg"
 
-    OP_IMPLIES = 'implies'
-    OP_EQ      = 'eq'
-    OP_NEQ     = 'neq'
-    OP_SGT     = 'sgt'
-    OP_UGT     = 'ugt'
-    OP_SGTE    = 'sgte'
-    OP_UGTE    = 'ugte'
-    OP_SLT     = 'slt'
-    OP_ULT     = 'ult'
-    OP_SLTE    = 'slte'
-    OP_ULTE    = 'ulte'
+    OP_IMPLIES = "implies"
+    OP_EQ = "eq"
+    OP_NEQ = "neq"
+    OP_SGT = "sgt"
+    OP_UGT = "ugt"
+    OP_SGTE = "sgte"
+    OP_UGTE = "ugte"
+    OP_SLT = "slt"
+    OP_ULT = "ult"
+    OP_SLTE = "slte"
+    OP_ULTE = "ulte"
 
-    OP_AND = 'and'
-    OP_OR  = 'or'
-    OP_XOR = 'xor'
+    OP_AND = "and"
+    OP_OR = "or"
+    OP_XOR = "xor"
 
-    OP_SLL = 'sll'
-    OP_SRL = 'srl'
-    OP_SRA = 'sra'
+    OP_SLL = "sll"
+    OP_SRL = "srl"
+    OP_SRA = "sra"
 
-    OP_ADD  = 'add'
-    OP_SUB  = 'sub'
-    OP_MUL  = 'mul'
-    OP_SDIV = 'sdiv'
-    OP_UDIV = 'udiv'
-    OP_SREM = 'srem'
-    OP_UREM = 'urem'
+    OP_ADD = "add"
+    OP_SUB = "sub"
+    OP_MUL = "mul"
+    OP_SDIV = "sdiv"
+    OP_UDIV = "udiv"
+    OP_SREM = "srem"
+    OP_UREM = "urem"
 
-    OP_CONCAT = 'concat'
-    OP_READ   = 'read'
+    OP_CONCAT = "concat"
+    OP_READ = "read"
 
-    OP_ITE   = 'ite'
-    OP_WRITE = 'write'
+    OP_ITE = "ite"
+    OP_WRITE = "write"
 
-    OP_BAD        = 'bad'
-    OP_CONSTRAINT = 'constraint'
+    OP_BAD = "bad"
+    OP_CONSTRAINT = "constraint"
+
 
 init_btor2_keywords_operators()
+
 
 class model_error(Exception):
     def __init__(self, expected, line_no):
         super().__init__(f"model error in line {line_no}: {expected} expected")
+
 
 class Line:
     lines = {}
@@ -158,7 +162,7 @@ class Line:
 
     def __init__(self, nid, comment, line_no):
         self.nid = nid
-        self.comment = "; " + comment if comment and comment[0] != ';' else comment
+        self.comment = "; " + comment if comment and comment[0] != ";" else comment
         self.line_no = line_no
         self.new_line()
 
@@ -167,7 +171,9 @@ class Line:
 
     def new_line(self):
         if self.nid is not None:
-            assert self.nid not in Line.lines, f"nid {self.nid} already defined @ {self.line_no}"
+            assert (
+                self.nid not in Line.lines
+            ), f"nid {self.nid} already defined @ {self.line_no}"
             Line.lines[self.nid] = self
         type(self).count += 1
 
@@ -178,6 +184,7 @@ class Line:
         assert Line.is_defined(nid), f"undefined nid {self.nid} @ {self.line_no}"
         return Line.lines[nid]
 
+
 class Sort(Line):
     keyword = OP_SORT
 
@@ -186,6 +193,7 @@ class Sort(Line):
 
     def match_sorts(self, sort):
         return type(self) is type(sort)
+
 
 class Bitvector(Sort):
     keyword = BITVEC
@@ -208,7 +216,7 @@ class Bitvector(Sort):
         return 0 <= value < 2**self.size
 
     def is_signed_value(self, value):
-        return -2**(self.size - 1) <= value < 2**(self.size - 1)
+        return -(2 ** (self.size - 1)) <= value < 2 ** (self.size - 1)
 
     def is_value(self, value):
         return self.is_unsigned_value(value) or self.is_signed_value(value)
@@ -219,7 +227,8 @@ class Bitvector(Sort):
 
     def get_signed_value(self, value):
         assert self.is_value(value)
-        return value - 2**self.size if value >= 2**(self.size - 1) else value
+        return value - 2**self.size if value >= 2 ** (self.size - 1) else value
+
 
 class Bool(Bitvector):
     boolean = None
@@ -229,6 +238,7 @@ class Bool(Bitvector):
         assert Bool.boolean is None
         Bool.boolean = self
 
+
 class Bitvec(Bitvector):
     def __init__(self, nid, size, comment, line_no):
         super().__init__(nid, size, comment, line_no)
@@ -236,12 +246,13 @@ class Bitvec(Bitvector):
     def match_sorts(self, sort):
         return super().match_sorts(sort) and self.size == sort.size
 
+
 class Array(Sort):
     keyword = ARRAY
 
     # map arrays up to size bound to bitvectors
 
-    ARRAY_SIZE_BOUND = 0 # array size in bits
+    ARRAY_SIZE_BOUND = 0  # array size in bits
 
     number_of_variable_arrays = 0
     number_of_mapped_arrays = 0
@@ -259,14 +270,17 @@ class Array(Sort):
         return f"{self.nid} {Sort.keyword} {Array.keyword} {self.array_size_line.nid} {self.element_size_line.nid} {self.comment}"
 
     def match_sorts(self, sort):
-        return (super().match_sorts(sort)
+        return (
+            super().match_sorts(sort)
             and self.array_size_line.match_sorts(sort.array_size_line)
-            and self.element_size_line.match_sorts(sort.element_size_line))
+            and self.element_size_line.match_sorts(sort.element_size_line)
+        )
 
     def match_init_sorts(self, sort):
         # allow constant arrays: array init with bitvector
-        return (self.match_sorts(sort)
-            or (isinstance(sort, Bitvec) and self.element_size_line.match_sorts(sort)))
+        return self.match_sorts(sort) or (
+            isinstance(sort, Bitvec) and self.element_size_line.match_sorts(sort)
+        )
 
     def is_mapped_array(self):
         return self.array_size_line.size <= Array.ARRAY_SIZE_BOUND
@@ -276,7 +290,10 @@ class Array(Sort):
             return nid
         else:
             # shift left by log10(2**n + 1) decimal digits where n is the array index space
-            return nid * 10**(math.floor(math.log10(2**Array.ARRAY_SIZE_BOUND + 1)) + 1)
+            return nid * 10 ** (
+                math.floor(math.log10(2**Array.ARRAY_SIZE_BOUND + 1)) + 1
+            )
+
 
 class Expression(Line):
     total_number_of_generated_expressions = 0
@@ -296,11 +313,14 @@ class Expression(Line):
         # filter out uninitialized states
         return [state for state in self.domain if state.init_line is not None]
 
+
 class Constant(Expression):
     def __init__(self, nid, sid_line, value, comment, line_no):
         super().__init__(nid, sid_line, {}, 0, comment, line_no)
         if not sid_line.is_value(value):
-            raise model_error(f"{value} in range of {sid_line.size}-bit bitvector", line_no)
+            raise model_error(
+                f"{value} in range of {sid_line.size}-bit bitvector", line_no
+            )
         self.print_value = value
         self.signed_value = sid_line.get_signed_value(value)
         self.value = sid_line.get_unsigned_value(value)
@@ -310,6 +330,7 @@ class Constant(Expression):
 
     def get_mapped_array_expression_for(self, index):
         return self
+
 
 class Zero(Constant):
     keyword = OP_ZERO
@@ -324,6 +345,7 @@ class Zero(Constant):
         else:
             return f"{self.nid} {Zero.keyword} {self.sid_line.nid} {self.comment}"
 
+
 class One(Constant):
     keyword = OP_ONE
 
@@ -337,6 +359,7 @@ class One(Constant):
         else:
             return f"{self.nid} {One.keyword} {self.sid_line.nid} {self.comment}"
 
+
 class Constd(Constant):
     keyword = OP_CONSTD
 
@@ -345,6 +368,7 @@ class Constd(Constant):
 
     def __str__(self):
         return f"{self.nid} {Constd.keyword} {self.sid_line.nid} {self.print_value} {self.comment}"
+
 
 class Const(Constant):
     keyword = OP_CONST
@@ -356,6 +380,7 @@ class Const(Constant):
         size = self.sid_line.size
         return f"{self.nid} {Const.keyword} {self.sid_line.nid} {self.value:0{size}b} {self.comment}"
 
+
 class Consth(Constant):
     keyword = OP_CONSTH
 
@@ -366,10 +391,13 @@ class Consth(Constant):
         size = math.ceil(self.sid_line.size / 4)
         return f"{self.nid} {Consth.keyword} {self.sid_line.nid} {self.value:0{size}X} {self.comment}"
 
+
 class Constant_Array(Expression):
     def __init__(self, sid_line, constant_line):
-        super().__init__(None, sid_line, {}, 0, constant_line.comment, constant_line.line_no)
-        self.nid = constant_line.nid # reuse nid of constant_line
+        super().__init__(
+            None, sid_line, {}, 0, constant_line.comment, constant_line.line_no
+        )
+        self.nid = constant_line.nid  # reuse nid of constant_line
         self.constant_line = constant_line
         if not isinstance(sid_line, Array):
             raise model_error("array sort", line_no)
@@ -388,6 +416,7 @@ class Constant_Array(Expression):
         else:
             assert not self.sid_line.is_mapped_array()
             return self
+
 
 class Variable(Expression):
     keywords = {OP_INPUT, OP_STATE}
@@ -416,12 +445,20 @@ class Variable(Expression):
             Array.number_of_mapped_arrays += 1
             self.array = {}
             for index in range(2**self.sid_line.array_size_line.size):
-                self.array[index] = type(self)(self.nid + index + 1, self.sid_line.element_size_line,
-                    f"{self.symbol}-{index}", f"{self.comment} @ index {index}", self.line_no, index)
+                self.array[index] = type(self)(
+                    self.nid + index + 1,
+                    self.sid_line.element_size_line,
+                    f"{self.symbol}-{index}",
+                    f"{self.comment} @ index {index}",
+                    self.line_no,
+                    index,
+                )
 
     def new_input(self, index):
         if index is not None or not self.sid_line.is_mapped_array():
-            assert self.nid not in Variable.inputs, f"variable nid {self.nid} already defined @ {self.line_no}"
+            assert (
+                self.nid not in Variable.inputs
+            ), f"variable nid {self.nid} already defined @ {self.line_no}"
             Variable.inputs[self.nid] = self
 
             if isinstance(self.sid_line, Bitvector) and self.sid_line.size == 8:
@@ -435,16 +472,18 @@ class Variable(Expression):
             assert not self.sid_line.is_mapped_array()
             return self
 
+
 class Input(Variable):
     keyword = OP_INPUT
 
-    def __init__(self, nid, sid_line, symbol, comment, line_no, index = None):
+    def __init__(self, nid, sid_line, symbol, comment, line_no, index=None):
         super().__init__(nid, sid_line, {}, symbol, comment, line_no, index)
         self.name = f"input{self.nid}"
         self.new_input(index)
 
     def __str__(self):
         return f"{self.nid} {Input.keyword} {self.sid_line.nid} {self.symbol} {self.comment}"
+
 
 class State(Variable):
     keyword = OP_STATE
@@ -453,9 +492,9 @@ class State(Variable):
 
     pc = None
 
-    def __init__(self, nid, sid_line, symbol, comment, line_no, index = None):
+    def __init__(self, nid, sid_line, symbol, comment, line_no, index=None):
         # domain is ordered set by using dictionary with None values
-        super().__init__(nid, sid_line, {self:None}, symbol, comment, line_no, index)
+        super().__init__(nid, sid_line, {self: None}, symbol, comment, line_no, index)
         self.name = f"state{self.nid}"
         self.init_line = None
         self.next_line = None
@@ -469,7 +508,9 @@ class State(Variable):
 
     def new_state(self, index):
         if index is not None or not self.sid_line.is_mapped_array():
-            assert self.nid not in State.states, f"state nid {self.nid} already defined @ {self.line_no}"
+            assert (
+                self.nid not in State.states
+            ), f"state nid {self.nid} already defined @ {self.line_no}"
             State.states[self.nid] = self
 
     def remove_state(self):
@@ -480,14 +521,21 @@ class State(Variable):
 
     def get_mapped_array_expression_for(self, index):
         if isinstance(self.sid_line, Bitvector) or self.sid_line.is_mapped_array():
-            if self.init_line is not None and self.next_line is not None and self.next_line.exp_line is self:
+            if (
+                self.init_line is not None
+                and self.next_line is not None
+                and self.next_line.exp_line is self
+            ):
                 # propagate initial value of initialized read-only bitvector states
                 return self.init_line.exp_line.get_mapped_array_expression_for(index)
         return super().get_mapped_array_expression_for(index)
 
+
 class Indexed(Expression):
     def __init__(self, nid, sid_line, arg1_line, comment, line_no):
-        super().__init__(nid, sid_line, arg1_line.domain, arg1_line.depth + 1, comment, line_no)
+        super().__init__(
+            nid, sid_line, arg1_line.domain, arg1_line.depth + 1, comment, line_no
+        )
         self.arg1_line = arg1_line
         if not isinstance(arg1_line, Expression):
             raise model_error("expression operand", line_no)
@@ -504,6 +552,7 @@ class Indexed(Expression):
         assert index is None
         arg1_line = self.arg1_line.get_mapped_array_expression_for(None)
         return self.copy(arg1_line)
+
 
 class Ext(Indexed):
     keywords = {OP_SEXT, OP_UEXT}
@@ -522,9 +571,18 @@ class Ext(Indexed):
     def copy(self, arg1_line):
         if self.arg1_line is not arg1_line:
             Expression.total_number_of_generated_expressions += 1
-            return type(self)(Parser.next_nid(), self.op, self.sid_line, arg1_line, self.w, self.comment, self.line_no)
+            return type(self)(
+                Parser.next_nid(),
+                self.op,
+                self.sid_line,
+                arg1_line,
+                self.w,
+                self.comment,
+                self.line_no,
+            )
         else:
             return self
+
 
 class Slice(Indexed):
     keyword = OP_SLICE
@@ -546,23 +604,34 @@ class Slice(Indexed):
     def copy(self, arg1_line):
         if self.arg1_line is not arg1_line:
             Expression.total_number_of_generated_expressions += 1
-            return type(self)(Parser.next_nid(), self.sid_line, arg1_line, self.u, self.l, self.comment, self.line_no)
+            return type(self)(
+                Parser.next_nid(),
+                self.sid_line,
+                arg1_line,
+                self.u,
+                self.l,
+                self.comment,
+                self.line_no,
+            )
         else:
             return self
+
 
 class Unary(Expression):
     keywords = {OP_NOT, OP_INC, OP_DEC, OP_NEG}
 
     def __init__(self, nid, op, sid_line, arg1_line, comment, line_no):
-        super().__init__(nid, sid_line, arg1_line.domain, arg1_line.depth + 1, comment, line_no)
+        super().__init__(
+            nid, sid_line, arg1_line.domain, arg1_line.depth + 1, comment, line_no
+        )
         assert op in Unary.keywords
         self.op = op
         self.arg1_line = arg1_line
         if not isinstance(arg1_line, Expression):
             raise model_error("expression operand", line_no)
-        if op == 'not' and not isinstance(sid_line, Bitvector):
+        if op == "not" and not isinstance(sid_line, Bitvector):
             raise model_error("Boolean or bitvector result", line_no)
-        if op != 'not' and not isinstance(sid_line, Bitvec):
+        if op != "not" and not isinstance(sid_line, Bitvec):
             raise model_error("bitvector result", line_no)
         if not sid_line.match_sorts(arg1_line.sid_line):
             raise model_error("compatible sorts", line_no)
@@ -577,7 +646,14 @@ class Unary(Expression):
     def copy(self, arg1_line):
         if self.arg1_line is not arg1_line:
             Expression.total_number_of_generated_expressions += 1
-            return type(self)(Parser.next_nid(), self.op, self.sid_line, arg1_line, self.comment, self.line_no)
+            return type(self)(
+                Parser.next_nid(),
+                self.op,
+                self.sid_line,
+                arg1_line,
+                self.comment,
+                self.line_no,
+            )
         else:
             return self
 
@@ -586,12 +662,46 @@ class Unary(Expression):
         arg1_line = self.arg1_line.get_mapped_array_expression_for(None)
         return self.copy(arg1_line)
 
+
 class Binary(Expression):
-    keywords = {OP_IMPLIES, OP_EQ, OP_NEQ, OP_SGT, OP_UGT, OP_SGTE, OP_UGTE, OP_SLT, OP_ULT, OP_SLTE, OP_ULTE, OP_AND, OP_OR, OP_XOR, OP_SLL, OP_SRL, OP_SRA, OP_ADD, OP_SUB, OP_MUL, OP_SDIV, OP_UDIV, OP_SREM, OP_UREM, OP_CONCAT, OP_READ}
+    keywords = {
+        OP_IMPLIES,
+        OP_EQ,
+        OP_NEQ,
+        OP_SGT,
+        OP_UGT,
+        OP_SGTE,
+        OP_UGTE,
+        OP_SLT,
+        OP_ULT,
+        OP_SLTE,
+        OP_ULTE,
+        OP_AND,
+        OP_OR,
+        OP_XOR,
+        OP_SLL,
+        OP_SRL,
+        OP_SRA,
+        OP_ADD,
+        OP_SUB,
+        OP_MUL,
+        OP_SDIV,
+        OP_UDIV,
+        OP_SREM,
+        OP_UREM,
+        OP_CONCAT,
+        OP_READ,
+    }
 
     def __init__(self, nid, op, sid_line, arg1_line, arg2_line, comment, line_no):
-        super().__init__(nid, sid_line, arg1_line.domain | arg2_line.domain,
-            max(arg1_line.depth, arg2_line.depth) + 1, comment, line_no)
+        super().__init__(
+            nid,
+            sid_line,
+            arg1_line.domain | arg2_line.domain,
+            max(arg1_line.depth, arg2_line.depth) + 1,
+            comment,
+            line_no,
+        )
         assert op in Binary.keywords
         self.op = op
         self.arg1_line = arg1_line
@@ -612,7 +722,15 @@ class Binary(Expression):
     def copy(self, arg1_line, arg2_line):
         if self.arg1_line is not arg1_line or self.arg2_line is not arg2_line:
             Expression.total_number_of_generated_expressions += 1
-            return type(self)(Parser.next_nid(), self.op, self.sid_line, arg1_line, arg2_line, self.comment, self.line_no)
+            return type(self)(
+                Parser.next_nid(),
+                self.op,
+                self.sid_line,
+                arg1_line,
+                arg2_line,
+                self.comment,
+                self.line_no,
+            )
         else:
             return self
 
@@ -622,12 +740,15 @@ class Binary(Expression):
         arg2_line = self.arg2_line.get_mapped_array_expression_for(None)
         return self.copy(arg1_line, arg2_line)
 
+
 class Implies(Binary):
     keyword = OP_IMPLIES
 
     def __init__(self, nid, op, sid_line, arg1_line, arg2_line, comment, line_no):
         assert op == Implies.keyword
-        super().__init__(nid, Implies.keyword, sid_line, arg1_line, arg2_line, comment, line_no)
+        super().__init__(
+            nid, Implies.keyword, sid_line, arg1_line, arg2_line, comment, line_no
+        )
         if not isinstance(sid_line, Bool):
             raise model_error("Boolean result", line_no)
         if not sid_line.match_sorts(arg1_line.sid_line):
@@ -635,19 +756,40 @@ class Implies(Binary):
         if not arg1_line.sid_line.match_sorts(arg2_line.sid_line):
             raise model_error("compatible first and second operand sorts", line_no)
 
+
 class Comparison(Binary):
-    keywords = {OP_EQ, OP_NEQ, OP_SGT, OP_UGT, OP_SGTE, OP_UGTE, OP_SLT, OP_ULT, OP_SLTE, OP_ULTE}
+    keywords = {
+        OP_EQ,
+        OP_NEQ,
+        OP_SGT,
+        OP_UGT,
+        OP_SGTE,
+        OP_UGTE,
+        OP_SLT,
+        OP_ULT,
+        OP_SLTE,
+        OP_ULTE,
+    }
 
     def __init__(self, nid, op, sid_line, arg1_line, arg2_line, comment, line_no):
         assert op in Comparison.keywords
         super().__init__(nid, op, sid_line, arg1_line, arg2_line, comment, line_no)
         if not isinstance(sid_line, Bool):
             raise model_error("Boolean result", line_no)
-        if (op in {OP_SGT, OP_UGT, OP_SGTE, OP_UGTE, OP_SLT, OP_ULT, OP_SLTE, OP_ULTE} and
-            not isinstance(arg1_line.sid_line, Bitvec)):
+        if op in {
+            OP_SGT,
+            OP_UGT,
+            OP_SGTE,
+            OP_UGTE,
+            OP_SLT,
+            OP_ULT,
+            OP_SLTE,
+            OP_ULTE,
+        } and not isinstance(arg1_line.sid_line, Bitvec):
             raise model_error("bitvector first operand", line_no)
         if not arg1_line.sid_line.match_sorts(arg2_line.sid_line):
             raise model_error("compatible first and second operand sorts", line_no)
+
 
 class Logical(Binary):
     keywords = {OP_AND, OP_OR, OP_XOR}
@@ -662,8 +804,20 @@ class Logical(Binary):
         if not arg1_line.sid_line.match_sorts(arg2_line.sid_line):
             raise model_error("compatible first and second operand sorts", line_no)
 
+
 class Computation(Binary):
-    keywords = {OP_SLL, OP_SRL, OP_SRA, OP_ADD, OP_SUB, OP_MUL, OP_SDIV, OP_UDIV, OP_SREM, OP_UREM}
+    keywords = {
+        OP_SLL,
+        OP_SRL,
+        OP_SRA,
+        OP_ADD,
+        OP_SUB,
+        OP_MUL,
+        OP_SDIV,
+        OP_UDIV,
+        OP_SREM,
+        OP_UREM,
+    }
 
     def __init__(self, nid, op, sid_line, arg1_line, arg2_line, comment, line_no):
         assert op in Computation.keywords
@@ -675,12 +829,15 @@ class Computation(Binary):
         if not arg1_line.sid_line.match_sorts(arg2_line.sid_line):
             raise model_error("compatible first and second operand sorts", line_no)
 
+
 class Concat(Binary):
     keyword = OP_CONCAT
 
     def __init__(self, nid, op, sid_line, arg1_line, arg2_line, comment, line_no):
         assert op == Concat.keyword
-        super().__init__(nid, Concat.keyword, sid_line, arg1_line, arg2_line, comment, line_no)
+        super().__init__(
+            nid, Concat.keyword, sid_line, arg1_line, arg2_line, comment, line_no
+        )
         if not isinstance(sid_line, Bitvec):
             raise model_error("bitvector result", line_no)
         if not isinstance(arg1_line.sid_line, Bitvec):
@@ -690,6 +847,7 @@ class Concat(Binary):
         if sid_line.size != arg1_line.sid_line.size + arg2_line.sid_line.size:
             raise model_error("compatible bitvector result", line_no)
 
+
 class Read(Binary):
     keyword = OP_READ
 
@@ -697,13 +855,19 @@ class Read(Binary):
 
     def __init__(self, nid, op, sid_line, arg1_line, arg2_line, comment, line_no):
         assert op == Read.keyword
-        super().__init__(nid, Read.keyword, sid_line, arg1_line, arg2_line, comment, line_no)
+        super().__init__(
+            nid, Read.keyword, sid_line, arg1_line, arg2_line, comment, line_no
+        )
         if not isinstance(arg1_line.sid_line, Array):
             raise model_error("array first operand", line_no)
         if not arg1_line.sid_line.array_size_line.match_sorts(arg2_line.sid_line):
-            raise model_error("compatible first operand array size and second operand sorts", line_no)
+            raise model_error(
+                "compatible first operand array size and second operand sorts", line_no
+            )
         if not sid_line.match_sorts(arg1_line.sid_line.element_size_line):
-            raise model_error("compatible result and first operand element size sorts", line_no)
+            raise model_error(
+                "compatible result and first operand element size sorts", line_no
+            )
         self.read_cache = None
 
     def read_array_iterative(self, array_line, index_line):
@@ -711,38 +875,75 @@ class Read(Binary):
             if index == 0:
                 read_line = array_line.get_mapped_array_expression_for(0)
             else:
-                read_line = Parser.parser.get_class(Ite)(Parser.next_nid(), self.sid_line,
-                    Parser.parser.get_class(Comparison)(Parser.next_nid(), OP_EQ, Bool.boolean,
+                read_line = Parser.parser.get_class(Ite)(
+                    Parser.next_nid(),
+                    self.sid_line,
+                    Parser.parser.get_class(Comparison)(
+                        Parser.next_nid(),
+                        OP_EQ,
+                        Bool.boolean,
                         index_line,
-                        Parser.parser.get_class(Constd)(Parser.next_nid(), index_line.sid_line,
-                            index, f"index {index}", self.line_no),
-                        f"is address equal to index {index}?", self.line_no),
+                        Parser.parser.get_class(Constd)(
+                            Parser.next_nid(),
+                            index_line.sid_line,
+                            index,
+                            f"index {index}",
+                            self.line_no,
+                        ),
+                        f"is address equal to index {index}?",
+                        self.line_no,
+                    ),
                     array_line.get_mapped_array_expression_for(index),
                     read_line,
-                    f"read value from {array_line.comment[2:]} @ address if equal to index {index}", self.line_no)
+                    f"read value from {array_line.comment[2:]} @ address if equal to index {index}",
+                    self.line_no,
+                )
         return read_line
 
     def read_array_recursive(self, array_line, index_line, index_array, zero_line):
-        assert 2 <= len(index_array) == 2**math.log2(len(index_array))
+        assert 2 <= len(index_array) == 2 ** math.log2(len(index_array))
         if len(index_array) == 2:
             even_line = array_line.get_mapped_array_expression_for(index_array[0])
             odd_line = array_line.get_mapped_array_expression_for(index_array[1])
         else:
-            even_line = self.read_array_recursive(array_line, index_line,
-                index_array[0:len(index_array)//2], zero_line)
-            odd_line = self.read_array_recursive(array_line, index_line,
-                index_array[len(index_array)//2:len(index_array)], zero_line)
-        address_bit = int(math.log2(len(index_array))) - 1
-        return Parser.parser.get_class(Ite)(Parser.next_nid(), self.sid_line,
-            Parser.parser.get_class(Comparison)(Parser.next_nid(), OP_EQ, Bool.boolean,
-                Parser.parser.get_class(Slice)(Parser.next_nid(), zero_line.sid_line, index_line,
-                    address_bit, address_bit,
-                    f"extract {address_bit}-th address bit", self.line_no),
+            even_line = self.read_array_recursive(
+                array_line,
+                index_line,
+                index_array[0 : len(index_array) // 2],
                 zero_line,
-                f"is {address_bit}-th address bit set?", self.line_no),
+            )
+            odd_line = self.read_array_recursive(
+                array_line,
+                index_line,
+                index_array[len(index_array) // 2 : len(index_array)],
+                zero_line,
+            )
+        address_bit = int(math.log2(len(index_array))) - 1
+        return Parser.parser.get_class(Ite)(
+            Parser.next_nid(),
+            self.sid_line,
+            Parser.parser.get_class(Comparison)(
+                Parser.next_nid(),
+                OP_EQ,
+                Bool.boolean,
+                Parser.parser.get_class(Slice)(
+                    Parser.next_nid(),
+                    zero_line.sid_line,
+                    index_line,
+                    address_bit,
+                    address_bit,
+                    f"extract {address_bit}-th address bit",
+                    self.line_no,
+                ),
+                zero_line,
+                f"is {address_bit}-th address bit set?",
+                self.line_no,
+            ),
             even_line,
             odd_line,
-            f"read value from {array_line.comment[2:]} @ reset or set {address_bit}-th address bit", self.line_no)
+            f"read value from {array_line.comment[2:]} @ reset or set {address_bit}-th address bit",
+            self.line_no,
+        )
 
     def read_array(self, array_line, index_line):
         if array_line.sid_line.is_mapped_array():
@@ -752,28 +953,51 @@ class Read(Binary):
                 if Read.READ_ARRAY_ITERATIVELY:
                     return self.read_array_iterative(array_line, index_line)
                 else:
-                    return self.read_array_recursive(array_line, index_line,
+                    return self.read_array_recursive(
+                        array_line,
+                        index_line,
                         list(range(2**array_line.sid_line.array_size_line.size)),
-                        Parser.parser.get_class(Zero)(Parser.next_nid(),
-                            Parser.parser.get_class(Bitvec)(Parser.next_nid(), 1, "1-bit bitvector for testing bits", self.line_no),
-                            "", "zero value for testing bits", self.line_no))
+                        Parser.parser.get_class(Zero)(
+                            Parser.next_nid(),
+                            Parser.parser.get_class(Bitvec)(
+                                Parser.next_nid(),
+                                1,
+                                "1-bit bitvector for testing bits",
+                                self.line_no,
+                            ),
+                            "",
+                            "zero value for testing bits",
+                            self.line_no,
+                        ),
+                    )
         else:
-            return self.copy(array_line.get_mapped_array_expression_for(None), index_line)
+            return self.copy(
+                array_line.get_mapped_array_expression_for(None), index_line
+            )
 
     def get_mapped_array_expression_for(self, index):
         assert index is None
-        if self.read_cache is None: # avoids quadratic blowup in mapped array size
-            arg1_line = self.arg1_line # map later when index is known
+        if self.read_cache is None:  # avoids quadratic blowup in mapped array size
+            arg1_line = self.arg1_line  # map later when index is known
             arg2_line = self.arg2_line.get_mapped_array_expression_for(None)
             self.read_cache = self.read_array(arg1_line, arg2_line)
         return self.read_cache
 
+
 class Ternary(Expression):
     keywords = {OP_ITE, OP_WRITE}
 
-    def __init__(self, nid, op, sid_line, arg1_line, arg2_line, arg3_line, comment, line_no):
-        super().__init__(nid, sid_line, arg1_line.domain | arg2_line.domain | arg3_line.domain,
-            max(arg1_line.depth, arg2_line.depth, arg3_line.depth) + 1, comment, line_no)
+    def __init__(
+        self, nid, op, sid_line, arg1_line, arg2_line, arg3_line, comment, line_no
+    ):
+        super().__init__(
+            nid,
+            sid_line,
+            arg1_line.domain | arg2_line.domain | arg3_line.domain,
+            max(arg1_line.depth, arg2_line.depth, arg3_line.depth) + 1,
+            comment,
+            line_no,
+        )
         assert op in Ternary.keywords
         self.op = op
         self.arg1_line = arg1_line
@@ -795,14 +1019,26 @@ class Ternary(Expression):
         self.arg3_line.print_deep()
         print(self)
 
+
 class Ite(Ternary):
     keyword = OP_ITE
 
     branching_conditions = None
     non_branching_conditions = None
 
-    def __init__(self, nid, sid_line, arg1_line, arg2_line, arg3_line, comment, line_no):
-        super().__init__(nid, Ite.keyword, sid_line, arg1_line, arg2_line, arg3_line, comment, line_no)
+    def __init__(
+        self, nid, sid_line, arg1_line, arg2_line, arg3_line, comment, line_no
+    ):
+        super().__init__(
+            nid,
+            Ite.keyword,
+            sid_line,
+            arg1_line,
+            arg2_line,
+            arg3_line,
+            comment,
+            line_no,
+        )
         if not isinstance(arg1_line.sid_line, Bool):
             raise model_error("Boolean first operand", line_no)
         if not sid_line.match_sorts(arg2_line.sid_line):
@@ -812,13 +1048,28 @@ class Ite(Ternary):
         self.ite_cache = {}
         if Ite.branching_conditions is None and comment == "; branch true condition":
             Ite.branching_conditions = self
-        elif Ite.non_branching_conditions is None and comment == "; branch false condition":
+        elif (
+            Ite.non_branching_conditions is None
+            and comment == "; branch false condition"
+        ):
             Ite.non_branching_conditions = self
 
     def copy(self, arg1_line, arg2_line, arg3_line):
-        if self.arg1_line is not arg1_line or self.arg2_line is not arg2_line or self.arg3_line is not arg3_line:
+        if (
+            self.arg1_line is not arg1_line
+            or self.arg2_line is not arg2_line
+            or self.arg3_line is not arg3_line
+        ):
             Expression.total_number_of_generated_expressions += 1
-            return type(self)(Parser.next_nid(), arg2_line.sid_line, arg1_line, arg2_line, arg3_line, self.comment, self.line_no)
+            return type(self)(
+                Parser.next_nid(),
+                arg2_line.sid_line,
+                arg1_line,
+                arg2_line,
+                arg3_line,
+                self.comment,
+                self.line_no,
+            )
         else:
             return self
 
@@ -830,25 +1081,53 @@ class Ite(Ternary):
             self.ite_cache[index] = self.copy(arg1_line, arg2_line, arg3_line)
         return self.ite_cache[index]
 
+
 class Write(Ternary):
     keyword = OP_WRITE
 
-    def __init__(self, nid, sid_line, arg1_line, arg2_line, arg3_line, comment, line_no):
-        super().__init__(nid, Write.keyword, sid_line, arg1_line, arg2_line, arg3_line, comment, line_no)
+    def __init__(
+        self, nid, sid_line, arg1_line, arg2_line, arg3_line, comment, line_no
+    ):
+        super().__init__(
+            nid,
+            Write.keyword,
+            sid_line,
+            arg1_line,
+            arg2_line,
+            arg3_line,
+            comment,
+            line_no,
+        )
         if not isinstance(sid_line, Array):
             raise model_error("array result", line_no)
         if not sid_line.match_sorts(arg1_line.sid_line):
             raise model_error("compatible result and first operand sorts", line_no)
         if not arg1_line.sid_line.array_size_line.match_sorts(arg2_line.sid_line):
-            raise model_error("compatible first operand array size and second operand sorts", line_no)
+            raise model_error(
+                "compatible first operand array size and second operand sorts", line_no
+            )
         if not arg1_line.sid_line.element_size_line.match_sorts(arg3_line.sid_line):
-            raise model_error("compatible first operand element size and third operand sorts", line_no)
+            raise model_error(
+                "compatible first operand element size and third operand sorts", line_no
+            )
         self.write_cache = {}
 
     def copy(self, arg1_line, arg2_line, arg3_line):
-        if self.arg1_line is not arg1_line or self.arg2_line is not arg2_line or self.arg3_line is not arg3_line:
+        if (
+            self.arg1_line is not arg1_line
+            or self.arg2_line is not arg2_line
+            or self.arg3_line is not arg3_line
+        ):
             Expression.total_number_of_generated_expressions += 1
-            return type(self)(Parser.next_nid(), arg1_line.sid_line, arg1_line, arg2_line, arg3_line, self.comment, self.line_no)
+            return type(self)(
+                Parser.next_nid(),
+                arg1_line.sid_line,
+                arg1_line,
+                arg2_line,
+                arg3_line,
+                self.comment,
+                self.line_no,
+            )
         else:
             return self
 
@@ -861,15 +1140,29 @@ class Write(Ternary):
                 else:
                     return array_line
             else:
-                return Parser.parser.get_class(Ite)(Parser.next_nid(), value_line.sid_line,
-                    Parser.parser.get_class(Comparison)(Parser.next_nid(), OP_EQ, Bool.boolean,
+                return Parser.parser.get_class(Ite)(
+                    Parser.next_nid(),
+                    value_line.sid_line,
+                    Parser.parser.get_class(Comparison)(
+                        Parser.next_nid(),
+                        OP_EQ,
+                        Bool.boolean,
                         index_line,
-                        Parser.parser.get_class(Constd)(Parser.next_nid(), index_line.sid_line,
-                            index, f"index {index}", self.line_no),
-                        f"is address equal to index {index}?", self.line_no),
+                        Parser.parser.get_class(Constd)(
+                            Parser.next_nid(),
+                            index_line.sid_line,
+                            index,
+                            f"index {index}",
+                            self.line_no,
+                        ),
+                        f"is address equal to index {index}?",
+                        self.line_no,
+                    ),
                     value_line,
                     array_line,
-                    f"write value to {array_line.comment[2:]} @ address if equal to index {index}", self.line_no)
+                    f"write value to {array_line.comment[2:]} @ address if equal to index {index}",
+                    self.line_no,
+                )
         else:
             assert index is None
             return self.copy(array_line, index_line, value_line)
@@ -879,11 +1172,25 @@ class Write(Ternary):
             arg1_line = self.arg1_line.get_mapped_array_expression_for(index)
             arg2_line = self.arg2_line.get_mapped_array_expression_for(None)
             arg3_line = self.arg3_line.get_mapped_array_expression_for(None)
-            self.write_cache[index] = self.write_array(arg1_line, arg2_line, arg3_line, index)
+            self.write_cache[index] = self.write_array(
+                arg1_line, arg2_line, arg3_line, index
+            )
         return self.write_cache[index]
 
+
 class Transitional(Line):
-    def __init__(self, nid, sid_line, state_line, exp_line, symbol, comment, line_no, array_line, index):
+    def __init__(
+        self,
+        nid,
+        sid_line,
+        state_line,
+        exp_line,
+        symbol,
+        comment,
+        line_no,
+        array_line,
+        index,
+    ):
         super().__init__(nid, comment, line_no)
         self.sid_line = sid_line
         self.state_line = state_line
@@ -910,15 +1217,25 @@ class Transitional(Line):
         elif self.sid_line.is_mapped_array():
             self.array = {}
             for index in self.state_line.array.keys():
-                self.array[index] = type(self)(self.nid + index + 1, self.sid_line.element_size_line,
-                    self.state_line.array[index], self.state_line.array[index], self.symbol,
-                    f"{self.comment} @ index {index}", self.line_no, self, index)
+                self.array[index] = type(self)(
+                    self.nid + index + 1,
+                    self.sid_line.element_size_line,
+                    self.state_line.array[index],
+                    self.state_line.array[index],
+                    self.symbol,
+                    f"{self.comment} @ index {index}",
+                    self.line_no,
+                    self,
+                    index,
+                )
 
     def set_mapped_array_expression(self):
         if self.index is None:
             self.exp_line = self.exp_line.get_mapped_array_expression_for(None)
         else:
-            self.exp_line = self.array_line.exp_line.get_mapped_array_expression_for(self.index)
+            self.exp_line = self.array_line.exp_line.get_mapped_array_expression_for(
+                self.index
+            )
 
     def remove_transition(state_line, transitions):
         for key in transitions.keys():
@@ -928,18 +1245,44 @@ class Transitional(Line):
 
     def new_transition(self, transitions, index):
         if index is not None or not self.sid_line.is_mapped_array():
-            assert self.nid not in transitions, f"transition nid {self.nid} already defined @ {self.line_no}"
+            assert (
+                self.nid not in transitions
+            ), f"transition nid {self.nid} already defined @ {self.line_no}"
             transitions[self.nid] = self
+
 
 class Init(Transitional):
     keyword = OP_INIT
 
     inits = {}
 
-    def __init__(self, nid, sid_line, state_line, exp_line, symbol, comment, line_no, array_line = None, index = None):
+    def __init__(
+        self,
+        nid,
+        sid_line,
+        state_line,
+        exp_line,
+        symbol,
+        comment,
+        line_no,
+        array_line=None,
+        index=None,
+    ):
         if isinstance(state_line.sid_line, Array) and isinstance(exp_line, Constant):
-            exp_line = Parser.parser.get_class(Constant_Array)(state_line.sid_line, exp_line)
-        super().__init__(nid, sid_line, state_line, exp_line, symbol, comment, line_no, array_line, index)
+            exp_line = Parser.parser.get_class(Constant_Array)(
+                state_line.sid_line, exp_line
+            )
+        super().__init__(
+            nid,
+            sid_line,
+            state_line,
+            exp_line,
+            symbol,
+            comment,
+            line_no,
+            array_line,
+            index,
+        )
         if state_line.nid < exp_line.nid:
             raise model_error("state after expression", line_no)
         if isinstance(state_line, Input):
@@ -956,13 +1299,35 @@ class Init(Transitional):
         else:
             return f"{self.nid} {Init.keyword} {self.sid_line.nid} {self.state_line.nid} {self.exp_line.nid} {self.comment}"
 
+
 class Next(Transitional):
     keyword = OP_NEXT
 
     nexts = {}
 
-    def __init__(self, nid, sid_line, state_line, exp_line, symbol, comment, line_no, array_line = None, index = None):
-        super().__init__(nid, sid_line, state_line, exp_line, symbol, comment, line_no, array_line, index)
+    def __init__(
+        self,
+        nid,
+        sid_line,
+        state_line,
+        exp_line,
+        symbol,
+        comment,
+        line_no,
+        array_line=None,
+        index=None,
+    ):
+        super().__init__(
+            nid,
+            sid_line,
+            state_line,
+            exp_line,
+            symbol,
+            comment,
+            line_no,
+            array_line,
+            index,
+        )
         if self.state_line.next_line is None:
             self.state_line.next_line = self
         else:
@@ -974,6 +1339,7 @@ class Next(Transitional):
             return f"{self.nid} {Next.keyword} {self.sid_line.nid} {self.state_line.nid} {self.exp_line.nid} {self.symbol} {self.comment}"
         else:
             return f"{self.nid} {Next.keyword} {self.sid_line.nid} {self.state_line.nid} {self.exp_line.nid} {self.comment}"
+
 
 class Property(Line):
     keywords = {OP_CONSTRAINT, OP_BAD}
@@ -990,6 +1356,7 @@ class Property(Line):
     def set_mapped_array_expression(self):
         self.property_line = self.property_line.get_mapped_array_expression_for(None)
 
+
 class Constraint(Property):
     keyword = OP_CONSTRAINT
 
@@ -1003,8 +1370,11 @@ class Constraint(Property):
         return f"{self.nid} {Constraint.keyword} {self.property_line.nid} {self.symbol} {self.comment}"
 
     def new_constraint(self):
-        assert self not in Constraint.constraints, f"constraint nid {self.nid} already defined @ {self.line_no}"
+        assert (
+            self not in Constraint.constraints
+        ), f"constraint nid {self.nid} already defined @ {self.line_no}"
         Constraint.constraints[self.nid] = self
+
 
 class Bad(Property):
     keyword = OP_BAD
@@ -1019,23 +1389,29 @@ class Bad(Property):
         return f"{self.nid} {Bad.keyword} {self.property_line.nid} {self.symbol} {self.comment}"
 
     def new_bad(self):
-        assert self.nid not in Bad.bads, f"bad nid {self.nid} already defined @ {self.line_no}"
+        assert (
+            self.nid not in Bad.bads
+        ), f"bad nid {self.nid} already defined @ {self.line_no}"
         Bad.bads[self.nid] = self
 
+
 # BTOR2 parser
+
 
 class syntax_error(Exception):
     def __init__(self, expected, line_no):
         super().__init__(f"syntax error in line {line_no}: {expected} expected")
 
+
 import re
+
 
 class Parser:
     parser = None
 
     current_nid = 0
 
-    def next_nid(nid = None):
+    def next_nid(nid=None):
         if nid is None:
             Parser.current_nid += 1
             return Parser.current_nid
@@ -1063,7 +1439,9 @@ class Parser:
             raise syntax_error(expected, line_no)
 
     def get_nid(tokens, expected, line_no):
-        return Array.accommodate_array_indexes(Parser.get_decimal(tokens, expected, line_no))
+        return Array.accommodate_array_indexes(
+            Parser.get_decimal(tokens, expected, line_no)
+        )
 
     def get_nid_line(tokens, clss, expected, line_no):
         nid = Parser.get_nid(tokens, expected, line_no)
@@ -1077,7 +1455,9 @@ class Parser:
             raise syntax_error(f"defined {expected}", line_no)
 
     def get_bool_or_bitvec_sid_line(tokens, line_no):
-        return Parser.get_nid_line(tokens, Bitvector, "Boolean or bitvector sort nid", line_no)
+        return Parser.get_nid_line(
+            tokens, Bitvector, "Boolean or bitvector sort nid", line_no
+        )
 
     def get_bitvec_sid_line(tokens, line_no):
         return Parser.get_nid_line(tokens, Bitvec, "bitvector sort nid", line_no)
@@ -1094,7 +1474,7 @@ class Parser:
     def get_number(tokens, base, expected, line_no):
         token = Parser.get_token(tokens, expected, line_no)
         try:
-            if (base == 10):
+            if base == 10:
                 return int(token)
             else:
                 return int(token, base)
@@ -1110,7 +1490,7 @@ class Parser:
     def get_comment(tokens, line_no):
         comment = Parser.get_symbol(tokens)
         if comment:
-            if comment[0] != ';':
+            if comment[0] != ";":
                 raise syntax_error("comment", line_no)
         return comment
 
@@ -1168,71 +1548,113 @@ class Parser:
         elif clss_or_keyword is Bad or clss_or_keyword == Bad.keyword:
             return Bad
 
-    def new_boolean(self, nid = None, line_no = None):
+    def new_boolean(self, nid=None, line_no=None):
         return self.get_class(Bool)(Parser.next_nid(nid), "Boolean", line_no)
 
-    def new_bitvec(self, size_in_bits, comment, nid = None, line_no = None):
-        return self.get_class(Bitvec)(Parser.next_nid(nid), size_in_bits, comment, line_no)
+    def new_bitvec(self, size_in_bits, comment, nid=None, line_no=None):
+        return self.get_class(Bitvec)(
+            Parser.next_nid(nid), size_in_bits, comment, line_no
+        )
 
-    def new_array(self, address_sid, element_sid, comment, nid = None, line_no = None):
-        return self.get_class(Array)(Parser.next_nid(nid), address_sid, element_sid, comment, line_no)
+    def new_array(self, address_sid, element_sid, comment, nid=None, line_no=None):
+        return self.get_class(Array)(
+            Parser.next_nid(nid), address_sid, element_sid, comment, line_no
+        )
 
-    def new_zero_one(self, op, sid, symbol, comment, nid = None, line_no = None):
+    def new_zero_one(self, op, sid, symbol, comment, nid=None, line_no=None):
         assert op in {OP_ZERO, OP_ONE}
         return self.get_class(op)(Parser.next_nid(nid), sid, symbol, comment, line_no)
 
-    def new_constant(self, op, sid, constant, comment, nid = None, line_no = None):
+    def new_constant(self, op, sid, constant, comment, nid=None, line_no=None):
         assert op in {OP_CONSTD, OP_CONST, OP_CONSTH}
         if op == OP_CONSTD:
             if constant == 0:
-                return self.get_class(Zero)(Parser.next_nid(nid), sid, "", comment, line_no)
+                return self.get_class(Zero)(
+                    Parser.next_nid(nid), sid, "", comment, line_no
+                )
             elif constant == 1:
-                return self.get_class(One)(Parser.next_nid(nid), sid, "", comment, line_no)
+                return self.get_class(One)(
+                    Parser.next_nid(nid), sid, "", comment, line_no
+                )
         return self.get_class(op)(Parser.next_nid(nid), sid, constant, comment, line_no)
 
-    def new_input(self, op, sid, symbol, comment, nid = None, line_no = None):
+    def new_input(self, op, sid, symbol, comment, nid=None, line_no=None):
         assert op in Variable.keywords
         return self.get_class(op)(Parser.next_nid(nid), sid, symbol, comment, line_no)
 
-    def new_ext(self, op, sid, value_nid, w, comment, nid = None, line_no = None):
+    def new_ext(self, op, sid, value_nid, w, comment, nid=None, line_no=None):
         assert op in Ext.keywords
-        return self.get_class(op)(Parser.next_nid(nid), op, sid, value_nid, w, comment, line_no)
+        return self.get_class(op)(
+            Parser.next_nid(nid), op, sid, value_nid, w, comment, line_no
+        )
 
-    def new_slice(self, sid, value_nid, u, l, comment, nid = None, line_no = None):
-        return self.get_class(Slice.keyword)(Parser.next_nid(nid), sid, value_nid, u, l, comment, line_no)
+    def new_slice(self, sid, value_nid, u, l, comment, nid=None, line_no=None):
+        return self.get_class(Slice.keyword)(
+            Parser.next_nid(nid), sid, value_nid, u, l, comment, line_no
+        )
 
-    def new_unary(self, op, sid, value_nid, comment, nid = None, line_no = None):
+    def new_unary(self, op, sid, value_nid, comment, nid=None, line_no=None):
         assert op in Unary.keywords
-        return self.get_class(op)(Parser.next_nid(nid), op, sid, value_nid, comment, line_no)
+        return self.get_class(op)(
+            Parser.next_nid(nid), op, sid, value_nid, comment, line_no
+        )
 
-    def new_unary_boolean(self, op, value_nid, comment, nid = None, line_no = None):
+    def new_unary_boolean(self, op, value_nid, comment, nid=None, line_no=None):
         assert op == OP_NOT
-        return self.get_class(op)(Parser.next_nid(nid), op, SID_BOOLEAN, value_nid, comment, line_no)
+        return self.get_class(op)(
+            Parser.next_nid(nid), op, SID_BOOLEAN, value_nid, comment, line_no
+        )
 
-    def new_binary(self, op, sid, left_nid, right_nid, comment, nid = None, line_no = None):
+    def new_binary(self, op, sid, left_nid, right_nid, comment, nid=None, line_no=None):
         assert op in Binary.keywords
-        return self.get_class(op)(Parser.next_nid(nid), op, sid, left_nid, right_nid, comment, line_no)
+        return self.get_class(op)(
+            Parser.next_nid(nid), op, sid, left_nid, right_nid, comment, line_no
+        )
 
-    def new_binary_boolean(self, op, left_nid, right_nid, comment, nid = None, line_no = None):
+    def new_binary_boolean(
+        self, op, left_nid, right_nid, comment, nid=None, line_no=None
+    ):
         assert op in Implies.keyword + Comparison.keywords + Logical.keywords
-        return self.get_class(op)(Parser.next_nid(nid), op, SID_BOOLEAN, left_nid, right_nid, comment, line_no)
+        return self.get_class(op)(
+            Parser.next_nid(nid), op, SID_BOOLEAN, left_nid, right_nid, comment, line_no
+        )
 
-    def new_ternary(self, op, sid, first_nid, second_nid, third_nid, comment, nid = None, line_no = None):
+    def new_ternary(
+        self, op, sid, first_nid, second_nid, third_nid, comment, nid=None, line_no=None
+    ):
         assert op in Ternary.keywords
-        return self.get_class(op)(Parser.next_nid(nid), sid, first_nid, second_nid, third_nid, comment, line_no)
+        return self.get_class(op)(
+            Parser.next_nid(nid),
+            sid,
+            first_nid,
+            second_nid,
+            third_nid,
+            comment,
+            line_no,
+        )
 
-    def new_init(self, sid, state_nid, value_nid, comment, nid = None, line_no = None):
-        return self.get_class(Init.keyword)(Parser.next_nid(nid), sid, state_nid, value_nid, comment, line_no)
+    def new_init(self, sid, state_nid, value_nid, comment, nid=None, line_no=None):
+        return self.get_class(Init.keyword)(
+            Parser.next_nid(nid), sid, state_nid, value_nid, comment, line_no
+        )
 
-    def new_next(self, sid, state_nid, value_nid, comment, nid = None, line_no = None):
-        return self.get_class(Next.keyword)(Parser.next_nid(nid), sid, state_nid, value_nid, comment, line_no)
+    def new_next(self, sid, state_nid, value_nid, comment, nid=None, line_no=None):
+        return self.get_class(Next.keyword)(
+            Parser.next_nid(nid), sid, state_nid, value_nid, comment, line_no
+        )
 
-    def new_init_next(self, op, sid, state_nid, value_nid, symbol, comment, nid = None, line_no = None):
-        return self.get_class(op)(Parser.next_nid(nid), sid, state_nid, value_nid, symbol, comment, line_no)
+    def new_init_next(
+        self, op, sid, state_nid, value_nid, symbol, comment, nid=None, line_no=None
+    ):
+        return self.get_class(op)(
+            Parser.next_nid(nid), sid, state_nid, value_nid, symbol, comment, line_no
+        )
 
-    def new_property(self, op, condition_nid, symbol, comment, nid = None, line_no = None):
+    def new_property(self, op, condition_nid, symbol, comment, nid=None, line_no=None):
         assert op in Property.keywords
-        return self.get_class(op)(Parser.next_nid(nid), condition_nid, symbol, comment, line_no)
+        return self.get_class(op)(
+            Parser.next_nid(nid), condition_nid, symbol, comment, line_no
+        )
 
     def parse_sort_line(self, tokens, nid, line_no):
         token = Parser.get_token(tokens, "bitvector or array", line_no)
@@ -1248,7 +1670,9 @@ class Parser:
             array_size_line = Parser.get_bitvec_sid_line(tokens, line_no)
             element_size_line = Parser.get_bitvec_sid_line(tokens, line_no)
             comment = Parser.get_comment(tokens, line_no)
-            return self.new_array(array_size_line, element_size_line, comment, nid, line_no)
+            return self.new_array(
+                array_size_line, element_size_line, comment, nid, line_no
+            )
         else:
             raise syntax_error("bitvector or array", line_no)
 
@@ -1256,7 +1680,7 @@ class Parser:
         symbol = Parser.get_symbol(tokens)
         comment = Parser.get_comment(tokens, line_no)
         if symbol:
-            if symbol[0] == ';':
+            if symbol[0] == ";":
                 return "", symbol
         return symbol, comment
 
@@ -1307,7 +1731,9 @@ class Parser:
         arg1_line = Parser.get_exp_line(tokens, line_no)
         arg2_line = Parser.get_exp_line(tokens, line_no)
         comment = Parser.get_comment(tokens, line_no)
-        return self.new_binary(op, sid_line, arg1_line, arg2_line, comment, nid, line_no)
+        return self.new_binary(
+            op, sid_line, arg1_line, arg2_line, comment, nid, line_no
+        )
 
     def parse_ternary_line(self, tokens, nid, op, line_no):
         sid_line = Parser.get_sid_line(tokens, line_no)
@@ -1315,14 +1741,18 @@ class Parser:
         arg2_line = Parser.get_exp_line(tokens, line_no)
         arg3_line = Parser.get_exp_line(tokens, line_no)
         comment = Parser.get_comment(tokens, line_no)
-        return self.new_ternary(op, sid_line, arg1_line, arg2_line, arg3_line, comment, nid, line_no)
+        return self.new_ternary(
+            op, sid_line, arg1_line, arg2_line, arg3_line, comment, nid, line_no
+        )
 
     def parse_init_next_line(self, tokens, nid, op, line_no):
         sid_line = Parser.get_sid_line(tokens, line_no)
         state_line = Parser.get_state_line(tokens, line_no)
         exp_line = Parser.get_exp_line(tokens, line_no)
         symbol, comment = self.parse_symbol_comment(tokens, line_no)
-        return self.new_init_next(op, sid_line, state_line, exp_line, symbol, comment, nid, line_no)
+        return self.new_init_next(
+            op, sid_line, state_line, exp_line, symbol, comment, nid, line_no
+        )
 
     def parse_property_line(self, tokens, nid, op, line_no):
         property_line = Parser.get_exp_line(tokens, line_no)
@@ -1333,7 +1763,7 @@ class Parser:
         if line.strip():
             tokens = Parser.tokenize_btor2(line)
             token = Parser.get_token(tokens, None, None)
-            if token[0] != ';':
+            if token[0] != ";":
                 if token.isdecimal():
                     nid = Array.accommodate_array_indexes(int(token))
                     if nid > Parser.current_nid:
@@ -1358,7 +1788,9 @@ class Parser:
                         elif token in Ternary.keywords:
                             return self.parse_ternary_line(tokens, nid, token, line_no)
                         elif token in {Init.keyword, Next.keyword}:
-                            return self.parse_init_next_line(tokens, nid, token, line_no)
+                            return self.parse_init_next_line(
+                                tokens, nid, token, line_no
+                            )
                         elif token in Property.keywords:
                             return self.parse_property_line(tokens, nid, token, line_no)
                         else:
@@ -1397,15 +1829,22 @@ class Parser:
             for state in list(State.states.values()):
                 if isinstance(state.sid_line, Bitvector):
                     if state.init_line is not None and state.next_line is not None:
-                        if state.init_line.exp_line is state.next_line.exp_line or state.next_line.exp_line is state:
+                        if (
+                            state.init_line.exp_line is state.next_line.exp_line
+                            or state.next_line.exp_line is state
+                        ):
                             # remove initialized read-only bitvector states
                             state.remove_state()
                             Transitional.remove_transition(state, Init.inits)
                             Transitional.remove_transition(state, Next.nexts)
 
             if Ite.branching_conditions and Ite.non_branching_conditions:
-                Ite.branching_conditions = Ite.branching_conditions.get_mapped_array_expression_for(None)
-                Ite.non_branching_conditions = Ite.non_branching_conditions.get_mapped_array_expression_for(None)
+                Ite.branching_conditions = (
+                    Ite.branching_conditions.get_mapped_array_expression_for(None)
+                )
+                Ite.non_branching_conditions = (
+                    Ite.non_branching_conditions.get_mapped_array_expression_for(None)
+                )
 
         # end: mapping arrays to bitvectors
 
@@ -1483,8 +1922,12 @@ class Parser:
 
         if Array.ARRAY_SIZE_BOUND > 0:
             print("array mapping profile:")
-            print(f"out of {Array.number_of_variable_arrays} arrays {Array.number_of_mapped_arrays} mapped")
-            print(f"{Expression.total_number_of_generated_expressions} generated expressions")
+            print(
+                f"out of {Array.number_of_variable_arrays} arrays {Array.number_of_mapped_arrays} mapped"
+            )
+            print(
+                f"{Expression.total_number_of_generated_expressions} generated expressions"
+            )
             Expression.total_number_of_generated_expressions = 0
 
         if outputfile:

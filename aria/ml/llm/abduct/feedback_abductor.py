@@ -2,7 +2,11 @@
 
 import time
 from aria.ml.llm.llmtool.LLM_utils import LLM
-from .data_structures import AbductionProblem, AbductionIterationResult, FeedbackAbductionResult
+from .data_structures import (
+    AbductionProblem,
+    AbductionIterationResult,
+    FeedbackAbductionResult,
+)
 from .base_abductor import LLMAbductor
 from .validation import validate_hypothesis, generate_counterexample
 from .prompts import create_basic_prompt, create_feedback_prompt
@@ -16,11 +20,15 @@ class FeedbackLLMAbductor(LLMAbductor):
         super().__init__(llm=llm, max_attempts=1, temperature=temperature)
         self.max_iterations = max_iterations
 
-    def abduce_with_feedback(self, problem: AbductionProblem) -> FeedbackAbductionResult:
+    def abduce_with_feedback(
+        self, problem: AbductionProblem
+    ) -> FeedbackAbductionResult:
         """Iterative abduction with feedback from counterexamples."""
         start_time = time.time()
         iteration_results = []
-        result = FeedbackAbductionResult(problem=problem, prompt=create_basic_prompt(problem))
+        result = FeedbackAbductionResult(
+            problem=problem, prompt=create_basic_prompt(problem)
+        )
         current_prompt = result.prompt
 
         for iteration in range(self.max_iterations):
@@ -42,7 +50,7 @@ class FeedbackLLMAbductor(LLMAbductor):
                     is_valid=is_consistent and is_sufficient,
                     llm_response=llm_response,
                     prompt=current_prompt,
-                    iteration=iteration + 1
+                    iteration=iteration + 1,
                 )
 
                 if is_consistent and is_sufficient:
@@ -56,7 +64,9 @@ class FeedbackLLMAbductor(LLMAbductor):
                 if counterexample is None:
                     break
 
-                current_prompt = create_feedback_prompt(problem, iteration_results, counterexample)
+                current_prompt = create_feedback_prompt(
+                    problem, iteration_results, counterexample
+                )
 
             except Exception as e:
                 result.error = str(e)

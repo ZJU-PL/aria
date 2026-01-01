@@ -1,13 +1,11 @@
 """Reducing OMT to QSMT."""
+
 import z3
 from aria.optimization.bin_solver import solve_with_bin_smt
 
 
 def arith_opt_with_qsmt(
-    fml: z3.ExprRef,
-    obj: z3.ExprRef,
-    minimize: bool,
-    solver_name: str
+    fml: z3.ExprRef, obj: z3.ExprRef, minimize: bool, solver_name: str
 ) -> str:
     """
     Quantified Satisfaction based OMT.
@@ -34,34 +32,23 @@ def arith_opt_with_qsmt(
         obj_misc = z3.Real(str(obj) + "m")
     new_fml = z3.substitute(fml, (obj, obj_misc))
     if minimize:
-        qfml = z3.And(
-            fml,
-            z3.ForAll([obj_misc], z3.Implies(new_fml, obj <= obj_misc))
-        )
+        qfml = z3.And(fml, z3.ForAll([obj_misc], z3.Implies(new_fml, obj <= obj_misc)))
     else:
-        qfml = z3.And(
-            fml,
-            z3.ForAll([obj_misc], z3.Implies(new_fml, obj_misc <= obj))
-        )
+        qfml = z3.And(fml, z3.ForAll([obj_misc], z3.Implies(new_fml, obj_misc <= obj)))
 
     if is_int:
         return solve_with_bin_smt(
-            "LIA",
-            qfml=qfml,
-            obj_name=obj.sexpr(),
-            solver_name=solver_name
+            "LIA", qfml=qfml, obj_name=obj.sexpr(), solver_name=solver_name
         )
     return solve_with_bin_smt(
-        "LRA",
-        qfml=qfml,
-        obj_name=obj.sexpr(),
-        solver_name=solver_name
+        "LRA", qfml=qfml, obj_name=obj.sexpr(), solver_name=solver_name
     )
 
 
 def demo_qsmt() -> None:
     """Demo function for QSMT-based arithmetic optimization."""
     import time
+
     x, y, z = z3.Reals("x y z")
     fml = z3.And(y >= 0, y < 10)
     print("start solving")
@@ -72,5 +59,5 @@ def demo_qsmt() -> None:
     print(f"Solving time: {elapsed:.4f} seconds")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     demo_qsmt()

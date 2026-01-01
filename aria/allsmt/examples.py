@@ -17,16 +17,11 @@ def z3_example() -> None:
     solver = create_allsmt_solver("z3")
 
     # Define variables
-    x, y = Ints('x y')
-    a, b, c, d = Bools('a b c d')
+    x, y = Ints("x y")
+    a, b, c, d = Bools("a b c d")
 
     # Define constraints
-    expr = And(
-        a == (x + y > 0),
-        c == ((2 * x + 3 * y) < -10),
-        Or(a, b),
-        Or(c, d)
-    )
+    expr = And(a == (x + y > 0), c == ((2 * x + 3 * y) < -10), Or(a, b), Or(c, d))
 
     # Solve the formula with a model limit
     print("Solving formula with Z3...")
@@ -51,16 +46,11 @@ def pysmt_example() -> None:
         solver = create_allsmt_solver("pysmt")
 
         # Define Z3 variables
-        x, y = Ints('x y')
-        a, b, c, d = Bools('a b c d')
+        x, y = Ints("x y")
+        a, b, c, d = Bools("a b c d")
 
         # Define Z3 constraints - same as in z3_example
-        expr = And(
-            a == (x + y > 0),
-            c == ((2 * x + 3 * y) < -10),
-            Or(a, b),
-            Or(c, d)
-        )
+        expr = And(a == (x + y > 0), c == ((2 * x + 3 * y) < -10), Or(a, b), Or(c, d))
 
         # Solve the formula with a model limit
         print("Solving Z3 formula with PySMT...")
@@ -87,16 +77,11 @@ def mathsat_example() -> None:
         solver = create_allsmt_solver("mathsat")
 
         # Define variables
-        x, y = Ints('x y')
-        a, b, c, d = Bools('a b c d')
+        x, y = Ints("x y")
+        a, b, c, d = Bools("a b c d")
 
         # Define constraints
-        expr = And(
-            a == (x + y > 0),
-            c == ((2 * x + 3 * y) < -10),
-            Or(a, b),
-            Or(c, d)
-        )
+        expr = And(a == (x + y > 0), c == ((2 * x + 3 * y) < -10), Or(a, b), Or(c, d))
 
         # Solve the formula with a model limit
         print("Solving formula with MathSAT...")
@@ -122,7 +107,7 @@ def simple_example() -> None:
     solver = create_allsmt_solver()
 
     # Define variables and constraints
-    x, y = Ints('x y')
+    x, y = Ints("x y")
     expr = And(x + y == 5, x > 0, y > 0)
 
     # Solve the formula with a model limit
@@ -148,7 +133,7 @@ def infinite_models_example() -> None:
 
     # Example 1: Integer solution with inequality
     print("\nExample 1: Integer solution with inequality")
-    x, y = Ints('x y')
+    x, y = Ints("x y")
     expr = And(x > 0, y > 0, x + y > 10)
 
     print("Solving formula with potentially infinite models...")
@@ -157,7 +142,7 @@ def infinite_models_example() -> None:
 
     # Example 2: Real number solution
     print("\nExample 2: Real number solution")
-    a, b = Reals('a b')
+    a, b = Reals("a b")
     expr = And(a > 0, b > 0, a + b == 1)
 
     print("Solving formula with uncountably infinite models...")

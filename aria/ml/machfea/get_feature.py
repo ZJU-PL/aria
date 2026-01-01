@@ -18,7 +18,7 @@ Publication: ASE 2025
 
 from machsmt import Benchmark, args
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print(f"Processing benchmark: {args.benchmark}")
 
     # Load and parse the SMT benchmark file
@@ -29,7 +29,7 @@ if __name__ == '__main__':
     feature = benchmark.get_features()
 
     # Clean benchmark name for output
-    benchmark_name = args.benchmark.replace("../data/", '').replace("/", "_")
+    benchmark_name = args.benchmark.replace("../data/", "").replace("/", "_")
 
     # Prepare feature dictionary
     fea = {}

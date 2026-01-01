@@ -7,7 +7,7 @@ import time
 
 from collections import namedtuple, OrderedDict
 
-Param = namedtuple('Param', ['key', 'value', 'ttype'])
+Param = namedtuple("Param", ["key", "value", "ttype"])
 
 SymbolTable = {
     "sat.gc": ["psm", "glue", "glue_psm", "dyn_psm"],
@@ -19,7 +19,7 @@ SymbolTable = {
     "fixedpoint.dump_aig": [""],
     "fixedpoint.engine": ["auto-config", "datalog", "pdr", "bmc"],
     "fixedpoint.tab_selection": ["weight", "first", "var-use"],
-    "nnf.mode": ["skolem", "quantifiers", "full"]
+    "nnf.mode": ["skolem", "quantifiers", "full"],
 }
 
 
@@ -80,7 +80,9 @@ class Params:
     def dump(self, fname):
         with open(fname, "w") as ffile:
             for param in self._storage.values():
-                ffile.write("{0} = {1} {2}\n".format(param.key, param.value, param.ttype))
+                ffile.write(
+                    "{0} = {1} {2}\n".format(param.key, param.value, param.ttype)
+                )
         return self
 
     def mutate(self):
@@ -98,8 +100,10 @@ class Params:
         return res
 
     def __cmp__(self, obj):
-        if obj is None: return 1
-        if not isinstance(obj, Params): return 1
+        if obj is None:
+            return 1
+        if not isinstance(obj, Params):
+            return 1
         return self._storage.__cmp__(obj._storage)
 
 
@@ -110,7 +114,9 @@ def run_tests():
     # TODO:
     #  add timeout
     #  can subprocess.call spawn its own sub-threads??
-    ret = subprocess.call(cmd.split(), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    ret = subprocess.call(
+        cmd.split(), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+    )
     end = time.perf_counter()
     return end - start if 0 == ret else 4294967295
 
@@ -124,7 +130,10 @@ class GA:
     _rand.seed()
 
     def __init__(self):
-        self._population = [Params().load("z3.params.{0}".format(i)).mutate() for i in range(self._population_size)]
+        self._population = [
+            Params().load("z3.params.{0}".format(i)).mutate()
+            for i in range(self._population_size)
+        ]
         self._new = []
         self._retained = []
 
@@ -155,18 +164,20 @@ class GA:
         self._population = []
         self._retained = []
 
-        self._retained.extend(self._new[:self._retain_size])
+        self._retained.extend(self._new[: self._retain_size])
 
         while len(self._population) < self._population_size:
             i1 = self._rand.randint(0, len(self._new) - 1)
             i2 = self._rand.randint(0, len(self._new) - 1)
-            if i1 == i2: continue
-            if self._new[i1].fitness == 4294967295 or self._new[i2].fitness == 4294967295: continue
+            if i1 == i2:
+                continue
+            if (
+                self._new[i1].fitness == 4294967295
+                or self._new[i2].fitness == 4294967295
+            ):
+                continue
             self._population.append(
-                Params.crossover(
-                    self._new[i1],
-                    self._new[i2]
-                ).mutate()
+                Params.crossover(self._new[i1], self._new[i2]).mutate()
             )
 
         self._new = []

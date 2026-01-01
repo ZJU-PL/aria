@@ -9,13 +9,24 @@ import typing as t
 
 import pytest
 
-from hypothesis import (assume, event, given, strategies as st, settings,
-                        HealthCheck)
+from hypothesis import assume, event, given, strategies as st, settings, HealthCheck
 
 import aria.bool.nnf as nnf
 
-from aria.bool.nnf import (Var, And, Or, amc, dimacs, dsharp, operators,
-                 tseitin, complete_models, config, pysat, all_models)
+from aria.bool.nnf import (
+    Var,
+    And,
+    Or,
+    amc,
+    dimacs,
+    dsharp,
+    operators,
+    tseitin,
+    complete_models,
+    config,
+    pysat,
+    all_models,
+)
 
 memoized = [
     method
@@ -26,11 +37,12 @@ assert memoized, "No memoized methods found, did the implementation change?"
 for method in memoized:
     method.set = lambda *args: None  # type: ignore
 
-settings.register_profile('patient', deadline=2000,
-                          suppress_health_check=(HealthCheck.too_slow,))
-settings.load_profile('patient')
+settings.register_profile(
+    "patient", deadline=2000, suppress_health_check=(HealthCheck.too_slow,)
+)
+settings.load_profile("patient")
 
-a, b, c = Var('a'), Var('b'), Var('c')
+a, b, c = Var("a"), Var("b"), Var("c")
 
 fig1a = (~a & b) | (a & ~b)
 fig1b = (~a | ~b) & (a | b)
@@ -55,14 +67,15 @@ def test_all_models_basic():
 def test_all_models(names):
     result = list(nnf.all_models(names))
     # Proper result size
-    assert len(result) == 2**len(names)
+    assert len(result) == 2 ** len(names)
     # Only real names, only booleans
-    assert all(name in names and isinstance(value, bool)
-               for model in result
-               for name, value in model.items())
+    assert all(
+        name in names and isinstance(value, bool)
+        for model in result
+        for name, value in model.items()
+    )
     # Only complete models
-    assert all(len(model) == len(names)
-               for model in result)
+    assert all(len(model) == len(names) for model in result)
     # No duplicate models
     assert len({tuple(model.items()) for model in result}) == len(result)
 
@@ -83,7 +96,7 @@ def test_amc():
     assert amc.NUM_SAT(fig1a) == 2
     assert amc.NUM_SAT(fig1b) == 4
 
-    assert amc.GRAD(a, {'a': 0.5}, 'a') == (0.5, 1)
+    assert amc.GRAD(a, {"a": 0.5}, "a") == (0.5, 1)
 
 
 names = st.integers(1, 8)
@@ -106,14 +119,12 @@ def leaves(draw):
 
 @st.composite
 def terms(draw):
-    return And(Var(name, draw(st.booleans()))
-               for name in draw(st.sets(names)))
+    return And(Var(name, draw(st.booleans())) for name in draw(st.sets(names)))
 
 
 @st.composite
 def clauses(draw):
-    return Or(Var(name, draw(st.booleans()))
-              for name in draw(st.sets(names)))
+    return Or(Var(name, draw(st.booleans())) for name in draw(st.sets(names)))
 
 
 @st.composite
@@ -139,9 +150,10 @@ def models(draw):
 def MODS(draw):
     num = draw(st.integers(min_value=1, max_value=9))
     amount = draw(st.integers(min_value=0, max_value=10))
-    return Or(And(Var(name, draw(st.booleans()))
-                  for name in range(1, num))
-              for _ in range(amount))
+    return Or(
+        And(Var(name, draw(st.booleans())) for name in range(1, num))
+        for _ in range(amount)
+    )
 
 
 @st.composite
@@ -185,7 +197,7 @@ def test_MODS_satisfiable(sentence: nnf.Or):
         assert not sentence.satisfiable()
 
 
-@pytest.fixture(scope='module', params=[True, False])
+@pytest.fixture(scope="module", params=[True, False])
 def merge_nodes(request):
     return request.param
 
@@ -205,8 +217,7 @@ def test_DNNF_sat_strategies(sentence: nnf.NNF, merge_nodes):
 
 def test_amc_numsat():
     for sentence in uf20:
-        assert (amc.NUM_SAT(sentence.make_smooth())
-                == len(list(sentence.models())))
+        assert amc.NUM_SAT(sentence.make_smooth()) == len(list(sentence.models()))
 
 
 @given(sentence=NNF())
@@ -228,8 +239,7 @@ def test_simplify_preserves_meaning(sentence: nnf.NNF, merge_nodes):
 @given(sentence=NNF())
 def test_simplify_eliminates_bools(sentence: nnf.NNF, merge_nodes):
     assume(sentence != nnf.true and sentence != nnf.false)
-    if any(node == nnf.true or node == nnf.false
-           for node in sentence.walk()):
+    if any(node == nnf.true or node == nnf.false for node in sentence.walk()):
         event("Sentence contained booleans originally")
     sentence = sentence.simplify(merge_nodes)
     if sentence == nnf.true or sentence == nnf.false:
@@ -241,10 +251,11 @@ def test_simplify_eliminates_bools(sentence: nnf.NNF, merge_nodes):
 
 @given(NNF())
 def test_simplify_merges_internal_nodes(sentence: nnf.NNF):
-    if any(any(type(node) == type(child)
-               for child in node.children)
-           for node in sentence.walk()
-           if isinstance(node, nnf.Internal)):
+    if any(
+        any(type(node) == type(child) for child in node.children)
+        for node in sentence.walk()
+        if isinstance(node, nnf.Internal)
+    ):
         event("Sentence contained immediately mergeable nodes")
         # Nodes may also be merged after intermediate nodes are removed
     for node in sentence.simplify().walk():
@@ -272,18 +283,13 @@ p sat 4
    +(4)
    +(2 3)))
 """
-    assert dimacs.loads(sample_input) == And({
-        Or({Var(1), Var(3), ~Var(4)}),
-        Or({Var(4)}),
-        Or({Var(2), Var(3)})
-    })
+    assert dimacs.loads(sample_input) == And(
+        {Or({Var(1), Var(3), ~Var(4)}), Or({Var(4)}), Or({Var(2), Var(3)})}
+    )
 
 
 @pytest.mark.parametrize(
-    'serialized, sentence',
-    [
-        ('p sat 2\n(+((1)+((2))))', Or({Var(1), Or({Var(2)})}))
-    ]
+    "serialized, sentence", [("p sat 2\n(+((1)+((2))))", Or({Var(1), Or({Var(2)})}))]
 )
 def test_dimacs_sat_weird_input(serialized: str, sentence: nnf.NNF):
     assert dimacs.loads(serialized) == sentence
@@ -297,11 +303,9 @@ p cnf 4 3
 4 0 2
 -3
 """
-    assert dimacs.loads(sample_input) == And({
-        Or({Var(1), Var(3), ~Var(4)}),
-        Or({Var(4)}),
-        Or({Var(2), ~Var(3)})
-    })
+    assert dimacs.loads(sample_input) == And(
+        {Or({Var(1), Var(3), ~Var(4)}), Or({Var(4)}), Or({Var(2), ~Var(3)})}
+    )
 
 
 def test_dimacs_rejects_weird_digits():
@@ -315,14 +319,14 @@ def test_arbitrary_dimacs_sat_serialize(sentence: nnf.NNF):
     # Removing spaces may change the meaning, but shouldn't make it invalid
     # At least as far as our parser is concerned, a more sophisticated one
     # could detect variables with too high names
-    serial = dimacs.dumps(sentence).split('\n')
-    serial[1] = serial[1].replace(' ', '')
-    dimacs.loads('\n'.join(serial))
+    serial = dimacs.dumps(sentence).split("\n")
+    serial[1] = serial[1].replace(" ", "")
+    dimacs.loads("\n".join(serial))
 
 
 @given(CNF())
 def test_arbitrary_dimacs_cnf_serialize(sentence: And[Or[Var]]):
-    reloaded = dimacs.loads(dimacs.dumps(sentence, mode='cnf'))
+    reloaded = dimacs.loads(dimacs.dumps(sentence, mode="cnf"))
     assert reloaded.is_CNF()
     assert reloaded == sentence
 
@@ -331,21 +335,21 @@ def test_arbitrary_dimacs_cnf_serialize(sentence: And[Or[Var]]):
 def test_dimacs_cnf_serialize_accepts_only_cnf(sentence: nnf.NNF):
     if sentence.is_CNF():
         event("CNF sentence")
-        dimacs.dumps(sentence, mode='cnf')
+        dimacs.dumps(sentence, mode="cnf")
     else:
         event("Not CNF sentence")
         with pytest.raises(dimacs.EncodeError):
-            dimacs.dumps(sentence, mode='cnf')
+            dimacs.dumps(sentence, mode="cnf")
 
 
 @pytest.mark.parametrize(
-    'fname, clauses',
+    "fname, clauses",
     [
-        ('bf0432-007.cnf', 3667),
-        ('sw100-1.cnf', 3100),
-        ('uuf250-01.cnf', 1065),
-        ('uf20-01.cnf', 90),
-    ]
+        ("bf0432-007.cnf", 3667),
+        ("sw100-1.cnf", 3100),
+        ("uuf250-01.cnf", 1065),
+        ("uf20-01.cnf", 90),
+    ],
 )
 def test_cnf_benchmark_data(fname: str, clauses: int):
     with (satlib / fname).open() as f:
@@ -394,23 +398,28 @@ def test_models_deterministic_trivial():
 
 
 @pytest.mark.parametrize(
-    'sentence, size',
+    "sentence, size",
     [
         ((a & b), 2),
         (a & (a | b), 4),
         ((a | b) & (~a | ~b), 6),
-        (And({
-            Or({a, b}),
-            And({a, Or({a, b})}),
-        }), 6)
-    ]
+        (
+            And(
+                {
+                    Or({a, b}),
+                    And({a, Or({a, b})}),
+                }
+            ),
+            6,
+        ),
+    ],
 )
 def test_size(sentence: nnf.NNF, size: int):
     assert sentence.size() == size
 
 
 @pytest.mark.parametrize(
-    'a, b, contradictory',
+    "a, b, contradictory",
     [
         (a, ~a, True),
         (a, b, False),
@@ -418,7 +427,7 @@ def test_size(sentence: nnf.NNF, size: int):
         (a & b, a & ~b, True),
         (a & (a | b), b, False),
         (a & (a | b), ~a, True),
-    ]
+    ],
 )
 def test_contradicts(a: nnf.NNF, b: nnf.NNF, contradictory: bool):
     assert a.contradicts(b) == contradictory
@@ -433,13 +442,13 @@ def test_false_contradicts_everything(sentence: nnf.NNF):
 def test_equivalent(sentence: nnf.NNF):
     assert sentence.equivalent(sentence)
     assert sentence.equivalent(sentence | nnf.false)
-    assert sentence.equivalent(sentence & (nnf.Var('A') | ~nnf.Var('A')))
+    assert sentence.equivalent(sentence & (nnf.Var("A") | ~nnf.Var("A")))
     if sentence.satisfiable():
         assert not sentence.equivalent(sentence & nnf.false)
-        assert not sentence.equivalent(sentence & nnf.Var('A'))
+        assert not sentence.equivalent(sentence & nnf.Var("A"))
     else:
         assert sentence.equivalent(sentence & nnf.false)
-        assert sentence.equivalent(sentence & nnf.Var('A'))
+        assert sentence.equivalent(sentence & nnf.Var("A"))
 
 
 @given(NNF(), NNF())
@@ -454,10 +463,9 @@ def test_random_equivalent(a: nnf.NNF, b: nnf.NNF):
                 assert a.condition(model).valid()
         else:
             event("Not equivalent, different vars")
-            assert (any(not b.condition(model).valid()
-                        for model in a.models()) or
-                    any(not a.condition(model).valid()
-                        for model in b.models()))
+            assert any(not b.condition(model).valid() for model in a.models()) or any(
+                not a.condition(model).valid() for model in b.models()
+            )
     else:
         if a.equivalent(b):
             event("Equivalent, same vars")
@@ -535,12 +543,15 @@ def test_uf20_model_counting():
 def test_validity(sentence: nnf.NNF):
     if sentence.valid():
         event("Valid sentence")
-        assert all(sentence.satisfied_by(model)
-                   for model in nnf.all_models(sentence.vars()))
+        assert all(
+            sentence.satisfied_by(model) for model in nnf.all_models(sentence.vars())
+        )
     else:
         event("Invalid sentence")
-        assert any(not sentence.satisfied_by(model)
-                   for model in nnf.all_models(sentence.vars()))
+        assert any(
+            not sentence.satisfied_by(model)
+            for model in nnf.all_models(sentence.vars())
+        )
 
 
 def test_uf20_validity():
@@ -609,9 +620,11 @@ def test_pairwise(sentence: nnf.NNF):
     new = sentence.make_pairwise()
     assert new.equivalent(sentence)
     if new not in {nnf.true, nnf.false}:
-        assert all(len(node.children) == 2
-                   for node in new.walk()
-                   if isinstance(node, nnf.Internal))
+        assert all(
+            len(node.children) == 2
+            for node in new.walk()
+            if isinstance(node, nnf.Internal)
+        )
 
 
 @given(NNF())
@@ -619,9 +632,11 @@ def test_implicates(sentence: nnf.NNF):
     implicates = sentence.implicates()
     assert implicates.equivalent(sentence)
     assert implicates.is_CNF(strict=True)
-    assert not any(a.children < b.children
-                   for a in implicates.children
-                   for b in implicates.children)
+    assert not any(
+        a.children < b.children
+        for a in implicates.children
+        for b in implicates.children
+    )
 
 
 @given(NNF())
@@ -629,9 +644,11 @@ def test_implicants(sentence: nnf.NNF):
     implicants = sentence.implicants()
     assert implicants.equivalent(sentence)
     assert implicants.is_DNF()
-    assert not any(a.children < b.children
-                   for a in implicants.children
-                   for b in implicants.children)
+    assert not any(
+        a.children < b.children
+        for a in implicants.children
+        for b in implicants.children
+    )
 
 
 @given(NNF())
@@ -685,8 +702,7 @@ def test_implies(a: nnf.NNF, b: nnf.NNF):
             assert b.condition(model).valid()
     else:
         event("No implication")
-        assert any(not b.condition(model).valid()
-                   for model in a.models())
+        assert any(not b.condition(model).valid() for model in a.models())
 
 
 def test_uf20_cnf_sat():
@@ -707,48 +723,48 @@ def test_uf20_cnf_sat():
 def test_xor(a: nnf.NNF, b: nnf.NNF):
     c = operators.xor(a, b)
     for model in nnf.all_models(c.vars()):
-        assert (a.satisfied_by(model) ^ b.satisfied_by(model) ==
-                c.satisfied_by(model))
+        assert a.satisfied_by(model) ^ b.satisfied_by(model) == c.satisfied_by(model)
 
 
 @given(NNF(), NNF())
 def test_nand(a: nnf.NNF, b: nnf.NNF):
     c = operators.nand(a, b)
     for model in nnf.all_models(c.vars()):
-        assert ((a.satisfied_by(model) and b.satisfied_by(model)) !=
-                c.satisfied_by(model))
+        assert (a.satisfied_by(model) and b.satisfied_by(model)) != c.satisfied_by(
+            model
+        )
 
 
 @given(NNF(), NNF())
 def test_nor(a: nnf.NNF, b: nnf.NNF):
     c = operators.nor(a, b)
     for model in nnf.all_models(c.vars()):
-        assert ((a.satisfied_by(model) or b.satisfied_by(model)) !=
-                c.satisfied_by(model))
+        assert (a.satisfied_by(model) or b.satisfied_by(model)) != c.satisfied_by(model)
 
 
 @given(NNF(), NNF())
 def test_implies2(a: nnf.NNF, b: nnf.NNF):
     c = operators.implies(a, b)
     for model in nnf.all_models(c.vars()):
-        assert ((a.satisfied_by(model) and not b.satisfied_by(model)) !=
-                c.satisfied_by(model))
+        assert (a.satisfied_by(model) and not b.satisfied_by(model)) != c.satisfied_by(
+            model
+        )
 
 
 @given(NNF(), NNF())
 def test_implied_by(a: nnf.NNF, b: nnf.NNF):
     c = operators.implied_by(a, b)
     for model in nnf.all_models(c.vars()):
-        assert ((b.satisfied_by(model) and not a.satisfied_by(model)) !=
-                c.satisfied_by(model))
+        assert (b.satisfied_by(model) and not a.satisfied_by(model)) != c.satisfied_by(
+            model
+        )
 
 
 @given(NNF(), NNF())
 def test_iff(a: nnf.NNF, b: nnf.NNF):
     c = operators.iff(a, b)
     for model in nnf.all_models(c.vars()):
-        assert ((a.satisfied_by(model) == b.satisfied_by(model)) ==
-                c.satisfied_by(model))
+        assert (a.satisfied_by(model) == b.satisfied_by(model)) == c.satisfied_by(model)
 
 
 @given(NNF())
@@ -757,8 +773,8 @@ def test_forget(sentence: nnf.NNF):
     assume(sentence.size() <= 15)
 
     # Test that forgetting a backbone variable doesn't change the theory
-    T = sentence & Var('added_var')
-    assert sentence.equivalent(T.forget({'added_var'}))
+    T = sentence & Var("added_var")
+    assert sentence.equivalent(T.forget({"added_var"}))
 
     # Test the tseitin projection
     assert sentence.equivalent(sentence.to_CNF().forget_aux())
@@ -795,7 +811,8 @@ def test_copying_does_not_copy(sentence: nnf.NNF):
     assert copy.deepcopy([sentence])[0] is sentence
 
 
-if shutil.which('dsharp') is not None:
+if shutil.which("dsharp") is not None:
+
     def test_dsharp_compile_uf20():
         sentence = uf20_cnf[0]
         compiled = dsharp.compile(sentence)
@@ -819,8 +836,9 @@ if shutil.which('dsharp') is not None:
 
     @given(CNF())
     def test_dsharp_compile_converting_names(sentence: And[Or[Var]]):
-        sentence = And(Or(Var(str(var.name), var.true) for var in clause)
-                       for clause in sentence)
+        sentence = And(
+            Or(Var(str(var.name), var.true) for var in clause) for clause in sentence
+        )
         compiled = dsharp.compile(sentence)
         assert all(isinstance(name, str) for name in compiled.vars())
         if sentence.satisfiable():
@@ -899,15 +917,13 @@ def test_complete_models(model: nnf.And[nnf.Var]):
     assert all(x.keys() == m.keys() | {"test1", "test2"} for x in two)
 
     if m:
-        multi = list(
-            complete_models([m, neg], model.vars() | {"test1", "test2"})
-        )
+        multi = list(complete_models([m, neg], model.vars() | {"test1", "test2"}))
         assert len(multi) == 8
         assert len({frozenset(x.items()) for x in multi}) == 8  # all unique
         assert all(x.keys() == m.keys() | {"test1", "test2"} for x in multi)
 
 
-if (platform.uname().system, platform.uname().machine) == ('Linux', 'x86_64'):
+if (platform.uname().system, platform.uname().machine) == ("Linux", "x86_64"):
 
     @config(sat_backend="kissat")
     def test_kissat_uf20():
@@ -923,8 +939,7 @@ if (platform.uname().system, platform.uname().machine) == ('Linux', 'x86_64'):
     @given(NNF())
     def test_kissat_nnf(sentence: And[Or[Var]]):
         assert (
-            sentence.satisfiable()
-            == tseitin.to_CNF(sentence)._cnf_satisfiable_native()
+            sentence.satisfiable() == tseitin.to_CNF(sentence)._cnf_satisfiable_native()
         )
 
 
@@ -1044,9 +1059,7 @@ if pysat.available:
     @given(sentence=CNF())
     def test_pysat_satisfiable(sentence: And[Or[Var]], pysat_solver):
         with pysat_solver:
-            assert sentence._cnf_satisfiable_native() == pysat.satisfiable(
-                sentence
-            )
+            assert sentence._cnf_satisfiable_native() == pysat.satisfiable(sentence)
 
     @given(sentence=CNF())
     def test_pysat_models(sentence: And[Or[Var]], pysat_solver):
@@ -1057,10 +1070,7 @@ if pysat.available:
         pysat_set = model_set(pysat_models)
         assert native_set == pysat_set
         assert (
-            len(native_models)
-            == len(pysat_models)
-            == len(native_set)
-            == len(pysat_set)
+            len(native_models) == len(pysat_models) == len(native_set) == len(pysat_set)
         )
 
     @given(sentence=CNF())
@@ -1098,9 +1108,7 @@ def test_satisfiable(sentence: nnf.NNF):
 @given(NNF())
 def test_models(sentence: nnf.NNF):
     real_models = [
-        model
-        for model in all_models(sentence.vars())
-        if sentence.satisfied_by(model)
+        model for model in all_models(sentence.vars()) if sentence.satisfied_by(model)
     ]
     models = list(sentence.models())
     assert len(real_models) == len(models)
@@ -1132,8 +1140,7 @@ def test_toCNF_simplification():
 
 @config(auto_simplify=False)
 def test_nesting():
-    a, b, c, d, e, f = Var("a"), Var("b"), Var("c"), Var("d"), \
-                       Var("e"), Var("f")
+    a, b, c, d, e, f = Var("a"), Var("b"), Var("c"), Var("d"), Var("e"), Var("f")
 
     # test left nestings on And
     config.auto_simplify = False

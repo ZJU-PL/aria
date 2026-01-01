@@ -2,17 +2,21 @@
 This module performs all basic DFA operations.
 It is an interface for pyfst.
 """
+
 # /usr/bin/python
 
 from operator import attrgetter
 from typing import List
-#import fst
+
+# import fst
 import pywrapfst as fst  # FIXME
-#import openfst_python as fst
+
+# import openfst_python as fst
 from aria.automata.symautomata.alphabet import createalphabet
 
-#EPSILON = fst.EPSILON
-EPSILON = 0xffff
+# EPSILON = fst.EPSILON
+EPSILON = 0xFFFF
+
 
 def TropicalWeight(param):
     """
@@ -23,6 +27,7 @@ def TropicalWeight(param):
         bool: The arc weight
     """
     return fst.TropicalWeight(param)
+
 
 class FstDFA(fst.StdAcceptor):
     """
@@ -67,7 +72,7 @@ class FstDFA(fst.StdAcceptor):
                 if found == 0:
                     self.add_arc(state.stateid, endstate, char)
 
-        self[endstate].final = TropicalWeight(float('inf'))
+        self[endstate].final = TropicalWeight(float("inf"))
 
         for char in alphabet:
             self.add_arc(endstate, endstate, char)
@@ -91,7 +96,7 @@ class FstDFA(fst.StdAcceptor):
                 if found == 0:
                     self.add_arc(state.stateid, endstate, char)
 
-        self[endstate].final = TropicalWeight(float('inf'))
+        self[endstate].final = TropicalWeight(float("inf"))
 
         for char in alphabet:
             self.add_arc(endstate, endstate, char)
@@ -104,7 +109,7 @@ class FstDFA(fst.StdAcceptor):
         Returns:
             inp (str): The path concatenated as as string
         """
-        inp = ''
+        inp = ""
         for arc in path:
             i = self.isyms.find(arc.ilabel)
             # Ignore \epsilon transitions both on input
@@ -120,10 +125,7 @@ class FstDFA(fst.StdAcceptor):
         Returns:
             None
         """
-        states = sorted(
-            acceptor.states,
-            key=attrgetter('initial'),
-            reverse=True)
+        states = sorted(acceptor.states, key=attrgetter("initial"), reverse=True)
         for state in states:
             for arc in state.arcs:
                 itext = acceptor.isyms.find(arc.ilabel)
@@ -143,10 +145,7 @@ class FstDFA(fst.StdAcceptor):
             bool: A true or false value depending on if the DFA
                 accepts the provided input
         """
-        cur_state = sorted(
-            self.states,
-            key=attrgetter('initial'),
-            reverse=True)[0]
+        cur_state = sorted(self.states, key=attrgetter("initial"), reverse=True)[0]
         while len(inp) > 0:
             found = False
             for arc in cur_state.arcs:
@@ -157,10 +156,10 @@ class FstDFA(fst.StdAcceptor):
                     break
             if not found:
                 return False
-        return cur_state.final != TropicalWeight(float('inf'))
+        return cur_state.final != TropicalWeight(float("inf"))
 
     def empty(self) -> bool:
-        """""
+        """ ""
         Return True if the DFA accepts the empty language.
         """
         return len(list(self.states)) == 0
@@ -187,7 +186,7 @@ class FstDFA(fst.StdAcceptor):
             None
         """
         self._addsink(alphabet)
-        states = sorted(self.states, key=attrgetter('initial'), reverse=True)
+        states = sorted(self.states, key=attrgetter("initial"), reverse=True)
         for state in states:
             if state.final:
                 state.final = False
@@ -203,20 +202,22 @@ class FstDFA(fst.StdAcceptor):
         Returns:
             None
         """
-        txt_fst = open(txt_fst_filename, 'w+')
-        states = sorted(self.states, key=attrgetter('initial'), reverse=True)
+        txt_fst = open(txt_fst_filename, "w+")
+        states = sorted(self.states, key=attrgetter("initial"), reverse=True)
         for state in states:
             for arc in state.arcs:
                 itext = self.isyms.find(arc.ilabel)
                 otext = self.osyms.find(arc.ilabel)
                 txt_fst.write(
-                    '{}\t{}\t{}\t{}\n'.format(
+                    "{}\t{}\t{}\t{}\n".format(
                         state.stateid,
                         arc.nextstate,
-                        itext.encode('hex'),
-                        otext.encode('hex')))
+                        itext.encode("hex"),
+                        otext.encode("hex"),
+                    )
+                )
             if state.final:
-                txt_fst.write('{}\n'.format(state.stateid))
+                txt_fst.write("{}\n".format(state.stateid))
         txt_fst.close()
 
     def load(self, txt_fst_filename: str) -> None:
@@ -231,12 +232,15 @@ class FstDFA(fst.StdAcceptor):
         Returns:
             None
         """
-        with open(txt_fst_filename, 'r') as txt_fst:
+        with open(txt_fst_filename, "r") as txt_fst:
             for line in txt_fst:
                 line = line.strip()
                 splitted_line = line.split()
                 if len(splitted_line) == 1:
                     self[int(splitted_line[0])].final = True
                 else:
-                    self.add_arc(int(splitted_line[0]), int(
-                        splitted_line[1]), splitted_line[2].decode('hex'))
+                    self.add_arc(
+                        int(splitted_line[0]),
+                        int(splitted_line[1]),
+                        splitted_line[2].decode("hex"),
+                    )

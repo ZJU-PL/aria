@@ -65,7 +65,9 @@ def get_backbone_literals_by_model_enumeration(fml: ExprRef, literals: List[Expr
     return res
 
 
-def get_backbone_literals_by_unsat_core_enumeration(fml: ExprRef, literals: List[ExprRef]):
+def get_backbone_literals_by_unsat_core_enumeration(
+    fml: ExprRef, literals: List[ExprRef]
+):
     """
     A backbone literal is a literal that is entailed by the formula.
     The idea: enumerate all models of the fml and check whether each literal is true in each model.
@@ -74,7 +76,8 @@ def get_backbone_literals_by_unsat_core_enumeration(fml: ExprRef, literals: List
 
 
 def get_backbone_literals_by_monadic_predicate_abstraction(
-        fml: ExprRef, literals: List[ExprRef]):
+    fml: ExprRef, literals: List[ExprRef]
+):
     """Call the monadic predicate abstraction algorithm to get the backbone literals."""
     raise NotImplementedError
 
@@ -90,10 +93,10 @@ def get_backbone_literals(fml: ExprRef, literals: List[ExprRef], alg: str):
     :param alg: The algorithm to use
     """
     # allow for choosing different implementations in this file
-    if alg == 'sequence_checking':
+    if alg == "sequence_checking":
         return get_backbone_literals_by_sequence_checking(fml, literals)
-    if alg == 'model_enumeration':
+    if alg == "model_enumeration":
         return get_backbone_literals_by_model_enumeration(fml, literals)
-    if alg == 'unsat_core_enumeration':
+    if alg == "unsat_core_enumeration":
         return get_backbone_literals_by_unsat_core_enumeration(fml, literals)
     raise NotImplementedError

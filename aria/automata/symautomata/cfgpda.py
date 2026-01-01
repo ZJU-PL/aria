@@ -1,10 +1,11 @@
 """This module generates a PDA using a CFG as input"""
+
 from typing import List, Optional
 from aria.automata.symautomata.cnfpda import CnfPda
 from aria.automata.symautomata.cfggenerator import CNFGenerator
 
 
-class CfgPDA():
+class CfgPDA:
     """Create a PDA from a CFG"""
 
     def __init__(self, alphabet: Optional[List[str]] = None):
@@ -36,7 +37,7 @@ class CfgPDA():
             list: The list of CFG rules
         """
         with open(fname) as input_file:
-            re_grammar = [x.strip('\n') for x in input_file.readlines()]
+            re_grammar = [x.strip("\n") for x in input_file.readlines()]
         return re_grammar
 
     def _mpda(self, re_grammar: List[str], splitstring: int = 0):
@@ -70,15 +71,15 @@ class CfgPDA():
                     productions[key][j] = {}
                     if isinstance(cnf_form[1], type(())):
                         #            print list(p[1])
-                        productions[key][j]['b0'] = list(cnf_form[1])[0]
-                        productions[key][j]['b1'] = list(cnf_form[1])[1]
+                        productions[key][j]["b0"] = list(cnf_form[1])[0]
+                        productions[key][j]["b1"] = list(cnf_form[1])[1]
                     else:
                         #           print p[1]
-                        productions[key][j]['a'] = cnf_form[1]
+                        productions[key][j]["a"] = cnf_form[1]
                     j = j + 1
         return cnftopda.initialize(
-            nonterminals, productions, list(
-                cnfgrammar.grammar_terminals), splitstring)
+            nonterminals, productions, list(cnfgrammar.grammar_terminals), splitstring
+        )
 
     def yyparse(self, cfgfile: str, splitstring: int = 0):
         """

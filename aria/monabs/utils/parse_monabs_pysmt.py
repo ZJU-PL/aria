@@ -6,6 +6,7 @@ The expected SMT-LIB structure matches the Z3 parser in `parse_monabs.py`:
 - Constraints between a `push` and the matching `pop` form one predicate
   block and are collected into `cnt_list`.
 """
+
 from typing import List, Tuple
 
 from pysmt.shortcuts import And, TRUE

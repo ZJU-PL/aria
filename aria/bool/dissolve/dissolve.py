@@ -48,6 +48,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class DilemmaTriple:
     """Represents a dilemma triple (v, a, b) where v is the variable and a, b are values."""
+
     variable: int
     value_a: int  # 0 or 1
     value_b: int  # 0 or 1
@@ -60,6 +61,7 @@ class DilemmaTriple:
 @dataclass
 class DilemmaQuery:
     """Represents a dilemma-based SAT query with assumptions and dilemma information."""
+
     assumptions: List[int]  # Variable assignments (positive/negative literals)
     dilemma_triple: Optional[DilemmaTriple] = None
     round_id: int = 0
@@ -69,6 +71,7 @@ class DilemmaQuery:
 @dataclass
 class WorkerResult:
     """Result from a worker process."""
+
     status: SolverResult
     learnt_clauses: List[List[int]]
     decision_literals: List[int]
@@ -80,6 +83,7 @@ class WorkerResult:
 @dataclass
 class DissolveResult:
     """Result from running the Dissolve algorithm."""
+
     result: SolverResult
     model: Optional[List[int]] = None
     unsat_core: Optional[List[int]] = None
@@ -90,6 +94,7 @@ class DissolveResult:
 @dataclass
 class DissolveConfig:  # pylint: disable=too-many-instance-attributes
     """Configuration for the Dissolve algorithm."""
+
     k_split_vars: int = 5
     per_query_conflict_budget: int = 20000
     max_rounds: Optional[int] = None
@@ -131,7 +136,9 @@ class DilemmaEngine:
     def add_equivalence(self, var: int, value: int) -> None:
         """Add an equivalence relation: variable ≡ value."""
         if var in self.equivalences and self.equivalences[var] != value:
-            raise ValueError(f"Contradiction: {var} ≡ {self.equivalences[var]} but also ≡ {value}")
+            raise ValueError(
+                f"Contradiction: {var} ≡ {self.equivalences[var]} but also ≡ {value}"
+            )
 
         self.equivalences[var] = value
         self.inverse_equivalences[value].add(var)
@@ -142,8 +149,11 @@ class DilemmaEngine:
 
     def is_equivalent(self, var1: int, var2: int) -> bool:
         """Check if two variables are equivalent."""
-        return (var1 in self.equivalences and var2 in self.equivalences and
-                self.equivalences[var1] == self.equivalences[var2])
+        return (
+            var1 in self.equivalences
+            and var2 in self.equivalences
+            and self.equivalences[var1] == self.equivalences[var2]
+        )
 
     def apply_or1_rule(self, p: int, q: int, r: int) -> List[Tuple[int, int]]:
         """
@@ -152,9 +162,11 @@ class DilemmaEngine:
         """
         new_equivalences = []
         try:
-            if (self.get_equivalence(abs(p)) == 0 and  # p ≡ 0
-                self.get_equivalence(abs(q)) == 0 and  # q ≡ 0
-                self.get_equivalence(abs(r)) == 0):    # r ≡ 0
+            if (
+                self.get_equivalence(abs(p)) == 0  # p ≡ 0
+                and self.get_equivalence(abs(q)) == 0  # q ≡ 0
+                and self.get_equivalence(abs(r)) == 0
+            ):  # r ≡ 0
                 # This shouldn't happen in a valid derivation
                 pass
         except (KeyError, TypeError):
@@ -168,16 +180,20 @@ class DilemmaEngine:
         """
         new_equivalences = []
         try:
-            if (self.get_equivalence(abs(p)) == 1 and  # p ≡ 1
-                self.get_equivalence(abs(q)) == 1 and  # q ≡ 1
-                self.get_equivalence(abs(r)) == 1):    # r ≡ 1
+            if (
+                self.get_equivalence(abs(p)) == 1  # p ≡ 1
+                and self.get_equivalence(abs(q)) == 1  # q ≡ 1
+                and self.get_equivalence(abs(r)) == 1
+            ):  # r ≡ 1
                 # This shouldn't happen in a valid derivation
                 pass
         except (KeyError, TypeError):
             pass
         return new_equivalences
 
-    def apply_dilemma_rule(self, var: int, value_a: int, value_b: int) -> List[Tuple[int, int]]:
+    def apply_dilemma_rule(
+        self, var: int, value_a: int, value_b: int
+    ) -> List[Tuple[int, int]]:
         """
         Apply the Dilemma rule for variable v with values a and b.
         Returns new equivalences derived from the dilemma.
@@ -215,37 +231,40 @@ class DilemmaEngine:
 class UBTreeNode:
     """Node in the Unlimited Branching Tree."""
 
-    def __init__(self, literal: int, parent: Optional['UBTreeNode'] = None):
+    def __init__(self, literal: int, parent: Optional["UBTreeNode"] = None):
         self.literal = literal  # The literal this node represents
         self.parent = parent
-        self.children: Dict[int, 'UBTreeNode'] = {}  # literal -> child node
-        self.subsumed_by: Optional['UBTreeNode'] = None  # Node that subsumes this one
-        self.subsumes: Set['UBTreeNode'] = set()  # Nodes subsumed by this one
+        self.children: Dict[int, "UBTreeNode"] = {}  # literal -> child node
+        self.subsumed_by: Optional["UBTreeNode"] = None  # Node that subsumes this one
+        self.subsumes: Set["UBTreeNode"] = set()  # Nodes subsumed by this one
         self.clause: Optional[List[int]] = None  # The clause this node represents
         self.flag: bool = False  # Boolean flag for subsumption checking
 
-    def add_child(self, literal: int) -> 'UBTreeNode':
+    def add_child(self, literal: int) -> "UBTreeNode":
         """Add a child node for the given literal."""
         if literal not in self.children:
             self.children[literal] = UBTreeNode(literal, self)
         return self.children[literal]
 
-    def find_or_create_path(self, literals: List[int]) -> 'UBTreeNode':
+    def find_or_create_path(self, literals: List[int]) -> "UBTreeNode":
         """Find or create a path through the tree for the given literals."""
         current = self
         for literal in literals:
             current = current.add_child(literal)
         return current
 
-    def is_subsumed_by(self, other: 'UBTreeNode') -> bool:
+    def is_subsumed_by(self, other: "UBTreeNode") -> bool:
         """Check if this node is subsumed by another node."""
         # Two nodes are equivalent if they represent the same clause
-        if (self.clause is not None and other.clause is not None and
-            set(abs(l) for l in self.clause) == set(abs(l) for l in other.clause)):
+        if (
+            self.clause is not None
+            and other.clause is not None
+            and set(abs(l) for l in self.clause) == set(abs(l) for l in other.clause)
+        ):
             return True
         return False
 
-    def mark_subsumed(self, by: 'UBTreeNode') -> None:
+    def mark_subsumed(self, by: "UBTreeNode") -> None:
         """Mark this node as subsumed by another node."""
         self.subsumed_by = by
         by.subsumes.add(self)
@@ -265,7 +284,9 @@ class UBTree:
     def __init__(self):
         self.root = UBTreeNode(0)  # Root node
         self.nodes_by_clause: Dict[Tuple[int, ...], UBTreeNode] = {}
-        self.tiers: Dict[int, Dict[int, List[UBTreeNode]]] = defaultdict(lambda: defaultdict(list))
+        self.tiers: Dict[int, Dict[int, List[UBTreeNode]]] = defaultdict(
+            lambda: defaultdict(list)
+        )
         # tiers[round][tier] = list of nodes
 
     def _clause_key(self, clause: List[int]) -> Tuple[int, ...]:
@@ -289,8 +310,10 @@ class UBTree:
         return len(levels) if levels else 1
 
     def insert_clause(
-        self, clause: List[int], round_id: int,
-        assignment: Optional[Dict[int, int]] = None
+        self,
+        clause: List[int],
+        round_id: int,
+        assignment: Optional[Dict[int, int]] = None,
     ) -> UBTreeNode:
         """
         Insert a clause into the UBTree with subsumption checking.
@@ -363,7 +386,9 @@ class UBTree:
                 elif existing_clause.issubset(new_clause):
                     new_node.mark_subsumed(existing_node)
 
-    def get_best_clauses_for_round(self, round_id: int, max_clauses: int = 1000) -> List[List[int]]:
+    def get_best_clauses_for_round(
+        self, round_id: int, max_clauses: int = 1000
+    ) -> List[List[int]]:
         """
         Get the best clauses for sharing in the next round.
 
@@ -381,8 +406,12 @@ class UBTree:
 
             # Sort nodes in this tier by quality (smaller LBD/size is better)
             nodes = self.tiers[round_id][tier]
-            nodes.sort(key=lambda n: (len(n.clause) if n.clause else 999,
-                                    self._calculate_lbd(n.clause, {})))
+            nodes.sort(
+                key=lambda n: (
+                    len(n.clause) if n.clause else 999,
+                    self._calculate_lbd(n.clause, {}),
+                )
+            )
 
             for node in nodes:
                 # Skip subsumed nodes
@@ -423,7 +452,9 @@ class Scheduler:
         self.lock = threading.Lock()
         self.stop_event = threading.Event()
 
-    def producer_loop(self, dissolve_instance: 'Dissolve', clauses: List[List[int]]) -> None:
+    def producer_loop(
+        self, dissolve_instance: "Dissolve", clauses: List[List[int]]
+    ) -> None:
         """Producer loop that generates dilemma queries."""
         round_id = 0
 
@@ -460,7 +491,7 @@ class Scheduler:
 
             round_id += 1
 
-    def worker_loop(self, worker_id: int, dissolve_instance: 'Dissolve') -> None:
+    def worker_loop(self, worker_id: int, dissolve_instance: "Dissolve") -> None:
         """Worker loop that processes SAT queries."""
         while not self.stop_event.is_set():
             try:
@@ -544,13 +575,15 @@ class Dissolve:  # pylint: disable=too-many-instance-attributes,too-few-public-m
             assumptions = self._assumptions_from_mask(split_vars, mask)
 
             # Create dilemma triple for this query
-            dilemma_triple = self._create_dilemma_triple(split_vars, mask) if split_vars else None
+            dilemma_triple = (
+                self._create_dilemma_triple(split_vars, mask) if split_vars else None
+            )
 
             query = DilemmaQuery(
                 assumptions=assumptions,
                 dilemma_triple=dilemma_triple,
                 round_id=round_id,
-                query_id=self.query_counter
+                query_id=self.query_counter,
             )
             queries.append(query)
             self.query_counter += 1
@@ -571,7 +604,7 @@ class Dissolve:  # pylint: disable=too-many-instance-attributes,too-few-public-m
             # Prefer variables with balanced polarities
             candidates.sort(key=lambda v: abs(self.decision_polarities.get(v, 0) - 0.5))
 
-        return candidates[:self.cfg.k_split_vars]
+        return candidates[: self.cfg.k_split_vars]
 
     def _assumptions_from_mask(self, vars_to_split: List[int], mask: int) -> List[int]:
         """Convert a bitmask to variable assumptions."""
@@ -586,7 +619,9 @@ class Dissolve:  # pylint: disable=too-many-instance-attributes,too-few-public-m
                 assumps.append(-v if polarity >= 0.5 else v)
         return assumps
 
-    def _create_dilemma_triple(self, vars_to_split: List[int], mask: int) -> DilemmaTriple:
+    def _create_dilemma_triple(
+        self, vars_to_split: List[int], mask: int
+    ) -> DilemmaTriple:
         """Create a dilemma triple for the given variable assignment mask."""
         if not vars_to_split:
             return DilemmaTriple(1, 0, 1)  # Dummy triple
@@ -639,7 +674,7 @@ class Dissolve:  # pylint: disable=too-many-instance-attributes,too-few-public-m
                     decision_literals=[],
                     polarities=self._extract_polarities(model),
                     model_or_core=model,
-                    dilemma_info=query.dilemma_triple
+                    dilemma_info=query.dilemma_triple,
                 )
 
             # Unknown due to budget/timeout
@@ -650,7 +685,7 @@ class Dissolve:  # pylint: disable=too-many-instance-attributes,too-few-public-m
                     decision_literals=[],
                     polarities={},
                     model_or_core=None,
-                    dilemma_info=query.dilemma_triple
+                    dilemma_info=query.dilemma_triple,
                 )
 
             # UNSAT case
@@ -670,7 +705,7 @@ class Dissolve:  # pylint: disable=too-many-instance-attributes,too-few-public-m
                 decision_literals=self._extract_decision_literals(assumptions),
                 polarities=polarities,
                 model_or_core=core,
-                dilemma_info=query.dilemma_triple
+                dilemma_info=query.dilemma_triple,
             )
 
         except (RuntimeError, ValueError, AttributeError) as exc:
@@ -681,16 +716,20 @@ class Dissolve:  # pylint: disable=too-many-instance-attributes,too-few-public-m
                 decision_literals=[],
                 polarities={},
                 model_or_core=None,
-                dilemma_info=query.dilemma_triple
+                dilemma_info=query.dilemma_triple,
             )
 
     def _get_shared_clauses(self, round_id: int) -> List[List[int]]:
         """Get clauses to share from previous rounds."""
         if round_id == 0:
             return []
-        return self.ubtree.get_best_clauses_for_round(round_id - 1, self.cfg.max_shared_per_round)
+        return self.ubtree.get_best_clauses_for_round(
+            round_id - 1, self.cfg.max_shared_per_round
+        )
 
-    def _extract_learnt_clauses(self, _solver: Solver, assumptions: List[int]) -> List[List[int]]:
+    def _extract_learnt_clauses(
+        self, _solver: Solver, assumptions: List[int]
+    ) -> List[List[int]]:
         """Extract learned clauses from the solver."""
         # In a full implementation, this would access the solver's learned clause database
         # For now, return a sample based on assumptions
@@ -754,7 +793,9 @@ class Dissolve:  # pylint: disable=too-many-instance-attributes,too-few-public-m
             # Update polarities
             for var, polarity in worker_result.polarities.items():
                 if var in self.decision_polarities:
-                    self.decision_polarities[var] = (self.decision_polarities[var] + polarity) / 2
+                    self.decision_polarities[var] = (
+                        self.decision_polarities[var] + polarity
+                    ) / 2
                 else:
                     self.decision_polarities[var] = polarity
 
@@ -789,7 +830,9 @@ class Dissolve:  # pylint: disable=too-many-instance-attributes,too-few-public-m
             processes.append(p)
 
         # Start producer
-        producer = threading.Thread(target=self.scheduler.producer_loop, args=(self, clauses))
+        producer = threading.Thread(
+            target=self.scheduler.producer_loop, args=(self, clauses)
+        )
         producer.start()
 
         # Wait for completion or timeout
@@ -861,7 +904,9 @@ def _worker_solve(  # pylint: disable=too-many-locals
     learnt_in: List[List[int]],
     conflict_budget: int,
     _seed: Optional[int],
-) -> Tuple[SolverResult, List[List[int]], List[int], Dict[int, int], Optional[List[int]]]:
+) -> Tuple[
+    SolverResult, List[List[int]], List[int], Dict[int, int], Optional[List[int]]
+]:
     """Legacy worker function for backward compatibility."""
     try:
         s = Solver(name=solver_name, bootstrap_with=cnf_clauses)

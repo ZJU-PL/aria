@@ -12,7 +12,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-__version__ = '0.2.1'
+__version__ = "0.2.1"
 
 import abc
 import functools
@@ -65,7 +65,7 @@ __all__ = (
 )
 
 
-def all_models(names: 't.Iterable[Name]') -> t.Iterator[Model]:
+def all_models(names: "t.Iterable[Name]") -> t.Iterator[Model]:
     """Yield dictionaries with all possible boolean values for the names.
 
     >>> list(all_models(["a", "b"]))
@@ -86,9 +86,10 @@ def all_models(names: 't.Iterable[Name]') -> t.Iterator[Model]:
 
 class NNF(metaclass=abc.ABCMeta):
     """Base class for all NNF sentences."""
+
     __slots__ = ("__weakref__",)
 
-    def __and__(self: T_NNF, other: U_NNF) -> 'And[t.Union[T_NNF, U_NNF]]':
+    def __and__(self: T_NNF, other: U_NNF) -> "And[t.Union[T_NNF, U_NNF]]":
         """And({self, other})"""
         # prevent unnecessary nesting
         if config.auto_simplify:
@@ -100,7 +101,7 @@ class NNF(metaclass=abc.ABCMeta):
                 return And({*self.children, *other.children})
         return And({self, other})
 
-    def __or__(self: T_NNF, other: U_NNF) -> 'Or[t.Union[T_NNF, U_NNF]]':
+    def __or__(self: T_NNF, other: U_NNF) -> "Or[t.Union[T_NNF, U_NNF]]":
         """Or({self, other})"""
         # prevent unnecessary nesting
         if config.auto_simplify:
@@ -112,11 +113,11 @@ class NNF(metaclass=abc.ABCMeta):
                 return Or({*self.children, *other.children})
         return Or({self, other})
 
-    def __rshift__(self, other: 'NNF') -> 'Or[NNF]':
+    def __rshift__(self, other: "NNF") -> "Or[NNF]":
         """Or({self.negate(), other})"""
         return Or({self.negate(), other})
 
-    def walk(self) -> t.Iterator['NNF']:
+    def walk(self) -> t.Iterator["NNF"]:
         """Yield all nodes in the sentence, depth-first.
 
         Nodes with multiple parents are yielded only once.
@@ -140,12 +141,13 @@ class NNF(metaclass=abc.ABCMeta):
         Note that sentences are rooted DAGs, not trees. If a node has
         multiple parents its edges will still be counted just once.
         """
-        return sum(len(node.children)
-                   for node in self.walk()
-                   if isinstance(node, Internal))
+        return sum(
+            len(node.children) for node in self.walk() if isinstance(node, Internal)
+        )
 
     def height(self) -> int:
         """The number of edges between here and the furthest leaf."""
+
         @memoize
         def height(node: NNF) -> int:
             if isinstance(node, Internal) and node.children:
@@ -172,22 +174,16 @@ class NNF(metaclass=abc.ABCMeta):
 
     def simply_disjunct(self) -> bool:
         """The children of Or nodes are variables that don't share names."""
-        return all(node._is_simple()
-                   for node in self.walk()
-                   if isinstance(node, Or))
+        return all(node._is_simple() for node in self.walk() if isinstance(node, Or))
 
     def simply_conjunct(self) -> bool:
         """The children of And nodes are variables that don't share names."""
-        return all(node._is_simple()
-                   for node in self.walk()
-                   if isinstance(node, And))
+        return all(node._is_simple() for node in self.walk() if isinstance(node, And))
 
     @weakref_memoize
     def vars(self) -> t.FrozenSet[Name]:
         """The names of all variables that appear in the sentence."""
-        return frozenset(node.name
-                         for node in self.walk()
-                         if isinstance(node, Var))
+        return frozenset(node.name for node in self.walk() if isinstance(node, Var))
 
     def _memoized_vars(self) -> t.Callable[["NNF"], t.FrozenSet[Name]]:
         """Return a memoized alternative to the .vars() method.
@@ -204,9 +200,7 @@ class NNF(metaclass=abc.ABCMeta):
             if isinstance(node, Var):
                 return frozenset({node.name})
             assert isinstance(node, Internal)
-            return frozenset(
-                v for child in node.children for v in vars_(child)
-            )
+            return frozenset(v for child in node.children for v in vars_(child))
 
         return vars_
 
@@ -300,6 +294,7 @@ class NNF(metaclass=abc.ABCMeta):
 
     def satisfied_by(self, model: Model) -> bool:
         """The given dictionary of values makes the sentence correct."""
+
         @memoize
         def sat(node: NNF) -> bool:
             if isinstance(node, Var):
@@ -308,8 +303,9 @@ class NNF(metaclass=abc.ABCMeta):
                     # this error not to occur even if a variable is missing.
                     # In such a case including the variable with any value
                     # would not affect the return value though.
-                    raise ValueError("Model does not contain variable {!r}"
-                                     .format(node.name))
+                    raise ValueError(
+                        "Model does not contain variable {!r}".format(node.name)
+                    )
                 return model[node.name] == node.true
             elif isinstance(node, Or):
                 return any(sat(child) for child in node.children)
@@ -346,6 +342,7 @@ class NNF(metaclass=abc.ABCMeta):
         sentence is not satisfiable. But if it returns False the sentence is
         certainly not satisfiable.
         """
+
         @memoize
         def sat(node: NNF) -> bool:
             """Check satisfiability of DNNF."""
@@ -364,6 +361,7 @@ class NNF(metaclass=abc.ABCMeta):
         Only works on decomposable sentences, but doesn't check for the
         property. Use with care.
         """
+
         @memoize
         def con(node: NNF) -> bool:
             if isinstance(node, Var):
@@ -392,12 +390,12 @@ class NNF(metaclass=abc.ABCMeta):
         if self.marked_deterministic() and self.decomposable():
             # mypy is unsure that 2**<int> is actually an int
             # but len(self.vars()) >= 0, so it definitely is
-            max_num_models = 2**len(self.vars())  # type: int
+            max_num_models = 2 ** len(self.vars())  # type: int
             return max_num_models == self.model_count()
 
         return not self.negate().satisfiable()
 
-    def implies(self, other: 'NNF') -> bool:
+    def implies(self, other: "NNF") -> bool:
         """Return whether ``other`` is always true if the sentence is true.
 
         This is faster if ``self`` is a term or ``other`` is a clause.
@@ -430,11 +428,7 @@ class NNF(metaclass=abc.ABCMeta):
         else:
             names = self.vars()
             for model in complete_models(self.to_CNF().models(), names):
-                yield {
-                    name: value
-                    for name, value in model.items()
-                    if name in names
-                }
+                yield {name: value for name, value in model.items() if name in names}
 
     def solve(self) -> t.Optional[Model]:
         """Return a satisfying model, or ``None`` if unsatisfiable."""
@@ -514,11 +508,8 @@ class NNF(metaclass=abc.ABCMeta):
             sentence = sentence.make_smooth()
             made_smooth = True
 
-        if (
-            decomposable
-            and deterministic
-            and (made_smooth or sentence.smooth())
-        ):
+        if decomposable and deterministic and (made_smooth or sentence.smooth()):
+
             @memoize
             def count(node: NNF) -> int:
                 if isinstance(node, Var):
@@ -545,7 +536,7 @@ class NNF(metaclass=abc.ABCMeta):
 
         return not (self & other).satisfiable()
 
-    def equivalent(self, other: 'NNF') -> bool:
+    def equivalent(self, other: "NNF") -> bool:
         """Test whether two sentences have the same models.
 
         If the sentences don't contain the same variables they are
@@ -555,12 +546,11 @@ class NNF(metaclass=abc.ABCMeta):
         if self == other:
             return True
 
-        return not (
-            (self & other.negate()) | (self.negate() & other)
-        ).satisfiable()
+        return not ((self & other.negate()) | (self.negate() & other)).satisfiable()
 
-    def negate(self) -> 'NNF':
+    def negate(self) -> "NNF":
         """Return a new sentence that's true iff the original is false."""
+
         @memoize
         def neg(node: NNF) -> NNF:
             if isinstance(node, Var):
@@ -574,7 +564,7 @@ class NNF(metaclass=abc.ABCMeta):
 
         return neg(self)
 
-    def to_CNF(self, simplify: bool = True) -> 'And[Or[Var]]':
+    def to_CNF(self, simplify: bool = True) -> "And[Or[Var]]":
         """Compile theory to a semantically equivalent CNF formula.
 
         :param simplify: If True, simplify clauses even if that means
@@ -602,6 +592,7 @@ class NNF(metaclass=abc.ABCMeta):
 
     def _cnf_satisfiable_native(self) -> bool:
         """A naive DPLL SAT solver."""
+
         def DPLL(clauses: t.FrozenSet[t.FrozenSet[Var]]) -> bool:
             if not clauses:
                 return True
@@ -612,7 +603,7 @@ class NNF(metaclass=abc.ABCMeta):
             while True:
                 for clause in clauses:
                     if len(clause) == 1:
-                        var, = clause
+                        (var,) = clause
                         if var in to_remove:  # contradiction
                             return False
                         to_accept.add(var)
@@ -620,9 +611,7 @@ class NNF(metaclass=abc.ABCMeta):
                         acc = {var}
                         rem = {~var}
                         clauses = frozenset(
-                            clause - rem
-                            for clause in clauses
-                            if not clause & acc
+                            clause - rem for clause in clauses if not clause & acc
                         )
                         if frozenset() in clauses:
                             return False
@@ -633,22 +622,19 @@ class NNF(metaclass=abc.ABCMeta):
                 return True
             remaining = frozenset(var for clause in clauses for var in clause)
             pure = frozenset(var for var in remaining if ~var not in remaining)
-            clauses = frozenset(
-                clause for clause in clauses
-                if not clause & pure
-            )
+            clauses = frozenset(clause for clause in clauses if not clause & pure)
             if not clauses:
                 return True
-            new_var = Counter(var.name
-                              for clause in clauses
-                              for var in clause).most_common(1)[0][0]
-            return (DPLL(clauses | {frozenset({Var(new_var)})}) or
-                    DPLL(clauses | {frozenset({Var(new_var, False)})}))
+            new_var = Counter(
+                var.name for clause in clauses for var in clause
+            ).most_common(1)[0][0]
+            return DPLL(clauses | {frozenset({Var(new_var)})}) or DPLL(
+                clauses | {frozenset({Var(new_var, False)})}
+            )
 
         return DPLL(
             frozenset(
-                frozenset(clause.children)
-                for clause in self.children  # type: ignore
+                frozenset(clause.children) for clause in self.children  # type: ignore
             )
         )
 
@@ -661,9 +647,8 @@ class NNF(metaclass=abc.ABCMeta):
 
     def _cnf_models_native(self) -> t.Iterator[Model]:
         """A naive DPLL SAT solver, modified to find all solutions."""
-        def DPLL_models(
-                clauses: t.FrozenSet[t.FrozenSet[Var]]
-        ) -> t.Iterator[Model]:
+
+        def DPLL_models(clauses: t.FrozenSet[t.FrozenSet[Var]]) -> t.Iterator[Model]:
             if not clauses:
                 yield {}
                 return
@@ -674,7 +659,7 @@ class NNF(metaclass=abc.ABCMeta):
             while True:
                 for clause in clauses:
                     if len(clause) == 1:
-                        var, = clause
+                        (var,) = clause
                         if var in to_remove:  # contradiction
                             return
                         to_accept.add(var)
@@ -682,9 +667,7 @@ class NNF(metaclass=abc.ABCMeta):
                         acc = {var}
                         rem = {~var}
                         clauses = frozenset(
-                            clause - rem
-                            for clause in clauses
-                            if not clause & acc
+                            clause - rem for clause in clauses if not clause & acc
                         )
                         if frozenset() in clauses:
                             return
@@ -695,12 +678,12 @@ class NNF(metaclass=abc.ABCMeta):
             if not clauses:
                 yield solution
                 return
-            new_var = Counter(var.name
-                              for clause in clauses
-                              for var in clause).most_common(1)[0][0]
+            new_var = Counter(
+                var.name for clause in clauses for var in clause
+            ).most_common(1)[0][0]
             for refined_solution in itertools.chain(
-                    DPLL_models(clauses | {frozenset({Var(new_var)})}),
-                    DPLL_models(clauses | {frozenset({Var(new_var, False)})})
+                DPLL_models(clauses | {frozenset({Var(new_var)})}),
+                DPLL_models(clauses | {frozenset({Var(new_var, False)})}),
             ):
                 assert not solution.keys() & refined_solution.keys()
                 refined_solution.update(solution)
@@ -713,15 +696,14 @@ class NNF(metaclass=abc.ABCMeta):
 
         for model in DPLL_models(
             frozenset(
-                frozenset(clause.children)
-                for clause in self.children  # type: ignore
+                frozenset(clause.children) for clause in self.children  # type: ignore
             )
         ):
             for missing in all_models(names - model.keys()):
                 missing.update(model)
                 yield missing
 
-    def _do_PI(self) -> t.Tuple[t.Set['And[Var]'], t.Set['Or[Var]']]:
+    def _do_PI(self) -> t.Tuple[t.Set["And[Var]"], t.Set["Or[Var]"]]:
         """Compute the prime implicants and implicates of the sentence.
 
         This uses an algorithm adapted straightforwardly from
@@ -733,8 +715,10 @@ class NNF(metaclass=abc.ABCMeta):
 
         def MaxModel(sentence: And[Or[Var]]) -> t.Optional[Model]:
             try:
-                return max(sentence._cnf_models(),  # type: ignore
-                           key=lambda model: sum(model.values()))
+                return max(
+                    sentence._cnf_models(),  # type: ignore
+                    key=lambda model: sum(model.values()),
+                )
             except ValueError:
                 return None
 
@@ -770,8 +754,9 @@ class NNF(metaclass=abc.ABCMeta):
         implicants = set()  # type: t.Set[And[Var]]
         implicates = set()  # type: t.Set[Or[Var]]
 
-        H = And(Var((v, True), False) | Var((v, False), False)
-                for v in self.vars())  # type: And[Or[Var]]
+        H = And(
+            Var((v, True), False) | Var((v, False), False) for v in self.vars()
+        )  # type: And[Or[Var]]
         while True:
             A_H = MaxModel(H)
             if A_H is None:
@@ -780,16 +765,14 @@ class NNF(metaclass=abc.ABCMeta):
             if not And(A_F | {F_neg}).satisfiable():
                 I_n = ReduceImplicant(A_F, F)
                 implicants.add(I_n)
-                b = {Var((v.name, v.true), False)
-                     for v in I_n.children}
+                b = {Var((v.name, v.true), False) for v in I_n.children}
             else:
                 I_e = ReduceImplicate(A_F, F)
                 implicates.add(I_e)
-                b = {Var((v.name, v.true), True)
-                     for v in I_e.children}
+                b = {Var((v.name, v.true), True) for v in I_e.children}
             H = And(H.children | {Or(b)})
 
-    def implicants(self) -> 'Or[And[Var]]':
+    def implicants(self) -> "Or[And[Var]]":
         """Extract the prime implicants of the sentence.
 
         Prime implicants are the minimal terms that imply the sentence. This
@@ -800,7 +783,7 @@ class NNF(metaclass=abc.ABCMeta):
         """
         return Or(self._do_PI()[0])
 
-    def implicates(self) -> 'And[Or[Var]]':
+    def implicates(self) -> "And[Or[Var]]":
         """Extract a prime implicate cover of the sentence.
 
         Prime implicates are the minimal implied clauses. This method
@@ -814,7 +797,7 @@ class NNF(metaclass=abc.ABCMeta):
         """
         return And(self._do_PI()[1])
 
-    def to_MODS(self) -> 'Or[And[Var]]':
+    def to_MODS(self) -> "Or[And[Var]]":
         """Convert the sentence to a MODS sentence."""
         new = Or(
             And(Var(name, val) for name, val in model.items())
@@ -835,22 +818,26 @@ class NNF(metaclass=abc.ABCMeta):
         if isinstance(self, Var):
             return {self.name: self.true}
         if not isinstance(self, And):
-            raise TypeError("A sentence can only be converted to a model if "
-                            "it's a conjunction of variables.")
+            raise TypeError(
+                "A sentence can only be converted to a model if "
+                "it's a conjunction of variables."
+            )
         model = {}  # type: Model
         for child in self.children:
             if not isinstance(child, Var):
-                raise TypeError("A sentence can only be converted to a "
-                                "model if it's a conjunction of variables.")
+                raise TypeError(
+                    "A sentence can only be converted to a "
+                    "model if it's a conjunction of variables."
+                )
             if child.name in model:
-                raise ValueError("{!r} appears multiple times."
-                                 .format(child.name))
+                raise ValueError("{!r} appears multiple times.".format(child.name))
             model[child.name] = child.true
 
         return model
 
-    def condition(self, model: Model) -> 'NNF':
+    def condition(self, model: Model) -> "NNF":
         """Fill in all the values in the dictionary."""
+
         @memoize
         def cond(node: NNF) -> NNF:
             if isinstance(node, Var):
@@ -869,19 +856,18 @@ class NNF(metaclass=abc.ABCMeta):
 
         return cond(self)
 
-    def make_smooth(self) -> 'NNF':
+    def make_smooth(self) -> "NNF":
         """Transform the sentence into an equivalent smooth sentence."""
         vars_ = self._memoized_vars()
 
         @memoize
-        def filler(name: Name) -> 'Or[Var]':
+        def filler(name: Name) -> "Or[Var]":
             return Or({Var(name), Var(name, False)})
 
         @memoize
         def smooth(node: NNF) -> NNF:
             if isinstance(node, And):
-                new = And(smooth(child)
-                          for child in node.children)  # type: NNF
+                new = And(smooth(child) for child in node.children)  # type: NNF
             elif isinstance(node, Var):
                 return node
             elif isinstance(node, Or):
@@ -892,8 +878,9 @@ class NNF(metaclass=abc.ABCMeta):
                     child_names = vars_(child)
                     if len(child_names) < len(names):
                         child_children = {child}
-                        child_children.update(filler(name)
-                                              for name in names - child_names)
+                        child_children.update(
+                            filler(name) for name in names - child_names
+                        )
                         child = And(child_children)
                     smoothed.add(child)
                 new = Or(smoothed)
@@ -908,7 +895,7 @@ class NNF(metaclass=abc.ABCMeta):
         NNF.smooth.set(ret, True)
         return ret
 
-    def simplify(self, merge_nodes: bool = True) -> 'NNF':
+    def simplify(self, merge_nodes: bool = True) -> "NNF":
         """Apply the following transformations to make the sentence simpler:
 
         - If an And node has `false` as a child, replace it by `false`
@@ -964,7 +951,7 @@ class NNF(metaclass=abc.ABCMeta):
 
         return simple(self)
 
-    def make_pairwise(self) -> 'NNF':
+    def make_pairwise(self) -> "NNF":
         """Alter the sentence so that all internal nodes have two children.
 
         This can be easier to handle in some cases.
@@ -990,15 +977,15 @@ class NNF(metaclass=abc.ABCMeta):
 
         return pair(sentence)
 
-    def project(self, names: 't.Iterable[Name]') -> 'NNF':
+    def project(self, names: "t.Iterable[Name]") -> "NNF":
         """Dual of :meth:`forget`: will forget all variables not given"""
         return self.forget(self.vars() - frozenset(names))
 
-    def forget_aux(self) -> 'NNF':
+    def forget_aux(self) -> "NNF":
         """Returns a theory that forgets all of the auxillary variables"""
         return self.forget(v for v in self.vars() if isinstance(v, Aux))
 
-    def forget(self, names: 't.Iterable[Name]') -> 'NNF':
+    def forget(self, names: "t.Iterable[Name]") -> "NNF":
         """Forget a set of variables from the theory.
 
         Has the effect of returning a theory without the variables provided,
@@ -1014,7 +1001,7 @@ class NNF(metaclass=abc.ABCMeta):
         else:
             return self._forget_with_shannon(names)
 
-    def _forget_with_subs(self, names: 't.Iterable[Name]') -> 'NNF':
+    def _forget_with_subs(self, names: "t.Iterable[Name]") -> "NNF":
 
         names = frozenset(names)
 
@@ -1031,7 +1018,7 @@ class NNF(metaclass=abc.ABCMeta):
 
         return forget_recurse(self).simplify()
 
-    def _forget_with_shannon(self, names: 't.Iterable[Name]') -> 'NNF':
+    def _forget_with_shannon(self, names: "t.Iterable[Name]") -> "NNF":
         T = self
         for v in frozenset(names) & self.vars():
             T = T.condition({v: True}) | T.condition({v: False})
@@ -1076,12 +1063,12 @@ class NNF(metaclass=abc.ABCMeta):
         return len(ids)
 
     def to_DOT(
-            self,
-            *,
-            color: bool = False,
-            color_dict: t.Optional[t.Dict[str, str]] = None,
-            label: str = 'text',
-            label_dict: t.Optional[t.Dict[str, str]] = None
+        self,
+        *,
+        color: bool = False,
+        color_dict: t.Optional[t.Dict[str, str]] = None,
+        label: str = "text",
+        label_dict: t.Optional[t.Dict[str, str]] = None,
     ) -> str:
         """Return a representation of the sentence in the DOT language.
 
@@ -1104,31 +1091,31 @@ class NNF(metaclass=abc.ABCMeta):
                            be included.
         """
         colors = {
-            'and': 'lightblue',
-            'or': 'yellow',
-            'true': 'green',
-            'false': 'red',
-            'var': 'chartreuse',
-            'neg': 'pink',
+            "and": "lightblue",
+            "or": "yellow",
+            "true": "green",
+            "false": "red",
+            "var": "chartreuse",
+            "neg": "pink",
         }
 
         if color_dict is not None:
             color = True
             colors.update(color_dict)
 
-        if label == 'text':
+        if label == "text":
             labels = {
-                'and': 'AND',
-                'or': 'OR',
-                'true': 'TRUE',
-                'false': 'FALSE',
+                "and": "AND",
+                "or": "OR",
+                "true": "TRUE",
+                "false": "FALSE",
             }
-        elif label == 'symbol':
+        elif label == "symbol":
             labels = {
-                'and': '\u2227',  # \wedge
-                'or': '\u2228',  # \vee
-                'true': '\u22a4',  # \top
-                'false': '\u22a5',  # \bot
+                "and": "\u2227",  # \wedge
+                "or": "\u2228",  # \vee
+                "true": "\u22a4",  # \top
+                "false": "\u22a5",  # \bot
             }
         else:
             raise ValueError("Unknown label style {!r}".format(label))
@@ -1150,24 +1137,23 @@ class NNF(metaclass=abc.ABCMeta):
                         label = "<{}>".format(node.name.hex[:4])
                     else:
                         label = str(node.name)
-                    label = label.replace('"', r'\"')
-                    color = colors['var']
+                    label = label.replace('"', r"\"")
+                    color = colors["var"]
                     if not node.true:
-                        label = '¬' + label
-                        color = colors['neg']
+                        label = "¬" + label
+                        color = colors["neg"]
                     names[node] = (number, label, color)
                     return number
                 elif node == true:
-                    kind = 'true'
+                    kind = "true"
                 elif node == false:
-                    kind = 'false'
+                    kind = "false"
                 elif isinstance(node, And):
-                    kind = 'and'
+                    kind = "and"
                 elif isinstance(node, Or):
-                    kind = 'or'
+                    kind = "or"
                 else:
-                    raise TypeError("Can't handle node of type {}"
-                                    .format(type(node)))
+                    raise TypeError("Can't handle node of type {}".format(type(node)))
                 names[node] = (number, labels[kind], colors[kind])
             return names[node][0]
 
@@ -1178,19 +1164,15 @@ class NNF(metaclass=abc.ABCMeta):
                 for child in sorted(node.children):
                     arrows.append((name(node), name(child)))
 
-        return '\n'.join(
-            ['digraph {'] +
-            [
+        return "\n".join(
+            ["digraph {"]
+            + [
                 '    {} [label="{}"'.format(number, label)
-                + (' fillcolor="{}" style=filled]'.format(fillcolor)
-                   if color else ']')
+                + (' fillcolor="{}" style=filled]'.format(fillcolor) if color else "]")
                 for number, label, fillcolor in names.values()
-            ] +
-            [
-                '    {} -> {}'.format(src, dst)
-                for src, dst in arrows
-            ] +
-            ['}\n']
+            ]
+            + ["    {} -> {}".format(src, dst) for src, dst in arrows]
+            + ["}\n"]
         )
 
     if shutil.which("dot"):
@@ -1237,9 +1219,7 @@ class NNF(metaclass=abc.ABCMeta):
                 return [frozenset(((node.name, node.true),))]
             elif isinstance(node, Or):
                 return ReusableLazyIterable(
-                    model
-                    for child in node.children
-                    for model in extract(child)
+                    model for child in node.children for model in extract(child)
                 )
             elif isinstance(node, And):
                 return ReusableLazyIterable(
@@ -1250,10 +1230,7 @@ class NNF(metaclass=abc.ABCMeta):
 
         names = self.vars()
 
-        def complete(
-                model: ModelInt,
-                names: t.FrozenSet[Name]
-        ) -> t.Iterator[ModelInt]:
+        def complete(model: ModelInt, names: t.FrozenSet[Name]) -> t.Iterator[ModelInt]:
             for expansion in all_models(names):
                 yield frozenset(model | expansion.items())
 
@@ -1305,9 +1282,7 @@ class NNF(metaclass=abc.ABCMeta):
 
     @weakref_memoize
     def _is_CNF_strict(self) -> bool:
-        return isinstance(self, And) and all(
-            child.clause() for child in self.children
-        )
+        return isinstance(self, And) and all(child.clause() for child in self.children)
 
     def is_DNF(self, strict: bool = False) -> bool:
         """Return whether the sentence is in the Disjunctive Normal Form.
@@ -1332,8 +1307,7 @@ class NNF(metaclass=abc.ABCMeta):
 
     @weakref_memoize
     def _is_DNF_strict(self) -> bool:
-        return isinstance(self, Or) and all(child.term()
-                                            for child in self.children)
+        return isinstance(self, Or) and all(child.term() for child in self.children)
 
     @weakref_memoize
     def is_MODS(self) -> bool:
@@ -1421,21 +1395,23 @@ class Var(NNF):
     __slots__ = {
         "name": "The name of the variable. Can be any hashable object.",
         "true": (
-            "Whether the variable is true. If ``False``, the variable is "
-            "negated."
+            "Whether the variable is true. If ``False``, the variable is " "negated."
         ),
     }
 
     if t.TYPE_CHECKING:
+
         def __init__(self, name: Name, true: bool = True) -> None:
             # For the typechecker
             self.name = name
             self.true = true
+
     else:
+
         def __init__(self, name: Name, true: bool = True) -> None:
             # For immutability
-            object.__setattr__(self, 'name', name)
-            object.__setattr__(self, 'true', true)
+            object.__setattr__(self, "name", name)
+            object.__setattr__(self, "true", true)
 
     def __eq__(self, other: t.Any) -> t.Any:
         if self.__class__ is other.__class__:
@@ -1446,12 +1422,10 @@ class Var(NNF):
         return hash((self.name, self.true))
 
     def __setattr__(self, key: str, value: object) -> None:
-        raise TypeError("{} objects are immutable"
-                        .format(self.__class__.__name__))
+        raise TypeError("{} objects are immutable".format(self.__class__.__name__))
 
     def __delattr__(self, name: str) -> None:
-        raise TypeError("{} objects are immutable"
-                        .format(self.__class__.__name__))
+        raise TypeError("{} objects are immutable".format(self.__class__.__name__))
 
     def __repr__(self) -> str:
         if isinstance(self.name, str):
@@ -1460,9 +1434,9 @@ class Var(NNF):
             base = "<{}>".format(self.name.hex[:4])
         else:
             base = "{}({!r})".format(self.__class__.__name__, self.name)
-        return base if self.true else '~' + base
+        return base if self.true else "~" + base
 
-    def __invert__(self) -> 'Var':
+    def __invert__(self) -> "Var":
         return Var(self.name, not self.true)
 
     def decision_node(self) -> bool:
@@ -1474,21 +1448,19 @@ class Var(NNF):
     if t.TYPE_CHECKING:
         # Needed because mypy doesn't like it when you type the self
         # parameter with a subclass, even when using @overload
-        def negate(self) -> 'Var':
-            ...
+        def negate(self) -> "Var": ...
 
-        def make_smooth(self) -> 'Var':
-            ...
+        def make_smooth(self) -> "Var": ...
 
     def __getstate__(self) -> t.Tuple[Name, bool]:
         return self.name, self.true
 
     def __setstate__(self, state: t.Tuple[Name, bool]) -> None:
-        object.__setattr__(self, 'name', state[0])
-        object.__setattr__(self, 'true', state[1])
+        object.__setattr__(self, "name", state[0])
+        object.__setattr__(self, "true", state[1])
 
     @staticmethod
-    def aux() -> 'Var':
+    def aux() -> "Var":
         """Create an auxiliary variable with a unique label."""
         # See implementation of uuid.uuid4()
         return Var(Aux(bytes=os.urandom(16), version=4))
@@ -1496,16 +1468,20 @@ class Var(NNF):
 
 class Internal(NNF, t.Generic[T_NNF_co]):
     """Base class for internal nodes, i.e. And and Or nodes."""
-    __slots__ = ('children',)
+
+    __slots__ = ("children",)
 
     if t.TYPE_CHECKING:
+
         def __init__(self, children: t.Iterable[T_NNF_co] = ()) -> None:
             # For the typechecker
             self.children = frozenset(children)
+
     else:
+
         def __init__(self, children: t.Iterable[T_NNF_co] = ()) -> None:
             # For immutability
-            object.__setattr__(self, 'children', frozenset(children))
+            object.__setattr__(self, "children", frozenset(children))
 
     def __eq__(self, other: t.Any) -> t.Any:
         if self.__class__ is other.__class__:
@@ -1516,18 +1492,16 @@ class Internal(NNF, t.Generic[T_NNF_co]):
         return hash((self.__class__, self.children))
 
     def __setattr__(self, key: str, value: object) -> None:
-        raise TypeError("{} objects are immutable"
-                        .format(self.__class__.__name__))
+        raise TypeError("{} objects are immutable".format(self.__class__.__name__))
 
     def __delattr__(self, name: str) -> None:
-        raise TypeError("{} objects are immutable"
-                        .format(self.__class__.__name__))
+        raise TypeError("{} objects are immutable".format(self.__class__.__name__))
 
     def __repr__(self) -> str:
         if self.children:
-            return ("{}({{{}}})"
-                    .format(self.__class__.__name__,
-                            ', '.join(map(repr, self.children))))
+            return "{}({{{}}})".format(
+                self.__class__.__name__, ", ".join(map(repr, self.children))
+            )
         else:
             return "{}()".format(self.__class__.__name__)
 
@@ -1568,13 +1542,17 @@ class Internal(NNF, t.Generic[T_NNF_co]):
         return True
 
     def _sorting_key(self) -> t.Tuple[bool, int, int, str, t.List[NNF]]:
-        return (True, self.height(), len(self.children),
-                self.__class__.__name__, sorted(self.children, reverse=True))
+        return (
+            True,
+            self.height(),
+            len(self.children),
+            self.__class__.__name__,
+            sorted(self.children, reverse=True),
+        )
 
-    def map(self, func: t.Callable[[T_NNF_co], U_NNF]) -> 'Internal[U_NNF]':
+    def map(self, func: t.Callable[[T_NNF_co], U_NNF]) -> "Internal[U_NNF]":
         """Apply ``func`` to all of the node's children."""
-        return type(self)(func(child)  # type: ignore
-                          for child in self.children)
+        return type(self)(func(child) for child in self.children)  # type: ignore
 
     def __iter__(self) -> t.Iterator[T_NNF_co]:
         """A shortcut for iterating over a node's children.
@@ -1604,11 +1582,12 @@ class Internal(NNF, t.Generic[T_NNF_co]):
         return self.children
 
     def __setstate__(self, state: t.FrozenSet[T_NNF_co]) -> None:
-        object.__setattr__(self, 'children', state)
+        object.__setattr__(self, "children", state)
 
 
 class And(Internal[T_NNF_co]):
     """Conjunction nodes, which are only true if all of their children are."""
+
     __slots__ = ()
 
     def decision_node(self) -> bool:
@@ -1618,7 +1597,7 @@ class And(Internal[T_NNF_co]):
 
     def __repr__(self) -> str:
         if not self.children:
-            return 'true'
+            return "true"
         return super().__repr__()
 
     def _repr_pretty_(self, printer: t.Any, cycle: bool) -> None:
@@ -1626,21 +1605,19 @@ class And(Internal[T_NNF_co]):
         return super()._repr_pretty_(printer, cycle)
 
     if t.TYPE_CHECKING:
-        def negate(self) -> 'Or[NNF]':
-            ...
 
-        def condition(self, model: Model) -> 'And[NNF]':
-            ...
+        def negate(self) -> "Or[NNF]": ...
 
-        def make_smooth(self) -> 'And[NNF]':
-            ...
+        def condition(self, model: Model) -> "And[NNF]": ...
 
-        def map(self, func: t.Callable[[T_NNF_co], U_NNF]) -> 'And[U_NNF]':
-            ...
+        def make_smooth(self) -> "And[NNF]": ...
+
+        def map(self, func: t.Callable[[T_NNF_co], U_NNF]) -> "And[U_NNF]": ...
 
 
 class Or(Internal[T_NNF_co]):
     """Disjunction nodes, which are true if any of their children are."""
+
     __slots__ = ()
 
     def decision_node(self) -> bool:
@@ -1689,29 +1666,25 @@ class Or(Internal[T_NNF_co]):
 
     def __repr__(self) -> str:
         if not self.children:
-            return 'false'
+            return "false"
         return super().__repr__()
 
     def _repr_pretty_(self, printer: t.Any, cycle: bool) -> None:
         return super()._repr_pretty_(printer, cycle)
 
     if t.TYPE_CHECKING:
-        def negate(self) -> 'And[NNF]':
-            ...
 
-        def condition(self, model: Model) -> 'Or[NNF]':
-            ...
+        def negate(self) -> "And[NNF]": ...
 
-        def make_smooth(self) -> 'Or[NNF]':
-            ...
+        def condition(self, model: Model) -> "Or[NNF]": ...
 
-        def map(self, func: t.Callable[[T_NNF_co], U_NNF]) -> 'Or[U_NNF]':
-            ...
+        def make_smooth(self) -> "Or[NNF]": ...
+
+        def map(self, func: t.Callable[[T_NNF_co], U_NNF]) -> "Or[U_NNF]": ...
 
 
 def complete_models(
-        models: t.Iterable[Model],
-        names: t.Iterable[Name]
+    models: t.Iterable[Model], names: t.Iterable[Name]
 ) -> t.Iterator[Model]:
     names = frozenset(names)
     diff = None
@@ -1725,9 +1698,7 @@ def complete_models(
 
 
 def decision(
-        var: Var,
-        if_true: T_NNF,
-        if_false: U_NNF
+    var: Var, if_true: T_NNF, if_false: U_NNF
 ) -> Or[t.Union[And[t.Union[Var, T_NNF]], And[t.Union[Var, U_NNF]]]]:
     """Create a decision node with a variable and two branches.
 
@@ -1746,9 +1717,8 @@ false = Or()  # type: Or[Bottom]
 
 class _Setting(t.Generic[T]):
     """Use the descriptor protocol for a smart settings system."""
-    def __init__(
-        self, default: T, choices: t.Optional[t.Set[T]] = None
-    ) -> None:
+
+    def __init__(self, default: T, choices: t.Optional[t.Set[T]] = None) -> None:
         self.choices = choices
         self.default = default
         self.local = threading.local()
@@ -1775,6 +1745,7 @@ _Func = t.TypeVar("_Func", bound=t.Callable[..., object])
 
 class _ConfigContext:
     """An object to apply configuration as a context manager or decorator."""
+
     def __init__(self, settings: t.Dict[str, t.Any]) -> None:
         self.settings = settings
         self.old_settings = threading.local()

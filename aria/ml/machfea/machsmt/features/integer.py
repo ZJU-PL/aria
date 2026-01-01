@@ -1,5 +1,4 @@
-
-'''
+"""
 To add an extra feature, define a function anywhere in this module/file.
 
 All functions that appear in this model will be automatically included in the ML model.
@@ -13,6 +12,6 @@ OUTPUT
 
     A single number or an iterable of numbers
 
-'''
+"""
 
 # Note: Future enhancement - linear vs non-linear

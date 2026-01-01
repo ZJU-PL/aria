@@ -1,6 +1,7 @@
 """
 Model counting for DIMACS files
 """
+
 import copy
 import logging
 import multiprocessing
@@ -58,7 +59,7 @@ def write_dimacs_to_file(header: List[str], clauses: List[str], output_file: str
     """
     # print("header: ", header)
     # print("clauses: ", len(clauses), clauses)
-    with open(output_file, 'w+', encoding='utf-8') as file:
+    with open(output_file, "w+", encoding="utf-8") as file:
         for info in header:
             file.write(info + "\n")
         for cls in clauses:
@@ -139,10 +140,10 @@ def call_sharp_sat(cnf_filename: str):
     timer.start()
     try:
         find_sol_line = False
-        for line in iter(p.stdout.readline, b''):
+        for line in iter(p.stdout.readline, b""):
             if not line:
                 break
-            decode_line = line.decode('UTF-8')
+            decode_line = line.decode("UTF-8")
             if find_sol_line:
                 # print("sharpSAT res: ", decode_line)
                 solutions = int(decode_line)
@@ -187,7 +188,7 @@ def count_dimacs_solutions(header: List, str_clauses: List):
     Returns:
         int: The number of solutions for the given DIMACS CNF formula.
     """
-    output_file = f'/tmp/{uuid.uuid1()}.cnf'
+    output_file = f"/tmp/{uuid.uuid1()}.cnf"
     write_dimacs_to_file(header, str_clauses, output_file)
     solutions, _ = call_sharp_sat(output_file)
     return solutions
@@ -247,7 +248,7 @@ def count_dimacs_solutions_parallel(header: List[str], clauses: List[str]) -> in
 
     cnf_tasks = []
     for cube in satisfaible_cubes:
-        output_file = f'/tmp/{uuid.uuid1()}.cnf'
+        output_file = f"/tmp/{uuid.uuid1()}.cnf"
         new_clauses = copy.deepcopy(clauses)
         # every list in the cube should be a unit clause?
         for lit in cube:
@@ -281,7 +282,7 @@ def count_dimacs_solutions_parallel(header: List[str], clauses: List[str]) -> in
         #     with open('temp.log', 'a') as f:
         #         f.write(f"{cnf.nv} {len(clauses)} {[-1 if x > 60 else x for x in sharp_sat_times]} {approxmc_time if result != -1 else -1}\n")
         #     return result
-        with open('temp.log', 'a', encoding='utf-8') as f:
+        with open("temp.log", "a", encoding="utf-8") as f:
             f.write(f"{cnf.nv} {len(clauses)} {sharp_sat_times} 0\n")
         return sum(raw_solutions)
     finally:

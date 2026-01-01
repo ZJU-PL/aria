@@ -1,6 +1,7 @@
 """
 Compute SAT features following SATZilla
 """
+
 from typing import Dict, List, Any
 
 from aria.bool.features import array_stats, balance_features, graph_features
@@ -22,8 +23,7 @@ def write_stats(l: List[float], name: str, features_dict: Dict[str, Any]) -> Non
 
 
 def write_entropy_discrete(
-    l: List[int], number_outcomes: int, name: str,
-    features_dict: Dict[str, Any]
+    l: List[int], number_outcomes: int, name: str, features_dict: Dict[str, Any]
 ) -> None:
     """
     Write discrete entropy to features dictionary.
@@ -54,11 +54,14 @@ def compute_base_features(
     c: int,
     v: int,
     num_active_vars: int,
-    num_active_clauses: int
+    num_active_clauses: int,
 ) -> Dict[str, float]:
-    features_dict = {"c": num_active_clauses, "v": num_active_vars,
-                     "clauses_vars_ratio": num_active_clauses / num_active_vars,
-                     "vars_clauses_ratio": num_active_vars / num_active_clauses}
+    features_dict = {
+        "c": num_active_clauses,
+        "v": num_active_vars,
+        "clauses_vars_ratio": num_active_clauses / num_active_vars,
+        "vars_clauses_ratio": num_active_vars / num_active_clauses,
+    }
     # 1-3
 
     c = num_active_clauses
@@ -89,11 +92,16 @@ def compute_base_features(
     write_stats(vg_node_degrees_norm, "vg", features_dict)
 
     # Balance features
-    (_, pos_neg_clause_balance,
-     _, pos_neg_variable_balance,
-     num_binary_clauses, num_ternary_clauses, num_horn_clauses,
-     horn_clause_variable_count) = \
-        balance_features.compute_balance_features(clauses, c, v)
+    (
+        _,
+        pos_neg_clause_balance,
+        _,
+        pos_neg_variable_balance,
+        num_binary_clauses,
+        num_ternary_clauses,
+        num_horn_clauses,
+        horn_clause_variable_count,
+    ) = balance_features.compute_balance_features(clauses, c, v)
     # 18-20
     write_stats(pos_neg_clause_balance, "pnc_ratio", features_dict)
     # write_entropy_float(pos_neg_clause_balance, "pnc_ratio", features_dict, c)
@@ -124,8 +132,11 @@ def compute_base_features(
 
 
 def write_entropy(
-    l: List[int], name: str, features_dict: Dict[str, Any],
-    c: int, number_of_outcomes: int
+    l: List[int],
+    name: str,
+    features_dict: Dict[str, Any],
+    c: int,
+    number_of_outcomes: int,
 ) -> None:
     """
     Write entropy (legacy function).
@@ -141,8 +152,12 @@ def write_entropy(
 
 
 def write_entropy_float(
-    l: List[float], name: str, features_dict: Dict[str, Any],
-    num: int, buckets: int = 100, maxval: int = 1
+    l: List[float],
+    name: str,
+    features_dict: Dict[str, Any],
+    num: int,
+    buckets: int = 100,
+    maxval: int = 1,
 ) -> None:
     """
     Write float entropy (legacy function).

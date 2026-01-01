@@ -15,6 +15,7 @@ from aria.utils.types import SolverResult
 
 class Z3SATSolver:
     """Z3 SAT solver wrapper."""
+
     def __init__(self, logic="QF_FD"):
         self.int2z3var = {}  # for initializing from int clauses
         self.solver = z3.SolverFor(logic)
@@ -104,13 +105,15 @@ class Z3MaxSATSolver:
         self.solver = z3.Optimize()
         self.solver.from_file(fname)
 
-    def from_int_clauses(self, hard: List[List[int]], soft: List[List[int]], weight: List[int]):
+    def from_int_clauses(
+        self, hard: List[List[int]], soft: List[List[int]], weight: List[int]
+    ):
         """
         TODO: handle two different cases (each clause ends with 0 or not)
         """
         self.solver = z3.Optimize()
         # self.solver.set('maxsat_engine', 'wmax')
-        self.solver.set('maxsat_engine', 'maxres')
+        self.solver.set("maxsat_engine", "maxres")
 
         for clause in hard:
             conds = []

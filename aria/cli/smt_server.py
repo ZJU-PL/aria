@@ -29,27 +29,29 @@ try:
     ARIA_FEATURES_AVAILABLE = True
 except ImportError:
     ARIA_FEATURES_AVAILABLE = False
-    logging.warning("Some aria features are not available. Running with limited functionality.")
+    logging.warning(
+        "Some aria features are not available. Running with limited functionality."
+    )
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='[%(asctime)s] %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(sys.stdout)
-    ]
+    format="[%(asctime)s] %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)],
 )
 
 
 @dataclass
 class ScopeFrame:
     """Frame for managing scope in SMT server."""
+
     variables: Dict[str, Any]
     assertions: List[z3.ExprRef]
 
 
 class SmtServer:
     """SMT server that handles SMT-LIB2 commands via IPC."""
+
     def __init__(self, input_pipe="/tmp/smt_input", output_pipe="/tmp/smt_output"):
         self.input_pipe = input_pipe
         self.output_pipe = output_pipe
@@ -75,7 +77,9 @@ class SmtServer:
                         os.unlink(pipe)
                         logging.debug("Removed existing FIFO: %s", pipe)
                     except OSError as e:
-                        logging.warning("Failed to remove existing FIFO %s: %s", pipe, e)
+                        logging.warning(
+                            "Failed to remove existing FIFO %s: %s", pipe, e
+                        )
 
                 # Create new pipe
                 os.mkfifo(pipe)
@@ -93,8 +97,8 @@ class SmtServer:
     def write_response(self, response: str):
         """Write response to output pipe with error handling."""
         try:
-            with open(self.output_pipe, 'w', encoding='utf-8') as f:
-                f.write(response + '\n')
+            with open(self.output_pipe, "w", encoding="utf-8") as f:
+                f.write(response + "\n")
                 f.flush()
         except IOError as e:
             logging.error("Failed to write response: %s", e)
@@ -105,7 +109,7 @@ class SmtServer:
         try:
             # Basic S-expression parsing
             expr_str = expr_str.strip()
-            if not expr_str.startswith('(') or not expr_str.endswith(')'):
+            if not expr_str.startswith("(") or not expr_str.endswith(")"):
                 # Single term (variable or constant)
                 if expr_str in self.current_scope.variables:
                     return self.current_scope.variables[expr_str]
@@ -117,19 +121,19 @@ class SmtServer:
             # Remove outer parentheses and split
             inner = expr_str[1:-1].strip()
             tokens = []
-            current = ''
+            current = ""
             paren_count = 0
 
             # Handle nested expressions
             for char in inner:
-                if char == '(':
+                if char == "(":
                     paren_count += 1
-                elif char == ')':
+                elif char == ")":
                     paren_count -= 1
                 elif char.isspace() and paren_count == 0:
                     if current:
                         tokens.append(current)
-                        current = ''
+                        current = ""
                     continue
                 current += char
             if current:
@@ -142,14 +146,33 @@ class SmtServer:
             expr_args = [self.parse_smt2_expr(t) for t in tokens[1:]]
 
             # Handle operations
-            if op in ('and', 'or', 'not', '=', '>=', '<=', '>', '<', '+', '-', '*', '/'):
+            if op in (
+                "and",
+                "or",
+                "not",
+                "=",
+                ">=",
+                "<=",
+                ">",
+                "<",
+                "+",
+                "-",
+                "*",
+                "/",
+            ):
                 op_map = {
-                    'and': z3.And, 'or': z3.Or, 'not': z3.Not,
-                    '=': lambda x, y: x == y,
-                    '>=': lambda x, y: x >= y, '<=': lambda x, y: x <= y,
-                    '>': lambda x, y: x > y, '<': lambda x, y: x < y,
-                    '+': lambda x, y: x + y, '-': lambda x, y: x - y,
-                    '*': lambda x, y: x * y, '/': lambda x, y: x / y
+                    "and": z3.And,
+                    "or": z3.Or,
+                    "not": z3.Not,
+                    "=": lambda x, y: x == y,
+                    ">=": lambda x, y: x >= y,
+                    "<=": lambda x, y: x <= y,
+                    ">": lambda x, y: x > y,
+                    "<": lambda x, y: x < y,
+                    "+": lambda x, y: x + y,
+                    "-": lambda x, y: x - y,
+                    "*": lambda x, y: x * y,
+                    "/": lambda x, y: x / y,
                 }
                 return op_map[op](*expr_args)
 
@@ -166,7 +189,7 @@ class SmtServer:
             sort_map = {
                 "Int": z3.IntSort(),
                 "Bool": z3.BoolSort(),
-                "Real": z3.RealSort()
+                "Real": z3.RealSort(),
             }
 
             if sort not in sort_map:
@@ -316,7 +339,9 @@ class SmtServer:
             return "error: unsat-core feature not available"
 
         try:
-            algorithm, timeout, enumerate_all, error = self._parse_unsat_core_args(cmd_args)
+            algorithm, timeout, enumerate_all, error = self._parse_unsat_core_args(
+                cmd_args
+            )
             if error:
                 return error
 
@@ -331,12 +356,11 @@ class SmtServer:
 
             # Compute unsat core
             if enumerate_all:
-                result = enumerate_all_mus(
-                    constraints, solver_factory, timeout=timeout)
+                result = enumerate_all_mus(constraints, solver_factory, timeout=timeout)
             else:
                 result = get_unsat_core(
-                    constraints, solver_factory, algorithm=algorithm,
-                    timeout=timeout)
+                    constraints, solver_factory, algorithm=algorithm, timeout=timeout
+                )
 
             return self._format_unsat_core_results(result, constraints)
         except (ValueError, TypeError, AttributeError, IndexError) as e:
@@ -435,7 +459,7 @@ class SmtServer:
                 ":allsmt-model-limit": self._handle_allsmt_limit,
                 ":unsat-core-algorithm": self._handle_unsat_core_algorithm,
                 ":unsat-core-timeout": self._handle_unsat_core_timeout,
-                ":model-count-timeout": self._handle_model_count_timeout
+                ":model-count-timeout": self._handle_model_count_timeout,
             }
 
             handler = option_handlers.get(option)
@@ -461,8 +485,7 @@ class SmtServer:
     def _handle_unsat_core_timeout(self, value: str) -> str:
         """Handle unsat-core-timeout option."""
         try:
-            self.unsat_core_timeout = (
-                int(value) if value != "none" else None)
+            self.unsat_core_timeout = int(value) if value != "none" else None
             return "success"
         except ValueError:
             return f"error: invalid timeout: {value}"
@@ -485,7 +508,7 @@ class SmtServer:
             "get-value <var1> <var2> ...",
             "push",
             "pop",
-            "exit"
+            "exit",
         ]
 
         advanced_commands = [
@@ -494,14 +517,14 @@ class SmtServer:
             "backbone [:algorithm=<alg>]",
             "count-models [:timeout=<n>] [:approximate]",
             "set-option <option> <value>",
-            "help"
+            "help",
         ]
 
         options = [
             ":allsmt-model-limit <n>",
             ":unsat-core-algorithm <marco|musx|optux>",
             ":unsat-core-timeout <n|none>",
-            ":model-count-timeout <n>"
+            ":model-count-timeout <n>",
         ]
 
         result = "Available commands:\n"
@@ -535,7 +558,7 @@ class SmtServer:
                 "backbone": self.handle_backbone,
                 "count-models": self.handle_count_models,
                 "set-option": self.handle_set_option,
-                "help": lambda _: self.handle_help()
+                "help": lambda _: self.handle_help(),
             }
 
             if cmd not in handlers:
@@ -558,7 +581,9 @@ class SmtServer:
     def _handle_get_model(self) -> str:
         if self.solver.check() == z3.sat:
             model = self.solver.model()
-            return " ".join(f"({k} {model[v]})" for k, v in self.current_scope.variables.items())
+            return " ".join(
+                f"({k} {model[v]})" for k, v in self.current_scope.variables.items()
+            )
         return "unknown"
 
     def _handle_get_value(self, cmd_args: str) -> str:
@@ -569,8 +594,7 @@ class SmtServer:
             values = []
             for var_name in cmd_args.split():
                 if var_name in self.current_scope.variables:
-                    val = model.evaluate(
-                        self.current_scope.variables[var_name])
+                    val = model.evaluate(self.current_scope.variables[var_name])
                     values.append(f"({var_name} {val})")
             return "(" + " ".join(values) + ")"
         except (ValueError, TypeError, AttributeError, KeyError) as e:
@@ -578,14 +602,17 @@ class SmtServer:
 
     def run(self):
         """Run the server with improved error handling."""
-        logging.info("SMT server started. Input pipe: %s, Output pipe: %s",
-                     self.input_pipe, self.output_pipe)
+        logging.info(
+            "SMT server started. Input pipe: %s, Output pipe: %s",
+            self.input_pipe,
+            self.output_pipe,
+        )
         logging.info("Waiting for commands...")
 
         while self.running:
             try:
                 # Read one command at a time instead of blocking in a loop
-                with open(self.input_pipe, 'r', encoding='utf-8') as f:
+                with open(self.input_pipe, "r", encoding="utf-8") as f:
                     line = f.readline()
                     if line:
                         command = line.strip()
@@ -611,15 +638,25 @@ class SmtServer:
 
 def parse_args():
     """Parse command line arguments."""
-    parser = argparse.ArgumentParser(description="Enhanced SMT Server with advanced aria features")
-    parser.add_argument("--input-pipe", default="/tmp/smt_input",
-                        help="Path to input pipe (default: /tmp/smt_input)")
-    parser.add_argument("--output-pipe", default="/tmp/smt_output",
-                        help="Path to output pipe (default: /tmp/smt_output)")
+    parser = argparse.ArgumentParser(
+        description="Enhanced SMT Server with advanced aria features"
+    )
     parser.add_argument(
-        "--log-level", default="INFO",
+        "--input-pipe",
+        default="/tmp/smt_input",
+        help="Path to input pipe (default: /tmp/smt_input)",
+    )
+    parser.add_argument(
+        "--output-pipe",
+        default="/tmp/smt_output",
+        help="Path to output pipe (default: /tmp/smt_output)",
+    )
+    parser.add_argument(
+        "--log-level",
+        default="INFO",
         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
-        help="Logging level (default: INFO)")
+        help="Logging level (default: INFO)",
+    )
     return parser.parse_args()
 
 

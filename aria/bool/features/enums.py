@@ -1,6 +1,7 @@
 """
 Enumerations for variable and clause states in SAT solving.
 """
+
 from enum import Enum, auto
 
 

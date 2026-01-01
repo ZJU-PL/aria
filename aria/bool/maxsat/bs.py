@@ -30,12 +30,12 @@ def obv_bs(clauses: List[List[int]], literals: List[int]) -> List[int]:
         m = s.get_model()
         # print(m)
     else:
-        print('UNSAT')
+        print("UNSAT")
         return result
     l = len(m)
     for lit in literals:
         if lit > l:
-            '''If 'lit' is not in m, 'lit' can be assigned 0 or 1, to maximum the result, 'lit' is assigned 1.'''
+            """If 'lit' is not in m, 'lit' can be assigned 0 or 1, to maximum the result, 'lit' is assigned 1."""
             result.append(lit)
         else:
             # if lit is true in m, then lit is assigned 1
@@ -54,8 +54,12 @@ def obv_bs(clauses: List[List[int]], literals: List[int]) -> List[int]:
     return result
 
 
-
-def obv_bs_anytime(clauses: List[List[int]], literals: List[int], time_limit: float = 60.0, conflict_limit: int = 1000) -> List[int]:
+def obv_bs_anytime(
+    clauses: List[List[int]],
+    literals: List[int],
+    time_limit: float = 60.0,
+    conflict_limit: int = 1000,
+) -> List[int]:
     """
     An anytime version of the binary search algorithm of bit-vector optimization.
 
@@ -70,6 +74,7 @@ def obv_bs_anytime(clauses: List[List[int]], literals: List[int], time_limit: fl
         best_result: the best assignment found within the time limit
     """
     import time
+
     start_time = time.time()
 
     # Initialize solver with conflict limit
@@ -78,7 +83,7 @@ def obv_bs_anytime(clauses: List[List[int]], literals: List[int], time_limit: fl
 
     # Try to get initial solution
     if not s.solve_limited():
-        print('UNSAT')
+        print("UNSAT")
         return []
 
     best_result = []  # Store best result found so far
@@ -90,7 +95,7 @@ def obv_bs_anytime(clauses: List[List[int]], literals: List[int], time_limit: fl
         for lit in literals:
             # Check time limit
             if time.time() - start_time > time_limit:
-                print('Time limit reached')
+                print("Time limit reached")
                 return best_result if best_result else current_result
 
             if lit > l:
@@ -126,7 +131,7 @@ def obv_bs_anytime(clauses: List[List[int]], literals: List[int], time_limit: fl
 
     except KeyboardInterrupt:
         # Handle external interruption
-        print('Interrupted - returning best result found')
+        print("Interrupted - returning best result found")
         return best_result if best_result else current_result
 
     return best_result if best_result else current_result

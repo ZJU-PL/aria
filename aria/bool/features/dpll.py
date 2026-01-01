@@ -1,6 +1,7 @@
 """
 Use unit propagation to compute "probing features" of SAT instances
 """
+
 import math
 import random
 import statistics
@@ -127,9 +128,9 @@ class DPLLProbing:
         # print("mean depth over variables: ",
         #       mean_depth_to_contradiction_over_vars)
 
-        self.unit_props_log_nodes_dict[
-            "mean_depth_to_contradiction_over_vars"
-        ] = mean_depth_to_con_over_vars
+        self.unit_props_log_nodes_dict["mean_depth_to_contradiction_over_vars"] = (
+            mean_depth_to_con_over_vars
+        )
 
         max_depth = max(depths)
 
@@ -143,9 +144,7 @@ class DPLLProbing:
         else:
             res = lobjois / self.sat_instance.v
 
-        self.unit_props_log_nodes_dict[
-            "estimate_log_number_nodes_over_vars"
-        ] = res
+        self.unit_props_log_nodes_dict["estimate_log_number_nodes_over_vars"] = res
         # print("lobjois log num nodes over vars",
         #       lobjois/self.sat_instance.v)
 
@@ -179,7 +178,11 @@ class DPLLProbing:
             if self.verbose:
                 print("searching depth: ", next_probe_depth)
             # the actual searching
-            while current_depth < next_probe_depth and not reached_bottom and sw.lap() < self.time_limit:
+            while (
+                current_depth < next_probe_depth
+                and not reached_bottom
+                and sw.lap() < self.time_limit
+            ):
                 # print("c depth", current_depth)
 
                 vars_in_most_bin_clauses = [0] * self.num_vars_to_try
@@ -196,17 +199,17 @@ class DPLLProbing:
                         array_size += 1
 
                     j = 0
-                    while (j < array_size - 1 and
-                           self.sat_instance.num_bin_clauses_with_var[var] <
-                           num_bin[j]):
+                    while (
+                        j < array_size - 1
+                        and self.sat_instance.num_bin_clauses_with_var[var] < num_bin[j]
+                    ):
                         j += 1
 
                     # what is this actually doing... somehow sorting and keeping
                     # track of the top 10 vars that occur in the most binary
                     # clauses??
                     for k in range(array_size - 1, j, -1):
-                        vars_in_most_bin_clauses[k] = \
-                            vars_in_most_bin_clauses[k - 1]
+                        vars_in_most_bin_clauses[k] = vars_in_most_bin_clauses[k - 1]
                         num_bin[k] = num_bin[k - 1]
 
                     vars_in_most_bin_clauses[j] = var
@@ -219,9 +222,11 @@ class DPLLProbing:
                 # unassigned var
                 if array_size == 0:
                     max_props_var = 1
-                    while (self.sat_instance.var_states[max_props_var] !=
-                           VarState.UNASSIGNED and
-                           max_props_var < self.sat_instance.v):
+                    while (
+                        self.sat_instance.var_states[max_props_var]
+                        != VarState.UNASSIGNED
+                        and max_props_var < self.sat_instance.v
+                    ):
                         max_props_var += 1
 
                     max_props_val = True
@@ -256,13 +261,14 @@ class DPLLProbing:
                                     # seen what this does in the satzilla code
                                     return
 
-                            num_props = (orig_num_active_vars -
-                                         self.sat_instance.num_active_vars -
-                                         current_depth)
+                            num_props = (
+                                orig_num_active_vars
+                                - self.sat_instance.num_active_vars
+                                - current_depth
+                            )
 
                             if num_props > max_props:
-                                max_props_var = \
-                                    vars_in_most_bin_clauses[var_num]
+                                max_props_var = vars_in_most_bin_clauses[var_num]
                                 max_props_val = value
 
                             self.backtrack()
@@ -292,9 +298,8 @@ class DPLLProbing:
 
             unit_props_str = "unit_props_at_depth_" + str(next_probe_depth)
             unit_props_res = (
-                (orig_num_active_vars - self.sat_instance.num_active_vars -
-                 current_depth) / self.sat_instance.v
-            )
+                orig_num_active_vars - self.sat_instance.num_active_vars - current_depth
+            ) / self.sat_instance.v
             self.unit_props_log_nodes_dict[unit_props_str] = unit_props_res
             # print("vars reduced depth ", next_probe_depth)
             # print((orig_num_active_vars - self.sat_instance.num_active_vars -
@@ -328,12 +333,14 @@ class DPLLProbing:
         self.reduced_vars.append(var)
         self.sat_instance.num_active_vars -= 1
 
-        consistent, num_clauses_reduced, num_vars_reduced = \
-            self.reduce_clauses(literal, num_clauses_reduced, num_vars_reduced)
+        consistent, num_clauses_reduced, num_vars_reduced = self.reduce_clauses(
+            literal, num_clauses_reduced, num_vars_reduced
+        )
 
         if consistent:
-            consistent, num_clauses_reduced, num_vars_reduced = \
-                self.unit_prop(num_clauses_reduced, num_vars_reduced)
+            consistent, num_clauses_reduced, num_vars_reduced = self.unit_prop(
+                num_clauses_reduced, num_vars_reduced
+            )
 
         # stack to hold the number that have been reduced, used in backtracking
         self.num_reduced_clauses.append(num_clauses_reduced)
@@ -399,8 +406,7 @@ class DPLLProbing:
             if self.sat_instance.clause_states[clause_num] == ClauseState.ACTIVE:
                 # print("pacify ", clause_num)
 
-                self.sat_instance.clause_states[clause_num] = \
-                    ClauseState.PASSIVE
+                self.sat_instance.clause_states[clause_num] = ClauseState.PASSIVE
                 self.reduced_clauses.append(clause_num)
                 self.sat_instance.num_active_clauses -= 1
 
@@ -413,11 +419,12 @@ class DPLLProbing:
 
                     # is the variable now irrelevant (active, but existing in
                     # no clauses)
-                    if (self.sat_instance.num_active_clauses_with_var[curr_var] == 0 and
-                            self.sat_instance.var_states[curr_var] ==
-                            VarState.UNASSIGNED):
-                        self.sat_instance.var_states[curr_var] = \
-                            VarState.IRRELEVANT
+                    if (
+                        self.sat_instance.num_active_clauses_with_var[curr_var] == 0
+                        and self.sat_instance.var_states[curr_var]
+                        == VarState.UNASSIGNED
+                    ):
+                        self.sat_instance.var_states[curr_var] = VarState.IRRELEVANT
                         self.reduced_vars.append(curr_var)
                         self.sat_instance.num_active_vars -= 1
                         num_vars_reduced += 1
@@ -443,8 +450,7 @@ class DPLLProbing:
 
             # skip inactive clauses
             # print("cstate", self.feats.clause_states[clause_number])
-            if self.sat_instance.clause_states[clause_number] != \
-                    ClauseState.ACTIVE:
+            if self.sat_instance.clause_states[clause_number] != ClauseState.ACTIVE:
                 continue
             # print("unit clause number", clause_number)
 
@@ -452,8 +458,12 @@ class DPLLProbing:
 
             # while the current literal is not unassigned
             # get the next possible unassigned literal
-            while (self.sat_instance.var_states[
-                       abs(self.sat_instance.clauses[clause_number][lit_num])] != VarState.UNASSIGNED):
+            while (
+                self.sat_instance.var_states[
+                    abs(self.sat_instance.clauses[clause_number][lit_num])
+                ]
+                != VarState.UNASSIGNED
+            ):
                 lit_num += 1
 
             assert self.sat_instance.clause_lengths[clause_number] == 1
@@ -471,9 +481,9 @@ class DPLLProbing:
             num_vars_reduced += 1
 
             # now reduce the clauses with that literal value
-            r_consistent, num_clauses_reduced, num_vars_reduced = \
-                self.reduce_clauses(literal, num_clauses_reduced,
-                                    num_vars_reduced)
+            r_consistent, num_clauses_reduced, num_vars_reduced = self.reduce_clauses(
+                literal, num_clauses_reduced, num_vars_reduced
+            )
             # consistent = consistent and self.reduce_clauses(literal,
             #                                                 num_clauses_reduced,
             #                                                 num_vars_reduced)

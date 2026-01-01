@@ -1,10 +1,13 @@
 """Counting interfaces for pySMT Boolean formulas."""
+
 from typing import Tuple, List
 from pysmt.shortcuts import Solver as PySMTSolver, Not, get_free_variables, Or
 from pysmt.rewritings import cnf
 
-from aria.counting.bool.dimacs_counting import count_dimacs_solutions, \
-    count_dimacs_solutions_parallel
+from aria.counting.bool.dimacs_counting import (
+    count_dimacs_solutions,
+    count_dimacs_solutions_parallel,
+)
 
 
 def count_pysmt_models_by_enumeration(formula, max_models: int = None) -> int:

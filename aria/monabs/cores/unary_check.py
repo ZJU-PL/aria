@@ -9,6 +9,7 @@ The helpers here answer, for each constraint under a shared precondition:
 Variants cover basic, incremental (push/pop), and cache-aware modes that
 re-use models to mark additional constraints as satisfiable when possible.
 """
+
 from typing import List
 import z3
 
@@ -71,7 +72,9 @@ def unary_check_cached(precond: z3.ExprRef, cnt_list: List[z3.ExprRef]) -> List:
             model = solver.model()
             results[i] = 1
             for j, other_cnt in enumerate(cnt_list):
-                if results[j] is None and z3.is_true(model.eval(other_cnt, model_completion=True)):
+                if results[j] is None and z3.is_true(
+                    model.eval(other_cnt, model_completion=True)
+                ):
                     results[j] = 1
         elif res == z3.unsat:
             results[i] = 0
@@ -81,7 +84,9 @@ def unary_check_cached(precond: z3.ExprRef, cnt_list: List[z3.ExprRef]) -> List:
     return results
 
 
-def unary_check_incremental_cached(precond: z3.ExprRef, cnt_list: List[z3.ExprRef]) -> List:
+def unary_check_incremental_cached(
+    precond: z3.ExprRef, cnt_list: List[z3.ExprRef]
+) -> List:
     """Incremental + caching: share solver state and propagate model truths across constraints."""
     results = [None] * len(cnt_list)
     solver = z3.Solver()
@@ -100,7 +105,9 @@ def unary_check_incremental_cached(precond: z3.ExprRef, cnt_list: List[z3.ExprRe
             model = solver.model()
             results[i] = 1
             for j, other_cnt in enumerate(cnt_list):
-                if results[j] is None and z3.is_true(model.eval(other_cnt, model_completion=True)):
+                if results[j] is None and z3.is_true(
+                    model.eval(other_cnt, model_completion=True)
+                ):
                     results[j] = 1
         elif res == z3.unsat:
             results[i] = 0

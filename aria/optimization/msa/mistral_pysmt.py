@@ -3,6 +3,7 @@ Computing Minimal Satisfying Assignment using PySMT.
 
 Based on the algorithm from Alessandro Previti and Alexey S. Ignatiev.
 """
+
 import logging
 from typing import Dict, FrozenSet, List, Optional, Set
 
@@ -64,7 +65,9 @@ def get_qmodel(
             counter_example = {v: counter_model[v] for v in x_univl_set}
             subformula = formula.substitute(counter_example).simplify()
             if verbose:
-                logger.debug("qsolve counter-example %d: %s", iteration, counter_example)
+                logger.debug(
+                    "qsolve counter-example %d: %s", iteration, counter_example
+                )
 
             solver.add_assertion(subformula)
 
@@ -125,7 +128,7 @@ class Mistral:
         if model is None:
             return None
 
-        return [f'{v}={model[v]}' for v in self.fvars - mus]
+        return [f"{v}={model[v]}" for v in self.fvars - mus]
 
     def compute_mus(
         self,
@@ -183,9 +186,9 @@ class Mistral:
         Returns:
             PySMT model if satisfiable, None otherwise
         """
-        if self.qsolve == 'std':
+        if self.qsolve == "std":
             return get_model(ForAll(x_univl, self.formula), solver_name=self.sname)
-        if self.qsolve == 'z3qe':
+        if self.qsolve == "z3qe":
             # Use quantifier elimination
             formula = qelim(ForAll(x_univl, self.formula))
             return get_model(formula, solver_name=self.sname)

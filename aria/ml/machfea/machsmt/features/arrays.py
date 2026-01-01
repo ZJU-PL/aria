@@ -1,5 +1,4 @@
-
-'''
+"""
 To add an extra feature, define a function anywhere in this module/file.
 
 All functions that appear in this model will be automatically included in the ML model.
@@ -13,7 +12,7 @@ OUTPUT
 
     A single number or an iterable of numbers
 
-'''
+"""
 
 
 def array_features(tokens):
@@ -23,10 +22,13 @@ def array_features(tokens):
 
     for sexpr in tokens:
         # No need to traverse if no arrays present
-        if isinstance(sexpr, tuple) and sexpr[0] == 'set-logic' \
-                and sexpr[1] != 'ALL' \
-                and not sexpr[1].startswith('A') \
-                and not sexpr[1].startswith('QF_A'):
+        if (
+            isinstance(sexpr, tuple)
+            and sexpr[0] == "set-logic"
+            and sexpr[1] != "ALL"
+            and not sexpr[1].startswith("A")
+            and not sexpr[1].startswith("QF_A")
+        ):
             break
 
         visit.append(sexpr)
@@ -34,17 +36,17 @@ def array_features(tokens):
             token = visit.pop()
             if isinstance(token, tuple):
                 # avg. number of selects per array feature
-                if token and token[0] == 'select':
+                if token and token[0] == "select":
                     array = token[1]
                     if array not in arrays:
                         arrays[array] = 0
                     arrays[array] += 1
                     visit.extend(token)
                 # avg. store chain depth feature
-                elif token and token[0] == 'store':
+                elif token and token[0] == "store":
                     num_stores = 0
                     l = token
-                    while l[0] == 'store':
+                    while l[0] == "store":
                         assert len(l) == 4
                         num_stores += 1
                         visit.append(l[2])

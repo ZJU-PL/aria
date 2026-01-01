@@ -22,7 +22,7 @@ class RandomCFLSolver:
     # Algorithm 2 in the paper
     def subroutine(self, n: int, sol: List[int]) -> Tuple[int, int]:
         # use the qasm_simulator to simulate Grover search
-        backend = BasicAer.get_backend('qasm_simulator')
+        backend = BasicAer.get_backend("qasm_simulator")
         # for each Grover search, only running one shot
         quantum_instance = QuantumInstance(backend, shots=1)
         # create oracle for Grover search
@@ -32,21 +32,21 @@ class RandomCFLSolver:
         problem = AmplificationProblem(oracle, is_good_state=oracle)
         # initialization
         m: int = 1
-        lab: float = 6/5
+        lab: float = 6 / 5
         total: int = 0
         # repeat until reaching sqrt{2^n}
         while 1:
             j = np.random.randint(0, m)
             total += j
             # run Grover search on a simulator
-            grover = Grover(quantum_instance=quantum_instance,iterations=j)
+            grover = Grover(quantum_instance=quantum_instance, iterations=j)
             # the Grover search result is saved in 'result'
             result = grover.amplify(problem)
             # get the return value of Grover search by 'result.top_measurement'
-            return_value = int(result.top_measurement,2)
+            return_value = int(result.top_measurement, 2)
             if sol[return_value] == 1:
                 return return_value, total
-            m = min(lab*m, sqrt(2**n))
+            m = min(lab * m, sqrt(2**n))
             # stop because reaching the threshold
             if total > sqrt(2**n):
                 return -1, total
@@ -54,7 +54,7 @@ class RandomCFLSolver:
     # Algorithm 3 in the paper
     def estimate(self, sol_list: List[int], answer_num: int) -> int:
         sol = deepcopy(sol_list)
-        n = ceil(log(len(sol),2))
+        n = ceil(log(len(sol), 2))
         # the number of targets that are not found is 'current_num'
         current_num: int = answer_num
         # this is the total number of iterations needed to find all targets
@@ -63,9 +63,9 @@ class RandomCFLSolver:
         iteration: int = 0
         # targets are stored in 'return_list'
         return_list: List[int] = []
-        while iteration < 3*n:
+        while iteration < 3 * n:
             # xx is the index found, t is the current number of quantum iterations
-            xx, t = self.subroutine(n ,sol)
+            xx, t = self.subroutine(n, sol)
             # successfully find a target index
             if xx != -1:
                 return_list.append(xx)
@@ -94,7 +94,9 @@ class RandomCFLSolver:
         self.__cubic_solve(graph, grammar)
 
     # DTC-based CFL-reachability
-    def __cubic_solve(self, graph: List[List[List[int]]], grammar: Dict[str, Any]) -> None:
+    def __cubic_solve(
+        self, graph: List[List[List[int]]], grammar: Dict[str, Any]
+    ) -> None:
         total_classical: int = 0
         total_quantum: int = 0
         # graph is accessed by [i, label, j]
@@ -105,33 +107,33 @@ class RandomCFLSolver:
             for label in range(grammar_size):
                 for j in range(size):
                     if graph[i][label][j] == 1:
-                        Worklist.add((i,label,j))
-        for X in grammar['epsilon']:
+                        Worklist.add((i, label, j))
+        for X in grammar["epsilon"]:
             for i in range(size):
                 if graph[i][X][i] == 0:
                     graph[i][X][i] = 1
-                    Worklist.add((i,X,i))
+                    Worklist.add((i, X, i))
         # worklist analysis starts
         while len(Worklist) > 0:
             i, Y, j = Worklist.pop()
-            if Y in grammar['single'].keys():
-                for X in grammar['single'][Y]:
+            if Y in grammar["single"].keys():
+                for X in grammar["single"][Y]:
                     if graph[i][X][j] == 0:
                         graph[i][X][j] = 1
-                        Worklist.add((i,X,j))
+                        Worklist.add((i, X, j))
             # save the solution indices in this list
             # for creating oracle of Grover search
             answer_num: int = 0
             sol: List[int] = [0 for i in range(size)]
             total_classical += 2 * size
-            if Y in grammar['double1'].keys():
-                for X, Z in grammar['double1'][Y]:
+            if Y in grammar["double1"].keys():
+                for X, Z in grammar["double1"][Y]:
                     for k in range(size):
                         if graph[i][X][k] == 0 and graph[j][Z][k] == 1:
                             sol[k] = 1
                             answer_num += 1
                             graph[i][X][k] = 1
-                            Worklist.add((i,X,k))
+                            Worklist.add((i, X, k))
             # simulate the process of Grover search
             # and store the number of quantum iterations needed for finding all targets
             total_quantum += self.estimate(sol, answer_num)
@@ -139,14 +141,14 @@ class RandomCFLSolver:
             # save the solution indices in this list
             # for creating oracle of Grover search
             sol = [0 for i in range(size)]
-            if Y in grammar['double2'].keys():
-                for X, Z in grammar['double2'][Y]:
+            if Y in grammar["double2"].keys():
+                for X, Z in grammar["double2"][Y]:
                     for k in range(size):
                         if graph[k][X][j] == 0 and graph[k][Z][i] == 1:
                             sol[k] = 1
                             answer_num += 1
                             graph[k][X][j] = 1
-                            Worklist.add((k,X,j))
+                            Worklist.add((k, X, j))
             # simulate the process of Grover search
             # and store the number of quantum iterations needed for finding all targets
             total_quantum += self.estimate(sol, answer_num)
@@ -166,16 +168,21 @@ def main(argv: List[str]) -> None:
         if num > 0 and (num & (num - 1)) == 0:
             size = int(sys.argv[1])
         else:
-            print('please input an integer = 2^k')
+            print("please input an integer = 2^k")
             return
     grammar_size = 5
-    a = [0,1]
-    g = np.random.choice(a,(size,grammar_size,size),p=[0.8,0.2])
-    grammar = {'epsilon':[0],'single':{0:[1], 2:[3]},'double1':{1:[(0,3)],4:[(1,2)]},'double2':{3:[(0,1)],2:[(1,4)]}}
+    a = [0, 1]
+    g = np.random.choice(a, (size, grammar_size, size), p=[0.8, 0.2])
+    grammar = {
+        "epsilon": [0],
+        "single": {0: [1], 2: [3]},
+        "double1": {1: [(0, 3)], 4: [(1, 2)]},
+        "double2": {3: [(0, 1)], 2: [(1, 4)]},
+    }
     solver = RandomCFLSolver()
 
     solver.solve(g, grammar)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main(sys.argv)

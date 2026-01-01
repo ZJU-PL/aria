@@ -1,5 +1,4 @@
-
-'''
+"""
 To add an extra feature, define a function anywhere in this module/file.
 
 All functions that appear in this model will be automatically included in the ML model.
@@ -13,7 +12,7 @@ OUTPUT
 
     A single number or an iterable of numbers
 
-'''
+"""
 
 # Determine average arity and number of applications of UFs
 
@@ -25,12 +24,15 @@ def uf_features(tokens):
     apps = {}
     for sexpr in tokens:
         # No need to traverse if no quantifiers present
-        if isinstance(sexpr, tuple) and sexpr[0] == 'set-logic' \
-                and sexpr[1] != 'ALL' \
-                and 'UF' not in sexpr[1]:
+        if (
+            isinstance(sexpr, tuple)
+            and sexpr[0] == "set-logic"
+            and sexpr[1] != "ALL"
+            and "UF" not in sexpr[1]
+        ):
             break
         # collect UFs (declare-fun ...)
-        if sexpr and sexpr[0] == 'declare-fun':
+        if sexpr and sexpr[0] == "declare-fun":
             assert len(sexpr) == 4
             assert isinstance(sexpr[2], tuple)
             ufs.add(sexpr[1])

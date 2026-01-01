@@ -11,6 +11,7 @@ import z3
 
 class OracleType(Enum):
     """Types of oracles supported"""
+
     FUNCTION = "function"  # Callable pure function
     LLM = "llm"  # LLM-based oracle
     EXTERNAL = "external"  # External API or service
@@ -19,6 +20,7 @@ class OracleType(Enum):
 
 class OracleAnalysisMode(Enum):
     """Analysis modes for whitebox oracles"""
+
     BLACKBOX = "blackbox"  # Traditional input-output mapping
     DOCUMENTATION = "documentation"  # Analysis of component documentation
     SOURCE_CODE = "source_code"  # Analysis of component source code
@@ -29,6 +31,7 @@ class OracleAnalysisMode(Enum):
 @dataclass
 class OracleInfo:
     """Information about an oracle function (blackbox case)"""
+
     name: str
     input_types: List[z3.SortRef]
     output_type: z3.SortRef
@@ -42,11 +45,14 @@ class OracleInfo:
 @dataclass
 class WhiteboxOracleInfo(OracleInfo):
     """Information about a whitebox oracle with additional analysis capabilities"""
+
     analysis_mode: OracleAnalysisMode = OracleAnalysisMode.DOCUMENTATION
     documentation: Optional[str] = None  # Component documentation
     source_code: Optional[str] = None  # Component source code
     binary_code: Optional[bytes] = None  # Component binary code
-    external_knowledge: Optional[List[str]] = None  # Additional information (forums, papers, etc.)
+    external_knowledge: Optional[List[str]] = (
+        None  # Additional information (forums, papers, etc.)
+    )
     symbolic_model: Optional[str] = None  # Symbolic model derived from analysis
 
     def __post_init__(self):

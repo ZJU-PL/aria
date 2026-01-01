@@ -8,8 +8,9 @@ from aria.utils.z3_solver_utils import is_sat, is_entail
 from .data_structures import AbductionProblem
 
 
-def validate_hypothesis(problem: AbductionProblem,
-                       hypothesis: z3.BoolRef) -> Tuple[bool, bool]:
+def validate_hypothesis(
+    problem: AbductionProblem, hypothesis: z3.BoolRef
+) -> Tuple[bool, bool]:
     """Return (is_consistent, is_sufficient) for a hypothesis."""
     if z3.is_true(hypothesis):
         return True, False
@@ -24,14 +25,13 @@ def validate_hypothesis(problem: AbductionProblem,
     if not is_consistent:
         return False, False
 
-    is_sufficient = is_entail(
-        z3.And(full_premise, hypothesis), problem.conclusion
-    )
+    is_sufficient = is_entail(z3.And(full_premise, hypothesis), problem.conclusion)
     return is_consistent, is_sufficient
 
 
-def generate_counterexample(problem: AbductionProblem,
-                            hypothesis: z3.BoolRef) -> Optional[Dict[str, Any]]:
+def generate_counterexample(
+    problem: AbductionProblem, hypothesis: z3.BoolRef
+) -> Optional[Dict[str, Any]]:
     """Generate a counterexample showing why the hypothesis is invalid."""
     full_premise = (
         z3.And(problem.domain_constraints, problem.premise)
@@ -46,8 +46,7 @@ def generate_counterexample(problem: AbductionProblem,
         if s.check() == z3.sat:
             model = s.model()
             return {
-                str(v): model.eval(v, model_completion=True)
-                for v in problem.variables
+                str(v): model.eval(v, model_completion=True) for v in problem.variables
             }
         return None
 
@@ -58,8 +57,7 @@ def generate_counterexample(problem: AbductionProblem,
         if s.check() == z3.sat:
             model = s.model()
             return {
-                str(v): model.eval(v, model_completion=True)
-                for v in problem.variables
+                str(v): model.eval(v, model_completion=True) for v in problem.variables
             }
 
     return None

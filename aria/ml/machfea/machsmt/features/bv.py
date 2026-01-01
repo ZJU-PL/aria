@@ -1,5 +1,4 @@
-
-'''
+"""
 To add an extra feature, define a function anywhere in this module/file.
 
 All functions that appear in this model will be automatically included in the ML model.
@@ -13,7 +12,7 @@ OUTPUT
 
     A single number or an iterable of numbers
 
-'''
+"""
 
 import statistics
 
@@ -25,13 +24,12 @@ def feature_adder_chains(tokens):
         visit = [adder]
         while visit:
             cur = visit.pop()
-            if isinstance(cur, str) and \
-               cur in lets and cur not in lets_visit_cache:
+            if isinstance(cur, str) and cur in lets and cur not in lets_visit_cache:
                 lets_visit_cache.add(cur)
                 cur = lets.get(cur)
             if isinstance(cur, tuple):
                 # avg. store chain depth feature
-                if cur and cur[0] == 'bvadd':
+                if cur and cur[0] == "bvadd":
                     # down-traversal
                     if cur not in chains:
                         chains[cur] = 0
@@ -55,9 +53,12 @@ def feature_adder_chains(tokens):
     chains = {}  # maps adder to number of nested adders below
     for sexpr in tokens:
         # No need to traverse if no bit-vectors present
-        if isinstance(sexpr, tuple) and sexpr[0] == 'set-logic' \
-                and sexpr[1] != 'ALL' \
-                and 'BV' not in sexpr[1]:
+        if (
+            isinstance(sexpr, tuple)
+            and sexpr[0] == "set-logic"
+            and sexpr[1] != "ALL"
+            and "BV" not in sexpr[1]
+        ):
             break
 
         lets = {}
@@ -66,18 +67,17 @@ def feature_adder_chains(tokens):
         while visit:
             cur = visit.pop()
             # Only visit let symbols once
-            if isinstance(cur, str) and \
-               cur in lets and cur not in lets_visit_cache:
+            if isinstance(cur, str) and cur in lets and cur not in lets_visit_cache:
                 lets_visit_cache.add(cur)
                 cur = lets.get(cur)
             if isinstance(cur, tuple):
                 # map symbols to sexpr (let binder)
-                if cur and cur[0] == 'let':
+                if cur and cur[0] == "let":
                     for letbind in cur[1]:
                         lets[letbind[0]] = letbind[1]
                     visit.append(cur[-1])
                 # avg. store chain depth feature
-                elif cur and cur[0] == 'bvadd':
+                elif cur and cur[0] == "bvadd":
                     traverse_adders(cur, lets, chains, visit, lets_visit_cache)
                     if chains[cur] > 1:
                         adder_chains.append(chains[cur])

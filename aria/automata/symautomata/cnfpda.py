@@ -1,21 +1,24 @@
-"""This module creates a PDA from a CNF """
+"""This module creates a PDA from a CNF"""
+
 from typing import Dict, List
 from aria.automata.symautomata.pda import PDA, PDAState
 
 
 class ProdStruct:  # pylint: disable=too-few-public-methods
     """This class is used as a struct for each CNF rule"""
+
     type = 0
     a = 0
     b0 = 0
     b1 = 0
 
     def __init__(self) -> None:
-        """ Initialization class """
+        """Initialization class"""
 
 
 class CnfPda:  # pylint: disable=too-few-public-methods
     """This class creates a PDA from a CNF"""
+
     def __init__(self, alphabet: List[str]):
         """
         Args:
@@ -65,7 +68,7 @@ class CnfPda:  # pylint: disable=too-few-public-methods
 
         pda.s[pda.n] = PDAState()
         pda.s[pda.n].id = pda.n
-        pda.s[pda.n].sym = '@closing'
+        pda.s[pda.n].sym = "@closing"
         pda.s[pda.n].type = 1
         pda.s[pda.n].trans[1] = [0]
 
@@ -80,7 +83,7 @@ class CnfPda:  # pylint: disable=too-few-public-methods
         pda.s[pda.n] = PDAState()
         pda.s[pda.n].id = pda.n
         pda.s[pda.n].type = 2
-        pda.s[pda.n].trans[0] = ['@closing']
+        pda.s[pda.n].trans[0] = ["@closing"]
 
         counter = 0
         i = 0
@@ -107,42 +110,49 @@ class CnfPda:  # pylint: disable=too-few-public-methods
                         # HAVING STRINGS SPLITTED TO SYMBOLS AND CAN INTERSECT
                         # WITH DFA
 
-                        if productions_struct[counter].a not in terminals or \
-                                        len(productions_struct[counter].a) == 1:
+                        if (
+                            productions_struct[counter].a not in terminals
+                            or len(productions_struct[counter].a) == 1
+                        ):
                             # FILL NEW STATE  READ
                             pda.s[pda.n].type = 3
-                            pda.s[pda.n].trans[pda.n + 1] = [productions_struct[counter].a.lower()]
+                            pda.s[pda.n].trans[pda.n + 1] = [
+                                productions_struct[counter].a.lower()
+                            ]
                             pda.n = pda.n + 1
                             pda.s[pda.n] = PDAState()
                             pda.s[pda.n].id = pda.n
                             pda.s[pda.n].type = 3
-                            pda.s[pda.n].trans[2] = [' ']
+                            pda.s[pda.n].trans[2] = [" "]
 
                         else:
                             pda.s[pda.n].type = 3
-                            pda.s[pda.n].trans[pda.n + 1] = \
-                                [productions_struct[counter].a[0].lower()]
+                            pda.s[pda.n].trans[pda.n + 1] = [
+                                productions_struct[counter].a[0].lower()
+                            ]
                             k = 1
                             while k < len(productions_struct[counter].a) - 1:
                                 pda.n = pda.n + 1
                                 pda.s[pda.n] = PDAState()
                                 pda.s[pda.n].id = pda.n
                                 pda.s[pda.n].type = 3
-                                pda.s[pda.n].trans[pda.n +1] = \
-                                    [productions_struct[counter].a[k].lower()]
+                                pda.s[pda.n].trans[pda.n + 1] = [
+                                    productions_struct[counter].a[k].lower()
+                                ]
                                 k = k + 1
                             pda.n = pda.n + 1
                             pda.s[pda.n] = PDAState()
                             pda.s[pda.n].id = pda.n
                             pda.s[pda.n].type = 3
 
-                            pda.s[pda.n].trans[pda.n + 1] = \
-                                [productions_struct[counter].a[-1].lower()]
+                            pda.s[pda.n].trans[pda.n + 1] = [
+                                productions_struct[counter].a[-1].lower()
+                            ]
                             pda.n = pda.n + 1
                             pda.s[pda.n] = PDAState()
                             pda.s[pda.n].id = pda.n
                             pda.s[pda.n].type = 3
-                            pda.s[pda.n].trans[2] = [' ']
+                            pda.s[pda.n].trans[2] = [" "]
 
                 else:
                     # ADD AND CONNECT PUSH STATE
@@ -192,20 +202,17 @@ class CnfPda:  # pylint: disable=too-few-public-methods
             j = 0
             while j < len(productions[nonterminal[i]]):
                 productions_struct[cnt] = ProdStruct()
-                if 'a' in productions[nonterminal[i]][j]:
+                if "a" in productions[nonterminal[i]][j]:
                     productions_struct[cnt].type = 1
-                    productions_struct[cnt].a = productions[nonterminal[i]][j]['a']
+                    productions_struct[cnt].a = productions[nonterminal[i]][j]["a"]
 
                 else:
                     productions_struct[cnt].type = 2
-                    productions_struct[cnt].b0 = productions[nonterminal[i]][j]['b0']
-                    productions_struct[cnt].b1 = productions[nonterminal[i]][j]['b1']
+                    productions_struct[cnt].b0 = productions[nonterminal[i]][j]["b0"]
+                    productions_struct[cnt].b1 = productions[nonterminal[i]][j]["b1"]
                 cnt = cnt + 1
                 j = j + 1
             i = i + 1
         return self._mkpda(
-            nonterminal,
-            productions,
-            productions_struct,
-            terminals,
-            splitstring)
+            nonterminal, productions, productions_struct, terminals, splitstring
+        )

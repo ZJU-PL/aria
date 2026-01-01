@@ -1,4 +1,5 @@
 """Utility functions for converting between Z3 and PySMT formats."""
+
 from typing import List, Tuple
 
 import z3
@@ -47,7 +48,7 @@ def z3_to_pysmt(zf: z3.ExprRef, obj: z3.ExprRef) -> Tuple[Symbol, FNode]:
     _ = z3_to_pysmt_vars(zvs)  # Convert to suppress warnings
 
     #
-    z3s = Solver(name='z3')
+    z3s = Solver(name="z3")
     pysmt_var = Symbol(obj.decl().name(), BVType(obj.sort().size()))
     pysmt_fml = z3s.converter.back(zf)
     return pysmt_var, pysmt_fml

@@ -18,29 +18,29 @@ Key features:
 Usage:
     from aria.allsmt import create_allsmt_solver
     from z3 import Ints, And
-    
+
     # Create a solver (default is Z3)
     solver = create_allsmt_solver()
-    
+
     # Or specify a specific solver
     solver = create_allsmt_solver("mathsat")
-    
+
     # Solve a formula with a model limit
     x, y = Ints('x y')
     expr = And(x + y == 5, x > 0, y > 0)
     models = solver.solve(expr, [x, y], model_limit=10)
-    
+
     # Print the models
     solver.print_models(verbose=True)
-    
+
     # Get the number of models
     count = solver.get_model_count()
-    
+
     # Access the models directly
     for model in solver.models:
         # Process model...
         pass
-        
+
 Note on infinite models:
     For integer or real formulas, the number of models can be infinite.
     The model_limit parameter (default: 100) prevents the solver from
@@ -71,12 +71,12 @@ except ImportError:
 
 # Define what's available in the public API
 __all__ = [
-    'AllSMTSolver',
-    'AllSMTSolverFactory',
-    'create_allsmt_solver',
-    'create_solver',  # For backward compatibility
-    'Z3AllSMTSolver',
-    'PySMTAllSMTSolver',
-    'MathSATAllSMTSolver',
-    'Z3ToPySMTConverter',
+    "AllSMTSolver",
+    "AllSMTSolverFactory",
+    "create_allsmt_solver",
+    "create_solver",  # For backward compatibility
+    "Z3AllSMTSolver",
+    "PySMTAllSMTSolver",
+    "MathSATAllSMTSolver",
+    "Z3ToPySMTConverter",
 ]

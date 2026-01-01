@@ -1,6 +1,7 @@
 """
 File to control the computation and aggregation of statistics for lists of values.
 """
+
 import math
 import statistics as stats
 

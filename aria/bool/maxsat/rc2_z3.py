@@ -25,7 +25,7 @@ def sub(Ws, f, w):
     if w1 > w:
         Ws[f] = w1 - w
     else:
-        del (Ws[f])
+        del Ws[f]
 
 
 class RC2:
@@ -70,7 +70,9 @@ class RC2:
         while i < len(ws):
             j = i
             # increment j until making 5% progress or exhausting equal weight entries
-            while (j < len(ws) and ws[j][1] == ws[i][1]) or (i > 0 and (j - i) * 20 < len(ws)):
+            while (j < len(ws) and ws[j][1] == ws[i][1]) or (
+                i > 0 and (j - i) * 20 < len(ws)
+            ):
                 j += 1
             i = j
             r = self.solver.check([ws[j][0] for j in range(i)])
@@ -130,7 +132,7 @@ class RC2:
                 break
             if cores == z3.unsat:
                 return z3.unsat
-            for (core, w) in cores:
+            for core, w in cores:
                 self.min_cost += w
                 self.print_cost()
                 self.update_bounds(Ws, core, w)
@@ -143,7 +145,7 @@ class RC2:
         obj = opt.objectives()[0]
         Ws = {}
         for f in obj.children():
-            assert (f.arg(1).as_long() == 0)
+            assert f.arg(1).as_long() == 0
             add(Ws, f.arg(0), f.arg(2).as_long())
         return self.maxsat(Ws)
 
@@ -154,7 +156,9 @@ class RC2:
             add(Ws, f, cost)
         return self.maxsat(Ws)
 
-    def from_int_clauses(self, hard: List[List[int]], soft: List[List[int]], weight: List[int]):
+    def from_int_clauses(
+        self, hard: List[List[int]], soft: List[List[int]], weight: List[int]
+    ):
         return
 
 

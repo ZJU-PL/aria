@@ -5,16 +5,21 @@ Prompts for LLM-based Craig interpolant generation.
 2. Few-Shot
 3. CoT
 """
+
 from typing import List
 
 import z3
 from z3.z3util import get_vars
 
 
-def _common_symbols(formulas_a: List[z3.ExprRef], formulas_b: List[z3.ExprRef]) -> List[str]:
+def _common_symbols(
+    formulas_a: List[z3.ExprRef], formulas_b: List[z3.ExprRef]
+) -> List[str]:
     """Extract common symbols between two sets of formulas."""
+
     def get_names(forms):
         return {v.decl().name() for e in forms for v in get_vars(e)}
+
     return sorted(get_names(formulas_a) & get_names(formulas_b))
 
 
@@ -167,7 +172,7 @@ Provide the interpolant as an SMT-LIB expression:"""
 def mk_interpolant_prompt_with_type(
     formulas_a: List[z3.ExprRef],
     formulas_b: List[z3.ExprRef],
-    prompt_type: str = "basic"
+    prompt_type: str = "basic",
 ) -> str:
     """Generate interpolant prompt with specified type.
 
@@ -198,18 +203,13 @@ def get_prompt_description(prompt_type: str) -> str:
     """Get description of a specific prompt type."""
     descriptions = {
         "basic": (
-            "Simple, direct prompt asking for interpolant with minimal "
-            "instructions"
+            "Simple, direct prompt asking for interpolant with minimal " "instructions"
         ),
-        "cot": (
-            "Chain-of-Thought prompt with step-by-step reasoning framework"
-        ),
-        "fewshot": (
-            "Few-shot learning prompt with concrete examples and solutions"
-        ),
+        "cot": ("Chain-of-Thought prompt with step-by-step reasoning framework"),
+        "fewshot": ("Few-shot learning prompt with concrete examples and solutions"),
         "structured": (
             "Highly structured prompt with detailed analysis sections and "
             "markdown formatting"
-        )
+        ),
     }
     return descriptions.get(prompt_type, "Unknown prompt type")

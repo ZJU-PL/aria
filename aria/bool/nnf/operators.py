@@ -10,7 +10,7 @@ import typing as t
 from aria.bool.nnf import NNF, And, Or
 from aria.bool.nnf.util import T_NNF, U_NNF
 
-__all__ = ('xor', 'nand', 'nor', 'implies', 'implied_by', 'iff', 'and_', 'or_')
+__all__ = ("xor", "nand", "nor", "implies", "implied_by", "iff", "and_", "or_")
 
 
 def xor(a: NNF, b: NNF) -> Or[And[NNF]]:

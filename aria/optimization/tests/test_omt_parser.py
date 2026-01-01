@@ -11,7 +11,9 @@ class TestOMTParser(unittest.TestCase):
     def test_single_maximize(self):
         """Test single maximize objective"""
         parser = OMTParser()
-        parser.parse_with_z3("(declare-fun x () Int)(assert (>= x 0))(maximize x)(check-sat)")
+        parser.parse_with_z3(
+            "(declare-fun x () Int)(assert (>= x 0))(maximize x)(check-sat)"
+        )
         self.assertEqual(len(parser.objectives), 1)
         self.assertIsNotNone(parser.objective)
         self.assertEqual(parser.original_directions, ["max"])
@@ -19,7 +21,9 @@ class TestOMTParser(unittest.TestCase):
     def test_single_minimize(self):
         """Test single minimize objective"""
         parser = OMTParser()
-        parser.parse_with_z3("(declare-fun x () Int)(assert (>= x 0))(minimize x)(check-sat)")
+        parser.parse_with_z3(
+            "(declare-fun x () Int)(assert (>= x 0))(minimize x)(check-sat)"
+        )
         self.assertEqual(len(parser.objectives), 1)
         self.assertEqual(parser.original_directions, ["min"])
 

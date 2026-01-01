@@ -15,8 +15,9 @@ logger = logging.getLogger(__name__)
 
 class MaxSMTAlgorithm(Enum):
     """Enumeration of available MaxSMT algorithms"""
-    CORE_GUIDED = "core-guided"   # Core-guided algorithm from SAT'13
-    IHS = "ihs"                   # Implicit Hitting Set algorithm from IJCAR'18
+
+    CORE_GUIDED = "core-guided"  # Core-guided algorithm from SAT'13
+    IHS = "ihs"  # Implicit Hitting Set algorithm from IJCAR'18
     LOCAL_SEARCH = "local-search"  # Local search for MaxSMT(LIA)
 
 
@@ -24,6 +25,7 @@ class MaxSMTSolverBase:
     """
     Base class for MaxSMT solvers
     """
+
     def __init__(self, solver_name: str = "z3") -> None:
         """Initialize the MaxSMT solver
 
@@ -109,8 +111,12 @@ class MaxSMTSolverBase:
         variables: Set[z3.ExprRef] = set()
 
         def collect(expr: z3.ExprRef) -> None:
-            if (z3.is_const(expr) and not z3.is_bool(expr) and
-                    not z3.is_true(expr) and not z3.is_false(expr)):
+            if (
+                z3.is_const(expr)
+                and not z3.is_bool(expr)
+                and not z3.is_true(expr)
+                and not z3.is_false(expr)
+            ):
                 variables.add(expr)
             else:
                 for child in expr.children():
