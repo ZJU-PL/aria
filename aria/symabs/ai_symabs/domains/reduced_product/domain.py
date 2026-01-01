@@ -1,5 +1,5 @@
-"""Main class definition for the ReducedProduct conjunctive domain.
-"""
+"""Main class definition for the ReducedProduct conjunctive domain."""
+
 from typing import List, Dict
 import z3
 from ..z3_variables import Z3VariablesDomain
@@ -23,8 +23,11 @@ class ReducedProductDomain(Z3VariablesDomain):
     """
 
     def __init__(
-            self, variables: List[str], domain_A: Z3VariablesDomain,
-            domain_B: Z3VariablesDomain) -> None:
+        self,
+        variables: List[str],
+        domain_A: Z3VariablesDomain,
+        domain_B: Z3VariablesDomain,
+    ) -> None:
         """Construct a ReducedProductDomain with given variables, sub-domains.
 
         @domain_A, @domain_B should be instantiated Z3VariablesDomains with the
@@ -35,11 +38,10 @@ class ReducedProductDomain(Z3VariablesDomain):
         self.domain_B = domain_B
 
     def gamma_hat(self, alpha: ReducedProductAbstractState) -> z3.ExprRef:
-        """Returns a formula describing the same states as alpha.
-        """
+        """Returns a formula describing the same states as alpha."""
         return z3.And(
             self.domain_A.gamma_hat(alpha.state_A),
-            self.domain_B.gamma_hat(alpha.state_B)
+            self.domain_B.gamma_hat(alpha.state_B),
         )
 
     def join(
@@ -59,7 +61,9 @@ class ReducedProductDomain(Z3VariablesDomain):
         joined = ReducedProductAbstractState(joined_A, joined_B)
         return self.reduce(joined)
 
-    def meet(self, elements: List[ReducedProductAbstractState]) -> ReducedProductAbstractState:
+    def meet(
+        self, elements: List[ReducedProductAbstractState]
+    ) -> ReducedProductAbstractState:
         """Returns the meet of a set of abstract states.
 
         join([ alpha_1, alpha_2, ..., alpha_n ]) is the greatest alpha
@@ -82,8 +86,7 @@ class ReducedProductDomain(Z3VariablesDomain):
         return met
 
     def abstract_consequence(
-        self, lower: ReducedProductAbstractState,
-        upper: ReducedProductAbstractState
+        self, lower: ReducedProductAbstractState, upper: ReducedProductAbstractState
     ) -> ReducedProductAbstractState:
         """Returns the "abstract consequence" of lower and upper.
 
@@ -92,13 +95,11 @@ class ReducedProductDomain(Z3VariablesDomain):
 
         TODO(masotoud): ensure this is correct.
         """
-        consequence_A = self.domain_A.abstract_consequence(
-            lower.state_A, upper.state_A)
-        consequence_B = self.domain_B.abstract_consequence(
-            lower.state_B, upper.state_B)
+        consequence_A = self.domain_A.abstract_consequence(lower.state_A, upper.state_A)
+        consequence_B = self.domain_B.abstract_consequence(lower.state_B, upper.state_B)
         return ReducedProductAbstractState(consequence_A, consequence_B)
 
-    def beta(self, sigma: 'Z3VariablesState') -> ReducedProductAbstractState:
+    def beta(self, sigma: "Z3VariablesState") -> ReducedProductAbstractState:
         """Returns the least abstract state describing sigma.
 
         Sigma should be an Z3VariablesState. See Definition 3.4 in:
@@ -129,7 +130,7 @@ class ReducedProductDomain(Z3VariablesDomain):
         state_B = alpha.state_B.copy()
 
         # Refine Sign domain (state_A) based on Interval domain (state_B)
-        if hasattr(state_A, 'set_sign') and hasattr(state_B, 'interval_of'):
+        if hasattr(state_A, "set_sign") and hasattr(state_B, "interval_of"):
             for var in self.variables:
                 interval = state_B.interval_of(var)
                 # If the interval is entirely positive
@@ -140,7 +141,7 @@ class ReducedProductDomain(Z3VariablesDomain):
                     state_A.set_sign(var, Sign.Negative)
 
         # Refine Interval domain (state_B) based on Sign domain (state_A)
-        if hasattr(state_B, 'set_interval') and hasattr(state_A, 'sign_of'):
+        if hasattr(state_B, "set_interval") and hasattr(state_A, "sign_of"):
             for var in self.variables:
                 sign = state_A.sign_of(var)
                 interval = state_B.interval_of(var)
@@ -155,9 +156,9 @@ class ReducedProductDomain(Z3VariablesDomain):
 
         return ReducedProductAbstractState(state_A, state_B)
 
-    def translate(self, translation: Dict[str, str]) -> 'ReducedProductDomain':
+    def translate(self, translation: Dict[str, str]) -> "ReducedProductDomain":
         return ReducedProductDomain(
             self.variables,
             self.domain_A.translate(translation),
-            self.domain_B.translate(translation)
+            self.domain_B.translate(translation),
         )

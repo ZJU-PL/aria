@@ -19,8 +19,7 @@ from pysat.solvers import Solver
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
 logger = logging.getLogger(__name__)
@@ -28,6 +27,7 @@ logger = logging.getLogger(__name__)
 
 class SolverResult(Enum):
     """Possible results from solvers."""
+
     SAT = "sat"
     UNSAT = "unsat"
     UNKNOWN = "unknown"
@@ -35,72 +35,87 @@ class SolverResult(Enum):
     @property
     def return_code(self) -> int:
         """Maps solver results to return codes."""
-        return {
-            self.SAT: 10,
-            self.UNSAT: 20,
-            self.UNKNOWN: 0
-        }[self]
+        return {self.SAT: 10, self.UNSAT: 20, self.UNKNOWN: 0}[self]
+
 
 @dataclass
 class SolverConfig:
     """Configuration for solver execution."""
+
     SAT_SOLVERS = [
-        'cd', 'cd15', 'gc3', 'gc4', 'g3', 'g4',
-        'lgl', 'mcb', 'mpl', 'mg3', 'mc', 'm22'
+        "cd",
+        "cd15",
+        "gc3",
+        "gc4",
+        "g3",
+        "g4",
+        "lgl",
+        "mcb",
+        "mpl",
+        "mg3",
+        "mc",
+        "m22",
     ]
 
     Z3_PREAMBLES = [
         z3.AndThen(
-            z3.With('simplify', flat_and_or=False),
-            z3.With('propagate-values', flat_and_or=False),
-            z3.Tactic('elim-uncnstr'),
-            z3.With('solve-eqs', solve_eqs_max_occs=2),
-            z3.Tactic('reduce-bv-size'),
-            z3.With('simplify',
-                   som=True,
-                   pull_cheap_ite=True,
-                   push_ite_bv=False,
-                   local_ctx=True,
-                   local_ctx_limit=10000000,
-                   flat=True,
-                   hoist_mul=False,
-                   flat_and_or=False),
-            z3.With('simplify', hoist_mul=False, som=False, flat_and_or=False),
-            'max-bv-sharing',
-            'ackermannize_bv',
-            'bit-blast',
-            z3.With('simplify', local_ctx=True, flat=False, flat_and_or=False),
-            z3.With('solve-eqs', solve_eqs_max_occs=2),
-            'aig',
-            'tseitin-cnf'
+            z3.With("simplify", flat_and_or=False),
+            z3.With("propagate-values", flat_and_or=False),
+            z3.Tactic("elim-uncnstr"),
+            z3.With("solve-eqs", solve_eqs_max_occs=2),
+            z3.Tactic("reduce-bv-size"),
+            z3.With(
+                "simplify",
+                som=True,
+                pull_cheap_ite=True,
+                push_ite_bv=False,
+                local_ctx=True,
+                local_ctx_limit=10000000,
+                flat=True,
+                hoist_mul=False,
+                flat_and_or=False,
+            ),
+            z3.With("simplify", hoist_mul=False, som=False, flat_and_or=False),
+            "max-bv-sharing",
+            "ackermannize_bv",
+            "bit-blast",
+            z3.With("simplify", local_ctx=True, flat=False, flat_and_or=False),
+            z3.With("solve-eqs", solve_eqs_max_occs=2),
+            "aig",
+            "tseitin-cnf",
         ),
         z3.AndThen(
-            z3.With('simplify', flat_and_or=False),
-            z3.With('propagate-values', flat_and_or=False),
-            z3.With('solve-eqs', solve_eqs_max_occs=2),
-            z3.Tactic('elim-uncnstr'),
-            z3.With('simplify',
-                   som=True,
-                   pull_cheap_ite=True,
-                   push_ite_bv=False,
-                   local_ctx=True,
-                   local_ctx_limit=10000000,
-                   flat=True,
-                   hoist_mul=False,
-                   flat_and_or=False),
-            z3.Tactic('max-bv-sharing'),
-            z3.Tactic('bit-blast'),
-            z3.With('simplify', local_ctx=True, flat=False, flat_and_or=False),
-            'aig',
-            'tseitin-cnf'
-        )
+            z3.With("simplify", flat_and_or=False),
+            z3.With("propagate-values", flat_and_or=False),
+            z3.With("solve-eqs", solve_eqs_max_occs=2),
+            z3.Tactic("elim-uncnstr"),
+            z3.With(
+                "simplify",
+                som=True,
+                pull_cheap_ite=True,
+                push_ite_bv=False,
+                local_ctx=True,
+                local_ctx_limit=10000000,
+                flat=True,
+                hoist_mul=False,
+                flat_and_or=False,
+            ),
+            z3.Tactic("max-bv-sharing"),
+            z3.Tactic("bit-blast"),
+            z3.With("simplify", local_ctx=True, flat=False, flat_and_or=False),
+            "aig",
+            "tseitin-cnf",
+        ),
     ]
+
 
 class SATSolver:
     """Handles SAT solving operations."""
 
     @staticmethod
-    def solve_sat(solver_name: str, cnf: CNF, result_queue: multiprocessing.Queue) -> None:
+    def solve_sat(
+        solver_name: str, cnf: CNF, result_queue: multiprocessing.Queue
+    ) -> None:
         """Solves SAT problem using specified solver."""
         try:
             with Solver(name=solver_name, bootstrap_with=cnf) as solver:
@@ -112,13 +127,14 @@ class SATSolver:
             result_queue.put(SolverResult.UNKNOWN)
 
     @staticmethod
-    def preprocess_and_solve_sat(fml, qfbv_preamble, result_queue: multiprocessing.Queue) -> None:
+    def preprocess_and_solve_sat(
+        fml, qfbv_preamble, result_queue: multiprocessing.Queue
+    ) -> None:
         """Preprocesses and solves SAT problem."""
         try:
-            qfbv_tactic = z3.With(qfbv_preamble,
-                                 elim_and=True,
-                                 push_ite_bv=True,
-                                 blast_distinct=True)
+            qfbv_tactic = z3.With(
+                qfbv_preamble, elim_and=True, push_ite_bv=True, blast_distinct=True
+            )
             after_simp = qfbv_tactic(fml).as_expr()
 
             if z3.is_true(after_simp):
@@ -137,8 +153,7 @@ class SATSolver:
 
             for solver in SolverConfig.SAT_SOLVERS:
                 p = multiprocessing.Process(
-                    target=SATSolver.solve_sat,
-                    args=(solver, cnf, queue)
+                    target=SATSolver.solve_sat, args=(solver, cnf, queue)
                 )
                 processes.append(p)
                 p.start()
@@ -155,6 +170,7 @@ class SATSolver:
         except (ValueError, RuntimeError, z3.Z3Exception) as e:
             logger.error("Error in preprocessing: %s", str(e))
             result_queue.put(SolverResult.UNKNOWN)
+
 
 class FormulaParser:
     """Handles SMT formula parsing and solving."""
@@ -174,7 +190,7 @@ class FormulaParser:
             for preamble in SolverConfig.Z3_PREAMBLES:
                 p = multiprocessing.Process(
                     target=SATSolver.preprocess_and_solve_sat,
-                    args=(fml, preamble, result_queue)
+                    args=(fml, preamble, result_queue),
                 )
                 processes.append(p)
                 p.start()
@@ -203,6 +219,7 @@ class FormulaParser:
             logger.error("Error solving formula: %s", str(e))
             return SolverResult.UNKNOWN
 
+
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(description="SMT formula solver")
@@ -210,7 +227,9 @@ def main():
     args = parser.parse_args()
 
     try:
-        with open(os.path.join(args.request_directory, "input.json"), encoding='utf-8') as f:
+        with open(
+            os.path.join(args.request_directory, "input.json"), encoding="utf-8"
+        ) as f:
             input_json = json.load(f)
 
         formula_file = input_json.get("formula_file")
@@ -223,12 +242,12 @@ def main():
             "return_code": result.return_code,
             "artifacts": {
                 "stdout_path": os.path.join(args.request_directory, "stdout.log"),
-                "stderr_path": os.path.join(args.request_directory, "stderr.log")
-            }
+                "stderr_path": os.path.join(args.request_directory, "stderr.log"),
+            },
         }
 
         output_path = os.path.join(args.request_directory, "solver_out.json")
-        with open(output_path, "w", encoding='utf-8') as f:
+        with open(output_path, "w", encoding="utf-8") as f:
             json.dump(solver_output, f, indent=2)
 
         logger.info("Result: %s (code: %s)", result.value, result.return_code)
@@ -236,6 +255,7 @@ def main():
     except (ValueError, FileNotFoundError, json.JSONDecodeError, OSError) as e:
         logger.error("Fatal error: %s", str(e))
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

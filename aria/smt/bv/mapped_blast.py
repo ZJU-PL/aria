@@ -34,7 +34,7 @@ def bitblast(formula: z3.ExprRef):
     g.add(map_clauses)
     g.add(formula)
 
-    t = z3.Then('simplify', 'bit-blast', 'simplify', 'aig', 'tseitin-cnf')
+    t = z3.Then("simplify", "bit-blast", "simplify", "aig", "tseitin-cnf")
     blasted = t(g)[0]
     return blasted, id_table, bv2bool
 
@@ -112,8 +112,9 @@ def to_dimacs(cnf, table) -> Tuple[List[str], List[str]]:
             cnf_clauses.append("1 -1")
             continue
 
-        assert (z3.is_or(clause_expr) or z3.is_not(clause_expr) or
-                is_literal(clause_expr))
+        assert (
+            z3.is_or(clause_expr) or z3.is_not(clause_expr) or is_literal(clause_expr)
+        )
         dimacs_clause = list(dimacs_visitor(clause_expr, table))
         cnf_clauses.append(" ".join(dimacs_clause))
 
@@ -130,8 +131,9 @@ def to_dimacs_numeric(cnf, table):
             cnf_clauses.append([1, -1])
             continue
 
-        assert (z3.is_or(clause_expr) or z3.is_not(clause_expr) or
-                is_literal(clause_expr))
+        assert (
+            z3.is_or(clause_expr) or z3.is_not(clause_expr) or is_literal(clause_expr)
+        )
         dimacs_clause = list(dimacs_visitor_numeric(clause_expr, table))
         cnf_clauses.append(dimacs_clause)
 
@@ -140,7 +142,7 @@ def to_dimacs_numeric(cnf, table):
 
 
 def translate_smt2formula_to_cnf(
-    formula: z3.ExprRef
+    formula: z3.ExprRef,
 ) -> Tuple[Dict[str, list], Dict[str, int], List[str], List[str]]:
     """Translate a SMT2 formula to CNF format."""
     blasted, id_table, bv2bool = bitblast(formula)
@@ -149,7 +151,7 @@ def translate_smt2formula_to_cnf(
 
 
 def translate_smt2formula_to_numeric_clauses(
-    formula: z3.ExprRef
+    formula: z3.ExprRef,
 ) -> Tuple[Dict[str, list], Dict[str, int], List[str], List[int]]:
     """Translate a SMT2 formula to numeric CNF format."""
     blasted, id_table, bv2bool = bitblast(formula)
@@ -162,6 +164,6 @@ def translate_smt2formula_to_cnf_file(formula: z3.ExprRef, output_file: str):
     blasted, id_table, bv2bool = bitblast(formula)
     header, clauses = to_dimacs(blasted, id_table)
 
-    with open(output_file, 'w', encoding='utf-8') as file:
-        file.write('\n'.join(header) + '\n')
-        file.write('\n'.join(clauses) + '\n')
+    with open(output_file, "w", encoding="utf-8") as file:
+        file.write("\n".join(header) + "\n")
+        file.write("\n".join(clauses) + "\n")

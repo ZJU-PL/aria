@@ -59,7 +59,7 @@ from .wmi import (
     gaussian_density,
     exponential_density,
     beta_density,
-    product_density
+    product_density,
 )
 
 __all__ = [

@@ -3,12 +3,16 @@
 The uniformed interface for solving Exists-ForAll problems
 """
 import logging
+
 # from enum import Enum
 # from typing import List
 
 import z3
 
-from aria.quant.efbv.efbv_seq.efbv_bin_solvers import solve_with_bin_smt, solve_with_bin_qbf
+from aria.quant.efbv.efbv_seq.efbv_bin_solvers import (
+    solve_with_bin_smt,
+    solve_with_bin_qbf,
+)
 from aria.quant.efbv.efbv_seq.efbv_cegis_solvers import simple_cegis_efsmt
 from aria.quant.efbv.efbv_seq.efbv_to_bool import EFBVFormulaTranslator
 from aria.quant.efbv.efbv_seq.efbv_sat_solver import solve_with_sat_solver
@@ -89,9 +93,9 @@ class EFBVSequentialSolver:
         """Dump to QBF formula."""
         assert self.logic in ("BV", "UFBV")
         fml_manager = EFBVFormulaTranslator()
-        qdimacs_str = fml_manager.to_qdimacs_str(self.phi,
-                                                 existential_vars=self.exists_vars,
-                                                 universal_vars=self.forall_vars)
+        qdimacs_str = fml_manager.to_qdimacs_str(
+            self.phi, existential_vars=self.exists_vars, universal_vars=self.forall_vars
+        )
         with open(qdimacs_file_name, "w", encoding="utf-8") as tmp:
             tmp.write(qdimacs_str)
 
@@ -107,23 +111,29 @@ class EFBVSequentialSolver:
         print(f"EFSMT solver: {self.solver}")
         # 1. Quantifier instantiation approach
         if self.solver == "z3":
-            return solve_with_bin_smt(self.logic, self.exists_vars,
-                                     self.forall_vars, self.phi, "z3")
+            return solve_with_bin_smt(
+                self.logic, self.exists_vars, self.forall_vars, self.phi, "z3"
+            )
         if self.solver == "cvc5":
-            return solve_with_bin_smt(self.logic, self.exists_vars,
-                                     self.forall_vars, self.phi, "cvc5")
+            return solve_with_bin_smt(
+                self.logic, self.exists_vars, self.forall_vars, self.phi, "cvc5"
+            )
         if self.solver == "btor":
-            return solve_with_bin_smt(self.logic, self.exists_vars,
-                                     self.forall_vars, self.phi, "boolector2")
+            return solve_with_bin_smt(
+                self.logic, self.exists_vars, self.forall_vars, self.phi, "boolector2"
+            )
         if self.solver == "yices2":
-            return solve_with_bin_smt(self.logic, self.exists_vars,
-                                     self.forall_vars, self.phi, "yices2")
+            return solve_with_bin_smt(
+                self.logic, self.exists_vars, self.forall_vars, self.phi, "yices2"
+            )
         if self.solver == "mathsat":
-            return solve_with_bin_smt(self.logic, self.exists_vars,
-                                     self.forall_vars, self.phi, "mathsat")
+            return solve_with_bin_smt(
+                self.logic, self.exists_vars, self.forall_vars, self.phi, "mathsat"
+            )
         if self.solver == "bitwuzla":
-            return solve_with_bin_smt(self.logic, self.exists_vars,
-                                     self.forall_vars, self.phi, "bitwuzla")
+            return solve_with_bin_smt(
+                self.logic, self.exists_vars, self.forall_vars, self.phi, "bitwuzla"
+            )
 
         # 2. Bit-blasting approach
         if self.solver == "z3qbf":
@@ -132,14 +142,27 @@ class EFBVSequentialSolver:
             return self.solve_with_third_party_qbf("caqe")
         # TODO: q3b (BDD-based), z3-based QE+SAT
         if self.solver == "q3b":
-            return solve_with_bin_smt(self.logic, self.exists_vars,
-                                     self.forall_vars, self.phi, "q3b")
+            return solve_with_bin_smt(
+                self.logic, self.exists_vars, self.forall_vars, self.phi, "q3b"
+            )
         if self.solver == "z3sat":
             return self.solve_with_z3_sat()
         # third-party SAT solves (using pySAT)
-        if self.solver in ['cd', 'cd15', 'gc3', 'gc4', 'g3',
-                          'g4', 'lgl', 'mcb', 'mpl', 'mg3',
-                          'mc', 'm22', 'mgh']:
+        if self.solver in [
+            "cd",
+            "cd15",
+            "gc3",
+            "gc4",
+            "g3",
+            "g4",
+            "lgl",
+            "mcb",
+            "mpl",
+            "mg3",
+            "mc",
+            "m22",
+            "mgh",
+        ]:
             return self.solve_with_third_party_sat(solver_name=self.solver)
 
         # 3. Simple cegis-based approach
@@ -158,8 +181,13 @@ class EFBVSequentialSolver:
         NOTE: Currently, we use pySMT for the implementation.
         """
         print("Simple, sequential, CEGIS-style EFSMT!")
-        z3_res = simple_cegis_efsmt(self.logic, self.exists_vars, self.forall_vars, self.phi,
-                                    pysmt_solver=self.pysmt_solver)
+        z3_res = simple_cegis_efsmt(
+            self.logic,
+            self.exists_vars,
+            self.forall_vars,
+            self.phi,
+            pysmt_solver=self.pysmt_solver,
+        )
         return z3_res
 
     def solve_with_z3_qbf(self) -> str:
@@ -196,8 +224,9 @@ class EFBVSequentialSolver:
         """Translate EFSMT(BV) to QBF and call a third-party QBF solver."""
         assert self.logic in ("BV", "UFBV")
         fml_manager = EFBVFormulaTranslator()
-        qdimacs = fml_manager.to_qdimacs_str(self.phi, existential_vars=self.exists_vars,
-                                             universal_vars=self.forall_vars)
+        qdimacs = fml_manager.to_qdimacs_str(
+            self.phi, existential_vars=self.exists_vars, universal_vars=self.forall_vars
+        )
         return solve_with_bin_qbf(qdimacs, solver_name)
 
     def solve_with_third_party_sat(self, solver_name: str) -> str:
@@ -223,6 +252,7 @@ class EFBVSequentialSolver:
 def demo_efsmt():
     """Demo function for EFSMT solving."""
     import time
+
     x, y, z = z3.BitVecs("x y z", 16)
     # x, y, z = z3.Reals("x y z")
     fmla = z3.Implies(z3.And(y > 0, y < 10), y - 2 * x < 7)
@@ -236,5 +266,5 @@ def demo_efsmt():
     print(f"time: {time.time() - start}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     demo_efsmt()

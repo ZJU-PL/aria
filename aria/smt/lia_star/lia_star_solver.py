@@ -4,8 +4,18 @@ import argparse
 import sys
 import time
 
-from z3 import (And, ForAll, Implies, IntSort, Not, Solver, Var, Z3_OP_UNINTERPRETED,
-                substitute, unsat)
+from z3 import (
+    And,
+    ForAll,
+    Implies,
+    IntSort,
+    Not,
+    Solver,
+    Var,
+    Z3_OP_UNINTERPRETED,
+    substitute,
+    unsat,
+)
 
 from aria.smt.lia_star import dsl, interpolant, semilinear
 import aria.smt.lia_star.statistics
@@ -15,11 +25,13 @@ from aria.smt.lia_star.lia_star_utils import getModel
 verbose = False  # pylint: disable=invalid-name
 instrument = False  # pylint: disable=invalid-name
 
+
 # Print if verbose
 def print_verbose(msg):  # pylint: disable=invalid-name
     """Print message if verbose mode is enabled."""
     if verbose:
         print(msg)
+
 
 # Get free arithmetic variables from a formula
 def free_arith_vars(fml):  # pylint: disable=invalid-name
@@ -40,6 +52,7 @@ def free_arith_vars(fml):  # pylint: disable=invalid-name
     fv(seen, var_set, fml)
     return var_set
 
+
 # Turn A and B into macros and get their shared variables
 def to_macro(fmls):  # pylint: disable=invalid-name
     """Convert formulas into a macro function."""
@@ -51,7 +64,7 @@ def to_macro(fmls):  # pylint: disable=invalid-name
         if x_vars is None:
             x_vars = []
         # Default args
-        x_vars = x_vars + macro_func.args[len(x_vars):]
+        x_vars = x_vars + macro_func.args[len(x_vars) :]
 
         # If args are integers they need to be casted to z3 vars
         x_vars = [Var(x, IntSort()) if isinstance(x, int) else x for x in x_vars]
@@ -62,6 +75,7 @@ def to_macro(fmls):  # pylint: disable=invalid-name
         if len(func_list) == 1:
             return func_list[0]
         return And(func_list)
+
     macro_func.args = var_set
     macro_func.fmls = fmls
 
@@ -74,18 +88,18 @@ def return_solution(result, sls):  # pylint: disable=invalid-name
     # Print statistics if this is an instrumented run
     if instrument:
         stats = {
-            'sat': 1 if result != unsat else 0,
-            'problem_size': aria.smt.lia_star.statistics.problem_size,
-            'sls_size': sls.size(),
-            'z3_calls': aria.smt.lia_star.statistics.z3_calls,
-            'interpolants_generated': aria.smt.lia_star.statistics.interpolants_generated,  # noqa: E501
-            'merges': aria.smt.lia_star.statistics.merges,
-            'shiftdowns': aria.smt.lia_star.statistics.shiftdowns,
-            'offsets': aria.smt.lia_star.statistics.offsets,
-            'reduction_time': aria.smt.lia_star.statistics.reduction_time,
-            'augment_time': aria.smt.lia_star.statistics.augment_time,
-            'interpolation_time': aria.smt.lia_star.statistics.interpolation_time,
-            'solution_time': aria.smt.lia_star.statistics.solution_time
+            "sat": 1 if result != unsat else 0,
+            "problem_size": aria.smt.lia_star.statistics.problem_size,
+            "sls_size": sls.size(),
+            "z3_calls": aria.smt.lia_star.statistics.z3_calls,
+            "interpolants_generated": aria.smt.lia_star.statistics.interpolants_generated,  # noqa: E501
+            "merges": aria.smt.lia_star.statistics.merges,
+            "shiftdowns": aria.smt.lia_star.statistics.shiftdowns,
+            "offsets": aria.smt.lia_star.statistics.offsets,
+            "reduction_time": aria.smt.lia_star.statistics.reduction_time,
+            "augment_time": aria.smt.lia_star.statistics.augment_time,
+            "interpolation_time": aria.smt.lia_star.statistics.interpolation_time,
+            "solution_time": aria.smt.lia_star.statistics.solution_time,
         }
         print(stats)
 
@@ -95,9 +109,7 @@ def return_solution(result, sls):  # pylint: disable=invalid-name
         sys.exit(0)
 
     # Print the satisfying assignments, and the SLS if one is provided
-    assignments = [
-        f"{k} = {v}" for (k, v) in result if k not in sls.set_vars
-    ]
+    assignments = [f"{k} = {v}" for (k, v) in result if k not in sls.set_vars]
     print(f"sat\n{'\n'.join(assignments)}")
     if sls:
         print(f"SLS = {sls.get_sls()}")
@@ -105,19 +117,20 @@ def return_solution(result, sls):  # pylint: disable=invalid-name
     # Quit after the solution is printed
     sys.exit(0)
 
+
 # Check if I => (not A)
-def check_unsat_with_interpolant(inductive_clauses, a_func):  # pylint: disable=invalid-name
+def check_unsat_with_interpolant(
+    inductive_clauses, a_func
+):  # pylint: disable=invalid-name
     """Check if inductive clauses imply not A."""
     # Assert that I, with non-negativity constraints, implies (not A)
     s = Solver()
     constraints = [x >= 0 for x in a_func.args] + inductive_clauses
-    s.add(ForAll(
-        a_func.args,
-        Implies(And(constraints), Not(a_func()))
-    ))
+    s.add(ForAll(a_func.args, Implies(And(constraints), Not(a_func()))))
 
     # Check satisfiability
     return getModel(s) is not None
+
 
 # Return a non-negative vector which satisfies the formula A and SLS*
 # If no such vector exists, return None.
@@ -132,11 +145,14 @@ def find_solution(a_func, sls):  # pylint: disable=invalid-name
     s.add(sls.star())
 
     # Check satisfiability
-    print_verbose(f"\nLooking for a solution vector with the following constraints:\n\n{s}")
+    print_verbose(
+        f"\nLooking for a solution vector with the following constraints:\n\n{s}"
+    )
     m = getModel(s, a_func.args)
     end = time.time()
     aria.smt.lia_star.statistics.solution_time += end - start
     return m
+
 
 # Iteratively construct a semi-linear set, checking with each new vector if there is
 # a solution to the given A within that set. On each iteration, also reduce the SLS
@@ -148,25 +164,43 @@ def main():
 
     # Initialize arg parser
     prog_desc = (
-        'Translates a set/multiset problem given by a BAPA benchmark '
-        'into LIA* and solves it'
+        "Translates a set/multiset problem given by a BAPA benchmark "
+        "into LIA* and solves it"
     )
     p = argparse.ArgumentParser(description=prog_desc)
-    p.add_argument('file', metavar='FILEPATH', type=str,
-                   help='smt-lib BAPA file describing a set/multiset problem')
-    p.add_argument('-m', '--mapa', action='store_true',
-                   help='treat the BAPA benchmark as a MAPA problem '
-                         '(interpret the variables as multisets, not sets)')
-    p.add_argument('--no-interp', action='store_true',
-                   help='turn off interpolation')
-    p.add_argument('-v', '--verbose', action='store_true',
-                   help='provide descriptive output while solving')
-    p.add_argument('-i', '--instrument', action='store_true',
-                   help='run with instrumentation to get statistics '
-                         'back after solving')
-    p.add_argument('--unfold', metavar='N', type=int, default=0,
-                   help='number of unfoldings to use when interpolating '
-                         '(default: 0)')
+    p.add_argument(
+        "file",
+        metavar="FILEPATH",
+        type=str,
+        help="smt-lib BAPA file describing a set/multiset problem",
+    )
+    p.add_argument(
+        "-m",
+        "--mapa",
+        action="store_true",
+        help="treat the BAPA benchmark as a MAPA problem "
+        "(interpret the variables as multisets, not sets)",
+    )
+    p.add_argument("--no-interp", action="store_true", help="turn off interpolation")
+    p.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="provide descriptive output while solving",
+    )
+    p.add_argument(
+        "-i",
+        "--instrument",
+        action="store_true",
+        help="run with instrumentation to get statistics " "back after solving",
+    )
+    p.add_argument(
+        "--unfold",
+        metavar="N",
+        type=int,
+        default=0,
+        help="number of unfoldings to use when interpolating " "(default: 0)",
+    )
 
     # Read args
     args = p.parse_args()
@@ -181,7 +215,9 @@ def main():
     multiset_fmls = dsl.parse_bapa(bapa_file, mapa)
     fmls, star_defs, star_fmls = dsl.to_lia_star(And(multiset_fmls))
     a_assertions = [fmls]  # pylint: disable=invalid-name
-    b_assertions = [a == b for (a, b) in star_defs] + star_fmls  # pylint: disable=invalid-name
+    b_assertions = [
+        a == b for (a, b) in star_defs
+    ] + star_fmls  # pylint: disable=invalid-name
     set_vars = [a for (a, b) in star_defs]
 
     # Record statistics
@@ -240,6 +276,7 @@ def main():
 
     # If the SLS is equivalent to B and a solution was not found, the problem is unsat
     return_solution(unsat, sls)
+
 
 # Entry point
 if __name__ == "__main__":

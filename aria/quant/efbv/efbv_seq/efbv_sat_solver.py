@@ -1,5 +1,7 @@
 """SAT solver wrapper for efbv module."""
+
 import logging
+
 # import sys
 from pysat.formula import CNF
 from pysat.solvers import Solver
@@ -22,9 +24,21 @@ logger = logging.getLogger(__name__)
     minisat22   = ('m22', 'msat22', 'minisat22')
     minisatgh   = ('mgh', 'msat-gh', 'minisat-gh')
 """
-sat_solvers_in_pysat = ['cd', 'cd15', 'gc3', 'gc4', 'g3',
-                        'g4', 'lgl', 'mcb', 'mpl', 'mg3',
-                        'mc', 'm22', 'mgh']
+sat_solvers_in_pysat = [
+    "cd",
+    "cd15",
+    "gc3",
+    "gc4",
+    "g3",
+    "g4",
+    "lgl",
+    "mcb",
+    "mpl",
+    "mg3",
+    "mc",
+    "m22",
+    "mgh",
+]
 
 
 def solve_with_sat_solver(dimacs_str: str, solver_name: str) -> str:

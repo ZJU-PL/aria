@@ -14,27 +14,27 @@ def pp_chc_as_rules(db, out: TextIO) -> None:
     else:
         fp = z3.Fixedpoint(ctx=db.get_ctx())
         db.mk_fixedpoint(fp=fp)
-    fp.set('print_fixedpoint_extensions', True)
-    print('(set-logic ALL)', file=out)
+    fp.set("print_fixedpoint_extensions", True)
+    print("(set-logic ALL)", file=out)
     out.write(fp.sexpr())
     for q in db.get_queries():
         fml = q.mk_query()
-        out.write(f'(query {fml.sexpr()})\n')
+        out.write(f"(query {fml.sexpr()})\n")
 
 
 def pp_chc_as_smt(db, out: TextIO) -> None:
     fp = z3.Fixedpoint(ctx=db.get_ctx())
     db.mk_fixedpoint(fp=fp)
-    fp.set('print_fixedpoint_extensions', False)
+    fp.set("print_fixedpoint_extensions", False)
     out.write(fp.sexpr())
     for q in db.get_queries():
         fml = q.mk_formula()
-        out.write(f'(assert {fml.sexpr()})\n')
-    out.write('(check-sat)\n')
+        out.write(f"(assert {fml.sexpr()})\n")
+    out.write("(check-sat)\n")
 
 
-def pp_chc(db, out: TextIO, fmt: str = 'rules') -> None:
-    if fmt == 'rules':
+def pp_chc(db, out: TextIO, fmt: str = "rules") -> None:
+    if fmt == "rules":
         pp_chc_as_rules(db, out)
     else:
         pp_chc_as_smt(db, out)
@@ -42,25 +42,34 @@ def pp_chc(db, out: TextIO, fmt: str = 'rules') -> None:
 
 class ChcPpCmd(CliCmd):
     def __init__(self) -> None:
-        super().__init__('chcpp', 'Pretty-printer', allow_extra=False)
+        super().__init__("chcpp", "Pretty-printer", allow_extra=False)
 
     def mk_arg_parser(self, ap):
         ap = super().mk_arg_parser(ap)
-        ap.add_argument('-o', dest='out_file',
-                        metavar='FILE', help='Output file name', default='out.smt2')
-        ap.add_argument('in_file', metavar='FILE', help='Input file')
-        ap.add_argument('--format', help='Choice of format', default='rules',
-                        choices=['rules', 'chc'])
+        ap.add_argument(
+            "-o",
+            dest="out_file",
+            metavar="FILE",
+            help="Output file name",
+            default="out.smt2",
+        )
+        ap.add_argument("in_file", metavar="FILE", help="Input file")
+        ap.add_argument(
+            "--format",
+            help="Choice of format",
+            default="rules",
+            choices=["rules", "chc"],
+        )
         return ap
 
     def run(self, args, extra):
         db = load_horn_db_from_file(args.in_file)
-        with open(args.out_file, 'w', encoding='utf-8') as out:
+        with open(args.out_file, "w", encoding="utf-8") as out:
             pp_chc(db, out, fmt=args.format)
 
         return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cmd = ChcPpCmd()
     sys.exit(cmd.main(sys.argv[1:]))

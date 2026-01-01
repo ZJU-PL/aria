@@ -8,15 +8,18 @@ from z3 import And, Exists, Implies, Int, IntVector, Not, Solver, Sum
 from aria.smt.lia_star.lia_star_utils import getModel
 import aria.smt.lia_star.statistics
 
+
 # Check if V < U
 def vec_less(vec_v, vec_u):  # pylint: disable=invalid-name
     """Check if vec_v < vec_u component-wise."""
     return all((0 <= v <= u) or (0 >= v >= u) for v, u in zip(vec_v, vec_u))
 
+
 # Subtract U from V
 def vec_sub(vec_v, vec_u):  # pylint: disable=invalid-name
     """Subtract vec_u from vec_v component-wise."""
     return [v - u for v, u in zip(vec_v, vec_u)]
+
 
 # Class describing a linear set
 class LS:  # pylint: disable=invalid-name
@@ -54,7 +57,7 @@ class LS:  # pylint: disable=invalid-name
 
         # Linear combination with lambdas as coefficients
         linear_combo = [  # pylint: disable=invalid-name
-            Sum([l*v for v, l in zip(row, lambdas)]) for row in transposed_basis
+            Sum([l * v for v, l in zip(row, lambdas)]) for row in transposed_basis
         ]
         return lambdas, linear_combo
 
@@ -69,7 +72,7 @@ class LS:  # pylint: disable=invalid-name
 
                 # Solver and quantifiers
                 s = Solver()
-                lambdas, linear_combo = self.linear_combination('l1')
+                lambdas, linear_combo = self.linear_combination("l1")
                 non_negativity = [x >= 0 for x in lambdas]
 
                 # Assemble input
@@ -109,7 +112,7 @@ class LS:  # pylint: disable=invalid-name
 
                 # Solver and quantifiers
                 s = Solver()
-                lambdas, linear_combo = new_set.linear_combination('l1')
+                lambdas, linear_combo = new_set.linear_combination("l1")
                 non_negativity = [x >= 0 for x in lambdas]
 
                 # Assemble input
@@ -140,10 +143,9 @@ class LS:  # pylint: disable=invalid-name
             fmls.append(Implies(mu == 0, And([l == 0 for l in lambdas])))
 
         # Add offset vector to linear combination
-        linear_combo = [
-            mu*ai + lci for (ai, lci) in zip(self.a, linear_combo)
-        ]
+        linear_combo = [mu * ai + lci for (ai, lci) in zip(self.a, linear_combo)]
         return lambdas + [mu], linear_combo, fmls
+
 
 # Class describing a semi-linear set
 class SLS:  # pylint: disable=invalid-name
@@ -152,7 +154,7 @@ class SLS:  # pylint: disable=invalid-name
     # 'phi' is the original LIA formula, a function that returns a Z3 expression
     # 'dim' is the number of args to phi
     def __init__(self, phi, set_vars, dimension):
-        self.sets = [LS([0]*dimension, [], phi)]
+        self.sets = [LS([0] * dimension, [], phi)]
         self.dim = dimension
         self.phi = phi
         self.set_vars = set_vars
@@ -171,14 +173,18 @@ class SLS:  # pylint: disable=invalid-name
 
         # Solver and quantifiers
         s = Solver()
-        lambdas1, linear_combo1 = set1.linear_combination('l1')  # pylint: disable=invalid-name
-        lambdas2, linear_combo2 = set2.linear_combination('l2')  # pylint: disable=invalid-name
-        lambda3 = Int('l3')  # pylint: disable=invalid-name
+        lambdas1, linear_combo1 = set1.linear_combination(
+            "l1"
+        )  # pylint: disable=invalid-name
+        lambdas2, linear_combo2 = set2.linear_combination(
+            "l2"
+        )  # pylint: disable=invalid-name
+        lambda3 = Int("l3")  # pylint: disable=invalid-name
         non_negativity = [x >= 0 for x in lambdas1 + lambdas2 + [lambda3]]
 
         # Assembling input to phi
         input_vec = [  # pylint: disable=invalid-name
-            a2i + lc1i + lc2i + lambda3*(a1i - a2i)
+            a2i + lc1i + lc2i + lambda3 * (a1i - a2i)
             for (a1i, a2i, lc1i, lc2i) in zip(a1, a2, linear_combo1, linear_combo2)
         ]
 
@@ -229,7 +235,7 @@ class SLS:  # pylint: disable=invalid-name
             vs, s, fs = ls.star(mus[i], f"l{i}")
 
             # Cut linear combination to relevant projection
-            s = s[:len(x_vars)]
+            s = s[: len(x_vars)]
 
             # Assemble sum
             assert len(sum_vec) == len(s)
@@ -284,7 +290,7 @@ class SLS:  # pylint: disable=invalid-name
 
         # Find non-negative X that satisfies phi and isn't reached by the current underapproximation
         s = Solver()
-        x_vec = IntVector('x', self.dim)  # pylint: disable=invalid-name
+        x_vec = IntVector("x", self.dim)  # pylint: disable=invalid-name
         s.add([x >= 0 for x in x_vec])
         s.add(self.phi(x_vec))
         s.add(Not(self.star(x_vec)))

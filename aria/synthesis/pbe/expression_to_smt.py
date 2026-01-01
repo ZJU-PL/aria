@@ -9,8 +9,16 @@ from typing import Dict
 import z3
 
 from .expressions import (
-    Expression, Theory, Variable, Constant, BinaryExpr, UnaryExpr,
-    BinaryOp, UnaryOp, IfExpr, FunctionCallExpr
+    Expression,
+    Theory,
+    Variable,
+    Constant,
+    BinaryExpr,
+    UnaryExpr,
+    BinaryOp,
+    UnaryOp,
+    IfExpr,
+    FunctionCallExpr,
 )
 
 
@@ -22,8 +30,8 @@ class SMTConverter:
         self.context = z3.Context()
 
     def convert_expression(
-            self, expr: Expression,
-            var_types: Dict[str, str] = None) -> z3.ExprRef:
+        self, expr: Expression, var_types: Dict[str, str] = None
+    ) -> z3.ExprRef:
         """Convert a VSA expression to SMT format."""
         var_types = var_types or {}
 
@@ -50,7 +58,8 @@ class SMTConverter:
                 # Default to 32-bit bitvector if not specified
                 bitwidth = var_types.get(var.name, 32)
                 self.variable_map[var.name] = z3.BitVec(
-                    var.name, bitwidth, self.context)
+                    var.name, bitwidth, self.context
+                )
             elif var.theory == Theory.STRING:
                 # Z3 doesn't have native string support, use integer codes or sequences
                 self.variable_map[var.name] = z3.String(var.name, self.context)
@@ -71,8 +80,8 @@ class SMTConverter:
         raise ValueError(f"Unsupported theory for constant: {const.theory}")
 
     def _convert_binary_expr(
-            self, expr: BinaryExpr,
-            var_types: Dict[str, str]) -> z3.ExprRef:
+        self, expr: BinaryExpr, var_types: Dict[str, str]
+    ) -> z3.ExprRef:
         """Convert a binary expression to SMT format."""
         left = self.convert_expression(expr.left, var_types)
         right = self.convert_expression(expr.right, var_types)
@@ -124,12 +133,12 @@ class SMTConverter:
                 return left == right
 
         raise ValueError(
-            f"Unsupported binary operation: {expr.op} "
-            f"for theory {expr.theory}")
+            f"Unsupported binary operation: {expr.op} " f"for theory {expr.theory}"
+        )
 
     def _convert_unary_expr(
-            self, expr: UnaryExpr,
-            var_types: Dict[str, str]) -> z3.ExprRef:
+        self, expr: UnaryExpr, var_types: Dict[str, str]
+    ) -> z3.ExprRef:
         """Convert a unary expression to SMT format."""
         operand = self.convert_expression(expr.operand, var_types)
 
@@ -146,8 +155,8 @@ class SMTConverter:
                 return z3.Length(operand)
 
         raise ValueError(
-            f"Unsupported unary operation: {expr.op} "
-            f"for theory {expr.theory}")
+            f"Unsupported unary operation: {expr.op} " f"for theory {expr.theory}"
+        )
 
     def _convert_if_expr(self, expr: IfExpr, var_types: Dict[str, str]) -> z3.ExprRef:
         """Convert a conditional expression to SMT format."""
@@ -158,8 +167,8 @@ class SMTConverter:
         return z3.If(condition, then_expr, else_expr)
 
     def _convert_function_call(
-            self, expr: FunctionCallExpr,
-            var_types: Dict[str, str]) -> z3.ExprRef:
+        self, expr: FunctionCallExpr, var_types: Dict[str, str]
+    ) -> z3.ExprRef:
         """Convert a function call to SMT format."""
         args = [self.convert_expression(arg, var_types) for arg in expr.args]
 
@@ -179,8 +188,8 @@ class SMTConverter:
         raise ValueError(f"Unsupported function: {expr.function_name}")
 
     def create_smt_formula(
-            self, expr: Expression,
-            var_types: Dict[str, str] = None) -> z3.ExprRef:
+        self, expr: Expression, var_types: Dict[str, str] = None
+    ) -> z3.ExprRef:
         """Create SMT formula from expression."""
         return self.convert_expression(expr, var_types)
 
@@ -195,8 +204,7 @@ def expression_to_smt(expr: Expression, var_types: Dict[str, str] = None) -> z3.
     return converter.convert_expression(expr, var_types)
 
 
-def smt_to_expression(
-        smt_expr: z3.ExprRef, theory: Theory) -> Expression:
+def smt_to_expression(smt_expr: z3.ExprRef, theory: Theory) -> Expression:
     """Convert SMT expression back to VSA format (simplified implementation)."""
     # This is a simplified reverse conversion - a full implementation
     # would be complex

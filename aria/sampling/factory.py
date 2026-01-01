@@ -35,7 +35,9 @@ class SamplerFactory:
         cls._samplers[logic].append(sampler_class)
 
     @classmethod
-    def create(cls, logic: Logic, method: Optional[SamplingMethod] = None, **kwargs) -> Sampler:
+    def create(
+        cls, logic: Logic, method: Optional[SamplingMethod] = None, **kwargs
+    ) -> Sampler:
         """
         Create an instance of a sampler for the specified logic and method.
 
@@ -52,7 +54,9 @@ class SamplerFactory:
         """
         if logic not in cls._samplers or not cls._samplers[logic]:
             available = ", ".join(str(l) for l in cls._samplers.keys())
-            raise ValueError(f"No sampler available for logic {logic}. Available logics: {available}")
+            raise ValueError(
+                f"No sampler available for logic {logic}. Available logics: {available}"
+            )
 
         # If method is specified, find a sampler that supports it
         if method:
@@ -61,7 +65,9 @@ class SamplerFactory:
                 if method in sampler.get_supported_methods():
                     return sampler
 
-            raise ValueError(f"No sampler available for logic {logic} and method {method}")
+            raise ValueError(
+                f"No sampler available for logic {logic} and method {method}"
+            )
 
         # Otherwise, return the first registered sampler
         return cls._samplers[logic][0](**kwargs)
@@ -140,7 +146,9 @@ except ImportError:
     pass
 
 
-def create_sampler(logic: Logic, method: Optional[SamplingMethod] = None, **kwargs) -> Sampler:
+def create_sampler(
+    logic: Logic, method: Optional[SamplingMethod] = None, **kwargs
+) -> Sampler:
     """
     Convenience function to create a sampler instance.
 
@@ -155,9 +163,9 @@ def create_sampler(logic: Logic, method: Optional[SamplingMethod] = None, **kwar
     return SamplerFactory.create(logic, method, **kwargs)
 
 
-def sample_models_from_formula(formula: z3.ExprRef,
-                               logic: Logic,
-                               options: Optional[SamplingOptions] = None) -> SamplingResult:
+def sample_models_from_formula(
+    formula: z3.ExprRef, logic: Logic, options: Optional[SamplingOptions] = None
+) -> SamplingResult:
     """
     High-level API for sampling models (solutions) from a formula.
 
@@ -178,9 +186,9 @@ def sample_models_from_formula(formula: z3.ExprRef,
 
 
 # For backward compatibility, but will be deprecated in future versions
-def sample_formula(formula: z3.ExprRef,
-                   logic: Logic,
-                   options: Optional[SamplingOptions] = None) -> SamplingResult:
+def sample_formula(
+    formula: z3.ExprRef, logic: Logic, options: Optional[SamplingOptions] = None
+) -> SamplingResult:
     """
     High-level API for sampling models from a formula.
 
@@ -196,11 +204,12 @@ def sample_formula(formula: z3.ExprRef,
         A SamplingResult containing the generated models
     """
     import warnings
+
     warnings.warn(
         "sample_formula() is deprecated and will be removed in a future version. "
         "Please use sample_models_from_formula() instead.",
         DeprecationWarning,
-        stacklevel=2
+        stacklevel=2,
     )
     return sample_models_from_formula(formula, logic, options)
 
@@ -214,7 +223,9 @@ def demo():
     formula = z3.And(x + y > 0, x - y < 1)
 
     # Sample from the formula
-    result = sample_models_from_formula(formula, Logic.QF_LRA, SamplingOptions(num_samples=5))
+    result = sample_models_from_formula(
+        formula, Logic.QF_LRA, SamplingOptions(num_samples=5)
+    )
 
     # Print the samples
     print(f"Generated {len(result)} models:")

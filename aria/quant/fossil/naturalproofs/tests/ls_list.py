@@ -9,16 +9,29 @@ import unittest
 from z3 import And, Or, Not, Implies, If
 from z3 import IsSubset, Union, SetIntersect, SetComplement, EmptySet
 
-from aria.quant.fossil.naturalproofs.uct import fgsort, fgsetsort, intsort, intsetsort, boolsort
-from aria.quant.fossil.naturalproofs.decl_api import Const, Consts, Function, RecFunction, AddRecDefinition, AddAxiom
+from aria.quant.fossil.naturalproofs.uct import (
+    fgsort,
+    fgsetsort,
+    intsort,
+    intsetsort,
+    boolsort,
+)
+from aria.quant.fossil.naturalproofs.decl_api import (
+    Const,
+    Consts,
+    Function,
+    RecFunction,
+    AddRecDefinition,
+    AddAxiom,
+)
 from aria.quant.fossil.naturalproofs.prover import NPSolver
 import aria.quant.fossil.naturalproofs.proveroptions as proveroptions
 
 # Declarations
-x, y, nil = Consts('x y nil', fgsort)
-nxt = Function('nxt', fgsort, fgsort)
-lst = RecFunction('lst', fgsort, boolsort)
-ls = RecFunction('ls', fgsort, fgsort, boolsort)
+x, y, nil = Consts("x y nil", fgsort)
+nxt = Function("nxt", fgsort, fgsort)
+lst = RecFunction("lst", fgsort, boolsort)
+ls = RecFunction("ls", fgsort, fgsort, boolsort)
 AddRecDefinition(lst, x, If(x == nil, True, lst(nxt(x))))
 AddRecDefinition(ls, (x, y), If(x == nil, True, ls(nxt(x), y)))
 # Problem parameters
@@ -40,5 +53,5 @@ class LsListTest(unittest.TestCase):
         self.assertFalse(npsolution.if_sat)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

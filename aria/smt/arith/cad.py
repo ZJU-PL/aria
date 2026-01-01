@@ -50,6 +50,7 @@ otherwise an empty list.
 >>> cad.solve_poly_system_cad([-x**2-1 > 0], [x])
 []
 """
+
 from sympy.core import S, expand
 from sympy.core.numbers import Integer, Rational
 from sympy.core.function import diff
@@ -60,6 +61,7 @@ from sympy.polys.polytools import LT, LC, degree, subresultants, factor_list
 from sympy.polys.domains import QQ
 from sympy.polys.polyerrors import PolynomialError
 from sympy.functions.elementary.integers import floor, ceiling
+
 
 def solve_poly_system_cad(seq, gens, return_one_sample=True):
     """
@@ -124,7 +126,6 @@ def solve_poly_system_cad(seq, gens, return_one_sample=True):
                 break
 
     return valid_samples
-
 
 
 # HONG PROJECTOR OPERATOR AND OPERATIONS USED FOR IT
@@ -217,7 +218,7 @@ def red_set(f, mvar):
         if i == 0:
             reds.append(f)
         else:
-            reds.append(red(reds[i-1], mvar))
+            reds.append(red(reds[i - 1], mvar))
 
     return reds
 
@@ -269,21 +270,21 @@ def subresultant_polynomials(f, g, mvar):
     if degree(f, mvar) < degree(g, mvar):
         f, g = g, f
 
-
     prs = subresultants(f, g, mvar)
-    if len(prs) <=1:
+    if len(prs) <= 1:
         return []
 
     subres_polys = [0] * (degree(g, mvar) + 1)
 
     for i in reversed(range(2, len(prs))):
 
-        subres_polys[ degree(prs[i-1], mvar) -1 ] = prs[i]
+        subres_polys[degree(prs[i - 1], mvar) - 1] = prs[i]
 
-        if degree(prs[i], mvar) < degree(prs[i-1], mvar) - 1:
-            degree_jump = degree(prs[i-1], mvar) - degree(prs[i], mvar) - 1
-            subres_polys[ degree(prs[i], mvar) ]  =\
+        if degree(prs[i], mvar) < degree(prs[i - 1], mvar) - 1:
+            degree_jump = degree(prs[i - 1], mvar) - degree(prs[i], mvar) - 1
+            subres_polys[degree(prs[i], mvar)] = (
                 prs[i] * LC(prs[i], mvar) ** degree_jump
+            )
 
     # get last one
     subres_polys[-1] = prs[1] * LC(g, mvar) ** (degree(f, mvar) - degree(g, mvar) - 1)
@@ -366,15 +367,14 @@ def get_nice_roots(poly):
 
         try:
             new_roots = real_roots(curr_factor)
-            #for i, r in enumerate(new_roots):
-                # want to avoid CRootOf
-                #if r.has(ComplexRootOf):
-                #    new_roots[i] = r.evalf()
+            # for i, r in enumerate(new_roots):
+            # want to avoid CRootOf
+            # if r.has(ComplexRootOf):
+            #    new_roots[i] = r.evalf()
         except NotImplementedError:
             new_roots = [Rational(root) for root in nroots(curr_factor) if root.is_real]
         except PolynomialError:
-            new_roots = [Rational(root) for root in nroots(curr_factor)
-                         if root.is_real]
+            new_roots = [Rational(root) for root in nroots(curr_factor) if root.is_real]
 
         roots_set.update(new_roots)
 
@@ -440,6 +440,7 @@ def simplify_alg_sub(poly, point):
 # output: set F' of (k-1)-variate polynomials such that a CAD of R^{k-1}
 # can be lifted to R^k
 
+
 def projone(poly_set, mvar):
     """
     Computes the PROJ1 operator as defined in Hong 1990.
@@ -481,9 +482,7 @@ def projone(poly_set, mvar):
     for f in poly_set:
         for g in red_set(f, mvar):
             proj_set.add(LC(g, mvar))
-            proj_set.update(
-                subresultant_coefficients(g, diff(g,mvar), mvar)
-                )
+            proj_set.update(subresultant_coefficients(g, diff(g, mvar), mvar))
 
     return proj_set
 
@@ -530,11 +529,9 @@ def projtwo(poly_set, mvar):
     proj_set = set()
     for i, f in enumerate(poly_set):
         # impose "linear ordering"
-        for g in poly_set[i+1:]:
+        for g in poly_set[i + 1 :]:
             for f_red in red_set(f, mvar):
-                proj_set.update(
-                    subresultant_coefficients(f_red, g, mvar)
-                )
+                proj_set.update(subresultant_coefficients(f_red, g, mvar))
 
     return proj_set
 
@@ -640,7 +637,6 @@ def cylindrical_algebraic_decomposition(poly_set, gens):
     for i in range(len(gens) - 1):
         projs_set.append(list(hongproj(projs_set[-1], gens[i])))
 
-
     # Lifting
     sample_points = [{}]
 
@@ -658,21 +654,22 @@ def cylindrical_algebraic_decomposition(poly_set, gens):
             # have to sort them overall now
             roots_list = sorted(roots_list, reverse=False)
 
-
             # Calculate sample points
             if not roots_list:
                 samples = [0]
             elif len(roots_list) == 1:
-                samples = [get_sample_point(S.NegativeInfinity, roots_list[0]),
-                           roots_list[0],
-                           get_sample_point(roots_list[0], S.Infinity)]
+                samples = [
+                    get_sample_point(S.NegativeInfinity, roots_list[0]),
+                    roots_list[0],
+                    get_sample_point(roots_list[0], S.Infinity),
+                ]
             else:
                 samples = [get_sample_point(S.NegativeInfinity, roots_list[0])]
                 for r1, r2 in zip(roots_list, roots_list[1:]):
-                    samples.extend([r1,
-                                    get_sample_point(r1, r2)])
-                samples.extend([roots_list[-1],
-                                get_sample_point(roots_list[-1], S.Infinity)])
+                    samples.extend([r1, get_sample_point(r1, r2)])
+                samples.extend(
+                    [roots_list[-1], get_sample_point(roots_list[-1], S.Infinity)]
+                )
 
             for value in samples:
                 new_point = point.copy()
@@ -680,6 +677,5 @@ def cylindrical_algebraic_decomposition(poly_set, gens):
                 new_sample_points.append(new_point)
 
         sample_points = new_sample_points
-
 
     return sample_points

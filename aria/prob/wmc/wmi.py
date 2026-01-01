@@ -38,15 +38,16 @@ from aria.sampling import (
     sample_models_from_formula,
     Logic,
     SamplingOptions,
-    SamplingMethod
+    SamplingMethod,
 )
 from aria.utils.z3_expr_utils import get_variables
 
 
 class WMIMethod(str, Enum):
     """Available WMI integration methods."""
-    SAMPLING = "sampling"      # Monte Carlo integration using sampling
-    REGION = "region"          # Region-based integration for bounded regions
+
+    SAMPLING = "sampling"  # Monte Carlo integration using sampling
+    REGION = "region"  # Region-based integration for bounded regions
 
 
 class Density(Protocol):
@@ -77,6 +78,7 @@ class Density(Protocol):
 @dataclass
 class WMIOptions:
     """Options for WMI computation."""
+
     method: WMIMethod = WMIMethod.SAMPLING
     num_samples: int = 10000
     timeout: Optional[float] = None
@@ -97,7 +99,7 @@ class UniformDensity:
         self.bounds = bounds
         self._volume = 1.0
         for min_val, max_val in bounds.values():
-            self._volume *= (max_val - min_val)
+            self._volume *= max_val - min_val
 
     def __call__(self, assignment: dict[str, Any]) -> float:
         """Evaluate uniform density."""
@@ -117,7 +119,9 @@ class UniformDensity:
 class GaussianDensity:
     """Multivariate Gaussian density."""
 
-    def __init__(self, means: dict[str, float], covariances: dict[str, dict[str, float]]):
+    def __init__(
+        self, means: dict[str, float], covariances: dict[str, dict[str, float]]
+    ):
         """
         Initialize Gaussian density.
 
@@ -133,7 +137,9 @@ class GaussianDensity:
         self._is_diagonal = all(
             var in covariances.get(var, {}) for var in self.variables
         ) and all(
-            i == j for i in self.variables for j in self.variables
+            i == j
+            for i in self.variables
+            for j in self.variables
             if i in covariances.get(j, {})
         )
 
@@ -216,7 +222,7 @@ class ExponentialDensity:
 
     def support(self) -> dict[str, Tuple[float, float]]:
         """Return the support of the exponential density."""
-        return {var: (0.0, float('inf')) for var in self.variables}
+        return {var: (0.0, float("inf")) for var in self.variables}
 
 
 class BetaDensity:
@@ -237,7 +243,9 @@ class BetaDensity:
         # Validate parameters
         for var in self.variables:
             if alphas[var] <= 0 or betas[var] <= 0:
-                raise ValueError(f"Beta parameters for variable '{var}' must be positive")
+                raise ValueError(
+                    f"Beta parameters for variable '{var}' must be positive"
+                )
 
         # Precompute normalization constants
         self._normalizations = {}
@@ -273,9 +281,9 @@ class BetaDensity:
         return {var: (0.0, 1.0) for var in self.variables}
 
 
-
-
-def _wmi_by_sampling(formula: z3.ExprRef, density: Density, options: WMIOptions) -> float:
+def _wmi_by_sampling(
+    formula: z3.ExprRef, density: Density, options: WMIOptions
+) -> float:
     """
     Compute WMI using Monte Carlo integration with sampling.
 
@@ -284,18 +292,22 @@ def _wmi_by_sampling(formula: z3.ExprRef, density: Density, options: WMIOptions)
     """
     try:
         # Create sampling options
-        method = (SamplingMethod.ENUMERATION
-                 if options.num_samples < 1000
-                 else SamplingMethod.DIKIN_WALK)
+        method = (
+            SamplingMethod.ENUMERATION
+            if options.num_samples < 1000
+            else SamplingMethod.DIKIN_WALK
+        )
         sampling_options = SamplingOptions(
             method=method,
             num_samples=min(options.num_samples, 10000),  # Cap for efficiency
             timeout=options.timeout,
-            random_seed=options.random_seed
+            random_seed=options.random_seed,
         )
 
         # Sample models from the formula
-        sampling_result = sample_models_from_formula(formula, Logic.QF_LRA, sampling_options)
+        sampling_result = sample_models_from_formula(
+            formula, Logic.QF_LRA, sampling_options
+        )
 
         if not sampling_result.samples:
             return 0.0
@@ -308,9 +320,11 @@ def _wmi_by_sampling(formula: z3.ExprRef, density: Density, options: WMIOptions)
         for sample in sampling_result.samples:
             try:
                 density_value = density(sample)
-                is_valid = (density_value >= 0
-                           and not math.isinf(density_value)
-                           and not math.isnan(density_value))
+                is_valid = (
+                    density_value >= 0
+                    and not math.isinf(density_value)
+                    and not math.isnan(density_value)
+                )
                 if is_valid:
                     # Valid density values only
                     total_density += density_value
@@ -347,9 +361,7 @@ def _wmi_by_sampling(formula: z3.ExprRef, density: Density, options: WMIOptions)
         return result
 
     except ImportError as e:
-        raise ImportError(
-            f"WMI sampling requires aria.sampling module: {e}"
-        ) from e
+        raise ImportError(f"WMI sampling requires aria.sampling module: {e}") from e
     except Exception as e:
         if "sampling" in str(e).lower():
             raise ValueError(
@@ -371,12 +383,10 @@ def _wmi_by_region(formula: z3.ExprRef, density: Density, options: WMIOptions) -
         num_samples=min(options.num_samples * 2, 2000),
         timeout=options.timeout,
         random_seed=options.random_seed,
-        confidence_level=options.confidence_level
+        confidence_level=options.confidence_level,
     )
 
     return _wmi_by_sampling(formula, density, enhanced_options)
-
-
 
 
 def _validate_wmi_inputs(formula: z3.ExprRef, density: Density) -> None:
@@ -395,8 +405,10 @@ def _validate_wmi_inputs(formula: z3.ExprRef, density: Density) -> None:
             unsupported_vars.append(str(var))
 
     if unsupported_vars:
-        raise ValueError(f"Formula contains unsupported variable types: {unsupported_vars}. "
-                        "WMI currently supports only real and integer variables.")
+        raise ValueError(
+            f"Formula contains unsupported variable types: {unsupported_vars}. "
+            "WMI currently supports only real and integer variables."
+        )
 
     # Check that density is callable
     if not callable(density):
@@ -413,8 +425,9 @@ def _validate_wmi_inputs(formula: z3.ExprRef, density: Density) -> None:
                         "must be a tuple (min, max)"
                     )
                 min_val, max_val = bounds
-                if (not isinstance(min_val, (int, float))
-                   or not isinstance(max_val, (int, float))):
+                if not isinstance(min_val, (int, float)) or not isinstance(
+                    max_val, (int, float)
+                ):
                     raise ValueError(
                         f"Density support bounds for variable '{var_name}' "
                         "must be numeric"
@@ -431,7 +444,9 @@ def _validate_wmi_inputs(formula: z3.ExprRef, density: Density) -> None:
         raise ValueError(f"Error validating density support: {e}") from e
 
 
-def wmi_integrate(formula: z3.ExprRef, density: Density, options: WMIOptions | None = None) -> float:
+def wmi_integrate(
+    formula: z3.ExprRef, density: Density, options: WMIOptions | None = None
+) -> float:
     """
     Compute Weighted Model Integration of a formula with respect to a density function.
 
@@ -467,8 +482,7 @@ def uniform_density(bounds: dict[str, Tuple[float, float]]) -> UniformDensity:
 
 
 def gaussian_density(
-    means: dict[str, float],
-    covariances: dict[str, dict[str, float]]
+    means: dict[str, float], covariances: dict[str, dict[str, float]]
 ) -> GaussianDensity:
     """Create a Gaussian density with given means and covariances."""
     return GaussianDensity(means, covariances)
@@ -486,6 +500,7 @@ def beta_density(alphas: dict[str, float], betas: dict[str, float]) -> BetaDensi
 
 def product_density(densities: list[Density]) -> Density:
     """Create a product density from multiple independent densities."""
+
     class ProductDensity:
         """Product of multiple independent density functions."""
 
@@ -514,7 +529,10 @@ def product_density(densities: list[Density]) -> Density:
                         # Take intersection
                         old_min, old_max = combined_support[var]
                         new_min, new_max = bounds
-                        combined_support[var] = (max(old_min, new_min), min(old_max, new_max))
+                        combined_support[var] = (
+                            max(old_min, new_min),
+                            min(old_max, new_max),
+                        )
                     else:
                         combined_support[var] = bounds
 

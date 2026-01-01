@@ -3,6 +3,7 @@ Base classes and types for Weighted Model Counting (WMC).
 
 This module defines the core interfaces and options for WMC computation.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

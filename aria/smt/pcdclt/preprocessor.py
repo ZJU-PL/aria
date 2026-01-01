@@ -100,7 +100,9 @@ class FormulaAbstraction:
         fml = z3.And(z3.parse_smt2_string(smt2_string))
 
         # Apply preprocessing tactics
-        tactics = z3.Then('simplify', 'elim-uncnstr', 'solve-eqs', 'simplify', 'tseitin-cnf')
+        tactics = z3.Then(
+            "simplify", "elim-uncnstr", "solve-eqs", "simplify", "tseitin-cnf"
+        )
         simplified = tactics(fml)
         result_expr = simplified.as_expr()
 
@@ -113,7 +115,9 @@ class FormulaAbstraction:
         # Build Boolean abstraction
         cnf_clauses = extract_literals_from_cnf(simplified[0])
         atom_to_bool = {}
-        bool_clauses = [self._abstract_clause(clause, atom_to_bool) for clause in cnf_clauses]
+        bool_clauses = [
+            self._abstract_clause(clause, atom_to_bool) for clause in cnf_clauses
+        ]
 
         # Extract signatures using Z3 solver
         solver = z3.Solver()
@@ -132,7 +136,9 @@ class FormulaAbstraction:
         self.bool_constraints = z3.And(bool_clauses).sexpr()
 
         # Theory constraints: map each Boolean var to its theory atom
-        theory_equiv = z3.And([bool_var == atom for atom, bool_var in atom_to_bool.items()])
+        theory_equiv = z3.And(
+            [bool_var == atom for atom, bool_var in atom_to_bool.items()]
+        )
         self.theory_constraints = theory_equiv.sexpr()
 
         # Build numeric clauses for SAT solver

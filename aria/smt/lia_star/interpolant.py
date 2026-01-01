@@ -93,7 +93,7 @@ class Interpolant:
         # Solver and vectors
         s = Solver()
         n = len(self.sls.set_vars)
-        y_vars = IntVector('y', n)
+        y_vars = IntVector("y", n)
 
         # Assert that Forall X, Y . I(X) ^ B(Y) => clause(X + Y)
         all_clauses = inductive_set + self.inductive_clauses
@@ -103,15 +103,17 @@ class Interpolant:
             self.b_func.args + y_vars,
             Implies(
                 And(non_negativity + all_clauses + [self.b_func(y_vars)]),
-                substitute(clause, arg_sub)
-            )
+                substitute(clause, arg_sub),
+            ),
         )
         s.add(forall_expr)
 
         # Check satisfiability
         return getModel(s) is not None
 
-    def _interpolate(self, lvars, left, rvars, right, x_vars, unfold, direction):  # pylint: disable=too-many-positional-arguments
+    def _interpolate(
+        self, lvars, left, rvars, right, x_vars, unfold, direction
+    ):  # pylint: disable=too-many-positional-arguments
         """
         Call spacer to get the interpolant between 'left' and 'right'.
 
@@ -128,7 +130,7 @@ class Interpolant:
             Interpolant or None
         """
         # Create solver
-        s = SolverFor('HORN')
+        s = SolverFor("HORN")
         s.set("fp.xform.inline_eager", False)
         s.set("fp.xform.inline_linear", False)
         n = len(self.sls.set_vars)
@@ -147,8 +149,7 @@ class Interpolant:
             else:
                 unfold_func = lambda a, b: a - b
             left_terms = [
-                xx_vars[i] == unfold_func(x_vars[i], sum_left[i])
-                for i in range(n)
+                xx_vars[i] == unfold_func(x_vars[i], sum_left[i]) for i in range(n)
             ]
             left = And([left] + [fleft] + left_terms)
 
@@ -159,8 +160,7 @@ class Interpolant:
             else:
                 unfold_func = lambda a, b: a - b
             right_terms = [
-                xx_vars[i] == unfold_func(x_vars[i], sum_right[i])
-                for i in range(n)
+                xx_vars[i] == unfold_func(x_vars[i], sum_right[i]) for i in range(n)
             ]
             right = And([right] + [fright] + right_terms)
 
@@ -176,7 +176,7 @@ class Interpolant:
         # Left and right CHCs
         non_negativity_left = [x >= 0 for x in x_vars + lvars]
         non_negativity_right = [x >= 0 for x in x_vars + rvars]
-        i_func = Function('I', [IntSort()] * n + [BoolSort()])
+        i_func = Function("I", [IntSort()] * n + [BoolSort()])
         left_chc = Implies(And(non_negativity_left + [left]), i_func(x_vars))
         s.add(ForAll(x_vars + lvars, left_chc))
         right_chc = Implies(
@@ -219,11 +219,11 @@ class Interpolant:
         n = len(self.sls.set_vars)
 
         # Each step adds a vector
-        xs_vars = [IntVector(f'{name}{i}', n) for i in range(steps)]
+        xs_vars = [IntVector(f"{name}{i}", n) for i in range(steps)]
 
         # If there are no step vectors, their sum is 0
         if steps == 0:
-            return [0]*n, [], True
+            return [0] * n, [], True
 
         # Case for just one step
         if steps == 1:
@@ -235,9 +235,7 @@ class Interpolant:
         sum_vars = [Sum([xs_vars[i][j] for i in range(steps)]) for j in range(n)]
         fml = True
         for i in range(steps):
-            zero_terms = [
-                x == 0 for x_var in xs_vars[:i+1] for x in x_var
-            ]
+            zero_terms = [x == 0 for x_var in xs_vars[: i + 1] for x in x_var]
             b_func_term = self.b_func(xs_vars[i])
             fml = Or(And(zero_terms), And(b_func_term, fml))
         all_vars = [x for x_var in xs_vars for x in x_var]

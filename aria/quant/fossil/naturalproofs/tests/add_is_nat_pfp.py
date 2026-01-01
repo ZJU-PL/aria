@@ -4,19 +4,32 @@ import unittest
 from z3 import And, Or, Not, Implies, If
 from z3 import IsSubset, Union, SetIntersect, SetComplement, EmptySet
 
-from aria.quant.fossil.naturalproofs.uct import fgsort, fgsetsort, intsort, intsetsort, boolsort
-from aria.quant.fossil.naturalproofs.decl_api import Const, Consts, Function, RecFunction, AddRecDefinition, AddAxiom
+from aria.quant.fossil.naturalproofs.uct import (
+    fgsort,
+    fgsetsort,
+    intsort,
+    intsetsort,
+    boolsort,
+)
+from aria.quant.fossil.naturalproofs.decl_api import (
+    Const,
+    Consts,
+    Function,
+    RecFunction,
+    AddRecDefinition,
+    AddAxiom,
+)
 from aria.quant.fossil.naturalproofs.pfp import make_pfp_formula
 from aria.quant.fossil.naturalproofs.prover import NPSolver
 import aria.quant.fossil.naturalproofs.proveroptions as proveroptions
 
 # Declarations
-a, b, c, zero = Consts('a b c zero', fgsort)
-suc = Function('suc', fgsort, fgsort)
-pred = Function('pred', fgsort, fgsort)
+a, b, c, zero = Consts("a b c zero", fgsort)
+suc = Function("suc", fgsort, fgsort)
+pred = Function("pred", fgsort, fgsort)
 AddAxiom(a, pred(suc(a)) == a)
-nat = RecFunction('nat', fgsort, boolsort)
-add = RecFunction('add', fgsort, fgsort, fgsort, boolsort)
+nat = RecFunction("nat", fgsort, boolsort)
+add = RecFunction("add", fgsort, fgsort, fgsort, boolsort)
 AddRecDefinition(nat, a, If(a == zero, True, nat(pred(a))))
 AddRecDefinition(add, (a, b, c), If(a == zero, b == c, add(pred(a), suc(b), c)))
 # Problem parameters
@@ -36,5 +49,5 @@ class AddIsNatTest(unittest.TestCase):
         self.assertFalse(npsolution.if_sat)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

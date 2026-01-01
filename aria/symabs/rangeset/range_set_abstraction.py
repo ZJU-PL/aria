@@ -66,12 +66,12 @@ def minimum(fml: z3.BoolRef, x: z3.BitVecRef, signed: bool = False) -> int:
         if res == z3.sat:
             # Keep first choice
             if try_first == 1:
-                result |= (1 << i)
+                result |= 1 << i
             continue
         # Otherwise flip
         flipped = 1 - try_first
         if flipped == 1:
-            result |= (1 << i)
+            result |= 1 << i
 
     return _to_python_int(result, width, signed)
 
@@ -99,11 +99,11 @@ def maximum(fml: z3.BoolRef, x: z3.BitVecRef, signed: bool = False) -> int:
         res = _assume_and_check(s, assumptions + [try_expr])
         if res == z3.sat:
             if try_first == 1:
-                result |= (1 << i)
+                result |= 1 << i
         else:
             flipped = 1 - try_first
             if flipped == 1:
-                result |= (1 << i)
+                result |= 1 << i
 
     return _to_python_int(result, width, signed)
 
@@ -182,7 +182,7 @@ def set_abstraction(
             if _assume_and_check(s_l, assumps) == z3.sat:
                 pass
             else:
-                result_l |= (1 << i)
+                result_l |= 1 << i
         l_min_val = result_l
 
         s_u = z3.Solver()
@@ -197,7 +197,7 @@ def set_abstraction(
             assumps += u_assumptions
             assumps.append(z3.Extract(i, i, x) == z3.BitVecVal(1, 1))
             if _assume_and_check(s_u, assumps) == z3.sat:
-                result_u |= (1 << i)
+                result_u |= 1 << i
             else:
                 pass
 
@@ -239,10 +239,12 @@ def set_abstraction(
     return S
 
 
-def _intervals_subtract(S: List[Tuple[int, int]], rem: Tuple[int, int]) -> List[Tuple[int, int]]:
+def _intervals_subtract(
+    S: List[Tuple[int, int]], rem: Tuple[int, int]
+) -> List[Tuple[int, int]]:
     a, b = rem
     res: List[Tuple[int, int]] = []
-    for (l, u) in S:
+    for l, u in S:
         if u < a or b < l:
             res.append((l, u))
         else:

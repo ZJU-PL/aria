@@ -31,40 +31,46 @@ class TestMCMCSampler:
     def test_sample_lra_formula(self):
         """Test MCMC sampling from linear real arithmetic."""
         sampler = MCMCSampler()
-        x, y = z3.Reals('x y')
+        x, y = z3.Reals("x y")
         formula = z3.And(x > 0, y > 0, x + y < 10)
 
         sampler.init_from_formula(formula)
-        result = sampler.sample(SamplingOptions(method=SamplingMethod.MCMC, num_samples=5))
+        result = sampler.sample(
+            SamplingOptions(method=SamplingMethod.MCMC, num_samples=5)
+        )
 
         assert len(result) <= 5
 
     def test_sample_lia_formula(self):
         """Test MCMC sampling from linear integer arithmetic."""
         sampler = MCMCSampler()
-        x, y = z3.Ints('x y')
+        x, y = z3.Ints("x y")
         formula = z3.And(x > 0, y > 0, x + y < 20)
 
         sampler.init_from_formula(formula)
-        result = sampler.sample(SamplingOptions(method=SamplingMethod.MCMC, num_samples=5))
+        result = sampler.sample(
+            SamplingOptions(method=SamplingMethod.MCMC, num_samples=5)
+        )
 
         assert len(result) <= 5
 
     def test_sample_boolean_formula(self):
         """Test MCMC sampling from Boolean formula."""
         sampler = MCMCSampler()
-        a, b, c = z3.Bools('a b c')
+        a, b, c = z3.Bools("a b c")
         formula = z3.Or(a, b, c)
 
         sampler.init_from_formula(formula)
-        result = sampler.sample(SamplingOptions(method=SamplingMethod.MCMC, num_samples=3))
+        result = sampler.sample(
+            SamplingOptions(method=SamplingMethod.MCMC, num_samples=3)
+        )
 
         assert len(result) <= 3
 
     def test_sample_with_default_options(self):
         """Test sampling with None options."""
         sampler = MCMCSampler()
-        x = z3.Real('x')
+        x = z3.Real("x")
         formula = z3.And(x > 0, x < 10)
 
         sampler.init_from_formula(formula)
@@ -76,38 +82,46 @@ class TestMCMCSampler:
     def test_sample_with_burn_in(self):
         """Test sampling with burn-in parameter."""
         sampler = MCMCSampler()
-        x, y = z3.Reals('x y')
+        x, y = z3.Reals("x y")
         formula = z3.And(x > 0, y > 0, x + y < 10)
 
         sampler.init_from_formula(formula)
-        result = sampler.sample(SamplingOptions(method=SamplingMethod.MCMC, num_samples=5, burn_in=50))
+        result = sampler.sample(
+            SamplingOptions(method=SamplingMethod.MCMC, num_samples=5, burn_in=50)
+        )
 
         assert "burn_in" in result.stats
         assert result.stats["burn_in"] == 50
 
     def test_sample_with_random_seed(self):
         """Test random seed reproducibility."""
-        x, y = z3.Reals('x y')
+        x, y = z3.Reals("x y")
         formula = z3.And(x > 0, y > 0, x + y < 10)
 
         sampler1 = MCMCSampler()
         sampler1.init_from_formula(formula)
-        result1 = sampler1.sample(SamplingOptions(method=SamplingMethod.MCMC, num_samples=3, random_seed=42))
+        result1 = sampler1.sample(
+            SamplingOptions(method=SamplingMethod.MCMC, num_samples=3, random_seed=42)
+        )
 
         sampler2 = MCMCSampler()
         sampler2.init_from_formula(formula)
-        result2 = sampler2.sample(SamplingOptions(method=SamplingMethod.MCMC, num_samples=3, random_seed=42))
+        result2 = sampler2.sample(
+            SamplingOptions(method=SamplingMethod.MCMC, num_samples=3, random_seed=42)
+        )
 
         assert len(result1) == len(result2)
 
     def test_sample_unsatisfiable_formula(self):
         """Test sampling from unsatisfiable formula."""
         sampler = MCMCSampler()
-        x = z3.Real('x')
+        x = z3.Real("x")
         formula = z3.And(x > 10, x < 5)
 
         sampler.init_from_formula(formula)
-        result = sampler.sample(SamplingOptions(method=SamplingMethod.MCMC, num_samples=1))
+        result = sampler.sample(
+            SamplingOptions(method=SamplingMethod.MCMC, num_samples=1)
+        )
 
         assert len(result) == 0
         assert result.success is False
@@ -116,22 +130,26 @@ class TestMCMCSampler:
     def test_sample_with_timeout(self):
         """Test sampling with timeout."""
         sampler = MCMCSampler()
-        x, y = z3.Reals('x y')
+        x, y = z3.Reals("x y")
         formula = z3.And(x > 0, y > 0, x + y < 10)
 
         sampler.init_from_formula(formula)
-        result = sampler.sample(SamplingOptions(method=SamplingMethod.MCMC, num_samples=1000, timeout=0.1))
+        result = sampler.sample(
+            SamplingOptions(method=SamplingMethod.MCMC, num_samples=1000, timeout=0.1)
+        )
 
         assert len(result) < 1000  # Should stop early
 
     def test_sample_statistics(self):
         """Test that result includes comprehensive statistics."""
         sampler = MCMCSampler()
-        x, y = z3.Reals('x y')
+        x, y = z3.Reals("x y")
         formula = z3.And(x > 0, y > 0, x + y < 10)
 
         sampler.init_from_formula(formula)
-        result = sampler.sample(SamplingOptions(method=SamplingMethod.MCMC, num_samples=3))
+        result = sampler.sample(
+            SamplingOptions(method=SamplingMethod.MCMC, num_samples=3)
+        )
 
         assert "time" in result.stats
         assert "samples_collected" in result.stats

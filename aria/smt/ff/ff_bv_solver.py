@@ -11,24 +11,40 @@ from __future__ import annotations
 from typing import Dict, Optional
 import z3
 from .ff_ast import (
-    FieldExpr, FieldAdd, FieldMul, FieldNeg, FieldEq, FieldVar, FieldConst,
-    FieldSub, FieldPow, FieldDiv, BoolOr, BoolAnd, BoolNot, BoolImplies,
-    BoolIte, BoolVar, ParsedFormula
+    FieldExpr,
+    FieldAdd,
+    FieldMul,
+    FieldNeg,
+    FieldEq,
+    FieldVar,
+    FieldConst,
+    FieldSub,
+    FieldPow,
+    FieldDiv,
+    BoolOr,
+    BoolAnd,
+    BoolNot,
+    BoolImplies,
+    BoolIte,
+    BoolVar,
+    ParsedFormula,
 )
 
 # -----------------------------------------------------------------------
+
 
 class FFBVSolver:
     """
     Faithful translation of finite-field (prime field) constraints to QF_BV.
     All temporaries are evaluated in 2·k bits, with k = ⌈log₂ p⌉.
     """
+
     def __init__(self, theory: str = "QF_BV"):  # pylint: disable=unused-argument
         self.solver = z3.Solver()
         self.vars: Dict[str, z3.BitVecRef] = {}
         self.p: Optional[int] = None
-        self.k: Optional[int] = None   # base width
-        self.kw: Optional[int] = None   # 2*k width
+        self.k: Optional[int] = None  # base width
+        self.kw: Optional[int] = None  # 2*k width
         self.p_wide_bv: Optional[z3.BitVecVal] = None
 
     # ----------------------  public API  -------------------------------
@@ -65,7 +81,7 @@ class FFBVSolver:
         for v, sort_type in varmap.items():
             if v in self.vars:
                 continue
-            if sort_type == 'bool':
+            if sort_type == "bool":
                 self.vars[v] = z3.Bool(v)
             else:  # 'ff' or finite field
                 self.vars[v] = z3.BitVec(v, self.k)
@@ -79,13 +95,13 @@ class FFBVSolver:
 
     def _mod_p(self, wide: z3.BitVecRef) -> z3.BitVecRef:
         """Reduce a kw-bit term modulo p and return a k-bit value."""
-        tmp = z3.URem(wide, self.p_wide_bv)     # kw bits
-        return z3.Extract(self.k - 1, 0, tmp)       # back to k bits
+        tmp = z3.URem(wide, self.p_wide_bv)  # kw bits
+        return z3.Extract(self.k - 1, 0, tmp)  # back to k bits
 
     def _pow_mod_p(self, base_bv: z3.BitVecRef, exponent: int) -> z3.BitVecRef:
         """Return (base_bv ** exponent) mod p as a k-bit bit-vector."""
         result_wide = z3.BitVecVal(1, self.kw)
-        base_wide   = self._to_wide(base_bv)
+        base_wide = self._to_wide(base_bv)
         e = exponent
         while e > 0:
             if e & 1:
@@ -98,7 +114,9 @@ class FFBVSolver:
         return self._mod_p(result_wide)
 
     # ----------------  recursive translation  --------------------------
-    def _tr(self, e: FieldExpr) -> z3.ExprRef:  # pylint: disable=too-many-return-statements,too-many-branches
+    def _tr(
+        self, e: FieldExpr
+    ) -> z3.ExprRef:  # pylint: disable=too-many-return-statements,too-many-branches
         """Translate a finite-field expression to Z3."""
         if isinstance(e, FieldAdd):
             wide = z3.BitVecVal(0, self.kw)

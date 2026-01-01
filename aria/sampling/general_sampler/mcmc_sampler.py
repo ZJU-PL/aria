@@ -13,9 +13,19 @@ import time
 from typing import Dict, Set, Any, Optional, Tuple
 
 from z3 import (
-    Solver, sat, IntNumRef, RatNumRef, AlgebraicNumRef,
-    IntVal, RealVal, BoolVal, is_int, is_real, is_bool, ExprRef,
-    is_true
+    Solver,
+    sat,
+    IntNumRef,
+    RatNumRef,
+    AlgebraicNumRef,
+    IntVal,
+    RealVal,
+    BoolVal,
+    is_int,
+    is_real,
+    is_bool,
+    ExprRef,
+    is_true,
 )
 
 from ..base import Sampler, SamplingOptions, SamplingResult, Logic, SamplingMethod
@@ -59,8 +69,13 @@ class MCMCSampler(Sampler):
             True if the sampler supports the logic, False otherwise
         """
         supported = {
-            Logic.QF_LRA, Logic.QF_LIA, Logic.QF_NRA, Logic.QF_NIA,
-            Logic.QF_LIRA, Logic.QF_BOOL, Logic.QF_ALL
+            Logic.QF_LRA,
+            Logic.QF_LIA,
+            Logic.QF_NRA,
+            Logic.QF_NIA,
+            Logic.QF_LIRA,
+            Logic.QF_BOOL,
+            Logic.QF_ALL,
         }
         return logic in supported
 
@@ -107,8 +122,13 @@ class MCMCSampler(Sampler):
             A set of supported logics
         """
         return {
-            Logic.QF_LRA, Logic.QF_LIA, Logic.QF_NRA, Logic.QF_NIA,
-            Logic.QF_LIRA, Logic.QF_BOOL, Logic.QF_ALL
+            Logic.QF_LRA,
+            Logic.QF_LIA,
+            Logic.QF_NRA,
+            Logic.QF_NIA,
+            Logic.QF_LIRA,
+            Logic.QF_BOOL,
+            Logic.QF_ALL,
         }
 
     def sample(self, options: Optional[SamplingOptions] = None) -> SamplingResult:
@@ -122,13 +142,13 @@ class MCMCSampler(Sampler):
             A SamplingResult containing the generated samples
         """
         if options is None:
-            options = SamplingOptions(
-                method=SamplingMethod.MCMC,
-                num_samples=10
-            )
+            options = SamplingOptions(method=SamplingMethod.MCMC, num_samples=10)
 
         # Ensure additional_options exists
-        if not hasattr(options, 'additional_options') or options.additional_options is None:
+        if (
+            not hasattr(options, "additional_options")
+            or options.additional_options is None
+        ):
             options.additional_options = {}
 
         # Set random seed if provided
@@ -136,8 +156,8 @@ class MCMCSampler(Sampler):
             random.seed(options.random_seed)
 
         # Extract MCMC-specific options
-        burn_in = options.additional_options.get('burn_in', 100)
-        step_size = options.additional_options.get('step_size', self.step_size)
+        burn_in = options.additional_options.get("burn_in", 100)
+        step_size = options.additional_options.get("step_size", self.step_size)
         # max_attempts is available but not currently used in the loop
         # options.additional_options.get('max_attempts', self.max_attempts)
 
@@ -149,9 +169,9 @@ class MCMCSampler(Sampler):
             return SamplingResult(
                 samples=[],
                 stats={
-                    'time': time.time() - start_time,
-                    'error': 'Formula is unsatisfiable'
-                }
+                    "time": time.time() - start_time,
+                    "error": "Formula is unsatisfiable",
+                },
             )
 
         # Quick check for simple integer range problem (a >= min and a <= max)
@@ -197,11 +217,11 @@ class MCMCSampler(Sampler):
 
         # Compute statistics
         stats = {
-            'time': time.time() - start_time,
-            'samples_collected': len(samples),
-            'burn_in': burn_in,
-            'step_size': step_size,
-            'iterations': iterations
+            "time": time.time() - start_time,
+            "samples_collected": len(samples),
+            "burn_in": burn_in,
+            "step_size": step_size,
+            "iterations": iterations,
         }
 
         return SamplingResult(samples=samples, stats=stats)
@@ -257,7 +277,7 @@ class MCMCSampler(Sampler):
         return tuple(items)
 
     def _propose_next_sample(
-            self, current_sample: Dict[str, Any], step_size: float
+        self, current_sample: Dict[str, Any], step_size: float
     ) -> Dict[str, Any]:
         """
         Propose a new sample by perturbing the current sample.
@@ -300,7 +320,9 @@ class MCMCSampler(Sampler):
                 else:
                     new_denominator = denominator
 
-                next_sample[var_name] = RealVal(new_numerator) / RealVal(new_denominator)
+                next_sample[var_name] = RealVal(new_numerator) / RealVal(
+                    new_denominator
+                )
 
             elif isinstance(value, AlgebraicNumRef):
                 # AlgebraicNumRef represents roots of polynomials
@@ -445,11 +467,11 @@ class MCMCSampler(Sampler):
 
         # Compute statistics
         stats = {
-            'time': time.time() - start_time,
-            'samples_collected': len(samples),
-            'method': 'simple_integer_range',
-            'range': f"[{candidates[0]}, {candidates[-1]}]",
-            'candidates': len(candidates)
+            "time": time.time() - start_time,
+            "samples_collected": len(samples),
+            "method": "simple_integer_range",
+            "range": f"[{candidates[0]}, {candidates[-1]}]",
+            "candidates": len(candidates),
         }
 
         return SamplingResult(samples=samples, stats=stats)

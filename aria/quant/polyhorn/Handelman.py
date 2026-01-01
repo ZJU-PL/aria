@@ -7,18 +7,24 @@ from aria.quant.polyhorn.Constraint import CoefficientConstraint
 
 
 class Handelman:
-    """ A class that performs handelman algorithm.
+    """A class that performs handelman algorithm.
 
-        Attributes:
-                variables ([UnknownVariable]): The list of variables of the polynomials.
-                LHS ([PolynomialConstraint]): The list of left hand side constraints in farkas algorithm
-                RHS (PolynomialConstraint) : The right hand side constraint in algorithm
-                max_d_for_sat (int) : maximum degree of monoids when finding sat constraints
-                max_d_for_unsat (int) : maximum degree of monoids when finding unsat constraints
+    Attributes:
+            variables ([UnknownVariable]): The list of variables of the polynomials.
+            LHS ([PolynomialConstraint]): The list of left hand side constraints in farkas algorithm
+            RHS (PolynomialConstraint) : The right hand side constraint in algorithm
+            max_d_for_sat (int) : maximum degree of monoids when finding sat constraints
+            max_d_for_unsat (int) : maximum degree of monoids when finding unsat constraints
     """
 
-    def __init__(self, variables, LHS: List[PolynomialConstraint], RHS: PolynomialConstraint,
-                 max_d_for_sat: int = 0, max_d_for_unsat: int = 0):
+    def __init__(
+        self,
+        variables,
+        LHS: List[PolynomialConstraint],
+        RHS: PolynomialConstraint,
+        max_d_for_sat: int = 0,
+        max_d_for_unsat: int = 0,
+    ):
         self.variables = variables
         self.RHS = RHS
         self.LHS = LHS
@@ -29,11 +35,12 @@ class Handelman:
         if len(lst) == n:
             return [lst]
         ans = []
-        for i in range(max_d - sum(lst)+1):
+        for i in range(max_d - sum(lst) + 1):
             ans = ans + self.get_lists_with_fixed_len(lst + [i], n, max_d)
         return ans
+
     def get_monoids(self, max_d: int) -> Tuple[List[Polynomial], List[bool]]:
-        """ this function creates monoids of given the degree of all left hand side polynomials
+        """this function creates monoids of given the degree of all left hand side polynomials
 
         :param max_d: maximum degree of each monoid
         :return: list of monoids and a list of boolean which the ith element is true if the ith monoid is strict.
@@ -42,7 +49,7 @@ class Handelman:
         is_strict = []
         all_degrees = self.get_lists_with_fixed_len([], len(self.LHS), max_d)
         for degree_of_each_lhs in all_degrees:
-            poly = Solver.get_constant_polynomial(self.variables, '1')
+            poly = Solver.get_constant_polynomial(self.variables, "1")
             is_the_new_monoid_strict = True
 
             for i in range(len(self.LHS)):
@@ -56,8 +63,10 @@ class Handelman:
 
         return monoids, is_strict
 
-    def get_poly_sum(self, max_d: int, need_strict: bool = False) -> Tuple[Polynomial, CoefficientConstraint]:
-        """ This function returns a polynomial y_0 + y_1*f_1 + y_2*f_2 ...+ y_n*f_n where f_i are monoids of left hand side
+    def get_poly_sum(
+        self, max_d: int, need_strict: bool = False
+    ) -> Tuple[Polynomial, CoefficientConstraint]:
+        """This function returns a polynomial y_0 + y_1*f_1 + y_2*f_2 ...+ y_n*f_n where f_i are monoids of left hand side
         polynomials and y_i are newly created variable in handelman theorem
 
         :param max_d: maximum degree of each monoid
@@ -68,37 +77,51 @@ class Handelman:
 
         all_monoid, is_strict = self.get_monoids(max_d)
         constraints = []
-        sum_of_strict = Solver.get_constant_polynomial(self.variables, '0')
+        sum_of_strict = Solver.get_constant_polynomial(self.variables, "0")
 
         if self.RHS.is_strict():
-            new_var = Solver.get_variable_polynomial(self.variables, 'y0', 'generated_for_handelman_in_strict_case')
+            new_var = Solver.get_variable_polynomial(
+                self.variables, "y0", "generated_for_handelman_in_strict_case"
+            )
             polynomial_of_sum = polynomial_of_sum + new_var
-            constraints.append(CoefficientConstraint(new_var.monomials[0].coefficient, '>='))
+            constraints.append(
+                CoefficientConstraint(new_var.monomials[0].coefficient, ">=")
+            )
             sum_of_strict = sum_of_strict + new_var
 
         for i, monoid in enumerate(all_monoid):
-            new_var_poly = Solver.get_variable_polynomial(self.variables, f'y{i + 1}',
-                                                          'generated_for_Handelman')
+            new_var_poly = Solver.get_variable_polynomial(
+                self.variables, f"y{i + 1}", "generated_for_Handelman"
+            )
             polynomial_of_sum = polynomial_of_sum + (new_var_poly * monoid)
-            constraints.append(CoefficientConstraint(new_var_poly.monomials[0].coefficient, '>='))
+            constraints.append(
+                CoefficientConstraint(new_var_poly.monomials[0].coefficient, ">=")
+            )
 
             if is_strict[i]:
                 sum_of_strict = sum_of_strict + new_var_poly
 
         if need_strict or self.RHS.is_strict():
-            constraints.append(CoefficientConstraint(sum_of_strict.monomials[0].coefficient, '>'))
+            constraints.append(
+                CoefficientConstraint(sum_of_strict.monomials[0].coefficient, ">")
+            )
         return polynomial_of_sum, constraints
 
     def get_SAT_constraint(self) -> List[CoefficientConstraint]:
-        """ a function to find the constraints when the LHS => RHS is satisfiable
+        """a function to find the constraints when the LHS => RHS is satisfiable
 
         :return: list of coefficient constraints when it is satisfiable
         """
         polynomial_of_sum, constraints = self.get_poly_sum(self.max_d_for_sat)
-        return Solver.find_equality_constraint(polynomial_of_sum, self.RHS.polynomial) + constraints
+        return (
+            Solver.find_equality_constraint(polynomial_of_sum, self.RHS.polynomial)
+            + constraints
+        )
 
-    def get_UNSAT_constraint(self, need_strict: bool = False) -> List[CoefficientConstraint]:
-        """ a function to find the constraints when it is not satisfiable.\n
+    def get_UNSAT_constraint(
+        self, need_strict: bool = False
+    ) -> List[CoefficientConstraint]:
+        """a function to find the constraints when it is not satisfiable.\n
         two set of constraint can be generated:\n
          1)LHS => -1 >= 0\n
          2)LHS => 0 > 0\n
@@ -107,10 +130,20 @@ class Handelman:
         :return: list of coefficient constraints when it is not satisfiable
         """
         if need_strict:
-            polynomial_of_sum, constraints = self.get_poly_sum(self.max_d_for_unsat, need_strict)
-            return Solver.find_equality_constraint(polynomial_of_sum,
-                                                   Polynomial(self.variables, [])) + constraints
+            polynomial_of_sum, constraints = self.get_poly_sum(
+                self.max_d_for_unsat, need_strict
+            )
+            return (
+                Solver.find_equality_constraint(
+                    polynomial_of_sum, Polynomial(self.variables, [])
+                )
+                + constraints
+            )
 
         polynomial_of_sum, constraints = self.get_poly_sum(self.max_d_for_unsat)
-        return Solver.find_equality_constraint(polynomial_of_sum,
-                                               Solver.get_constant_polynomial(self.variables, '-1')) + constraints
+        return (
+            Solver.find_equality_constraint(
+                polynomial_of_sum, Solver.get_constant_polynomial(self.variables, "-1")
+            )
+            + constraints
+        )

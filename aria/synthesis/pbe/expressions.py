@@ -11,8 +11,9 @@ from enum import Enum
 
 class Theory(Enum):
     """Supported theories for expressions."""
-    LIA = "lia"      # Linear Integer Arithmetic
-    BV = "bv"        # BitVectors
+
+    LIA = "lia"  # Linear Integer Arithmetic
+    BV = "bv"  # BitVectors
     STRING = "string"  # Strings
 
 
@@ -57,8 +58,11 @@ class Variable(Expression):
         return self.name
 
     def __eq__(self, other) -> bool:
-        return (isinstance(other, Variable) and
-                self.name == other.name and self.theory == other.theory)
+        return (
+            isinstance(other, Variable)
+            and self.name == other.name
+            and self.theory == other.theory
+        )
 
     def __hash__(self) -> int:
         return hash((self.name, self.theory))
@@ -86,8 +90,11 @@ class Constant(Expression):
             return str(self.value)
 
     def __eq__(self, other) -> bool:
-        return (isinstance(other, Constant) and
-                self.value == other.value and self.theory == other.theory)
+        return (
+            isinstance(other, Constant)
+            and self.value == other.value
+            and self.theory == other.theory
+        )
 
     def __hash__(self) -> int:
         return hash((self.value, self.theory))
@@ -101,6 +108,7 @@ class Constant(Expression):
 
 class BinaryOp(Enum):
     """Binary operations."""
+
     ADD = "+"
     SUB = "-"
     MUL = "*"
@@ -115,19 +123,20 @@ class BinaryOp(Enum):
     AND = "&&"
     OR = "||"
     CONCAT = "++"  # String concatenation
-    BVAND = "&"    # Bitwise AND
-    BVOR = "|"     # Bitwise OR
-    BVXOR = "^"    # Bitwise XOR
-    BVSLL = "<<"   # Bitwise shift left logical
-    BVSLR = ">>"   # Bitwise shift right logical
+    BVAND = "&"  # Bitwise AND
+    BVOR = "|"  # Bitwise OR
+    BVXOR = "^"  # Bitwise XOR
+    BVSLL = "<<"  # Bitwise shift left logical
+    BVSLR = ">>"  # Bitwise shift right logical
     BVSRA = ">>>"  # Bitwise shift right arithmetic
 
 
 class UnaryOp(Enum):
     """Unary operations."""
+
     NEG = "-"
     NOT = "!"
-    BVNOT = "~"    # Bitwise NOT
+    BVNOT = "~"  # Bitwise NOT
     LENGTH = "len"  # String length
 
 
@@ -148,10 +157,12 @@ class BinaryExpr(Expression):
         return f"({self.left} {self.op.value} {self.right})"
 
     def __eq__(self, other) -> bool:
-        return (isinstance(other, BinaryExpr) and
-                self.left == other.left and
-                self.op == other.op and
-                self.right == other.right)
+        return (
+            isinstance(other, BinaryExpr)
+            and self.left == other.left
+            and self.op == other.op
+            and self.right == other.right
+        )
 
     def __hash__(self) -> int:
         return hash((self.left, self.op, self.right))
@@ -225,9 +236,11 @@ class UnaryExpr(Expression):
         return f"{self.op.value}({self.operand})"
 
     def __eq__(self, other) -> bool:
-        return (isinstance(other, UnaryExpr) and
-                self.op == other.op and
-                self.operand == other.operand)
+        return (
+            isinstance(other, UnaryExpr)
+            and self.op == other.op
+            and self.operand == other.operand
+        )
 
     def __hash__(self) -> int:
         return hash((self.op, self.operand))
@@ -304,8 +317,8 @@ class IfExpr(Expression):
     """Conditional expression (if-then-else)."""
 
     def __init__(
-            self, condition: Expression, then_expr: Expression,
-            else_expr: Expression):
+        self, condition: Expression, then_expr: Expression, else_expr: Expression
+    ):
         super().__init__(then_expr.theory)
         self.condition = condition
         self.then_expr = then_expr
@@ -315,16 +328,19 @@ class IfExpr(Expression):
         if then_expr.theory != else_expr.theory:
             raise ValueError(
                 f"Theory mismatch in then/else: {then_expr.theory} "
-                f"vs {else_expr.theory}")
+                f"vs {else_expr.theory}"
+            )
 
     def __str__(self) -> str:
         return f"(if {self.condition} then {self.then_expr} else {self.else_expr})"
 
     def __eq__(self, other) -> bool:
-        return (isinstance(other, IfExpr) and
-                self.condition == other.condition and
-                self.then_expr == other.then_expr and
-                self.else_expr == other.else_expr)
+        return (
+            isinstance(other, IfExpr)
+            and self.condition == other.condition
+            and self.then_expr == other.then_expr
+            and self.else_expr == other.else_expr
+        )
 
     def __hash__(self) -> int:
         return hash((self.condition, self.then_expr, self.else_expr))
@@ -349,17 +365,24 @@ class IfExpr(Expression):
         return self.else_expr.evaluate(assignment)
 
     def get_variables(self) -> Set[str]:
-        return (self.condition.get_variables() |
-                self.then_expr.get_variables() |
-                self.else_expr.get_variables())
+        return (
+            self.condition.get_variables()
+            | self.then_expr.get_variables()
+            | self.else_expr.get_variables()
+        )
 
 
 class LoopExpr(Expression):
     """Loop expression (for loops with fixed iterations)."""
 
     def __init__(
-            self, variable: str, start: Expression, end: Expression,
-            body: Expression, theory: Theory):
+        self,
+        variable: str,
+        start: Expression,
+        end: Expression,
+        body: Expression,
+        theory: Theory,
+    ):
         super().__init__(theory)
         self.variable = variable
         self.start = start
@@ -370,11 +393,13 @@ class LoopExpr(Expression):
         return f"(for {self.variable} from {self.start} to {self.end} do {self.body})"
 
     def __eq__(self, other) -> bool:
-        return (isinstance(other, LoopExpr) and
-                self.variable == other.variable and
-                self.start == other.start and
-                self.end == other.end and
-                self.body == other.body)
+        return (
+            isinstance(other, LoopExpr)
+            and self.variable == other.variable
+            and self.start == other.start
+            and self.end == other.end
+            and self.body == other.body
+        )
 
     def __hash__(self) -> int:
         return hash((self.variable, self.start, self.end, self.body))
@@ -396,9 +421,11 @@ class LoopExpr(Expression):
         return result
 
     def get_variables(self) -> Set[str]:
-        variables = (self.start.get_variables() |
-                     self.end.get_variables() |
-                     self.body.get_variables())
+        variables = (
+            self.start.get_variables()
+            | self.end.get_variables()
+            | self.body.get_variables()
+        )
         # Remove loop variable from outer scope
         variables.discard(self.variable)
         return variables
@@ -417,9 +444,11 @@ class FunctionCallExpr(Expression):
         return f"{self.function_name}({args_str})"
 
     def __eq__(self, other) -> bool:
-        return (isinstance(other, FunctionCallExpr) and
-                self.function_name == other.function_name and
-                self.args == other.args)
+        return (
+            isinstance(other, FunctionCallExpr)
+            and self.function_name == other.function_name
+            and self.args == other.args
+        )
 
     def __hash__(self) -> int:
         return hash((self.function_name, tuple(self.args)))
@@ -443,7 +472,7 @@ class FunctionCallExpr(Expression):
             s = str(self.args[0].evaluate(assignment))
             start_idx = int(self.args[1].evaluate(assignment))
             substr_length = int(self.args[2].evaluate(assignment))
-            return s[start_idx:start_idx + substr_length]
+            return s[start_idx : start_idx + substr_length]
         elif self.function_name == "str_indexof" and len(self.args) == 2:
             # str_indexof(str, substr)
             s = str(self.args[0].evaluate(assignment))
@@ -460,18 +489,22 @@ class FunctionCallExpr(Expression):
 
 
 # Additional convenience functions
-def if_expr(condition: Expression, then_expr: Expression, else_expr: Expression) -> IfExpr:
+def if_expr(
+    condition: Expression, then_expr: Expression, else_expr: Expression
+) -> IfExpr:
     """Create a conditional expression."""
     return IfExpr(condition, then_expr, else_expr)
 
 
 def for_loop(
-        variable: str, start: Expression, end: Expression,
-        body: Expression, theory: Theory) -> LoopExpr:
+    variable: str, start: Expression, end: Expression, body: Expression, theory: Theory
+) -> LoopExpr:
     """Create a for loop expression."""
     return LoopExpr(variable, start, end, body, theory)
 
 
-def func_call(function_name: str, args: List[Expression], theory: Theory) -> FunctionCallExpr:
+def func_call(
+    function_name: str, args: List[Expression], theory: Theory
+) -> FunctionCallExpr:
     """Create a function call expression."""
     return FunctionCallExpr(function_name, args, theory)

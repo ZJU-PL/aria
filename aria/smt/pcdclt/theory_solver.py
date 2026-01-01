@@ -75,8 +75,10 @@ class TheorySolver:
     def __del__(self):
         """Cleanup solver process (fallback, but context manager is preferred)"""
         if not self._closed:
-            logger.warning("TheorySolver %s not properly closed, using __del__ cleanup",
-                           self.worker_id)
+            logger.warning(
+                "TheorySolver %s not properly closed, using __del__ cleanup",
+                self.worker_id,
+            )
             self.close()
 
     def add_formula(self, smt2_string: str):
@@ -117,7 +119,7 @@ class TheorySolver:
         filename = f"worker_{self.worker_id}_query_{query_id}.smt2"
         filepath = os.path.join(self.log_dir, filename)
 
-        with open(filepath, 'w', encoding='utf-8') as f:
+        with open(filepath, "w", encoding="utf-8") as f:
             elapsed = time.time() - self.start_time
             f.write(f"; Worker: {self.worker_id}\n")
             f.write(f"; Query: {query_id}\n")
@@ -128,7 +130,7 @@ class TheorySolver:
                 f.write("\n; Assumptions:\n")
                 for assumption in content:
                     f.write(f"; {assumption}\n")
-                assumptions_str = ' '.join(content)
+                assumptions_str = " ".join(content)
                 f.write(f"\n(check-sat-assuming ({assumptions_str}))\n")
             else:
                 f.write(f"\n{content}\n")

@@ -14,12 +14,12 @@ outfile_name = sys.argv[1]
 num_lines = int(sys.argv[2])
 
 # Erase file if not already empty
-open(outfile_name,'w').close()
+open(outfile_name, "w").close()
 
-with fileinput.input(files='-') as f:
+with fileinput.input(files="-") as f:
     for line in f:
-        outfile_handle = open(outfile_name,'a')
-        outfile_handle.write(str(time.time()) + ': ')
+        outfile_handle = open(outfile_name, "a")
+        outfile_handle.write(str(time.time()) + ": ")
         outfile_handle.write(line)
         outfile_handle.close()
         line_counter = line_counter + 1

@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 class EFSMTStrategy(Enum):
     """Strategy for solving EFSMT problems."""
+
     Z3 = 0  # via bin solver
     CVC5 = 1  # via bin solver
     BOOLECTOR = 2  # via bin solver
@@ -27,8 +28,7 @@ class EFSMTStrategy(Enum):
 
 
 def simple_cegar_efsmt(logic: str, y: List[z3.ExprRef], phi: z3.ExprRef, maxloops=None):
-    """ Solves exists x. forall y. phi(x, y) with simple CEGAR
-    """
+    """Solves exists x. forall y. phi(x, y) with simple CEGAR"""
     # x = [item for item in get_vars(phi) if item not in y]   # can be slow
     x = [item for item in get_variables(phi) if item not in y]
     # set_param("verbose", 15)
@@ -91,8 +91,10 @@ class EFSMTSolver:
         :param phi: a quantifier-free formula
         """
         bin_solver_strategies = {
-            EFSMTStrategy.Z3, EFSMTStrategy.CVC5,
-            EFSMTStrategy.BOOLECTOR, EFSMTStrategy.YICES2
+            EFSMTStrategy.Z3,
+            EFSMTStrategy.CVC5,
+            EFSMTStrategy.BOOLECTOR,
+            EFSMTStrategy.YICES2,
         }
         if self.tactic in bin_solver_strategies:
             return self.solve_with_qsmt(y, phi)
@@ -125,7 +127,9 @@ class EFSMTSolver:
         z3_res, model = simple_cegar_efsmt(self.logic, y, phi)
         return z3_res, model
 
-    def solve_with_qsmt(self, y: List[z3.ExprRef], phi: z3.ExprRef) -> z3.CheckSatResult:
+    def solve_with_qsmt(
+        self, y: List[z3.ExprRef], phi: z3.ExprRef
+    ) -> z3.CheckSatResult:
         """Solve with bin solvers."""
         if self.tactic == EFSMTStrategy.Z3:
             return solve_with_bin_smt(y, phi, self.logic, "z3")

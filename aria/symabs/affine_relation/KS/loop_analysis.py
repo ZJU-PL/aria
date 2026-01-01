@@ -23,15 +23,17 @@ class LoopAnalyzer(ast.NodeVisitor):
         source = inspect.getsource(func)
 
         # Fix indentation issues - remove leading whitespace
-        lines = source.split('\n')
-        if lines and lines[0].strip() == '':
+        lines = source.split("\n")
+        if lines and lines[0].strip() == "":
             lines = lines[1:]  # Remove empty first line
-        if lines and not lines[0].startswith('def '):
+        if lines and not lines[0].startswith("def "):
             # Remove common leading whitespace
-            min_indent = min(len(line) - len(line.lstrip()) for line in lines if line.strip())
-            lines = [line[min_indent:] if line.strip() else '' for line in lines]
+            min_indent = min(
+                len(line) - len(line.lstrip()) for line in lines if line.strip()
+            )
+            lines = [line[min_indent:] if line.strip() else "" for line in lines]
 
-        source = '\n'.join(lines)
+        source = "\n".join(lines)
         tree = ast.parse(source)
 
         # Extract function name and parameters
@@ -99,7 +101,9 @@ class LoopAnalyzer(ast.NodeVisitor):
         right = binop.right
 
         # Look for patterns like x = y & z, x = y ^ z, etc.
-        if isinstance(binop.op, (ast.BitAnd, ast.BitXor, ast.BitOr, ast.LShift, ast.RShift)):
+        if isinstance(
+            binop.op, (ast.BitAnd, ast.BitXor, ast.BitOr, ast.LShift, ast.RShift)
+        ):
             if isinstance(left, ast.Name) and isinstance(right, ast.Name):
                 left_var = self.variables.get(left.id)
                 right_var = self.variables.get(right.id)
@@ -109,11 +113,15 @@ class LoopAnalyzer(ast.NodeVisitor):
                     if isinstance(binop.op, ast.BitAnd):
                         # For x = y & z, this creates congruence relationships
                         # The result x has bits that are AND of y and z bits
-                        constraint = self.variables[var_name] == z3.And(left_var, right_var)
+                        constraint = self.variables[var_name] == z3.And(
+                            left_var, right_var
+                        )
                         self.constraints.append(constraint)
                     elif isinstance(binop.op, ast.BitXor):
                         # For x = y ^ z, this creates XOR relationships
-                        constraint = self.variables[var_name] == z3.Xor(left_var, right_var)
+                        constraint = self.variables[var_name] == z3.Xor(
+                            left_var, right_var
+                        )
                         self.constraints.append(constraint)
                     # Add more operations as needed
 

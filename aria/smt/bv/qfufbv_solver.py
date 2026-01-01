@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class QFUFBVSolver:
-    sat_engine = 'mgh'
+    sat_engine = "mgh"
 
     def __init__(self):
         self.fml = None
@@ -34,28 +34,28 @@ class QFUFBVSolver:
 
     def check_sat(self, fml):
         """Check satisfiability of an QF_FP formula"""
-        if QFUFBVSolver.sat_engine == 'z3':
+        if QFUFBVSolver.sat_engine == "z3":
             return self.solve_qfufbv_via_z3(fml)
         logger.debug("Start translating to CNF...")
 
-        qfufbv_preamble = z3.AndThen('simplify',
-                                     'propagate-values',
-                                     z3.With('solve-eqs'),
-                                     'elim-uncnstr',
-                                     'reduce-bv-size',
-                                     z3.With(
-                                         'simplify', som=True,
-                                         pull_cheap_ite=True, push_ite_bv=False,
-                                         local_ctx=True,
-                                         local_ctx_limit=10000000
-                                     ),
-                                     # 'max-bv-sharing',
-                                     'ackermannize_bv',
-                                     z3.If(z3.Probe('is-qfbv'),
-                                           z3.AndThen('bit-blast',
-                                                      'simplify'),
-                                           'simplify'),
-                                     )
+        qfufbv_preamble = z3.AndThen(
+            "simplify",
+            "propagate-values",
+            z3.With("solve-eqs"),
+            "elim-uncnstr",
+            "reduce-bv-size",
+            z3.With(
+                "simplify",
+                som=True,
+                pull_cheap_ite=True,
+                push_ite_bv=False,
+                local_ctx=True,
+                local_ctx_limit=10000000,
+            ),
+            # 'max-bv-sharing',
+            "ackermannize_bv",
+            z3.If(z3.Probe("is-qfbv"), z3.AndThen("bit-blast", "simplify"), "simplify"),
+        )
 
         qfufbv_prep = z3.With(qfufbv_preamble, elim_and=True, sort_store=True)
 
@@ -68,12 +68,11 @@ class QFUFBVSolver:
 
         g_probe = z3.Goal()
         g_probe.add(after_simp)
-        is_bool = z3.Probe('is-propositional')
+        is_bool = z3.Probe("is-propositional")
         if is_bool(g_probe) == 1.0:
-            to_cnf_impl = z3.AndThen('simplify', 'tseitin-cnf')
+            to_cnf_impl = z3.AndThen("simplify", "tseitin-cnf")
             to_cnf = z3.With(
-                to_cnf_impl, elim_and=True, push_ite_bv=True,
-                blast_distinct=True
+                to_cnf_impl, elim_and=True, push_ite_bv=True, blast_distinct=True
             )
             blasted = to_cnf(after_simp).as_expr()
 

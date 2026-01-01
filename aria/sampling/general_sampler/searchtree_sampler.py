@@ -16,9 +16,7 @@ using a constraint solver as an oracle.
 """
 from random import randint
 
-from z3 import (
-    Solver, sat, And, parse_smt2_file, Z3Exception
-)
+from z3 import Solver, sat, And, parse_smt2_file, Z3Exception
 
 from aria.utils.z3_expr_utils import get_variables
 
@@ -145,8 +143,9 @@ def histogram(f, samples=2):
 def test():
     """Test the search tree sampler."""
     from z3 import Int  # pylint: disable=import-outside-toplevel
-    x = Int('x')
-    y = Int('y')
+
+    x = Int("x")
+    y = Int("y")
     formula = And(x > 0, x < 10, y > 0, y < 10)
 
     def sampler():
@@ -177,7 +176,7 @@ def searchtree_sampler_for_file(fname):
         print(exc)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # searchtree_sampler_for_file('../test/t1.smt2')
     # searchtree_sampler_for_file(("../../smt-benchmark/sampling/qsym/nm/case1798378065.smt2"))
     test()

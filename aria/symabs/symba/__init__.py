@@ -10,4 +10,4 @@ SMT solvers as black boxes.
 from .symba import SYMBA, SYMBAState, InferenceRule
 from .multi_symba import MultiSYMBA
 
-__all__ = ['SYMBA', 'SYMBAState', 'InferenceRule', 'MultiSYMBA']
+__all__ = ["SYMBA", "SYMBAState", "InferenceRule", "MultiSYMBA"]

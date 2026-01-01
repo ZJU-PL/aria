@@ -8,4 +8,4 @@ from .smt_pbe_solver import SMTPBESolver
 from .expression_to_smt import expression_to_smt, smt_to_expression
 from .smt_verifier import SMTVerifier
 
-__all__ = ['SMTPBESolver', 'expression_to_smt', 'smt_to_expression', 'SMTVerifier']
+__all__ = ["SMTPBESolver", "expression_to_smt", "smt_to_expression", "SMTVerifier"]

@@ -28,7 +28,7 @@ process_queue: List[multiprocessing.Process] = []
 def split_list(lst, n):
     """Split a list into n nearly equal slices."""
     k, m = divmod(len(lst), n)
-    return [lst[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n)]
+    return [lst[i * k + min(i, m) : (i + 1) * k + min(i + 1, m)] for i in range(n)]
 
 
 def solve_with_approx_partitioned(  # pylint: disable=too-many-arguments
@@ -49,7 +49,9 @@ def solve_with_approx_partitioned(  # pylint: disable=too-many-arguments
 
     while bit_places < (local_max_bit_width - 2):
         try:
-            approximated_formula = rec_go(formula, [], reduction_type, q_type, bit_places, polarity)
+            approximated_formula = rec_go(
+                formula, [], reduction_type, q_type, bit_places, polarity
+            )
             formula_text = approximated_formula.sexpr()
             result = run_z3_on_smt2_text(formula_text, timeout_sec=60)
 

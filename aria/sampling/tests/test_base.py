@@ -48,10 +48,7 @@ class TestSamplingOptions:
     def test_with_parameters(self):
         """Test with custom parameters."""
         options = SamplingOptions(
-            method=SamplingMethod.MCMC,
-            num_samples=10,
-            timeout=30.0,
-            random_seed=42
+            method=SamplingMethod.MCMC, num_samples=10, timeout=30.0, random_seed=42
         )
         assert options.method == SamplingMethod.MCMC
         assert options.num_samples == 10

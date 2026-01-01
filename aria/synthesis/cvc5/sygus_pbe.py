@@ -17,11 +17,13 @@ class StringSyGuSPBE:
         self,
         input_examples: List[List[str]],
         output_examples: List[str],
-        function_name: str = "str_func"
+        function_name: str = "str_func",
     ) -> Optional[str]:
         """Synthesize a string function from examples; return SMT-LIB2 or None."""
         if len(input_examples) != len(output_examples):
-            raise ValueError("Number of input examples must match number of output examples")
+            raise ValueError(
+                "Number of input examples must match number of output examples"
+            )
 
         if not input_examples:
             raise ValueError("At least one example must be provided")
@@ -35,7 +37,9 @@ class StringSyGuSPBE:
 
         # Add constraints from examples
         constraints = []
-        for i, (inputs_ex, output_ex) in enumerate(zip(input_examples, output_examples)):
+        for i, (inputs_ex, output_ex) in enumerate(
+            zip(input_examples, output_examples)
+        ):
             if len(inputs_ex) != arity:
                 raise ValueError(f"Example {i} has incorrect number of inputs")
 
@@ -51,7 +55,7 @@ class StringSyGuSPBE:
             constraints,
             inputs,
             logic="QF_S",  # Quantifier-free theory of strings
-            pbe=True       # Enable PBE mode
+            pbe=True,  # Enable PBE mode
         )
 
         if self.debug:
@@ -60,33 +64,27 @@ class StringSyGuSPBE:
         return result
 
     def synthesize_string_transformer(
-        self,
-        examples: List[Tuple[str, str]],
-        function_name: str = "str_transform"
+        self, examples: List[Tuple[str, str]], function_name: str = "str_transform"
     ) -> Optional[str]:
         """Synthesize single-arg string transformer from examples."""
         input_examples = [[ex[0]] for ex in examples]
         output_examples = [ex[1] for ex in examples]
 
         return self.synthesize_from_examples(
-            input_examples,
-            output_examples,
-            function_name
+            input_examples, output_examples, function_name
         )
 
     def synthesize_concat_function(
         self,
         examples: List[Tuple[str, str, str]],
-        function_name: str = "str_concat_func"
+        function_name: str = "str_concat_func",
     ) -> Optional[str]:
         """Synthesize 2-arg concatenation function from examples."""
         input_examples = [[ex[0], ex[1]] for ex in examples]
         output_examples = [ex[2] for ex in examples]
 
         return self.synthesize_from_examples(
-            input_examples,
-            output_examples,
-            function_name
+            input_examples, output_examples, function_name
         )
 
     @staticmethod
@@ -95,7 +93,7 @@ class StringSyGuSPBE:
         if not smt_function or "define-fun" not in smt_function:
             return {
                 "error": "Invalid or empty function definition",
-                "input": smt_function
+                "input": smt_function,
             }
 
         result = {
@@ -106,7 +104,7 @@ class StringSyGuSPBE:
             "return_type": "",
             "body": "",
             "explanation": "",
-            "python_equivalent": ""
+            "python_equivalent": "",
         }
 
         name_start = smt_function.find("define-fun") + len("define-fun") + 1
@@ -115,17 +113,17 @@ class StringSyGuSPBE:
 
         params_start = name_end
         params_end = smt_function.find(")", params_start)
-        params_section = smt_function[params_start+1:params_end]
+        params_section = smt_function[params_start + 1 : params_end]
 
         param_entries = []
         param_depth = 0
         current_param = ""
 
         for char in params_section:
-            if char == '(':
+            if char == "(":
                 param_depth += 1
                 current_param += char
-            elif char == ')':
+            elif char == ")":
                 param_depth -= 1
                 current_param += char
                 if param_depth == 0:
@@ -135,8 +133,8 @@ class StringSyGuSPBE:
                 current_param += char
 
         for param in param_entries:
-            if param and '(' in param and ')' in param:
-                param = param.strip('()')
+            if param and "(" in param and ")" in param:
+                param = param.strip("()")
                 parts = param.split()
                 if len(parts) >= 2:
                     result["params"].append(parts[0])
@@ -154,19 +152,17 @@ class StringSyGuSPBE:
 
         try:
             result["explanation"] = StringSyGuSPBE._generate_explanation(
-                result["name"],
-                result["params"],
-                result["body"]
+                result["name"], result["params"], result["body"]
             )
 
             result["python_equivalent"] = StringSyGuSPBE._generate_python_equivalent(
-                result["name"],
-                result["params"],
-                result["body"]
+                result["name"], result["params"], result["body"]
             )
         except Exception as e:
             result["explanation"] = f"Could not generate explanation: {str(e)}"
-            result["python_equivalent"] = f"\n# Could not generate Python equivalent: {str(e)}"
+            result["python_equivalent"] = (
+                f"\n# Could not generate Python equivalent: {str(e)}"
+            )
 
         return result
 
@@ -219,7 +215,7 @@ class StringSyGuSPBE:
             # Simple replacement
             search_term = ""
             replace_term = ""
-            if " \" " in body and " \"-" in body:
+            if ' " ' in body and ' "-' in body:
                 # Replace space with hyphen
                 python_func += f"    return {params[0]}.replace(' ', '-')\n"
             else:
@@ -234,7 +230,9 @@ class StringSyGuSPBE:
 
         elif "str.substr" in body:
             python_func += f"    # Substring extraction\n"
-            python_func += f"    return {params[0]}[start:end]  # Determine correct indices\n"
+            python_func += (
+                f"    return {params[0]}[start:end]  # Determine correct indices\n"
+            )
 
         else:
             # Default for complex or unrecognized patterns

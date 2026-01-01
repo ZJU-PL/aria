@@ -11,11 +11,19 @@ from typing import List, Dict, Any, Set
 
 import z3
 
-from aria.sampling.base import Sampler, Logic, SamplingMethod, SamplingOptions, SamplingResult
+from aria.sampling.base import (
+    Sampler,
+    Logic,
+    SamplingMethod,
+    SamplingOptions,
+    SamplingResult,
+)
 from aria.utils.z3_expr_utils import get_variables, is_bv_sort
 
 
-def _get_uniform_samples_with_xor(bv_vars: List[z3.ExprRef], cnt: z3.ExprRef, num_samples: int):
+def _get_uniform_samples_with_xor(
+    bv_vars: List[z3.ExprRef], cnt: z3.ExprRef, num_samples: int
+):
     """
     Internal implementation: Get num_samples models (projected to vars) using XOR constraints.
 
@@ -114,13 +122,12 @@ class HashBasedBVSampler(Sampler):
         # Set random seed if provided
         if options.random_seed is not None:
             import random as rnd_module  # pylint: disable=import-outside-toplevel
+
             rnd_module.seed(options.random_seed)
 
         # Generate samples using XOR constraints
         raw_samples = _get_uniform_samples_with_xor(
-            self.variables,
-            self.formula,
-            options.num_samples
+            self.variables, self.formula, options.num_samples
         )
 
         # Convert to standard format
@@ -128,13 +135,15 @@ class HashBasedBVSampler(Sampler):
         for raw_sample in raw_samples:
             sample: Dict[str, Any] = {}
             for var, value in zip(self.variables, raw_sample):
-                sample[str(var)] = value.as_long() if hasattr(value, 'as_long') else int(value)
+                sample[str(var)] = (
+                    value.as_long() if hasattr(value, "as_long") else int(value)
+                )
             samples.append(sample)
 
         stats = {
             "time_ms": 0,
             "iterations": options.num_samples,
-            "method": "hash_based_xor"
+            "method": "hash_based_xor",
         }
 
         return SamplingResult(samples, stats)
@@ -160,7 +169,7 @@ class HashBasedBVSampler(Sampler):
 
 def test_api():
     """Test the hash-based sampler."""
-    x, y, z = z3.BitVecs('x y z', 32)
+    x, y, z = z3.BitVecs("x y z", 32)
     fml = z3.And(z3.ULT(x, 13), z3.ULT(y, x), z3.ULE(y, z))
 
     sampler = HashBasedBVSampler()

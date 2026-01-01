@@ -38,7 +38,9 @@ class Bitwise:
     negated.
     """
 
-    def __init__(self, b_type: BitwiseType, negated: bool = False, vidx: int = -1) -> None:
+    def __init__(
+        self, b_type: BitwiseType, negated: bool = False, vidx: int = -1
+    ) -> None:
         """Initialize a bitwise AST node.
 
         Args:
@@ -82,7 +84,9 @@ class Bitwise:
             return "^"
         return "|"
 
-    def to_string(self, variables: Sequence[str] = None, with_parentheses: bool = False) -> str:
+    def to_string(
+        self, variables: Sequence[str] = None, with_parentheses: bool = False
+    ) -> str:
         """Return a string representation of this node, including all its children.
 
         Args:
@@ -232,8 +236,11 @@ class Bitwise:
         child2 = self.__children[j]
 
         t = self.__type
-        ot = (BitwiseType.INCL_DISJUNCTION if t == BitwiseType.CONJUNCTION
-              else BitwiseType.CONJUNCTION)
+        ot = (
+            BitwiseType.INCL_DISJUNCTION
+            if t == BitwiseType.CONJUNCTION
+            else BitwiseType.CONJUNCTION
+        )
 
         if child1.__type != ot or child2.__type != ot:
             return False
@@ -253,14 +260,18 @@ class Bitwise:
                 if t == BitwiseType.CONJUNCTION:
                     if child1.__children[0].__negated:
                         child1.__children[0].__negated = False
-                        child1.__children[1].__negated = not child1.__children[1].__negated
+                        child1.__children[1].__negated = not child1.__children[
+                            1
+                        ].__negated
 
                 # (x&y) | (~x&~y) -> (x^~y)
                 else:
                     if child1.__children[0].__negated:
                         child1.__children[0].__negated = False
                     else:
-                        child1.__children[1].__negated = not child1.__children[1].__negated
+                        child1.__children[1].__negated = not child1.__children[
+                            1
+                        ].__negated
 
                 del self.__children[j]
                 return True
@@ -287,8 +298,9 @@ class Bitwise:
         neg_cnt = sum(1 if c.__negated else 0 for c in self.__children)
         if 2 * neg_cnt < cnt:
             return changed
-        if (2 * neg_cnt == cnt and
-                (not self.__negated or self.__type == BitwiseType.EXCL_DISJUNCTION)):
+        if 2 * neg_cnt == cnt and (
+            not self.__negated or self.__type == BitwiseType.EXCL_DISJUNCTION
+        ):
             return changed
 
         if self.__type != BitwiseType.EXCL_DISJUNCTION:
@@ -318,8 +330,11 @@ class Bitwise:
         if t not in (BitwiseType.CONJUNCTION, BitwiseType.INCL_DISJUNCTION):
             return False
 
-        ot = (BitwiseType.INCL_DISJUNCTION if t == BitwiseType.CONJUNCTION
-              else BitwiseType.CONJUNCTION)
+        ot = (
+            BitwiseType.INCL_DISJUNCTION
+            if t == BitwiseType.CONJUNCTION
+            else BitwiseType.CONJUNCTION
+        )
         if not self.__do_all_children_have_type(ot):
             return False
 
@@ -371,8 +386,7 @@ class Bitwise:
                 return child.__get_copy()
         return None
 
-    def __has_child_in_remaining_children(
-            self, node: "Bitwise") -> bool:
+    def __has_child_in_remaining_children(self, node: "Bitwise") -> bool:
         """Return true iff the given node can be factored out.
 
         Return true iff the given node can be factored out from all children

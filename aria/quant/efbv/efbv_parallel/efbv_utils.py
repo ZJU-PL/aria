@@ -1,4 +1,5 @@
 """Utilities for EFBV parallel solvers."""
+
 from enum import Enum
 from abc import ABC, abstractmethod
 from typing import List
@@ -7,17 +8,20 @@ import z3
 
 class EFBVSolver(ABC):
     """Abstract base class for EFBV solvers."""
+
     def __init__(self, **kwargs):
         self.seed = kwargs.get("seed", 1)
 
     @abstractmethod
-    def solve_efsmt_bv(self, existential_vars: List, universal_vars: List,
-                       phi: z3.ExprRef):
+    def solve_efsmt_bv(
+        self, existential_vars: List, universal_vars: List, phi: z3.ExprRef
+    ):
         """Solve EFBV problem (abstract method)."""
 
 
 class EFBVResult(Enum):
     """Result of EFBV checking"""
+
     UNSAT = 0
     SAT = 1
     UNKNOWN = 2
@@ -26,6 +30,7 @@ class EFBVResult(Enum):
 
 class EFBVTactic(Enum):
     """Tactics for solving Exists-ForAll problems over bit-vectors"""
+
     Z3_QBF = 0
     Z3_BV = 1
     EXTERNAL_QBF = 2

@@ -175,7 +175,12 @@ def translate_lines(lines: Iterable[str]) -> List[str]:
     return translated
 
 
-def write_translated_file(target: Path, translated_lines: Iterable[str], fun_bounds: Iterable[str], const_bounds: Iterable[str]) -> None:
+def write_translated_file(
+    target: Path,
+    translated_lines: Iterable[str],
+    fun_bounds: Iterable[str],
+    const_bounds: Iterable[str],
+) -> None:
     with target.open("w", encoding="utf-8") as f:
         f.write(TEMPLATE)
         for line in translated_lines:
@@ -194,14 +199,21 @@ def write_translated_file(target: Path, translated_lines: Iterable[str], fun_bou
 
 def run_cvc5(cvc5_bin: Path, benchmark_path: Path) -> int:
     result = subprocess.run(
-        [str(cvc5_bin), "--full-saturate-quant", "--nl-ext-tplanes", str(benchmark_path)],
+        [
+            str(cvc5_bin),
+            "--full-saturate-quant",
+            "--nl-ext-tplanes",
+            str(benchmark_path),
+        ],
         check=False,
     )
     return result.returncode
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Translate a bit-vector benchmark to integer theory axioms and solve with cvc5.")
+    parser = argparse.ArgumentParser(
+        description="Translate a bit-vector benchmark to integer theory axioms and solve with cvc5."
+    )
     parser.add_argument("cvc5_bin", type=str, help="Path to cvc5 binary")
     parser.add_argument("benchmark", type=str, help="Path to the input SMT2 benchmark")
     parser.add_argument(

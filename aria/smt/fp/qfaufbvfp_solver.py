@@ -4,6 +4,7 @@ For solving the following...
 - QF_AUFBVFP
 ...?
 """
+
 import logging
 
 import z3
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class QFAUFBVFPSolver:
-    sat_engine = 'mgh'
+    sat_engine = "mgh"
 
     def __init__(self):
         """
@@ -72,30 +73,37 @@ class QFAUFBVFPSolver:
 
     def check_sat(self, fml) -> SolverResult:
         """Check satisfiability of an formula"""
-        if self.sat_engine == 'z3':
+        if self.sat_engine == "z3":
             return self.solve_qfaufbvfp_via_z3(fml)
         logger.debug("Start translating to CNF...")
 
         qfaufbvfp_preamble = z3.AndThen(
-            'simplify',
-            'propagate-values',
-            'fpa2bv',
-            'solve-eqs',
-            'elim-uncnstr',
-            'reduce-bv-size',
-            z3.With('simplify', som=True, pull_cheap_ite=True,
-                    push_ite_bv=False, local_ctx=True,
-                    local_ctx_limit=10000000),
+            "simplify",
+            "propagate-values",
+            "fpa2bv",
+            "solve-eqs",
+            "elim-uncnstr",
+            "reduce-bv-size",
+            z3.With(
+                "simplify",
+                som=True,
+                pull_cheap_ite=True,
+                push_ite_bv=False,
+                local_ctx=True,
+                local_ctx_limit=10000000,
+            ),
             # 'bvarray2uf',  # this tactic is dangerous
             # (it only handles specific arrays)
-            'max-bv-sharing',
+            "max-bv-sharing",
             # 'fpa2bv',
-            'ackermannize_bv',
-            z3.If(z3.Probe('is-qfbv'),
-                  z3.AndThen('bit-blast',
-                             z3.With('simplify', arith_lhs=False,
-                                     elim_and=True)),
-                  'simplify'),
+            "ackermannize_bv",
+            z3.If(
+                z3.Probe("is-qfbv"),
+                z3.AndThen(
+                    "bit-blast", z3.With("simplify", arith_lhs=False, elim_and=True)
+                ),
+                "simplify",
+            ),
         )
 
         qfaufbv_prep = z3.With(qfaufbvfp_preamble, elim_and=True, sort_store=True)
@@ -108,11 +116,12 @@ class QFAUFBVFPSolver:
 
         g_probe = z3.Goal()
         g_probe.add(after_simp)
-        is_bool = z3.Probe('is-propositional')
+        is_bool = z3.Probe("is-propositional")
         if is_bool(g_probe) == 1.0:
-            to_cnf_impl = z3.AndThen('simplify', 'tseitin-cnf')
-            to_cnf = z3.With(to_cnf_impl, elim_and=True, push_ite_bv=True,
-                             blast_distinct=True)
+            to_cnf_impl = z3.AndThen("simplify", "tseitin-cnf")
+            to_cnf = z3.With(
+                to_cnf_impl, elim_and=True, push_ite_bv=True, blast_distinct=True
+            )
             blasted = to_cnf(after_simp).as_expr()
 
             if z3.is_false(blasted):
@@ -144,8 +153,8 @@ class QFAUFBVFPSolver:
 
 def demo_qfaufbvfp() -> SolverResult:
     solver = QFAUFBVFPSolver()
-    x = z3.BitVec('x', 32)
-    y = z3.BitVec('y', 32)
+    x = z3.BitVec("x", 32)
+    y = z3.BitVec("y", 32)
     fml = z3.And(x > 0, y > 0, x + y > 0)
     res = solver.check_sat(fml)
     print(res)
@@ -170,11 +179,7 @@ def convert_fp_to_bv(input_file: str, output_file: str) -> bool:
 
         # Create a preprocessing tactic chain: simplify, propagate-values,
         # then fpa2bv
-        preprocess_tactic = z3.AndThen(
-            'simplify',
-            'propagate-values',
-            'fpa2bv'
-        )
+        preprocess_tactic = z3.AndThen("simplify", "propagate-values", "fpa2bv")
 
         # Apply the preprocessing tactics
         processed_goal = preprocess_tactic(fml)
@@ -183,7 +188,7 @@ def convert_fp_to_bv(input_file: str, output_file: str) -> bool:
         # Check if the result is QF_BV using is-qfbv probe
         g = z3.Goal()
         g.add(converted_fml)
-        is_qfbv = z3.Probe('is-qfbv')
+        is_qfbv = z3.Probe("is-qfbv")
 
         if is_qfbv(g) == 1.0:
             # It's QF_BV, proceed to save
@@ -191,11 +196,10 @@ def convert_fp_to_bv(input_file: str, output_file: str) -> bool:
             solver.add(converted_fml)
 
             # Write the converted formula to the output file
-            with open(output_file, 'w', encoding='utf-8') as f:
+            with open(output_file, "w", encoding="utf-8") as f:
                 f.write(solver.to_smt2())
 
-            logger.info("Successfully converted to QF_BV and saved to %s",
-                        output_file)
+            logger.info("Successfully converted to QF_BV and saved to %s", output_file)
             return True
         # Not QF_BV, discard
         logger.warning("Conversion did not result in QF_BV formula, discarded")

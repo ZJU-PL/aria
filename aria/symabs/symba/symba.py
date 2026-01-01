@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 class InferenceRule(Enum):
     """Enumeration of SYMBA inference rules"""
+
     INIT = "INIT"
     GLOBALPUSH = "GLOBALPUSH"
     UNBOUNDED = "UNBOUNDED"
@@ -54,7 +55,9 @@ class SYMBAState:
     T: List[z3.ExprRef] = field(default_factory=list)
 
     # Current bounds for each objective
-    bounds: Dict[z3.ExprRef, Tuple[Optional[int], Optional[int]]] = field(default_factory=dict)
+    bounds: Dict[z3.ExprRef, Tuple[Optional[int], Optional[int]]] = field(
+        default_factory=dict
+    )
 
     # Statistics
     num_smt_queries: int = 0
@@ -90,8 +93,13 @@ class SYMBA:
     such that φ ∧ t ≤ κ is satisfiable and φ ∧ t ≥ κ is unsatisfiable.
     """
 
-    def __init__(self, formula: z3.ExprRef, objectives: List[z3.ExprRef],
-                 solver_factory=None, timeout: int = 0):
+    def __init__(
+        self,
+        formula: z3.ExprRef,
+        objectives: List[z3.ExprRef],
+        solver_factory=None,
+        timeout: int = 0,
+    ):
         """
         Initialize SYMBA with a formula and objective functions.
 
@@ -111,9 +119,9 @@ class SYMBA:
 
         # Statistics
         self.stats = {
-            'total_time': 0.0,
-            'smt_queries': 0,
-            'rules_applied': {rule: 0 for rule in InferenceRule}
+            "total_time": 0.0,
+            "smt_queries": 0,
+            "rules_applied": {rule: 0 for rule in InferenceRule},
         }
 
     def _initialize_state(self) -> SYMBAState:
@@ -143,17 +151,19 @@ class SYMBA:
             solver.set("timeout", self.timeout)
         return solver
 
-    def _check_sat_with_formula(self, formula: z3.ExprRef) -> Tuple[z3.CheckSatResult, Optional[z3.ModelRef]]:
+    def _check_sat_with_formula(
+        self, formula: z3.ExprRef
+    ) -> Tuple[z3.CheckSatResult, Optional[z3.ModelRef]]:
         """Check satisfiability of formula and return result with model"""
         solver = self._create_solver()
         solver.add(formula)
-        self.stats['smt_queries'] += 1
+        self.stats["smt_queries"] += 1
 
         start_time = time.time()
         result = solver.check()
         elapsed = time.time() - start_time
 
-        self.stats['total_time'] += elapsed
+        self.stats["total_time"] += elapsed
 
         if result == z3.sat:
             return result, solver.model()
@@ -207,16 +217,20 @@ class SYMBA:
                 pass
 
         if form_T_constraints:
-            return (z3.And(form_T_constraints)
-                    if len(form_T_constraints) > 1
-                    else form_T_constraints[0])
+            return (
+                z3.And(form_T_constraints)
+                if len(form_T_constraints) > 1
+                else form_T_constraints[0]
+            )
         return z3.BoolVal(True)  # No constraints means everything is allowed
 
     def _is_equality_constraint(self, expr: z3.ExprRef) -> bool:
         """Check if expression is an equality constraint (obj == val)"""
         return z3.is_eq(expr) and len(expr.children()) == 2
 
-    def _extract_equality(self, expr: z3.ExprRef) -> Tuple[Optional[z3.ExprRef], Optional[int]]:
+    def _extract_equality(
+        self, expr: z3.ExprRef
+    ) -> Tuple[Optional[z3.ExprRef], Optional[int]]:
         """Extract objective and value from equality constraint"""
         left, right = expr.children()
         # Check if left is an objective and right is a constant
@@ -424,7 +438,11 @@ class SYMBA:
         # Create the new over-approximation as t₁ ≤ k₁ ∧ t₂ ≤ k₂ ∧ ... ∧ tₙ ≤ kₙ
         if max_values:
             bound_conditions = [obj <= max_val for obj, max_val in max_values.items()]
-            new_O = z3.And(bound_conditions) if len(bound_conditions) > 1 else bound_conditions[0]
+            new_O = (
+                z3.And(bound_conditions)
+                if len(bound_conditions) > 1
+                else bound_conditions[0]
+            )
 
             # O becomes the minimum (intersection) of current O and new bounds
             if self.state.O == z3.BoolVal(False):
@@ -460,7 +478,11 @@ class SYMBA:
 
         # Check if any UNBOUNDED rules can be applied
         for i in range(len(self.objectives)):
-            if self._apply_unbounded(i) or self._apply_unbounded_fail(i) or self._apply_bounded(i):
+            if (
+                self._apply_unbounded(i)
+                or self._apply_unbounded_fail(i)
+                or self._apply_bounded(i)
+            ):
                 return False  # Can still apply some rule
 
         return True  # No more rules can be applied
@@ -497,7 +519,7 @@ class SYMBA:
             model = self._apply_global_push()
             if model is not None:
                 logger.debug("Applied GLOBALPUSH rule")
-                self.stats['rules_applied'][InferenceRule.GLOBALPUSH] += 1
+                self.stats["rules_applied"][InferenceRule.GLOBALPUSH] += 1
                 rules_applied = True
 
             # If no new model found, try to analyze existing models
@@ -506,22 +528,20 @@ class SYMBA:
                     # Try UNBOUNDED for each objective
                     if self._apply_unbounded(i):
                         logger.debug("Applied UNBOUNDED rule for objective %d", i)
-                        self.stats['rules_applied'][InferenceRule.UNBOUNDED] += 1
+                        self.stats["rules_applied"][InferenceRule.UNBOUNDED] += 1
                         rules_applied = True
                         break
 
                     # Try UNBOUNDED-FAIL for each objective
                     if self._apply_unbounded_fail(i):
-                        logger.debug(
-                            "Applied UNBOUNDED-FAIL rule for objective %d", i
-                        )
-                        self.stats['rules_applied'][InferenceRule.UNBOUNDED_FAIL] += 1
+                        logger.debug("Applied UNBOUNDED-FAIL rule for objective %d", i)
+                        self.stats["rules_applied"][InferenceRule.UNBOUNDED_FAIL] += 1
                         rules_applied = True
 
                         # After UNBOUNDED-FAIL, try BOUNDED
                         if self._apply_bounded(i):
                             logger.debug("Applied BOUNDED rule for objective %d", i)
-                            self.stats['rules_applied'][InferenceRule.BOUNDED] += 1
+                            self.stats["rules_applied"][InferenceRule.BOUNDED] += 1
                         break
 
             if not rules_applied:
@@ -529,19 +549,19 @@ class SYMBA:
                 break
 
         total_time = time.time() - start_time
-        self.stats['total_time'] = total_time
+        self.stats["total_time"] = total_time
 
         if iteration >= max_iterations:
             logger.warning(
-                "SYMBA reached maximum iterations (%d), terminating",
-                max_iterations
+                "SYMBA reached maximum iterations (%d), terminating", max_iterations
             )
 
         logger.info(
             "SYMBA completed in %.2fs with %d SMT queries",
-            total_time, self.stats['smt_queries']
+            total_time,
+            self.stats["smt_queries"],
         )
-        logger.info("Rules applied: %s", self.stats['rules_applied'])
+        logger.info("Rules applied: %s", self.stats["rules_applied"])
         logger.info("Final bounds: %s", self.get_optimal_values())
 
         return self.state
@@ -562,7 +582,7 @@ class SYMBA:
             elif lower is not None:
                 optimal_values[obj] = lower  # Only lower bound available
             else:
-                optimal_values[obj] = None   # No bound found
+                optimal_values[obj] = None  # No bound found
 
         return optimal_values
 

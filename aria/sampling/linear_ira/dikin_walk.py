@@ -10,6 +10,7 @@ import argparse
 from concurrent import futures
 
 import numpy as np
+
 try:
     from scipy.optimize import linprog  # pylint: disable=import-error
 except ImportError:
@@ -25,7 +26,7 @@ from six.moves import range
 def hessian(a, b, x):
     """Return log-barrier Hessian matrix at x."""
     d = b - a.dot(x)
-    s = d ** -2.0
+    s = d**-2.0
     return a.T.dot(np.diag(s)).dot(a)
 
 
@@ -64,7 +65,7 @@ def dikin_walk(a, b, x0, r=3 / 40):
     while True:
         if not (a.dot(x) <= b).all():
             print(a.dot(x) - b)
-            raise ValueError(f'Invalid state: {x}')
+            raise ValueError(f"Invalid state: {x}")
 
         if np.random.uniform() < 0.5:
             yield x
@@ -92,7 +93,7 @@ def hit_and_run(a, b, x0):
     while True:
         if not (a.dot(x) <= b).all():
             print(a.dot(x) - b)
-            raise ValueError(f'Invalid state: {x}')
+            raise ValueError(f"Invalid state: {x}")
 
         # Generate a point on the sphere surface
         d = np.random.normal(size=a.shape[1])
@@ -110,14 +111,14 @@ def hit_and_run(a, b, x0):
 def chebyshev_center(a, b):
     """Return Chebyshev center of the convex polytope."""
     if linprog is None:
-        raise ImportError('scipy.optimize.linprog is required for chebyshev_center')
+        raise ImportError("scipy.optimize.linprog is required for chebyshev_center")
     norm_vector = np.reshape(np.linalg.norm(a, axis=1), (a.shape[0], 1))
     c = np.zeros(a.shape[1] + 1)
     c[-1] = -1
     a_lp = np.hstack((a, norm_vector))
     res = linprog(c, A_ub=a_lp, b_ub=b, bounds=(None, None))
     if not res.success:
-        raise ValueError('Unable to find Chebyshev center')
+        raise ValueError("Unable to find Chebyshev center")
 
     return res.x[:-1]
 
@@ -158,17 +159,26 @@ class ConunctiveLRASampler:
 def main():
     """Entry point."""
 
-    parser = argparse.ArgumentParser(description='Dikin walk test')
-    parser.add_argument('--sampler', choices=['dikin', 'hit-and-run'],
-                        default='dikin', help='Sampling method to use')
-    parser.add_argument('--chains', type=int, default=1,
-                        help='Number of chains')
-    parser.add_argument('--burn', type=int, default=1000,
-                        help='Number of samples to burn')
-    parser.add_argument('--thin', type=int, default=10,
-                        help='Number of samples to take before using one')
-    parser.add_argument('--count', type=int, default=10000,
-                        help='Stop after taking this many samples')
+    parser = argparse.ArgumentParser(description="Dikin walk test")
+    parser.add_argument(
+        "--sampler",
+        choices=["dikin", "hit-and-run"],
+        default="dikin",
+        help="Sampling method to use",
+    )
+    parser.add_argument("--chains", type=int, default=1, help="Number of chains")
+    parser.add_argument(
+        "--burn", type=int, default=1000, help="Number of samples to burn"
+    )
+    parser.add_argument(
+        "--thin",
+        type=int,
+        default=10,
+        help="Number of samples to take before using one",
+    )
+    parser.add_argument(
+        "--count", type=int, default=10000, help="Stop after taking this many samples"
+    )
     args = parser.parse_args()
 
     # This example is based on a system of linear equalities and
@@ -177,9 +187,7 @@ def main():
 
     # Equalities
     # 1) x3 == 0
-    eq = np.array([
-        [0, 0, 1]
-    ])
+    eq = np.array([[0, 0, 1]])
     # eq_rhs is defined but not used in the current implementation
     # eq_rhs = np.array([0])
 
@@ -191,26 +199,26 @@ def main():
     # 4) -3*x1 + x2 <= 4
     # 5) x1 + 3*x2 <= 22
     # 6) x1 <= 10
-    leq = np.array([
-        [-3, -2, 0],
-        [0, -1, 0],
-        [1, -1, 0],
-        [-3, 1, 0],
-        [1, 3, 0],
-        [1, 0, 0],
-    ])
-    leq_rhs = np.array([
-        -6, -1, 8, 4, 22, 10
-    ])
+    leq = np.array(
+        [
+            [-3, -2, 0],
+            [0, -1, 0],
+            [1, -1, 0],
+            [-3, 1, 0],
+            [1, 3, 0],
+            [1, 0, 0],
+        ]
+    )
+    leq_rhs = np.array([-6, -1, 8, 4, 22, 10])
 
     # Find nullspace
     _, s, vh = np.linalg.svd(eq)
     rank = np.sum(s >= 1e-10)
     if rank == 0:
-        print('No equality constraints given...')
+        print("No equality constraints given...")
         nullspace = np.identity(vh.shape[0])
     elif rank == vh.shape[0]:
-        raise ValueError('Only one solution in null space')
+        raise ValueError("Only one solution in null space")
     else:
         nullity = vh.shape[0] - rank
         nullspace = vh[-nullity:].T
@@ -222,41 +230,44 @@ def main():
     # Initial point to start the chains from.
     # Use the Chebyshev center.
     x0 = chebyshev_center(a, b)
-    print(f'Chebyshev center: {x0.dot(nullspace.T)}')
+    print(f"Chebyshev center: {x0.dot(nullspace.T)}")
 
-    print(f'A= {a}')
-    print(f'b= {b}')
-    print(f'x0= {x0}')
+    print(f"A= {a}")
+    print(f"b= {b}")
+    print(f"x0= {x0}")
 
     chain_count = args.chains
     burn = args.burn
     count = args.count
     thin = args.thin
 
-    if args.sampler == 'dikin':
+    if args.sampler == "dikin":
         sampler = dikin_walk
         dikin_radius = 1
         sampler_args = (dikin_radius,)
-    elif args.sampler == 'hit-and-run':
+    elif args.sampler == "hit-and-run":
         sampler = hit_and_run
         sampler_args = ()
     else:
-        parser.error(f'Invalid sampler: {args.sampler}')
+        parser.error(f"Invalid sampler: {args.sampler}")
 
     # Collect chains in parallel
     with futures.ProcessPoolExecutor() as executor:
-        fs = [executor.submit(collect_chain, sampler, count, burn, thin,
-                              a, b, x0, *sampler_args)
-              for c in range(chain_count)]
+        fs = [
+            executor.submit(
+                collect_chain, sampler, count, burn, thin, a, b, x0, *sampler_args
+            )
+            for c in range(chain_count)
+        ]
         chains = [f.result() for f in futures.as_completed(fs)]
 
     # Plot chains
     if plt is None:
-        print('matplotlib is not available, skipping plots')
+        print("matplotlib is not available, skipping plots")
         return
 
     for chain_number, chain in enumerate(chains):
-        print(f'Chain {chain_number + 1}/{chain_count}')
+        print(f"Chain {chain_number + 1}/{chain_count}")
 
         points = chain.dot(nullspace.T)
         maxes = points.max(axis=0)
@@ -273,20 +284,20 @@ def main():
             if leq[i, 1] != 0:
                 y1 = (mins[0] * leq[i, 0] - leq_rhs[i]) / -leq[i, 1]
                 y2 = (maxes[0] * leq[i, 0] - leq_rhs[i]) / -leq[i, 1]
-                ax.plot([mins[0], maxes[0]], [y1, y2], color='black')
+                ax.plot([mins[0], maxes[0]], [y1, y2], color="black")
             else:
                 x = leq_rhs[i] / leq[i, 0]
-                ax.plot([x, x], [mins[1], maxes[1]], color='black')
+                ax.plot([x, x], [mins[1], maxes[1]], color="black")
 
-        ax.plot(points[:, 0], points[:, 1], '.')
+        ax.plot(points[:, 0], points[:, 1], ".")
         plt.show()
 
         for i in range(points.shape[1]):
-            print(f'Variable x{i}')
+            print(f"Variable x{i}")
             _, ax = plt.subplots()
             ax.plot(np.arange(count), points[:, i])
             plt.show()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

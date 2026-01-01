@@ -7,7 +7,7 @@ from aria.synthesis.spyro.util import (
     find_linenum_with,
     sum_dict,
     max_dict,
-    union_dict
+    union_dict,
 )
 
 
@@ -44,334 +44,341 @@ class InputGenerator:
 
     def __soundness_code(self):
         """Generate soundness test code."""
-        code = 'harness void soundness() {\n'
-        code += self.__template.get_variables_with_hole() + '\n\n'
-        code += self.__template.get_relations() + '\n\n'
+        code = "harness void soundness() {\n"
+        code += self.__template.get_variables_with_hole() + "\n\n"
+        code += self.__template.get_relations() + "\n\n"
 
         arguments = self.__template.get_arguments_call()
 
-        code += '\tboolean out;\n'
-        code += '\tobtained_property(' + arguments + ',out);\n'
-        code += '\tassert !out;\n'
+        code += "\tboolean out;\n"
+        code += "\tobtained_property(" + arguments + ",out);\n"
+        code += "\tassert !out;\n"
 
-        code += '}\n\n'
+        code += "}\n\n"
 
         return code
 
     def __precision_code(self):
         """Generate precision test code."""
-        code = 'harness void precision() {\n'
-        code += self.__template.get_variables_with_hole() + '\n\n'
+        code = "harness void precision() {\n"
+        code += self.__template.get_variables_with_hole() + "\n\n"
 
         arguments = self.__template.get_arguments_call()
 
-        code += '\tboolean out_1;\n'
-        code += '\tobtained_property(' + arguments + ',out_1);\n'
-        code += '\tassert out_1;\n\n'
+        code += "\tboolean out_1;\n"
+        code += "\tobtained_property(" + arguments + ",out_1);\n"
+        code += "\tassert out_1;\n\n"
 
-        code += '\tboolean out_2;\n'
-        code += '\tproperty_conj(' + arguments + ',out_2);\n'
-        code += '\tassert out_2;\n\n'
+        code += "\tboolean out_2;\n"
+        code += "\tproperty_conj(" + arguments + ",out_2);\n"
+        code += "\tassert out_2;\n\n"
 
-        code += '\tboolean out_3;\n'
-        code += '\tproperty(' + arguments + ',out_3);\n'
-        code += '\tassert !out_3;\n'
-        code += '}\n\n'
+        code += "\tboolean out_3;\n"
+        code += "\tproperty(" + arguments + ",out_3);\n"
+        code += "\tassert !out_3;\n"
+        code += "}\n\n"
 
         return code
 
     def __improves_predicate_code(self):
         """Generate improves predicate test code."""
-        code = 'harness void improves_predicate() {\n'
-        code += self.__template.get_variables_with_hole() + '\n\n'
+        code = "harness void improves_predicate() {\n"
+        code += self.__template.get_variables_with_hole() + "\n\n"
 
         arguments = self.__template.get_arguments_call()
 
-        code += '\tboolean out_1;\n'
-        code += '\tproperty_conj(' + arguments + ',out_1);\n'
-        code += '\tassert out_1;\n\n'
+        code += "\tboolean out_1;\n"
+        code += "\tproperty_conj(" + arguments + ",out_1);\n"
+        code += "\tassert out_1;\n\n"
 
-        code += '\tboolean out_2;\n'
-        code += '\tobtained_property(' + arguments + ',out_2);\n'
-        code += '\tassert !out_2;\n'
+        code += "\tboolean out_2;\n"
+        code += "\tobtained_property(" + arguments + ",out_2);\n"
+        code += "\tassert !out_2;\n"
 
-        code += '}\n\n'
+        code += "}\n\n"
 
         return code
 
     def __property_code(self, maxsat=False):
         """Generate property code."""
+
         def property_gen_code(n):
-            return ' || '.join([f'atom_{i}' for i in range(n)])
+            return " || ".join([f"atom_{i}" for i in range(n)])
 
         property_gen_symbol = self.__template.get_generator_rules()[0][1]
         arg_call = self.__template.get_arguments_call()
         arg_defn = self.__template.get_arguments_defn()
-        atom_gen = f'{property_gen_symbol}_gen({arg_call})'
+        atom_gen = f"{property_gen_symbol}_gen({arg_call})"
 
-        code = self.__generators() + '\n\n' + self.__compare() + '\n\n'
-        code += f'generator boolean property_gen({arg_defn}) {{\n'
+        code = self.__generators() + "\n\n" + self.__compare() + "\n\n"
+        code += f"generator boolean property_gen({arg_defn}) {{\n"
 
-        code += '\tif (??) { return false; }\n'
+        code += "\tif (??) { return false; }\n"
         if self.__minimize_terms and not maxsat:
-            code += '\tint t = ??;\n'
+            code += "\tint t = ??;\n"
             for i in range(self.__num_atom):
                 property_gen = property_gen_code(i + 1)
-                code += f'\tboolean atom_{i} = {atom_gen};\n'
-                code += f'\tif (t == {i + 1}) {{ return {property_gen}; }}\n'
-            code += '\tminimize(t);\n'
+                code += f"\tboolean atom_{i} = {atom_gen};\n"
+                code += f"\tif (t == {i + 1}) {{ return {property_gen}; }}\n"
+            code += "\tminimize(t);\n"
         else:
             for i in range(self.__num_atom):
-                code += f'\tboolean atom_{i} = {atom_gen};\n'
+                code += f"\tboolean atom_{i} = {atom_gen};\n"
             property_gen = property_gen_code(self.__num_atom)
-            code += f'\treturn {property_gen};\n'
-        code += '}\n\n'
+            code += f"\treturn {property_gen};\n"
+        code += "}\n\n"
 
-        code += f'void property({arg_defn}, ref boolean out) {{\n'
-        code += f'\tout = property_gen({arg_call});\n'
-        code += '}\n\n'
+        code += f"void property({arg_defn}, ref boolean out) {{\n"
+        code += f"\tout = property_gen({arg_call});\n"
+        code += "}\n\n"
 
         return code
 
     def __obtained_property_code(self, phi):
         """Generate obtained property code."""
-        code = 'void obtained_property('
+        code = "void obtained_property("
         code += self.__template.get_arguments_defn()
-        code += ',ref boolean out) {\n'
-        code += '\t' + phi + '\n'
-        code += '}\n\n'
+        code += ",ref boolean out) {\n"
+        code += "\t" + phi + "\n"
+        code += "}\n\n"
 
         return code
 
     def __prev_property_code(self, i, phi):
         """Generate previous property code."""
-        code = f'void prev_property_{i}('
+        code = f"void prev_property_{i}("
         code += self.__template.get_arguments_defn()
-        code += ',ref boolean out) {\n'
-        code += '\t' + phi + '\n'
-        code += '}\n\n'
+        code += ",ref boolean out) {\n"
+        code += "\t" + phi + "\n"
+        code += "}\n\n"
 
         return code
 
     def __property_conj_code(self, phi_list):
         """Generate property conjunction code."""
 
-        code = ''
+        code = ""
 
         for i, phi in enumerate(phi_list):
-            code += self.__prev_property_code(i, phi) + '\n\n'
+            code += self.__prev_property_code(i, phi) + "\n\n"
 
-        code += 'void property_conj('
+        code += "void property_conj("
         code += self.__template.get_arguments_defn()
-        code += ',ref boolean out) {\n'
+        code += ",ref boolean out) {\n"
 
         for i in range(len(phi_list)):
-            code += f'\tboolean out_{i};\n'
-            code += f'\tprev_property_{i}('
+            code += f"\tboolean out_{i};\n"
+            code += f"\tprev_property_{i}("
             code += self.__template.get_arguments_call()
-            code += f',out_{i});\n\n'
+            code += f",out_{i});\n\n"
 
         if len(phi_list) == 0:
-            code += '\tout = true;\n'
+            code += "\tout = true;\n"
         else:
-            code += '\tout = ' + ' && '.join([f'out_{i}' for i in range(len(phi_list))]) + ';\n'
-        code += '}\n\n'
+            code += (
+                "\tout = "
+                + " && ".join([f"out_{i}" for i in range(len(phi_list))])
+                + ";\n"
+            )
+        code += "}\n\n"
 
         return code
 
     def __pos_examples(self, pos_examples):
         """Generate positive examples code."""
-        code = ''
+        code = ""
 
         for i, pos_example in enumerate(pos_examples):
-            code += '\n'
-            code += f'harness void positive_example_{i} ()'
-            code += ' {\n' + pos_example + '\n}\n\n'
+            code += "\n"
+            code += f"harness void positive_example_{i} ()"
+            code += " {\n" + pos_example + "\n}\n\n"
 
         return code
 
     def __neg_examples_synth(self, neg_must_examples, neg_may_examples):
         """Generate negative examples for synthesis."""
-        code = ''
+        code = ""
 
         i = 0
         for neg_example in neg_may_examples:
-            code += '\n'
-            code += f'harness void negative_example_{i} ()'
-            code += ' {\n' + neg_example + '\n}\n\n'
+            code += "\n"
+            code += f"harness void negative_example_{i} ()"
+            code += " {\n" + neg_example + "\n}\n\n"
             i += 1
 
         for neg_example in neg_must_examples:
-            code += '\n'
-            code += f'harness void negative_example_{i} ()'
-            code += ' {\n' + neg_example + '\n}\n\n'
+            code += "\n"
+            code += f"harness void negative_example_{i} ()"
+            code += " {\n" + neg_example + "\n}\n\n"
             i += 1
 
         return code
 
     def __neg_examples_maxsat(self, neg_must_examples, neg_may_examples):
         """Generate negative examples for maxsat."""
-        code = ''
+        code = ""
 
         i = 0
         for neg_example in neg_may_examples:
-            code += '\n'
-            code += f'void negative_example_{i} ()'
-            code += ' {\n' + neg_example + '\n}\n\n'
+            code += "\n"
+            code += f"void negative_example_{i} ()"
+            code += " {\n" + neg_example + "\n}\n\n"
             i += 1
 
         for neg_example in neg_must_examples:
-            code += '\n'
-            code += f'harness void negative_example_{i} ()'
-            code += ' {\n' + neg_example + '\n}\n\n'
+            code += "\n"
+            code += f"harness void negative_example_{i} ()"
+            code += " {\n" + neg_example + "\n}\n\n"
             i += 1
 
         return code
 
     def __maxsat(self, num_neg_may):
         """Generate maxsat code."""
-        code = 'harness void maxsat() {\n'
-        code += f'\tint cnt = {num_neg_may};\n'
+        code = "harness void maxsat() {\n"
+        code += f"\tint cnt = {num_neg_may};\n"
 
         for i in range(num_neg_may):
-            code += f'\tif (??) {{ cnt -= 1; negative_example_{i}(); }}\n'
+            code += f"\tif (??) {{ cnt -= 1; negative_example_{i}(); }}\n"
 
-        code += '\tminimize(cnt);\n'
-        code += '}\n\n'
+        code += "\tminimize(cnt);\n"
+        code += "}\n\n"
 
         return code
 
     def __model_check(self, neg_example):
         """Generate model check code."""
-        code = 'harness void model_check() {\n'
+        code = "harness void model_check() {\n"
 
-        neg_example = '\n'.join(neg_example.splitlines()[:-1])
-        code += neg_example.replace('property', 'obtained_property')
-        code += '\tassert out;\n'
+        neg_example = "\n".join(neg_example.splitlines()[:-1])
+        code += neg_example.replace("property", "obtained_property")
+        code += "\tassert out;\n"
 
-        code += '\tboolean trivial_target = ??;\n'
-        code += '\tassert trivial_target;\n'
+        code += "\tboolean trivial_target = ??;\n"
+        code += "\tassert trivial_target;\n"
 
-        code += '}\n\n'
+        code += "}\n\n"
 
         return code
 
     def __count_generator_calls(self, cxt, expr):
         """Count generator calls in an expression."""
-        if expr[0] == 'BINOP':
+        if expr[0] == "BINOP":
             d1 = self.__count_generator_calls(cxt, expr[2])
             d2 = self.__count_generator_calls(cxt, expr[3])
             return sum_dict(d1, d2)
-        if expr[0] == 'UNARY':
+        if expr[0] == "UNARY":
             return self.__count_generator_calls(cxt, expr[2])
-        if expr[0] in ('INT', 'HOLE'):
+        if expr[0] in ("INT", "HOLE"):
             return {}
-        if expr[0] in ('VAR', 'TYPE'):
+        if expr[0] in ("VAR", "TYPE"):
             return {expr[1]: 1} if expr[1] in cxt else {}
-        if expr[0] == 'FCALL':
+        if expr[0] == "FCALL":
             dicts = [self.__count_generator_calls(cxt, e) for e in expr[2]]
             return functools.reduce(sum_dict, dicts) if len(dicts) > 0 else {}
-        if expr[0] == 'LAMBDA':
+        if expr[0] == "LAMBDA":
             return self.__count_generator_calls(cxt, expr[2])
-        raise ValueError(f'Unhandled case: {expr[0]}')
+        raise ValueError(f"Unhandled case: {expr[0]}")
 
     def __subcall_gen(self, cxt, num_calls_prev, num_calls):
         """Generate subcall generator code."""
         arg_call = self.__template.get_arguments_call()
 
-        code = ''
+        code = ""
         for symbol, n in num_calls.items():
             if symbol not in num_calls_prev:
                 for i in range(n):
-                    code += f'\t{cxt[symbol]} var_{symbol}_{i} = {symbol}_gen({arg_call});\n'
+                    code += f"\t{cxt[symbol]} var_{symbol}_{i} = {symbol}_gen({arg_call});\n"
             elif num_calls_prev[symbol] < n:
                 for i in range(num_calls_prev[symbol], n):
-                    code += f'\t{cxt[symbol]} var_{symbol}_{i} = {symbol}_gen({arg_call});\n'
+                    code += f"\t{cxt[symbol]} var_{symbol}_{i} = {symbol}_gen({arg_call});\n"
 
-        return code + '\n'
+        return code + "\n"
 
     def __subcall_gen_example(self, cxt, num_calls_prev, num_calls):
         """Generate subcall generator code for examples."""
         arg_call = self.__template.get_arguments_call()
         bnds = self.__template.get_bounds()
 
-        code = ''
+        code = ""
         for symbol, n in num_calls.items():
-            call_code = f'{symbol}_gen(bnd - 1)' if bnds[symbol] > 0 else f'{symbol}_gen()'
+            call_code = (
+                f"{symbol}_gen(bnd - 1)" if bnds[symbol] > 0 else f"{symbol}_gen()"
+            )
             if symbol not in num_calls_prev:
                 for i in range(n):
-                    code += f'\t{cxt[symbol]} var_{symbol}_{i} = {call_code};\n'
+                    code += f"\t{cxt[symbol]} var_{symbol}_{i} = {call_code};\n"
             elif num_calls_prev[symbol] < n:
                 for i in range(num_calls_prev[symbol], n):
-                    code += f'\t{cxt[symbol]} var_{symbol}_{i} = {call_code};\n'
+                    code += f"\t{cxt[symbol]} var_{symbol}_{i} = {call_code};\n"
 
-        return code + '\n'
+        return code + "\n"
 
     def __fresh_variable(self):
         """Generate a fresh variable name."""
         n = self.__fresh_num
         self.__fresh_num += 1
 
-        return f'var_{n}'
+        return f"var_{n}"
 
     def __compare(self):
         """Generate compare function code."""
-        code = 'generator boolean compare(int x, int y) {\n'
+        code = "generator boolean compare(int x, int y) {\n"
 
         # This seems more efficient than the regex style
-        code += '\tint t = ??;\n'
-        code += '\tif (t == 0) { return x == y; }\n'
-        code += '\tif (t == 1) { return x <= y; }\n'
-        code += '\tif (t == 2) { return x >= y; }\n'
-        code += '\tif (t == 3) { return x < y; }\n'
-        code += '\tif (t == 4) { return x > y; }\n'
-        code += '\treturn x != y; \n'
+        code += "\tint t = ??;\n"
+        code += "\tif (t == 0) { return x == y; }\n"
+        code += "\tif (t == 1) { return x <= y; }\n"
+        code += "\tif (t == 2) { return x >= y; }\n"
+        code += "\tif (t == 3) { return x < y; }\n"
+        code += "\tif (t == 4) { return x > y; }\n"
+        code += "\treturn x != y; \n"
 
-        code += '}'
+        code += "}"
 
         return code
 
-    def __expr_to_code(self, cxt, expr, out_type='boolean'):
+    def __expr_to_code(self, cxt, expr, out_type="boolean"):
         """Convert expression to code."""
-        if expr[0] == 'BINOP':
+        if expr[0] == "BINOP":
             cxt1, code1, out1 = self.__expr_to_code(cxt, expr[2])
             cxt2, code2, out2 = self.__expr_to_code(cxt1, expr[3])
-            return (cxt2, code1 + code2, f'{out1} {expr[1]} {out2}')
-        if expr[0] == 'UNARY':
+            return (cxt2, code1 + code2, f"{out1} {expr[1]} {out2}")
+        if expr[0] == "UNARY":
             cxt, code, out = self.__expr_to_code(cxt, expr[2])
-            return (cxt, code, f'{expr[1]} {out}')
-        if expr[0] == 'INT':
-            return (cxt, '', expr[1])
-        if expr[0] in ('VAR', 'TYPE'):
+            return (cxt, code, f"{expr[1]} {out}")
+        if expr[0] == "INT":
+            return (cxt, "", expr[1])
+        if expr[0] in ("VAR", "TYPE"):
             symbol = expr[1]
             if symbol in cxt:
                 count = cxt[symbol]
                 cxt[symbol] += 1
-                return (cxt, '', f'var_{symbol}_{count}')
-            return (cxt, '', symbol)
-        if expr[0] == 'HOLE':
-            code = '??' if expr[1] == 0 else f'??({expr[1]})'
-            return (cxt, '', code)
-        if expr[0] == 'FCALL':
-            code = ''
+                return (cxt, "", f"var_{symbol}_{count}")
+            return (cxt, "", symbol)
+        if expr[0] == "HOLE":
+            code = "??" if expr[1] == 0 else f"??({expr[1]})"
+            return (cxt, "", code)
+        if expr[0] == "FCALL":
+            code = ""
             args = []
             for e in expr[2]:
                 cxt, code_sub, out_sub = self.__expr_to_code(cxt, e)
                 code += code_sub
                 args.append(out_sub)
 
-            if expr[1] == 'compare':
-                args_call = ','.join(args)
-                return (cxt, code, f'{expr[1]}({args_call})')
+            if expr[1] == "compare":
+                args_call = ",".join(args)
+                return (cxt, code, f"{expr[1]}({args_call})")
             fresh_var = self.__fresh_variable()
-            args_call = ','.join(args + [fresh_var])
-            code += f'\t\t{out_type} {fresh_var};\n'
-            code += f'\t\t{expr[1]}({args_call});\n'
+            args_call = ",".join(args + [fresh_var])
+            code += f"\t\t{out_type} {fresh_var};\n"
+            code += f"\t\t{expr[1]}({args_call});\n"
             return (cxt, code, fresh_var)
-        if expr[0] == 'LAMBDA':
+        if expr[0] == "LAMBDA":
             cxt, code, out = self.__expr_to_code(cxt, expr[2])
-            return (cxt, code, f'({expr[1]}) -> {out}')
-        raise ValueError(f'Unhandled case: {expr}')
+            return (cxt, code, f"({expr[1]}) -> {out}")
+        raise ValueError(f"Unhandled case: {expr}")
 
     def __rule_to_code(self, rule):
         """Convert a rule to code."""
@@ -384,8 +391,8 @@ class InputGenerator:
 
         arg_defn = self.__template.get_arguments_defn()
 
-        code = f'generator {typ} {symbol}_gen({arg_defn}) {{\n'
-        code += '\tint t = ??;\n'
+        code = f"generator {typ} {symbol}_gen({arg_defn}) {{\n"
+        code += "\tint t = ??;\n"
 
         for n, e in enumerate(exprlist):
             num_calls = self.__count_generator_calls(cxt, e)
@@ -397,14 +404,14 @@ class InputGenerator:
 
             if n + 1 == len(exprlist):
                 code += e_code
-                code += f'\treturn {e_out};\n'
+                code += f"\treturn {e_out};\n"
             else:
-                code += f'\tif (t == {n}) {{\n'
+                code += f"\tif (t == {n}) {{\n"
                 code += e_code
-                code += f'\t\treturn {e_out};\n'
-                code += '\t}\n'
+                code += f"\t\treturn {e_out};\n"
+                code += "\t}\n"
 
-        code += '}\n'
+        code += "}\n"
 
         return code
 
@@ -412,7 +419,7 @@ class InputGenerator:
         """Generate all generator code."""
         rules = self.__template.get_generator_rules()
 
-        return '\n'.join([self.__rule_to_code(rule) for rule in rules]) + '\n'
+        return "\n".join([self.__rule_to_code(rule) for rule in rules]) + "\n"
 
     def __example_rule_to_code(self, rule):
         """Convert an example rule to code."""
@@ -424,11 +431,11 @@ class InputGenerator:
         num_calls_prev = {}
 
         if bnd > 0:
-            code = f'generator {typ} {typ}_gen(int bnd) {{\n'
-            code += '\tassert bnd > 0;\n'
+            code = f"generator {typ} {typ}_gen(int bnd) {{\n"
+            code += "\tassert bnd > 0;\n"
         else:
-            code = f'generator {typ} {typ}_gen() {{\n'
-        code += '\tint t = ??;\n'
+            code = f"generator {typ} {typ}_gen() {{\n"
+        code += "\tint t = ??;\n"
 
         for n, e in enumerate(exprlist):
             num_calls = self.__count_generator_calls(cxt, e)
@@ -440,21 +447,21 @@ class InputGenerator:
 
             if n + 1 == len(exprlist):
                 code += e_code
-                code += f'\treturn {e_out};\n'
+                code += f"\treturn {e_out};\n"
             else:
-                code += f'\tif (t == {n}) {{\n'
+                code += f"\tif (t == {n}) {{\n"
                 code += e_code
-                code += f'\t\treturn {e_out};\n'
-                code += '\t}\n'
+                code += f"\t\treturn {e_out};\n"
+                code += "\t}\n"
 
-        code += '}\n'
+        code += "}\n"
 
         return code
 
     def __example_generators(self):
         """Generate example generator code."""
         rules = self.__template.get_example_rules()
-        code = '\n'.join([self.__example_rule_to_code(rule) for rule in rules]) + '\n'
+        code = "\n".join([self.__example_rule_to_code(rule) for rule in rules]) + "\n"
 
         return code
 
@@ -483,7 +490,9 @@ class InputGenerator:
 
         return code
 
-    def generate_precision_input(self, phi, phi_list, pos, neg_must, neg_may, lam_functions):
+    def generate_precision_input(
+        self, phi, phi_list, pos, neg_must, neg_may, lam_functions
+    ):
         """Generate precision input code."""
         code = self.__template.get_implementation()
         code += self.__lam_functions(lam_functions)

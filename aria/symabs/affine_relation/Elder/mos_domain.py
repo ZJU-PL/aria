@@ -54,7 +54,7 @@ class MOS:
         """Add a matrix to this MOS element."""
         self.matrices.append(matrix)
 
-    def union(self, other: 'MOS') -> 'MOS':
+    def union(self, other: "MOS") -> "MOS":
         """Compute the union of two MOS elements."""
         if self.is_empty():
             return other.copy()
@@ -67,7 +67,7 @@ class MOS:
                 result.add_matrix(matrix)
         return result
 
-    def copy(self) -> 'MOS':
+    def copy(self) -> "MOS":
         """Create a copy of this MOS element."""
         new_matrices = [m.copy() for m in self.matrices]
         return MOS(new_matrices, self.w)
@@ -103,10 +103,14 @@ class MOS:
             return False
 
         # Simple check - in practice would need canonical representation
-        return set(str(m.data) for m in self.matrices) == set(str(m.data) for m in other.matrices)
+        return set(str(m.data) for m in self.matrices) == set(
+            str(m.data) for m in other.matrices
+        )
 
 
-def alpha_mos(phi: z3.ExprRef, pre_vars: List[z3.ExprRef], post_vars: List[z3.ExprRef]) -> MOS:
+def alpha_mos(
+    phi: z3.ExprRef, pre_vars: List[z3.ExprRef], post_vars: List[z3.ExprRef]
+) -> MOS:
     """Symbolic implementation of the α function for MOS.
 
     Uses CEGIS (CounterExample-Guided Inductive Synthesis) to compute the strongest
@@ -194,8 +198,12 @@ def _cegis_alpha_mos(formula, pre_vars, post_vars, w: int) -> MOS:
             # Found a counterexample not covered by existing transforms
             # Use SMT-based synthesis to find a new affine transform T: x' = x*M + b
             model = check_solver.model()
-            seed_pre = [model.eval(var, model_completion=True).as_long() for var in pre_vars]
-            seed_post = [model.eval(var, model_completion=True).as_long() for var in post_vars]
+            seed_pre = [
+                model.eval(var, model_completion=True).as_long() for var in pre_vars
+            ]
+            seed_post = [
+                model.eval(var, model_completion=True).as_long() for var in post_vars
+            ]
 
             new_matrix = _synthesize_affine_transform_smt(
                 formula=formula,
@@ -252,7 +260,9 @@ def _synthesize_affine_transform_smt(
     if seed_sample is not None:
         samples.append(seed_sample)
 
-    def fit_transform(samples_local: List[Tuple[List[int], List[int]]]) -> Optional[Tuple[List[List[int]], List[int]]]:
+    def fit_transform(
+        samples_local: List[Tuple[List[int], List[int]]],
+    ) -> Optional[Tuple[List[List[int]], List[int]]]:
         """Fit M (k x k) and b (k) over given samples using bit-vector arithmetic."""
         s = z3.Solver()
         if timeout_ms is not None:
@@ -263,7 +273,7 @@ def _synthesize_affine_transform_smt(
 
         # Constrain coefficients to be within modulus automatically (BitVec ensures wrap-around)
         # Add constraints per sample
-        for (pre_vals, post_vals) in samples_local:
+        for pre_vals, post_vals in samples_local:
             x = [BV(v) for v in pre_vals]
             xp = [BV(v) for v in post_vals]
             for i in range(k):
@@ -278,8 +288,13 @@ def _synthesize_affine_transform_smt(
         m = s.model()
 
         # Extract concrete coefficients
-        M_int: List[List[int]] = [[m.eval(M[i][j], model_completion=True).as_long() for j in range(k)] for i in range(k)]
-        b_int: List[int] = [m.eval(b[i], model_completion=True).as_long() for i in range(k)]
+        M_int: List[List[int]] = [
+            [m.eval(M[i][j], model_completion=True).as_long() for j in range(k)]
+            for i in range(k)
+        ]
+        b_int: List[int] = [
+            m.eval(b[i], model_completion=True).as_long() for i in range(k)
+        ]
         return M_int, b_int
 
     def build_matrix(M_int: List[List[int]], b_int: List[int]) -> Matrix:
@@ -347,7 +362,10 @@ def _synthesize_affine_transform_smt(
 
     return None
 
-def create_z3_variables(variable_names: List[str], w: int = 32) -> Tuple[List[z3.ExprRef], List[z3.ExprRef]]:
+
+def create_z3_variables(
+    variable_names: List[str], w: int = 32
+) -> Tuple[List[z3.ExprRef], List[z3.ExprRef]]:
     """Create Z3 variables for pre-state and post-state.
 
     Args:
@@ -365,6 +383,7 @@ def create_z3_variables(variable_names: List[str], w: int = 32) -> Tuple[List[z3
 
     return pre_vars, post_vars
 
+
 def _is_identity_relation(ag_matrix: Matrix) -> bool:
     """Check if an AG matrix represents an identity relation."""
     k = (ag_matrix.cols - 1) // 2
@@ -381,13 +400,18 @@ def _is_identity_relation(ag_matrix: Matrix) -> bool:
         # The pattern should be: -1*x_i + 1*x'_i + 0 for other variables = 0
         found_identity_for_i = False
         for j in range(k):
-            a_j = row[j]        # coefficient of x_j
-            b_j = row[k + j]    # coefficient of x'_j
-            constant = row[2*k]
+            a_j = row[j]  # coefficient of x_j
+            b_j = row[k + j]  # coefficient of x'_j
+            constant = row[2 * k]
 
-            if (j == i and a_j == -1 and b_j == 1 and constant == 0 and
-                all(row[m] == 0 for m in range(k) if m != j) and
-                all(row[k + m] == 0 for m in range(k) if m != j)):
+            if (
+                j == i
+                and a_j == -1
+                and b_j == 1
+                and constant == 0
+                and all(row[m] == 0 for m in range(k) if m != j)
+                and all(row[k + m] == 0 for m in range(k) if m != j)
+            ):
                 found_identity_for_i = True
                 break
 
@@ -419,8 +443,8 @@ def shatter_ag(ag_matrix: Matrix) -> List[Matrix]:
 
         # Extract coefficients: [x_coeffs, x'_coeffs, constant]
         x_coeffs = row[:k]
-        xp_coeffs = row[k:2*k]
-        constant = row[2*k]
+        xp_coeffs = row[k : 2 * k]
+        constant = row[2 * k]
 
         # Try to interpret this generator as affine transformation constraints
         # A generator Σ a_i x_i + Σ b_i x'_i + c = 0 represents that
@@ -430,14 +454,17 @@ def shatter_ag(ag_matrix: Matrix) -> List[Matrix]:
         transformations_found = []
 
         for j in range(k):
-            a_j = row[j]        # coefficient of x_j
-            b_j = row[k + j]    # coefficient of x'_j
+            a_j = row[j]  # coefficient of x_j
+            b_j = row[k + j]  # coefficient of x'_j
 
             # Check if this represents x'_j = x_j (i.e., -x_j + x'_j = 0)
-            if (a_j == -1 and b_j == 1 and
-                all(row[m] == 0 for m in range(k) if m != j) and
-                all(row[k + m] == 0 for m in range(k) if m != j) and
-                constant == 0):
+            if (
+                a_j == -1
+                and b_j == 1
+                and all(row[m] == 0 for m in range(k) if m != j)
+                and all(row[k + m] == 0 for m in range(k) if m != j)
+                and constant == 0
+            ):
                 # This represents x'_j = x_j, create identity transformation
                 matrix_data = np.eye(k + 1, dtype=object)
                 transformations_found.append(Matrix(matrix_data, ag_matrix.modulus))

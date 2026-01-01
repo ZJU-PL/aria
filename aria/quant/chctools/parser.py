@@ -9,7 +9,7 @@ from pysmt.constants import Fraction
 from pysmt.exceptions import PysmtSyntaxError
 from pysmt.smtlib.parser import SmtLibZ3Parser, SmtLibCommand
 
-Rule = collections.namedtuple('Rule', ['formula', 'is_query'])
+Rule = collections.namedtuple("Rule", ["formula", "is_query"])
 
 
 class ChcRulesSmtLibParser(SmtLibZ3Parser):  # pylint: disable=abstract-method
@@ -35,19 +35,18 @@ class ChcRulesSmtLibParser(SmtLibZ3Parser):  # pylint: disable=abstract-method
         int_sort = self.env.type_manager.INT()
         mod_sort = self.env.type_manager.FunctionType(int_sort, [int_sort, int_sort])
         mod_fn = self._get_var("mod", mod_sort)
-        self.cache.bind("mod", \
-                        functools.partial(self._function_call_helper, mod_fn))
+        self.cache.bind("mod", functools.partial(self._function_call_helper, mod_fn))
         # delcare rem
         rem_fn = self._get_var("rem", mod_sort)
-        self.cache.bind("rem", \
-                        functools.partial(self._function_call_helper, rem_fn))
+        self.cache.bind("rem", functools.partial(self._function_call_helper, rem_fn))
 
     def _division(self, left, right):
         """Utility function that builds a division"""
         mgr = self.env.formula_manager
         if left.is_constant() and right.is_constant():
-            return mgr.Real(Fraction(left.constant_value()) / \
-                            Fraction(right.constant_value()))
+            return mgr.Real(
+                Fraction(left.constant_value()) / Fraction(right.constant_value())
+            )
 
         # for some reason pysmt does not like integer division
         if right.is_constant(types.INT):
@@ -73,8 +72,7 @@ class ChcRulesSmtLibParser(SmtLibZ3Parser):  # pylint: disable=abstract-method
 
         fn = self._get_var(rel, fn_sort)
         if fn.symbol_type().is_function_type():
-            self.cache.bind(rel, \
-                            functools.partial(self._function_call_helper, fn))
+            self.cache.bind(rel, functools.partial(self._function_call_helper, fn))
         else:
             self.cache.bind(rel, fn)
         return SmtLibCommand(current, [fn])
@@ -116,7 +114,7 @@ class ChcRulesSmtLibParser(SmtLibZ3Parser):  # pylint: disable=abstract-method
 
 
 def main() -> int:
-    with open(sys.argv[1], 'r', encoding='utf-8') as script:
+    with open(sys.argv[1], "r", encoding="utf-8") as script:
         parser = ChcRulesSmtLibParser()
         try:
             r, q = parser.get_chc(script)
@@ -128,5 +126,5 @@ def main() -> int:
     return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

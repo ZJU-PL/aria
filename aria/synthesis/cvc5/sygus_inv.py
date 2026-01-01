@@ -17,35 +17,46 @@ class SygusInv:
     def _extract_define_fun_body(content: str, name: str) -> str:
         """Extract body of a define-fun named `name` returning Bool."""
         # Try pattern followed by another define-fun
-        m = re.search(rf"\(define-fun\s+{name}\s+\(\((.*?)\)\)\s+Bool\s+(.*?)\)\s*\(define-fun",
-                      content, re.DOTALL)
+        m = re.search(
+            rf"\(define-fun\s+{name}\s+\(\((.*?)\)\)\s+Bool\s+(.*?)\)\s*\(define-fun",
+            content,
+            re.DOTALL,
+        )
         if m:
             return m.group(2).strip()
         # Try standalone closing
-        m = re.search(rf"\(define-fun\s+{name}\s+\(\((.*?)\)\)\s+Bool\s+(.*?)\)(?:\s*\n|\s*$)",
-                      content, re.DOTALL)
+        m = re.search(
+            rf"\(define-fun\s+{name}\s+\(\((.*?)\)\)\s+Bool\s+(.*?)\)(?:\s*\n|\s*$)",
+            content,
+            re.DOTALL,
+        )
         if m:
             return m.group(2).strip()
         # Try trailing before any following paren for post
-        m = re.search(rf"\(define-fun\s+{name}\s+\(\((.*?)\)\)\s+Bool\s+(.*?)\)\s*\(",
-                      content, re.DOTALL)
+        m = re.search(
+            rf"\(define-fun\s+{name}\s+\(\((.*?)\)\)\s+Bool\s+(.*?)\)\s*\(",
+            content,
+            re.DOTALL,
+        )
         if m:
             return m.group(2).strip()
         raise ValueError(f"Could not find {name} in the file")
 
     def parse_sygus_file(self, filepath: str) -> Dict[str, Any]:
         """Parse .sl SyGuS file and extract logic, names, and function bodies."""
-        with open(filepath, 'r') as f:
+        with open(filepath, "r") as f:
             content = f.read()
 
         # Extract logic
         logic = None
-        logic_match = re.search(r'\(set-logic\s+([A-Z_]+)\)', content)
+        logic_match = re.search(r"\(set-logic\s+([A-Z_]+)\)", content)
         if logic_match:
             logic = logic_match.group(1)
 
         # Extract function name and variables
-        synth_inv_match = re.search(r'\(synth-inv\s+([a-zA-Z0-9_]+)\s+\(\((.*?)\)\)', content, re.DOTALL)
+        synth_inv_match = re.search(
+            r"\(synth-inv\s+([a-zA-Z0-9_]+)\s+\(\((.*?)\)\)", content, re.DOTALL
+        )
         if not synth_inv_match:
             raise ValueError("Could not find synth-inv declaration in the file")
 
@@ -56,7 +67,7 @@ class SygusInv:
         var_list = []
         var_sorts = {}
 
-        for var_decl in re.findall(r'([a-zA-Z0-9_]+)\s+([^)]+)', vars_decl):
+        for var_decl in re.findall(r"([a-zA-Z0-9_]+)\s+([^)]+)", vars_decl):
             var_name, sort_str = var_decl
             var_list.append(var_name)
             var_sorts[var_name] = sort_str.strip()
@@ -67,13 +78,13 @@ class SygusInv:
         post_body = self._extract_define_fun_body(content, "post_fun")
 
         return {
-            'logic': logic,
-            'inv_fun_name': inv_fun_name,
-            'var_list': var_list,
-            'var_sorts': var_sorts,
-            'pre_body': pre_body,
-            'trans_body': trans_body,
-            'post_body': post_body
+            "logic": logic,
+            "inv_fun_name": inv_fun_name,
+            "var_list": var_list,
+            "var_sorts": var_sorts,
+            "pre_body": pre_body,
+            "trans_body": trans_body,
+            "post_body": post_body,
         }
 
     def synthesize_invariant(self, filepath: str) -> Optional[str]:
@@ -82,12 +93,16 @@ class SygusInv:
         problem = self.parse_sygus_file(filepath)
 
         # Build full SyGuS text
-        var_decls = ' '.join(f"({v} {problem['var_sorts'][v]})" for v in problem['var_list'])
+        var_decls = " ".join(
+            f"({v} {problem['var_sorts'][v]})" for v in problem["var_list"]
+        )
         pre_args = var_decls
-        trans_args = ' '.join([
-            *[f"({v} {problem['var_sorts'][v]})" for v in problem['var_list']],
-            *[f"({v}! {problem['var_sorts'][v]})" for v in problem['var_list']],
-        ])
+        trans_args = " ".join(
+            [
+                *[f"({v} {problem['var_sorts'][v]})" for v in problem["var_list"]],
+                *[f"({v}! {problem['var_sorts'][v]})" for v in problem["var_list"]],
+            ]
+        )
         parts = [
             f"(set-logic {problem['logic']})",
             f"(synth-inv {problem['inv_fun_name']} ({var_decls}))",
@@ -104,7 +119,7 @@ class SygusInv:
             print("Generated SyGuS problem:")
             print(sygus_content)
 
-        result = self._invoke_cvc5_sygus_inv(sygus_content, problem['logic'])
+        result = self._invoke_cvc5_sygus_inv(sygus_content, problem["logic"])
 
         if self.debug:
             print("SyGuS result:", result)
@@ -119,7 +134,7 @@ class SygusInv:
 
         cvc5_path = self._get_cvc5_path()
 
-        with tempfile.NamedTemporaryFile(suffix='.sl', mode='w', delete=False) as tmp:
+        with tempfile.NamedTemporaryFile(suffix=".sl", mode="w", delete=False) as tmp:
             tmp.write(sygus_content)
             tmp_path = tmp.name
 
@@ -137,8 +152,11 @@ class SygusInv:
                 print("cvc5 output:\n" + output)
             if "unsat" in output.lower():
                 return None
-            inv_match = re.search(r'\(define-fun\s+([a-zA-Z0-9_]+)\s+\(\((.*?)\)\)\s+Bool\s+(.*?)\)',
-                                  output, re.DOTALL)
+            inv_match = re.search(
+                r"\(define-fun\s+([a-zA-Z0-9_]+)\s+\(\((.*?)\)\)\s+Bool\s+(.*?)\)",
+                output,
+                re.DOTALL,
+            )
             if inv_match:
                 inv_fun_name = inv_match.group(1)
                 inv_args = inv_match.group(2)
@@ -162,6 +180,7 @@ class SygusInv:
     def _get_cvc5_path(self) -> str:
         """Resolve cvc5 binary path from global config or PATH fallback."""
         from aria.global_params.paths import global_config
+
         cvc5_path = global_config.get_solver_path("cvc5")
         if not cvc5_path:
             if self.debug:

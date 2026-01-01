@@ -1,4 +1,5 @@
 """Expression utilities for polynomial and function expressions."""
+
 from itertools import product
 from typing import List
 
@@ -26,7 +27,8 @@ def get_function_expression(name: str, parameters: List[sp.Symbol]) -> sp.Expr:
 
 
 def get_polynomial_expression(
-        coeffs_name: str, variables: List[sp.Symbol], degree: int) -> sp.Expr:
+    coeffs_name: str, variables: List[sp.Symbol], degree: int
+) -> sp.Expr:
     """
     Get a polynomial expression over the given variables with the given degree.
     Coefficients are named with the given name and indexed for unique identification.
@@ -46,7 +48,7 @@ def get_polynomial_expression(
         The polynomial expression.
     """
     monomials = get_all_monomials(variables, degree)
-    coeffs = [sp.Symbol(f'{coeffs_name}_{i}') for i in range(len(monomials))]
+    coeffs = [sp.Symbol(f"{coeffs_name}_{i}") for i in range(len(monomials))]
     return sum(coeff * monomial for coeff, monomial in zip(coeffs, monomials))
 
 
@@ -69,6 +71,12 @@ def get_all_monomials(variables: List[sp.Symbol], degree: int) -> List[sp.Expr]:
     monomials = []
     for exponents in product(range(degree + 1), repeat=len(variables)):
         if sum(exponents) <= degree:
-            monomials.append(sp.prod(
-                [variable**exponent for variable, exponent in zip(variables, exponents)]))
+            monomials.append(
+                sp.prod(
+                    [
+                        variable**exponent
+                        for variable, exponent in zip(variables, exponents)
+                    ]
+                )
+            )
     return monomials

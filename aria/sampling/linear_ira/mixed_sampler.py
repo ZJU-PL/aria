@@ -2,7 +2,13 @@
 For formulas with different types of variables
 """
 
-from aria.sampling.base import Sampler, SamplingOptions, SamplingResult, Logic, SamplingMethod
+from aria.sampling.base import (
+    Sampler,
+    SamplingOptions,
+    SamplingResult,
+    Logic,
+    SamplingMethod,
+)
 import z3
 
 
@@ -19,7 +25,13 @@ class MixedSampler(Sampler):
 
     def supports_logic(self, logic: Logic) -> bool:
         """Check if this sampler supports the given logic."""
-        return logic in [Logic.QF_LRA, Logic.QF_LIA, Logic.QF_LIRA, Logic.QF_BV, Logic.QF_BOOL]
+        return logic in [
+            Logic.QF_LRA,
+            Logic.QF_LIA,
+            Logic.QF_LIRA,
+            Logic.QF_BV,
+            Logic.QF_BOOL,
+        ]
 
     def init_from_formula(self, formula: z3.ExprRef) -> None:
         """Initialize the sampler with a formula."""

@@ -31,7 +31,7 @@ class TestLIRASampler:
     def test_sample_lra_formula(self):
         """Test sampling from linear real arithmetic formula."""
         sampler = LIRASampler()
-        x, y = z3.Reals('x y')
+        x, y = z3.Reals("x y")
         formula = z3.And(x > 0, y > 0, x + y < 10)
 
         sampler.init_from_formula(formula)
@@ -39,14 +39,14 @@ class TestLIRASampler:
 
         assert len(result) <= 2
         for sample in result:
-            x_val, y_val = sample['x'], sample['y']
+            x_val, y_val = sample["x"], sample["y"]
             assert x_val > 0 and y_val > 0
             assert x_val + y_val < 10.1  # Small tolerance
 
     def test_sample_lia_formula(self):
         """Test sampling from linear integer arithmetic formula."""
         sampler = LIRASampler()
-        x, y = z3.Ints('x y')
+        x, y = z3.Ints("x y")
         formula = z3.And(x > 0, y > 0, x + y < 10)
 
         sampler.init_from_formula(formula)
@@ -54,14 +54,14 @@ class TestLIRASampler:
 
         assert len(result) <= 3
         for sample in result:
-            assert isinstance(sample['x'], int)
-            assert isinstance(sample['y'], int)
-            assert sample['x'] > 0 and sample['y'] > 0
+            assert isinstance(sample["x"], int)
+            assert isinstance(sample["y"], int)
+            assert sample["x"] > 0 and sample["y"] > 0
 
     def test_sample_mixed_formula(self):
         """Test sampling from mixed integer/real formula."""
         sampler = LIRASampler()
-        x, y = z3.Int('x'), z3.Real('y')
+        x, y = z3.Int("x"), z3.Real("y")
         formula = z3.And(x > 0, y > 0, x + y < 10)
 
         sampler.init_from_formula(formula)
@@ -69,13 +69,13 @@ class TestLIRASampler:
 
         assert len(result) <= 2
         for sample in result:
-            assert isinstance(sample['x'], int)
-            assert isinstance(sample['y'], (int, float))
+            assert isinstance(sample["x"], int)
+            assert isinstance(sample["y"], (int, float))
 
     def test_sample_unsatisfiable_formula(self):
         """Test sampling from unsatisfiable formula."""
         sampler = LIRASampler()
-        x = z3.Real('x')
+        x = z3.Real("x")
         formula = z3.And(x > 10, x < 5)
 
         sampler.init_from_formula(formula)
@@ -86,7 +86,7 @@ class TestLIRASampler:
 
     def test_sample_with_random_seed(self):
         """Test random seed reproducibility."""
-        x, y = z3.Reals('x y')
+        x, y = z3.Reals("x y")
         formula = z3.And(x > 0, y > 0, x + y < 10)
 
         sampler1 = LIRASampler()
@@ -102,14 +102,18 @@ class TestLIRASampler:
         # 2. All samples satisfy the constraints
         assert len(result1) == len(result2)
         for sample in result1:
-            assert sample['x'] > 0 and sample['y'] > 0 and sample['x'] + sample['y'] < 10
+            assert (
+                sample["x"] > 0 and sample["y"] > 0 and sample["x"] + sample["y"] < 10
+            )
         for sample in result2:
-            assert sample['x'] > 0 and sample['y'] > 0 and sample['x'] + sample['y'] < 10
+            assert (
+                sample["x"] > 0 and sample["y"] > 0 and sample["x"] + sample["y"] < 10
+            )
 
     def test_sample_with_negative_values(self):
         """Test sampling with negative values."""
         sampler = LIRASampler()
-        x, y = z3.Reals('x y')
+        x, y = z3.Reals("x y")
         formula = z3.And(x > -10, x < -5, y > -3, y < 0)
 
         sampler.init_from_formula(formula)
@@ -117,13 +121,13 @@ class TestLIRASampler:
 
         assert len(result) <= 2
         for sample in result:
-            assert -10 < sample['x'] < -5
-            assert -3 < sample['y'] < 0
+            assert -10 < sample["x"] < -5
+            assert -3 < sample["y"] < 0
 
     def test_sample_equality_constraints(self):
         """Test sampling with equality constraints."""
         sampler = LIRASampler()
-        x, y = z3.Reals('x y')
+        x, y = z3.Reals("x y")
         formula = z3.And(x + y == 10, x > 0, y > 0)
 
         sampler.init_from_formula(formula)
@@ -131,7 +135,7 @@ class TestLIRASampler:
 
         assert len(result) <= 2
         for sample in result:
-            assert abs(sample['x'] + sample['y'] - 10) < 0.1
+            assert abs(sample["x"] + sample["y"] - 10) < 0.1
 
 
 if __name__ == "__main__":

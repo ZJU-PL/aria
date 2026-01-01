@@ -10,9 +10,7 @@ bounds for variables and sampling within those bounds.
 import random
 
 import z3
-from z3 import (
-    parse_smt2_file, Z3Exception, Optimize, And
-)
+from z3 import parse_smt2_file, Z3Exception, Optimize, And
 
 from aria.utils.z3_expr_utils import get_variables
 
@@ -80,8 +78,7 @@ class RegionSampler:
             if sol2.check() == z3.sat:
                 m2 = sol2.model()
                 self.upper_bounds[idx] = m2.eval(var).as_long()
-            print(var, "[", self.lower_bounds[idx], ", ",
-                  self.upper_bounds[idx], "]")
+            print(var, "[", self.lower_bounds[idx], ", ", self.upper_bounds[idx], "]")
 
     def gen_candidate(self):
         """Generate a random candidate within the computed bounds."""
@@ -96,6 +93,7 @@ class RegionSampler:
     def feat_test(self):
         """Feature test method."""
         from z3 import BitVec  # pylint: disable=import-outside-toplevel
+
         x = BitVec("x", 8)
         y = BitVec("y", 8)
         self.formula = And(x > 0, y > 0, x < 10, y < 10)

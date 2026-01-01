@@ -11,7 +11,7 @@ import sys
 import z3
 
 # Add the parent directory to the path to import aria modules
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from aria.symabs.symba import SYMBA, MultiSYMBA
 
@@ -27,17 +27,18 @@ def example_1_resource_allocation():
     # Budget: 10
 
     # Variables: amount allocated to each project
-    x = z3.Int('x')  # allocation to project A
-    y = z3.Int('y')  # allocation to project B
+    x = z3.Int("x")  # allocation to project A
+    y = z3.Int("y")  # allocation to project B
 
     # Constraints
     constraints = z3.And(
-        x >= 0, y >= 0,           # non-negative allocations
-        2*x + 1*y <= 10           # budget constraint
+        x >= 0,
+        y >= 0,  # non-negative allocations
+        2 * x + 1 * y <= 10,  # budget constraint
     )
 
     # Objective: maximize total benefit
-    objective = 3*x + 2*y
+    objective = 3 * x + 2 * y
 
     print(f"Constraints: {constraints}")
     print(f"Objective: maximize {objective}")
@@ -76,18 +77,19 @@ def example_2_production_optimization():
     # Resource limit: 20
 
     # Variables
-    a = z3.Int('a')  # units of product A
-    b = z3.Int('b')  # units of product B
+    a = z3.Int("a")  # units of product A
+    b = z3.Int("b")  # units of product B
 
     # Constraints
     constraints = z3.And(
-        a >= 0, b >= 0,           # non-negative production
-        3*a + 2*b <= 20           # resource constraint
+        a >= 0,
+        b >= 0,  # non-negative production
+        3 * a + 2 * b <= 20,  # resource constraint
     )
 
     # Multi-objective: maximize profit and minimize resource usage
-    profit = 5*a + 3*b
-    resource_usage = 3*a + 2*b
+    profit = 5 * a + 3 * b
+    resource_usage = 3 * a + 2 * b
 
     print(f"Constraints: {constraints}")
     print(f"Objectives: maximize {profit}, minimize {resource_usage}")
@@ -113,8 +115,10 @@ def example_2_production_optimization():
             prof_val = model.eval(profit).as_long()
             res_val = model.eval(resource_usage).as_long()
             is_pareto = model in multi_symba.get_pareto_front()
-            print(f"  Solution {i+1}: a={a_val}, b={b_val}, profit={prof_val}, "
-                  f"resource={res_val} {'(Pareto optimal)' if is_pareto else ''}")
+            print(
+                f"  Solution {i+1}: a={a_val}, b={b_val}, profit={prof_val}, "
+                f"resource={res_val} {'(Pareto optimal)' if is_pareto else ''}"
+            )
 
     print()
 
@@ -125,15 +129,11 @@ def example_3_bounded_optimization():
     print("-" * 40)
 
     # Variables
-    x = z3.Int('x')
-    y = z3.Int('y')
+    x = z3.Int("x")
+    y = z3.Int("y")
 
     # Constraints forming a bounded region
-    constraints = z3.And(
-        x >= 0, y >= 0,
-        x <= 5, y <= 5,
-        x + y >= 3
-    )
+    constraints = z3.And(x >= 0, y >= 0, x <= 5, y <= 5, x + y >= 3)
 
     # Objective: maximize x * y
     objective = x * y

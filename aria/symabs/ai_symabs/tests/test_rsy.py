@@ -1,4 +1,5 @@
 """Tests for RSY algorithm."""
+
 import z3
 
 from aria.symabs.ai_symabs.domains.algorithms import RSY
@@ -30,8 +31,7 @@ def test_rsy_alpha_hat_add_subtract():
 
 
 def test_rsy_post_hat_add_subtract():
-    """Here, we add the knowledge of the input state
-    """
+    """Here, we add the knowledge of the input state"""
     domain = SignDomain(["x", "x'", "x''"])
 
     x = domain.z3_variable("x")

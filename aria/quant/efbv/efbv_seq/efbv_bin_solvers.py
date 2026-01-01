@@ -1,6 +1,7 @@
 """
 For calling SMT and QBF solvers
 """
+
 import os
 import time
 from typing import List
@@ -62,11 +63,12 @@ def solve_with_bin_qbf(fml_str: str, solver_name: str):
         # print(cmd)
         p_gene = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         is_timeout_gene = [False]
-        timer_gene = Timer(G_BIN_SOLVER_TIMEOUT, terminate,
-                          args=[p_gene, is_timeout_gene])
+        timer_gene = Timer(
+            G_BIN_SOLVER_TIMEOUT, terminate, args=[p_gene, is_timeout_gene]
+        )
         timer_gene.start()
         out_gene = p_gene.stdout.readlines()
-        out_gene = ' '.join([str(element.decode('UTF-8')) for element in out_gene])
+        out_gene = " ".join([str(element.decode("UTF-8")) for element in out_gene])
         p_gene.stdout.close()  # close?
         timer_gene.cancel()
         if p_gene.poll() is None:
@@ -85,8 +87,13 @@ def solve_with_bin_qbf(fml_str: str, solver_name: str):
             os.remove(tmp_filename)
 
 
-def solve_with_bin_smt(logic: str, x: List[z3.ExprRef], y: List[z3.ExprRef],
-                       phi: z3.ExprRef, solver_name: str):
+def solve_with_bin_smt(
+    logic: str,
+    x: List[z3.ExprRef],
+    y: List[z3.ExprRef],
+    phi: z3.ExprRef,
+    solver_name: str,
+):
     """Call binary SMT solvers to solve exists forall.
 
     In this version, we create a temp file, and ...
@@ -155,11 +162,12 @@ def solve_with_bin_smt(logic: str, x: List[z3.ExprRef], y: List[z3.ExprRef],
         # print(cmd)
         p_gene = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         is_timeout_gene = [False]
-        timer_gene = Timer(G_BIN_SOLVER_TIMEOUT, terminate,
-                          args=[p_gene, is_timeout_gene])
+        timer_gene = Timer(
+            G_BIN_SOLVER_TIMEOUT, terminate, args=[p_gene, is_timeout_gene]
+        )
         timer_gene.start()
         out_gene = p_gene.stdout.readlines()
-        out_gene = ' '.join([str(element.decode('UTF-8')) for element in out_gene])
+        out_gene = " ".join([str(element.decode("UTF-8")) for element in out_gene])
         p_gene.stdout.close()  # close?
         timer_gene.cancel()
         if p_gene.poll() is None:
@@ -213,14 +221,13 @@ def solve_with_bin_smt_v2(logic: str, y, phi: z3.ExprRef, solver_name: str):
 
 def demo_solver():
     """Demo function for solver."""
-    cmd = [cvc5_exec, "-q", "--produce-models", 'tmp.smt2']
+    cmd = [cvc5_exec, "-q", "--produce-models", "tmp.smt2"]
     p_gene = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     is_timeout_gene = [False]
-    timer_gene = Timer(G_BIN_SOLVER_TIMEOUT, terminate,
-                      args=[p_gene, is_timeout_gene])
+    timer_gene = Timer(G_BIN_SOLVER_TIMEOUT, terminate, args=[p_gene, is_timeout_gene])
     timer_gene.start()
     out_gene = p_gene.stdout.readlines()
-    out_gene = ' '.join([str(element.decode('UTF-8')) for element in out_gene])
+    out_gene = " ".join([str(element.decode("UTF-8")) for element in out_gene])
     p_gene.stdout.close()  # close?
     timer_gene.cancel()
     if p_gene.poll() is None:

@@ -38,19 +38,19 @@ def mos_to_ks(mos_element: MOS) -> KS:
 
         # Create AG matrix representing the affine transformation
         # For identity transformation x' = x, we need generators x'_i = x_i for each i
-        ag_data = np.zeros((k, 2*k + 1), dtype=object)
+        ag_data = np.zeros((k, 2 * k + 1), dtype=object)
 
         # For each variable i, create generator: x'_i - x_i = 0
         for i in range(k):
-            ag_data[i, i] = -1      # -x_i coefficient
-            ag_data[i, k + i] = 1   # x'_i coefficient
+            ag_data[i, i] = -1  # -x_i coefficient
+            ag_data[i, k + i] = 1  # x'_i coefficient
             # Constant term is 0
 
         # Also add a constant generator for the affine constant (if any)
         if np.any(b != 0):
             # Add generator for the constant term
-            const_row = np.zeros(2*k + 1, dtype=object)
-            const_row[2*k] = -1  # -constant coefficient
+            const_row = np.zeros(2 * k + 1, dtype=object)
+            const_row[2 * k] = -1  # -constant coefficient
             for j in range(k):
                 const_row[j] = b[j]  # x_j coefficient for constant relation
             ag_data = np.vstack([ag_data, const_row.reshape(1, -1)])
@@ -111,20 +111,20 @@ def ag_to_ks(ag_element: AG) -> KS:
     # We construct Z by letting [b|X X'] = G ⊥ and permuting columns
 
     G_dual = ag_element.dualize()
-    ks_data = np.zeros((G_dual.rows, 2*k + 1), dtype=object)
+    ks_data = np.zeros((G_dual.rows, 2 * k + 1), dtype=object)
 
     # Copy coefficients and rearrange columns according to the algorithm
     for i in range(G_dual.rows):
-        for j in range(2*k + 1):
+        for j in range(2 * k + 1):
             if j < k:
                 # Pre-state variables
                 ks_data[i, j] = G_dual.matrix[i, j]
-            elif j < 2*k:
+            elif j < 2 * k:
                 # Post-state variables
                 ks_data[i, j] = G_dual.matrix[i, j]
             else:
                 # Constant term
-                ks_data[i, 2*k] = G_dual.matrix[i, 2*k]
+                ks_data[i, 2 * k] = G_dual.matrix[i, 2 * k]
 
     return KS(Matrix(ks_data, ag_element.modulus))
 
@@ -148,19 +148,19 @@ def ks_to_ag(ks_element: KS) -> AG:
     k = (X.cols - 1) // 2
 
     # Create padded matrix and reverse the column permutation
-    ag_data = np.zeros((X.rows, 2*k + 1), dtype=object)
+    ag_data = np.zeros((X.rows, 2 * k + 1), dtype=object)
 
     for i in range(X.rows):
-        for j in range(2*k + 1):
+        for j in range(2 * k + 1):
             if j < k:
                 # Pre-state variables (reverse order)
                 ag_data[i, k - 1 - j] = X[i, j]
-            elif j < 2*k:
+            elif j < 2 * k:
                 # Post-state variables (reverse order)
-                ag_data[i, 2*k - 1 - j] = X[i, j]
+                ag_data[i, 2 * k - 1 - j] = X[i, j]
             else:
                 # Constant term
-                ag_data[i, 2*k] = X[i, 2*k]
+                ag_data[i, 2 * k] = X[i, 2 * k]
 
     ag_element = AG(Matrix(ag_data, ks_element.modulus), ks_element.w)
 

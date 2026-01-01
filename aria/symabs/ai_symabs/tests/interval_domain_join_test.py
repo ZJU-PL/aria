@@ -11,21 +11,27 @@ def test_join_bottom_top():
 
 def test_join_meet_three_states():
     domain = IntervalDomain(["a", "b", "c"])
-    state1 = IntervalAbstractState({
-        "a": Interval(-5, 5),
-        "b": Interval(4, 6),
-        "c": Interval(float("inf"), float("-inf")),
-    })
-    state2 = IntervalAbstractState({
-        "a": Interval(-4, 6),
-        "b": Interval(float("-inf"), -2),
-        "c": Interval(5, 5),
-    })
-    state3 = IntervalAbstractState({
-        "a": Interval(-5, 5),
-        "b": Interval(-4, float("inf")),
-        "c": Interval(5, 5),
-    })
+    state1 = IntervalAbstractState(
+        {
+            "a": Interval(-5, 5),
+            "b": Interval(4, 6),
+            "c": Interval(float("inf"), float("-inf")),
+        }
+    )
+    state2 = IntervalAbstractState(
+        {
+            "a": Interval(-4, 6),
+            "b": Interval(float("-inf"), -2),
+            "c": Interval(5, 5),
+        }
+    )
+    state3 = IntervalAbstractState(
+        {
+            "a": Interval(-5, 5),
+            "b": Interval(-4, float("inf")),
+            "c": Interval(5, 5),
+        }
+    )
 
     joined = domain.join([state1, state2, state3])
 
@@ -42,11 +48,13 @@ def test_join_meet_three_states():
 
 def test_abstract_consequence_low_best():
     domain = IntervalDomain(["a", "b", "c"])
-    lower = IntervalAbstractState({
-        "a": Interval(0, float("inf")),
-        "b": Interval(float("-inf"), float("inf")),
-        "c": Interval(float("-inf"), float("inf")),
-    })
+    lower = IntervalAbstractState(
+        {
+            "a": Interval(0, float("inf")),
+            "b": Interval(float("-inf"), float("inf")),
+            "c": Interval(float("-inf"), float("inf")),
+        }
+    )
     upper = lower.copy()
 
     consequence = domain.abstract_consequence(lower, upper)

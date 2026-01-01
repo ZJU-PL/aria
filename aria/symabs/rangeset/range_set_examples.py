@@ -3,12 +3,15 @@ from __future__ import annotations
 import z3
 
 from aria.symabs.rangeset.range_set_abstraction import (
-    minimum, maximum, range_abstraction, set_abstraction
+    minimum,
+    maximum,
+    range_abstraction,
+    set_abstraction,
 )
 
 
 def demo_unsigned():
-    x = z3.BitVec('x', 8)
+    x = z3.BitVec("x", 8)
     fml = z3.Or(
         x == 2,
         x == 3,

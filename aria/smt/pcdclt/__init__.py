@@ -27,13 +27,13 @@ from .config import (
 )
 
 __all__ = [
-    'CDCLTSolver',
-    'solve',
-    'FormulaAbstraction',
-    'TheorySolver',
-    'NUM_SAMPLES_PER_ROUND',
-    'MAX_T_CHECKING_PROCESSES',
-    'SIMPLIFY_CLAUSES',
-    'ENABLE_QUERY_LOGGING',
-    'WORKER_SHUTDOWN_TIMEOUT',
+    "CDCLTSolver",
+    "solve",
+    "FormulaAbstraction",
+    "TheorySolver",
+    "NUM_SAMPLES_PER_ROUND",
+    "MAX_T_CHECKING_PROCESSES",
+    "SIMPLIFY_CLAUSES",
+    "ENABLE_QUERY_LOGGING",
+    "WORKER_SHUTDOWN_TIMEOUT",
 ]

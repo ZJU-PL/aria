@@ -1,5 +1,5 @@
-"""Main class definition for the Intervals conjunctive domain.
-"""
+"""Main class definition for the Intervals conjunctive domain."""
+
 from typing import Any, List
 import z3
 from ..z3_variables import Z3VariablesDomain
@@ -7,8 +7,7 @@ from .abstract import Interval, IntervalAbstractState
 
 
 class IntervalDomain(Z3VariablesDomain):
-    """Represents an abstract space over the intervals of variables.
-    """
+    """Represents an abstract space over the intervals of variables."""
 
     def __init__(self, variables: List[str]) -> None:
         """Constructs a new IntervalDomain, with variables named in variables.
@@ -18,8 +17,7 @@ class IntervalDomain(Z3VariablesDomain):
         Z3VariablesDomain.__init__(self, variables, z3.Int)
 
     def gamma_hat(self, alpha: IntervalAbstractState) -> Any:
-        """Returns a formula describing the same states as alpha
-        """
+        """Returns a formula describing the same states as alpha"""
         conjunctions = []
         for name in self.variables:
             interval = alpha.interval_of(name)
@@ -64,8 +62,8 @@ class IntervalDomain(Z3VariablesDomain):
         return met
 
     def abstract_consequence(
-            self, lower: IntervalAbstractState,
-            upper: IntervalAbstractState) -> IntervalAbstractState:
+        self, lower: IntervalAbstractState, upper: IntervalAbstractState
+    ) -> IntervalAbstractState:
         """Returns the "abstract consequence" of lower and upper.
 
         The abstract consequence must be a superset of lower and *NOT* a
@@ -93,19 +91,22 @@ class IntervalDomain(Z3VariablesDomain):
         University of Wisconsin, Madison.
         """
         return IntervalAbstractState(
-            dict({name: Interval(sigma.value_of(name), sigma.value_of(name))
-                  for name in self.variables}))
+            dict(
+                {
+                    name: Interval(sigma.value_of(name), sigma.value_of(name))
+                    for name in self.variables
+                }
+            )
+        )
 
     @property
     def top(self) -> IntervalAbstractState:
-        """Returns the least upper bound of the entire abstract space.
-        """
+        """Returns the least upper bound of the entire abstract space."""
         top_interval = Interval(float("-inf"), float("inf"))
         return IntervalAbstractState({name: top_interval for name in self.variables})
 
     @property
     def bottom(self) -> IntervalAbstractState:
-        """Returns the greatest lower bound of the entire abstract space.
-        """
+        """Returns the greatest lower bound of the entire abstract space."""
         bottom_interval = Interval(float("inf"), float("-inf"))
         return IntervalAbstractState({name: bottom_interval for name in self.variables})

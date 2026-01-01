@@ -22,7 +22,7 @@ def parse_z3_arg(s: str) -> Tuple[str, object]:
 def parse_yaml_options(fname: str):
     import yaml
 
-    with open(fname, encoding='utf-8') as f:
+    with open(fname, encoding="utf-8") as f:
         data = yaml.load(f, Loader=yaml.SafeLoader)
 
         if "spacer_opts" in data:

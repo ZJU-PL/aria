@@ -18,12 +18,12 @@ def parse_file(file_path):
     [Formula]
         The parsed formula.
     """
-    if file_path.endswith('.m'):
+    if file_path.endswith(".m"):
         formula = parse_m_file(file_path)
-    elif file_path.endswith('.smt2'):
+    elif file_path.endswith(".smt2"):
         formula = parse_smt_file(file_path)
     else:
-        warn(f'Unknown file extension: {file_path}')
+        warn(f"Unknown file extension: {file_path}")
         return None
 
     return formula

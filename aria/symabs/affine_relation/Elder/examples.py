@@ -75,10 +75,10 @@ def example_ks_constraints():
     w = 32
 
     # Constraint: x + y' = 0 (x = -y')
-    constraint_data = np.zeros((1, 2*k + 1), dtype=object)
-    constraint_data[0, 0] = 1    # x coefficient
-    constraint_data[0, 2] = 1    # y' coefficient (index k + 1 = 3 for k=2)
-    constraint_data[0, 4] = 0    # Constant term
+    constraint_data = np.zeros((1, 2 * k + 1), dtype=object)
+    constraint_data[0, 0] = 1  # x coefficient
+    constraint_data[0, 2] = 1  # y' coefficient (index k + 1 = 3 for k=2)
+    constraint_data[0, 4] = 0  # Constant term
 
     ks_constraint = KS(Matrix(constraint_data, 2**w), w)
     print(f"KS element: {ks_constraint}")
@@ -100,10 +100,10 @@ def example_ag_generators():
     w = 32
 
     # Generator: x + y' = 0 (represents the relation x = -y')
-    generator_data = np.zeros((1, 2*k + 1), dtype=object)
-    generator_data[0, 0] = 1    # x coefficient
-    generator_data[0, 2] = 1    # y' coefficient
-    generator_data[0, 4] = 0    # Constant term
+    generator_data = np.zeros((1, 2 * k + 1), dtype=object)
+    generator_data[0, 0] = 1  # x coefficient
+    generator_data[0, 2] = 1  # y' coefficient
+    generator_data[0, 4] = 0  # Constant term
 
     ag_generator = AG(Matrix(generator_data, 2**w), w)
     print(f"AG element: {ag_generator}")
@@ -155,13 +155,13 @@ def example_alpha_function():
     # Simple QFBV formula: (x = y + 1) ∧ (x' = x * 2)
     # Using Z3 expressions directly
 
-    variables = ['x', 'y']
+    variables = ["x", "y"]
     pre_vars, post_vars = create_z3_variables(variables)
 
     # Create the formula using Z3 expressions
     phi = z3.And(
         pre_vars[0] == pre_vars[1] + 1,  # x = y + 1
-        post_vars[0] == pre_vars[0] * 2   # x' = x * 2
+        post_vars[0] == pre_vars[0] * 2,  # x' = x * 2
     )
 
     mos_result = alpha_mos(phi, pre_vars, post_vars)

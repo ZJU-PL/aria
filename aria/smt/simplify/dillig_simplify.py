@@ -27,22 +27,26 @@ CACHE_SIZE = 10000  # maximum cache entries
 
 class SimplificationError(Exception):
     """Base class for simplification errors."""
+
     pass
 
 
 class SimplificationTimeoutError(SimplificationError):
     """Raised when solver timeout occurs."""
+
     pass
 
 
 class InvalidInputError(SimplificationError):
     """Raised when input expression is invalid."""
+
     pass
 
 
 @dataclass
 class SimplificationStats:
     """Statistics for simplification process."""
+
     solver_calls: int = 0
     cache_hits: int = 0
     iterations: int = 0
@@ -64,7 +68,7 @@ class SimplificationCache:
         if len(self.cache) >= self.max_size:
             # Simple LRU: just clear half the cache
             keys = list(self.cache.keys())
-            for k in keys[:len(keys) // 2]:
+            for k in keys[: len(keys) // 2]:
                 del self.cache[k]
         self.cache[expr.sexpr()] = result
 
@@ -97,9 +101,7 @@ def basic_simplify(expr: ExprRef) -> ExprRef:
 
 
 def check_satisfiability(
-        solver: Solver,
-        expr: ExprRef,
-        cache: SimplificationCache
+    solver: Solver, expr: ExprRef, cache: SimplificationCache
 ) -> Optional[bool]:
     """Check if expression is satisfiable with timeout and caching."""
     try:
@@ -126,11 +128,11 @@ def check_satisfiability(
 
 
 def dillig_simplify(
-        expr: ExprRef,
-        solver: Optional[Solver] = None,
-        ctx: Optional[Context] = None,
-        stats: Optional[SimplificationStats] = None,
-        cache: Optional[SimplificationCache] = None
+    expr: ExprRef,
+    solver: Optional[Solver] = None,
+    ctx: Optional[Context] = None,
+    stats: Optional[SimplificationStats] = None,
+    cache: Optional[SimplificationCache] = None,
 ) -> ExprRef:
     """Simplify boolean expression using the Dillig algorithm."""
     start_time = time.time()
@@ -213,7 +215,7 @@ def dillig_simplify(
         changed = False
 
         for i, ci in enumerate(unique_children):
-            others = unique_children[:i] + unique_children[i + 1:]
+            others = unique_children[:i] + unique_children[i + 1 :]
 
             # Compute context formula
             # Build the context in the same Z3 context to avoid cast errors
@@ -278,33 +280,24 @@ class TestDilligSimplify(unittest.TestCase):
 
     def setUp(self):
         self.ctx = Context()
-        self.x = Bool('x', self.ctx)
-        self.y = Bool('y', self.ctx)
-        self.z = Bool('z', self.ctx)
+        self.x = Bool("x", self.ctx)
+        self.y = Bool("y", self.ctx)
+        self.z = Bool("z", self.ctx)
 
     def test_basic_simplification(self):
         """Test basic boolean simplifications."""
         # Double negation
         expr = Not(Not(self.x))
-        self.assertEqual(
-            dillig_simplify(expr).sexpr(),
-            self.x.sexpr()
-        )
+        self.assertEqual(dillig_simplify(expr).sexpr(), self.x.sexpr())
 
         # True/False cases
-        self.assertTrue(
-            dillig_simplify(And(self.x, True)).eq(self.x)
-        )
-        self.assertTrue(
-            dillig_simplify(Or(self.x, True)).eq(BoolVal(True, self.ctx))
-        )
+        self.assertTrue(dillig_simplify(And(self.x, True)).eq(self.x))
+        self.assertTrue(dillig_simplify(Or(self.x, True)).eq(BoolVal(True, self.ctx)))
         self.assertTrue(
             dillig_simplify(And(self.x, False)).eq(BoolVal(False, self.ctx))
         )
-        self.assertTrue(
-            dillig_simplify(Or(self.x, False)).eq(self.x)
-        )
+        self.assertTrue(dillig_simplify(Or(self.x, False)).eq(self.x))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

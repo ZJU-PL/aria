@@ -20,8 +20,13 @@ class MultiSYMBA:
     optimization scenarios where we want to find Pareto-optimal solutions.
     """
 
-    def __init__(self, formula: z3.ExprRef, objectives: List[z3.ExprRef],
-                 solver_factory=None, timeout: int = 0):
+    def __init__(
+        self,
+        formula: z3.ExprRef,
+        objectives: List[z3.ExprRef],
+        solver_factory=None,
+        timeout: int = 0,
+    ):
         """
         Initialize MultiSYMBA.
 
@@ -85,10 +90,14 @@ class MultiSYMBA:
                     strictly_better = False
 
                     for k in range(len(self.objectives)):
-                        if values_j[k] < values_i[k]:  # model_j is better for objective k
+                        if (
+                            values_j[k] < values_i[k]
+                        ):  # model_j is better for objective k
                             dominated = False
                             break
-                        if values_j[k] > values_i[k]:  # model_j is worse for objective k
+                        if (
+                            values_j[k] > values_i[k]
+                        ):  # model_j is worse for objective k
                             strictly_better = True
 
                     if dominated and strictly_better:

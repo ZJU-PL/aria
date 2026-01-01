@@ -3,52 +3,62 @@ from typing import Optional, Any, Tuple
 
 class PySamplerException(Exception):
     """Base class for all the custom exceptions of PySampler"""
+
     pass
 
 
 class UnknownSmtLibCommandError(PySamplerException):
     """Raised when the parser finds an unknown command."""
+
     pass
 
 
 class SolverReturnedUnknownResultError(PySamplerException):
     """This exception is raised if a solver returns 'unknown' as a result"""
+
     pass
 
 
 class UnknownSolverAnswerError(PySamplerException):
     """Raised when a solver returns an invalid response."""
+
     pass
 
 
 class NoSolverAvailableError(PySamplerException):
     """No solver is available for the selected Logic."""
+
     pass
 
 
 class NonLinearError(PySamplerException):
     """The provided expression is not linear."""
+
     pass
 
 
 class UndefinedLogicError(PySamplerException):
     """This exception is raised if an undefined Logic is attempted to be used."""
+
     pass
 
 
 class InternalSolverError(PySamplerException):
     """Generic exception to capture errors provided by a solver."""
+
     pass
 
 
 class NoLogicAvailableError(PySamplerException):
     """Generic exception to capture errors caused by missing support for logics."""
+
     pass
 
 
 class SolverRedefinitionError(PySamplerException):
     """Exception representing errors caused by multiple defintions of solvers
-       having the same name."""
+    having the same name."""
+
     pass
 
 
@@ -57,6 +67,7 @@ class SolverNotConfiguredForUnsatCoresError(PySamplerException):
     Exception raised if a solver not configured for generating unsat
     cores is required to produce a core.
     """
+
     pass
 
 
@@ -65,13 +76,16 @@ class SolverStatusError(PySamplerException):
     Exception raised if a method requiring a specific solver status is
     incorrectly called in the wrong status.
     """
+
     pass
 
 
 class ConvertExpressionError(PySamplerException):
     """Exception raised if the converter cannot convert an expression."""
 
-    def __init__(self, message: Optional[str] = None, expression: Optional[Any] = None) -> None:
+    def __init__(
+        self, message: Optional[str] = None, expression: Optional[Any] = None
+    ) -> None:
         super().__init__()
         self.message: Optional[str] = message
         self.expression: Optional[Any] = expression
@@ -82,6 +96,7 @@ class ConvertExpressionError(PySamplerException):
 
 class SolverAPINotFound(PySamplerException):
     """The Python API of the selected solver cannot be found."""
+
     pass
 
 
@@ -98,6 +113,7 @@ class UndefinedSymbolError(PySamplerException):
 
 class PySamplerModeError(PySamplerException):
     """The current mode is not supported for this operation"""
+
     pass
 
 
@@ -114,7 +130,9 @@ class PySamplerTypeError(PySamplerException, TypeError):
 
 
 class PySamplerSyntaxError(PySamplerException, SyntaxError):
-    def __init__(self, message: str, pos_info: Optional[Tuple[int, int]] = None) -> None:
+    def __init__(
+        self, message: str, pos_info: Optional[Tuple[int, int]] = None
+    ) -> None:
         super().__init__(message)
         self.pos_info: Optional[Tuple[int, int]] = pos_info
         self.message: str = message

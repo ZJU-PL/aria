@@ -5,7 +5,7 @@ def find_linenum_starts_with(lines, target, start=0):
     """Find the line number where a line starts with target string."""
     for i, line in enumerate(lines[start:]):
         if 0 == line.find(target):
-            return start+i
+            return start + i
 
     return -1
 
@@ -14,7 +14,7 @@ def find_linenum_with(lines, target, start=0):
     """Find the line number where a line contains target string."""
     for i, line in enumerate(lines[start:]):
         if line.find(target) >= 0:
-            return start+i
+            return start + i
 
     return -1
 

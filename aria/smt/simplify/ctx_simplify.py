@@ -1,6 +1,7 @@
 """
 Performing contextual simplification
 """
+
 from typing import Dict, Set, Generator, List
 
 import z3
@@ -40,7 +41,11 @@ def ctx_simplify(slv: z3.Solver, mdl: z3.ModelRef, t: z3.ExprRef) -> z3.ExprRef:
     def simplify_rec(term: z3.ExprRef) -> z3.ExprRef:
         m_subs: Set[z3.ExprRef] = subterms(term)
         for s in m_subs:
-            if s.sort().eq(term.sort()) and values[s].eq(values[term]) and are_equal(slv, s, term):
+            if (
+                s.sort().eq(term.sort())
+                and values[s].eq(values[term])
+                and are_equal(slv, s, term)
+            ):
                 return simplify_rec(s)
         chs: List[z3.ExprRef] = [simplify_rec(ch) for ch in term.children()]
         return term.decl()(chs)

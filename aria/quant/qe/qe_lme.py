@@ -25,7 +25,7 @@ def process_model(phi, qvars, preds, shared_models):
     if s.check() == z3.sat:
         m = s.model()
         minterm = z3.And(eval_predicates(m, preds))
-        proj = z3.Tactic('qe2')(z3.Exists(qvars, minterm)).as_expr()
+        proj = z3.Tactic("qe2")(z3.Exists(qvars, minterm)).as_expr()
         return proj
     return None
 
@@ -36,7 +36,7 @@ def qelim_exists_lme(phi, qvars):
     s.add(phi)
     res = []
     preds = get_atoms(phi)
-    qe_for_conjunction = z3.Tactic('qe2')
+    qe_for_conjunction = z3.Tactic("qe2")
     while s.check() == z3.sat:
         m = s.model()
         minterm = z3.And(eval_predicates(m, preds))

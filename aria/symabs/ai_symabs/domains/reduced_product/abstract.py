@@ -1,5 +1,5 @@
-"""Definitions for the ReducedProduct abstract states.
-"""
+"""Definitions for the ReducedProduct abstract states."""
+
 from typing import Dict
 from ..core.abstract import AbstractState
 
@@ -10,8 +10,7 @@ from ..core.abstract import AbstractState
 
 
 class ReducedProductAbstractState(AbstractState):
-    """Abstract state describing the signs of a collection of variables.
-    """
+    """Abstract state describing the signs of a collection of variables."""
 
     def __init__(self, state_A: AbstractState, state_B: AbstractState) -> None:
         """Construct a new ReducedProductAbstractState.
@@ -23,13 +22,11 @@ class ReducedProductAbstractState(AbstractState):
         self.state_A: AbstractState = state_A
         self.state_B: AbstractState = state_B
 
-    def copy(self) -> 'ReducedProductAbstractState':
-        """A new ReducedProductAbstractState representing the same state.
-        """
-        return ReducedProductAbstractState(self.state_A.copy(),
-                                           self.state_B.copy())
+    def copy(self) -> "ReducedProductAbstractState":
+        """A new ReducedProductAbstractState representing the same state."""
+        return ReducedProductAbstractState(self.state_A.copy(), self.state_B.copy())
 
-    def __le__(self, rhs: 'ReducedProductAbstractState') -> bool:
+    def __le__(self, rhs: "ReducedProductAbstractState") -> bool:
         """True if self represents a subset of rhs.
 
         Note that this definition means (not (a <= b)) does NOT imply a > b.
@@ -39,13 +36,12 @@ class ReducedProductAbstractState(AbstractState):
         """
         return self.state_A <= rhs.state_A and self.state_B <= rhs.state_B
 
-    def translate(self, translation: Dict[str, str]) -> 'ReducedProductAbstractState':
-        """Rename the variables in the abstract state.
-        """
-        return ReducedProductAbstractState(self.state_A.translate(translation),
-                                           self.state_B.translate(translation))
+    def translate(self, translation: Dict[str, str]) -> "ReducedProductAbstractState":
+        """Rename the variables in the abstract state."""
+        return ReducedProductAbstractState(
+            self.state_A.translate(translation), self.state_B.translate(translation)
+        )
 
     def __str__(self) -> str:
-        """Human-readable form of the abstract state.
-        """
+        """Human-readable form of the abstract state."""
         return str(self.state_A) + "\n" + str(self.state_B)

@@ -1,9 +1,9 @@
-"""
+""" """
 
-"""
 import logging
 from enum import Enum
 from random import randrange
+
 # from typing import List
 import random
 
@@ -38,9 +38,9 @@ class ExistsSolver(object):
         # it seems they are only useful for certain sampling algorithms.
         self.cared_bits = []
         for var in cared_vars:
-            self.cared_bits = (self.cared_bits +
-                              [z3.Extract(i, i, var) == 1
-                               for i in range(var.size())])
+            self.cared_bits = self.cared_bits + [
+                z3.Extract(i, i, var) == 1 for i in range(var.size())
+            ]
 
     def get_models_with_rand_seeds_sampling(self, num_samples: int):
         """Generate diverse models by adapting random seeds.
@@ -104,10 +104,12 @@ class ExistsSolver(object):
     def get_models_in_parallel(self, num_samples: int):
         """Solve each formula in cnt_list in parallel."""
         logger.debug("Exists solver: parallel sampling")
-        models_in_other_ctx = parallel_sample(z3.And(self.fmls),
-                                              cared_bits=self.cared_bits,
-                                              num_samples=num_samples,
-                                              num_workers=4)
+        models_in_other_ctx = parallel_sample(
+            z3.And(self.fmls),
+            cared_bits=self.cared_bits,
+            num_samples=num_samples,
+            num_workers=4,
+        )
         res = []  # translate the model to the main thread
         for m in models_in_other_ctx:
             res.append(m.translate(self.ctx))

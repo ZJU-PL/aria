@@ -1,5 +1,5 @@
-"""Some basic functions for efsmt
-"""
+"""Some basic functions for efsmt"""
+
 import time
 import z3
 

@@ -44,6 +44,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class AbstractionResults:
     """Store results from different abstraction domains"""
+
     interval_fp_rate: float = 0.0
     interval_time: float = 0.0
     interval_abs_count: int = 0
@@ -64,7 +65,7 @@ class AbstractionResults:
     i_o_count: int = 0
     i_b_count: int = 0
 
-    def __add__(self, other: Optional['AbstractionResults']) -> 'AbstractionResults':
+    def __add__(self, other: Optional["AbstractionResults"]) -> "AbstractionResults":
         if other is None:
             return self
         return AbstractionResults(
@@ -75,10 +76,10 @@ class AbstractionResults:
             self.octagon_fp_rate + other.octagon_fp_rate,
             self.octagon_time + other.octagon_time,
             self.bitwise_fp_rate + other.bitwise_fp_rate,
-            self.bitwise_time + other.bitwise_time
+            self.bitwise_time + other.bitwise_time,
         )
 
-    def __truediv__(self, other: Union[int, float]) -> 'AbstractionResults':
+    def __truediv__(self, other: Union[int, float]) -> "AbstractionResults":
         return AbstractionResults(
             self.interval_fp_rate / other,
             self.interval_time / other,
@@ -87,18 +88,20 @@ class AbstractionResults:
             self.octagon_fp_rate / other,
             self.octagon_time / other,
             self.bitwise_fp_rate / other,
-            self.bitwise_time / other
+            self.bitwise_time / other,
         )
 
     def __str__(self) -> str:
-        return f"Interval FP rate: {self.interval_fp_rate:.4f}, " \
-               f"Zone FP rate: {self.zone_fp_rate:.4f}, " \
-               f"Octagon FP rate: {self.octagon_fp_rate:.4f}, " \
-               f"Bitwise FP rate: {self.bitwise_fp_rate:.4f}, " \
-               f"Interval time: {self.interval_time:.4f}, " \
-               f"Zone time: {self.zone_time:.4f}, " \
-               f"Octagon time: {self.octagon_time:.4f}, " \
-               f"Bitwise time: {self.bitwise_time:.4f}"
+        return (
+            f"Interval FP rate: {self.interval_fp_rate:.4f}, "
+            f"Zone FP rate: {self.zone_fp_rate:.4f}, "
+            f"Octagon FP rate: {self.octagon_fp_rate:.4f}, "
+            f"Bitwise FP rate: {self.bitwise_fp_rate:.4f}, "
+            f"Interval time: {self.interval_time:.4f}, "
+            f"Zone time: {self.zone_time:.4f}, "
+            f"Octagon time: {self.octagon_time:.4f}, "
+            f"Bitwise time: {self.bitwise_time:.4f}"
+        )
 
 
 class ModelCounter:
@@ -214,7 +217,7 @@ class AbstractionAnalyzer:
                 ("Interval", self.sa.interval_abs_as_fml),
                 ("Zone", self.sa.zone_abs_as_fml),
                 ("Octagon", self.sa.octagon_abs_as_fml),
-                ("Bitwise", self.sa.bitwise_abs_as_fml)
+                ("Bitwise", self.sa.bitwise_abs_as_fml),
             ]:
                 logger.info("%s:\n%s", domain, formula)
                 if formula == z3.BoolVal(False):
@@ -224,8 +227,11 @@ class AbstractionAnalyzer:
                     self.compute_false_positives(formula)
                 )
                 if fp_rate >= 0:
-                    msg = (f"{domain} domain: has FP rate {fp_rate:.4f}" if has_fp
-                           else f"{domain} domain: no false positives")
+                    msg = (
+                        f"{domain} domain: has FP rate {fp_rate:.4f}"
+                        if has_fp
+                        else f"{domain} domain: no false positives"
+                    )
                     logger.info(msg)
 
                 if domain == "Interval":
@@ -250,12 +256,24 @@ class AbstractionAnalyzer:
                     results.bitwise_fp_count = fp_count
 
             for d1, f1, d2, f2 in [
-                ("Interval", self.sa.interval_abs_as_fml, "Zone",
-                 self.sa.zone_abs_as_fml),
-                ("Interval", self.sa.interval_abs_as_fml, "Octagon",
-                 self.sa.octagon_abs_as_fml),
-                ("Interval", self.sa.interval_abs_as_fml, "Bitwise",
-                 self.sa.bitwise_abs_as_fml)
+                (
+                    "Interval",
+                    self.sa.interval_abs_as_fml,
+                    "Zone",
+                    self.sa.zone_abs_as_fml,
+                ),
+                (
+                    "Interval",
+                    self.sa.interval_abs_as_fml,
+                    "Octagon",
+                    self.sa.octagon_abs_as_fml,
+                ),
+                (
+                    "Interval",
+                    self.sa.interval_abs_as_fml,
+                    "Bitwise",
+                    self.sa.bitwise_abs_as_fml,
+                ),
             ]:
                 mc = BVModelCounter()
                 mc.init_from_fml(z3.And(f1, f2))
@@ -280,7 +298,7 @@ class AbstractionAnalyzer:
 
 def setup_logging(log_file: Optional[str] = None):
     """Configure logging to both file and console"""
-    log_format = '%(asctime)s - %(levelname)s - %(message)s'
+    log_format = "%(asctime)s - %(levelname)s - %(message)s"
 
     if log_file:
         if not os.path.exists(os.path.dirname(log_file)):
@@ -288,16 +306,10 @@ def setup_logging(log_file: Optional[str] = None):
         logging.basicConfig(
             level=logging.DEBUG,
             format=log_format,
-            handlers=[
-                logging.FileHandler(log_file),
-                logging.StreamHandler(sys.stdout)
-            ]
+            handlers=[logging.FileHandler(log_file), logging.StreamHandler(sys.stdout)],
         )
     else:
-        logging.basicConfig(
-            level=logging.INFO,
-            format=log_format
-        )
+        logging.basicConfig(level=logging.INFO, format=log_format)
     return logging.getLogger(__name__)
 
 
@@ -334,11 +346,13 @@ def process_smt_file(file_path: str, args) -> Optional[AbstractionResults]:
             logger.info("%s: Analysis completed successfully", file_path)
             if args.file:
                 if not os.path.exists(args.csv):
-                    header = ("filename,interval_fp_rate,zone_fp_rate,octagon_fp_rate,"
-                              "bitwise_fp_rate,interval_time,zone_time,octagon_time,"
-                              "bitwise_time,interval_abs_time,zone_abs_time,"
-                              "octagon_abs_time,bitwise_abs_time,model_count,"
-                              "i_z_count,i_o_count,i_b_count\n")
+                    header = (
+                        "filename,interval_fp_rate,zone_fp_rate,octagon_fp_rate,"
+                        "bitwise_fp_rate,interval_time,zone_time,octagon_time,"
+                        "bitwise_time,interval_abs_time,zone_abs_time,"
+                        "octagon_abs_time,bitwise_abs_time,model_count,"
+                        "i_z_count,i_o_count,i_b_count\n"
+                    )
                     with open(args.csv, "w", encoding="utf-8") as f:
                         f.write(header)
                 with open(args.csv, "a", encoding="utf-8") as csv:
@@ -366,9 +380,7 @@ def process_smt_file(file_path: str, args) -> Optional[AbstractionResults]:
 
 def process_directory(dir_path: str, args) -> None:
     """Process all SMT-LIB2 files in directory using parallel processing"""
-    smt_files = [
-        str(f) for f in Path(dir_path).glob("**/*.smt2")
-    ]
+    smt_files = [str(f) for f in Path(dir_path).glob("**/*.smt2")]
 
     if not smt_files:
         logger.warning("No SMT-LIB2 files found in %s", dir_path)
@@ -389,17 +401,20 @@ def process_directory(dir_path: str, args) -> None:
     non_none_results = [r for f, r in results if r is not None]
     final_results = (
         sum(non_none_results, start=AbstractionResults()) / successful
-        if successful > 0 else AbstractionResults()
+        if successful > 0
+        else AbstractionResults()
     )
     logger.info("Successfully processed %d/%d files", successful, len(smt_files))
     logger.info("Final results: %s", final_results)
     parent_dir = os.path.dirname(dir_path)
     if not os.path.exists(f"{parent_dir}/results.csv"):
-        header = ("filename,interval_fp_rate,zone_fp_rate,octagon_fp_rate,"
-                  "bitwise_fp_rate,interval_time,zone_time,octagon_time,"
-                  "bitwise_time,interval_abs_time,zone_abs_time,"
-                  "octagon_abs_time,bitwise_abs_time,model_count,"
-                  "i_z_count,i_o_count,i_b_count\n")
+        header = (
+            "filename,interval_fp_rate,zone_fp_rate,octagon_fp_rate,"
+            "bitwise_fp_rate,interval_time,zone_time,octagon_time,"
+            "bitwise_time,interval_abs_time,zone_abs_time,"
+            "octagon_abs_time,bitwise_abs_time,model_count,"
+            "i_z_count,i_o_count,i_b_count\n"
+        )
         with open(args.csv, "w", encoding="utf-8") as f:
             f.write(header)
     with open(f"{parent_dir}/results.csv", "a", encoding="utf-8") as csv:
@@ -420,37 +435,34 @@ def main():
     )
 
     input_group = parser.add_mutually_exclusive_group(required=True)
+    input_group.add_argument("-f", "--file", help="Path to SMT-LIB2 file to analyze")
     input_group.add_argument(
-        "-f", "--file",
-        help="Path to SMT-LIB2 file to analyze"
+        "-d", "--directory", help="Path to directory containing SMT-LIB2 files"
     )
     input_group.add_argument(
-        "-d", "--directory",
-        help="Path to directory containing SMT-LIB2 files"
-    )
-    input_group.add_argument(
-        "-g", "--generate",
+        "-g",
+        "--generate",
         help="Generate random formulas for demo",
-        action='store_true'
+        action="store_true",
     )
 
     parser.add_argument(
-        "-l", "--log",
+        "-l",
+        "--log",
         help="Path to log file (optional)",
-        default=f"log/analysis_{datetime.now():%Y%m%d_%H%M%S}.log"
+        default=f"log/analysis_{datetime.now():%Y%m%d_%H%M%S}.log",
     )
 
     parser.add_argument(
-        "-p", "--processes",
+        "-p",
+        "--processes",
         help="Number of parallel processes for directory processing",
         type=int,
-        default=mp.cpu_count()
+        default=mp.cpu_count(),
     )
 
     parser.add_argument(
-        "-c", "--csv",
-        help="Path to csv file (optional)",
-        default="results.csv"
+        "-c", "--csv", help="Path to csv file (optional)", default="results.csv"
     )
 
     args = parser.parse_args()
@@ -516,5 +528,5 @@ def demo():
         return False
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -10,104 +10,132 @@ set_subtracts = set([])
 ms_subtracts = set([])
 ms_subsets = set([])
 
+
 def MS(A):
     return ArraySort(A, IntSort())
 
+
 def is_ms_sort(s):
-    return Z3_get_sort_kind(s.ctx.ref(), s.ast) == Z3_ARRAY_SORT and IntSort() == s.range()
+    return (
+        Z3_get_sort_kind(s.ctx.ref(), s.ast) == Z3_ARRAY_SORT and IntSort() == s.range()
+    )
+
 
 def is_ms_card(t):
     global cards
     return is_app(t) and t.decl() in cards
 
+
 def is_setof(t):
     global setofs
     return is_app(t) and t.decl() in setofs
+
 
 def is_ms_empty(t):
     global empties
     return t in empties
 
+
 def is_ms_union(t):
     global ms_unions
     return is_app(t) and t.decl() in ms_unions
+
 
 def is_set_union(t):
     global set_unions
     return is_app(t) and t.decl() in set_unions
 
+
 def is_ms_inter(t):
     global ms_inters
     return is_app(t) and t.decl() in ms_inters
+
 
 def is_set_subtract(t):
     global set_subtracts
     return is_app(t) and t.decl() in set_subtracts
 
+
 def is_ms_subtract(t):
     global ms_subtracts
     return is_app(t) and t.decl() in ms_subtracts
+
 
 def is_ms_subset(t):
     global ms_subsets
     return is_app(t) and t.decl() in ms_subsets
 
+
 def is_ms_var(v):
-    return is_app(v) and v.num_args() == 0 and v.decl().kind() == Z3_OP_UNINTERPRETED and is_ms_sort(v.sort())
+    return (
+        is_app(v)
+        and v.num_args() == 0
+        and v.decl().kind() == Z3_OP_UNINTERPRETED
+        and is_ms_sort(v.sort())
+    )
+
 
 def card(ms):
     global cards
-    c = Function('card', ms.sort(), IntSort())
-    cards |= { c }
+    c = Function("card", ms.sort(), IntSort())
+    cards |= {c}
     return c(ms)
+
 
 def setof(ms):
     global setofs
-    assert (isinstance(ms.sort(), ArraySortRef))
-    c = Function('setof', ms.sort(), ms.sort())
-    setofs |= { c }
+    assert isinstance(ms.sort(), ArraySortRef)
+    c = Function("setof", ms.sort(), ms.sort())
+    setofs |= {c}
     return c(ms)
+
 
 def empty(A):
     global empties
     e = K(A, IntVal(0))
-    empties |= { e }
+    empties |= {e}
     return e
+
 
 def U(S1, S2):
     global set_unions
-    u = Function('Union', S1.sort(), S2.sort(), S1.sort())
-    set_unions |= { u }
+    u = Function("Union", S1.sort(), S2.sort(), S1.sort())
+    set_unions |= {u}
     return u(S1, S2)
+
 
 def MU(S1, S2):
     global ms_unions
-    u = Function('Union', S1.sort(), S2.sort(), S1.sort())
-    ms_unions |= { u }
+    u = Function("Union", S1.sort(), S2.sort(), S1.sort())
+    ms_unions |= {u}
     return u(S1, S2)
+
 
 def I(S1, S2):
     global ms_inters
-    i = Function('Intersect', S1.sort(), S2.sort(), S1.sort())
-    ms_inters |= { i }
+    i = Function("Intersect", S1.sort(), S2.sort(), S1.sort())
+    ms_inters |= {i}
     return i(S1, S2)
+
 
 def SetSubtract(S1, S2):
     global set_subtracts
-    s = Function('\\', S1.sort(), S2.sort(), S1.sort())
-    set_subtracts |= { s }
+    s = Function("\\", S1.sort(), S2.sort(), S1.sort())
+    set_subtracts |= {s}
     return s(S1, S2)
+
 
 def MsSubtract(S1, S2):
     global ms_subtracts
-    s = Function('\\\\', S1.sort(), S2.sort(), S1.sort())
-    ms_subtracts |= { s }
+    s = Function("\\\\", S1.sort(), S2.sort(), S1.sort())
+    ms_subtracts |= {s}
     return s(S1, S2)
+
 
 def MsSubset(S1, S2):
     global ms_subsets
-    s = Function('MsSubset', S1.sort(), S2.sort(), BoolSort())
-    ms_subsets |= { s }
+    s = Function("MsSubset", S1.sort(), S2.sort(), BoolSort())
+    ms_subsets |= {s}
     return s(S1, S2)
 
 
@@ -144,7 +172,7 @@ class LiaStar:
         if t in self.visited:
             return self.visited[t]
         r = self.visit1(t)
-        self.visited[t] = r;
+        self.visited[t] = r
         return r
 
     def visit1(self, t):
@@ -187,14 +215,17 @@ class LiaStar:
             return u == 0
         if is_app(t):
             return t.decl()(chs)
-        assert (False)
+        assert False
         return None
+
 
 def to_lia_star(fml):
     ls = LiaStar()
     return ls.convert(fml)
 
+
 mapa_flag = False
+
 
 class Bapa2Ms:
     def __init__(self):
@@ -212,14 +243,22 @@ class Bapa2Ms:
         if t in self.visited:
             return self.visited[t]
         r = self.visit1(t)
-        self.visited[t] = r;
+        self.visited[t] = r
         return r
 
     def is_set_sort(self, s):
-        return Z3_get_sort_kind(s.ctx.ref(), s.ast) == Z3_ARRAY_SORT and BoolSort() == s.range()
+        return (
+            Z3_get_sort_kind(s.ctx.ref(), s.ast) == Z3_ARRAY_SORT
+            and BoolSort() == s.range()
+        )
 
     def is_set_var(self, t):
-        return is_app(t) and t.num_args() == 0 and t.decl().kind() == Z3_OP_UNINTERPRETED and self.is_set_sort(t.sort())
+        return (
+            is_app(t)
+            and t.num_args() == 0
+            and t.decl().kind() == Z3_OP_UNINTERPRETED
+            and self.is_set_sort(t.sort())
+        )
 
     def set2ms(self, t):
         if t in self.set2ms_vars:
@@ -230,7 +269,7 @@ class Bapa2Ms:
         return v
 
     def is_set_card(self, t):
-        return is_app(t) and t.num_args() == 1 and t.decl().name() == 'card'
+        return is_app(t) and t.num_args() == 1 and t.decl().name() == "card"
 
     def is_set_union(self, t):
         return is_app(t) and t.num_args() == 2 and t.decl().kind() == Z3_OP_SET_UNION
@@ -283,13 +322,15 @@ class Bapa2Ms:
             return Or(chs)
         if is_app(t):
             return t.decl()(chs)
-        assert (False)
+        assert False
         return None
+
 
 # Perform conversion on the given formulas
 def bapa2ms(fmls):
     b2ms = Bapa2Ms()
     return b2ms.convert(fmls)
+
 
 # Parse BAPA file, convert to multi-set formula
 def parse_bapa(file, mapa):

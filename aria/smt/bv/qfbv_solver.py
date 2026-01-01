@@ -3,6 +3,7 @@
 Flattening-based QF_BV solver
 """
 import logging
+
 # import sys
 import time
 from typing import Dict, List, Any, Optional
@@ -32,9 +33,21 @@ logger = logging.getLogger(__name__)
     minisat22   = ('m22', 'msat22', 'minisat22')
     minisatgh   = ('mgh', 'msat-gh', 'minisat-gh')
 """
-sat_solvers_in_pysat: List[str] = ['cd', 'cd15', 'gc3', 'gc4', 'g3',
-                        'g4', 'lgl', 'mcb', 'mpl', 'mg3',
-                        'mc', 'm22', 'mgh']
+sat_solvers_in_pysat: List[str] = [
+    "cd",
+    "cd15",
+    "gc3",
+    "gc4",
+    "g3",
+    "g4",
+    "lgl",
+    "mcb",
+    "mpl",
+    "mg3",
+    "mc",
+    "m22",
+    "mgh",
+]
 
 
 class QFBVSolver:
@@ -43,7 +56,8 @@ class QFBVSolver:
       - Z3: Translate a QF_BV formula to a SAT formula
       - pySAT: solve the translated SAT formula
     """
-    sat_engine: str = 'mgh'
+
+    sat_engine: str = "mgh"
 
     def __init__(self) -> None:
         # z3.ExpeRef (not used for now!)
@@ -75,32 +89,33 @@ class QFBVSolver:
         (This function uses more lighweight pre-processing than solve_qfbv)
         """
         qfbv_preamble = z3.AndThen(
-            z3.With('simplify', flat_and_or=False),
-            z3.With('propagate-values', flat_and_or=False),
-            z3.With('solve-eqs', solve_eqs_max_occs=2),
-            z3.Tactic('elim-uncnstr'),
+            z3.With("simplify", flat_and_or=False),
+            z3.With("propagate-values", flat_and_or=False),
+            z3.With("solve-eqs", solve_eqs_max_occs=2),
+            z3.Tactic("elim-uncnstr"),
             # z3.Tactic('reduce-bv-size'),
             z3.With(
-                'simplify', som=True, pull_cheap_ite=True,
-                push_ite_bv=False, local_ctx=True,
-                local_ctx_limit=10000000, flat=True,
-                hoist_mul=False, flat_and_or=False
+                "simplify",
+                som=True,
+                pull_cheap_ite=True,
+                push_ite_bv=False,
+                local_ctx=True,
+                local_ctx_limit=10000000,
+                flat=True,
+                hoist_mul=False,
+                flat_and_or=False,
             ),
-            z3.Tactic('max-bv-sharing'),
+            z3.Tactic("max-bv-sharing"),
             # z3.Tactic('ackermannize_bv'),
-            z3.Tactic('bit-blast'),
-            z3.With(
-                'simplify', local_ctx=True, flat=False,
-                flat_and_or=False
-            ),
+            z3.Tactic("bit-blast"),
+            z3.With("simplify", local_ctx=True, flat=False, flat_and_or=False),
             # With('solve-eqs', local_ctx=True, flat=False, flat_and_or=False),
-            'aig',
-            z3.Tactic('tseitin-cnf'),
+            "aig",
+            z3.Tactic("tseitin-cnf"),
             # z3.Tactic('sat')
         )
         qfbv_light_tactic = z3.With(
-            qfbv_preamble, elim_and=True, push_ite_bv=True,
-            blast_distinct=True
+            qfbv_preamble, elim_and=True, push_ite_bv=True, blast_distinct=True
         )
 
         after_simp = qfbv_light_tactic(fml).as_expr()
@@ -143,36 +158,34 @@ class QFBVSolver:
         :rtype: SolverResult
         """
         qfbv_preamble = z3.AndThen(
-            z3.With('simplify', flat_and_or=False),
-            z3.With('propagate-values', flat_and_or=False),
-            z3.Tactic('elim-uncnstr'),
-            z3.With('solve-eqs', solve_eqs_max_occs=2),
-            z3.Tactic('reduce-bv-size'),
+            z3.With("simplify", flat_and_or=False),
+            z3.With("propagate-values", flat_and_or=False),
+            z3.Tactic("elim-uncnstr"),
+            z3.With("solve-eqs", solve_eqs_max_occs=2),
+            z3.Tactic("reduce-bv-size"),
             z3.With(
-                'simplify', som=True, pull_cheap_ite=True,
-                push_ite_bv=False, local_ctx=True,
-                local_ctx_limit=10000000, flat=True,
-                hoist_mul=False, flat_and_or=False
+                "simplify",
+                som=True,
+                pull_cheap_ite=True,
+                push_ite_bv=False,
+                local_ctx=True,
+                local_ctx_limit=10000000,
+                flat=True,
+                hoist_mul=False,
+                flat_and_or=False,
             ),
-            z3.With(
-                'simplify', hoist_mul=False, som=False,
-                flat_and_or=False
-            ),
-            'max-bv-sharing',
-            'ackermannize_bv',
-            'bit-blast',
-            z3.With(
-                'simplify', local_ctx=True, flat=False,
-                flat_and_or=False
-            ),
+            z3.With("simplify", hoist_mul=False, som=False, flat_and_or=False),
+            "max-bv-sharing",
+            "ackermannize_bv",
+            "bit-blast",
+            z3.With("simplify", local_ctx=True, flat=False, flat_and_or=False),
             # z3.With('solve-eqs', solve_eqs_max_occs=2),
-            'aig',
-            'tseitin-cnf',
+            "aig",
+            "tseitin-cnf",
             # z3.Tactic('sat')
         )
         qfbv_tactic = z3.With(
-            qfbv_preamble, elim_and=True, push_ite_bv=True,
-            blast_distinct=True
+            qfbv_preamble, elim_and=True, push_ite_bv=True, blast_distinct=True
         )
 
         after_simp = qfbv_tactic(fml).as_expr()
@@ -200,7 +213,7 @@ class QFBVSolver:
         # z3.set_param("verbose", 15)
         # solve_qfbv_light
         # return self.solve_qfbv_via_z3(fml)
-        if QFBVSolver.sat_engine == 'z3':
+        if QFBVSolver.sat_engine == "z3":
             return self.solve_qfbv_via_z3(fml)
         return self.solve_qfbv(fml)
 

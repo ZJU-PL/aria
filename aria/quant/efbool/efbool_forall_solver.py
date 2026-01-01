@@ -1,6 +1,7 @@
 """
 "Forall" solver for EF problems over Boolean variables
 """
+
 import logging
 import multiprocessing
 from multiprocessing import Pool

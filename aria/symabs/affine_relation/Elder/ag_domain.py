@@ -53,7 +53,7 @@ class AG:
         """Check if this is the bottom element (empty relation)."""
         return self.is_empty()
 
-    def copy(self) -> 'AG':
+    def copy(self) -> "AG":
         """Create a copy of this AG element."""
         return AG(self.matrix.copy(), self.w)
 
@@ -68,8 +68,8 @@ class AG:
         for i in range(self.rows):
             row = self.matrix[i, :]
             coeffs = row[:k]  # Coefficients for x variables
-            coeffs_prime = row[k:2*k]  # Coefficients for x' variables
-            constant = row[2*k]  # Constant term
+            coeffs_prime = row[k : 2 * k]  # Coefficients for x' variables
+            constant = row[2 * k]  # Constant term
 
             terms = []
 
@@ -98,7 +98,7 @@ class AG:
 
         return " ∨ ".join(generators)
 
-    def join(self, other: 'AG') -> 'AG':
+    def join(self, other: "AG") -> "AG":
         """Compute the join of two AG elements."""
         if self.is_empty():
             return other.copy()
@@ -132,7 +132,7 @@ class AG:
         for i in range(n):
             # Find pivot (row with smallest rank in column i)
             pivot_row = i
-            min_rank = float('inf')
+            min_rank = float("inf")
 
             for j in range(i, n):
                 if D_data[j, i] != 0:
@@ -143,8 +143,14 @@ class AG:
 
             # Swap rows if needed
             if pivot_row != i:
-                D_data[i], D_data[pivot_row] = D_data[pivot_row].copy(), D_data[i].copy()
-                L_data[i], L_data[pivot_row] = L_data[pivot_row].copy(), L_data[i].copy()
+                D_data[i], D_data[pivot_row] = (
+                    D_data[pivot_row].copy(),
+                    D_data[i].copy(),
+                )
+                L_data[i], L_data[pivot_row] = (
+                    L_data[pivot_row].copy(),
+                    L_data[i].copy(),
+                )
 
             # If pivot is zero, continue (singular matrix)
             if D_data[i, i] == 0:
@@ -168,19 +174,27 @@ class AG:
 
                         # Update D: D[j,:] = D[j,:] - factor * D[i,:]
                         for k in range(n):
-                            D_data[j, k] = (D_data[j, k] - factor * D_data[i, k]) % self.modulus
+                            D_data[j, k] = (
+                                D_data[j, k] - factor * D_data[i, k]
+                            ) % self.modulus
 
                         # Update L: L[j,:] = L[j,:] - factor * L[i,:]
                         for k in range(n):
-                            L_data[j, k] = (L_data[j, k] - factor * L_data[i, k]) % self.modulus
+                            L_data[j, k] = (
+                                L_data[j, k] - factor * L_data[i, k]
+                            ) % self.modulus
 
                     except ValueError:
                         # Pivot has no inverse, skip elimination
                         pass
 
-        return Matrix(L_data, self.modulus), Matrix(D_data, self.modulus), Matrix(R_data, self.modulus)
+        return (
+            Matrix(L_data, self.modulus),
+            Matrix(D_data, self.modulus),
+            Matrix(R_data, self.modulus),
+        )
 
-    def dualize(self) -> 'AG':
+    def dualize(self) -> "AG":
         """Compute the dual of this AG element (Definition 3 from paper).
 
         The dual M⊥ is defined such that:
@@ -214,7 +228,7 @@ class AG:
         for i in range(pad_size):
             if D[i, i] != 0:
                 rank_val = self._compute_rank(D[i, i])
-                T[i, i] = 2**(w - rank_val)
+                T[i, i] = 2 ** (w - rank_val)
             else:
                 T[i, i] = 0
 
@@ -298,7 +312,9 @@ class AG:
         return np.array_equal(self.matrix.data, other.matrix.data)
 
 
-def alpha_ag(phi: z3.ExprRef, pre_vars: List[z3.ExprRef], post_vars: List[z3.ExprRef]) -> AG:
+def alpha_ag(
+    phi: z3.ExprRef, pre_vars: List[z3.ExprRef], post_vars: List[z3.ExprRef]
+) -> AG:
     """Alpha function for AG domain.
 
     The AG domain represents relations as generators, so the alpha function
@@ -315,9 +331,11 @@ def alpha_ag(phi: z3.ExprRef, pre_vars: List[z3.ExprRef], post_vars: List[z3.Exp
     """
     # First get the MOS abstraction
     from .mos_domain import alpha_mos
+
     mos_result = alpha_mos(phi, pre_vars, post_vars)
 
     # Convert MOS to KS, then KS to AG
     from .conversions import mos_to_ks, ks_to_ag
+
     ks_result = mos_to_ks(mos_result)
     return ks_to_ag(ks_result)

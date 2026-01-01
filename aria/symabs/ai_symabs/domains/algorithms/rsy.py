@@ -1,6 +1,7 @@
 """Implementation of the RSY algorithm for calculating alpha-tilde.
 Can also be used to calculate post-tilde.
 """
+
 from typing import Any
 from .timeout import TimeoutException
 
@@ -20,8 +21,7 @@ def RSY(domain: Any, phi: Any) -> Any:
 
     while True:
         try:
-            S = domain.model_and(phi,
-                                 domain.logic_not(domain.gamma_hat(lower)))
+            S = domain.model_and(phi, domain.logic_not(domain.gamma_hat(lower)))
         except TimeoutException:
             return domain.top
 

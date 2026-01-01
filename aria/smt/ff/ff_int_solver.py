@@ -8,24 +8,42 @@ from typing import Dict, Optional
 import math
 import z3
 from .ff_ast import (
-    FieldExpr, FieldAdd, FieldMul, FieldEq, FieldVar, FieldConst,
-    FieldSub, FieldNeg, FieldPow, FieldDiv, BoolOr, BoolAnd, BoolNot,
-    BoolImplies, BoolIte, BoolVar, ParsedFormula
+    FieldExpr,
+    FieldAdd,
+    FieldMul,
+    FieldEq,
+    FieldVar,
+    FieldConst,
+    FieldSub,
+    FieldNeg,
+    FieldPow,
+    FieldDiv,
+    BoolOr,
+    BoolAnd,
+    BoolNot,
+    BoolImplies,
+    BoolIte,
+    BoolVar,
+    ParsedFormula,
 )
+
 # ---------------------------------------------------------------------
+
 
 def _is_prime(n: int) -> bool:
     """Check if n is a prime number."""
     return n >= 2 and all(n % k for k in range(2, int(math.isqrt(n)) + 1))
 
+
 class FFIntSolver:
     """
     Prime-field solver via a direct translation to non-linear integers.
     """
+
     def __init__(self):
-        self.solver   = z3.SolverFor("QF_NIA")
-        self.vars : Dict[str,z3.IntRef] = {}
-        self.p    : Optional[int] = None
+        self.solver = z3.SolverFor("QF_NIA")
+        self.vars: Dict[str, z3.IntRef] = {}
+        self.p: Optional[int] = None
 
     # ---------------------------------------------------------------
     def check(self, formula: ParsedFormula) -> z3.CheckSatResult:
@@ -54,7 +72,7 @@ class FFIntSolver:
         for v, sort_type in varmap.items():
             if v in self.vars:
                 continue
-            if sort_type == 'bool':
+            if sort_type == "bool":
                 self.vars[v] = z3.Bool(v)
             else:  # 'ff' or finite field
                 iv = z3.Int(v)
@@ -64,7 +82,7 @@ class FFIntSolver:
     # ---------------- translation helpers --------------------------
     def _mod(self, term: z3.IntRef) -> z3.IntRef:
         """Apply modulo reduction."""
-        return term % self.p             # ← portable remainder
+        return term % self.p  # ← portable remainder
 
     def _pow_mod(self, base: z3.IntRef, exp: int) -> z3.IntRef:
         """Return (base ** exp) mod p using square-and-multiply."""
@@ -79,7 +97,9 @@ class FFIntSolver:
                 b = self._mod(b * b)
         return result
 
-    def _tr(self, e: FieldExpr) -> z3.ExprRef:  # pylint: disable=too-many-return-statements,too-many-branches
+    def _tr(
+        self, e: FieldExpr
+    ) -> z3.ExprRef:  # pylint: disable=too-many-return-statements,too-many-branches
         """Translate a finite-field expression to Z3."""
         if isinstance(e, FieldAdd):
             res = z3.IntVal(0)
@@ -111,7 +131,7 @@ class FFIntSolver:
             return res
 
         if isinstance(e, FieldNeg):
-            return self._mod(- self._tr(e.arg))
+            return self._mod(-self._tr(e.arg))
 
         if isinstance(e, FieldPow):
             base_int = self._tr(e.base)

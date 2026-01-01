@@ -1,4 +1,5 @@
 """Python-to-CFG lowering for ai_symabs."""
+
 from __future__ import annotations
 
 import ast
@@ -124,8 +125,9 @@ class _CFGBuilder:
                 return BoolOp("and", parts)
             op_str = _cmp_to_str(node.ops[0])
             return Compare(
-                self._parse_expr(node.left), op_str,
-                self._parse_expr(node.comparators[0])
+                self._parse_expr(node.left),
+                op_str,
+                self._parse_expr(node.comparators[0]),
             )
         raise ValueError(f"Unsupported expression node: {ast.dump(node)}")
 
@@ -164,8 +166,8 @@ class _CFGBuilder:
             then_entry = self._new_block()
             else_entry = self._new_block()
             cond_block.terminator = Branch(
-                self._parse_expr(stmt.test), then_entry.block_id,
-                else_entry.block_id)
+                self._parse_expr(stmt.test), then_entry.block_id, else_entry.block_id
+            )
 
             then_exits = self._build_body(stmt.body, [then_entry.block_id])
             else_body = stmt.orelse if stmt.orelse else []
@@ -182,8 +184,8 @@ class _CFGBuilder:
             after_loop = self._new_block()
 
             cond_block.terminator = Branch(
-                self._parse_expr(stmt.test), body_entry.block_id,
-                after_loop.block_id)
+                self._parse_expr(stmt.test), body_entry.block_id, after_loop.block_id
+            )
 
             body_exits = self._build_body(stmt.body, [body_entry.block_id])
             for b in body_exits:
@@ -201,9 +203,11 @@ class _CFGBuilder:
     def _lower_for(self, stmt: ast.For, open_blocks: List[str]) -> List[str]:
         if not isinstance(stmt.target, ast.Name):
             raise ValueError("For loop target must be a variable name")
-        if (not isinstance(stmt.iter, ast.Call) or
-                not isinstance(stmt.iter.func, ast.Name) or
-                stmt.iter.func.id != "range"):
+        if (
+            not isinstance(stmt.iter, ast.Call)
+            or not isinstance(stmt.iter.func, ast.Name)
+            or stmt.iter.func.id != "range"
+        ):
             raise ValueError("Only for-loops over range(...) are supported")
 
         args = stmt.iter.args

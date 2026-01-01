@@ -3,7 +3,11 @@ from __future__ import annotations
 import z3
 
 from aria.symabs.affine_relation.KS.congruence_abstraction import congruent_closure
-from aria.symabs.affine_relation.KS.loop_analysis import analyze_python_loop, example_parity_loop, example_bit_counting
+from aria.symabs.affine_relation.KS.loop_analysis import (
+    analyze_python_loop,
+    example_parity_loop,
+    example_bit_counting,
+)
 
 
 def parity_example(width: int = 4) -> None:
@@ -53,6 +57,7 @@ def loop_analysis_example() -> None:
 
 def complex_loop_example() -> None:
     """More complex loop example showing enhanced congruence analysis."""
+
     # Example from typical bit-twiddling: reversing bits in a word
     def bit_reverse():
         x = 42  # example input

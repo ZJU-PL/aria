@@ -1,4 +1,5 @@
 """Forall Solver for EFBV parallel module."""
+
 import logging
 from typing import List
 

@@ -22,14 +22,18 @@ from aria.global_params import global_config
 Z3_PATH = global_config.get_solver_path("z3")
 
 
-def run_z3_on_smt2_text(smt2_text: str, timeout_sec: int = 60, randomize: bool = False) -> str:
+def run_z3_on_smt2_text(
+    smt2_text: str, timeout_sec: int = 60, randomize: bool = False
+) -> str:
     """Run Z3 on an SMT2 string and return one of {"sat","unsat","unknown"}.
 
     Writes the text into a temporary file to avoid CLI quoting pitfalls.
     """
     temp_path: Optional[str] = None
     try:
-        with tempfile.NamedTemporaryFile(suffix=".smt2", mode="w+", delete=False) as temp_file:
+        with tempfile.NamedTemporaryFile(
+            suffix=".smt2", mode="w+", delete=False
+        ) as temp_file:
             temp_path = temp_file.name
             # Quiet options and no extra proof/trace output
             temp_file.write("(set-option :print-success false)\n")
@@ -72,7 +76,9 @@ def run_z3_on_smt2_text(smt2_text: str, timeout_sec: int = 60, randomize: bool =
 
 def run_direct(formula_str: str, timeout_sec: int = 60, randomize: bool = False) -> str:
     """Shortcut for running Z3 directly on the given SMT2 text string."""
-    return run_z3_on_smt2_text(formula_str, timeout_sec=timeout_sec, randomize=randomize)
+    return run_z3_on_smt2_text(
+        formula_str, timeout_sec=timeout_sec, randomize=randomize
+    )
 
 
 def to_checksat_result(status: str) -> z3.CheckSatResult:

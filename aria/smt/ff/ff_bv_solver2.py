@@ -18,14 +18,29 @@ Compared to the faithful wide-BV encoding, this version:
 Public API mirrors `FFBVSolver` so that the regression driver can easily
 switch between implementations.
 """
+
 from __future__ import annotations
 from typing import Dict, Optional
 import z3
 
 from .ff_ast import (
-    FieldExpr, FieldAdd, FieldMul, FieldNeg, FieldEq, FieldVar, FieldConst,
-    FieldSub, FieldPow, FieldDiv,
-    BoolOr, BoolAnd, BoolNot, BoolImplies, BoolIte, BoolVar, ParsedFormula
+    FieldExpr,
+    FieldAdd,
+    FieldMul,
+    FieldNeg,
+    FieldEq,
+    FieldVar,
+    FieldConst,
+    FieldSub,
+    FieldPow,
+    FieldDiv,
+    BoolOr,
+    BoolAnd,
+    BoolNot,
+    BoolImplies,
+    BoolIte,
+    BoolVar,
+    ParsedFormula,
 )
 
 __all__ = ["FFBVBridgeSolver"]
@@ -98,7 +113,9 @@ class FFBVBridgeSolver:
     # ------------------------------------------------------------------
     # Translation
     # ------------------------------------------------------------------
-    def _tr(self, e: FieldExpr) -> z3.ExprRef:  # pylint: disable=too-many-return-statements,too-many-branches
+    def _tr(
+        self, e: FieldExpr
+    ) -> z3.ExprRef:  # pylint: disable=too-many-return-statements,too-many-branches
         """Translate a finite-field / Boolean AST node to a Z3 expression."""
         # Field algebra --------------------------------------------------
         if isinstance(e, FieldAdd):

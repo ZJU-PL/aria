@@ -53,7 +53,7 @@ class KS:
         """Check if this is the bottom element (empty relation)."""
         return self.is_empty()
 
-    def copy(self) -> 'KS':
+    def copy(self) -> "KS":
         """Create a copy of this KS element."""
         return KS(self.matrix.copy(), self.w)
 
@@ -68,8 +68,8 @@ class KS:
         for i in range(self.rows):
             row = self.matrix[i, :]
             coeffs = row[:k]  # Coefficients for x variables
-            coeffs_prime = row[k:2*k]  # Coefficients for x' variables
-            constant = row[2*k]  # Constant term
+            coeffs_prime = row[k : 2 * k]  # Coefficients for x' variables
+            constant = row[2 * k]  # Constant term
 
             terms = []
 
@@ -98,7 +98,7 @@ class KS:
 
         return " ∧ ".join(constraints)
 
-    def join(self, other: 'KS') -> 'KS':
+    def join(self, other: "KS") -> "KS":
         """Compute the join of two KS elements."""
         if self.is_empty():
             return other.copy()
@@ -109,7 +109,7 @@ class KS:
         new_data = np.vstack([self.matrix.data, other.matrix.data])
         return KS(Matrix(new_data, self.modulus), self.w)
 
-    def project_pre(self, variables: List[int]) -> 'KS':
+    def project_pre(self, variables: List[int]) -> "KS":
         """Project onto pre-state variables (existential quantification over post-state)."""
         if self.is_empty():
             return self.copy()
@@ -123,11 +123,11 @@ class KS:
                 result_data[i, j] = self.matrix[i, j]
 
             # Copy constant term
-            result_data[i, k] = self.matrix[i, 2*k]
+            result_data[i, k] = self.matrix[i, 2 * k]
 
         return KS(Matrix(result_data, self.modulus), self.w)
 
-    def project_post(self, variables: List[int]) -> 'KS':
+    def project_post(self, variables: List[int]) -> "KS":
         """Project onto post-state variables (existential quantification over pre-state)."""
         if self.is_empty():
             return self.copy()
@@ -141,11 +141,11 @@ class KS:
                 result_data[i, j] = self.matrix[i, k + j]
 
             # Copy constant term
-            result_data[i, k] = self.matrix[i, 2*k]
+            result_data[i, k] = self.matrix[i, 2 * k]
 
         return KS(Matrix(result_data, self.modulus), self.w)
 
-    def compose(self, other: 'KS') -> 'KS':
+    def compose(self, other: "KS") -> "KS":
         """Compose two KS elements (Y ∘ Z where Y ○ Z = {(x,z) | ∃y. (x,y) ∈ Y ∧ (y,z) ∈ Z})."""
         # This is a simplified version - full implementation would use
         # the join algorithm from King & Søndergaard
@@ -160,7 +160,9 @@ class KS:
         # This is a placeholder - full implementation needs the algorithm
         # from King & Søndergaard paper
 
-        return KS(Matrix(np.zeros((0, three_vocab_size), dtype=object), self.modulus), self.w)
+        return KS(
+            Matrix(np.zeros((0, three_vocab_size), dtype=object), self.modulus), self.w
+        )
 
     def __eq__(self, other) -> bool:
         """Check equality of KS elements."""
@@ -172,7 +174,9 @@ class KS:
         return np.array_equal(self.matrix.data, other.matrix.data)
 
 
-def alpha_ks(phi: z3.ExprRef, pre_vars: List[z3.ExprRef], post_vars: List[z3.ExprRef]) -> KS:
+def alpha_ks(
+    phi: z3.ExprRef, pre_vars: List[z3.ExprRef], post_vars: List[z3.ExprRef]
+) -> KS:
     """Alpha function for KS domain.
 
     The KS domain represents two-vocabulary relations, so the alpha function
@@ -189,8 +193,10 @@ def alpha_ks(phi: z3.ExprRef, pre_vars: List[z3.ExprRef], post_vars: List[z3.Exp
     """
     # First get the MOS abstraction
     from .mos_domain import alpha_mos
+
     mos_result = alpha_mos(phi, pre_vars, post_vars)
 
     # Convert MOS to KS
     from .conversions import mos_to_ks
+
     return mos_to_ks(mos_result)

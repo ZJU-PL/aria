@@ -1,5 +1,5 @@
-"""Base class definitions for conjunctive domains modelable by Z3.
-"""
+"""Base class definitions for conjunctive domains modelable by Z3."""
+
 from typing import Any, List, Dict, Optional, Union
 import z3
 from ..core import ConjunctiveDomain
@@ -8,11 +8,14 @@ from .concrete import Z3VariablesState
 
 # pylint: disable=abstract-method
 class Z3VariablesDomain(ConjunctiveDomain):
-    """Represents an abstract space modelable by Z3.
-    """
+    """Represents an abstract space modelable by Z3."""
 
-    def __init__(self, variables: List[str], variable_type: Any = z3.Int,
-                 build_z3_variables: bool = True) -> None:
+    def __init__(
+        self,
+        variables: List[str],
+        variable_type: Any = z3.Int,
+        build_z3_variables: bool = True,
+    ) -> None:
         """Constructs a new Z3VariablesDomain, with variables @variables.
 
         Arguments
@@ -23,16 +26,16 @@ class Z3VariablesDomain(ConjunctiveDomain):
         self.variables: List[str] = variables
         self.variable_type: Any = variable_type
         if build_z3_variables:
-            self.z3_variables: Dict[str, Any] = dict((name, variable_type(name))
-                                     for name in self.variables)
+            self.z3_variables: Dict[str, Any] = dict(
+                (name, variable_type(name)) for name in self.variables
+            )
         else:
             self.z3_variables: Optional[Dict[str, Any]] = None
         self.concrete_type = Z3VariablesState
         self.iterative_solvers: Dict[int, z3.Solver] = {}
 
     def z3_variable(self, name: str) -> Any:
-        """Returns the Z3 variable associated with name.
-        """
+        """Returns the Z3 variable associated with name."""
         return self.z3_variables[name]
 
     def model(self, phi: Any) -> Optional[Z3VariablesState]:
@@ -46,12 +49,12 @@ class Z3VariablesDomain(ConjunctiveDomain):
             model = solver.model()
             if self.variable_type is z3.Int:
                 solution: Dict[str, Union[int, float]] = dict(
-                    (d.name(), model.eval(d()).as_long())
-                    for d in model.decls())
+                    (d.name(), model.eval(d()).as_long()) for d in model.decls()
+                )
             else:
                 solution: Dict[str, Union[int, float]] = dict(
-                    (d.name(), model.eval(d()).as_fraction())
-                    for d in model.decls())
+                    (d.name(), model.eval(d()).as_fraction()) for d in model.decls()
+                )
             for name in self.variables:
                 if name not in solution:
                     solution[name] = 0
@@ -76,12 +79,12 @@ class Z3VariablesDomain(ConjunctiveDomain):
             model = solver.model()
             if self.variable_type is z3.Int:
                 solution: Dict[str, Union[int, float]] = dict(
-                    (d.name(), model.eval(d()).as_long())
-                    for d in model.decls())
+                    (d.name(), model.eval(d()).as_long()) for d in model.decls()
+                )
             else:
                 solution: Dict[str, Union[int, float]] = dict(
-                    (d.name(), model.eval(d()).as_fraction())
-                    for d in model.decls())
+                    (d.name(), model.eval(d()).as_fraction()) for d in model.decls()
+                )
             for name in self.variables:
                 if name not in solution:
                     solution[name] = 0
@@ -91,14 +94,12 @@ class Z3VariablesDomain(ConjunctiveDomain):
         return None
 
     def logic_and(self, formulas: List[Any]) -> Any:
-        """Returns the logical and of the given formulas.
-        """
+        """Returns the logical and of the given formulas."""
         return z3.And(formulas)
 
     def logic_not(self, formula: Any) -> Any:
-        """Returns the logical negation of the given formula.
-        """
+        """Returns the logical negation of the given formula."""
         return z3.Not(formula)
 
-    def translate(self, translation: Dict[str, str]) -> 'Z3VariablesDomain':
+    def translate(self, translation: Dict[str, str]) -> "Z3VariablesDomain":
         return type(self)(list(map(translation.__getitem__, self.variables)))

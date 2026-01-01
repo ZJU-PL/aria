@@ -1,6 +1,7 @@
-"""Definitions for abstract domain types.
-"""
+"""Definitions for abstract domain types."""
+
 from typing import Any, List, Dict
+
 
 class ConjunctiveDomain:
     """Represents a conjunctive domain.
@@ -36,13 +37,11 @@ class ConjunctiveDomain:
         raise NotImplementedError
 
     def logic_and(self, formulas: List[Any]) -> Any:
-        """Returns the logical and of the given formulas.
-        """
+        """Returns the logical and of the given formulas."""
         raise NotImplementedError
 
     def logic_not(self, formula: Any) -> Any:
-        """Returns the logical negation of the given formula.
-        """
+        """Returns the logical negation of the given formula."""
         raise NotImplementedError
 
     def join(self, elements: List[Any]) -> Any:
@@ -89,7 +88,7 @@ class ConjunctiveDomain:
         """
         raise NotImplementedError
 
-    def translate(self, translation: Dict[str, str]) -> 'ConjunctiveDomain':
+    def translate(self, translation: Dict[str, str]) -> "ConjunctiveDomain":
         """Rename variables in the abstract space definition.
         Used in frontend/program.py to deal with "primes." We might encode x +=
         y as x' = x + y, y' = y, but the user will give us a domain in terms of

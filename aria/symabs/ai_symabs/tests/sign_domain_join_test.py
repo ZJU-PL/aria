@@ -11,9 +11,15 @@ def test_join_bottom_top():
 
 def test_join_three_states():
     domain = SignDomain(["a", "b", "c"])
-    state1 = SignAbstractState({"a": Sign.Positive, "b": Sign.Negative, "c": Sign.Bottom})
-    state2 = SignAbstractState({"a": Sign.Positive, "b": Sign.Positive, "c": Sign.Negative})
-    state3 = SignAbstractState({"a": Sign.Positive, "b": Sign.Positive, "c": Sign.Negative})
+    state1 = SignAbstractState(
+        {"a": Sign.Positive, "b": Sign.Negative, "c": Sign.Bottom}
+    )
+    state2 = SignAbstractState(
+        {"a": Sign.Positive, "b": Sign.Positive, "c": Sign.Negative}
+    )
+    state3 = SignAbstractState(
+        {"a": Sign.Positive, "b": Sign.Positive, "c": Sign.Negative}
+    )
 
     joined = domain.join([state1, state2, state3])
 

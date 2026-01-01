@@ -10,7 +10,7 @@ import json
 import logging
 import z3
 
-from aria.utils.z3_expr_utils import negate # get_atoms
+from aria.utils.z3_expr_utils import negate  # get_atoms
 from aria.global_params import global_config
 
 # Set up logging
@@ -41,7 +41,7 @@ QE_TEMPLATE = """
 
 def to_smtlib(expr):
     """Convert Z3 expression to SMT-LIB string format"""
-    if hasattr(expr, 'sexpr'):
+    if hasattr(expr, "sexpr"):
         return expr.sexpr()
     return str(expr)
 
@@ -51,13 +51,13 @@ def get_declarations(expr):
     decls = set()
 
     try:
-        if hasattr(expr, 'children'):
+        if hasattr(expr, "children"):
             variables = set()
 
             def collect_vars(e):
                 if z3.is_const(e) and e.decl().kind() == z3.Z3_OP_UNINTERPRETED:
                     variables.add(e)
-                elif hasattr(e, 'children'):
+                elif hasattr(e, "children"):
                     for child in e.children():
                         collect_vars(child)
 
@@ -76,12 +76,20 @@ def get_declarations(expr):
                     decls.add(f"(declare-const {var} {sort_name})")
 
         if not decls:
-            var_pattern = r'([a-zA-Z][a-zA-Z0-9_]*)'
+            var_pattern = r"([a-zA-Z][a-zA-Z0-9_]*)"
             expr_str = str(expr)
 
             for match in re.finditer(var_pattern, expr_str):
                 var_name = match.group(1)
-                if var_name not in ["and", "or", "not", "true", "false", "exists", "forall"]:
+                if var_name not in [
+                    "and",
+                    "or",
+                    "not",
+                    "true",
+                    "false",
+                    "exists",
+                    "forall",
+                ]:
                     decls.add(f"(declare-const {var_name} Real)")
 
     except (AttributeError, TypeError, ValueError) as e:
@@ -98,7 +106,7 @@ def parse_model(z3_output):
         if "sat" not in z3_output:
             return model_dict
 
-        model_match = re.search(r'sat\s*\((.*)\)\s*$', z3_output, re.DOTALL)
+        model_match = re.search(r"sat\s*\((.*)\)\s*$", z3_output, re.DOTALL)
         if not model_match:
             return model_dict
 
@@ -109,13 +117,13 @@ def parse_model(z3_output):
         depth = 0
 
         for char in model_content:
-            if char == '(':
+            if char == "(":
                 depth += 1
                 if depth == 1:
                     current_block = "("
                 else:
                     current_block += char
-            elif char == ')':
+            elif char == ")":
                 depth -= 1
                 current_block += char
                 if depth == 0:
@@ -134,10 +142,7 @@ def parse_model(z3_output):
                     value_start_idx = block.find(var_type) + len(var_type)
                     var_value = block[value_start_idx:].strip()
 
-                    model_dict[var_name] = {
-                        'type': var_type,
-                        'value': var_value
-                    }
+                    model_dict[var_name] = {"type": var_type, "value": var_value}
     except (AttributeError, ValueError, KeyError) as e:
         print(f"Error parsing model: {e}")
 
@@ -149,8 +154,8 @@ def create_blocking_clause(model_dict):
     clauses = []
 
     for var_name, var_info in model_dict.items():
-        if var_info['type'] == 'Bool':
-            if var_info['value'] == 'true':
+        if var_info["type"] == "Bool":
+            if var_info["value"] == "true":
                 clauses.append(f"(not {var_name})")
             else:
                 clauses.append(var_name)
@@ -175,20 +180,23 @@ def extract_models(formula, num_models=10, blocked_models=None):
         formula_smtlib = to_smtlib(formula)
 
         if blocked_models:
-            blocking_clauses = [to_smtlib(negate(model_expr)) for model_expr in blocked_models]
+            blocking_clauses = [
+                to_smtlib(negate(model_expr)) for model_expr in blocked_models
+            ]
             formula_smtlib = f"(and {formula_smtlib} {' '.join(blocking_clauses)})"
 
         declarations = get_declarations(formula)
 
         for _ in range(num_models):
             smt_script = SMT_HEADER.format(
-                declarations=declarations,
-                formula=formula_smtlib
+                declarations=declarations, formula=formula_smtlib
             )
             smt_script += "\n(check-sat)"
             smt_script += "\n(get-model)"
 
-            with tempfile.NamedTemporaryFile(suffix='.smt2', mode='w+', delete=False) as temp_file:
+            with tempfile.NamedTemporaryFile(
+                suffix=".smt2", mode="w+", delete=False
+            ) as temp_file:
                 temp_path = temp_file.name
                 temp_file.write(smt_script)
 
@@ -197,7 +205,7 @@ def extract_models(formula, num_models=10, blocked_models=None):
                 capture_output=True,
                 text=True,
                 timeout=30,
-                check=False
+                check=False,
             )
             os.unlink(temp_path)
 
@@ -221,26 +229,26 @@ def extract_models(formula, num_models=10, blocked_models=None):
 
 def parse_qe_result(z3_output):
     """Parse quantifier elimination result from Z3 output"""
-    double_paren_match = re.search(r'\(\((and[^)]+)\)\)', z3_output, re.DOTALL)
+    double_paren_match = re.search(r"\(\((and[^)]+)\)\)", z3_output, re.DOTALL)
     if double_paren_match:
         return double_paren_match.group(1)
 
-    direct_and_match = re.search(r'\(and\s+([^)]+)\)', z3_output, re.DOTALL)
+    direct_and_match = re.search(r"\(and\s+([^)]+)\)", z3_output, re.DOTALL)
     if direct_and_match:
         return f"(and {direct_and_match.group(1)})"
 
-    get_assertions = re.search(r'\(get-assertions\)\s*(.+)', z3_output, re.DOTALL)
+    get_assertions = re.search(r"\(get-assertions\)\s*(.+)", z3_output, re.DOTALL)
     if get_assertions:
         assertions_text = get_assertions.group(1).strip()
-        if assertions_text.startswith('(('):
+        if assertions_text.startswith("(("):
             depth = 0
             for i, char in enumerate(assertions_text):
-                if char == '(':
+                if char == "(":
                     depth += 1
-                elif char == ')':
+                elif char == ")":
                     depth -= 1
                     if depth == 0:
-                        return assertions_text[:i+1]
+                        return assertions_text[: i + 1]
 
     return "false"
 
@@ -250,16 +258,16 @@ def build_minterm_from_model(model):
     constraints = []
 
     for var_name, var_info in model.items():
-        var_type = var_info['type']
-        var_value = var_info['value'].strip()
+        var_type = var_info["type"]
+        var_value = var_info["value"].strip()
 
-        if var_type == 'Bool':
-            if var_value == 'true':
+        if var_type == "Bool":
+            if var_value == "true":
                 constraints.append(var_name)
-            elif var_value == 'false':
+            elif var_value == "false":
                 constraints.append(f"(not {var_name})")
         else:
-            if var_value.startswith('(') and var_value.endswith(')'):
+            if var_value.startswith("(") and var_value.endswith(")"):
                 constraints.append(f"(= {var_name} {var_value})")
             else:
                 constraints.append(f"(= {var_name} {var_value})")
@@ -287,13 +295,13 @@ def process_model(model_json, qvars_json):
         free_var_constraints = []
         for var_name in free_vars:
             var_info = model[var_name]
-            var_type = var_info['type']
-            var_value = var_info['value'].strip()
+            var_type = var_info["type"]
+            var_value = var_info["value"].strip()
 
-            if var_type == 'Bool':
-                if var_value == 'true':
+            if var_type == "Bool":
+                if var_value == "true":
                     free_var_constraints.append(var_name)
-                elif var_value == 'false':
+                elif var_value == "false":
                     free_var_constraints.append(f"(not {var_name})")
             else:
                 free_var_constraints.append(f"(= {var_name} {var_value})")
@@ -312,14 +320,16 @@ def process_model(model_json, qvars_json):
 (set-logic ALL)
 """
         for var_name, var_info in model.items():
-            var_type = var_info['type']
+            var_type = var_info["type"]
             verify_smt += f"(declare-const {var_name} {var_type})\n"
 
         verify_smt += f"(assert {minterm_smtlib})\n"
         verify_smt += f"(assert {projection})\n"
         verify_smt += "(check-sat)\n"
 
-        with tempfile.NamedTemporaryFile(suffix='.smt2', mode='w+', delete=False) as temp_file:
+        with tempfile.NamedTemporaryFile(
+            suffix=".smt2", mode="w+", delete=False
+        ) as temp_file:
             temp_path = temp_file.name
             temp_file.write(verify_smt)
 
@@ -328,7 +338,7 @@ def process_model(model_json, qvars_json):
             capture_output=True,
             text=True,
             timeout=30,
-            check=False
+            check=False,
         )
         os.unlink(temp_path)
 
@@ -337,8 +347,14 @@ def process_model(model_json, qvars_json):
 
         return "false"
 
-    except (json.JSONDecodeError, KeyError, ValueError, subprocess.TimeoutExpired,
-            subprocess.SubprocessError, OSError) as e:
+    except (
+        json.JSONDecodeError,
+        KeyError,
+        ValueError,
+        subprocess.TimeoutExpired,
+        subprocess.SubprocessError,
+        OSError,
+    ) as e:
         print(f"Error in process_model: {e}")
         return "false"
 
@@ -352,7 +368,7 @@ def simplify_result(result):
         inner_content = result[4:-1].strip()
 
         constraints = []
-        pattern = r'\(=\s+z\s+(.+?)\)'
+        pattern = r"\(=\s+z\s+(.+?)\)"
         for match in re.finditer(pattern, inner_content):
             constraint = match.group(0)
             if constraint not in constraints:
@@ -362,6 +378,7 @@ def simplify_result(result):
             return "(or " + " ".join(constraints) + ")"
 
     return result
+
 
 def qelim_exists_lme_parallel(phi, qvars, num_workers=None, batch_size=4):
     """
@@ -444,7 +461,13 @@ def qelim_exists_lme_parallel(phi, qvars, num_workers=None, batch_size=4):
         # Simplify the result by removing duplicates
         return simplify_result(result)
 
-    except (AttributeError, TypeError, ValueError, subprocess.TimeoutExpired,
-            subprocess.SubprocessError, OSError) as e:
+    except (
+        AttributeError,
+        TypeError,
+        ValueError,
+        subprocess.TimeoutExpired,
+        subprocess.SubprocessError,
+        OSError,
+    ) as e:
         print(f"Error in qelim_exists_lme_parallel: {e}")
         return "false"

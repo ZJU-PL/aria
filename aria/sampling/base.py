@@ -12,6 +12,7 @@ import z3
 
 class Logic(Enum):
     """Supported SMT logics for sampling."""
+
     QF_BOOL = "QF_BOOL"  # Quantifier-free Boolean logic
     QF_BV = "QF_BV"  # Quantifier-free bit-vector logic
     QF_LRA = "QF_LRA"  # Quantifier-free linear real arithmetic
@@ -24,6 +25,7 @@ class Logic(Enum):
 
 class SamplingMethod(Enum):
     """Available sampling methods."""
+
     ENUMERATION = "enumeration"  # Simple enumeration of models
     MCMC = "mcmc"  # Markov Chain Monte Carlo
     REGION = "region"  # Region-based sampling
@@ -35,12 +37,12 @@ class SamplingMethod(Enum):
 class SamplingResult:
     """Result of a sampling operation."""
 
-    def __init__(self,
-                 samples: List[Dict[str, Any]],
-                 stats: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self, samples: List[Dict[str, Any]], stats: Optional[Dict[str, Any]] = None
+    ):
         """
         Initialize a sampling result.
-        
+
         Args:
             samples: List of samples, where each sample is a dictionary mapping variable names to values
             stats: Optional statistics about the sampling process
@@ -76,15 +78,17 @@ class SamplingResult:
 class SamplingOptions:
     """Options for sampling."""
 
-    def __init__(self,
-                 method: SamplingMethod = SamplingMethod.ENUMERATION,
-                 num_samples: int = 1,
-                 timeout: Optional[float] = None,
-                 random_seed: Optional[int] = None,
-                 **kwargs):
+    def __init__(
+        self,
+        method: SamplingMethod = SamplingMethod.ENUMERATION,
+        num_samples: int = 1,
+        timeout: Optional[float] = None,
+        random_seed: Optional[int] = None,
+        **kwargs,
+    ):
         """
         Initialize sampling options.
-        
+
         Args:
             method: The sampling method to use
             num_samples: The number of samples to generate
@@ -100,11 +104,13 @@ class SamplingOptions:
 
     def __str__(self) -> str:
         """String representation of the sampling options."""
-        return (f"SamplingOptions(method={self.method.value}, "
-                f"num_samples={self.num_samples}, "
-                f"timeout={self.timeout}, "
-                f"random_seed={self.random_seed}, "
-                f"additional_options={self.additional_options})")
+        return (
+            f"SamplingOptions(method={self.method.value}, "
+            f"num_samples={self.num_samples}, "
+            f"timeout={self.timeout}, "
+            f"random_seed={self.random_seed}, "
+            f"additional_options={self.additional_options})"
+        )
 
 
 class Sampler(ABC):
@@ -114,10 +120,10 @@ class Sampler(ABC):
     def supports_logic(self, logic: Logic) -> bool:
         """
         Check if this sampler supports the given logic.
-        
+
         Args:
             logic: The logic to check
-            
+
         Returns:
             True if the sampler supports the logic, False otherwise
         """
@@ -127,7 +133,7 @@ class Sampler(ABC):
     def init_from_formula(self, formula: z3.ExprRef) -> None:
         """
         Initialize the sampler with a formula.
-        
+
         Args:
             formula: The Z3 formula to sample from
         """
@@ -137,10 +143,10 @@ class Sampler(ABC):
     def sample(self, options: SamplingOptions) -> SamplingResult:
         """
         Generate samples according to the given options.
-        
+
         Args:
             options: The sampling options
-            
+
         Returns:
             A SamplingResult containing the generated samples
         """
@@ -149,7 +155,7 @@ class Sampler(ABC):
     def get_supported_methods(self) -> Set[SamplingMethod]:
         """
         Get the sampling methods supported by this sampler.
-        
+
         Returns:
             A set of supported sampling methods
         """
@@ -158,7 +164,7 @@ class Sampler(ABC):
     def get_supported_logics(self) -> Set[Logic]:
         """
         Get the logics supported by this sampler.
-        
+
         Returns:
             A set of supported logics
         """

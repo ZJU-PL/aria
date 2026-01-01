@@ -41,8 +41,7 @@ def eval_predicates(m: ModelRef, predicates: List[BoolRef]) -> List[ExprRef]:
 
 
 def prime_implicant(ps: List[ExprRef], e: ExprRef) -> List[ExprRef]:
-    """TODO: this function may have flaws
-    """
+    """TODO: this function may have flaws"""
     s = z3.Solver()
     # we want to find a subset ps' of ps such that /\ ps => e
     s.add(z3.Not(e))

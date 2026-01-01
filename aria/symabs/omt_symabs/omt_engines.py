@@ -3,6 +3,7 @@ OMT (Optimization Modulo Theories) engines for symbolic abstraction.
 
 TODO: use utils.z3_plus_smtlib_solver to integrate third-party engine
 """
+
 from enum import Enum
 from typing import List, Optional, Any
 
@@ -14,6 +15,7 @@ from aria.symabs.omt_symabs.z3opt_util import box_optimize, optimize
 
 class OMTEngineType(Enum):
     """Types of OMT engines available."""
+
     LINEAR_SEARCH = 0
     BINARY_SEARCH = 1  # not implemented
     MIXED_LINEAR_BINARY_SEARCH = 2  # not implemented
@@ -26,6 +28,7 @@ class OMTEngineType(Enum):
 
 class OMTEngine:
     """Engine for Optimization Modulo Theories."""
+
     def __init__(self) -> None:
         self.initialized: bool = False
         self.formula: Optional[z3.ExprRef] = None
@@ -93,13 +96,13 @@ class OMTEngine:
         if minimize:
             qfml = z3.And(
                 self.formula,
-                z3.ForAll([exp_misc], z3.Implies(new_fml, exp <= exp_misc))
+                z3.ForAll([exp_misc], z3.Implies(new_fml, exp <= exp_misc)),
             )
         else:
             # TODO: why not working when x can be +oo????
             qfml = z3.And(
                 self.formula,
-                z3.ForAll([exp_misc], z3.Implies(new_fml, exp_misc <= exp))
+                z3.ForAll([exp_misc], z3.Implies(new_fml, exp_misc <= exp)),
             )
         s.add(qfml)
         if s.check() == z3.sat:

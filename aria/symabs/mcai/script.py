@@ -1,4 +1,5 @@
 """Script for generating and running examples for the MCAI project."""
+
 import argparse
 import os
 import sys
@@ -33,42 +34,36 @@ def run_examples(output_directory: str) -> None:
             if file.endswith(".smt2"):
                 path = os.path.abspath(os.path.join(root, file))
                 log_path = path.replace(".smt2", ".log")
-                cmd = (f"python3 bv_mcai.py -f={path} "
-                       f"-l={log_path} -c={output_directory}/results.csv")
+                cmd = (
+                    f"python3 bv_mcai.py -f={path} "
+                    f"-l={log_path} -c={output_directory}/results.csv"
+                )
                 print(cmd)
                 os.system(cmd)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Generate examples for the MCAI project."
     )
     parser.add_argument(
-        "-n", "--num",
-        type=int,
-        help="Number of examples to generate.",
-        default=100
+        "-n", "--num", type=int, help="Number of examples to generate.", default=100
     )
     parser.add_argument(
-        "-d", "--dir",
+        "-d",
+        "--dir",
         type=str,
         help="Directory to save/load smt2 files.",
-        default="smt2"
+        default="smt2",
     )
     parser.add_argument(
-        "-r", "--run",
-        action="store_true",
-        help="Run the examples after generation."
+        "-r", "--run", action="store_true", help="Run the examples after generation."
     )
     parser.add_argument(
-        "-g", "--gen",
-        action="store_true",
-        help="Generate random examples."
+        "-g", "--gen", action="store_true", help="Generate random examples."
     )
     parser.add_argument(
-        "--c-dir",
-        type=str,
-        help="Directory to load C programs.",
-        default="c"
+        "--c-dir", type=str, help="Directory to load C programs.", default="c"
     )
 
     args = parser.parse_args()

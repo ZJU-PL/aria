@@ -1,6 +1,4 @@
-"""Definitions for concrete state data types.
-"""
-
+"""Definitions for concrete state data types."""
 
 # pylint: disable=too-few-public-methods
 

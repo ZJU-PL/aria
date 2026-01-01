@@ -16,7 +16,7 @@ WORKER_SHUTDOWN_TIMEOUT = 2.0  # seconds
 SIMPLIFY_CLAUSES = True  # Simplify blocking clauses from theory solver
 
 # SAT solver
-SAT_SOLVER_ENGINE = 'glucose4'
+SAT_SOLVER_ENGINE = "glucose4"
 
 # SMT query logging (optional, for debugging)
 ENABLE_QUERY_LOGGING = False

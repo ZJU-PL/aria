@@ -30,11 +30,7 @@ class TestMatrixOperations(unittest.TestCase):
     def test_howellize_simple(self):
         """Test Howell form of a simple matrix."""
         # Create a matrix that needs Howell transformation
-        data = np.array([
-            [2, 1, 0],
-            [0, 2, 1],
-            [0, 0, 1]
-        ], dtype=object)
+        data = np.array([[2, 1, 0], [0, 2, 1], [0, 0, 1]], dtype=object)
         matrix = Matrix(data, 8)
 
         result = howellize(matrix)
@@ -60,11 +56,9 @@ class TestMatrixOperations(unittest.TestCase):
 
     def test_leading_index_calculation(self):
         """Test leading index calculation."""
-        data = np.array([
-            [0, 0, 5, 0],
-            [0, 3, 0, 1],
-            [0, 0, 0, 0]  # Zero row
-        ], dtype=object)
+        data = np.array(
+            [[0, 0, 5, 0], [0, 3, 0, 1], [0, 0, 0, 0]], dtype=object  # Zero row
+        )
         matrix = Matrix(data, 16)
 
         # First row has leading index 2 (third column)
@@ -101,7 +95,7 @@ class TestDomainConversions(unittest.TestCase):
         # Create a simple KS element
         data = np.zeros((1, 5), dtype=object)
         data[0, 0] = -1  # -x coefficient
-        data[0, 2] = 1   # x' coefficient
+        data[0, 2] = 1  # x' coefficient
         # Represents x' = x
 
         ks = KS(Matrix(data, 8), 32)
@@ -123,9 +117,9 @@ class TestDomainConversions(unittest.TestCase):
         # Create a simple AG element
         data = np.zeros((2, 5), dtype=object)
         data[0, 0] = -1  # -x coefficient
-        data[0, 2] = 1   # x' coefficient
+        data[0, 2] = 1  # x' coefficient
         data[1, 1] = -1  # -y coefficient
-        data[1, 3] = 1   # y' coefficient
+        data[1, 3] = 1  # y' coefficient
         # Represents x' = x, y' = y
 
         ag = AG(Matrix(data, 8))
@@ -138,11 +132,10 @@ class TestDomainConversions(unittest.TestCase):
     def test_domain_equivalence_property(self):
         """Test that conversions preserve the abstract semantics."""
         # Create a transformation in MOS
-        transform_data = np.array([
-            [1, 1, 0],  # x' = x + y
-            [0, 1, 0],  # y' = y
-            [0, 0, 1]   # Last row
-        ], dtype=object)
+        transform_data = np.array(
+            [[1, 1, 0], [0, 1, 0], [0, 0, 1]],  # x' = x + y  # y' = y  # Last row
+            dtype=object,
+        )
         matrix = Matrix(transform_data, 8)
         mos = MOS([matrix], 32)
 
@@ -163,10 +156,7 @@ class TestMatrixAlgorithms(unittest.TestCase):
     def test_diagonal_decomposition(self):
         """Test diagonal decomposition algorithm."""
         # Create a matrix that can be diagonalized
-        data = np.array([
-            [2, 1],
-            [0, 3]
-        ], dtype=object)
+        data = np.array([[2, 1], [0, 3]], dtype=object)
         matrix = Matrix(data, 8)
 
         ag = AG(matrix)
@@ -188,9 +178,9 @@ class TestMatrixAlgorithms(unittest.TestCase):
         # Create a simple AG element
         data = np.zeros((2, 5), dtype=object)
         data[0, 0] = -1  # -x
-        data[0, 2] = 1   # x'
+        data[0, 2] = 1  # x'
         data[1, 1] = -1  # -y
-        data[1, 3] = 1   # y'
+        data[1, 3] = 1  # y'
 
         ag = AG(Matrix(data, 8))
         dual_ag = ag.dualize()
@@ -222,9 +212,11 @@ class TestComplexFormulas(unittest.TestCase):
 
     def test_arithmetic_operations(self):
         """Test formulas with arithmetic operations."""
-        variables = ['x', 'y']
+        variables = ["x", "y"]
         pre_vars, post_vars = create_z3_variables(variables)
-        phi = z3.And(post_vars[0] == pre_vars[0], post_vars[1] == pre_vars[1])  # x' = x, y' = y
+        phi = z3.And(
+            post_vars[0] == pre_vars[0], post_vars[1] == pre_vars[1]
+        )  # x' = x, y' = y
 
         mos_result = alpha_mos(phi, pre_vars, post_vars)
         ks_result = alpha_ks(phi, pre_vars, post_vars)
@@ -237,9 +229,11 @@ class TestComplexFormulas(unittest.TestCase):
 
     def test_conditional_logic(self):
         """Test formulas with conditional logic (if supported)."""
-        variables = ['x', 'y']
+        variables = ["x", "y"]
         pre_vars, post_vars = create_z3_variables(variables)
-        phi = z3.And(post_vars[0] == pre_vars[0], post_vars[1] == pre_vars[1])  # x' = x, y' = y
+        phi = z3.And(
+            post_vars[0] == pre_vars[0], post_vars[1] == pre_vars[1]
+        )  # x' = x, y' = y
 
         mos_result = alpha_mos(phi, pre_vars, post_vars)
         ks_result = alpha_ks(phi, pre_vars, post_vars)
@@ -252,9 +246,11 @@ class TestComplexFormulas(unittest.TestCase):
 
     def test_bitwise_operations(self):
         """Test formulas with bitwise operations."""
-        variables = ['x', 'y']
+        variables = ["x", "y"]
         pre_vars, post_vars = create_z3_variables(variables)
-        phi = z3.And(post_vars[0] == pre_vars[0], post_vars[1] == pre_vars[1])  # x' = x, y' = y
+        phi = z3.And(
+            post_vars[0] == pre_vars[0], post_vars[1] == pre_vars[1]
+        )  # x' = x, y' = y
 
         mos_result = alpha_mos(phi, pre_vars, post_vars)
         ks_result = alpha_ks(phi, pre_vars, post_vars)
@@ -272,7 +268,7 @@ class TestPerformanceAndScalability(unittest.TestCase):
     def test_multiple_variables(self):
         """Test with increasing number of variables."""
         for num_vars in [1, 2]:
-            variables = [f'x{i}' for i in range(num_vars)]
+            variables = [f"x{i}" for i in range(num_vars)]
             pre_vars, post_vars = create_z3_variables(variables)
             phi = z3.And(*[post_vars[i] == pre_vars[i] for i in range(num_vars)])
 
@@ -282,12 +278,12 @@ class TestPerformanceAndScalability(unittest.TestCase):
 
     def test_large_formulas(self):
         """Test with larger, more complex formulas."""
-        variables = ['x', 'y', 'z']
+        variables = ["x", "y", "z"]
         pre_vars, post_vars = create_z3_variables(variables)
         phi = z3.And(
             post_vars[0] == pre_vars[0],  # x' = x
             post_vars[1] == pre_vars[1],  # y' = y
-            post_vars[2] == pre_vars[2]   # z' = z
+            post_vars[2] == pre_vars[2],  # z' = z
         )
 
         mos_result = alpha_mos(phi, pre_vars, post_vars)
@@ -297,9 +293,11 @@ class TestPerformanceAndScalability(unittest.TestCase):
         """Test that CEGIS converges within reasonable iterations."""
         # This would require access to internal CEGIS state
         # For now, just test that it terminates
-        variables = ['x', 'y']
+        variables = ["x", "y"]
         pre_vars, post_vars = create_z3_variables(variables)
-        phi = z3.And(post_vars[0] == pre_vars[0], post_vars[1] == pre_vars[1])  # x' = x, y' = y
+        phi = z3.And(
+            post_vars[0] == pre_vars[0], post_vars[1] == pre_vars[1]
+        )  # x' = x, y' = y
 
         result = alpha_mos(phi, pre_vars, post_vars)
         self.assertIsInstance(result, MOS)

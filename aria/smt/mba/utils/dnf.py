@@ -54,7 +54,7 @@ class Dnf:
         to its position, and classify the conjunctions according to their numbers
         of ones.
         """
-        assert len(vec) == 2 ** vnumber
+        assert len(vec) == 2**vnumber
 
         self.__groups = [{} for _ in range(vnumber + 1)]
         for i, bit in enumerate(vec):
@@ -102,8 +102,9 @@ class Dnf:
                             impl1.obsolete = True
                             impl2.obsolete = True
 
-                            new_group: dict[int, List[Implicant]] = (
-                                new_groups[new_impl.count_ones()])
+                            new_group: dict[int, List[Implicant]] = new_groups[
+                                new_impl.count_ones()
+                            ]
                             new_h: int = new_impl.get_indifferent_hash()
 
                             if new_h in new_group:

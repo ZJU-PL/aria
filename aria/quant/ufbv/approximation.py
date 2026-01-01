@@ -30,7 +30,9 @@ from .reduction_types import (
 max_bit_width: int = 0
 
 
-def approximate(formula: z3.AstRef, reduction_type: ReductionType, bit_places: int) -> z3.AstRef:
+def approximate(
+    formula: z3.AstRef, reduction_type: ReductionType, bit_places: int
+) -> z3.AstRef:
     """Apply a single bit-vector projection according to `reduction_type`.
 
     Only reduces bit-width when the current size is strictly greater than
@@ -100,10 +102,10 @@ def update_vars(  # pylint: disable=too-many-arguments
     recreate_vars(new_vars, quant)
 
     # Merge subsequent quantifiers of the same shape
-    while (isinstance(quant.body(), z3.QuantifierRef) and (
-        (quant.is_forall() and quant.body().is_forall()) or
-        ((not quant.is_forall()) and (not quant.body().is_forall()))
-    )):
+    while isinstance(quant.body(), z3.QuantifierRef) and (
+        (quant.is_forall() and quant.body().is_forall())
+        or ((not quant.is_forall()) and (not quant.body().is_forall()))
+    ):
         for i in range(quant.body().num_vars()):
             var_list.append((quant.body().var_name(i), quantification))
         recreate_vars(new_vars, quant.body())
@@ -134,7 +136,11 @@ def qform_process(  # pylint: disable=too-many-arguments
         bit_places,
         polarity,
     )
-    return z3.ForAll(new_vars, new_body) if quant.is_forall() else z3.Exists(new_vars, new_body)
+    return (
+        z3.ForAll(new_vars, new_body)
+        if quant.is_forall()
+        else z3.Exists(new_vars, new_body)
+    )
 
 
 def cform_process(  # pylint: disable=too-many-arguments
@@ -145,8 +151,7 @@ def cform_process(  # pylint: disable=too-many-arguments
     bit_places: int,
     polarity: Polarity,
 ) -> z3.AstRef:
-    """Process a compound node, adjusting polarity and rebuilding children.
-    """
+    """Process a compound node, adjusting polarity and rebuilding children."""
     new_children: list[z3.AstRef] = []
     var_list_copy = list(var_list)
 
@@ -228,10 +233,14 @@ def rec_go(  # pylint: disable=too-many-arguments
 
     # Quantified form
     if isinstance(node, z3.QuantifierRef):
-        return qform_process(node, list(var_list), reduction_type, q_type, bit_places, polarity)
+        return qform_process(
+            node, list(var_list), reduction_type, q_type, bit_places, polarity
+        )
 
     # Compound form
-    return cform_process(node, list(var_list), reduction_type, q_type, bit_places, polarity)
+    return cform_process(
+        node, list(var_list), reduction_type, q_type, bit_places, polarity
+    )
 
 
 def get_max_bit_width() -> int:
@@ -250,7 +259,9 @@ def extract_max_bits_for_formula(fml: z3.AstRef) -> int:
     return get_max_bit_width()
 
 
-def next_approx(reduction_type: ReductionType, bit_places: int) -> tuple[ReductionType, int]:
+def next_approx(
+    reduction_type: ReductionType, bit_places: int
+) -> tuple[ReductionType, int]:
     """Alternate extension side and advance bit-width search frontier.
 
     Swaps left/right by negating the enum value; grows by 1 then 2-step strides

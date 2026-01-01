@@ -3,6 +3,7 @@
 TODO: This file is just a copy/paste/substitute from test_rsy.py, we should
 have a better way of dealing with the duplication here.
 """
+
 import z3
 
 from aria.symabs.ai_symabs.domains.algorithms import bilateral
@@ -34,8 +35,7 @@ def test_bilateral_alpha_hat_add_subtract():
 
 
 def test_bilateral_post_hat_add_subtract():
-    """Here, we add the knowledge of the input state
-    """
+    """Here, we add the knowledge of the input state"""
     domain = SignDomain(["x", "x'", "x''"])
 
     x = domain.z3_variable("x")

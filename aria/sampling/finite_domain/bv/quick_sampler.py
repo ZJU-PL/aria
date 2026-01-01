@@ -19,7 +19,11 @@ from typing import List, Dict, Any, Set, Optional
 import z3
 
 from aria.sampling.base import (
-    Sampler, Logic, SamplingMethod, SamplingOptions, SamplingResult
+    Sampler,
+    Logic,
+    SamplingMethod,
+    SamplingOptions,
+    SamplingResult,
 )
 from aria.utils.z3_expr_utils import get_variables, is_bv_sort
 
@@ -52,8 +56,8 @@ def _bvsampler(constraints, target):  # pylint: disable=too-many-locals
 
     solver = z3.Optimize()
     solver.add(constraints)
-    delta = z3.BitVec('delta', n)
-    result = z3.BitVec('result', n)
+    delta = z3.BitVec("delta", n)
+    result = z3.BitVec("result", n)
     solver.add(result == target)
     solver.minimize(_bvcount(delta))
 
@@ -106,7 +110,7 @@ def _bvsampler(constraints, target):  # pylint: disable=too-many-locals
                     if level > MAX_LEVEL:
                         continue
 
-                    candidate = (result0 ^ ((result0 ^ value) | (result0 ^ result1)))
+                    candidate = result0 ^ ((result0 ^ value) | (result0 ^ result1))
                     # print('yielding candidate ' + str(candidate) + ' at level ' + str(level))
                     if candidate not in results:
                         results.add(candidate)
@@ -217,7 +221,7 @@ class QuickBVSampler(Sampler):
             "time_ms": 0,
             "iterations": len(samples),
             "method": "quicksampler",
-            "target_variable": str(self.target_var)
+            "target_variable": str(self.target_var),
         }
 
         return SamplingResult(samples, stats)
@@ -243,8 +247,8 @@ class QuickBVSampler(Sampler):
 
 def test_sampler():
     """Test the QuickSampler."""
-    x = z3.BitVec('x', 16)
-    y = z3.BitVec('y', 16)
+    x = z3.BitVec("x", 16)
+    y = z3.BitVec("y", 16)
     formula = z3.And(x > 1000, y < 10000, z3.Or(x < 4000, x > 5000))
 
     sampler = QuickBVSampler(target_var=x)
@@ -256,5 +260,5 @@ def test_sampler():
         print(f"  Sample {i+1}: {sample}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_sampler()

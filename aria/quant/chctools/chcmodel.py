@@ -24,12 +24,12 @@ def define_fun_to_lambda(env: Any, cmd_val: SmtLibCommand):
 
 
 def load_model_from_file(fname: str) -> FolModel:
-    log.info('Loading model file %s', fname)
+    log.info("Loading model file %s", fname)
     model = FolModel()
-    with open(fname, 'r', encoding='utf-8') as script:
+    with open(fname, "r", encoding="utf-8") as script:
         parser = SmtLibZ3Parser()
         for cmd_val in parser.get_command_generator(script):
-            if isinstance(cmd_val, SmtLibCommand) and cmd_val.name == 'define-fun':
+            if isinstance(cmd_val, SmtLibCommand) and cmd_val.name == "define-fun":
                 name = cmd_val.args[0]
                 lmbd = define_fun_to_lambda(parser.env, cmd_val)
                 model[name] = lmbd
@@ -60,13 +60,13 @@ class ModelValidator:
             if res == z3.unsat:
                 pass
             else:
-                log.warning('Failed to validate a rule')
+                log.warning("Failed to validate a rule")
                 log.warning(r)
                 if res == z3.sat:
-                    log.warning('Model is')
+                    log.warning("Model is")
                     log.warning(s.model())
                 else:
-                    log.warning('Incomplete solver')
+                    log.warning("Incomplete solver")
 
             return res == z3.unsat
 
@@ -83,30 +83,36 @@ class ModelValidator:
 
 class ChcModelCmd(CliCmd):
     def __init__(self) -> None:
-        super().__init__('chcmodel', 'Model validator', allow_extra=False)
+        super().__init__("chcmodel", "Model validator", allow_extra=False)
 
     def mk_arg_parser(self, ap):
         ap = super().mk_arg_parser(ap)
         ap.add_argument(
-            '-m', dest='model_file',
-            metavar='FILE', help='Model in SMT2 format',
-            default='model.smt2'
+            "-m",
+            dest="model_file",
+            metavar="FILE",
+            help="Model in SMT2 format",
+            default="model.smt2",
         )
-        add_bool_argument(ap, "simplify-queries", dest='simple_q',
-                          default=False, help='Automatically simplify queries')
-        ap.add_argument('in_file', metavar='FILE', help='Input file')
+        add_bool_argument(
+            ap,
+            "simplify-queries",
+            dest="simple_q",
+            default=False,
+            help="Automatically simplify queries",
+        )
+        ap.add_argument("in_file", metavar="FILE", help="Input file")
         return ap
 
     def run(self, args, extra):
-        db = load_horn_db_from_file(args.in_file,
-                                    simplify_queries=args.simple_q)
+        db = load_horn_db_from_file(args.in_file, simplify_queries=args.simple_q)
         model = load_model_from_file(args.model_file)
         validator = ModelValidator(db, model)
         res = validator.validate()
         return 0 if res else 1
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # logging.basicConfig(level=logging.INFO)
     cmd = ChcModelCmd()
     sys.exit(cmd.main(sys.argv[1:]))

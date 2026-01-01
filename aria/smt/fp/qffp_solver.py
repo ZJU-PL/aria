@@ -21,7 +21,8 @@ class QFFPSolver:
     It uses various tactics from Z3 to translate the formula to CNF
     and then use PySAT to solve it.
     """
-    sat_engine = 'mgh'
+
+    sat_engine = "mgh"
 
     def __init__(self):
         self.fml = None
@@ -56,22 +57,20 @@ class QFFPSolver:
     def check_sat(self, fml) -> SolverResult:
         # z3.set_param("verbose", 15)
         """Check satisfiability of an QF_FP formula"""
-        if QFFPSolver.sat_engine == 'z3':
+        if QFFPSolver.sat_engine == "z3":
             return self.solve_qffp_via_z3(fml)
         logger.debug("Start translating to CNF...")
 
-        qffp_preamble = z3.AndThen(z3.With('simplify', arith_lhs=False, elim_and=True),
-                                   'propagate-values',
-                                   'fpa2bv',
-                                   'propagate-values',
-                                   # 'reduce-bv-size',   # should we add this?
-                                   z3.With('simplify', arith_lhs=False, elim_and=True),
-                                   'ackermannize_bv',
-                                   z3.If(z3.Probe('is-qfbv'),
-                                         z3.AndThen('bit-blast',
-                                                    'simplify'),
-                                         'simplify'),
-                                   )
+        qffp_preamble = z3.AndThen(
+            z3.With("simplify", arith_lhs=False, elim_and=True),
+            "propagate-values",
+            "fpa2bv",
+            "propagate-values",
+            # 'reduce-bv-size',   # should we add this?
+            z3.With("simplify", arith_lhs=False, elim_and=True),
+            "ackermannize_bv",
+            z3.If(z3.Probe("is-qfbv"), z3.AndThen("bit-blast", "simplify"), "simplify"),
+        )
 
         try:
             # qffp_blast = z3.With(qffp_preamble, elim_and=True,
@@ -85,13 +84,13 @@ class QFFPSolver:
 
             g_probe = z3.Goal()
             g_probe.add(after_simp)
-            is_bool = z3.Probe('is-propositional')
+            is_bool = z3.Probe("is-propositional")
             if is_bool(g_probe) == 1.0:
                 to_cnf_impl = z3.AndThen(
-                    z3.With('simplify', local_ctx=True, flat=False,
-                            flat_and_or=False),
-                    'aig',
-                    'tseitin-cnf')
+                    z3.With("simplify", local_ctx=True, flat=False, flat_and_or=False),
+                    "aig",
+                    "tseitin-cnf",
+                )
                 # o_cnf = z3.With(to_cnf_impl, elim_and=True,
                 #                 push_ite_bv=True, blast_distinct=True)
                 to_cnf = to_cnf_impl

@@ -12,7 +12,7 @@ from aria.sampling.exceptions import (
     UndefinedLogicError,
     SolverReturnedUnknownResultError,
     ConvertExpressionError,
-    UndefinedSymbolError
+    UndefinedSymbolError,
 )
 
 

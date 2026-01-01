@@ -5,11 +5,10 @@ Take as input an SMT-LIB formula, and add a set of possible triggers?
 
 FIXME: by LLM, to be tested
 """
+
 from typing import List, Tuple, Dict
 import z3
-from z3 import (
-    Solver, ForAll, Exists, ExprRef, Const
-)
+from z3 import Solver, ForAll, Exists, ExprRef, Const
 
 
 class TriggerSelector:
@@ -19,6 +18,7 @@ class TriggerSelector:
     Triggers are patterns used in E-matching to instantiate quantifiers.
     This class analyzes quantifiers and selects good trigger patterns.
     """
+
     def __init__(self, formula: ExprRef):
         self.formula = formula
         self.solver = Solver()
@@ -73,14 +73,14 @@ class TriggerSelector:
         if not z3.is_app(expr):
             return False
         op = str(expr.decl())
-        return op in ['and', 'or', 'not', 'implies', 'ite', '=', '<', '<=', '>', '>=']
+        return op in ["and", "or", "not", "implies", "ite", "=", "<", "<=", ">", ">="]
 
     def _is_arithmetic_op(self, expr: ExprRef) -> bool:
         """Check if expr is an arithmetic operation like +, -, *, /."""
         if not z3.is_app(expr):
             return False
         op = str(expr.decl())
-        return op in ['+', '-', '*', '/', 'div', 'mod']
+        return op in ["+", "-", "*", "/", "div", "mod"]
 
     def rank_triggers(self, triggers: List[ExprRef]) -> List[Tuple[ExprRef, float]]:
         """
@@ -168,8 +168,7 @@ class TriggerSelector:
                 # Create proper Z3 patterns for the triggers
                 # Use only function applications, not constants
                 valid_triggers = [
-                    t for t in triggers
-                    if z3.is_app(t) and not z3.is_const(t)
+                    t for t in triggers if z3.is_app(t) and not z3.is_const(t)
                 ]
                 if not valid_triggers:
                     print("No valid function applications found for triggers.")
@@ -238,10 +237,10 @@ def example_usage():
 
     # Define sorts and functions
     int_sort = IntSort()
-    f = Function('f', int_sort, int_sort)
+    f = Function("f", int_sort, int_sort)
 
     # Define variables
-    x = Int('x')
+    x = Int("x")
 
     # Create a simpler formula with a quantifier
     # ForAll x. f(x) > 0

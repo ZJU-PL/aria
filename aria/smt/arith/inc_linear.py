@@ -12,10 +12,33 @@ import math
 from typing import List, Set, Tuple, Optional, Dict
 
 from z3 import (
-    ExprRef, ModelRef, FuncDeclRef, BoolVal, BoolRef, Solver, unsat, unknown,
-    Not, substitute, Function, is_app, Z3_OP_MUL, Z3_OP_DIV, Z3_OP_POWER,
-    Z3_OP_UNINTERPRETED, is_rational_value, is_int_value, is_algebraic_value,
-    is_const, Consts, ForAll, Implies, And, Real, Reals, RealVal
+    ExprRef,
+    ModelRef,
+    FuncDeclRef,
+    BoolVal,
+    BoolRef,
+    Solver,
+    unsat,
+    unknown,
+    Not,
+    substitute,
+    Function,
+    is_app,
+    Z3_OP_MUL,
+    Z3_OP_DIV,
+    Z3_OP_POWER,
+    Z3_OP_UNINTERPRETED,
+    is_rational_value,
+    is_int_value,
+    is_algebraic_value,
+    is_const,
+    Consts,
+    ForAll,
+    Implies,
+    And,
+    Real,
+    Reals,
+    RealVal,
 )
 
 
@@ -58,7 +81,9 @@ def is_non_linear(expr: ExprRef) -> bool:
     if op_kind == Z3_OP_MUL:
         args = expr.children()
         # Count non-constant arguments
-        non_const_args = [arg for arg in args if not (is_rational_value(arg) or is_int_value(arg))]
+        non_const_args = [
+            arg for arg in args if not (is_rational_value(arg) or is_int_value(arg))
+        ]
         return len(non_const_args) > 1
 
     # Division is non-linear
@@ -71,9 +96,21 @@ def is_non_linear(expr: ExprRef) -> bool:
 
     # Transcendental functions are non-linear
     transcendental_funcs = {
-        'sin', 'cos', 'tan', 'arcsin', 'arccos', 'arctan',
-        'exp', 'log', 'sqrt', 'sinh', 'cosh', 'tanh',
-        'arcsinh', 'arccosh', 'arctanh'
+        "sin",
+        "cos",
+        "tan",
+        "arcsin",
+        "arccos",
+        "arctan",
+        "exp",
+        "log",
+        "sqrt",
+        "sinh",
+        "cosh",
+        "tanh",
+        "arcsinh",
+        "arccosh",
+        "arctanh",
     }
     if op_name in transcendental_funcs:
         return True
@@ -157,21 +194,19 @@ def generate_multiplication_refinements(
         refinements.append(uf(x, y) != 0)
 
     # Monotonicity constraints for positive y
-    x1, x2 = Consts('x1 x2', x.sort())
-    refinements.append(ForAll(
-        [x1, x2, y],
-        Implies(And(x1 <= x2, y >= 0), uf(x1, y) <= uf(x2, y))
-    ))
+    x1, x2 = Consts("x1 x2", x.sort())
+    refinements.append(
+        ForAll([x1, x2, y], Implies(And(x1 <= x2, y >= 0), uf(x1, y) <= uf(x2, y)))
+    )
 
     # Additional monotonicity for y >= 0 case
-    y1, y2 = Consts('y1 y2', y.sort())
-    refinements.append(ForAll(
-        [x, y1, y2],
-        Implies(
-            And(y1 <= y2, y1 >= 0, y2 >= 0, x >= 0),
-            uf(x, y1) <= uf(x, y2)
+    y1, y2 = Consts("y1 y2", y.sort())
+    refinements.append(
+        ForAll(
+            [x, y1, y2],
+            Implies(And(y1 <= y2, y1 >= 0, y2 >= 0, x >= 0), uf(x, y1) <= uf(x, y2)),
         )
-    ))
+    )
 
     # Tangent plane constraints at current point
     x_val = float(substitute_model(x, model).as_decimal(10))
@@ -202,10 +237,10 @@ def generate_piecewise_linear_refinements(
     arg_val = float(substitute_model(arg, model).as_decimal(10))
 
     # For transcendental functions, add piecewise linear approximations
-    if op_name == 'sin':
+    if op_name == "sin":
         # Piecewise linear approximation for sin(x) around x = arg_val
         # Use points at arg_val-π/4, arg_val, arg_val+π/4
-        points = [arg_val - math.pi/4, arg_val, arg_val + math.pi/4]
+        points = [arg_val - math.pi / 4, arg_val, arg_val + math.pi / 4]
         for i in range(len(points) - 1):
             x1, x2 = points[i], points[i + 1]
             y1, y2 = math.sin(x1), math.sin(x2)
@@ -219,16 +254,18 @@ def generate_piecewise_linear_refinements(
                 # for x in [x1, x2]
                 x_var = arg  # We use the actual variable here
                 linear_expr = slope * x_var + intercept
-                refinements.append(Implies(
-                    And(x_var >= x1, x_var <= x2),
-                    uf(x_var) <= linear_expr + 0.01
-                ))
-                refinements.append(Implies(
-                    And(x_var >= x1, x_var <= x2),
-                    uf(x_var) >= linear_expr - 0.01
-                ))
+                refinements.append(
+                    Implies(
+                        And(x_var >= x1, x_var <= x2), uf(x_var) <= linear_expr + 0.01
+                    )
+                )
+                refinements.append(
+                    Implies(
+                        And(x_var >= x1, x_var <= x2), uf(x_var) >= linear_expr - 0.01
+                    )
+                )
 
-    elif op_name == 'exp':
+    elif op_name == "exp":
         # Piecewise linear approximation for exp(x) around x = arg_val
         # Use points at arg_val-1, arg_val, arg_val+1
         # Ensure positive for log domain
@@ -242,14 +279,16 @@ def generate_piecewise_linear_refinements(
                 intercept = y1 - slope * x1
                 x_var = arg
                 linear_expr = slope * x_var + intercept
-                refinements.append(Implies(
-                    And(x_var >= x1, x_var <= x2),
-                    uf(x_var) <= linear_expr + 0.1
-                ))
-                refinements.append(Implies(
-                    And(x_var >= x1, x_var <= x2),
-                    uf(x_var) >= linear_expr - 0.1
-                ))
+                refinements.append(
+                    Implies(
+                        And(x_var >= x1, x_var <= x2), uf(x_var) <= linear_expr + 0.1
+                    )
+                )
+                refinements.append(
+                    Implies(
+                        And(x_var >= x1, x_var <= x2), uf(x_var) >= linear_expr - 0.1
+                    )
+                )
 
     return refinements
 
@@ -276,13 +315,13 @@ def generate_transcendental_refinements(
         if perturb_val > 0:  # Ensure positive for functions like log
             # Compute function value at perturbed point
             perturb_expr = arg + perturb
-            if op_name == 'sin':
+            if op_name == "sin":
                 perturb_func_val = math.sin(perturb_val)
-            elif op_name == 'cos':
+            elif op_name == "cos":
                 perturb_func_val = math.cos(perturb_val)
-            elif op_name == 'exp':
+            elif op_name == "exp":
                 perturb_func_val = math.exp(perturb_val)
-            elif op_name == 'log':
+            elif op_name == "log":
                 perturb_func_val = math.log(perturb_val)
             else:
                 perturb_func_val = 0
@@ -313,13 +352,9 @@ def generate_refinement(
 
             # Add specific refinements based on operation type
             if expr.decl().kind() == Z3_OP_MUL:
-                refinements.extend(
-                    generate_multiplication_refinements(expr, uf, model)
-                )
-            elif str(expr.decl()) in ['sin', 'cos', 'tan', 'exp', 'log']:
-                refinements.extend(
-                    generate_transcendental_refinements(expr, uf, model)
-                )
+                refinements.extend(generate_multiplication_refinements(expr, uf, model))
+            elif str(expr.decl()) in ["sin", "cos", "tan", "exp", "log"]:
+                refinements.extend(generate_transcendental_refinements(expr, uf, model))
 
     return And(refinements) if refinements else BoolVal(True)
 
@@ -364,9 +399,7 @@ def incremental_linearization(
             return "SAT", model
 
         # Model is spurious, generate refinement constraints
-        refinement = generate_refinement(
-            non_linear_formula, model, expr_to_uf_map
-        )
+        refinement = generate_refinement(non_linear_formula, model, expr_to_uf_map)
         if refinement != BoolVal(True):  # Only add non-trivial refinements
             solver.add(refinement)
             print(f"Added refinement at iteration {iteration}")
@@ -382,7 +415,7 @@ def incremental_linearization(
 def run_example_1():
     """Example 1: Simple multiplication constraints"""
     print("=== Example 1: Simple multiplication constraints ===")
-    x, y = Reals('x y')
+    x, y = Reals("x y")
     # x * y > 3 ∧ x + y < 5
     formula = And(x * y > 3, x + y < 5)
     print(f"Formula: {formula}")
@@ -390,14 +423,16 @@ def run_example_1():
     print(f"Result: {result}")
     if model:
         print(f"Model: x = {model[x]}, y = {model[y]}")
-        print(f"Verification: x*y = {model[x].as_decimal(10)} * {model[y].as_decimal(10)} = {float(model[x].as_decimal(10)) * float(model[y].as_decimal(10))}")
+        print(
+            f"Verification: x*y = {model[x].as_decimal(10)} * {model[y].as_decimal(10)} = {float(model[x].as_decimal(10)) * float(model[y].as_decimal(10))}"
+        )
     print()
 
 
 def run_example_2():
     """Example 2: Transcendental functions"""
     print("=== Example 2: Transcendental functions ===")
-    x = Real('x')
+    x = Real("x")
     # sin(x) > 0.5 ∧ x < π/2
     # Note: Sin function would need to be imported from z3 if available
     # For now, using a placeholder - this example may not work without proper z3 setup
@@ -415,7 +450,7 @@ def run_example_2():
 def run_example_3():
     """Example 3: Complex non-linear formula"""
     print("=== Example 3: Complex non-linear formula ===")
-    x, y = Reals('x y')
+    x, y = Reals("x y")
     # x² + y² < 1 ∧ x * y > 0.1
     # Note: sin/cos functions would need proper z3 imports
     formula = And(x**2 + y**2 < 1, x * y > 0.1)
@@ -437,7 +472,7 @@ def run_example_3():
 def run_example_4():
     """Example 4: Exponential function"""
     print("=== Example 4: Exponential function ===")
-    x = Real('x')
+    x = Real("x")
     # x > 0
     # Note: exp/Log functions would need proper z3 imports
     formula = And(x > 0, x < 2)
@@ -465,4 +500,5 @@ if __name__ == "__main__":
     except (ValueError, TypeError, AttributeError) as e:
         print(f"Error running examples: {e}")
         import traceback
+
         traceback.print_exc()

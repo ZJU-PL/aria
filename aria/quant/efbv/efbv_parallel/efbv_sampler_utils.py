@@ -3,6 +3,7 @@
 - Track the correlations between Boolean and Bit-vector level information
 - Run external samplers and build bit-vector models from the Boolean models
 """
+
 import logging
 import concurrent.futures
 from random import randrange
@@ -67,7 +68,7 @@ class BitBlastSampler:
                 bv_val = 0
                 for i, _ in enumerate(bool_vars):
                     if bool_model[i + start - 1] > 0:
-                        bv_val += 2 ** i
+                        bv_val += 2**i
                 bv_model[str(bv_var)] = bv_val
         else:  # signed
             # FIXME: the following seems to be wrong
@@ -77,7 +78,7 @@ class BitBlastSampler:
                 bv_val = 0
                 for i in range(len(bool_vars) - 1):
                     if bool_model[i + start - 1] > 0:
-                        bv_val += 2 ** i
+                        bv_val += 2**i
                 if bool_model[len(bool_vars) - 1 + start - 1] > 0:
                     bv_val = -bv_val
                 bv_model[str(bv_var)] = bv_val
@@ -115,8 +116,9 @@ def sample_worker(fml: z3.BoolRef, cared_bits: List):
             return solver.model()
 
 
-def parallel_sample(fml: z3.BoolRef, cared_bits: List, num_samples: int,
-                    num_workers: int):
+def parallel_sample(
+    fml: z3.BoolRef, cared_bits: List, num_samples: int, num_workers: int
+):
     """Perform uniform sampling in parallel.
 
     Create new context for the computation. Note that we need to do this
@@ -138,7 +140,6 @@ def parallel_sample(fml: z3.BoolRef, cared_bits: List, num_samples: int,
     # TODO: try processes?
     with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
         #  with concurrent.futures.ProcessPoolExecutor() as executor:
-        futures = [executor.submit(sample_worker, task[0], task[1])
-                   for task in tasks]
+        futures = [executor.submit(sample_worker, task[0], task[1]) for task in tasks]
         results = [f.result() for f in futures]
         return results

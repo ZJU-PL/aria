@@ -2,7 +2,10 @@
 
 import z3
 from aria.quant.fossil.naturalproofs.uct import UCTSort, is_expr_fg_sort, boolsort
-from aria.quant.fossil.naturalproofs.AnnotatedContext import AnnotatedContext, default_annctx
+from aria.quant.fossil.naturalproofs.AnnotatedContext import (
+    AnnotatedContext,
+    default_annctx,
+)
 
 
 # Functions to create declarations
@@ -15,10 +18,10 @@ def Const(name, uct_sort, annctx=default_annctx):
     :return: z3.ExprRef
     """
     if not isinstance(uct_sort, UCTSort):
-        raise TypeError('UCTSort expected.')
+        raise TypeError("UCTSort expected.")
     z3const = z3.Const(name, uct_sort.z3sort)
     if not isinstance(annctx, AnnotatedContext):
-        raise TypeError('AnnotatedContext expected.')
+        raise TypeError("AnnotatedContext expected.")
     # The constant must be tracked as a 0-arity function
     declaration = z3const.decl()
     annctx.add_alias_annotation(declaration, tuple([uct_sort]))
@@ -35,10 +38,10 @@ def Consts(names, uct_sort, annctx=default_annctx):
     :return: list of z3.ExprRef
     """
     if not isinstance(uct_sort, UCTSort):
-        raise TypeError('UCTSort expected.')
+        raise TypeError("UCTSort expected.")
     z3consts = z3.Consts(names, uct_sort.z3sort)
     if not isinstance(annctx, AnnotatedContext):
-        raise TypeError('AnnotatedContext expected.')
+        raise TypeError("AnnotatedContext expected.")
     for z3const in z3consts:
         # Constants must be tracked as a 0-arity function
         declaration = z3const.decl()
@@ -83,11 +86,13 @@ def Function(name, *uct_signature, annctx=default_annctx):
     :return: z3.FuncDeclRef
     """
     if not all([isinstance(sig, UCTSort) for sig in uct_signature]):
-        raise TypeError('UCTSort expected.')
+        raise TypeError("UCTSort expected.")
     if not isinstance(annctx, AnnotatedContext):
-        raise TypeError('AnnotatedContext expected.')
+        raise TypeError("AnnotatedContext expected.")
     if len(uct_signature) < 2:
-        raise ValueError('There must be atleast one input sort and exactly one output sort.')
+        raise ValueError(
+            "There must be atleast one input sort and exactly one output sort."
+        )
     z3sig = [sig.z3sort for sig in uct_signature]
     z3func = z3.Function(name, *z3sig)
     annctx.add_alias_annotation(z3func, uct_signature)
@@ -123,17 +128,23 @@ def AddRecDefinition(recdef, formal_params, body, annctx=default_annctx):
         # Only one formal parameter
         formal_params = (formal_params,)
     if not all(is_var_decl(v, annctx) for v in formal_params):
-        raise ValueError('All formal parameters must be variables declared using naturalproofs.decl_api.{Var, Vars}.')
+        raise ValueError(
+            "All formal parameters must be variables declared using naturalproofs.decl_api.{Var, Vars}."
+        )
     if not annctx.is_tracked_vocabulary(recdef):
-        raise ValueError('Function symbol must be declared using naturalproofs.decl_api.Function')
+        raise ValueError(
+            "Function symbol must be declared using naturalproofs.decl_api.Function"
+        )
     if len(formal_params) != recdef.arity():
-        raise ValueError('Number of formal parameters does not match arity of function symbol.')
+        raise ValueError(
+            "Number of formal parameters does not match arity of function symbol."
+        )
     # Check that all formal parameters are of the foreground sort.
     # Arguments of other sorts are not supported.
     elif not all([is_expr_fg_sort(param, annctx) for param in formal_params]):
-        raise TypeError('All formal parameters can only be of the foreground sort.')
+        raise TypeError("All formal parameters can only be of the foreground sort.")
     if not isinstance(body, z3.ExprRef):
-        raise TypeError('ExprRef expected.')
+        raise TypeError("ExprRef expected.")
     # TODO: check that the definition is of the supported form: positive recursive mentions, for example.
     annctx.add_recdef_annotation((recdef, formal_params, body))
 
@@ -153,13 +164,15 @@ def AddAxiom(formal_params, body, annctx=default_annctx):
         # Only one formal parameter
         formal_params = (formal_params,)
     if not all(is_var_decl(v, annctx) for v in formal_params):
-        raise ValueError('All formal parameters must be variables declared using naturalproofs.decl_api.{Var, Vars}.')
+        raise ValueError(
+            "All formal parameters must be variables declared using naturalproofs.decl_api.{Var, Vars}."
+        )
     # Check that all formal parameters are of the foreground sort.
     # Arguments of other sorts are not supported.
     if not all([is_expr_fg_sort(param, annctx) for param in formal_params]):
-        raise TypeError('All formal parameters can only be of the foreground sort.')
+        raise TypeError("All formal parameters can only be of the foreground sort.")
     if not isinstance(body, z3.ExprRef):
-        raise TypeError('ExprRef expected.')
+        raise TypeError("ExprRef expected.")
     annctx.add_axiom_annotation((formal_params, body))
 
 
@@ -226,8 +239,12 @@ def get_recursive_definition(recdef, alldefs=False, annctx=default_annctx):
         return recdef_set
     else:
         if not annctx.is_tracked_vocabulary(recdef):
-            raise ValueError('Function symbol must be declared using naturalproofs.decl_api.Function')
-        return next((definition for definition in recdef_set if recdef == definition[0]), None)
+            raise ValueError(
+                "Function symbol must be declared using naturalproofs.decl_api.Function"
+            )
+        return next(
+            (definition for definition in recdef_set if recdef == definition[0]), None
+        )
 
 
 def get_boolean_recursive_definitions(annctx=default_annctx):

@@ -2,28 +2,32 @@
 In a real program analyzer this would be combined with a fixedpoint computation
 engine to handle loops.
 """
+
 from aria.symabs.ai_symabs.frontend.program import Program
 from aria.symabs.ai_symabs.domains.sign import Sign, SignAbstractState, SignDomain
 
 
 def main() -> None:
-    """Construct and analyze the example program.
-    """
-    program = Program("""
+    """Construct and analyze the example program."""
+    program = Program(
+        """
         x += 5
         x -= y
         y += 5
         y -= 3
         x -= 6
         z += 1
-    """)
+    """
+    )
 
     domain = SignDomain(["x", "y", "z"])
-    input_state = SignAbstractState({
-        "x": Sign.Negative,
-        "y": Sign.Positive,
-        "z": Sign.Negative,
-    })
+    input_state = SignAbstractState(
+        {
+            "x": Sign.Negative,
+            "y": Sign.Positive,
+            "z": Sign.Negative,
+        }
+    )
 
     output_state = program.transform(domain, input_state)
     print(output_state)

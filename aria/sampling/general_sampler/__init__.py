@@ -10,7 +10,9 @@ from aria.counting.qfbv_counting import BVModelCounter
 from aria.counting.bool.dimacs_counting import count_dimacs_solutions_parallel
 
 
-def count_solutions(formula_str: str, fmt: str = 'smtlib2', timeout: Optional[int] = None) -> int:
+def count_solutions(
+    formula_str: str, fmt: str = "smtlib2", timeout: Optional[int] = None
+) -> int:
     """
     Count the number of solutions (models) for a given formula.
 
@@ -25,11 +27,13 @@ def count_solutions(formula_str: str, fmt: str = 'smtlib2', timeout: Optional[in
     Raises:
         ValueError: If the format is not supported or formula parsing fails
     """
-    if fmt == 'smtlib2':
+    if fmt == "smtlib2":
         return _count_smtlib2_solutions(formula_str, timeout)
-    if fmt == 'dimacs':
+    if fmt == "dimacs":
         return _count_dimacs_solutions(formula_str, timeout)
-    raise ValueError(f"Unsupported format: {fmt}. Supported formats: 'smtlib2', 'dimacs'")
+    raise ValueError(
+        f"Unsupported format: {fmt}. Supported formats: 'smtlib2', 'dimacs'"
+    )
 
 
 def _count_smtlib2_solutions(formula_str: str, _timeout: Optional[int] = None) -> int:
@@ -51,7 +55,7 @@ def _count_smtlib2_solutions(formula_str: str, _timeout: Optional[int] = None) -
                 return 1 if solver.check() == z3.sat else 0
 
             # For bit-vector formulas, use BVModelCounter
-            if all(str(var.range()) == 'BitVec' for var in variables):
+            if all(str(var.range()) == "BitVec" for var in variables):
                 # Try to parse the formula and use BVModelCounter
                 try:
                     # Create a formula from the assertions
@@ -79,19 +83,19 @@ def _count_dimacs_solutions(formula_str: str, _timeout: Optional[int] = None) ->
     """Count solutions for DIMACS format formulas."""
     try:
         # Parse the DIMACS format string
-        lines = formula_str.strip().split('\n')
+        lines = formula_str.strip().split("\n")
         header = []
         clauses = []
 
         for line in lines:
             line = line.strip()
-            if not line or line.startswith('c'):  # Skip empty lines and comments
+            if not line or line.startswith("c"):  # Skip empty lines and comments
                 continue
-            if line.startswith('p'):  # Header line
+            if line.startswith("p"):  # Header line
                 header.append(line)
             else:  # Clause line
                 # Remove trailing 0 and split into literals
-                clause = line.rstrip(' 0').strip()
+                clause = line.rstrip(" 0").strip()
                 if clause:
                     clauses.append(clause)
 

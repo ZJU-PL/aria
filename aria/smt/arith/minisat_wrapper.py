@@ -1,4 +1,5 @@
 """Wrapper for MiniSat22 solver integration with SymPy."""
+
 try:
     from sympy.assumptions.cnf import EncodedCNF
 except ImportError:
@@ -33,7 +34,7 @@ def minisat22_satisfiable(expr, all_models=False, minimal=False):
     r = Minisat22(expr.data)
 
     if minimal:
-        r.set_phases([-(i+1) for i in range(r.nof_vars())])
+        r.set_phases([-(i + 1) for i in range(r.nof_vars())])
 
     if not r.solve():
         return False

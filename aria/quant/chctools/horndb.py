@@ -140,7 +140,7 @@ class HornRule:
     #
     # forall v:: ( expr ==> q ) && forall v :: ( q ==> false )
     #
-    def split_query(self) -> Tuple['HornRule', Optional['HornRule']]:
+    def split_query(self) -> Tuple["HornRule", Optional["HornRule"]]:
         """Split query if it is not simple into a query and a rule"""
 
         assert self.is_query()
@@ -220,8 +220,7 @@ class HornRule:
 
 class HornRelation:
     def __init__(
-        self, fdecl: z3.FuncDeclRef,
-        env: Optional[pysmt.environment.Environment] = None
+        self, fdecl: z3.FuncDeclRef, env: Optional[pysmt.environment.Environment] = None
     ):
         self._fdecl = fdecl
         self._sig: List[z3.ExprRef] = []
@@ -311,7 +310,7 @@ class HornClauseDb:
         self._env = env
         self._simple_query: bool = simplify_queries
 
-    def add_rule(self, horn_rule: 'HornRule') -> None:
+    def add_rule(self, horn_rule: "HornRule") -> None:
         assert self._ctx == horn_rule.get_ctx()
         self._sealed = False
         if horn_rule.is_query():
@@ -331,13 +330,13 @@ class HornClauseDb:
     def has_rel(self, rel_name: str) -> bool:
         return rel_name in self._rels
 
-    def get_rel(self, rel_name: str) -> 'HornRelation':
+    def get_rel(self, rel_name: str) -> "HornRelation":
         return self._rels[rel_name]
 
-    def get_rules(self) -> List['HornRule']:
+    def get_rules(self) -> List["HornRule"]:
         return self._rules
 
-    def get_queries(self) -> List['HornRule']:
+    def get_queries(self) -> List["HornRule"]:
         return self._queries
 
     def seal(self) -> None:
@@ -396,9 +395,12 @@ class HornClauseDb:
 
         fp_ctx = fp.ctx
         if fp_ctx == self._ctx:
+
             def trans(x):
                 return x
+
         else:
+
             def trans(x):
                 return x.translate(fp_ctx)
 
@@ -455,8 +457,7 @@ def load_horn_db_from_file(
 ):
     fp = z3.Fixedpoint(ctx=context)
     queries = fp.parse_file(fname)
-    db = HornClauseDb(fname, ctx=context,
-                      simplify_queries=simplify_queries, env=env)
+    db = HornClauseDb(fname, ctx=context, simplify_queries=simplify_queries, env=env)
     db.load_from_fp(fp, queries)
     return db
 

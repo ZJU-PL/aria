@@ -1,6 +1,7 @@
 """
 Solving exists-forall problem over Boolean formulas, sequentially
 """
+
 import logging
 from typing import List, Optional
 
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 def solve_ef_bool(
     x: List[int], y: List[int], phi: List[List[int]], maxloops: Optional[int] = None
 ) -> EFBoolResult:
-    """ Solving exists-forall problem over Boolean formulas
+    """Solving exists-forall problem over Boolean formulas
     :param x: the set of existential quantified variables
     :param y: the set of universal quantified variables
     :param phi: the Boolean formula

@@ -65,11 +65,12 @@ class QuantifierElimination:
             solver.append_formula(cnf_formula)
             return solver.solve()
 
+
 # Minimal example usage
 if __name__ == "__main__":
     qe = QuantifierElimination()
     test_formula = CNF()
-    x = qe.get_var_id('x')
-    y = qe.get_var_id('y')
+    x = qe.get_var_id("x")
+    y = qe.get_var_id("y")
     test_formula.append([x, y])
-    print(qe.eliminate_quantifiers(test_formula, ['x']).clauses)
+    print(qe.eliminate_quantifiers(test_formula, ["x"]).clauses)

@@ -5,7 +5,7 @@ import sys
 
 import z3
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 from aria.symabs.symba import SYMBA, MultiSYMBA
 
 
@@ -17,13 +17,15 @@ def run_symba_test(constraints, objectives, expected_bounds=None, desc="Test"):
     print(f"{desc}: {len(state.M)} models, bounds: {bounds}")
     if expected_bounds:
         for obj, expected in expected_bounds.items():
-            assert bounds.get(obj, -float('inf')) >= expected, f"Bounds check failed for {desc}"
+            assert (
+                bounds.get(obj, -float("inf")) >= expected
+            ), f"Bounds check failed for {desc}"
     return state, bounds
 
 
 def test_simple_maximization():
     """Test SYMBA on a simple maximization problem."""
-    x, y = z3.Ints('x y')
+    x, y = z3.Ints("x y")
     constraints = z3.And(x + y <= 10, x >= 0, y >= 0)
     objective = x + y
 
@@ -34,7 +36,7 @@ def test_simple_maximization():
 
 def test_simple_minimization():
     """Test SYMBA on a simple minimization problem."""
-    x, y = z3.Ints('x y')
+    x, y = z3.Ints("x y")
     constraints = z3.And(x + y >= 5, x >= 0, y >= 0)
     objective = x + y
 
@@ -52,31 +54,30 @@ def run_multisymba_test(constraints, objectives, desc="Multi-objective"):
     print(f"{desc}: {len(state.M)} models, Pareto front: {len(pareto_front)}")
     if len(pareto_values) <= 5:  # Only print if not too many
         for vals in pareto_values:
-            print(f"  {', '.join(f'{obj}={val}' for obj, val in zip(['x', 'y'], vals))}")
+            print(
+                f"  {', '.join(f'{obj}={val}' for obj, val in zip(['x', 'y'], vals))}"
+            )
     return state, pareto_values
 
 
 def test_multi_objective():
     """Test SYMBA on a multi-objective problem."""
-    x, y = z3.Ints('x y')
+    x, y = z3.Ints("x y")
     constraints = z3.And(x + y <= 10, x >= 0, y >= 0)
     objectives = [x, y]
 
-    state, pareto_values = run_multisymba_test(constraints, objectives, "Multi-objective")
+    state, pareto_values = run_multisymba_test(
+        constraints, objectives, "Multi-objective"
+    )
     assert len(pareto_values) > 0, "Should find Pareto-optimal solutions"
     print("✓ Multi-objective test passed!")
 
 
 def test_linear_programming_example():
     """Test SYMBA on a classic linear programming example."""
-    x1, x2 = z3.Ints('x1 x2')
-    constraints = z3.And(
-        2*x1 + x2 <= 100,
-        x1 + x2 <= 80,
-        x1 <= 40,
-        x1 >= 0, x2 >= 0
-    )
-    objective = 3*x1 + 2*x2
+    x1, x2 = z3.Ints("x1 x2")
+    constraints = z3.And(2 * x1 + x2 <= 100, x1 + x2 <= 80, x1 <= 40, x1 >= 0, x2 >= 0)
+    objective = 3 * x1 + 2 * x2
 
     state, bounds = run_symba_test(constraints, [objective], {objective: 170}, "LP")
 
@@ -85,7 +86,7 @@ def test_linear_programming_example():
             x1_val, x2_val = model.eval(x1).as_long(), model.eval(x2).as_long()
             obj_val = model.eval(objective).as_long()
             # Verify constraints
-            assert 2*x1_val + x2_val <= 100 and x1_val + x2_val <= 80 and x1_val <= 40
+            assert 2 * x1_val + x2_val <= 100 and x1_val + x2_val <= 80 and x1_val <= 40
             print(f"  Solution: x1={x1_val}, x2={x2_val}, obj={obj_val}")
 
     print("✓ Linear programming test passed!")
@@ -101,7 +102,7 @@ def z3_optimize(constraints, objective):
 
 def test_against_z3_optimization():
     """Test SYMBA against Z3's built-in optimization for consistency."""
-    x, y = z3.Ints('x y')
+    x, y = z3.Ints("x y")
     constraints = z3.And(x + y <= 10, x >= 0, y >= 0)
     objective = x + y
 
@@ -134,8 +135,8 @@ def test_against_z3_optimization():
 
 def test_correctness_properties():
     """Test SYMBA's correctness properties."""
-    x, y = z3.Ints('x y')
-    constraints = z3.And(x >= 0, y >= 0, x + y <= 10, x + 2*y >= 5)
+    x, y = z3.Ints("x y")
+    constraints = z3.And(x >= 0, y >= 0, x + y <= 10, x + 2 * y >= 5)
 
     # Test feasibility: known solution (3,1) should be findable
     assert constraints.substitute([(x, z3.IntVal(3)), (y, z3.IntVal(1))])
@@ -147,7 +148,9 @@ def test_correctness_properties():
     if symba.get_optimal_values():
         optimal_val = list(symba.get_optimal_values().values())[0]
         obj_vals = [model.eval(x + y).as_long() for model in state.M]
-        assert all(obj <= optimal_val for obj in obj_vals), "No solution should exceed optimal"
+        assert all(
+            obj <= optimal_val for obj in obj_vals
+        ), "No solution should exceed optimal"
 
     print("✓ Correctness properties test passed!")
 
@@ -160,7 +163,7 @@ def run_all_tests():
         test_multi_objective,
         test_linear_programming_example,
         test_against_z3_optimization,
-        test_correctness_properties
+        test_correctness_properties,
     ]
 
     print("Running SYMBA tests...")

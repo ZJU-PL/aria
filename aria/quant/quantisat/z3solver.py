@@ -1,4 +1,5 @@
 """Z3 solver interface for satisfiability checking."""
+
 from typing import Dict, Tuple
 
 from z3 import Solver, parse_smt2_string, sat, unsat

@@ -76,7 +76,7 @@ class TestKS(unittest.TestCase):
     def test_ks_creation(self):
         """Test KS element creation."""
         k = 2
-        data = np.zeros((1, 2*k + 1), dtype=object)
+        data = np.zeros((1, 2 * k + 1), dtype=object)
         data[0, 0] = 1  # x coefficient
         data[0, 2] = 1  # y' coefficient
         data[0, 4] = 0  # Constant
@@ -170,7 +170,7 @@ class TestAlphaFunction(unittest.TestCase):
 
     def test_alpha_mos_simple(self):
         """Test alpha function on simple formula."""
-        variables = ['x']
+        variables = ["x"]
         pre_vars, post_vars = create_z3_variables(variables)
         phi = post_vars[0] == pre_vars[0]  # x' = x
 

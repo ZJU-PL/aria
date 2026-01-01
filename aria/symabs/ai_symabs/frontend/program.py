@@ -1,5 +1,5 @@
-"""Helper methods for Symbolic Abstraction analysis of straight-line programs.
-"""
+"""Helper methods for Symbolic Abstraction analysis of straight-line programs."""
+
 from typing import List
 import z3
 from ..domains.algorithms import bilateral
@@ -8,8 +8,7 @@ from ..domains.core.abstract import AbstractState
 
 
 class Program:
-    """Represents a straight-line program in 2-operand notation.
-    """
+    """Represents a straight-line program in 2-operand notation."""
 
     def __init__(self, program: str) -> None:
         """Initialize the program from a string @program.
@@ -20,15 +19,17 @@ class Program:
         program_lines: List[str] = [
             line.strip() for line in program.split("\n") if line.strip()
         ]
-        program_statements: List[List[str]] = [line.split(" ") for line in program_lines]
+        program_statements: List[List[str]] = [
+            line.split(" ") for line in program_lines
+        ]
 
         # (inout, op, in)
         assert all(len(statement) == 3 for statement in program_statements)
 
         inouts, _ops, ins = zip(*program_statements)
         self.variables: List[str] = sorted(
-            variable for variable in set(inouts) | set(ins)
-            if not variable.isdigit())
+            variable for variable in set(inouts) | set(ins) if not variable.isdigit()
+        )
         assert all("'" not in variable for variable in self.variables)
 
         z3_variables: List[List[z3.ArithRef]] = [list(map(z3.Int, self.variables))]
@@ -58,16 +59,20 @@ class Program:
                 z3_statements.append(post_operand_to >= pre_operand_from)
             elif operation == "+=":
                 z3_statements.append(
-                    post_operand_to == (pre_operand_to + pre_operand_from))
+                    post_operand_to == (pre_operand_to + pre_operand_from)
+                )
             elif operation == "-=":
                 z3_statements.append(
-                    post_operand_to == (pre_operand_to - pre_operand_from))
+                    post_operand_to == (pre_operand_to - pre_operand_from)
+                )
             elif operation == "*=":
                 z3_statements.append(
-                    post_operand_to == (pre_operand_to * pre_operand_from))
+                    post_operand_to == (pre_operand_to * pre_operand_from)
+                )
             elif operation == "/=":
                 z3_statements.append(
-                    post_operand_to == (pre_operand_to / pre_operand_from))
+                    post_operand_to == (pre_operand_to / pre_operand_from)
+                )
             else:
                 raise NotImplementedError
 
@@ -79,21 +84,20 @@ class Program:
         self.z3_formula: z3.BoolRef = z3.And(*z3_statements)
 
     def transform(
-            self, domain: ConjunctiveDomain,
-            input_abstract_state: AbstractState) -> AbstractState:
-        """Compute the most precise output abstract state.
-        """
+        self, domain: ConjunctiveDomain, input_abstract_state: AbstractState
+    ) -> AbstractState:
+        """Compute the most precise output abstract state."""
 
         def add_primes(unprimed: str) -> str:
             return unprimed + (self.prime_depth * "'")
 
-        output_domain = domain.translate(dict({
-            unprimed: add_primes(unprimed) for unprimed in domain.variables
-        }))
+        output_domain = domain.translate(
+            dict({unprimed: add_primes(unprimed) for unprimed in domain.variables})
+        )
 
         phi = z3.And(self.z3_formula, domain.gamma_hat(input_abstract_state))
         output_state = bilateral(output_domain, phi)
 
-        return output_state.translate(dict({
-            add_primes(unprimed): unprimed for unprimed in domain.variables
-        }))
+        return output_state.translate(
+            dict({add_primes(unprimed): unprimed for unprimed in domain.variables})
+        )

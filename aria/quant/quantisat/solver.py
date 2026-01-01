@@ -1,4 +1,5 @@
 """Solver classes for quantifier elimination and satisfiability checking."""
+
 import os
 import time
 from abc import ABC, abstractmethod
@@ -22,6 +23,7 @@ class SolverBackend(Enum):
     - Z3
     - CVC5
     """
+
     Z3 = 1
     CVC5 = 2
 
@@ -45,9 +47,9 @@ class Solver(ABC):
             - output: The output file for the converted formula.
             - timeout: The timeout for the solver.
         """
-        self.degree = args['degree']  # Only relevant for template based skolemization
-        self.output = args['output']
-        self.timeout = args['timeout']
+        self.degree = args["degree"]  # Only relevant for template based skolemization
+        self.output = args["output"]
+        self.timeout = args["timeout"]
 
         self.sat = True  # Solver specific representation of SAT
         self.unsat = False  # Solver specific representation of UNSAT
@@ -86,16 +88,18 @@ class Solver(ABC):
             The negated system to be converted.
         """
         self.smt2_pos = set_timeout(
-            convert, self.timeout, pos_system, degree=self.degree)
+            convert, self.timeout, pos_system, degree=self.degree
+        )
         self.smt2_negs = set_timeout(
-            convert, self.timeout, neg_system, degree=self.degree)
+            convert, self.timeout, neg_system, degree=self.degree
+        )
 
         if self.output is not None:
-            with open(self.output, 'w', encoding='utf-8') as f:
+            with open(self.output, "w", encoding="utf-8") as f:
                 f.write(self.smt2_pos)
 
-            neg_path = os.path.splitext(self.output)[0] + '_neg.smt2'
-            with open(neg_path, 'w', encoding='utf-8') as f:
+            neg_path = os.path.splitext(self.output)[0] + "_neg.smt2"
+            with open(neg_path, "w", encoding="utf-8") as f:
                 f.write(self.smt2_negs)
 
     def solve(self) -> Tuple[Result, Dict, float]:
@@ -110,7 +114,7 @@ class Solver(ABC):
             (if the formula is correct) and the time the solver needed.
         """
         if self.smt2_pos is None:
-            raise ValueError('The formula has not been converted yet.')
+            raise ValueError("The formula has not been converted yet.")
 
         start = time.time()
         try:
@@ -174,22 +178,22 @@ class MultiQuantiSAT(Solver):
             (except for config).
         """
         super().__init__(args)
-        self.configs = {'configs/farkas-z3.json': [0, 1],
-                        'configs/handelman-z3.json': [0, 1, 2],
-                        'configs/putinar-z3.json': [0, 1, 2]}
+        self.configs = {
+            "configs/farkas-z3.json": [0, 1],
+            "configs/handelman-z3.json": [0, 1, 2],
+            "configs/putinar-z3.json": [0, 1, 2],
+        }
 
         config_args = []
         for ph_config, degrees in self.configs.items():
             for degree in degrees:
-                config_args.append({'config': ph_config, 'degree': degree})
+                config_args.append({"config": ph_config, "degree": degree})
 
-        self.solvers = [QuantiSAT({**args, **config})
-                        for config in config_args]
+        self.solvers = [QuantiSAT({**args, **config}) for config in config_args]
         self.pos_system = None
         self.neg_system = None
 
-    def convert(self, pos_system: List[Quantifier],
-                neg_system: List[Quantifier]):
+    def convert(self, pos_system: List[Quantifier], neg_system: List[Quantifier]):
         """
         Simply store the positive and negated system for later use.
 
@@ -278,10 +282,10 @@ class QuantiSAT(Solver):
         self.unsat = False
         self.unknown = None
 
-        self.degree = args['degree']
-        self.output = args['output']
-        self.polyhorn_config = args['config']
-        self.timeout = args['timeout']
+        self.degree = args["degree"]
+        self.output = args["output"]
+        self.polyhorn_config = args["config"]
+        self.timeout = args["timeout"]
 
     def _solve(self, smt2: str) -> Tuple[Result, Dict]:
         """
@@ -331,12 +335,12 @@ class Skolem(Solver):
         self.unsat = False
         self.unknown = None
 
-        self.use_template = args['use_template']
-        self.degree = args['degree']
+        self.use_template = args["use_template"]
+        self.degree = args["degree"]
         if not self.use_template:
             self.degree = None
-        self.timeout = args['timeout']
-        self.backend = args['backend']
+        self.timeout = args["timeout"]
+        self.backend = args["backend"]
 
     def _solve(self, smt2: str) -> Tuple[Result, Dict]:
         """
@@ -357,4 +361,4 @@ class Skolem(Solver):
             return z3_call(smt2, self.timeout)
         if self.backend == SolverBackend.CVC5:
             return cvc5_call(smt2, self.timeout)
-        raise ValueError('Invalid backend.')
+        raise ValueError("Invalid backend.")

@@ -9,7 +9,13 @@ from typing import Set
 
 import z3
 
-from aria.sampling.base import Sampler, Logic, SamplingMethod, SamplingOptions, SamplingResult
+from aria.sampling.base import (
+    Sampler,
+    Logic,
+    SamplingMethod,
+    SamplingOptions,
+    SamplingResult,
+)
 from aria.utils.z3_expr_utils import get_variables, is_int_sort, is_real_sort
 
 
@@ -75,8 +81,8 @@ class LIRASampler(Sampler):
         # Create a solver with specific random seed
         solver = z3.Solver()
         if options.random_seed is not None:
-            solver.set('random_seed', options.random_seed)
-            solver.set('seed', options.random_seed)
+            solver.set("random_seed", options.random_seed)
+            solver.set("seed", options.random_seed)
         solver.add(self.formula)
 
         # Generate samples
@@ -105,10 +111,12 @@ class LIRASampler(Sampler):
                                     # Use arithmetic to avoid direct comparison
                                     num = value.numerator()
                                     den = value.denominator()
-                                    if den != 0:  # This should work since we check is_rational
+                                    if (
+                                        den != 0
+                                    ):  # This should work since we check is_rational
                                         sample[str(var)] = float(num) / float(den)
                                     else:
-                                        sample[str(var)] = float('inf')
+                                        sample[str(var)] = float("inf")
                                 else:
                                     # Fallback to string conversion
                                     sample[str(var)] = float(str(value))
@@ -136,7 +144,9 @@ class LIRASampler(Sampler):
                                 if value.is_rational():
                                     num = value.numerator()
                                     den = value.denominator()
-                                    float_value = float(num) / float(den) if den != 0 else 0.0
+                                    float_value = (
+                                        float(num) / float(den) if den != 0 else 0.0
+                                    )
                                 else:
                                     float_value = 0.0
                             except (ValueError, TypeError, AttributeError):
@@ -144,7 +154,9 @@ class LIRASampler(Sampler):
 
                         # For reals, we add a small delta to avoid numerical issues
                         delta = 0.001
-                        block.append(z3.Or(var < float_value - delta, var > float_value + delta))
+                        block.append(
+                            z3.Or(var < float_value - delta, var > float_value + delta)
+                        )
 
                 solver.add(z3.Or(block))
                 stats["iterations"] += 1

@@ -28,20 +28,20 @@ class TestBooleanSampler:
     def test_sample_simple_formula(self):
         """Test sampling from simple Boolean formula."""
         sampler = BooleanSampler()
-        a, b = z3.Bools('a b')
+        a, b = z3.Bools("a b")
         formula = z3.And(a, z3.Not(b))
 
         sampler.init_from_formula(formula)
         result = sampler.sample(SamplingOptions(num_samples=1))
 
         assert len(result) == 1
-        assert result[0]['a'] is True
-        assert result[0]['b'] is False
+        assert result[0]["a"] is True
+        assert result[0]["b"] is False
 
     def test_sample_multiple_models(self):
         """Test sampling multiple models."""
         sampler = BooleanSampler()
-        a, b = z3.Bools('a b')
+        a, b = z3.Bools("a b")
         formula = z3.Or(a, b)
 
         sampler.init_from_formula(formula)
@@ -52,7 +52,7 @@ class TestBooleanSampler:
 
     def test_sample_with_random_seed(self):
         """Test random seed reproducibility."""
-        a, b, c = z3.Bools('a b c')
+        a, b, c = z3.Bools("a b c")
         formula = z3.Or(a, b, c)
 
         sampler1 = BooleanSampler()
@@ -70,7 +70,7 @@ class TestBooleanSampler:
     def test_sample_unsatisfiable_formula(self):
         """Test sampling from unsatisfiable formula."""
         sampler = BooleanSampler()
-        a = z3.Bool('a')
+        a = z3.Bool("a")
         formula = z3.And(a, z3.Not(a))
 
         sampler.init_from_formula(formula)
@@ -82,7 +82,7 @@ class TestBooleanSampler:
     def test_sample_blocking_prevents_duplicates(self):
         """Test blocking clauses prevent duplicate samples."""
         sampler = BooleanSampler()
-        a, b = z3.Bools('a b')
+        a, b = z3.Bools("a b")
         formula = z3.Or(a, b)
 
         sampler.init_from_formula(formula)
@@ -98,7 +98,7 @@ class TestBooleanSampler:
     def test_sample_complex_formula(self):
         """Test sampling from complex Boolean formula."""
         sampler = BooleanSampler()
-        a, b, c, d = z3.Bools('a b c d')
+        a, b, c, d = z3.Bools("a b c d")
         formula = z3.And(z3.Or(a, b), z3.Or(c, d), z3.Or(z3.Not(a), z3.Not(c)))
 
         sampler.init_from_formula(formula)

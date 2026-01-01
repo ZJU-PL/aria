@@ -7,23 +7,25 @@ import z3
 
 _logger = logging.getLogger(__name__)
 
+
 def parse(query_file):
     assert isinstance(query_file, io.TextIOWrapper)
     # Load query_file as string
     query_str = ""
     for l in query_file.readlines():
         query_str += str(l)
-    _logger.debug('query:\n%s', query_str)
+    _logger.debug("query:\n%s", query_str)
     try:
         constraint = z3.parse_smt2_string(query_str)
     except z3.z3types.Z3Exception as e:
-        msg = f'Parsing failed: {e}'
+        msg = f"Parsing failed: {e}"
         return (None, msg)
     return (constraint, None)
 
+
 def split_bool_and(constraint):
     """
-        Recursively split boolean and into separate constraints
+    Recursively split boolean and into separate constraints
     """
     final_constraints = []
     work_list = deque([constraint])
@@ -42,9 +44,11 @@ def split_bool_and(constraint):
 
     return final_constraints
 
+
 class Z3ExprDispatcherException(Exception):
     def __init__(self, msg):
         self.msg = msg
+
 
 class Z3ExprDispatcher:
     def __init__(self, throw_except_on_no_override=True):
@@ -59,7 +63,8 @@ class Z3ExprDispatcher:
         self._z3_app_dispatcher_map[z3.Z3_OP_TRUE] = self.visit_true
         self._z3_app_dispatcher_map[z3.Z3_OP_FALSE] = self.visit_false
         self._z3_app_dispatcher_map[z3.Z3_OP_UNINTERPRETED] = (
-            self.visit_uninterpreted_function)
+            self.visit_uninterpreted_function
+        )
 
         # Boolean operations
         self._z3_app_dispatcher_map[z3.Z3_OP_AND] = self.visit_and
@@ -74,17 +79,14 @@ class Z3ExprDispatcher:
         self._z3_app_dispatcher_map[z3.Z3_OP_DISTINCT] = self.visit_distinct
 
         # Float constants
-        self._z3_app_dispatcher_map[z3.Z3_OP_FPA_PLUS_ZERO] = (
-            self.visit_float_plus_zero)
+        self._z3_app_dispatcher_map[z3.Z3_OP_FPA_PLUS_ZERO] = self.visit_float_plus_zero
         self._z3_app_dispatcher_map[z3.Z3_OP_FPA_MINUS_ZERO] = (
-            self.visit_float_minus_zero)
-        self._z3_app_dispatcher_map[z3.Z3_OP_FPA_PLUS_INF] = (
-            self.visit_float_plus_inf)
-        self._z3_app_dispatcher_map[z3.Z3_OP_FPA_MINUS_INF] = (
-            self.visit_float_minus_inf)
+            self.visit_float_minus_zero
+        )
+        self._z3_app_dispatcher_map[z3.Z3_OP_FPA_PLUS_INF] = self.visit_float_plus_inf
+        self._z3_app_dispatcher_map[z3.Z3_OP_FPA_MINUS_INF] = self.visit_float_minus_inf
         self._z3_app_dispatcher_map[z3.Z3_OP_FPA_NAN] = self.visit_float_nan
-        self._z3_app_dispatcher_map[z3.Z3_OP_FPA_FP] = (
-            self.visit_float_constant)
+        self._z3_app_dispatcher_map[z3.Z3_OP_FPA_FP] = self.visit_float_constant
 
         # Float relations
         self._z3_app_dispatcher_map[z3.Z3_OP_FPA_EQ] = self.visit_float_eq
@@ -104,25 +106,25 @@ class Z3ExprDispatcher:
         self._z3_app_dispatcher_map[z3.Z3_OP_FPA_SQRT] = self.visit_float_sqrt
         self._z3_app_dispatcher_map[z3.Z3_OP_FPA_REM] = self.visit_float_rem
         self._z3_app_dispatcher_map[z3.Z3_OP_FPA_ROUND_TO_INTEGRAL] = (
-            self.visit_float_round_to_integral)
+            self.visit_float_round_to_integral
+        )
         self._z3_app_dispatcher_map[z3.Z3_OP_FPA_MIN] = self.visit_float_min
         self._z3_app_dispatcher_map[z3.Z3_OP_FPA_MAX] = self.visit_float_max
 
         # Float predicates
-        self._z3_app_dispatcher_map[z3.Z3_OP_FPA_IS_NORMAL] = (
-            self.visit_float_is_normal)
+        self._z3_app_dispatcher_map[z3.Z3_OP_FPA_IS_NORMAL] = self.visit_float_is_normal
         self._z3_app_dispatcher_map[z3.Z3_OP_FPA_IS_SUBNORMAL] = (
-            self.visit_float_is_subnormal)
-        self._z3_app_dispatcher_map[z3.Z3_OP_FPA_IS_ZERO] = (
-            self.visit_float_is_zero)
-        self._z3_app_dispatcher_map[z3.Z3_OP_FPA_IS_INF] = (
-            self.visit_float_is_infinite)
-        self._z3_app_dispatcher_map[z3.Z3_OP_FPA_IS_NAN] = (
-            self.visit_float_is_nan)
+            self.visit_float_is_subnormal
+        )
+        self._z3_app_dispatcher_map[z3.Z3_OP_FPA_IS_ZERO] = self.visit_float_is_zero
+        self._z3_app_dispatcher_map[z3.Z3_OP_FPA_IS_INF] = self.visit_float_is_infinite
+        self._z3_app_dispatcher_map[z3.Z3_OP_FPA_IS_NAN] = self.visit_float_is_nan
         self._z3_app_dispatcher_map[z3.Z3_OP_FPA_IS_NEGATIVE] = (
-            self.visit_float_is_negative)
+            self.visit_float_is_negative
+        )
         self._z3_app_dispatcher_map[z3.Z3_OP_FPA_IS_POSITIVE] = (
-            self.visit_float_is_positive)
+            self.visit_float_is_positive
+        )
 
         # Float conversion operations
         self._z3_app_dispatcher_map[z3.Z3_OP_FPA_TO_FP] = self.visit_to_float
@@ -136,7 +138,7 @@ class Z3ExprDispatcher:
     def visit(self, e):
         assert z3.is_ast(e)
         if not z3.is_app(e):
-            raise Z3ExprDispatcherException('expr was not an application')
+            raise Z3ExprDispatcherException("expr was not an application")
 
         # Call the appropriate function application handler
         app_kind = e.decl().kind()
@@ -149,7 +151,7 @@ class Z3ExprDispatcher:
             handler = self._z3_app_dispatcher_map[app_kind]
             handler(e)
         except KeyError as exc:
-            msg = f'Handler for {app_kind} is missing from dispatch dictionary'
+            msg = f"Handler for {app_kind} is missing from dispatch dictionary"
             raise NotImplementedError(msg) from exc
 
     # Visitors
@@ -277,15 +279,15 @@ class Z3ExprDispatcher:
         assert e.num_args() == 2
         self.default_handler(e)
 
-    def visit_float_round_to_integral(self ,e):
+    def visit_float_round_to_integral(self, e):
         assert e.num_args() == 2
         self.default_handler(e)
 
-    def visit_float_min(self ,e):
+    def visit_float_min(self, e):
         assert e.num_args() == 2
         self.default_handler(e)
 
-    def visit_float_max(self ,e):
+    def visit_float_max(self, e):
         assert e.num_args() == 2
         self.default_handler(e)
 

@@ -1,14 +1,18 @@
 """Implementation of the Bilateral algorithm for calculating alpha-tilde.
 Can also be used to calculate post-tilde.
 """
+
 from typing import Any, Optional
 from .timeout import TimeoutException
 
 
-def bilateral(domain: Any, phi: Any,
-              descend_check: Optional[int] = None,
-              initial_lower: Optional[Any] = None,
-              initial_upper: Optional[Any] = None) -> Any:
+def bilateral(
+    domain: Any,
+    phi: Any,
+    descend_check: Optional[int] = None,
+    initial_lower: Optional[Any] = None,
+    initial_upper: Optional[Any] = None,
+) -> Any:
     """Returns alpha-tilde of phi using the bilateral algorithm.
     If the SMT solver never times out, the function never hits a resource
     limit, and the function runs to completion, it will return alpha-hat.
@@ -36,7 +40,8 @@ def bilateral(domain: Any, phi: Any,
 
         try:
             model = domain.model_and(
-                phi, domain.logic_not(domain.gamma_hat(consequence)))
+                phi, domain.logic_not(domain.gamma_hat(consequence))
+            )
         except TimeoutException:
             return upper
 

@@ -24,7 +24,9 @@ class VersionSpace:
         if self.expressions:
             theories = {expr.theory for expr in self.expressions}
             if len(theories) > 1:
-                raise ValueError(f"All expressions must have the same theory, got: {theories}")
+                raise ValueError(
+                    f"All expressions must have the same theory, got: {theories}"
+                )
             self._theory = next(iter(theories))
 
     @property
@@ -37,7 +39,9 @@ class VersionSpace:
         if self._theory is None:
             self._theory = expr.theory
         elif expr.theory != self._theory:
-            raise ValueError(f"Expression theory {expr.theory} doesn't match version space theory {self._theory}")
+            raise ValueError(
+                f"Expression theory {expr.theory} doesn't match version space theory {self._theory}"
+            )
 
         self.expressions.add(expr)
 
@@ -49,24 +53,30 @@ class VersionSpace:
         """Check if an expression is in the version space."""
         return expr in self.expressions
 
-    def union(self, other: 'VersionSpace') -> 'VersionSpace':
+    def union(self, other: "VersionSpace") -> "VersionSpace":
         """Union of two version spaces."""
         if self._theory != other._theory:
-            raise ValueError(f"Cannot union version spaces of different theories: {self._theory} vs {other._theory}")
+            raise ValueError(
+                f"Cannot union version spaces of different theories: {self._theory} vs {other._theory}"
+            )
 
         return VersionSpace(self.expressions | other.expressions)
 
-    def intersect(self, other: 'VersionSpace') -> 'VersionSpace':
+    def intersect(self, other: "VersionSpace") -> "VersionSpace":
         """Intersection of two version spaces."""
         if self._theory != other._theory:
-            raise ValueError(f"Cannot intersect version spaces of different theories: {self._theory} vs {other._theory}")
+            raise ValueError(
+                f"Cannot intersect version spaces of different theories: {self._theory} vs {other._theory}"
+            )
 
         return VersionSpace(self.expressions & other.expressions)
 
-    def difference(self, other: 'VersionSpace') -> 'VersionSpace':
+    def difference(self, other: "VersionSpace") -> "VersionSpace":
         """Difference of two version spaces."""
         if self._theory != other._theory:
-            raise ValueError(f"Cannot compute difference of version spaces of different theories: {self._theory} vs {other._theory}")
+            raise ValueError(
+                f"Cannot compute difference of version spaces of different theories: {self._theory} vs {other._theory}"
+            )
 
         return VersionSpace(self.expressions - other.expressions)
 
@@ -140,8 +150,13 @@ class ExpressionCache:
 class VSAlgebra:
     """Algebra for manipulating version spaces with performance optimizations."""
 
-    def __init__(self, theory: Theory, expression_generator: Callable[[], List[Expression]] = None,
-                 enable_caching: bool = True, max_workers: int = 4):
+    def __init__(
+        self,
+        theory: Theory,
+        expression_generator: Callable[[], List[Expression]] = None,
+        enable_caching: bool = True,
+        max_workers: int = 4,
+    ):
         self.theory = theory
         self.expression_generator = expression_generator
         self.enable_caching = enable_caching
@@ -150,9 +165,9 @@ class VSAlgebra:
         # Performance optimizations
         self.cache = ExpressionCache() if enable_caching else None
         self.evaluation_stats = {
-            'cache_hits': 0,
-            'cache_misses': 0,
-            'total_evaluations': 0
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "total_evaluations": 0,
         }
 
     def empty(self) -> VersionSpace:
@@ -162,7 +177,9 @@ class VSAlgebra:
     def singleton(self, expr: Expression) -> VersionSpace:
         """Create a version space containing a single expression."""
         if expr.theory != self.theory:
-            raise ValueError(f"Expression theory {expr.theory} doesn't match algebra theory {self.theory}")
+            raise ValueError(
+                f"Expression theory {expr.theory} doesn't match algebra theory {self.theory}"
+            )
 
         vs = VersionSpace()
         vs.add(expr)
@@ -192,7 +209,9 @@ class VSAlgebra:
         universal = self.universal()
         return universal.difference(vs)
 
-    def filter_consistent(self, vs: VersionSpace, examples: List[Dict[str, Any]]) -> VersionSpace:
+    def filter_consistent(
+        self, vs: VersionSpace, examples: List[Dict[str, Any]]
+    ) -> VersionSpace:
         """Filter version space to keep only expressions consistent with examples."""
         if not vs.expressions:
             return vs
@@ -203,7 +222,9 @@ class VSAlgebra:
         else:
             return self._filter_consistent_sequential(vs, examples)
 
-    def _filter_consistent_sequential(self, vs: VersionSpace, examples: List[Dict[str, Any]]) -> VersionSpace:
+    def _filter_consistent_sequential(
+        self, vs: VersionSpace, examples: List[Dict[str, Any]]
+    ) -> VersionSpace:
         """Sequential filtering with caching."""
         consistent_expressions = set()
 
@@ -213,14 +234,19 @@ class VSAlgebra:
 
         return VersionSpace(consistent_expressions)
 
-    def _filter_consistent_parallel(self, vs: VersionSpace, examples: List[Dict[str, Any]]) -> VersionSpace:
+    def _filter_consistent_parallel(
+        self, vs: VersionSpace, examples: List[Dict[str, Any]]
+    ) -> VersionSpace:
         """Parallel filtering for large version spaces."""
         expressions_list = list(vs.expressions)
         consistent_expressions = set()
 
         # Split expressions into chunks for parallel processing
         chunk_size = max(1, len(expressions_list) // self.max_workers)
-        chunks = [expressions_list[i:i + chunk_size] for i in range(0, len(expressions_list), chunk_size)]
+        chunks = [
+            expressions_list[i : i + chunk_size]
+            for i in range(0, len(expressions_list), chunk_size)
+        ]
 
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             # Submit all chunks for parallel processing
@@ -236,7 +262,9 @@ class VSAlgebra:
 
         return VersionSpace(consistent_expressions)
 
-    def _process_chunk(self, expressions: List[Expression], examples: List[Dict[str, Any]]) -> Set[Expression]:
+    def _process_chunk(
+        self, expressions: List[Expression], examples: List[Dict[str, Any]]
+    ) -> Set[Expression]:
         """Process a chunk of expressions for consistency checking."""
         consistent = set()
         for expr in expressions:
@@ -248,7 +276,9 @@ class VSAlgebra:
         """Check if an expression is consistent with all examples."""
         return self._is_consistent_cached(expr, examples)
 
-    def _is_consistent_cached(self, expr: Expression, examples: List[Dict[str, Any]]) -> bool:
+    def _is_consistent_cached(
+        self, expr: Expression, examples: List[Dict[str, Any]]
+    ) -> bool:
         """Check consistency with caching for performance."""
         if not self.enable_caching or self.cache is None:
             return self._evaluate_consistency(expr, examples)
@@ -260,31 +290,37 @@ class VSAlgebra:
         # Check cache first
         cached_result = self.cache.get(cache_key)
         if cached_result is not None:
-            self.evaluation_stats['cache_hits'] += 1
+            self.evaluation_stats["cache_hits"] += 1
             return cached_result
 
         # Evaluate and cache result
-        self.evaluation_stats['cache_misses'] += 1
+        self.evaluation_stats["cache_misses"] += 1
         result = self._evaluate_consistency(expr, examples)
         self.cache.put(cache_key, result)
 
         return result
 
-    def _evaluate_consistency(self, expr: Expression, examples: List[Dict[str, Any]]) -> bool:
+    def _evaluate_consistency(
+        self, expr: Expression, examples: List[Dict[str, Any]]
+    ) -> bool:
         """Evaluate consistency without caching."""
-        self.evaluation_stats['total_evaluations'] += 1
+        self.evaluation_stats["total_evaluations"] += 1
 
         for example in examples:
             try:
                 actual_output = expr.evaluate(example)
-                expected_output = example.get('output')
+                expected_output = example.get("output")
 
                 # Handle different theories appropriately
                 if expr.theory == Theory.LIA:
-                    if not isinstance(actual_output, (int, bool)) or not isinstance(expected_output, (int, bool)):
+                    if not isinstance(actual_output, (int, bool)) or not isinstance(
+                        expected_output, (int, bool)
+                    ):
                         return False
                 elif expr.theory == Theory.STRING:
-                    if not isinstance(actual_output, str) or not isinstance(expected_output, str):
+                    if not isinstance(actual_output, str) or not isinstance(
+                        expected_output, str
+                    ):
                         return False
 
                 if actual_output != expected_output:
@@ -300,7 +336,9 @@ class VSAlgebra:
         """Generalize version space to be consistent with a new example."""
         return self.filter_consistent(vs, [new_example])
 
-    def find_counterexample(self, vs: VersionSpace, examples: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    def find_counterexample(
+        self, vs: VersionSpace, examples: List[Dict[str, Any]]
+    ) -> Optional[Dict[str, Any]]:
         """Find a counterexample that distinguishes expressions in the version space."""
         if vs.is_empty():
             return None
@@ -318,8 +356,9 @@ class VSAlgebra:
         # More sophisticated counterexample generation would go here
         return self._find_counterexample_heuristic(vs, examples, all_variables)
 
-    def _find_counterexample_heuristic(self, vs: VersionSpace, examples: List[Dict[str, Any]],
-                                     variables: Set[str]) -> Optional[Dict[str, Any]]:
+    def _find_counterexample_heuristic(
+        self, vs: VersionSpace, examples: List[Dict[str, Any]], variables: Set[str]
+    ) -> Optional[Dict[str, Any]]:
         """Heuristic counterexample generation using small integer values."""
         # Simple heuristic: try different small integer assignments
         test_values = [-2, -1, 0, 1, 2, 3, 5, 10]
@@ -340,12 +379,14 @@ class VSAlgebra:
 
             # If we get different outputs, this is a good counterexample
             if len(outputs) > 1:
-                assignment['output'] = None  # We don't know the expected output yet
+                assignment["output"] = None  # We don't know the expected output yet
                 return assignment
 
         return None
 
-    def _generate_assignments(self, variables: Set[str], values: List[Any]) -> List[Dict[str, Any]]:
+    def _generate_assignments(
+        self, variables: Set[str], values: List[Any]
+    ) -> List[Dict[str, Any]]:
         """Generate all possible assignments of values to variables."""
         if not variables:
             return [{}]
@@ -382,20 +423,27 @@ class VSAlgebra:
             return expressions
 
         import random
+
         return random.sample(expressions, n)
 
     def get_cache_stats(self) -> Dict[str, int]:
         """Get cache performance statistics."""
         if self.cache is None:
-            return {'cache_disabled': 1}
+            return {"cache_disabled": 1}
 
         return {
-            'cache_size': self.cache.size(),
-            'cache_hits': self.evaluation_stats['cache_hits'],
-            'cache_misses': self.evaluation_stats['cache_misses'],
-            'total_evaluations': self.evaluation_stats['total_evaluations'],
-            'hit_rate': (self.evaluation_stats['cache_hits'] /
-                        max(1, self.evaluation_stats['cache_hits'] + self.evaluation_stats['cache_misses']))
+            "cache_size": self.cache.size(),
+            "cache_hits": self.evaluation_stats["cache_hits"],
+            "cache_misses": self.evaluation_stats["cache_misses"],
+            "total_evaluations": self.evaluation_stats["total_evaluations"],
+            "hit_rate": (
+                self.evaluation_stats["cache_hits"]
+                / max(
+                    1,
+                    self.evaluation_stats["cache_hits"]
+                    + self.evaluation_stats["cache_misses"],
+                )
+            ),
         }
 
     def clear_cache(self) -> None:
@@ -403,7 +451,7 @@ class VSAlgebra:
         if self.cache is not None:
             self.cache.clear()
         self.evaluation_stats = {
-            'cache_hits': 0,
-            'cache_misses': 0,
-            'total_evaluations': 0
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "total_evaluations": 0,
         }

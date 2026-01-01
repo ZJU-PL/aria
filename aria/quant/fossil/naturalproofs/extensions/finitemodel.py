@@ -23,14 +23,24 @@ explicitly specified. Set to 'True' by default, so all offset computations will 
 import itertools
 import copy
 import z3
+
 # model.compact should be turned off to not get lambdas, only actual arrays/sets.
-z3.set_param('model.compact', False)
+z3.set_param("model.compact", False)
 
 from aria.quant.fossil.naturalproofs.AnnotatedContext import default_annctx
-from aria.quant.fossil.naturalproofs.uct import fgsort, fgsetsort, intsort, intsetsort, boolsort
+from aria.quant.fossil.naturalproofs.uct import (
+    fgsort,
+    fgsetsort,
+    intsort,
+    intsetsort,
+    boolsort,
+)
 from aria.quant.fossil.naturalproofs.decl_api import get_vocabulary, get_uct_signature
 from aria.quant.fossil.naturalproofs.prover_utils import get_foreground_terms
-from aria.quant.fossil.naturalproofs.extensions.finitemodel_utils import transform_fg_universe, collect_fg_universe
+from aria.quant.fossil.naturalproofs.extensions.finitemodel_utils import (
+    transform_fg_universe,
+    collect_fg_universe,
+)
 
 
 class FiniteModel:
@@ -66,7 +76,9 @@ class FiniteModel:
         # Subterm-close the given terms assuming one-way functions
         # get_foreground_terms already performs subterm closure
         subterm_closure = get_foreground_terms(terms, annctx=annctx)
-        elems = elems | {smtmodel.eval(term, model_completion=True) for term in subterm_closure}
+        elems = elems | {
+            smtmodel.eval(term, model_completion=True) for term in subterm_closure
+        }
         if vocabulary is None:
             vocabulary = get_vocabulary(annctx)
         for func in vocabulary:
@@ -74,21 +86,34 @@ class FiniteModel:
             *input_signature, output_sort = get_uct_signature(func, annctx)
             # Only supporting uninterpreted functions with input arguments all from the foreground sort
             if not all(sig == fgsort for sig in input_signature):
-                raise ValueError('Function with input(s) not from the foreground sort. Unsupported.')
+                raise ValueError(
+                    "Function with input(s) not from the foreground sort. Unsupported."
+                )
             func_key_repr = model_key_repr(func)
             # Distinguish common cases for faster execution
             if arity == 0:
-                model[func_key_repr] = {(): _extract_value(smtmodel.eval(func(), model_completion=True), output_sort)}
+                model[func_key_repr] = {
+                    (): _extract_value(
+                        smtmodel.eval(func(), model_completion=True), output_sort
+                    )
+                }
             elif arity == 1:
                 model[func_key_repr] = {
-                    (_extract_value(elem, fgsort),): _extract_value(smtmodel.eval(func(elem), model_completion=True),
-                                                                    output_sort) for elem in elems}
+                    (_extract_value(elem, fgsort),): _extract_value(
+                        smtmodel.eval(func(elem), model_completion=True), output_sort
+                    )
+                    for elem in elems
+                }
             else:
                 func_dict = dict()
                 args = itertools.product(elems, repeat=arity)
                 for arg in args:
-                    arg_value = tuple(_extract_value(component, fgsort) for component in arg)
-                    func_dict[arg_value] = _extract_value(smtmodel.eval(func(*arg), model_completion=True), output_sort)
+                    arg_value = tuple(
+                        _extract_value(component, fgsort) for component in arg
+                    )
+                    func_dict[arg_value] = _extract_value(
+                        smtmodel.eval(func(*arg), model_completion=True), output_sort
+                    )
                 model[func_key_repr] = func_dict
 
         # Object attributes
@@ -111,7 +136,9 @@ class FiniteModel:
         finitemodel_copy = copy.deepcopy(self.finitemodel)
         # Blank object
         # Init as defined will not do anything but assign the smtmodel field
-        copy_object = FiniteModel(smtmodel=self.smtmodel, terms={}, vocabulary=[], annctx=None)
+        copy_object = FiniteModel(
+            smtmodel=self.smtmodel, terms={}, vocabulary=[], annctx=None
+        )
         copy_object.finitemodel = finitemodel_copy
         copy_object.smtmodel = self.smtmodel
         copy_object.vocabulary = self.vocabulary
@@ -131,7 +158,9 @@ class FiniteModel:
 
     def add_fg_element_offset(self, offset_value):
         if self.recompute_offset:
-            self.finitemodel = transform_fg_universe(self.finitemodel, lambda x: x + offset_value, self.annctx)
+            self.finitemodel = transform_fg_universe(
+                self.finitemodel, lambda x: x + offset_value, self.annctx
+            )
             self.offset = self.offset + offset_value
             self.fg_universe = {elem + offset_value for elem in self.fg_universe}
 
@@ -169,7 +198,9 @@ def _extract_value(value, uct_sort):
         # value is a set of integers.
         # model.compact has been disabled (see top of file). ArrayRef should not have lambdas in it.
         if not isinstance(value, z3.ArrayRef):
-            raise ValueError('Something is wrong. Model is returning lambdas instead of arrays.')
+            raise ValueError(
+                "Something is wrong. Model is returning lambdas instead of arrays."
+            )
         # iteratively deconstruct the expression to build the set of python numbers.
         extracted_set = set()
         value = value.__deepcopy__()
@@ -178,18 +209,24 @@ def _extract_value(value, uct_sort):
                 # Base case. Either full set or empty set.
                 if z3.simplify(value[0]):
                     # Full set of integers. Raise exception.
-                    raise ValueError('Model assigned infinite sets to some interpretations. Unsupported.')
+                    raise ValueError(
+                        "Model assigned infinite sets to some interpretations. Unsupported."
+                    )
                 else:
                     return extracted_set
             elif z3.is_store(value):
                 remaining_set, entry, if_belongs = value.children()
                 value = remaining_set
-                extracted_set = extracted_set | ({entry.as_long()} if z3.is_true(if_belongs) else {})
+                extracted_set = extracted_set | (
+                    {entry.as_long()} if z3.is_true(if_belongs) else {}
+                )
             else:
-                raise ValueError('ArrayRef is constructed with neither Store nor K. Possible multidimensional arrays. '
-                                 'Unsupported.')
+                raise ValueError(
+                    "ArrayRef is constructed with neither Store nor K. Possible multidimensional arrays. "
+                    "Unsupported."
+                )
     else:
-        raise ValueError('UCT Sort type not supported for extraction of models.')
+        raise ValueError("UCT Sort type not supported for extraction of models.")
 
 
 def recover_value(value, uct_sort):
@@ -215,4 +252,6 @@ def recover_value(value, uct_sort):
         for elem in value:
             expr = z3.SetAdd(expr, z3.IntVal(elem))
     else:
-        raise ValueError('Sort not supported. Check for a list of available sorts in the naturalproofs.uct module.')
+        raise ValueError(
+            "Sort not supported. Check for a list of available sorts in the naturalproofs.uct module."
+        )

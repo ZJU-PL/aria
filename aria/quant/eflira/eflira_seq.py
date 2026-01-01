@@ -1,4 +1,5 @@
 """Sequential solver for exists-forall linear integer real arithmetic (EFLIRA)."""
+
 import logging
 from typing import List
 import time
@@ -10,8 +11,9 @@ from aria.quant.efsmt_parser import EFSMTZ3Parser
 logger = logging.getLogger(__name__)
 
 
-def solve_with_simple_cegar(x: List[z3.ExprRef], y: List[z3.ExprRef], phi: z3.ExprRef,
-                            maxloops=None) -> z3.CheckSatResult:
+def solve_with_simple_cegar(
+    x: List[z3.ExprRef], y: List[z3.ExprRef], phi: z3.ExprRef, maxloops=None
+) -> z3.CheckSatResult:
     """
     Solve exists-forall bit-vectors
      (The name of the engine is EFBVTactic.SIMPLE_CEGAR)
@@ -70,5 +72,5 @@ def test2():
     print("efsmt time: ", time.time() - start)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test2()

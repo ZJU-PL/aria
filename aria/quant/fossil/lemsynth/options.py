@@ -5,9 +5,9 @@ import os
 import importlib_resources
 
 # SyGuS solver that supports only ground constraints and uses constraint-solving methods
-minisy = 'minisy'
+minisy = "minisy"
 # Enumerative general-purpose SyGuS solver
-cvc4sy = 'cvc4sy'
+cvc4sy = "cvc4sy"
 
 ###############################################################################
 # Setting lemma synthesis options here. DO NOT MODIFY.
@@ -21,6 +21,6 @@ verbose = 5
 analytics = False
 ###############################################################################
 
-log_file_path = os.path.abspath(importlib_resources.files('lemsynth')/'../logs')
+log_file_path = os.path.abspath(importlib_resources.files("lemsynth") / "../logs")
 
 debug = True

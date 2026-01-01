@@ -20,8 +20,11 @@ class SMTVerifier:
         self.solver = z3.Solver(ctx=self.converter.context)
 
     def verify_expression(
-            self, expr: Expression, examples: List[Dict[str, Any]],
-            var_types: Dict[str, str] = None) -> bool:
+        self,
+        expr: Expression,
+        examples: List[Dict[str, Any]],
+        var_types: Dict[str, str] = None,
+    ) -> bool:
         """Verify that an expression is consistent with all examples using SMT."""
         try:
             # Create SMT formula for the expression
@@ -34,7 +37,7 @@ class SMTVerifier:
                 output_var = None
 
                 for var_name, value in example.items():
-                    if var_name == 'output':
+                    if var_name == "output":
                         output_var = value
                         continue
 
@@ -42,7 +45,8 @@ class SMTVerifier:
                     if var_smt is None:
                         # Variable not yet in context, create it
                         var_smt = self._create_variable(
-                            var_name, expr.theory, var_types)
+                            var_name, expr.theory, var_types
+                        )
                         self.converter.variable_map[var_name] = var_smt
 
                     constraints.append(var_smt == value)
@@ -71,9 +75,11 @@ class SMTVerifier:
             return False
 
     def find_counterexample(
-            self, expressions: List[Expression],
-            examples: List[Dict[str, Any]],
-            var_types: Dict[str, str] = None) -> Optional[Dict[str, Any]]:
+        self,
+        expressions: List[Expression],
+        examples: List[Dict[str, Any]],
+        var_types: Dict[str, str] = None,
+    ) -> Optional[Dict[str, Any]]:
         """Find a counterexample that distinguishes between expressions using SMT."""
         try:
             if not expressions:
@@ -107,7 +113,7 @@ class SMTVerifier:
                     # At least two expressions must differ
                     diff_constraints = []
                     for i, expr1 in enumerate(smt_expressions):
-                        for j in range(i+1, len(smt_expressions)):
+                        for j in range(i + 1, len(smt_expressions)):
                             expr2 = smt_expressions[j]
                             diff_constraints.append(expr1 != expr2)
 
@@ -162,8 +168,8 @@ class SMTVerifier:
             return None
 
     def _create_variable(
-            self, var_name: str, theory: Theory,
-            var_types: Dict[str, str] = None) -> z3.ExprRef:
+        self, var_name: str, theory: Theory, var_types: Dict[str, str] = None
+    ) -> z3.ExprRef:
         """Create a variable in the SMT context."""
         var_types = var_types or {}
 
@@ -176,8 +182,9 @@ class SMTVerifier:
             return z3.String(var_name, self.converter.context)
         raise ValueError(f"Unsupported theory: {theory}")
 
-    def prove_equivalence(self, expr1: Expression, expr2: Expression,
-                         var_types: Dict[str, str] = None) -> bool:
+    def prove_equivalence(
+        self, expr1: Expression, expr2: Expression, var_types: Dict[str, str] = None
+    ) -> bool:
         """Prove that two expressions are equivalent using SMT."""
         try:
             smt_expr1 = expression_to_smt(expr1, var_types)
@@ -199,8 +206,8 @@ class SMTVerifier:
             return False
 
     def get_smt_formula(
-            self, expr: Expression,
-            var_types: Dict[str, str] = None) -> str:
+        self, expr: Expression, var_types: Dict[str, str] = None
+    ) -> str:
         """Get SMT-LIB format string for an expression."""
         smt_expr = expression_to_smt(expr, var_types)
         return smt_expr.sexpr()

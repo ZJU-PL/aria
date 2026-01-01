@@ -5,6 +5,7 @@ This module provides WMC computation using different backends:
 - DNNF compilation for exact counting
 - Enumeration for approximate counting with model limits
 """
+
 from __future__ import annotations
 
 from typing import Iterable, List, Dict
@@ -24,7 +25,9 @@ def _validate_weights(weights: LiteralWeights) -> None:
             raise ValueError(f"Weight of literal {lit} must be in [0,1], got {w}")
 
 
-def _ensure_complement_weights(weights: LiteralWeights, variables: Iterable[int]) -> LiteralWeights:
+def _ensure_complement_weights(
+    weights: LiteralWeights, variables: Iterable[int]
+) -> LiteralWeights:
     completed: Dict[int, float] = dict(weights)
     for v in variables:
         pos = completed.get(v)
@@ -58,16 +61,16 @@ def _wmc_on_dnnf(root: DNF_Node, weights: LiteralWeights) -> float:
         if n.explore_id is not None and n.explore_id in memo:
             return memo[n.explore_id]
 
-        if n.type == 'L':
+        if n.type == "L":
             if isinstance(n.literal, bool):
                 val = 1.0 if n.literal else 0.0
             else:
                 val = float(weights[int(n.literal)])
-        elif n.type == 'A':
+        elif n.type == "A":
             left = eval_node(n.left_child)
             right = eval_node(n.right_child)
             val = left * right
-        elif n.type == 'O':
+        elif n.type == "O":
             left = eval_node(n.left_child)
             right = eval_node(n.right_child)
             val = left + right
@@ -84,7 +87,9 @@ def _wmc_on_dnnf(root: DNF_Node, weights: LiteralWeights) -> float:
     return eval_node(root)
 
 
-def _wmc_by_enumeration(cnf: CNF, weights: LiteralWeights, model_limit: int | None) -> float:
+def _wmc_by_enumeration(
+    cnf: CNF, weights: LiteralWeights, model_limit: int | None
+) -> float:
     total = 0.0
     with Solver(bootstrap_with=cnf) as s:
         count = 0
@@ -103,7 +108,9 @@ def _wmc_by_enumeration(cnf: CNF, weights: LiteralWeights, model_limit: int | No
     return total
 
 
-def wmc_count(cnf: CNF, weights: LiteralWeights, options: WMCOptions | None = None) -> float:
+def wmc_count(
+    cnf: CNF, weights: LiteralWeights, options: WMCOptions | None = None
+) -> float:
     """
     Compute weighted model count of a propositional CNF.
 

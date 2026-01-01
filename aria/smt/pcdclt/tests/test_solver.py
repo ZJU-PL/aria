@@ -11,8 +11,8 @@ class TestCDCLTSolver(TestCase):
 
     def setUp(self):
         """Check if Z3 is available"""
-        z3_config = SMT_SOLVERS_PATH.get('z3', {})
-        if not z3_config.get('available', False):
+        z3_config = SMT_SOLVERS_PATH.get("z3", {})
+        if not z3_config.get("available", False):
             self.skipTest("Z3 not available")
 
     def test_simple_sat(self):
@@ -149,5 +149,5 @@ class TestCDCLTSolver(TestCase):
         self.assertEqual(result, SolverResult.SAT)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

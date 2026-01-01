@@ -13,7 +13,13 @@ from typing import Set, Dict, Any, List, Optional
 
 import z3
 
-from aria.sampling.base import Sampler, Logic, SamplingMethod, SamplingOptions, SamplingResult
+from aria.sampling.base import (
+    Sampler,
+    Logic,
+    SamplingMethod,
+    SamplingOptions,
+    SamplingResult,
+)
 from aria.utils.z3_expr_utils import get_variables, is_bool_sort
 
 

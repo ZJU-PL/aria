@@ -98,7 +98,7 @@ class SeqExistsSolver:
                 bv_val = 0
                 for i, _ in enumerate(bool_vars):
                     if bool_model[i + start - 1] > 0:
-                        bv_val += 2 ** i
+                        bv_val += 2**i
                 bv_model[str(bv_var)] = bv_val
         else:  # signed
             # FIXME: the following seems to be wrong
@@ -108,7 +108,7 @@ class SeqExistsSolver:
                 bv_val = 0
                 for i in range(len(bool_vars) - 1):
                     if bool_model[i + start - 1] > 0:
-                        bv_val += 2 ** i
+                        bv_val += 2**i
                 if bool_model[len(bool_vars) - 1 + start - 1] > 0:
                     bv_val = -bv_val
                 bv_model[str(bv_var)] = bv_val
@@ -154,8 +154,10 @@ class SeqForAllSolver:
             # a "dirty" trick for exist (TODO: fix this?)
             raise ForAllSolverSuccess()
         fmodel = sol.model()
-        y_mappings = [(var, fmodel.eval(var, model_completion=True))
-                     for var in self.universal_vars]
+        y_mappings = [
+            (var, fmodel.eval(var, model_completion=True))
+            for var in self.universal_vars
+        ]
         return y_mappings
 
     def validate_models(self, all_mappings):
@@ -200,8 +202,13 @@ class SeqEFBVSolver:
         """
         return
 
-    def solve(self, exists_vars: List[z3.ExprRef], forall_vars: List[z3.ExprRef],
-              phi: z3.ExprRef, maxloops=None) -> EFBVResult:
+    def solve(
+        self,
+        exists_vars: List[z3.ExprRef],
+        forall_vars: List[z3.ExprRef],
+        phi: z3.ExprRef,
+        maxloops=None,
+    ) -> EFBVResult:
         """Solve exists x. forall y. phi(x, y).
 
         FIXME: inconsistent with efsmt

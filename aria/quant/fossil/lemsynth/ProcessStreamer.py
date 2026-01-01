@@ -11,7 +11,7 @@ class Timeout(Exception):
     pass
 
 
-_process_timeout = 'ProcessTimeout'
+_process_timeout = "ProcessTimeout"
 
 
 class ProcessStreamer:
@@ -24,8 +24,14 @@ class ProcessStreamer:
         # Recommended to compute specialised log file name because it will act as a shared memory
         # File as shared memory is used to implement non-blocking reads
         if logfile is None:
-            self._logfile = '{}.stream'.format(''.join([entry if isinstance(entry, str) else str(entry)
-                                                        for entry in cmdlist]))
+            self._logfile = "{}.stream".format(
+                "".join(
+                    [
+                        entry if isinstance(entry, str) else str(entry)
+                        for entry in cmdlist
+                    ]
+                )
+            )
         else:
             self._logfile = logfile
         self._logfile_handle = None
@@ -39,23 +45,31 @@ class ProcessStreamer:
         self._curr_stream = None
 
     def prologue(self):
-        logfile_handle = open(self._logfile, 'w')
+        logfile_handle = open(self._logfile, "w")
         self._logfile_handle = logfile_handle
-        self.writer_proc = subprocess.Popen(self.cmdlist, stdout=logfile_handle, bufsize=0)
+        self.writer_proc = subprocess.Popen(
+            self.cmdlist, stdout=logfile_handle, bufsize=0
+        )
         self._writer_proc_pausable = psutil.Process(pid=self.writer_proc.pid)
         if self.timeout is not None:
-            self.timer_proc = multiprocessing.Process(name='timer', target=self._timer, args=(self.timeout,))
+            self.timer_proc = multiprocessing.Process(
+                name="timer", target=self._timer, args=(self.timeout,)
+            )
             self.timer_proc.start()
 
     def stream(self, busywaiting=True, lazystream=False):
         # Only one generator stream can be present at any point in the present design.
         if self._curr_stream is not None:
-            raise RuntimeError('Generator already initialised for object. '
-                               'Close stale generator using .close_stream()')
+            raise RuntimeError(
+                "Generator already initialised for object. "
+                "Close stale generator using .close_stream()"
+            )
         # infinite mode allowed only when there is no timeout
         if self.timeout is not None and lazystream:
-            warnings.warn('Lazy streaming with timeout is not a usual option setting. '
-                          'Consider setting the option that reflects your purpose best.')
+            warnings.warn(
+                "Lazy streaming with timeout is not a usual option setting. "
+                "Consider setting the option that reflects your purpose best."
+            )
         if lazystream:
             busywaiting = True
         # Declare and start processes.
@@ -69,12 +83,12 @@ class ProcessStreamer:
     def _stream(self, busywaiting, lazystream):
         currpos = 0
         while True:
-            with open(self._logfile, 'r') as f:
+            with open(self._logfile, "r") as f:
                 f.seek(currpos)
                 text = f.readline()
                 currpos = f.tell()
             try:
-                if text == '':
+                if text == "":
                     # If busy waiting is enabled then try again after sometime.
                     if busywaiting:
                         time.sleep(2)
@@ -110,7 +124,11 @@ class ProcessStreamer:
             self.writer_proc.wait()
         # multiprocessing 'processes' need to be killed differently: check if alive first
         # Last condition is added owing to a weird bug in multiprocessing that shows a finished process as alive
-        if self.timeout is not None and self.timer_proc.is_alive() and self.timer_proc._popen is not None:
+        if (
+            self.timeout is not None
+            and self.timer_proc.is_alive()
+            and self.timer_proc._popen is not None
+        ):
             self.timer_proc.terminate()
 
     # Auxiliary function to create a timer process
@@ -120,12 +138,12 @@ class ProcessStreamer:
         if self.writer_proc.poll() is None:
             self.writer_proc.kill()
             self.writer_proc.wait()
-        with open(self._logfile, 'a+') as f:
+        with open(self._logfile, "a+") as f:
             # Write newline if not already present.
             f.seek(f.tell() - 1)
             lastchar = f.read()
-            if lastchar != '\n':
-                f.write('\n')
+            if lastchar != "\n":
+                f.write("\n")
             # Write process timeout signature string.
             # Doing this makes the logfile a shared memory.
             f.write(_process_timeout)

@@ -4,19 +4,14 @@ from pysmt.simplifier import BddSimplifier
 from pysmt.walkers import IdentityDagWalker
 import pysmt.operators as operators
 
-from pysmt.shortcuts import (
-    Real,
-    TRUE, FALSE,
-    Minus,
-    LE, LT,
-    Not, And, Or
-)
+from pysmt.shortcuts import Real, TRUE, FALSE, Minus, LE, LT, Not, And, Or
+
 
 class BddDNFSimplifier(BddSimplifier):
     def __init__(self, env=None, static_ordering=None, bool_abstraction=True):
-        BddSimplifier.__init__(self, env=env,
-                               static_ordering=static_ordering,
-                               bool_abstraction=True)
+        BddSimplifier.__init__(
+            self, env=env, static_ordering=static_ordering, bool_abstraction=True
+        )
 
         self.dnf = True
 
@@ -27,7 +22,7 @@ class BddDNFSimplifier(BddSimplifier):
         try:
             import repycudd
 
-            if (self.dnf):
+            if self.dnf:
                 # build DNF using cubes
                 m = self.s.ddmanager
                 repycudd.set_iter_meth(0)
@@ -55,6 +50,7 @@ class BddDNFSimplifier(BddSimplifier):
         except:
             raise Exception("Cannot load BDD package")
 
+
 class DNFConverter(object):
 
     class PostProcess(IdentityDagWalker):
@@ -64,21 +60,22 @@ class DNFConverter(object):
 
         It assumes the input formula is in NNF
         """
+
         def __init__(self, env=None, invalidate_memoization=None):
-            IdentityDagWalker.__init__(self,
-                                       env=env,
-                                       invalidate_memoization=invalidate_memoization)
+            IdentityDagWalker.__init__(
+                self, env=env, invalidate_memoization=invalidate_memoization
+            )
             self.mgr = self.env.formula_manager
 
         def walk_not(self, formula, args, **kwargs):
             # Assume we are in NNF, so we have atoms
-            assert(len(args) == 1)
+            assert len(args) == 1
 
             predicate = args[0]
-            if (predicate.is_le()):
+            if predicate.is_le():
                 # (! p <= 0) <-> p > 0 <-> -p < 0
                 return LT(Minus(predicate.args()[1], predicate.args()[0]), Real(0))
-            elif (predicate.is_lt()):
+            elif predicate.is_lt():
                 # (! p < 0) <-> p >= 0 <-> -p <= 0
                 return LE(Minus(predicate.args()[1], predicate.args()[0]), Real(0))
                 pass
@@ -91,10 +88,11 @@ class DNFConverter(object):
 
         This to ensure we only have predicates using >=, >
         """
+
         def __init__(self, env=None, invalidate_memoization=None):
-            IdentityDagWalker.__init__(self,
-                                       env=env,
-                                       invalidate_memoization=invalidate_memoization)
+            IdentityDagWalker.__init__(
+                self, env=env, invalidate_memoization=invalidate_memoization
+            )
             self.mgr = self.env.formula_manager
 
         def walk_equals(self, formula, args, **kwargs):
@@ -102,8 +100,7 @@ class DNFConverter(object):
             predicate = Minus(args[0], args[1])
             return And(LE(predicate, Real(0)), LE(Real(0), predicate))
 
-
-    def __init__(self, env = None):
+    def __init__(self, env=None):
         self.env = env
 
     def get_dnf(self, formula):
@@ -119,15 +116,14 @@ class DNFConverter(object):
         # Equivalent DNF is the one ok for LZZ
         s = BddDNFSimplifier(env=self.env, bool_abstraction=True)
 
-        pre_processor = DNFConverter.PreProcess(env = self.env)
-        post_processor = DNFConverter.PostProcess(env = self.env)
+        pre_processor = DNFConverter.PreProcess(env=self.env)
+        post_processor = DNFConverter.PostProcess(env=self.env)
 
         pre_processed = pre_processor.walk(formula)
         simplified_formula = s.simplify(pre_processed)
         post_processed = post_processor.walk(simplified_formula)
 
         return simplified_formula
-
 
 
 class ApplyPredicate(IdentityDagWalker):
@@ -137,10 +133,11 @@ class ApplyPredicate(IdentityDagWalker):
 
     Note: the walker is restricted to predicates (<, <=, =)
     """
+
     def __init__(self, map_f, env=None, invalidate_memoization=None):
-        IdentityDagWalker.__init__(self,
-                                   env=env,
-                                   invalidate_memoization=invalidate_memoization)
+        IdentityDagWalker.__init__(
+            self, env=env, invalidate_memoization=invalidate_memoization
+        )
         self.mgr = self.env.formula_manager
         # f should be a callable function, it could be partial
         self.map_f = map_f

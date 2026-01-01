@@ -36,8 +36,8 @@ def test_lia_examples():
     # Example 3: More complex expression
     examples = [
         {"x": 5, "output": 15},  # 3 * 5
-        {"x": 3, "output": 9},   # 3 * 3
-        {"x": 2, "output": 6},   # 3 * 2
+        {"x": 3, "output": 9},  # 3 * 3
+        {"x": 2, "output": 6},  # 3 * 2
     ]
 
     result = solver.synthesize(examples)
@@ -146,16 +146,23 @@ def test_version_space_operations():
 
     # Create version space
     from .vsa import VersionSpace
+
     vs = VersionSpace(set(expressions))
 
     # Create algebra and filter with example
     def expression_generator():
-        return [var("x", Theory.LIA), const(0, Theory.LIA), const(1, Theory.LIA), const(2, Theory.LIA),
-                add(var("x", Theory.LIA), const(1, Theory.LIA)),
-                mul(var("x", Theory.LIA), const(2, Theory.LIA)),
-                sub(var("x", Theory.LIA), const(1, Theory.LIA))]
+        return [
+            var("x", Theory.LIA),
+            const(0, Theory.LIA),
+            const(1, Theory.LIA),
+            const(2, Theory.LIA),
+            add(var("x", Theory.LIA), const(1, Theory.LIA)),
+            mul(var("x", Theory.LIA), const(2, Theory.LIA)),
+            sub(var("x", Theory.LIA), const(1, Theory.LIA)),
+        ]
 
     from .vsa import VSAlgebra
+
     algebra = VSAlgebra(Theory.LIA, expression_generator)
     filtered_vs = algebra.filter_consistent(vs, examples)
 
@@ -195,7 +202,9 @@ def demonstrate_usage():
     # This would require a more sophisticated expression generator
     print("String reversal example (would need more sophisticated synthesis):")
     print(f"  Examples: {string_examples}")
-    print("  This would require extending the expression generator for string manipulation")
+    print(
+        "  This would require extending the expression generator for string manipulation"
+    )
 
 
 if __name__ == "__main__":

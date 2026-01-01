@@ -9,17 +9,34 @@ import unittest
 from z3 import And, Or, Not, Implies, If
 from z3 import IsSubset, Union, SetIntersect, SetComplement, EmptySet
 
-from aria.quant.fossil.naturalproofs.uct import fgsort, fgsetsort, intsort, intsetsort, boolsort
-from aria.quant.fossil.naturalproofs.decl_api import Const, Consts, Function, RecFunction, AddRecDefinition, AddAxiom
+from aria.quant.fossil.naturalproofs.uct import (
+    fgsort,
+    fgsetsort,
+    intsort,
+    intsetsort,
+    boolsort,
+)
+from aria.quant.fossil.naturalproofs.decl_api import (
+    Const,
+    Consts,
+    Function,
+    RecFunction,
+    AddRecDefinition,
+    AddAxiom,
+)
 from aria.quant.fossil.naturalproofs.prover import NPSolver
 import aria.quant.fossil.naturalproofs.proveroptions as proveroptions
-from aria.quant.fossil.naturalproofs.extensions.finitemodel import extract_finite_model, add_fg_element_offset, get_fg_elements
+from aria.quant.fossil.naturalproofs.extensions.finitemodel import (
+    extract_finite_model,
+    add_fg_element_offset,
+    get_fg_elements,
+)
 
 # Declarations
-x, y, nil = Consts('x y nil', fgsort)
-nxt = Function('nxt', fgsort, fgsort)
-lst = RecFunction('lst', fgsort, boolsort)
-ls = RecFunction('ls', fgsort, fgsort, boolsort)
+x, y, nil = Consts("x y nil", fgsort)
+nxt = Function("nxt", fgsort, fgsort)
+lst = RecFunction("lst", fgsort, boolsort)
+ls = RecFunction("ls", fgsort, fgsort, boolsort)
 AddRecDefinition(lst, x, If(x == nil, True, lst(nxt(x))))
 AddRecDefinition(ls, (x, y), If(x == nil, True, ls(nxt(x), y)))
 # Problem parameters
@@ -59,7 +76,7 @@ class LsListModelExtractionTest(unittest.TestCase):
             # without_lemma does not raise any exceptions
             finite_model = extract_model()
         except Exception:
-            self.fail('Finite model extraction failed.')
+            self.fail("Finite model extraction failed.")
 
     def test_transform_model(self):
         finite_model = extract_model()
@@ -69,5 +86,5 @@ class LsListModelExtractionTest(unittest.TestCase):
         self.assertTrue(new_fg_universe == {x + 5 for x in fg_universe})
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

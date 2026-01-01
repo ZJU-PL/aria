@@ -15,6 +15,7 @@ enhancement to CEGIS. By generating several diverse counterexamples, the
 verifier can provide more information to the learner so that it can make
 more progress on its own, limiting the number of calls to the verifier
 """
+
 import logging
 import time
 from typing import List
@@ -24,8 +25,12 @@ import z3
 from aria.quant.efbv.efbv_parallel.efbv_exists_solver import ExistsSolver
 from aria.quant.efbv.efbv_parallel.efbv_forall_solver import ForAllSolver
 from aria.quant.efbv.efbv_parallel.efbv_utils import EFBVResult, EFBVTactic, EFBVSolver
-from aria.quant.efbv.efbv_parallel.exceptions import ExitsSolverSuccess, ExitsSolverUnknown, \
-    ForAllSolverSuccess, ForAllSolverUnknown
+from aria.quant.efbv.efbv_parallel.exceptions import (
+    ExitsSolverSuccess,
+    ExitsSolverUnknown,
+    ForAllSolverSuccess,
+    ForAllSolverUnknown,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -33,11 +38,8 @@ g_efbv_tactic = EFBVTactic.Z3_QBF
 
 
 def bv_efsmt_with_uniform_sampling(
-        exists_vars,
-        forall_vars,
-        phi,
-        maxloops=None,
-        num_samples: int = 5):
+    exists_vars, forall_vars, phi, maxloops=None, num_samples: int = 5
+):
     """
     Solve exists x. forall y. phi(x, y) using uniform sampling.
 
@@ -77,8 +79,9 @@ def bv_efsmt_with_uniform_sampling(
             reverse_sub_phis = []
             # print("e models: ", e_models)
             for emodel in e_models:
-                x_mappings = [(x, emodel.eval(x, model_completion=True))
-                             for x in exists_vars]
+                x_mappings = [
+                    (x, emodel.eval(x, model_completion=True)) for x in exists_vars
+                ]
                 sub_phi = z3.simplify(z3.substitute(phi, x_mappings))
                 # sub_phis.append(sub_phi)
                 reverse_sub_phis.append(z3.Not(sub_phi))
@@ -91,8 +94,9 @@ def bv_efsmt_with_uniform_sampling(
             # Add new constraints from forall models
             for fmodel in fmodels:
                 # sigma = [model.eval(vy, True) for vy in self.forall_vars]
-                y_mappings = [(y, fmodel.eval(y, model_completion=True))
-                             for y in forall_vars]
+                y_mappings = [
+                    (y, fmodel.eval(y, model_completion=True)) for y in forall_vars
+                ]
                 sub_phi = z3.simplify(z3.substitute(phi, y_mappings))
                 # block all CEX?
                 # print("blocking fml: ", sub_phi)
@@ -133,12 +137,12 @@ class ParallelEFBVSolver(EFBVSolver):
         super().__init__(**kwargs)
         self.mode = kwargs.get("mode", "canary")
 
-    def solve_efsmt_bv(self, existential_vars: List, universal_vars: List,
-                       phi: z3.ExprRef):
+    def solve_efsmt_bv(
+        self, existential_vars: List, universal_vars: List, phi: z3.ExprRef
+    ):
         """Solve EFBV problem."""
         if self.mode == "canary":
-            return bv_efsmt_with_uniform_sampling(existential_vars,
-                                                  universal_vars, phi)
+            return bv_efsmt_with_uniform_sampling(existential_vars, universal_vars, phi)
         raise NotImplementedError()
 
 
@@ -155,6 +159,6 @@ def test_efsmt():
     print(f"Time: {duration:.3f}s")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     test_efsmt()

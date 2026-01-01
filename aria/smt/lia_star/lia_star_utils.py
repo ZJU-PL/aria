@@ -2,6 +2,7 @@
 from z3 import *
 from aria.smt.lia_star import statistics
 
+
 def getModel(s, X=[]):
     res = s.check()
     statistics.z3_calls += 1

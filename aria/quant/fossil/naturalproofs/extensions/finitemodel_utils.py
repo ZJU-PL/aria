@@ -5,7 +5,10 @@ Some utilities for manipulating finite models as defined in naturalproofs.extens
 import z3
 
 from aria.quant.fossil.naturalproofs.uct import fgsort, fgsetsort
-from aria.quant.fossil.naturalproofs.decl_api import get_decl_from_name, get_uct_signature
+from aria.quant.fossil.naturalproofs.decl_api import (
+    get_decl_from_name,
+    get_uct_signature,
+)
 
 
 def collect_fg_universe(finite_model, annctx):
@@ -29,7 +32,9 @@ def collect_fg_universe(finite_model, annctx):
         for arg in args:
             for i in range(arity):
                 fg_elem_set = fg_elem_set | _collect_value(arg[i], uct_signature[i])
-                fg_elem_set = fg_elem_set | _collect_value(finite_model[vocab_key][arg], uct_signature[-1])
+                fg_elem_set = fg_elem_set | _collect_value(
+                    finite_model[vocab_key][arg], uct_signature[-1]
+                )
     return fg_elem_set
 
 
@@ -53,8 +58,13 @@ def transform_fg_universe(finite_model, lambdafunc, annctx):
         new_vocab_key_dict = dict()
         args = finite_model[vocab_key].keys()
         for arg in args:
-            new_arg = tuple(_transform_value(arg[i], uct_signature[i], lambdafunc) for i in range(arity))
-            new_out = _transform_value(finite_model[vocab_key][arg], uct_signature[-1], lambdafunc)
+            new_arg = tuple(
+                _transform_value(arg[i], uct_signature[i], lambdafunc)
+                for i in range(arity)
+            )
+            new_out = _transform_value(
+                finite_model[vocab_key][arg], uct_signature[-1], lambdafunc
+            )
             new_vocab_key_dict[new_arg] = new_out
         finite_model[vocab_key] = new_vocab_key_dict
     return finite_model

@@ -8,6 +8,7 @@ Supported subset:
 Unsupported constructs (for now): functions, returns, breaks/continues, and
 non-range for-loops.
 """
+
 from __future__ import annotations
 
 from ..domains.core import ConjunctiveDomain

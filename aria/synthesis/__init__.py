@@ -12,4 +12,4 @@ from . import pbe
 from . import cvc5
 from . import spyro
 
-__all__ = ['pbe', 'cvc5', 'spyro']
+__all__ = ["pbe", "cvc5", "spyro"]

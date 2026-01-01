@@ -34,7 +34,9 @@ def instantiate(bound_formulas, terms):
         else:
             # Check that all the tuples are of the same arity
             if not all(len(term_tup) == arity for term_tup in terms):
-                raise ValueError('Arguments must be the same length as the arity of the bound formula to be applied.')
+                raise ValueError(
+                    "Arguments must be the same length as the arity of the bound formula to be applied."
+                )
             arg_tuples = terms
         for arg_tuple in arg_tuples:
             instantiated_set.add(apply_bound_formula(bound_formula, arg_tuple))
@@ -69,7 +71,7 @@ def get_foreground_terms(exprs, annctx):
         fg_set = set()
         for expr in exprs:
             if not isinstance(expr, z3.ExprRef):
-                raise TypeError('ExprRef expected')
+                raise TypeError("ExprRef expected")
             fg_set = fg_set.union(_get_foreground_terms_aux(expr, annctx))
     return fg_set
 
@@ -79,7 +81,7 @@ def _make_recdef_unfoldings_aux(recdef_triple):
     # Simply unpack the triple, construct the unfolding, and repack it into a pair.
     recdef, formal_params, body = recdef_triple
     if not isinstance(recdef, z3.FuncDeclRef):
-        raise TypeError('FuncDeclRef expected.')
+        raise TypeError("FuncDeclRef expected.")
     # The unfolding is simply the fact that the recursive function is equal to its body on the formal parameters.
     unfolding = {recdef: (formal_params, recdef(*formal_params) == body)}
     return unfolding
@@ -97,7 +99,10 @@ def make_recdef_unfoldings(recursive_definitions):
     else:
         unfoldings_dict = dict()
         for recursive_definition in recursive_definitions:
-            unfoldings_dict = {**unfoldings_dict, **_make_recdef_unfoldings_aux(recursive_definition)}
+            unfoldings_dict = {
+                **unfoldings_dict,
+                **_make_recdef_unfoldings_aux(recursive_definition),
+            }
         return unfoldings_dict
 
 
@@ -131,7 +136,7 @@ def get_recdef_applications(exprs, annctx):
         result = []
         for expr in exprs:
             if not isinstance(expr, z3.ExprRef):
-                raise TypeError('ExprRef expected')
+                raise TypeError("ExprRef expected")
             result = result + _get_recdef_applications_aux(expr, recdefs)
     # Make the list of applications into a dictionary
     applications = dict()

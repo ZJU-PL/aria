@@ -9,7 +9,13 @@ from typing import Set
 
 import z3
 
-from aria.sampling.base import Sampler, Logic, SamplingMethod, SamplingOptions, SamplingResult
+from aria.sampling.base import (
+    Sampler,
+    Logic,
+    SamplingMethod,
+    SamplingOptions,
+    SamplingResult,
+)
 from aria.utils.z3_expr_utils import get_variables, is_bv_sort
 
 
@@ -75,8 +81,8 @@ class BitVectorSampler(Sampler):
         # Create a solver with specific random seed
         solver = z3.Solver()
         if options.random_seed is not None:
-            solver.set('random_seed', options.random_seed)
-            solver.set('seed', options.random_seed)
+            solver.set("random_seed", options.random_seed)
+            solver.set("seed", options.random_seed)
         solver.add(self.formula)
 
         # Generate samples

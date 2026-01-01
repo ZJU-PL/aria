@@ -4,6 +4,7 @@ This extends the straight-line two-operand notation with support for
 branching and looping by representing code as a CFG and reusing the
 existing abstract domains through symbolic abstraction (bilateral).
 """
+
 from __future__ import annotations
 
 from collections import deque
@@ -209,8 +210,7 @@ def _apply_assignment(
         name: domain.z3_variable(name) for name in domain.variables
     }  # type: ignore[attr-defined]
     post_env = {
-        name: post_domain.z3_variable(translation[name])
-        for name in domain.variables
+        name: post_domain.z3_variable(translation[name]) for name in domain.variables
     }  # type: ignore[attr-defined]
 
     rhs_z3 = expr_to_z3(stmt.expr, pre_env)
@@ -244,13 +244,10 @@ def _apply_assignment(
         raise ValueError(f"Unsupported assignment op: {stmt.op}")
 
     frame_equalities = [
-        (pre_env[name] == post_env[name])
-        for name in domain.variables
-        if name != lhs
+        (pre_env[name] == post_env[name]) for name in domain.variables if name != lhs
     ]  # type: ignore[attr-defined]
 
-    phi = domain.logic_and(
-        [domain.gamma_hat(state), assignment, *frame_equalities])
+    phi = domain.logic_and([domain.gamma_hat(state), assignment, *frame_equalities])
     post_state = bilateral(post_domain, phi)
     return post_state.translate(
         {translation[name]: name for name in domain.variables}

@@ -1,4 +1,5 @@
 """Main entry point for the QuantiSAT solver."""
+
 import os
 import time
 from argparse import ArgumentParser
@@ -19,6 +20,7 @@ class Verbosity(Enum):
     RESULT_FORMULA: Print the result of the formula and the converted formula.
     RESULT_FORMULA_MODEL: Print the result of the formula, the converted formula and the model (if correct).
     """
+
     RESULT_ONLY = 1
     RESULT_FORMULA = 2
     RESULT_FORMULA_MODEL = 3
@@ -35,6 +37,7 @@ class SolverType(Enum):
     MULTIQUANTISAT: Use the MultiQuantiSAT solver.
     SKOLEM: Use the Skolem solver.
     """
+
     QUANTISAT = QuantiSAT
     MULTIQUANTISAT = MultiQuantiSAT
     SKOLEM = Skolem
@@ -98,25 +101,29 @@ class Experiment:
         """
         result = self.__main()
 
-        print('Result:')
+        print("Result:")
         print(self.__get_result_message())
         if result is not None:
             is_correct, model = result
 
-            if self.verbose.value >= Verbosity.RESULT_FORMULA_MODEL.value and is_correct:
-                print('Model:')
+            if (
+                self.verbose.value >= Verbosity.RESULT_FORMULA_MODEL.value
+                and is_correct
+            ):
+                print("Model:")
                 for var, value in model.items():
                     print(f"{var}: {value}")
 
-        print('CSV:')
+        print("CSV:")
         csv_line = (
-            f'{os.path.basename(self.file_pos)},'
-            f'{self.current_result.name},'
-            f'{self.current_conversion_time},'
-            f'{self.current_solving_time},'
-            f'{self.num_forall_vars},'
-            f'{self.num_exists_vars},'
-            f'{self.num_switches}')
+            f"{os.path.basename(self.file_pos)},"
+            f"{self.current_result.name},"
+            f"{self.current_conversion_time},"
+            f"{self.current_solving_time},"
+            f"{self.num_forall_vars},"
+            f"{self.num_exists_vars},"
+            f"{self.num_switches}"
+        )
         print(csv_line)
 
     def __main(self):
@@ -133,17 +140,19 @@ class Experiment:
 
         per_formula_quantifier_counts = [
             quantified_formula.count_quantified_vars()
-            for quantified_formula in constraint_system]
+            for quantified_formula in constraint_system
+        ]
         per_formula_switches = [
             quantified_formula.count_quantifier_depth()
-            for quantified_formula in constraint_system]
+            for quantified_formula in constraint_system
+        ]
 
         self.num_forall_vars = max(
-            num_forall_vars
-            for num_forall_vars, _ in per_formula_quantifier_counts)
+            num_forall_vars for num_forall_vars, _ in per_formula_quantifier_counts
+        )
         self.num_exists_vars = max(
-            num_exists_vars
-            for _, num_exists_vars in per_formula_quantifier_counts)
+            num_exists_vars for _, num_exists_vars in per_formula_quantifier_counts
+        )
         self.num_switches = max(per_formula_switches)
 
         args_dict = vars(self.args)
@@ -162,8 +171,7 @@ class Experiment:
             solver.print()
 
         try:
-            self.current_result, model, self.current_solving_time = (
-                solver.solve())
+            self.current_result, model, self.current_solving_time = solver.solve()
             if self.current_result == Result.CORRECT:
                 return True, model
             if self.current_result == Result.INCORRECT:
@@ -181,52 +189,79 @@ class Experiment:
         """
         match self.current_result:
             case Result.CORRECT:
-                return 'The formula was solved CORRECTLY.'
+                return "The formula was solved CORRECTLY."
             case Result.INCORRECT:
-                return 'The formula was solved INCORRECTLY.'
+                return "The formula was solved INCORRECTLY."
             case Result.CONVERSION_TIMEOUT:
-                return 'The formula could not be converted due to timeout.'
+                return "The formula could not be converted due to timeout."
             case Result.SOLVER_TIMEOUT:
-                return 'The formula could not be solved due to timeout.'
+                return "The formula could not be solved due to timeout."
             case Result.PARSING_ERROR:
-                return 'The formula could not be parsed.'
+                return "The formula could not be parsed."
             case _:
                 raise ValueError(
-                    'The experiment needs to be run before getting the '
-                    'result message.')
+                    "The experiment needs to be run before getting the "
+                    "result message."
+                )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     parser = ArgumentParser()
-    parser.add_argument('--file_pos', type=str, required=True,
-                        help='The file containing the formula to be solved.')
-    parser.add_argument('--file_neg', type=str, required=True,
-                        help='The file containing the negated formula to be solved.')
-    parser.add_argument('--output', type=str,
-                        help='The file to save the SMT2 formula.')
-    parser.add_argument('--config', type=str, default='polyhorn_config.json.example',
-                        help='The configuration file for PolyHorn.')
-    parser.add_argument('--degree', type=int, default=1,
-                        help='The degree of the templates to be used.')
     parser.add_argument(
-        '--use-template', action='store_true',
-        help='Use the template for the Skolem function. '
-        '(Only used for Skolem)')
+        "--file_pos",
+        type=str,
+        required=True,
+        help="The file containing the formula to be solved.",
+    )
     parser.add_argument(
-        '--solver', type=lambda v: SolverType[v],
-        default=SolverType.QUANTISAT, choices=list(SolverType),
-        help='The solver to be used.')
+        "--file_neg",
+        type=str,
+        required=True,
+        help="The file containing the negated formula to be solved.",
+    )
+    parser.add_argument("--output", type=str, help="The file to save the SMT2 formula.")
     parser.add_argument(
-        '--verbose', type=lambda v: Verbosity[v],
-        default=Verbosity.RESULT_ONLY, choices=list(Verbosity),
-        help='The verbosity level of the output.')
+        "--config",
+        type=str,
+        default="polyhorn_config.json.example",
+        help="The configuration file for PolyHorn.",
+    )
     parser.add_argument(
-        '--backend', type=lambda v: SolverBackend[v],
-        default=SolverBackend.Z3, choices=list(SolverBackend),
-        help='The backend to be used for the Skolem solver.')
-    parser.add_argument('--timeout', type=int, default=15,
-                        help='The timeout for the SMT solver. Default is 15s.')
+        "--degree", type=int, default=1, help="The degree of the templates to be used."
+    )
+    parser.add_argument(
+        "--use-template",
+        action="store_true",
+        help="Use the template for the Skolem function. " "(Only used for Skolem)",
+    )
+    parser.add_argument(
+        "--solver",
+        type=lambda v: SolverType[v],
+        default=SolverType.QUANTISAT,
+        choices=list(SolverType),
+        help="The solver to be used.",
+    )
+    parser.add_argument(
+        "--verbose",
+        type=lambda v: Verbosity[v],
+        default=Verbosity.RESULT_ONLY,
+        choices=list(Verbosity),
+        help="The verbosity level of the output.",
+    )
+    parser.add_argument(
+        "--backend",
+        type=lambda v: SolverBackend[v],
+        default=SolverBackend.Z3,
+        choices=list(SolverBackend),
+        help="The backend to be used for the Skolem solver.",
+    )
+    parser.add_argument(
+        "--timeout",
+        type=int,
+        default=15,
+        help="The timeout for the SMT solver. Default is 15s.",
+    )
     args = parser.parse_args()
 
     experiment = Experiment(args.solver.value, args)

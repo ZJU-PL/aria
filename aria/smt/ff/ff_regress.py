@@ -18,6 +18,7 @@ import z3
 if __name__ == "__main__":
     # Add parent directories to path for direct execution
     import os as _os
+
     _script_dir = _os.path.dirname(_os.path.abspath(__file__))
     _aria_dir = _os.path.dirname(_os.path.dirname(_os.path.dirname(_script_dir)))
     if _aria_dir not in sys.path:
@@ -29,7 +30,12 @@ try:
     from aria.smt.ff.ff_bv_solver2 import FFBVBridgeSolver
     from aria.smt.ff.ff_int_solver import FFIntSolver
     from aria.smt.ff.ff_ast import (
-        FieldAdd, FieldMul, FieldEq, FieldVar, FieldConst, ParsedFormula
+        FieldAdd,
+        FieldMul,
+        FieldEq,
+        FieldVar,
+        FieldConst,
+        ParsedFormula,
     )
 except ImportError:
     # Fallback to relative imports when used as a module
@@ -37,9 +43,7 @@ except ImportError:
     from .ff_bv_solver import FFBVSolver
     from .ff_bv_solver2 import FFBVBridgeSolver
     from .ff_int_solver import FFIntSolver
-    from .ff_ast import (
-        FieldAdd, FieldMul, FieldEq, FieldVar, FieldConst, ParsedFormula
-    )
+    from .ff_ast import FieldAdd, FieldMul, FieldEq, FieldVar, FieldConst, ParsedFormula
 
 
 def tiny_demo() -> ParsedFormula:
@@ -49,10 +53,9 @@ def tiny_demo() -> ParsedFormula:
     x, m, z = "x", "m", "is_zero"
     variables = {x: "ff", m: "ff", z: "ff"}
     f1 = FieldEq(
-        FieldAdd(FieldMul(FieldVar(m), FieldVar(x)),
-                 FieldConst(16),
-                 FieldVar(z)),
-        FieldConst(0))
+        FieldAdd(FieldMul(FieldVar(m), FieldVar(x)), FieldConst(16), FieldVar(z)),
+        FieldConst(0),
+    )
     f2 = FieldEq(FieldMul(FieldVar(z), FieldVar(x)), FieldConst(0))
     return ParsedFormula(p, variables, [f1, f2])
 
@@ -86,6 +89,7 @@ def solve_in_subprocess(
         "timeout", or "error"
     """
     import os as _os_module  # pylint: disable=import-outside-toplevel
+
     script_path = pathlib.Path(__file__).resolve()
     # Ensure subprocess can find aria by setting PYTHONPATH
     # (same calculation as __main__)
@@ -106,7 +110,7 @@ def solve_in_subprocess(
             text=True,
             timeout=timeout,
             env=env,
-            check=False
+            check=False,
         )
         if result.returncode == 0:
             verdict = result.stdout.strip()
@@ -138,7 +142,9 @@ def solve_single(file_path: str, solver_type: str) -> str:
         return "error"
 
 
-def regress(dir_path: str, solver_type: str = "bv", timeout: float = 5.0) -> None:  # pylint: disable=too-many-locals
+def regress(
+    dir_path: str, solver_type: str = "bv", timeout: float = 5.0
+) -> None:  # pylint: disable=too-many-locals
     """Walk a directory containing .smt2 finite-field benchmarks.
 
     Args:
@@ -183,32 +189,41 @@ def regress(dir_path: str, solver_type: str = "bv", timeout: float = 5.0) -> Non
             if has_timeout:
                 stats["timeouts"] += 1
 
-            ok_bv = (verdict_bv != "timeout" and
-                     (verdict_bv == expect or expect in ("unknown",)))
-            ok_int = (verdict_int != "timeout" and
-                      (verdict_int == expect or expect in ("unknown",)))
+            ok_bv = verdict_bv != "timeout" and (
+                verdict_bv == expect or expect in ("unknown",)
+            )
+            ok_int = verdict_int != "timeout" and (
+                verdict_int == expect or expect in ("unknown",)
+            )
             passed = ok_bv and ok_int
 
             stats["passed" if passed else "failed"] += 1
             agree = verdict_bv == verdict_int
-            print(f"{fn.name:<50}  expect={expect:7}  "
-                  f"bv={verdict_bv:7}  int={verdict_int:7}  "
-                  f"{'✓' if passed else '✗'}  agree={'✓' if agree else '✗'}")
+            print(
+                f"{fn.name:<50}  expect={expect:7}  "
+                f"bv={verdict_bv:7}  int={verdict_int:7}  "
+                f"{'✓' if passed else '✗'}  agree={'✓' if agree else '✗'}"
+            )
         else:
             verdict, _ = solve_in_subprocess(file_path, solver_type, timeout)
             if verdict == "timeout":
                 stats["timeouts"] += 1
-            passed = (verdict != "timeout" and
-                      (verdict == expect or expect in ("unknown",)))
+            passed = verdict != "timeout" and (
+                verdict == expect or expect in ("unknown",)
+            )
             stats["passed" if passed else "failed"] += 1
-            print(f"{fn.name:<50}  expect={expect:7}  got={verdict:7}  "
-                  f"{'✓' if passed else '✗'}")
+            print(
+                f"{fn.name:<50}  expect={expect:7}  got={verdict:7}  "
+                f"{'✓' if passed else '✗'}"
+            )
 
     # Summary
     print("\n" + "=" * 70)
-    print(f"Summary: {stats['total']} benchmarks, {stats['passed']} passed, "
-          f"{stats['failed']} failed, {stats['parse_errors']} parse errors, "
-          f"{stats['timeouts']} timeouts")
+    print(
+        f"Summary: {stats['total']} benchmarks, {stats['passed']} passed, "
+        f"{stats['failed']} failed, {stats['parse_errors']} parse errors, "
+        f"{stats['timeouts']} timeouts"
+    )
 
 
 # -----------------------------------------------------------------------

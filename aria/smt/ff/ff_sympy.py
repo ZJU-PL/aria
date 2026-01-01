@@ -1,4 +1,4 @@
-"""Implementation of :class:`FiniteField` class. """
+"""Implementation of :class:`FiniteField` class."""
 
 import operator
 
@@ -16,15 +16,16 @@ from sympy.utilities import public
 from sympy.polys.domains.groundtypes import SymPyInteger
 
 
-if GROUND_TYPES == 'flint':
-    __doctest_skip__ = ['FiniteField']
+if GROUND_TYPES == "flint":
+    __doctest_skip__ = ["FiniteField"]
 
 
-if GROUND_TYPES == 'flint':
+if GROUND_TYPES == "flint":
     import flint
+
     # Don't use python-flint < 0.5.0 because nmod was missing some features in
     # previous versions of python-flint and fmpz_mod was not yet added.
-    _major, _minor, *_ = flint.__version__.split('.')
+    _major, _minor, *_ = flint.__version__.split(".")
     if (int(_major), int(_minor)) < (0, 5):
         flint = None
 else:
@@ -80,7 +81,7 @@ def _modular_int_factory(mod, dom, symmetric, self):
     try:
         mod = dom.convert(mod)
     except CoercionFailed as exc:
-        raise ValueError(f'modulus must be an integer, got {mod}') from exc
+        raise ValueError(f"modulus must be an integer, got {mod}") from exc
 
     ctx, poly_ctx, is_flint = None, None, False
 
@@ -106,7 +107,7 @@ def _modular_int_factory(mod, dom, symmetric, self):
 
 
 @public
-@doctest_depends_on(modules=['python', 'gmpy'])
+@doctest_depends_on(modules=["python", "gmpy"])
 class FiniteField(Field, SimpleDomain):
     r"""Finite field of prime order :ref:`GF(p)`
 
@@ -196,8 +197,8 @@ class FiniteField(Field, SimpleDomain):
     .. _finite field: https://en.wikipedia.org/wiki/Finite_field
     """
 
-    rep = 'FF'
-    alias = 'FF'
+    rep = "FF"
+    alias = "FF"
 
     is_FiniteField = is_FF = True
     is_Numerical = True
@@ -210,10 +211,11 @@ class FiniteField(Field, SimpleDomain):
 
     def __init__(self, mod, symmetric=True):
         from sympy.polys.domains import ZZ
+
         dom = ZZ
 
         if mod <= 0:
-            raise ValueError(f'modulus must be a positive integer, got {mod}')
+            raise ValueError(f"modulus must be a positive integer, got {mod}")
 
         ctx, poly_ctx, is_flint = _modular_int_factory(mod, dom, symmetric, self)
 
@@ -235,108 +237,112 @@ class FiniteField(Field, SimpleDomain):
 
     @property
     def is_Field(self):  # pylint: disable=invalid-name
-        is_field = getattr(self, '_is_field', None)
+        is_field = getattr(self, "_is_field", None)
         if is_field is None:
             from sympy.ntheory.primetest import isprime
+
             self._is_field = is_field = isprime(self.mod)
         return is_field
 
     def __str__(self):
-        return f'GF({self.mod})'
+        return f"GF({self.mod})"
 
     def __hash__(self):
         return hash((self.__class__.__name__, self.dtype, self.mod, self.dom))
 
     def __eq__(self, other):
-        """Returns ``True`` if two domains are equivalent. """
-        return isinstance(other, FiniteField) and \
-            self.mod == other.mod and self.dom == other.dom
+        """Returns ``True`` if two domains are equivalent."""
+        return (
+            isinstance(other, FiniteField)
+            and self.mod == other.mod
+            and self.dom == other.dom
+        )
 
     def characteristic(self):
-        """Return the characteristic of this domain. """
+        """Return the characteristic of this domain."""
         return self.mod
 
     def get_field(self):
-        """Returns a field associated with ``self``. """
+        """Returns a field associated with ``self``."""
         return self
 
     def to_sympy(self, a):
-        """Convert ``a`` to a SymPy object. """
+        """Convert ``a`` to a SymPy object."""
         return SymPyInteger(self.to_int(a))
 
     def from_sympy(self, a):
-        """Convert SymPy's Integer to SymPy's ``Integer``. """
+        """Convert SymPy's Integer to SymPy's ``Integer``."""
         if a.is_Integer or int_valued(a):
             return self.dtype(self.dom.dtype(int(a)))
         raise CoercionFailed(f"expected an integer, got {a}")
 
     def to_int(self, a):
-        """Convert ``val`` to a Python ``int`` object. """
+        """Convert ``val`` to a Python ``int`` object."""
         aval = int(a)
         if self.sym and aval > self.mod // 2:
             aval -= self.mod
         return aval
 
     def is_positive(self, a):
-        """Returns True if ``a`` is positive. """
+        """Returns True if ``a`` is positive."""
         return bool(a)
 
     def is_nonnegative(self, a):
-        """Returns True if ``a`` is non-negative. """
+        """Returns True if ``a`` is non-negative."""
         return True
 
     def is_negative(self, a):
-        """Returns True if ``a`` is negative. """
+        """Returns True if ``a`` is negative."""
         return False
 
     def is_nonpositive(self, a):
-        """Returns True if ``a`` is non-positive. """
+        """Returns True if ``a`` is non-positive."""
         return not a
 
     def from_FF(K1, a, K0=None):  # pylint: disable=invalid-name,no-self-argument
-        """Convert ``ModularInteger(int)`` to ``dtype``. """
+        """Convert ``ModularInteger(int)`` to ``dtype``."""
         return K1.dtype(K1.dom.from_ZZ(int(a), K0.dom))
 
     def from_FF_python(K1, a, K0=None):  # pylint: disable=invalid-name,no-self-argument
-        """Convert ``ModularInteger(int)`` to ``dtype``. """
+        """Convert ``ModularInteger(int)`` to ``dtype``."""
         return K1.dtype(K1.dom.from_ZZ_python(int(a), K0.dom))
 
     def from_ZZ(K1, a, K0=None):  # pylint: disable=invalid-name,no-self-argument
-        """Convert Python's ``int`` to ``dtype``. """
+        """Convert Python's ``int`` to ``dtype``."""
         return K1.dtype(K1.dom.from_ZZ_python(a, K0))
 
     def from_ZZ_python(K1, a, K0=None):  # pylint: disable=invalid-name,no-self-argument
-        """Convert Python's ``int`` to ``dtype``. """
+        """Convert Python's ``int`` to ``dtype``."""
         return K1.dtype(K1.dom.from_ZZ_python(a, K0))
 
     def from_QQ(K1, a, K0=None):  # pylint: disable=invalid-name,no-self-argument
-        """Convert Python's ``Fraction`` to ``dtype``. """
+        """Convert Python's ``Fraction`` to ``dtype``."""
         if a.denominator == 1:
             return K1.from_ZZ_python(a.numerator)
         return None
 
     def from_QQ_python(K1, a, K0=None):  # pylint: disable=invalid-name,no-self-argument
-        """Convert Python's ``Fraction`` to ``dtype``. """
+        """Convert Python's ``Fraction`` to ``dtype``."""
         if a.denominator == 1:
             return K1.from_ZZ_python(a.numerator)
         return None
 
     def from_FF_gmpy(K1, a, K0=None):  # pylint: disable=invalid-name,no-self-argument
-        """Convert ``ModularInteger(mpz)`` to ``dtype``. """
+        """Convert ``ModularInteger(mpz)`` to ``dtype``."""
         return K1.dtype(K1.dom.from_ZZ_gmpy(a.val, K0.dom))
 
     def from_ZZ_gmpy(K1, a, K0=None):  # pylint: disable=invalid-name,no-self-argument
-        """Convert GMPY's ``mpz`` to ``dtype``. """
+        """Convert GMPY's ``mpz`` to ``dtype``."""
         return K1.dtype(K1.dom.from_ZZ_gmpy(a, K0))
 
     def from_QQ_gmpy(K1, a, K0=None):  # pylint: disable=invalid-name,no-self-argument
-        """Convert GMPY's ``mpq`` to ``dtype``. """
+        """Convert GMPY's ``mpq`` to ``dtype``."""
         if a.denominator == 1:
             return K1.from_ZZ_gmpy(a.numerator)
         return None
 
     def from_RealField(K1, a, K0):  # pylint: disable=invalid-name,no-self-argument
-        """Convert mpmath's ``mpf`` to ``dtype``. """
+        """Convert mpmath's ``mpf`` to ``dtype``."""
         p, q = K0.to_rational(a)
 
         if q == 1:
@@ -344,7 +350,7 @@ class FiniteField(Field, SimpleDomain):
         return None
 
     def is_square(self, a):
-        """Returns True if ``a`` is a quadratic residue modulo p. """
+        """Returns True if ``a`` is a quadratic residue modulo p."""
         # a is not a square <=> x**2-a is irreducible
         poly = [int(x) for x in [self.one, self.zero, -a]]
         return not gf_irred_p_rabin(poly, self.mod, self.dom)

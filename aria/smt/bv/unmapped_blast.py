@@ -10,13 +10,13 @@ from aria.utils.types import SolverResult
 from aria.utils.z3_expr_utils import get_variables
 
 qfbv_tactic = z3.AndThen(
-    z3.With('simplify', flat_and_or=False),
-    z3.Tactic('elim-uncnstr'),
-    z3.Tactic('reduce-bv-size'),
-    z3.With('simplify', som=True, pull_cheap_ite=True, flat=True),
-    z3.Tactic('max-bv-sharing'),
-    z3.Tactic('bit-blast'),
-    z3.Tactic('tseitin-cnf')
+    z3.With("simplify", flat_and_or=False),
+    z3.Tactic("elim-uncnstr"),
+    z3.Tactic("reduce-bv-size"),
+    z3.With("simplify", som=True, pull_cheap_ite=True, flat=True),
+    z3.Tactic("max-bv-sharing"),
+    z3.Tactic("bit-blast"),
+    z3.Tactic("tseitin-cnf"),
 )
 
 

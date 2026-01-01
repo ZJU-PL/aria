@@ -1,4 +1,5 @@
 """CVC5 solver interface for satisfiability checking."""
+
 import subprocess
 from typing import Dict, Tuple
 
@@ -26,15 +27,13 @@ def cvc5_call(formula: str, timeout: int) -> Tuple[bool, Dict[str, float]]:
     """
 
     # Replace all negative numbers with (- x)
-    formula = re.sub(r'(?<!\w)-(\d+(\.\d+)?)', r'(- \g<1>)', formula)
+    formula = re.sub(r"(?<!\w)-(\d+(\.\d+)?)", r"(- \g<1>)", formula)
     print(formula)
 
-    cmd = ['cvc5', '--lang=smt2', '--produce-models',
-           f'--tlimit={timeout * 1000}']
-    with subprocess.Popen(cmd,
-                          stdin=subprocess.PIPE,
-                          stdout=subprocess.PIPE,
-                          stderr=subprocess.PIPE) as process:
+    cmd = ["cvc5", "--lang=smt2", "--produce-models", f"--tlimit={timeout * 1000}"]
+    with subprocess.Popen(
+        cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    ) as process:
         process.stdin.write(formula.encode())
         process.stdin.close()
 
@@ -46,12 +45,12 @@ def cvc5_call(formula: str, timeout: int) -> Tuple[bool, Dict[str, float]]:
 
         output = process.stdout.read().decode()
 
-    if 'unsat' in output:
+    if "unsat" in output:
         return False, {}
-    if 'sat' in output:
+    if "sat" in output:
         model = {}
-        for line in output.split('\n'):
-            if line.startswith('(define-'):
+        for line in output.split("\n"):
+            if line.startswith("(define-"):
                 print(line)
                 print(line.split(maxsplit=4))
                 _, var, _, _, val = line.split(maxsplit=4)

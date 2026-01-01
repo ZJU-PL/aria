@@ -5,10 +5,19 @@ import warnings
 import z3
 
 from aria.quant.fossil.naturalproofs.AnnotatedContext import default_annctx
-from aria.quant.fossil.naturalproofs.decl_api import get_recursive_definition, get_all_axioms, is_expr_fg_sort
+from aria.quant.fossil.naturalproofs.decl_api import (
+    get_recursive_definition,
+    get_all_axioms,
+    is_expr_fg_sort,
+)
 from aria.quant.fossil.naturalproofs.utils import Implies_as_FuncDeclRef
 import aria.quant.fossil.naturalproofs.proveroptions as proveroptions
-from aria.quant.fossil.naturalproofs.prover_utils import make_recdef_unfoldings, get_foreground_terms, instantiate, get_recdef_applications
+from aria.quant.fossil.naturalproofs.prover_utils import (
+    make_recdef_unfoldings,
+    get_foreground_terms,
+    instantiate,
+    get_recdef_applications,
+)
 
 
 class NPSolution:
@@ -17,7 +26,16 @@ class NPSolution:
     Such a representation is necessary because logging information can be attached to the NPSolution object, along with
     default outputs like a satisfying model.
     """
-    def __init__(self, if_sat=None, model=None, extraction_terms=None, instantiation_terms=None, depth=None, options=None):
+
+    def __init__(
+        self,
+        if_sat=None,
+        model=None,
+        extraction_terms=None,
+        instantiation_terms=None,
+        depth=None,
+        options=None,
+    ):
         """
         Explanation of attributes:
         - if_sat (bool): if there exists a satisfying model under the given configuration.
@@ -46,6 +64,7 @@ class NPSolver:
     Class for creating Natural Proofs solvers.
     Can be configured using the 'options' attribute, an instance of the naturalproofs.Options class.
     """
+
     def __init__(self, annctx=default_annctx):
         """
         Each solver instance must be created with an AnnotatedContext that stores the vocabulary, recursive definitions,
@@ -63,8 +82,8 @@ class NPSolver:
         :param lemmas: set of z3.BoolRef
         :return: NPSolution
         """
-        z3.set_param('smt.random_seed', 0)
-        z3.set_param('sat.random_seed', 0)
+        z3.set_param("smt.random_seed", 0)
+        z3.set_param("sat.random_seed", 0)
         # TODO: check that the given lemmas are legitimate bound formula instances with their formal parameters from
         #  the foreground sort.
         options = self.options
@@ -81,8 +100,15 @@ class NPSolver:
             # Check that each bound parameter in all the lemmas are of the foreground sort
             for lemma in lemmas:
                 bound_vars, lemma_body = lemma
-                if not all(is_expr_fg_sort(bound_var, annctx=self.annctx) for bound_var in bound_vars):
-                    raise TypeError('Bound variables of lemma: {} must be of the foreground sort'.format(lemma_body))
+                if not all(
+                    is_expr_fg_sort(bound_var, annctx=self.annctx)
+                    for bound_var in bound_vars
+                ):
+                    raise TypeError(
+                        "Bound variables of lemma: {} must be of the foreground sort".format(
+                            lemma_body
+                        )
+                    )
         recdef_indexed_lemmas = _sort_by_trigger(lemmas, list(recdef_unfoldings.keys()))
 
         if options.instantiation_mode == proveroptions.lean_instantiation_with_lemmas:
@@ -113,40 +139,67 @@ class NPSolver:
             instantiations = instantiate(fo_abstractions, terms_to_instantiate)
             if instantiations != set():
                 instantiation_terms = terms_to_instantiate
-                extraction_terms = extraction_terms.union(get_foreground_terms(instantiations, annctx=self.annctx))
+                extraction_terms = extraction_terms.union(
+                    get_foreground_terms(instantiations, annctx=self.annctx)
+                )
             z3solver.add(instantiations)
             if_sat = _solver_check(z3solver)
             model = z3solver.model() if if_sat else None
-            return NPSolution(if_sat=if_sat, model=model, extraction_terms=extraction_terms,
-                              instantiation_terms=instantiation_terms, options=options)
+            return NPSolution(
+                if_sat=if_sat,
+                model=model,
+                extraction_terms=extraction_terms,
+                instantiation_terms=instantiation_terms,
+                options=options,
+            )
         # Automatic instantiation modes
         # stratified instantiation strategy
-        if options.instantiation_mode == proveroptions.depth_one_stratified_instantiation:
+        if (
+            options.instantiation_mode
+            == proveroptions.depth_one_stratified_instantiation
+        ):
             conservative_fo_abstractions = axioms | untagged_unfoldings
-            tracked_instantiations = instantiate(conservative_fo_abstractions, initial_terms)
+            tracked_instantiations = instantiate(
+                conservative_fo_abstractions, initial_terms
+            )
             if tracked_instantiations != set():
                 instantiation_terms = initial_terms
-                tracked_terms = get_foreground_terms(tracked_instantiations, annctx=self.annctx)
+                tracked_terms = get_foreground_terms(
+                    tracked_instantiations, annctx=self.annctx
+                )
                 extraction_terms = extraction_terms.union(tracked_terms)
             z3solver.add(tracked_instantiations)
             untracked_instantiations = instantiate(lemmas, extraction_terms)
             if untracked_instantiations != set():
                 instantiation_terms = instantiation_terms.union(extraction_terms)
-                untracked_terms = get_foreground_terms(untracked_instantiations, annctx=self.annctx)
+                untracked_terms = get_foreground_terms(
+                    untracked_instantiations, annctx=self.annctx
+                )
                 extraction_terms = extraction_terms.union(untracked_terms)
-            other_instantiations = instantiate(conservative_fo_abstractions, extraction_terms)
+            other_instantiations = instantiate(
+                conservative_fo_abstractions, extraction_terms
+            )
             z3solver.add(untracked_instantiations)
             z3solver.add(other_instantiations)
             if_sat = _solver_check(z3solver)
             model = z3solver.model() if if_sat else None
-            return NPSolution(if_sat=if_sat, model=model, extraction_terms=extraction_terms,
-                              instantiation_terms=instantiation_terms, options=options)
+            return NPSolution(
+                if_sat=if_sat,
+                model=model,
+                extraction_terms=extraction_terms,
+                instantiation_terms=instantiation_terms,
+                options=options,
+            )
         # Set up initial values of variables
         depth_counter = 0
         # Keep track of formulae produced by instantiation
         instantiations = set()
         # When the instantiation mode is infinite we realistically can't exceed 10^3 instantiations anyway
-        target_depth = 1000 if options.instantiation_mode == proveroptions.infinite_depth else options.depth
+        target_depth = (
+            1000
+            if options.instantiation_mode == proveroptions.infinite_depth
+            else options.depth
+        )
         while depth_counter < target_depth:
             # Try to prove with available instantiations
             z3solver.add(instantiations)
@@ -156,8 +209,14 @@ class NPSolver:
                 if_sat = _solver_check(z3solver)
                 # If unsat, stop and return NPSolution instance
                 if not if_sat:
-                    return NPSolution(if_sat=if_sat, model=None, extraction_terms=extraction_terms,
-                                      instantiation_terms=instantiation_terms, depth=depth_counter, options=options)
+                    return NPSolution(
+                        if_sat=if_sat,
+                        model=None,
+                        extraction_terms=extraction_terms,
+                        instantiation_terms=instantiation_terms,
+                        depth=depth_counter,
+                        options=options,
+                    )
             # target depth not reached or unsat not reached
             # Do another round of instantiations.
             # TODO: optimise instantiations so repeated instantiation is not done. Currently all instantiations
@@ -166,16 +225,26 @@ class NPSolver:
             # Instantiate all basic abstractions
             instantiations = instantiate(fo_abstractions, instantiation_terms)
             # Instantiate other abstractions depending on instantiation mode. Typically recdefs and lemmas
-            if options.instantiation_mode in {proveroptions.lean_instantiation, proveroptions.lean_instantiation_with_lemmas}:
+            if options.instantiation_mode in {
+                proveroptions.lean_instantiation,
+                proveroptions.lean_instantiation_with_lemmas,
+            }:
                 # Add recursive definition instantiations to the set of all instantiations
                 for recdef, application_terms in recdef_application_terms.items():
-                    lean_instantiations = instantiate(recdef_unfoldings[recdef], application_terms)
+                    lean_instantiations = instantiate(
+                        recdef_unfoldings[recdef], application_terms
+                    )
                     instantiations.update(lean_instantiations)
-            if options.instantiation_mode == proveroptions.lean_instantiation_with_lemmas:
+            if (
+                options.instantiation_mode
+                == proveroptions.lean_instantiation_with_lemmas
+            ):
                 # Add lemma instantiations to the set of all instantiations
                 for recdef, application_terms in recdef_application_terms.items():
                     triggered_lemmas = recdef_indexed_lemmas.get(recdef, [])
-                    triggered_instantiations = instantiate(triggered_lemmas, application_terms)
+                    triggered_instantiations = instantiate(
+                        triggered_lemmas, application_terms
+                    )
                     instantiations.update(triggered_instantiations)
             # If the set of instantiations is empty exit the loop
             if instantiations == set():
@@ -184,15 +253,23 @@ class NPSolver:
             # Update the variables for the next round
             depth_counter = depth_counter + 1
             new_terms = get_foreground_terms(instantiations, annctx=self.annctx)
-            recdef_application_terms = get_recdef_applications(instantiations, annctx=self.annctx)
+            recdef_application_terms = get_recdef_applications(
+                instantiations, annctx=self.annctx
+            )
             extraction_terms = extraction_terms.union(new_terms)
         # Reach this case when depth_counter = target depth, either in fixed_depth or bounded_depth mode.
         # Final attempt at proving goal
         z3solver.add(instantiations)
         if_sat = _solver_check(z3solver)
         model = z3solver.model() if if_sat else None
-        return NPSolution(if_sat=if_sat, model=model, extraction_terms=extraction_terms,
-                          instantiation_terms=instantiation_terms, depth=depth_counter, options=options)
+        return NPSolution(
+            if_sat=if_sat,
+            model=model,
+            extraction_terms=extraction_terms,
+            instantiation_terms=instantiation_terms,
+            depth=depth_counter,
+            options=options,
+        )
 
 
 # Helper function to check the satisfiability and throw exception if solver returns unknown
@@ -203,7 +280,7 @@ def _solver_check(z3solver):
     elif z3solution == z3.unsat:
         return False
     elif z3solution == z3.unknown:
-        raise ValueError('Solver returned unknown. Something is wrong. Exiting.')
+        raise ValueError("Solver returned unknown. Something is wrong. Exiting.")
 
 
 # Helper function to index lemmas by the recursive definitions they are triggered by

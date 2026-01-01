@@ -14,7 +14,7 @@ from .external_qe import (
     QEBackend,
     eliminate_quantifiers_qepcad,
     eliminate_quantifiers_mathematica,
-    eliminate_quantifiers_redlog
+    eliminate_quantifiers_redlog,
 )
 
 # Import existing modules for backward compatibility
@@ -26,17 +26,15 @@ from . import qe_lme_parallel
 # Convenience imports
 __all__ = [
     # Unified interface
-    'ExternalQESolver',
-    'QESolverConfig',
-    'QEBackend',
-
+    "ExternalQESolver",
+    "QESolverConfig",
+    "QEBackend",
     # Backward compatibility functions
-    'eliminate_quantifiers_qepcad',
-    'eliminate_quantifiers_mathematica',
-    'eliminate_quantifiers_redlog',
-
+    "eliminate_quantifiers_qepcad",
+    "eliminate_quantifiers_mathematica",
+    "eliminate_quantifiers_redlog",
     # Existing modules
-    'qe_expansion',
-    'qe_lme',
-    'qe_lme_parallel',
+    "qe_expansion",
+    "qe_lme",
+    "qe_lme_parallel",
 ]

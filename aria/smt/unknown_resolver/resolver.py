@@ -15,8 +15,14 @@ import z3
 class SAEUnknownResolver:
     """Resolves unknown SMT formulas using systematic mutation space coverage."""
 
-    def __init__(self, solver_binary: str, timeout: int = 30, max_depth: int = 3,
-                 max_mutations: int = 20, verbose: bool = False) -> None:
+    def __init__(
+        self,
+        solver_binary: str,
+        timeout: int = 30,
+        max_depth: int = 3,
+        max_mutations: int = 20,
+        verbose: bool = False,
+    ) -> None:
         self.solver_binary = Path(solver_binary)
         self.timeout = timeout
         self.max_depth = max_depth
@@ -26,9 +32,9 @@ class SAEUnknownResolver:
         if not self.solver_binary.exists():
             raise FileNotFoundError(f"Solver binary not found: {solver_binary}")
 
-        self.applied_mutations = {'structural': set(), 'pst': set()}
+        self.applied_mutations = {"structural": set(), "pst": set()}
         self.mutation_combinations = set()
-        self.stats = {'mutations_tried': 0, 'formulas_explored': 0}
+        self.stats = {"mutations_tried": 0, "formulas_explored": 0}
 
     def resolve(self, formula: z3.ExprRef) -> str:
         """Resolve unknown formula using systematic mutations."""
@@ -52,7 +58,7 @@ class SAEUnknownResolver:
     def _to_cnf(self, formula_expr: z3.ExprRef) -> z3.ExprRef:
         goal = z3.Goal()
         goal.add(formula_expr)
-        cnf_goal = z3.Tactic('tseitin-cnf')(goal)
+        cnf_goal = z3.Tactic("tseitin-cnf")(goal)
 
         if not cnf_goal:
             return z3.BoolVal(True)
@@ -74,15 +80,18 @@ class SAEUnknownResolver:
         if z3.is_and(formula_expr):
             conjuncts = formula_expr.children()
             for i, conjunct in enumerate(conjuncts):
-                if self._is_cached('structural', conjunct):
+                if self._is_cached("structural", conjunct):
                     continue
 
-                remaining = conjuncts[:i] + conjuncts[i+1:]
-                mutated = z3.BoolVal(True) if not remaining else (
-                    remaining[0] if len(remaining) == 1 else z3.And(remaining))
+                remaining = conjuncts[:i] + conjuncts[i + 1 :]
+                mutated = (
+                    z3.BoolVal(True)
+                    if not remaining
+                    else (remaining[0] if len(remaining) == 1 else z3.And(remaining))
+                )
 
                 solve_result = self._solve(mutated)
-                self._cache_mutation('structural', conjunct)
+                self._cache_mutation("structural", conjunct)
                 if solve_result == "unsat":
                     return "unsat"
 
@@ -91,49 +100,57 @@ class SAEUnknownResolver:
             if z3.is_or(clause):
                 disjuncts = clause.children()
                 for lit_idx, literal in enumerate(disjuncts):
-                    if self._is_cached('structural', literal) or len(disjuncts) <= 1:
+                    if self._is_cached("structural", literal) or len(disjuncts) <= 1:
                         continue
 
-                    remaining = disjuncts[:lit_idx] + disjuncts[lit_idx+1:]
-                    new_clause = remaining[0] if len(remaining) == 1 else z3.Or(remaining)
+                    remaining = disjuncts[:lit_idx] + disjuncts[lit_idx + 1 :]
+                    new_clause = (
+                        remaining[0] if len(remaining) == 1 else z3.Or(remaining)
+                    )
                     mutated = self._replace_clause(formula_expr, clause_idx, new_clause)
 
                     solve_result = self._solve(mutated)
-                    self._cache_mutation('structural', literal)
+                    self._cache_mutation("structural", literal)
                     if solve_result == "sat":
                         return "sat"
 
         # Instantiate variables
         for var in list(self._get_variables(formula_expr))[:3]:
-            if self._is_cached('structural', var):
+            if self._is_cached("structural", var):
                 continue
 
             for value in self._get_instantiation_values(var, formula_expr):
                 if self._solve(z3.substitute(formula_expr, (var, value))) == "sat":
-                    self._cache_mutation('structural', var)
+                    self._cache_mutation("structural", var)
                     return "sat"
-            self._cache_mutation('structural', var)
+            self._cache_mutation("structural", var)
 
         return "unknown"
 
     def _try_pst(self, formula_expr: z3.ExprRef) -> str:
         for literal in self._get_literals(formula_expr):
-            if self._is_cached('pst', literal):
+            if self._is_cached("pst", literal):
                 continue
 
             # Try over-approximations (expect unsat)
             for new_literal in self._get_pst_mutations(literal, True):
-                if self._solve(z3.substitute(formula_expr, (literal, new_literal))) == "unsat":
-                    self._cache_mutation('pst', literal)
+                if (
+                    self._solve(z3.substitute(formula_expr, (literal, new_literal)))
+                    == "unsat"
+                ):
+                    self._cache_mutation("pst", literal)
                     return "unsat"
 
             # Try under-approximations (expect sat)
             for new_literal in self._get_pst_mutations(literal, False):
-                if self._solve(z3.substitute(formula_expr, (literal, new_literal))) == "sat":
-                    self._cache_mutation('pst', literal)
+                if (
+                    self._solve(z3.substitute(formula_expr, (literal, new_literal)))
+                    == "sat"
+                ):
+                    self._cache_mutation("pst", literal)
                     return "sat"
 
-            self._cache_mutation('pst', literal)
+            self._cache_mutation("pst", literal)
 
         return "unknown"
 
@@ -141,7 +158,7 @@ class SAEUnknownResolver:
         promising = self._get_promising_mutations(formula_expr)
 
         for i, (type1, mut1, desc1) in enumerate(promising):
-            for type2, _, desc2 in promising[i+1:]:
+            for type2, _, desc2 in promising[i + 1 :]:
                 if type1 == type2:
                     continue
 
@@ -157,7 +174,9 @@ class SAEUnknownResolver:
                         if literals:
                             under_muts = self._get_pst_mutations(literals[0], False)
                             if under_muts:
-                                combined = z3.substitute(mut1, (literals[0], under_muts[0]))
+                                combined = z3.substitute(
+                                    mut1, (literals[0], under_muts[0])
+                                )
                                 solve_result = self._solve(combined)
                                 if solve_result in ["sat", "unsat"]:
                                     return solve_result
@@ -170,7 +189,7 @@ class SAEUnknownResolver:
         queue = [(formula_expr, 0, [])]
         visited = set()
 
-        while queue and self.stats['mutations_tried'] < self.max_mutations * 2:
+        while queue and self.stats["mutations_tried"] < self.max_mutations * 2:
             current, depth, path = queue.pop(0)
 
             if depth >= self.max_depth or self._hash(current) in visited:
@@ -187,7 +206,9 @@ class SAEUnknownResolver:
 
         return "unknown"
 
-    def _get_pst_mutations(self, literal: z3.ExprRef, is_over_approx: bool) -> List[z3.ExprRef]:
+    def _get_pst_mutations(
+        self, literal: z3.ExprRef, is_over_approx: bool
+    ) -> List[z3.ExprRef]:
         if z3.is_not(literal):
             inner = literal.children()[0]
             inner_muts = self._get_pst_mutations(inner, not is_over_approx)
@@ -211,12 +232,15 @@ class SAEUnknownResolver:
                 elif op == z3.Z3_OP_GT:
                     mutations.append(args[0] >= args[1] + 1)
                 elif op == z3.Z3_OP_EQ:
-                    mutations.append(z3.And(args[0] == z3.IntVal(0), args[1] == z3.IntVal(0)))
+                    mutations.append(
+                        z3.And(args[0] == z3.IntVal(0), args[1] == z3.IntVal(0))
+                    )
 
         return mutations[:2]
 
     def _get_instantiation_values(
-            self, var: z3.ExprRef, formula_expr: z3.ExprRef) -> List[z3.ExprRef]:
+        self, var: z3.ExprRef, formula_expr: z3.ExprRef
+    ) -> List[z3.ExprRef]:
         values = []
 
         if z3.is_int(var):
@@ -238,21 +262,26 @@ class SAEUnknownResolver:
     def _solve(self, formula_expr: z3.ExprRef) -> str:
         try:
             smtlib = self._to_smtlib(formula_expr)
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.smt2', delete=False) as f:
+            with tempfile.NamedTemporaryFile(
+                mode="w", suffix=".smt2", delete=False
+            ) as f:
                 f.write(smtlib)
                 temp_file = f.name
 
             try:
                 result = subprocess.run(
                     [str(self.solver_binary), temp_file],
-                    capture_output=True, text=True, timeout=self.timeout, check=False
+                    capture_output=True,
+                    text=True,
+                    timeout=self.timeout,
+                    check=False,
                 )
                 output = result.stdout.strip().lower()
-                self.stats['mutations_tried'] += 1
+                self.stats["mutations_tried"] += 1
 
-                if 'sat' in output and 'unsat' not in output:
+                if "sat" in output and "unsat" not in output:
                     return "sat"
-                if 'unsat' in output:
+                if "unsat" in output:
                     return "unsat"
                 return "unknown"
             finally:
@@ -265,7 +294,7 @@ class SAEUnknownResolver:
         lines = ["(set-logic ALL)"]
         lines.extend([f"(declare-fun {var} () {var.sort()})" for var in variables])
         lines.extend([f"(assert {formula_expr})", "(check-sat)", "(exit)"])
-        return '\n'.join(lines)
+        return "\n".join(lines)
 
     # Helper methods
     def _hash(self, obj: Any) -> str:
@@ -279,16 +308,19 @@ class SAEUnknownResolver:
 
     def _get_variables(self, formula_expr: z3.ExprRef) -> Set[z3.ExprRef]:
         variables = set()
+
         def collect(expr: z3.ExprRef):
             if z3.is_const(expr) and expr.decl().kind() == z3.Z3_OP_UNINTERPRETED:
                 variables.add(expr)
             for child in expr.children():
                 collect(child)
+
         collect(formula_expr)
         return variables
 
     def _get_literals(self, formula_expr: z3.ExprRef) -> List[z3.ExprRef]:
         literals = []
+
         def collect(expr: z3.ExprRef):
             if z3.is_and(expr):
                 for child in expr.children():
@@ -297,6 +329,7 @@ class SAEUnknownResolver:
                 literals.extend(expr.children())
             else:
                 literals.append(expr)
+
         collect(formula_expr)
         return literals
 
@@ -304,30 +337,36 @@ class SAEUnknownResolver:
         return formula_expr.children() if z3.is_and(formula_expr) else [formula_expr]
 
     def _replace_clause(
-            self, formula_expr: z3.ExprRef, idx: int, new_clause: z3.ExprRef) -> z3.ExprRef:
+        self, formula_expr: z3.ExprRef, idx: int, new_clause: z3.ExprRef
+    ) -> z3.ExprRef:
         if z3.is_and(formula_expr):
             clauses = formula_expr.children()
-            new_clauses = clauses[:idx] + [new_clause] + clauses[idx+1:]
+            new_clauses = clauses[:idx] + [new_clause] + clauses[idx + 1 :]
             return z3.And(new_clauses)
         return new_clause
 
-    def _extract_constants(self, formula_expr: z3.ExprRef, predicate: Any) -> List[z3.ExprRef]:
+    def _extract_constants(
+        self, formula_expr: z3.ExprRef, predicate: Any
+    ) -> List[z3.ExprRef]:
         constants = []
+
         def collect(expr: z3.ExprRef):
             if predicate(expr):
                 constants.append(expr)
             for child in expr.children():
                 collect(child)
+
         collect(formula_expr)
         return list(set(constants))
 
     def _get_promising_mutations(
-            self, formula_expr: z3.ExprRef) -> List[Tuple[str, z3.ExprRef, str]]:
+        self, formula_expr: z3.ExprRef
+    ) -> List[Tuple[str, z3.ExprRef, str]]:
         promising = []
         if z3.is_and(formula_expr):
             conjuncts = formula_expr.children()
             for i, _ in enumerate(conjuncts[:3]):
-                remaining = conjuncts[:i] + conjuncts[i+1:]
+                remaining = conjuncts[:i] + conjuncts[i + 1 :]
                 if remaining:
                     mutated = z3.And(remaining) if len(remaining) > 1 else remaining[0]
                     if self._solve(mutated) == "unknown":
@@ -335,14 +374,15 @@ class SAEUnknownResolver:
         return promising[:5]
 
     def _get_simple_mutations(
-            self, formula_expr: z3.ExprRef, path: List[str]) -> List[Tuple[z3.ExprRef, List[str]]]:
+        self, formula_expr: z3.ExprRef, path: List[str]
+    ) -> List[Tuple[z3.ExprRef, List[str]]]:
         mutations = []
 
         # Remove conjuncts
         if z3.is_and(formula_expr):
             conjuncts = formula_expr.children()
             for i, _ in enumerate(conjuncts[:2]):
-                remaining = conjuncts[:i] + conjuncts[i+1:]
+                remaining = conjuncts[:i] + conjuncts[i + 1 :]
                 if remaining:
                     mutated = z3.And(remaining) if len(remaining) > 1 else remaining[0]
                     mutations.append((mutated, path + [f"rm_{i}"]))
@@ -358,15 +398,16 @@ class SAEUnknownResolver:
     def get_stats(self) -> Dict[str, int]:
         """Get mutation statistics."""
         return {
-            'mutations_tried': self.stats['mutations_tried'],
-            'formulas_explored': self.stats['formulas_explored'],
-            'structural_mutations': len(self.applied_mutations['structural']),
-            'pst_mutations': len(self.applied_mutations['pst'])
+            "mutations_tried": self.stats["mutations_tried"],
+            "formulas_explored": self.stats["formulas_explored"],
+            "structural_mutations": len(self.applied_mutations["structural"]),
+            "pst_mutations": len(self.applied_mutations["pst"]),
         }
+
 
 # Usage example
 if __name__ == "__main__":
-    x, y = z3.Ints('x y')
+    x, y = z3.Ints("x y")
     test_formula = z3.And(x > 0, y > 0, x + y < 5, x * y > 10)
 
     resolver = SAEUnknownResolver("/path/to/z3", verbose=True)

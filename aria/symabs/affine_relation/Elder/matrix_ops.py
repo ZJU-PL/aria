@@ -23,7 +23,7 @@ class Matrix:
         self.modulus = modulus
         self.rows, self.cols = self.data.shape
 
-    def copy(self) -> 'Matrix':
+    def copy(self) -> "Matrix":
         """Create a copy of this matrix."""
         return Matrix(self.data.copy(), self.modulus)
 
@@ -36,7 +36,7 @@ class Matrix:
     def __repr__(self) -> str:
         return f"Matrix({self.data}, modulus={self.modulus})"
 
-    def row_echelon_form(self) -> 'Matrix':
+    def row_echelon_form(self) -> "Matrix":
         """Convert matrix to row echelon form (not full Howell form)."""
         mat = self.copy()
         rows, cols = mat.rows, mat.cols
@@ -51,7 +51,10 @@ class Matrix:
 
             # Swap rows if needed
             if pivot_row != i:
-                mat.data[i], mat.data[pivot_row] = mat.data[pivot_row].copy(), mat.data[i].copy()
+                mat.data[i], mat.data[pivot_row] = (
+                    mat.data[pivot_row].copy(),
+                    mat.data[i].copy(),
+                )
 
             # Eliminate below
             if mat[i, i] != 0:
@@ -198,19 +201,19 @@ def make_explicit(matrix: Matrix) -> Matrix:
     w = 32  # Word size
 
     for i in range(2, k + 1):
-        if G.leading_index(i-1) == i:
+        if G.leading_index(i - 1) == i:
             # Row i-1 has leading index i
-            rank_ri = G[i-1, i]
+            rank_ri = G[i - 1, i]
             if rank_ri > 0:
-                for j in range(1, 2*k + 1):
+                for j in range(1, 2 * k + 1):
                     s_i = 1
-                    r_j = G[j-1, i] / rank_ri
+                    r_j = G[j - 1, i] / rank_ri
                     # Build s from r_j with s_i = 1
                     # This needs more detailed implementation
 
     # Insert all-zero rows for skipped indexes
     for i in range(2, k + 1):
-        if G.leading_index(i-1) != i:
+        if G.leading_index(i - 1) != i:
             # Insert as the i'th row of G, a new row of all zeros
             pass
 

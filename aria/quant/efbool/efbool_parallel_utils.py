@@ -2,6 +2,7 @@
 Some parallel utilities for efbool.
 Is this file used for now?
 """
+
 from multiprocessing import Pool
 from typing import List, Tuple
 

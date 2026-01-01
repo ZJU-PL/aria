@@ -1,4 +1,5 @@
 """CEGIS-based solvers for EFBV problems."""
+
 from typing import List
 import logging
 import z3
@@ -8,9 +9,15 @@ from pysmt.logics import QF_BV, QF_LIA, QF_LRA, AUTO
 logger = logging.getLogger(__name__)
 
 
-def simple_cegis_efsmt(logic: str, x: List[z3.ExprRef], y: List[z3.ExprRef],
-                       phi: z3.ExprRef, maxloops=None, *,
-                       pysmt_solver="z3"):
+def simple_cegis_efsmt(
+    logic: str,
+    x: List[z3.ExprRef],
+    y: List[z3.ExprRef],
+    phi: z3.ExprRef,
+    maxloops=None,
+    *,
+    pysmt_solver="z3",
+):
     """
     Solve EFSMT using the CEGIS algorithm.
 
@@ -34,7 +41,12 @@ def simple_cegis_efsmt(logic: str, x: List[z3.ExprRef], y: List[z3.ExprRef],
     else:
         qf_logic = AUTO
     sol = PySMTSolver()
-    return sol.efsmt(evars=x, uvars=y, z3fml=phi,
-                     logic=qf_logic, maxloops=maxloops,
-                     esolver_name=pysmt_solver,
-                     fsolver_name=pysmt_solver)
+    return sol.efsmt(
+        evars=x,
+        uvars=y,
+        z3fml=phi,
+        logic=qf_logic,
+        maxloops=maxloops,
+        esolver_name=pysmt_solver,
+        fsolver_name=pysmt_solver,
+    )

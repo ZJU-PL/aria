@@ -1,4 +1,5 @@
 """Exceptions for efbv parallel module."""
+
 from aria.utils.exceptions import SMTSuccess, SMTUnknown
 
 

@@ -24,7 +24,7 @@ class TestBitVectorSampler:
     def test_sample_simple_formula(self):
         """Test sampling from simple bit-vector formula."""
         sampler = BitVectorSampler()
-        x = z3.BitVec('x', 8)
+        x = z3.BitVec("x", 8)
         formula = z3.And(x > 5, x < 8)
 
         sampler.init_from_formula(formula)
@@ -32,11 +32,11 @@ class TestBitVectorSampler:
 
         assert len(result) <= 2
         for sample in result:
-            assert 5 < sample['x'] < 8
+            assert 5 < sample["x"] < 8
 
     def test_sample_with_random_seed(self):
         """Test random seed reproducibility."""
-        x = z3.BitVec('x', 8)
+        x = z3.BitVec("x", 8)
         formula = z3.And(x > 5, x < 100)
 
         sampler1 = BitVectorSampler()
@@ -52,14 +52,14 @@ class TestBitVectorSampler:
         # 2. All samples satisfy the constraints
         assert len(result1) == len(result2)
         for sample in result1:
-            assert 5 < sample['x'] < 100
+            assert 5 < sample["x"] < 100
         for sample in result2:
-            assert 5 < sample['x'] < 100
+            assert 5 < sample["x"] < 100
 
     def test_sample_unsatisfiable_formula(self):
         """Test sampling from unsatisfiable formula."""
         sampler = BitVectorSampler()
-        x = z3.BitVec('x', 8)
+        x = z3.BitVec("x", 8)
         formula = z3.And(x > 100, x < 50)
 
         sampler.init_from_formula(formula)
@@ -71,7 +71,7 @@ class TestBitVectorSampler:
     def test_sample_multiple_variables(self):
         """Test sampling with multiple variables."""
         sampler = BitVectorSampler()
-        x, y = z3.BitVecs('x y', 16)
+        x, y = z3.BitVecs("x y", 16)
         formula = z3.And(x > 1000, y < 10000)
 
         sampler.init_from_formula(formula)
@@ -79,8 +79,8 @@ class TestBitVectorSampler:
 
         assert len(result) <= 2
         for sample in result:
-            assert sample['x'] > 1000
-            assert sample['y'] < 10000
+            assert sample["x"] > 1000
+            assert sample["y"] < 10000
 
 
 class TestHashBasedBVSampler:
@@ -103,7 +103,7 @@ class TestHashBasedBVSampler:
     def test_sample_simple_formula(self):
         """Test XOR-based sampling."""
         sampler = HashBasedBVSampler()
-        x = z3.BitVec('x', 8)
+        x = z3.BitVec("x", 8)
         formula = z3.And(x > 5, x < 20)
 
         sampler.init_from_formula(formula)
@@ -111,12 +111,12 @@ class TestHashBasedBVSampler:
 
         assert len(result) == 3
         for sample in result:
-            assert 5 < sample['x'] < 20
+            assert 5 < sample["x"] < 20
 
     def test_sample_multiple_variables(self):
         """Test XOR sampling with multiple variables."""
         sampler = HashBasedBVSampler()
-        x, y, z_var = z3.BitVecs('x y z', 16)
+        x, y, z_var = z3.BitVecs("x y z", 16)
         formula = z3.And(z3.ULT(x, 13), z3.ULT(y, x), z3.ULE(y, z_var))
 
         sampler.init_from_formula(formula)
@@ -138,7 +138,7 @@ class TestQuickBVSampler:
 
     def test_sample_simple_formula(self):
         """Test QuickSampler on simple formula."""
-        x = z3.BitVec('x', 16)
+        x = z3.BitVec("x", 16)
         sampler = QuickBVSampler(target_var=x)
         formula = z3.And(x > 1000, x < 2000)
 
@@ -147,11 +147,11 @@ class TestQuickBVSampler:
 
         assert len(result) <= 5
         for sample in result:
-            assert 1000 < sample['x'] < 2000
+            assert 1000 < sample["x"] < 2000
 
     def test_sample_produces_diverse_samples(self):
         """Test QuickSampler produces diverse samples."""
-        x = z3.BitVec('x', 8)
+        x = z3.BitVec("x", 8)
         sampler = QuickBVSampler(target_var=x)
         formula = z3.And(x > 10, x < 100)
 
@@ -159,7 +159,7 @@ class TestQuickBVSampler:
         result = sampler.sample(SamplingOptions(num_samples=10))
 
         assert len(result) <= 10
-        values = [sample['x'] for sample in result]
+        values = [sample["x"] for sample in result]
         assert len(set(values)) >= 2  # At least some diversity
 
 

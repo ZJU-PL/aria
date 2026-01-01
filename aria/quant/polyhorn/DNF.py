@@ -4,15 +4,15 @@ from typing import List
 class DNF:
     """A class that represents disjunctive normal form.
 
-        Attributes:
-            literals ([]): list of elements that the or of these elements form the DNF.
+    Attributes:
+        literals ([]): list of elements that the or of these elements form the DNF.
     """
 
     def __init__(self, literals: List):
         self.literals = literals
 
     def __or__(self, other):
-        """ Or two DNF.\n
+        """Or two DNF.\n
         Or of two DNF is the union of literals of each.
 
         :param other: the other DNF that should be or with this class.
@@ -21,7 +21,7 @@ class DNF:
         return DNF(self.literals + other.literals)
 
     def __and__(self, other):
-        """ And two DNF.\n
+        """And two DNF.\n
         The result is a DNF where each of the literal is the union of two literal in each DNF.
 
         :param other: the other DNF that should be and with this class.
@@ -39,7 +39,7 @@ class DNF:
         return DNF(literal_list)
 
     def __neg__(self):
-        """ negate a DNF\n For negating a DNF it is sufficient to negate all its literal and And them together.
+        """negate a DNF\n For negating a DNF it is sufficient to negate all its literal and And them together.
         negate a literal makes a DNF.
 
             :return: a DNF that is the negated form of the DNF.
@@ -53,27 +53,27 @@ class DNF:
         return result_DNF
 
     def __str__(self) -> str:
-        """ convert DNF to string.
+        """convert DNF to string.
 
-            :return: string format of the class.
+        :return: string format of the class.
         """
-        res = ''
+        res = ""
         for literal in self.literals:
-            res += '\n  AND '.join(["\t" + str(item) for item in literal])
-            res += '\n OR \n'
-        return '(\n' + res + ')\n'
+            res += "\n  AND ".join(["\t" + str(item) for item in literal])
+            res += "\n OR \n"
+        return "(\n" + res + ")\n"
 
     def convert_to_preorder(self) -> str:
-        """ convert DNF to preorder format.
+        """convert DNF to preorder format.
 
         :return: string in preorder format of the class.
         """
-        res = '( or '
+        res = "( or "
         for literal in self.literals:
-            res += '( and '
+            res += "( and "
             for item in literal:
                 res += item.convert_to_preorder()
-                res += ' '
-            res += ') '
-        res += ' )'
+                res += " "
+            res += ") "
+        res += " )"
         return res

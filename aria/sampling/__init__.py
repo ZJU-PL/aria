@@ -23,18 +23,18 @@ Available sampling methods:
 Usage:
     from aria.sampling import sample_models_from_formula, Logic, SamplingOptions, SamplingMethod
     import z3
-    
+
     # Create a formula
     x, y = z3.Reals('x y')
     formula = z3.And(x + y > 0, x - y < 1)
-    
+
     # Sample models from the formula
     options = SamplingOptions(
         method=SamplingMethod.ENUMERATION,
         num_samples=10
     )
     result = sample_models_from_formula(formula, Logic.QF_LRA, options)
-    
+
     # Print the models
     for i, model in enumerate(result):
         print(f"Model {i+1}: {model}")
@@ -44,20 +44,24 @@ Usage:
 from .base import Logic, SamplingMethod, SamplingOptions, SamplingResult, Sampler
 
 # Import factory functions
-from .factory import create_sampler, sample_models_from_formula, sample_formula, SamplerFactory
+from .factory import (
+    create_sampler,
+    sample_models_from_formula,
+    sample_formula,
+    SamplerFactory,
+)
 
 # Define what's available in the public API
 __all__ = [
     # Base classes and enums
-    'Logic',
-    'SamplingMethod',
-    'SamplingOptions',
-    'SamplingResult',
-    'Sampler',
-
+    "Logic",
+    "SamplingMethod",
+    "SamplingOptions",
+    "SamplingResult",
+    "Sampler",
     # Factory functions
-    'create_sampler',
-    'sample_models_from_formula',
-    'sample_formula',  # For backward compatibility
-    'SamplerFactory',
+    "create_sampler",
+    "sample_models_from_formula",
+    "sample_formula",  # For backward compatibility
+    "SamplerFactory",
 ]

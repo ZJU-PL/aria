@@ -20,7 +20,9 @@ from aria.smt.pcdclt.config import (
 logger = logging.getLogger(__name__)
 
 
-def _theory_worker(worker_id: int, init_theory_formula, task_queue, result_queue, solver_bin: str):
+def _theory_worker(
+    worker_id: int, init_theory_formula, task_queue, result_queue, solver_bin: str
+):
     """
     Theory checking worker process
 
@@ -103,8 +105,8 @@ def _parse_unsat_core(core: str, abstraction: FormulaAbstraction) -> List[int]:
 
 
 def _models_to_assumptions(
-        bool_models: List[List[int]],
-        abstraction: FormulaAbstraction) -> List[List[str]]:
+    bool_models: List[List[int]], abstraction: FormulaAbstraction
+) -> List[List[str]]:
     """
     Convert Boolean models to theory solver assumptions
 
@@ -190,7 +192,13 @@ def solve(smt2_string: str, logic: str = "ALL") -> SolverResult:
     for worker_id in range(num_workers):
         worker = Process(
             target=_theory_worker,
-            args=(worker_id, shared_theory_formula, task_queue, result_queue, solver_bin)
+            args=(
+                worker_id,
+                shared_theory_formula,
+                task_queue,
+                result_queue,
+                solver_bin,
+            ),
         )
         worker.daemon = True
         worker.start()
@@ -246,10 +254,14 @@ def solve(smt2_string: str, logic: str = "ALL") -> SolverResult:
                 break
 
             # All models are theory-inconsistent - learn from unsat cores
-            logger.debug("All models theory-inconsistent, processing %d unsat cores",
-                         len(unsat_cores))
+            logger.debug(
+                "All models theory-inconsistent, processing %d unsat cores",
+                len(unsat_cores),
+            )
 
-            blocking_clauses = [_parse_unsat_core(core, abstraction) for core in unsat_cores]
+            blocking_clauses = [
+                _parse_unsat_core(core, abstraction) for core in unsat_cores
+            ]
 
             if SIMPLIFY_CLAUSES:
                 blocking_clauses = simplify_numeric_clauses(blocking_clauses)
@@ -283,8 +295,9 @@ def solve(smt2_string: str, logic: str = "ALL") -> SolverResult:
 
         # Force terminate any workers that didn't exit gracefully
         if alive_workers:
-            logger.warning("%d workers didn't exit gracefully, terminating",
-                           len(alive_workers))
+            logger.warning(
+                "%d workers didn't exit gracefully, terminating", len(alive_workers)
+            )
             for worker in alive_workers:
                 try:
                     worker.terminate()
@@ -295,8 +308,9 @@ def solve(smt2_string: str, logic: str = "ALL") -> SolverResult:
         # Final check for zombie workers
         still_alive = [w for w in workers if w.is_alive()]
         if still_alive:
-            logger.error("%d workers are still alive after termination!",
-                         len(still_alive))
+            logger.error(
+                "%d workers are still alive after termination!", len(still_alive)
+            )
             # Last resort: kill
             for worker in still_alive:
                 try:
@@ -335,6 +349,6 @@ class CDCLTSolver:
 
     def solve_smt2_file(self, filename: str, logic: str = "ALL") -> SolverResult:
         """Solve SMT-LIB2 file"""
-        with open(filename, 'r', encoding='utf-8') as f:
+        with open(filename, "r", encoding="utf-8") as f:
             smt2_string = f.read()
         return solve(smt2_string, logic)

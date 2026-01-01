@@ -17,12 +17,12 @@ try:
         """Test WMI with uniform density over a triangular region."""
         print("Testing WMI with uniform density over triangle...")
 
-        x, y = z3.Reals('x y')
+        x, y = z3.Reals("x y")
         # Triangle: x >= 0, y >= 0, x + y <= 1
         formula = z3.And(x >= 0, y >= 0, x + y <= 1)
 
         # Uniform density over [0,1] × [0,1]
-        density = UniformDensity({'x': (0, 1), 'y': (0, 1)})
+        density = UniformDensity({"x": (0, 1), "y": (0, 1)})
 
         # Use region-based method for bounded regions (should be more stable)
         options = WMIOptions(method="region", num_samples=100, random_seed=42)
@@ -36,13 +36,12 @@ try:
         """Test WMI with Gaussian density over a triangular region."""
         print("Testing WMI with Gaussian density over triangle...")
 
-        x, y = z3.Reals('x y')
+        x, y = z3.Reals("x y")
         formula = z3.And(x >= 0, y >= 0, x + y <= 1)
 
         # Gaussian centered at (0.5, 0.5) with small variance
         gaussian = GaussianDensity(
-            {'x': 0.5, 'y': 0.5},
-            {'x': {'x': 0.1}, 'y': {'y': 0.1}}
+            {"x": 0.5, "y": 0.5}, {"x": {"x": 0.1}, "y": {"y": 0.1}}
         )
 
         options = WMIOptions(method="region", num_samples=100, random_seed=42)
@@ -55,12 +54,14 @@ try:
         """Test region-based vs sampling-based WMI."""
         print("Testing region-based vs sampling-based WMI...")
 
-        x, y = z3.Reals('x y')
+        x, y = z3.Reals("x y")
         formula = z3.And(x >= 0, y >= 0, x + y <= 1)
-        density = UniformDensity({'x': (0, 1), 'y': (0, 1)})
+        density = UniformDensity({"x": (0, 1), "y": (0, 1)})
 
         # Test sampling method
-        options_sampling = WMIOptions(method="sampling", num_samples=100, random_seed=42)
+        options_sampling = WMIOptions(
+            method="sampling", num_samples=100, random_seed=42
+        )
         result_sampling = wmi_integrate(formula, density, options_sampling)
 
         # Test region method (uses enhanced sampling)
@@ -87,6 +88,7 @@ try:
         except (ValueError, ImportError, RuntimeError) as e:
             print(f"Error during WMI testing: {e}")
             import traceback
+
             traceback.print_exc()
             sys.exit(1)
 

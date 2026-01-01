@@ -32,12 +32,14 @@ def test_single_interval_comparisons():
 
 
 def test_interval_state_creation_query():
-    state1 = IntervalAbstractState({
-        "a": Interval(-100, 50),
-        "b": Interval(float("-inf"), 5),
-        "c": Interval(100, 200),
-        "d": Interval(6, float("inf")),
-    })
+    state1 = IntervalAbstractState(
+        {
+            "a": Interval(-100, 50),
+            "b": Interval(float("-inf"), 5),
+            "c": Interval(100, 200),
+            "d": Interval(6, float("inf")),
+        }
+    )
 
     assert state1.interval_of("a") == Interval(-100, 50)
     assert state1.interval_of("b") == Interval(float("-inf"), 5)
@@ -46,12 +48,14 @@ def test_interval_state_creation_query():
 
 
 def test_interval_state_creation_change_query():
-    state1 = IntervalAbstractState({
-        "a": Interval(-100, 50),
-        "b": Interval(float("-inf"), 5),
-        "c": Interval(100, 200),
-        "d": Interval(6, float("inf")),
-    })
+    state1 = IntervalAbstractState(
+        {
+            "a": Interval(-100, 50),
+            "b": Interval(float("-inf"), 5),
+            "c": Interval(100, 200),
+            "d": Interval(6, float("inf")),
+        }
+    )
 
     state1.set_interval("a", Interval(-99, 50))
 
@@ -62,18 +66,22 @@ def test_interval_state_creation_change_query():
 
 
 def test_interval_state_equality():
-    state1 = IntervalAbstractState({
-        "a": Interval(-100, 50),
-        "b": Interval(float("-inf"), 5),
-        "c": Interval(100, 200),
-        "d": Interval(6, float("inf")),
-    })
-    state2 = IntervalAbstractState({
-        "a": Interval(-100, 50),
-        "b": Interval(float("-inf"), 5),
-        "c": Interval(100, 200),
-        "d": Interval(6, float("inf")),
-    })
+    state1 = IntervalAbstractState(
+        {
+            "a": Interval(-100, 50),
+            "b": Interval(float("-inf"), 5),
+            "c": Interval(100, 200),
+            "d": Interval(6, float("inf")),
+        }
+    )
+    state2 = IntervalAbstractState(
+        {
+            "a": Interval(-100, 50),
+            "b": Interval(float("-inf"), 5),
+            "c": Interval(100, 200),
+            "d": Interval(6, float("inf")),
+        }
+    )
     assert state1 == state2
 
     state2.set_interval("a", Interval(-99, 50))
@@ -81,24 +89,30 @@ def test_interval_state_equality():
 
 
 def test_interval_state_ineq():
-    state1 = IntervalAbstractState({
-        "a": Interval(-100, 50),
-        "b": Interval(float("-inf"), 5),
-        "c": Interval(100, 200),
-        "d": Interval(float("inf"), float("-inf")),
-    })
-    state2 = IntervalAbstractState({
-        "a": Interval(-100, 50),
-        "b": Interval(float("-inf"), float("inf")),
-        "c": Interval(100, 201),
-        "d": Interval(6, float("inf")),
-    })
-    state3 = IntervalAbstractState({
-        "a": Interval(-100, 50),
-        "b": Interval(float("-inf"), 4),
-        "c": Interval(100, 201),
-        "d": Interval(7, float("inf")),
-    })
+    state1 = IntervalAbstractState(
+        {
+            "a": Interval(-100, 50),
+            "b": Interval(float("-inf"), 5),
+            "c": Interval(100, 200),
+            "d": Interval(float("inf"), float("-inf")),
+        }
+    )
+    state2 = IntervalAbstractState(
+        {
+            "a": Interval(-100, 50),
+            "b": Interval(float("-inf"), float("inf")),
+            "c": Interval(100, 201),
+            "d": Interval(6, float("inf")),
+        }
+    )
+    state3 = IntervalAbstractState(
+        {
+            "a": Interval(-100, 50),
+            "b": Interval(float("-inf"), 4),
+            "c": Interval(100, 201),
+            "d": Interval(7, float("inf")),
+        }
+    )
 
     assert state1 <= state2
     assert state2 > state1

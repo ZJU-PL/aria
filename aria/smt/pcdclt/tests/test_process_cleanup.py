@@ -14,8 +14,8 @@ class TestProcessCleanup(TestCase):
 
     def setUp(self):
         """Check if Z3 is available"""
-        z3_config = SMT_SOLVERS_PATH.get('z3', {})
-        if not z3_config.get('available', False):
+        z3_config = SMT_SOLVERS_PATH.get("z3", {})
+        if not z3_config.get("available", False):
             self.skipTest("Z3 not available")
 
     def get_process_count(self, name_pattern=None):
@@ -55,8 +55,11 @@ class TestProcessCleanup(TestCase):
 
         # Count processes after - should be the same
         after_count = self.get_process_count()
-        self.assertEqual(before_count, after_count,
-                        f"Process leak detected: {before_count} -> {after_count} processes")
+        self.assertEqual(
+            before_count,
+            after_count,
+            f"Process leak detected: {before_count} -> {after_count} processes",
+        )
 
     def test_no_process_leak_unsat(self):
         """Verify no processes leak after UNSAT query"""
@@ -72,8 +75,11 @@ class TestProcessCleanup(TestCase):
         self.assertEqual(result, SolverResult.UNSAT)
 
         after_count = self.get_process_count()
-        self.assertEqual(before_count, after_count,
-                        f"Process leak detected: {before_count} -> {after_count} processes")
+        self.assertEqual(
+            before_count,
+            after_count,
+            f"Process leak detected: {before_count} -> {after_count} processes",
+        )
 
     def test_no_process_leak_complex(self):
         """Verify no significant process leak after complex query with multiple iterations"""
@@ -96,8 +102,11 @@ class TestProcessCleanup(TestCase):
         after_count = self.get_process_count()
         # Allow small difference (1-2) due to test infrastructure
         # The key is to ensure we don't leak many processes
-        self.assertLessEqual(after_count - before_count, 2,
-                            f"Significant process leak detected: {before_count} -> {after_count} processes")
+        self.assertLessEqual(
+            after_count - before_count,
+            2,
+            f"Significant process leak detected: {before_count} -> {after_count} processes",
+        )
 
     def test_no_zombie_processes(self):
         """Verify no zombie processes are created"""
@@ -124,8 +133,7 @@ class TestProcessCleanup(TestCase):
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 pass
 
-        self.assertEqual(len(zombies), 0,
-                        f"Found {len(zombies)} zombie processes")
+        self.assertEqual(len(zombies), 0, f"Found {len(zombies)} zombie processes")
 
     def test_no_solver_subprocess_leak(self):
         """Verify Z3 solver subprocesses are cleaned up"""
@@ -147,9 +155,12 @@ class TestProcessCleanup(TestCase):
 
         # Count Z3 processes after - should be the same
         after_z3_count = self.get_process_count("z3")
-        self.assertEqual(before_z3_count, after_z3_count,
-                        f"Z3 subprocess leak: {before_z3_count} -> {after_z3_count} z3 processes")
+        self.assertEqual(
+            before_z3_count,
+            after_z3_count,
+            f"Z3 subprocess leak: {before_z3_count} -> {after_z3_count} z3 processes",
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

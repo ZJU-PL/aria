@@ -38,7 +38,7 @@ def input_to_list(string: str) -> [str]:
 
 def tokenize(chars: str) -> list:
     """Convert a string of characters into a list of tokens."""
-    return chars.replace('(', ' ( ').replace(')', ' ) ').replace('" "', 'space').split()
+    return chars.replace("(", " ( ").replace(")", " ) ").replace('" "', "space").split()
 
 
 def parse(program: str) -> Expr:
@@ -49,16 +49,16 @@ def parse(program: str) -> Expr:
 def read_from_tokens(tokens: List) -> Expr:
     """Read an expression from a sequence of tokens."""
     if len(tokens) == 0:
-        raise SyntaxError('unexpected EOF')
+        raise SyntaxError("unexpected EOF")
     token = tokens.pop(0)
-    if token == '(':
+    if token == "(":
         result_list = []
-        while tokens[0] != ')':
+        while tokens[0] != ")":
             result_list.append(read_from_tokens(tokens))
         tokens.pop(0)  # pop off ')'
         return result_list
-    if token == ')':
-        raise SyntaxError('unexpected )')
+    if token == ")":
+        raise SyntaxError("unexpected )")
     return atom(token)
 
 
@@ -196,9 +196,11 @@ class EFSMTParser:
         forall_vars_local, forall_vars_sig = self.create_vars(self.forall_vars)
         fml_sig_str = exists_vars_sig + forall_vars_sig
 
-        fml_str = (f"\n".join(fml_sig_str) +
-                   f"\n (assert {self.fml_body} )\n" +
-                   "(check-sat)\n")
+        fml_str = (
+            f"\n".join(fml_sig_str)
+            + f"\n (assert {self.fml_body} )\n"
+            + "(check-sat)\n"
+        )
         print("Finish building fml str")
         # print(fml_str)
         # We assume that there is only one assertion?
@@ -276,5 +278,5 @@ def test_parser():
     print(ss2.parse_smt2_string(bv))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_parser()

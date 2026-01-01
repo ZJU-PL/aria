@@ -15,7 +15,7 @@ class TestAlphaFunctions(unittest.TestCase):
 
     def test_alpha_mos_identity(self):
         """Test alpha_mos with identity relation."""
-        variables = ['x', 'y']
+        variables = ["x", "y"]
         pre_vars, post_vars = create_z3_variables(variables)
         phi = post_vars[0] == pre_vars[0]  # x' = x
 
@@ -34,9 +34,11 @@ class TestAlphaFunctions(unittest.TestCase):
 
     def test_alpha_mos_variable_assignment(self):
         """Test alpha_mos with variable assignment."""
-        variables = ['x', 'y']
+        variables = ["x", "y"]
         pre_vars, post_vars = create_z3_variables(variables)
-        phi = z3.And(post_vars[0] == pre_vars[1], post_vars[1] == pre_vars[0])  # x' = y, y' = x
+        phi = z3.And(
+            post_vars[0] == pre_vars[1], post_vars[1] == pre_vars[0]
+        )  # x' = y, y' = x
 
         result = alpha_mos(phi, pre_vars, post_vars)
 
@@ -53,9 +55,11 @@ class TestAlphaFunctions(unittest.TestCase):
 
     def test_alpha_mos_complex_formula(self):
         """Test alpha_mos with a more complex formula."""
-        variables = ['x', 'y']
+        variables = ["x", "y"]
         pre_vars, post_vars = create_z3_variables(variables)
-        phi = z3.And(post_vars[0] == pre_vars[0] + pre_vars[1], post_vars[1] == pre_vars[0])  # x' = x + y, y' = x
+        phi = z3.And(
+            post_vars[0] == pre_vars[0] + pre_vars[1], post_vars[1] == pre_vars[0]
+        )  # x' = x + y, y' = x
 
         result = alpha_mos(phi, pre_vars, post_vars)
 
@@ -70,7 +74,7 @@ class TestAlphaFunctions(unittest.TestCase):
 
     def test_alpha_ks_composition(self):
         """Test that alpha_ks correctly composes MOS -> KS conversion."""
-        variables = ['x', 'y']
+        variables = ["x", "y"]
         phi = "(= x' x)"
 
         mos_result = alpha_mos(phi, variables)
@@ -85,7 +89,7 @@ class TestAlphaFunctions(unittest.TestCase):
 
     def test_alpha_ag_composition(self):
         """Test that alpha_ag correctly composes MOS -> KS -> AG conversion."""
-        variables = ['x', 'y']
+        variables = ["x", "y"]
         pre_vars, post_vars = create_z3_variables(variables)
         phi = post_vars[0] == pre_vars[0]  # x' = x
 
@@ -101,9 +105,11 @@ class TestAlphaFunctions(unittest.TestCase):
 
     def test_alpha_consistency(self):
         """Test that alpha functions are consistent across domains."""
-        variables = ['x', 'y']
+        variables = ["x", "y"]
         pre_vars, post_vars = create_z3_variables(variables)
-        phi = z3.And(post_vars[0] == pre_vars[1], post_vars[1] == pre_vars[0])  # x' = y, y' = x
+        phi = z3.And(
+            post_vars[0] == pre_vars[1], post_vars[1] == pre_vars[0]
+        )  # x' = y, y' = x
 
         mos_result = alpha_mos(phi, pre_vars, post_vars)
         ks_result = alpha_ks(phi, pre_vars, post_vars)
@@ -123,9 +129,9 @@ class TestCEGISAlgorithm(unittest.TestCase):
         import z3
 
         # Create a simple formula
-        x = z3.BitVec('x', 32)
-        xp = z3.BitVec('x\'', 32)
-        formula = (xp == x)
+        x = z3.BitVec("x", 32)
+        xp = z3.BitVec("x'", 32)
+        formula = xp == x
 
         pre_vars = [x]
         post_vars = [xp]
@@ -141,10 +147,10 @@ class TestCEGISAlgorithm(unittest.TestCase):
         import z3
 
         # Create a formula that requires multiple iterations
-        x = z3.BitVec('x', 32)
-        y = z3.BitVec('y', 32)
-        xp = z3.BitVec('x\'', 32)
-        yp = z3.BitVec('y\'', 32)
+        x = z3.BitVec("x", 32)
+        y = z3.BitVec("y", 32)
+        xp = z3.BitVec("x'", 32)
+        yp = z3.BitVec("y'", 32)
 
         # x' = y, y' = x (requires finding the swap transformation)
         formula = z3.And(xp == y, yp == x)
@@ -163,8 +169,8 @@ class TestCEGISAlgorithm(unittest.TestCase):
         import z3
 
         # Create an unsatisfiable formula
-        x = z3.BitVec('x', 32)
-        xp = z3.BitVec('x\'', 32)
+        x = z3.BitVec("x", 32)
+        xp = z3.BitVec("x'", 32)
         formula = z3.And(xp == x, xp == x + 1)  # Contradiction
 
         pre_vars = [x]
@@ -188,7 +194,7 @@ class TestEdgeCases(unittest.TestCase):
 
     def test_single_variable(self):
         """Test alpha functions with single variable."""
-        variables = ['x']
+        variables = ["x"]
         pre_vars, post_vars = create_z3_variables(variables)
         phi = post_vars[0] == pre_vars[0]  # x' = x
 
@@ -203,9 +209,11 @@ class TestEdgeCases(unittest.TestCase):
 
     def test_unsatisfiable_formula(self):
         """Test alpha functions with unsatisfiable formula."""
-        variables = ['x']
+        variables = ["x"]
         pre_vars, post_vars = create_z3_variables(variables)
-        phi = z3.And(post_vars[0] == pre_vars[0], post_vars[0] == pre_vars[0] + 1)  # x' = x ∧ x' = x + 1
+        phi = z3.And(
+            post_vars[0] == pre_vars[0], post_vars[0] == pre_vars[0] + 1
+        )  # x' = x ∧ x' = x + 1
 
         mos_result = alpha_mos(phi, pre_vars, post_vars)
         ks_result = alpha_ks(phi, pre_vars, post_vars)
@@ -219,12 +227,12 @@ class TestEdgeCases(unittest.TestCase):
 
     def test_complex_nested_formula(self):
         """Test alpha functions with complex nested formulas."""
-        variables = ['x', 'y', 'z']
+        variables = ["x", "y", "z"]
         pre_vars, post_vars = create_z3_variables(variables)
         phi = z3.And(
             post_vars[0] == pre_vars[0] + pre_vars[1],  # x' = x + y
             post_vars[1] == pre_vars[1] - pre_vars[2],  # y' = y - z
-            post_vars[2] == pre_vars[2]                 # z' = z
+            post_vars[2] == pre_vars[2],  # z' = z
         )
 
         mos_result = alpha_mos(phi, pre_vars, post_vars)
@@ -244,7 +252,7 @@ class TestAlphaFunctionCorrectness(unittest.TestCase):
         """Test that alpha function results are sound overapproximations."""
         import z3
 
-        variables = ['x']
+        variables = ["x"]
         pre_vars, post_vars = create_z3_variables(variables)
         phi = post_vars[0] == pre_vars[0] + 1  # x' = x + 1
 
@@ -254,9 +262,9 @@ class TestAlphaFunctionCorrectness(unittest.TestCase):
         # For any model satisfying phi, it should also satisfy the abstraction
 
         # Get a model of phi
-        x = z3.BitVec('x', 32)
-        xp = z3.BitVec('x\'', 32)
-        formula = (xp == x + 1)
+        x = z3.BitVec("x", 32)
+        xp = z3.BitVec("x'", 32)
+        formula = xp == x + 1
 
         solver = z3.Solver()
         solver.add(formula)

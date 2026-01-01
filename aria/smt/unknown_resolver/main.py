@@ -19,14 +19,24 @@ def main():
     )
     parser.add_argument("formula_file", help="Path to SMT-LIB2 formula file")
     parser.add_argument("solver_binary", help="Path to SMT solver binary")
-    parser.add_argument("--timeout", type=int, default=30,
-                        help="Timeout per solver call in seconds (default: 30)")
-    parser.add_argument("--max-depth", type=int, default=3,
-                        help="Maximum mutation depth (default: 3)")
-    parser.add_argument("--max-mutations", type=int, default=20,
-                        help="Maximum mutations per formula (default: 20)")
-    parser.add_argument("--verbose", "-v", action="store_true",
-                        help="Enable verbose output")
+    parser.add_argument(
+        "--timeout",
+        type=int,
+        default=30,
+        help="Timeout per solver call in seconds (default: 30)",
+    )
+    parser.add_argument(
+        "--max-depth", type=int, default=3, help="Maximum mutation depth (default: 3)"
+    )
+    parser.add_argument(
+        "--max-mutations",
+        type=int,
+        default=20,
+        help="Maximum mutations per formula (default: 20)",
+    )
+    parser.add_argument(
+        "--verbose", "-v", action="store_true", help="Enable verbose output"
+    )
 
     args = parser.parse_args()
 
@@ -52,7 +62,7 @@ def main():
             timeout=args.timeout,
             max_depth=args.max_depth,
             max_mutations=args.max_mutations,
-            verbose=args.verbose
+            verbose=args.verbose,
         )
 
         original_result = resolver.solve(formula)

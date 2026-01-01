@@ -4,7 +4,9 @@ from aria.symabs.ai_symabs.domains.sign import SignDomain
 
 def test_solver_constrained_satisfiable():
     domain = SignDomain(["a", "b", "c"])
-    state = SignAbstractState({"a": Sign.Positive, "b": Sign.Negative, "c": Sign.Positive})
+    state = SignAbstractState(
+        {"a": Sign.Positive, "b": Sign.Negative, "c": Sign.Positive}
+    )
     solution = domain.model(domain.gamma_hat(state))
 
     assert solution is not None
@@ -16,7 +18,9 @@ def test_solver_constrained_satisfiable():
 
 def test_solver_constrained_unsatisfiable():
     domain = SignDomain(["a", "b", "c"])
-    state = SignAbstractState({"a": Sign.Positive, "b": Sign.Negative, "c": Sign.Bottom})
+    state = SignAbstractState(
+        {"a": Sign.Positive, "b": Sign.Negative, "c": Sign.Bottom}
+    )
     solution = domain.model(domain.gamma_hat(state))
 
     assert solution is None

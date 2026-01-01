@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 class QEBackend(Enum):
     """Available QE backends."""
+
     QEPCAD = "qepcad"
     MATHEMATICA = "mathematica"
     REDLOG = "redlog"
@@ -28,21 +29,21 @@ class QESolverConfig:
         self.paths = {
             QEBackend.QEPCAD: "qepcad",
             QEBackend.MATHEMATICA: "math",
-            QEBackend.REDLOG: "redlog"
+            QEBackend.REDLOG: "redlog",
         }
 
         # Default timeouts
         self.timeouts = {
             QEBackend.QEPCAD: 300,
             QEBackend.MATHEMATICA: 300,
-            QEBackend.REDLOG: 300
+            QEBackend.REDLOG: 300,
         }
 
         # Backend-specific options
         self.options = {
             QEBackend.QEPCAD: ["+N500000000", "+L100000", "+H1000000"],
             QEBackend.MATHEMATICA: ["-noprompt", "-run"],
-            QEBackend.REDLOG: ["-w"]
+            QEBackend.REDLOG: ["-w"],
         }
 
     def set_path(self, backend: QEBackend, path: str):
@@ -74,19 +75,25 @@ class ExternalQESolver:
 
         for backend in QEBackend:
             try:
-                cmd = ([self.config.paths[backend], "--version"]
-                       if backend != QEBackend.MATHEMATICA
-                       else [self.config.paths[backend], "-version"])
-                result = subprocess.run(
-                    cmd,
-                    capture_output=True,
-                    timeout=5,
-                    check=False
+                cmd = (
+                    [self.config.paths[backend], "--version"]
+                    if backend != QEBackend.MATHEMATICA
+                    else [self.config.paths[backend], "-version"]
                 )
-                if result.returncode == 0 or "version" in result.stdout.decode().lower():
+                result = subprocess.run(
+                    cmd, capture_output=True, timeout=5, check=False
+                )
+                if (
+                    result.returncode == 0
+                    or "version" in result.stdout.decode().lower()
+                ):
                     available.append(backend)
                     logger.info("Backend %s is available", backend.value)
-            except (subprocess.TimeoutExpired, FileNotFoundError, subprocess.SubprocessError):
+            except (
+                subprocess.TimeoutExpired,
+                FileNotFoundError,
+                subprocess.SubprocessError,
+            ):
                 logger.debug("Backend %s is not available", backend.value)
 
         return available
@@ -95,10 +102,9 @@ class ExternalQESolver:
         """Get list of available backends."""
         return self._available_backends.copy()
 
-    def eliminate_quantifiers(self,
-                            formula: str,
-                            backend: Optional[QEBackend] = None,
-                            **kwargs) -> Tuple[bool, str]:
+    def eliminate_quantifiers(
+        self, formula: str, backend: Optional[QEBackend] = None, **kwargs
+    ) -> Tuple[bool, str]:
         """
         Eliminate quantifiers using the specified or best available backend.
 
@@ -127,8 +133,13 @@ class ExternalQESolver:
             if backend == QEBackend.REDLOG:
                 return self._call_redlog(formula, **kwargs)
             return False, f"Unknown backend: {backend}"
-        except (subprocess.TimeoutExpired, subprocess.SubprocessError, OSError,
-                ValueError, KeyError) as e:
+        except (
+            subprocess.TimeoutExpired,
+            subprocess.SubprocessError,
+            OSError,
+            ValueError,
+            KeyError,
+        ) as e:
             logger.error("Error calling %s: %s", backend.value, e)
             return False, str(e)
 
@@ -154,7 +165,9 @@ class ExternalQESolver:
         qepcad_formula = self._convert_to_qepcad_syntax(formula)
         input_content = f"[]\n{qepcad_formula}.\nfinish\n"
 
-        cmd = [self.config.paths[QEBackend.QEPCAD]] + self.config.options[QEBackend.QEPCAD]
+        cmd = [self.config.paths[QEBackend.QEPCAD]] + self.config.options[
+            QEBackend.QEPCAD
+        ]
         timeout = kwargs.get("timeout", self.config.timeouts[QEBackend.QEPCAD])
 
         success, stdout, stderr = run_external_tool(cmd, input_content, timeout)
@@ -169,8 +182,9 @@ class ExternalQESolver:
         timeout = kwargs.get("timeout", self.config.timeouts[QEBackend.MATHEMATICA])
 
         input_content = self._make_mathematica_input(formula, domain)
-        cmd = ([self.config.paths[QEBackend.MATHEMATICA]] +
-               self.config.options[QEBackend.MATHEMATICA])
+        cmd = [self.config.paths[QEBackend.MATHEMATICA]] + self.config.options[
+            QEBackend.MATHEMATICA
+        ]
         cmd.append(f"<<{input_content}")
 
         success, stdout, stderr = run_external_tool(cmd, None, timeout)
@@ -185,7 +199,9 @@ class ExternalQESolver:
         timeout = kwargs.get("timeout", self.config.timeouts[QEBackend.REDLOG])
 
         input_content = self._make_redlog_input(formula, logic)
-        cmd = [self.config.paths[QEBackend.REDLOG]] + self.config.options[QEBackend.REDLOG]
+        cmd = [self.config.paths[QEBackend.REDLOG]] + self.config.options[
+            QEBackend.REDLOG
+        ]
 
         success, stdout, stderr = run_external_tool(cmd, input_content, timeout)
         if not success:
@@ -196,8 +212,12 @@ class ExternalQESolver:
     def _convert_to_qepcad_syntax(self, formula: str) -> str:
         """Convert formula to QEPCAD syntax."""
         replacements = {
-            "∧": "/\\", "∨": "\\/", "¬": "~", "→": "==>",
-            "∀": "A", "∃": "E"
+            "∧": "/\\",
+            "∨": "\\/",
+            "¬": "~",
+            "→": "==>",
+            "∀": "A",
+            "∃": "E",
         }
         for old, new in replacements.items():
             formula = formula.replace(old, new)
@@ -211,10 +231,10 @@ class ExternalQESolver:
             'Print["RESULT_START"];',
             "Print[result];",
             'Print["RESULT_END"];',
-            "Exit[];"
+            "Exit[];",
         ]
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.m', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".m", delete=False) as f:
             f.write("\n".join(lines))
             return f.name
 
@@ -229,18 +249,20 @@ class ExternalQESolver:
         else:
             lines.append(f"rlset {logic};")
 
-        lines.extend([
-            f"formula := {formula};",
-            "result := rlqe formula;",
-            "print_with result;",
-            "quit;"
-        ])
+        lines.extend(
+            [
+                f"formula := {formula};",
+                "result := rlqe formula;",
+                "print_with result;",
+                "quit;",
+            ]
+        )
 
         return "\n".join(lines)
 
     def _parse_qepcad_output(self, output: str) -> str:
         """Parse QEPCAD output to extract result."""
-        lines = output.strip().split('\n')
+        lines = output.strip().split("\n")
         result_lines = []
         capture = False
 
@@ -253,11 +275,11 @@ class ExternalQESolver:
             if capture and line.strip() and not line.startswith("="):
                 result_lines.append(line.strip())
 
-        return ' '.join(result_lines)
+        return " ".join(result_lines)
 
     def _parse_mathematica_output(self, output: str) -> str:
         """Parse Mathematica output to extract result."""
-        lines = output.strip().split('\n')
+        lines = output.strip().split("\n")
         result_lines = []
         capture = False
 
@@ -270,13 +292,15 @@ class ExternalQESolver:
             if capture:
                 result_lines.append(line.strip())
 
-        return ' '.join(result_lines)
+        return " ".join(result_lines)
 
     def _parse_redlog_output(self, output: str) -> str:
         """Parse Redlog output to extract result."""
         return output.strip()
 
-    def try_all_backends(self, formula: str, **kwargs) -> Dict[QEBackend, Tuple[bool, str]]:
+    def try_all_backends(
+        self, formula: str, **kwargs
+    ) -> Dict[QEBackend, Tuple[bool, str]]:
         """
         Try all available backends and return results from each.
 
@@ -293,15 +317,22 @@ class ExternalQESolver:
             try:
                 result = self.eliminate_quantifiers(formula, backend, **kwargs)
                 results[backend] = result
-            except (subprocess.TimeoutExpired, subprocess.SubprocessError, OSError,
-                    ValueError, KeyError) as e:
+            except (
+                subprocess.TimeoutExpired,
+                subprocess.SubprocessError,
+                OSError,
+                ValueError,
+                KeyError,
+            ) as e:
                 results[backend] = (False, str(e))
 
         return results
 
 
 # Convenience functions for backward compatibility
-def eliminate_quantifiers_qepcad(formula: str, qepcad_path: str = None, timeout: int = 300):
+def eliminate_quantifiers_qepcad(
+    formula: str, qepcad_path: str = None, timeout: int = 300
+):
     """QEPCAD-specific QE function for backward compatibility."""
     config = QESolverConfig()
     if qepcad_path:
@@ -313,8 +344,12 @@ def eliminate_quantifiers_qepcad(formula: str, qepcad_path: str = None, timeout:
     return solver.eliminate_quantifiers(formula, QEBackend.QEPCAD, timeout=timeout)
 
 
-def eliminate_quantifiers_mathematica(formula: str, domain: str = "Reals",
-                                    math_path: Optional[str] = None, timeout: int = 300):
+def eliminate_quantifiers_mathematica(
+    formula: str,
+    domain: str = "Reals",
+    math_path: Optional[str] = None,
+    timeout: int = 300,
+):
     """Mathematica-specific QE function for backward compatibility."""
     config = QESolverConfig()
     if math_path:
@@ -323,12 +358,14 @@ def eliminate_quantifiers_mathematica(formula: str, domain: str = "Reals",
         config.set_timeout(QEBackend.MATHEMATICA, timeout)
 
     solver = ExternalQESolver(config)
-    return solver.eliminate_quantifiers(formula, QEBackend.MATHEMATICA,
-                                      domain=domain, timeout=timeout)
+    return solver.eliminate_quantifiers(
+        formula, QEBackend.MATHEMATICA, domain=domain, timeout=timeout
+    )
 
 
-def eliminate_quantifiers_redlog(formula: str, logic: str = "real",
-                                  redlog_path: str = None, timeout: int = 300):
+def eliminate_quantifiers_redlog(
+    formula: str, logic: str = "real", redlog_path: str = None, timeout: int = 300
+):
     """Redlog-specific QE function for backward compatibility."""
     config = QESolverConfig()
     if redlog_path:
@@ -337,8 +374,9 @@ def eliminate_quantifiers_redlog(formula: str, logic: str = "real",
         config.set_timeout(QEBackend.REDLOG, timeout)
 
     solver = ExternalQESolver(config)
-    return solver.eliminate_quantifiers(formula, QEBackend.REDLOG,
-                                      logic=logic, timeout=timeout)
+    return solver.eliminate_quantifiers(
+        formula, QEBackend.REDLOG, logic=logic, timeout=timeout
+    )
 
 
 def demo():

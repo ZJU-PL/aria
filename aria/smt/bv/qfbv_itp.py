@@ -42,8 +42,7 @@ class BooleanInterpolant:
 
     @staticmethod
     def compute_itp(
-        fml_a: z3.ExprRef, fml_b: z3.ExprRef,
-        var_list: List[z3.ExprRef]
+        fml_a: z3.ExprRef, fml_b: z3.ExprRef, var_list: List[z3.ExprRef]
     ) -> List[z3.ExprRef]:
         solver_a = z3.SolverFor("QF_FD")
         solver_a.add(fml_a)
@@ -67,7 +66,7 @@ class BVInterpolant:
         self.common_vars2bool = {}
 
     def mapped_bit_blast(self, fml: z3.BoolRef, cared_bv_vars: List[z3.ExprRef]):
-        """"
+        """ "
         :param fml: a formula
         :param cared_bv_vars: the cared list of bit-vector variables (for ITP)
         :return: the corresponding cared list of Boolean variables and
@@ -106,8 +105,7 @@ class BVInterpolant:
         return cared_bool_vars_numeric, clauses_numeric
 
     def to_z3_clauses(
-        self, prefix: str, cared_bool_vars: List[int],
-        numeric_clauses: List[List[int]]
+        self, prefix: str, cared_bool_vars: List[int], numeric_clauses: List[List[int]]
     ):
         """
         :param prefix: to distinguish the fml_a and fml_b in interpolant generation
@@ -139,7 +137,9 @@ class BVInterpolant:
 
         return z3.And(expr_clauses)
 
-    def compute_itp(self, fml_a: z3.BoolRef, fml_b: z3.BoolRef, cared_vars: List[z3.ExprRef]):
+    def compute_itp(
+        self, fml_a: z3.BoolRef, fml_b: z3.BoolRef, cared_vars: List[z3.ExprRef]
+    ):
         """
         The compute_itp function computes the interpolant between two
         formulas.
@@ -164,9 +164,13 @@ class BVInterpolant:
             # for debugging
             assert is_inconsistent(z3_bool_fml_a, z3_bool_fml_b)
 
-            itp = z3.Or(list(BooleanInterpolant.compute_itp(
-                z3_bool_fml_a, z3_bool_fml_b, self.common_bool_vars
-            )))
+            itp = z3.Or(
+                list(
+                    BooleanInterpolant.compute_itp(
+                        z3_bool_fml_a, z3_bool_fml_b, self.common_bool_vars
+                    )
+                )
+            )
             print("interpolant: ", z3.simplify(itp))
             print(self.common_vars2bool)
         else:
@@ -200,9 +204,10 @@ test_bv_itp()
 
 
 def test_bool_itp():
-    a1, a2, b1, b2, x1, x2 = z3.Bools('a1 a2 b1 b2 x1 x2')
+    a1, a2, b1, b2, x1, x2 = z3.Bools("a1 a2 b1 b2 x1 x2")
     fml_a = z3.And(a1, a2)
     fml_b = z3.Not(a1)
     print(list(BooleanInterpolant.compute_itp(fml_a, fml_b, [a1])))
+
 
 # test_bool_itp()

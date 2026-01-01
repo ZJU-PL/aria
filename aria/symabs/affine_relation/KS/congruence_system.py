@@ -23,7 +23,9 @@ class CongruenceSystem:
     rhs: List[int]
 
     def __post_init__(self) -> None:
-        assert self.modulus > 0 and (self.modulus & (self.modulus - 1)) == 0, "m must be 2**w"
+        assert (
+            self.modulus > 0 and (self.modulus & (self.modulus - 1)) == 0
+        ), "m must be 2**w"
         assert len(self.coeffs) == len(self.rhs)
 
     @property
@@ -91,7 +93,9 @@ class CongruenceSystem:
             for i in range(r, nrows):
                 coeff = self.coeffs[i][c] % m
                 if coeff != 0:
-                    if pivot is None or (coeff % 2 == 1 and self.coeffs[pivot][c] % 2 == 0):
+                    if pivot is None or (
+                        coeff % 2 == 1 and self.coeffs[pivot][c] % 2 == 0
+                    ):
                         pivot = i
                         best_pivot_row = i
                     elif coeff % 2 == 1 and self.coeffs[pivot][c] % 2 == 1:
@@ -126,7 +130,9 @@ class CongruenceSystem:
                     continue
                 # Subtract multiple of pivot row
                 for j in range(c, ncols):
-                    self.coeffs[i][j] = (self.coeffs[i][j] - factor * self.coeffs[r][j]) % m
+                    self.coeffs[i][j] = (
+                        self.coeffs[i][j] - factor * self.coeffs[r][j]
+                    ) % m
                 self.rhs[i] = (self.rhs[i] - factor * self.rhs[r]) % m
 
             r += 1
@@ -141,7 +147,6 @@ class CongruenceSystem:
 
         self.coeffs = new_coeffs
         self.rhs = new_rhs
-
 
     def as_z3(self, bool_vars: Sequence[z3.BoolRef]) -> z3.BoolRef:
         """Return a Z3 formula encoding all congruences over the given Booleans.

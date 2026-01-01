@@ -3,7 +3,7 @@
 Implementation of Monadic Decomposition algorithm from CAV'14.
 
 This module implements the monadic decomposition algorithm for decomposing
-formulas into simpler components. The main function is mondec() which 
+formulas into simpler components. The main function is mondec() which
 performs the decomposition.
 TODO: to check
 """
@@ -14,7 +14,7 @@ from z3 import *
 
 def nu_ab(R: Callable, x: List, y: List, a: List, b: List) -> BoolRef:
     """Compute nu_ab predicate for monadic decomposition.
-    
+
     Args:
         R: The relation to decompose
         x, y: Variables to decompose
@@ -24,13 +24,12 @@ def nu_ab(R: Callable, x: List, y: List, a: List, b: List) -> BoolRef:
     """
     x_ = [Const(f"x_{i}", x[i].sort()) for i in range(len(x))]
     y_ = [Const(f"y_{i}", y[i].sort()) for i in range(len(y))]
-    return Or(Exists(y_, R(x + y_) != R(a + y_)),
-              Exists(x_, R(x_ + y) != R(x_ + b)))
+    return Or(Exists(y_, R(x + y_) != R(a + y_)), Exists(x_, R(x_ + y) != R(x_ + b)))
 
 
 def is_unsat(fml: BoolRef) -> bool:
     """Check if formula is unsatisfiable.
-    
+
     Args:
         fml: Z3 formula to check
     Returns:
@@ -41,11 +40,11 @@ def is_unsat(fml: BoolRef) -> bool:
     return unsat == s.check()
 
 
-def last_sat(solver: Solver,
-             model: Optional[ModelRef],
-             formulas: List[BoolRef]) -> Optional[ModelRef]:
+def last_sat(
+    solver: Solver, model: Optional[ModelRef], formulas: List[BoolRef]
+) -> Optional[ModelRef]:
     """Find the last satisfiable model in a sequence of formulas.
-    
+
     Args:
         solver: Z3 solver instance
         model: Current model (can be None)
@@ -68,7 +67,7 @@ def last_sat(solver: Solver,
 
 def mondec(R: Callable, variables: List) -> BoolRef:
     """Perform monadic decomposition of relation R over variables.
-    
+
     Args:
         R: Relation to decompose
         variables: List of variables to decompose
@@ -122,7 +121,7 @@ def mondec(R: Callable, variables: List) -> BoolRef:
 
 def test_mondec(k: int) -> None:
     """Test monadic decomposition with example from Figure 3.
-    
+
     Args:
         k: Bit-vector size parameter
     """

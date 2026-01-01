@@ -59,8 +59,9 @@ def box_optimize(fml: z3.ExprRef, minimize: List, maximize: List, timeout: int =
     raise ValueError("box_optimize: No solution found or timeout")
 
 
-def maxsmt(hard: z3.BoolRef, soft: List[z3.BoolRef], weight: List[int],
-           timeout=0) -> int:
+def maxsmt(
+    hard: z3.BoolRef, soft: List[z3.BoolRef], weight: List[int], timeout=0
+) -> int:
     """
     Solving MaxSMT instances
     :return:  sum of weight for unsatisfied soft clauses

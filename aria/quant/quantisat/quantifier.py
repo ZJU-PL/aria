@@ -1,4 +1,5 @@
 """Quantifier classes for existential and universal quantification."""
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -91,7 +92,9 @@ class ForAll(Quantifier):
     The forall quantifier class.
     """
 
-    def __init__(self, variables: List[sp.Symbol], formula: Union[sp.Basic, Quantifier]):
+    def __init__(
+        self, variables: List[sp.Symbol], formula: Union[sp.Basic, Quantifier]
+    ):
         """
         Initialize the forall quantifier.
 
@@ -157,7 +160,9 @@ class Exists(Quantifier):
     The exists quantifier class.
     """
 
-    def __init__(self, variables: List[sp.Symbol], formula: Union[sp.Basic, Quantifier]):
+    def __init__(
+        self, variables: List[sp.Symbol], formula: Union[sp.Basic, Quantifier]
+    ):
         """
         Initialize the exists quantifier.
 

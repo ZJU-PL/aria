@@ -79,7 +79,12 @@ def _sic_array(op, args, subs):
         store = args[0]
         a, i, v = store.children()
         j = args[1]
-        sa, si, sv, sj = subs[0].children()[0], subs[0].children()[1], subs[0].children()[2], subs[1]
+        sa, si, sv, sj = (
+            subs[0].children()[0],
+            subs[0].children()[1],
+            subs[0].children()[2],
+            subs[1],
+        )
         # simplified: independence if i == j OR v/select agree
         return Or(
             And(si, sj, i == j),
@@ -110,6 +115,7 @@ def infer_sic(root: ExprRef, targets: Set[ExprRef]) -> BoolRef:
     """
     Compute a **quantifier-free** SIC for *root* wrt *targets* (fresh consts).
     """
+
     @lru_cache(maxsize=None)
     def go(e: ExprRef) -> BoolRef:
         if e.decl().kind() == Z3_OP_UNINTERPRETED and not e.num_args():

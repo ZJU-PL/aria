@@ -65,7 +65,9 @@ def _augment_with_model(sys: CongruenceSystem, xvec: List[int]) -> None:
                     if i < len(sys.coeffs) and sys.coeffs[i][last_col] != 0:
                         factor = sys.coeffs[i][last_col] % m
                         for j in range(last_col):
-                            sys.coeffs[i][j] = (sys.coeffs[i][j] - factor * last_row[j]) % m
+                            sys.coeffs[i][j] = (
+                                sys.coeffs[i][j] - factor * last_row[j]
+                            ) % m
                         sys.rhs[i] = (sys.rhs[i] - factor * sys.rhs[-1]) % m
 
                 # Remove the last row as it's now redundant
