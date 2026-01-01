@@ -11,7 +11,7 @@ from aria.backbone import (
     compute_backbone_refinement,
     compute_backbone_with_approximation,
     is_backbone_literal,
-    BackboneAlgorithm
+    BackboneAlgorithm,
 )
 
 
@@ -118,10 +118,12 @@ class TestSATBackbone(unittest.TestCase):
         self.assertEqual(definite, [])
         self.assertEqual(potential, [])
 
-        definite, potential, calls = compute_backbone_with_approximation(self.all_backbone_cnf)
+        definite, potential, calls = compute_backbone_with_approximation(
+            self.all_backbone_cnf
+        )
         self.assertEqual(set(definite), {1, 2, 3})
         self.assertEqual(set(potential), {1, 2, 3})
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

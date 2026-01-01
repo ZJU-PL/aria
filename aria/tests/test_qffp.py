@@ -12,7 +12,7 @@ import z3
 
 def is_simple_formula(fml: z3.ExprRef):
     # for pruning sample formulas that can be solved by the pre-processing
-    clauses = z3.Then('simplify', 'propagate-values')(fml)
+    clauses = z3.Then("simplify", "propagate-values")(fml)
     after_simp = clauses.as_expr()
     if z3.is_false(after_simp) or z3.is_true(after_simp):
         return True
@@ -34,7 +34,6 @@ def solve_with_z3(smt2string: str):
 
 # Deterministic test formulas for QF_FP
 QF_FP_TEST_FORMULAS = [
-
     # Test with specific values (SAT)
     """
     (set-logic QF_FP)
@@ -42,7 +41,6 @@ QF_FP_TEST_FORMULAS = [
     (assert (fp.eq x ((_ to_fp 8 24) roundNearestTiesToEven 1.0)))
     (check-sat)
     """,
-
     # Test with subtraction (SAT)
     """
     (set-logic QF_FP)
@@ -52,7 +50,6 @@ QF_FP_TEST_FORMULAS = [
     (assert (fp.eq (fp.sub roundNearestTiesToEven x y) z))
     (check-sat)
     """,
-
     # Test with multiplication (SAT)
     """
     (set-logic QF_FP)
@@ -62,7 +59,6 @@ QF_FP_TEST_FORMULAS = [
     (assert (fp.eq (fp.mul roundNearestTiesToEven x y) z))
     (check-sat)
     """,
-
     # Test with multiple constraints (SAT)
     """
     (set-logic QF_FP)
@@ -74,7 +70,6 @@ QF_FP_TEST_FORMULAS = [
     (assert (fp.lt x z))
     (check-sat)
     """,
-
     # Test with contradictory constraints (UNSAT)
     """
     (set-logic QF_FP)
@@ -84,7 +79,6 @@ QF_FP_TEST_FORMULAS = [
     (assert (fp.lt y x))
     (check-sat)
     """,
-
     # Test with special values (SAT)
     """
     (set-logic QF_FP)
@@ -92,7 +86,6 @@ QF_FP_TEST_FORMULAS = [
     (assert (fp.isNaN x))
     (check-sat)
     """,
-
     # Test with rounding modes (SAT)
     """
     (set-logic QF_FP)
@@ -104,7 +97,7 @@ QF_FP_TEST_FORMULAS = [
     (assert (fp.eq (fp.add roundTowardZero x y) z2))
     (assert (not (fp.eq z1 z2)))
     (check-sat)
-    """
+    """,
 ]
 
 
@@ -135,5 +128,5 @@ class TestQFFP(TestCase):
                 print("inconsistent!!")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

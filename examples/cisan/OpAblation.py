@@ -29,7 +29,7 @@ def EDsan_pc_skl(var_num, independence_func, enable_solver=False):
     graph = {i: set(range(var_num)) - {i} for i in range(var_num)}
     kb = KnowledgeBase([], var_num, False)
 
-    for (node_x, node_y) in combinations(range(var_num), 2):
+    for node_x, node_y in combinations(range(var_num), 2):
         TOTAL_CI += 1
         is_ind = independence_func(node_x, node_y, set())
         ci = CIStatement.createByXYZ(node_x, node_y, set(), is_ind)
@@ -44,15 +44,19 @@ def EDsan_pc_skl(var_num, independence_func, enable_solver=False):
         for node_x in graph:
             neighbors = graph[node_x]
             for node_y in neighbors:
-                if (node_y, node_x) in edges_to_remove or (node_x, node_y) in edges_to_remove:
+                if (node_y, node_x) in edges_to_remove or (
+                    node_x,
+                    node_y,
+                ) in edges_to_remove:
                     continue
                 if len(neighbors) - 1 < order:
                     continue
                 # print(node_x, node_y, edges_to_remove, graph, TOTAL_CI)
                 cond_set_list = list(combinations(neighbors - {node_y}, order))
-                ci_relation_candidate = [CIStatement.createByXYZ(
-                    node_x, node_y, set(cond_set),
-                    True) for cond_set in cond_set_list]
+                ci_relation_candidate = [
+                    CIStatement.createByXYZ(node_x, node_y, set(cond_set), True)
+                    for cond_set in cond_set_list
+                ]
                 if enable_solver:
                     for ci in ci_relation_candidate:
                         TOTAL_CI += 1
@@ -83,12 +87,18 @@ def EDsan_pc_skl(var_num, independence_func, enable_solver=False):
     return graph, TOTAL_CI, kb
 
 
-def run_detection(kb: KnowledgeBase, error_rate: float, seed: int,
-                  use_marginal=True, use_graphoid=True, use_slicing=True):
+def run_detection(
+    kb: KnowledgeBase,
+    error_rate: float,
+    seed: int,
+    use_marginal=True,
+    use_graphoid=True,
+    use_slicing=True,
+):
     start_time = datetime.now()
     # kb.Perturb(error_rate, seed)
     # kb.FlipSome(seed, int(len(kb.facts) * 0.03)) # for sachs
-    kb.FlipSome(seed, int(len(kb.facts) * 0.1)) # for survey
+    kb.FlipSome(seed, int(len(kb.facts) * 0.1))  # for survey
     last_ci = kb.facts.pop()
     error_detected = False
     method_name = None
@@ -106,9 +116,13 @@ def run_detection(kb: KnowledgeBase, error_rate: float, seed: int,
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--benchmark", "-b", type=str,
-                        choices=["earthquake", "survey", "cancer", "sachs"],
-                        default="sachs")
+    parser.add_argument(
+        "--benchmark",
+        "-b",
+        type=str,
+        choices=["earthquake", "survey", "cancer", "sachs"],
+        default="sachs",
+    )
     parser.add_argument("--use_marginal", "-um", action="store_true")
     parser.add_argument("--use_graphoid", "-ug", action="store_true")
     parser.add_argument("--use_slicing", "-us", action="store_true")
@@ -127,14 +141,23 @@ if __name__ == "__main__":
     dag_path = f"./benchmarks/{args.benchmark}_graph.txt"
     dag = read_dag(dag_path)
     oracle = OracleCI(dag=dag)
-    est, total_ci, kb = EDsan_pc_skl(dag.get_num_nodes(), oracle.oracle_ci, enable_solver=False)
+    est, total_ci, kb = EDsan_pc_skl(
+        dag.get_num_nodes(), oracle.oracle_ci, enable_solver=False
+    )
     print("Total CI", total_ci)
     print("SHD", compare_skeleton(est, dag))
     print("Start detection")
     for seed in range(total_num):
-        if detected_num == 100: break
+        if detected_num == 100:
+            break
         error_detected, method_name, last_time = run_detection(
-            kb.copy(), args.error_ratio, seed, args.use_marginal, args.use_graphoid, args.use_slicing)
+            kb.copy(),
+            args.error_ratio,
+            seed,
+            args.use_marginal,
+            args.use_graphoid,
+            args.use_slicing,
+        )
         if error_detected:
             detected_num += 1
             detected_idx.append(seed)
@@ -142,7 +165,8 @@ if __name__ == "__main__":
             time_list.append(last_time)
     end_time = datetime.now()
     print(
-        f"Optimization Marginal: {args.use_marginal}, Graphoid: {args.use_graphoid}, Slicing: {args.use_slicing}")
+        f"Optimization Marginal: {args.use_marginal}, Graphoid: {args.use_graphoid}, Slicing: {args.use_slicing}"
+    )
     print("All Time taken: ", end_time - start_time)
     print("Average time taken: ", sum(time_list) / len(time_list))
     print(f"Time standard deviation: {statistics.stdev(time_list)}")

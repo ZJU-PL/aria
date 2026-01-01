@@ -29,8 +29,8 @@ __author__ = "Mathias Preiner <mathias.preiner@gmail.com>"
 __version__ = "1.1.1"
 
 # constants
-UNIVERSAL = 'a'
-EXISTENTIAL = 'e'
+UNIVERSAL = "a"
+EXISTENTIAL = "e"
 USED = 0
 UNUSED = 1
 
@@ -73,57 +73,129 @@ def _parse_arguments():
     """
     global __version__
 
-    description = "QBFuzz is a grammar based black box fuzzer for generating " \
-                  "random QBF formulas compliant to the QDIMACS standard. The " \
-                  "program uses random parameter values if none are specified."
+    description = (
+        "QBFuzz is a grammar based black box fuzzer for generating "
+        "random QBF formulas compliant to the QDIMACS standard. The "
+        "program uses random parameter values if none are specified."
+    )
 
     p = OptionParser(description=description, version=__version__)
 
     # number of variables
-    p.add_option("-v", type="int", dest="num_vars", metavar="NUM",
-                 help="maximum number of variables")
+    p.add_option(
+        "-v",
+        type="int",
+        dest="num_vars",
+        metavar="NUM",
+        help="maximum number of variables",
+    )
     # number of clauses
-    p.add_option("-c", type="int", dest="num_clauses", metavar="NUM",
-                 help="maximum number of clauses")
+    p.add_option(
+        "-c",
+        type="int",
+        dest="num_clauses",
+        metavar="NUM",
+        help="maximum number of clauses",
+    )
     # number of quantifier sets
-    p.add_option("-s", type="int", dest="num_qsets", metavar="NUM",
-                 help="maximum number of quantifier sets")
+    p.add_option(
+        "-s",
+        type="int",
+        dest="num_qsets",
+        metavar="NUM",
+        help="maximum number of quantifier sets",
+    )
     # name of the output file
-    p.add_option("-o", type="string", dest="filename", metavar="FILE",
-                 help="name of the output file [default: stdout]. if " \
-                      "compression is enabled, file extension will be " \
-                      "automatically appended.")
+    p.add_option(
+        "-o",
+        type="string",
+        dest="filename",
+        metavar="FILE",
+        help="name of the output file [default: stdout]. if "
+        "compression is enabled, file extension will be "
+        "automatically appended.",
+    )
     # existential variable ratio (existential variables/total variables)
-    p.add_option("-r", type="float", dest="ratio", metavar="FLOAT",
-                 help="ratio of the overall number of existential variables. " \
-                      "it is also used for clause generation.")
+    p.add_option(
+        "-r",
+        type="float",
+        dest="ratio",
+        metavar="FLOAT",
+        help="ratio of the overall number of existential variables. "
+        "it is also used for clause generation.",
+    )
     # ratio of free variables
-    p.add_option("-f", type="float", dest="free_ratio", metavar="FLOAT",
-                 help="ratio of free variables")
+    p.add_option(
+        "-f",
+        type="float",
+        dest="free_ratio",
+        metavar="FLOAT",
+        help="ratio of free variables",
+    )
     # minimum number of literals per clause
-    p.add_option("--min", type="int", dest="min_lits", metavar="NUM",
-                 help="minimum number of literals per clause")
+    p.add_option(
+        "--min",
+        type="int",
+        dest="min_lits",
+        metavar="NUM",
+        help="minimum number of literals per clause",
+    )
     # maximum number of literals per clause
-    p.add_option("--max", type="int", dest="max_lits", metavar="NUM",
-                 help="maximum number of literals per clause")
+    p.add_option(
+        "--max",
+        type="int",
+        dest="max_lits",
+        metavar="NUM",
+        help="maximum number of literals per clause",
+    )
     # seed for random number generator
-    p.add_option("--seed", type="int", dest="seed", metavar="NUM",
-                 help="use this seed for random generator")
+    p.add_option(
+        "--seed",
+        type="int",
+        dest="seed",
+        metavar="NUM",
+        help="use this seed for random generator",
+    )
     # disable forall reduction
-    p.add_option("--no-reduce", action="store_false", default=True,
-                 dest="reduce", help="disable forall reduction")
+    p.add_option(
+        "--no-reduce",
+        action="store_false",
+        default=True,
+        dest="reduce",
+        help="disable forall reduction",
+    )
     # allow unit clauses
-    p.add_option("--unit-clauses", action="store_true", default=False,
-                 dest="allow_unit", help="allow unit clauses")
+    p.add_option(
+        "--unit-clauses",
+        action="store_true",
+        default=False,
+        dest="allow_unit",
+        help="allow unit clauses",
+    )
     # enable verbose output
-    p.add_option("--verbose", action="store_true", default=False,
-                 dest="verbose", help="print verbose status messages")
+    p.add_option(
+        "--verbose",
+        action="store_true",
+        default=False,
+        dest="verbose",
+        help="print verbose status messages",
+    )
     # sort literals according to scope levels
-    p.add_option("--sort", action="store_true", default=False, dest="sort",
-                 help="sort literals in clause according to scope levels")
+    p.add_option(
+        "--sort",
+        action="store_true",
+        default=False,
+        dest="sort",
+        help="sort literals in clause according to scope levels",
+    )
     # compress output file using gzip
-    p.add_option("--gzip", action="store_true", default=False, dest="gzip",
-                 help="enable gzip compression for output file (only with -o)")
+    p.add_option(
+        "--gzip",
+        action="store_true",
+        default=False,
+        dest="gzip",
+        help="enable gzip compression for output file (only with -o)",
+    )
 
     opt, args = p.parse_args()
 
@@ -158,7 +230,7 @@ def _init(comments):
     if _options.seed == None:
         # multiply current process id with current unix timestamp and convert
         # number to a 32 bit integer
-        _options.seed = int(time.time() * os.getpid() % (2 ** 32))
+        _options.seed = int(time.time() * os.getpid() % (2**32))
     # set seed of random generator
     random.seed(_options.seed)
 
@@ -226,14 +298,18 @@ def _init(comments):
         if _options.num_vars == 1:
             _options.num_qsets = 1
         else:
-            _options.num_qsets = random.randint(lo_bound, min(_options.num_vars, MAX_QSETS))
+            _options.num_qsets = random.randint(
+                lo_bound, min(_options.num_vars, MAX_QSETS)
+            )
 
-        assert (_options.num_qsets <= _options.num_vars)
+        assert _options.num_qsets <= _options.num_vars
     else:
         if _options.num_qsets <= 0:
             parser.error("number of quantifier sets has to be greater 0")
         elif _options.num_qsets > _options.num_vars:
-            parser.error("number of quantifier sets cannot be greater than the number of variables")
+            parser.error(
+                "number of quantifier sets cannot be greater than the number of variables"
+            )
         gen_params += " -s {0:d}".format(_options.num_qsets)
 
         # existential variable ratio
@@ -243,17 +319,19 @@ def _init(comments):
 
         # invalid ratio if produced existential variables are not 0 or num_vars
         # for one possible quantifier set
-        if _options.num_qsets == 1 and ex_vars != _options.num_vars and \
-                ex_vars != 0:
+        if _options.num_qsets == 1 and ex_vars != _options.num_vars and ex_vars != 0:
             parser.error("invalid ratio for only one quantifier set")
         # not enough variables for given number of quantifier sets
-        elif 0.0 < _options.ratio < 1.0 and \
-                (ex_vars < num_ex_sets or un_vars < num_un_sets):
+        elif 0.0 < _options.ratio < 1.0 and (
+            ex_vars < num_ex_sets or un_vars < num_un_sets
+        ):
 
-            parser.error("it is not possible to produce enough variables for " \
-                         "all existential and universal quantifier sets using" \
-                         " given ratio. retry with another combination of " \
-                         "ratio and sets.")
+            parser.error(
+                "it is not possible to produce enough variables for "
+                "all existential and universal quantifier sets using"
+                " given ratio. retry with another combination of "
+                "ratio and sets."
+            )
 
         gen_params += " -r {0:.2f}".format(_options.ratio)
 
@@ -269,75 +347,90 @@ def _init(comments):
         # only allow --min=1 if no ratio is specified or if all variables are
         # existential or universal. otherwise there is no guarantee to use all
         # variables for generating clauses
-        if _options.allow_unit and \
-                (_options.ratio is None or _options.ratio == 1.0 or _options.ratio == 0.0):
+        if _options.allow_unit and (
+            _options.ratio is None or _options.ratio == 1.0 or _options.ratio == 0.0
+        ):
             lo_bound = 1
         else:
             lo_bound = 2
-        _options.min_lits = max(lo_bound, math.ceil(_options.num_vars /
-                                                    _options.num_clauses))
+        _options.min_lits = max(
+            lo_bound, math.ceil(_options.num_vars / _options.num_clauses)
+        )
 
-        assert (_options.min_lits <= _options.num_vars)
+        assert _options.min_lits <= _options.num_vars
     else:
         if _options.min_lits <= 0:
-            parser.error("minimum number of literals per clause has to be " \
-                         "greater 0")
+            parser.error("minimum number of literals per clause has to be " "greater 0")
         elif _options.min_lits > _options.num_vars:
-            parser.error("minimum number of literals per clause cannot be " \
-                         "greater than the number of variables")
-        elif _options.min_lits < math.ceil(_options.num_vars /
-                                           _options.num_clauses):
-            parser.error("it is not possible to generate a valid formula " \
-                         "using this sequence of parameters. try --min={0:d} " \
-                         "or higher" \
-                         .format(math.ceil(_options.num_vars /
-                                           _options.num_clauses)))
+            parser.error(
+                "minimum number of literals per clause cannot be "
+                "greater than the number of variables"
+            )
+        elif _options.min_lits < math.ceil(_options.num_vars / _options.num_clauses):
+            parser.error(
+                "it is not possible to generate a valid formula "
+                "using this sequence of parameters. try --min={0:d} "
+                "or higher".format(math.ceil(_options.num_vars / _options.num_clauses))
+            )
         elif _options.min_lits == 1 and _options.ratio is not None:
             # --min=1 only allowed if all variables are exitential or universal
             if 0.0 < _options.ratio < 1.0:
-                parser.error("it is not possible to generate clauses with a " \
-                             "minimum of one literal and a ratio of {0:.2f}" \
-                             .format(_options.ratio))
+                parser.error(
+                    "it is not possible to generate clauses with a "
+                    "minimum of one literal and a ratio of {0:.2f}".format(
+                        _options.ratio
+                    )
+                )
 
         gen_params += " --min={0:d}".format(_options.min_lits)
 
     # maximum number of literals per clause
     if _options.max_lits is None:
-        _options.max_lits = random.randint(_options.min_lits,
-                                           max(_options.min_lits,
-                                               min(_options.num_vars, MAX_LITS)))
-        assert (_options.max_lits <= _options.num_vars)
-        assert (_options.max_lits >= _options.min_lits)
+        _options.max_lits = random.randint(
+            _options.min_lits, max(_options.min_lits, min(_options.num_vars, MAX_LITS))
+        )
+        assert _options.max_lits <= _options.num_vars
+        assert _options.max_lits >= _options.min_lits
     else:
         if _options.max_lits <= 0:
             parser.error("maximum number of literals per clause has to be greater 0")
         elif _options.max_lits > _options.num_vars:
-            parser.error("maximum number of literals per clause cannot be " \
-                         "greater than the number of variables")
+            parser.error(
+                "maximum number of literals per clause cannot be "
+                "greater than the number of variables"
+            )
         elif _options.max_lits < _options.min_lits:
-            parser.error("maximum number of literals per clause has to be " \
-                         "greater than the minumum number of literals")
+            parser.error(
+                "maximum number of literals per clause has to be "
+                "greater than the minumum number of literals"
+            )
         elif _options.max_lits == 1 and _options.ratio is not None:
             # --max=1 only allowed if all variables are exitential or universal
             if 0.0 < _options.ratio < 1.0:
-                parser.error("it is not possible to generate clauses with a " \
-                             "maximum of one literal and a ratio of {0:.2f}" \
-                             .format(_options.ratio))
+                parser.error(
+                    "it is not possible to generate clauses with a "
+                    "maximum of one literal and a ratio of {0:.2f}".format(
+                        _options.ratio
+                    )
+                )
 
         gen_params += " --max={0:d}".format(_options.max_lits)
 
     if _options.ratio is not None:
         if 0.0 < _options.ratio < 1.0:
             # minimum number of variables used in all clauses (worst case)
-            ex_lits = max(1, math.floor(_options.min_lits * _options.ratio)) \
-                      * _options.num_clauses
+            ex_lits = (
+                max(1, math.floor(_options.min_lits * _options.ratio))
+                * _options.num_clauses
+            )
             un_lits = (_options.min_lits * _options.num_clauses) - ex_lits
 
             if ex_lits < ex_vars or un_lits < un_vars:
-                parser.error("it is not possible to use all existential and " \
-                             "universal variables in the given number of " \
-                             "clauses. try -c {0:d} or more" \
-                             .format(max(ex_vars, un_vars)))
+                parser.error(
+                    "it is not possible to use all existential and "
+                    "universal variables in the given number of "
+                    "clauses. try -c {0:d} or more".format(max(ex_vars, un_vars))
+                )
 
     # output file
     if _options.filename is None:
@@ -355,11 +448,11 @@ def _init(comments):
             else:
                 gen_params += " --gzip"
                 try:
-                    outfile = gzip.open("{0:s}.gz".format(_options.filename), \
-                                        "wb")
+                    outfile = gzip.open("{0:s}.gz".format(_options.filename), "wb")
                 except gzip.CompressionError:
-                    parser.error("compression method 'gzip' is not supported " \
-                                 "on this system")
+                    parser.error(
+                        "compression method 'gzip' is not supported " "on this system"
+                    )
         except IOError:
             parser.error("could not open file")
 
@@ -380,8 +473,11 @@ def _init(comments):
         gen_params += " --sort"
 
     # save generation time and parameters as comments
-    comments.append("generated {0:s} with QBFuzz version {1:s}" \
-                    .format(time.strftime("%m-%d-%Y %H:%M:%S"), __version__))
+    comments.append(
+        "generated {0:s} with QBFuzz version {1:s}".format(
+            time.strftime("%m-%d-%Y %H:%M:%S"), __version__
+        )
+    )
     comments.append(gen_params)
 
     return outfile
@@ -432,7 +528,7 @@ def _get_quantifier(literal):
     """
     global _vcache
 
-    assert (literal > 0 or literal < 0)
+    assert literal > 0 or literal < 0
     return _vcache[abs(literal)][0]
 
 
@@ -446,7 +542,7 @@ def _get_scope_level(literal):
     """
     global _vcache
 
-    assert (literal > 0 or literal < 0)
+    assert literal > 0 or literal < 0
     return _vcache[abs(literal)][1]
 
 
@@ -461,7 +557,7 @@ def _get_occs_cnt(literal):
     """
     global _vcache
 
-    assert (literal > 0 or literal < 0)
+    assert literal > 0 or literal < 0
     return _vcache[abs(literal)][2]
 
 
@@ -476,14 +572,14 @@ def _sort_by_scope(clause):
 
     Returns the sorted clause.
     """
-    assert (len(clause) > 0)
+    assert len(clause) > 0
 
     scope_levels = [_get_scope_level(l) for l in clause]
     sorted_tuples = list(zip(scope_levels, map(abs, clause), clause))
     sorted_tuples.sort()
     sorted_clause = [t[2] for t in sorted_tuples]
 
-    assert (len(sorted_clause) == len(clause))
+    assert len(sorted_clause) == len(clause)
 
     return sorted_clause
 
@@ -574,8 +670,8 @@ def _generate_quantsets(num_vars, num_qsets, ratio):
             num_sets[UNIVERSAL] = math.floor(num_qsets / 2) + 1
             num_sets[EXISTENTIAL] = num_sets[UNIVERSAL] - 1
 
-    assert (num_sets[EXISTENTIAL] > 0 or num_sets[UNIVERSAL] > 0)
-    assert (num_sets[EXISTENTIAL] + num_sets[UNIVERSAL] == num_qsets)
+    assert num_sets[EXISTENTIAL] > 0 or num_sets[UNIVERSAL] > 0
+    assert num_sets[EXISTENTIAL] + num_sets[UNIVERSAL] == num_qsets
 
     # calculate number of existential and universal variables
     if ratio is not None:
@@ -592,15 +688,16 @@ def _generate_quantsets(num_vars, num_qsets, ratio):
         # we need at least num_sets[EXISTENTIAL] and at most num_sets[UNIVERSAL]
         # existential variables in order to be sure that we always have enough
         # variables for the specified amount of quantifier sets
-        _num_vars[EXISTENTIAL] = random.randint(num_sets[EXISTENTIAL],
-                                                num_vars - num_sets[UNIVERSAL])
+        _num_vars[EXISTENTIAL] = random.randint(
+            num_sets[EXISTENTIAL], num_vars - num_sets[UNIVERSAL]
+        )
 
     # remaining number of variables are universal
     _num_vars[UNIVERSAL] = num_vars - _num_vars[EXISTENTIAL]
     rem_vars = _num_vars.copy()
 
-    assert (_num_vars[EXISTENTIAL] + _num_vars[UNIVERSAL] == num_vars)
-    assert (num_sets[EXISTENTIAL] + num_sets[UNIVERSAL] == num_qsets)
+    assert _num_vars[EXISTENTIAL] + _num_vars[UNIVERSAL] == num_vars
+    assert num_sets[EXISTENTIAL] + num_sets[UNIVERSAL] == num_qsets
 
     # variables not yet used in quantifier sets
     vars = [v for v in range(1, num_vars + 1)]
@@ -616,20 +713,21 @@ def _generate_quantsets(num_vars, num_qsets, ratio):
         if num_sets[quantifier] == 1:  # last quantifier set
             vars_per_qset = rem_vars[quantifier]
         else:
-            vars_per_qset = random.randint(1, int(rem_vars[quantifier] /
-                                                  num_sets[quantifier]))
+            vars_per_qset = random.randint(
+                1, int(rem_vars[quantifier] / num_sets[quantifier])
+            )
 
         rem_vars[quantifier] -= vars_per_qset
         num_sets[quantifier] -= 1
 
-        assert (rem_vars[quantifier] >= 0)
+        assert rem_vars[quantifier] >= 0
 
         # add random variables to quantifier set
         for i in range(vars_per_qset):
-            assert (len(vars) > 0)
+            assert len(vars) > 0
             rand_index = random.randint(0, len(vars) - 1) % len(vars)
-            assert (rand_index >= 0)
-            assert (rand_index < len(vars))
+            assert rand_index >= 0
+            assert rand_index < len(vars)
             var = vars.pop(rand_index)
             # cache variable information (quantifier, scope level, occurrences)
             _vcache[var] = [quantifier, len(quantsets), 0]
@@ -643,14 +741,16 @@ def _generate_quantsets(num_vars, num_qsets, ratio):
         # set next quantifier
         qindex = (qindex + 1) & 1
 
-    assert (rem_vars[EXISTENTIAL] == 0)
-    assert (rem_vars[UNIVERSAL] == 0)
-    assert (num_sets[EXISTENTIAL] == 0)
-    assert (num_sets[UNIVERSAL] == 0)
-    assert (len(vars) == 0)
-    assert (len(quantsets) == num_qsets)
-    assert (len(_vcache) == num_vars)
-    assert (len(_qcache[EXISTENTIAL][UNUSED]) + len(_qcache[UNIVERSAL][UNUSED]) == num_vars)
+    assert rem_vars[EXISTENTIAL] == 0
+    assert rem_vars[UNIVERSAL] == 0
+    assert num_sets[EXISTENTIAL] == 0
+    assert num_sets[UNIVERSAL] == 0
+    assert len(vars) == 0
+    assert len(quantsets) == num_qsets
+    assert len(_vcache) == num_vars
+    assert (
+        len(_qcache[EXISTENTIAL][UNUSED]) + len(_qcache[UNIVERSAL][UNUSED]) == num_vars
+    )
 
     return quantsets
 
@@ -748,8 +848,9 @@ def _generate_num_lits(num_lits, ratio):
         lo_bound = num_lits - _get_num_variables(UNIVERSAL)
         if lo_bound < 0:
             lo_bound = 0
-        num_ex_lits = random.randint(lo_bound,
-                                     min(num_lits, _get_num_variables(EXISTENTIAL)))
+        num_ex_lits = random.randint(
+            lo_bound, min(num_lits, _get_num_variables(EXISTENTIAL))
+        )
 
     num_un_lits = num_lits - num_ex_lits
 
@@ -793,7 +894,7 @@ def _generate_clauses(num_vars, num_clauses, min_lits, max_lits, ratio):
 
         # add existential and universal literals to clause
         clause = _generate_clause(num_ex_lits, num_un_lits)
-        assert (len(clause) > 0)
+        assert len(clause) > 0
 
         # sort literals in scope if enabled
         if _options.sort:
@@ -809,11 +910,11 @@ def _generate_clauses(num_vars, num_clauses, min_lits, max_lits, ratio):
                 clauses.append(clause)
                 gen_clauses += 1
             else:
-                assert (len(clause) == 1)
+                assert len(clause) == 1
                 _update_occs_cnt(abs(clause[0]), -1)
 
-    assert (len(clauses) > 0)
-    assert (len(clauses) == num_clauses)
+    assert len(clauses) > 0
+    assert len(clauses) == num_clauses
 
     return clauses
 
@@ -885,7 +986,7 @@ def _clean_up_formula(num_vars, quantsets, clauses):
     for var in range(1, num_vars + 1):
         # found unused variable
         if _get_occs_cnt(var) == 0:
-            assert (var in _qcache[_get_quantifier(var)][UNUSED])
+            assert var in _qcache[_get_quantifier(var)][UNUSED]
             new_num_vars -= 1
             rem_vars += 1
             # calculate offset
@@ -947,7 +1048,7 @@ def _clean_up_formula(num_vars, quantsets, clauses):
     clause_cache = {}
     red_clauses = 0
     for clause in clauses[:]:
-        assert (len(clause) > 0)
+        assert len(clause) > 0
         key = _hash_clause(clause)
         if key in clause_cache:
             clauses.remove(clause)
@@ -1003,23 +1104,32 @@ def qbfuzz_main():
 
     # generate quantifier sets
     start = _start_task("generating quantifier sets...\t\t\t")
-    quantsets = _generate_quantsets(_options.num_vars, _options.num_qsets, _options.ratio)
+    quantsets = _generate_quantsets(
+        _options.num_vars, _options.num_qsets, _options.ratio
+    )
     _end_task(start)
 
     # generate clauses
     start = _start_task("generating clauses...\t\t\t\t")
-    clauses = _generate_clauses(_options.num_vars, _options.num_clauses,
-                                _options.min_lits, _options.max_lits,
-                                _options.ratio)
+    clauses = _generate_clauses(
+        _options.num_vars,
+        _options.num_clauses,
+        _options.min_lits,
+        _options.max_lits,
+        _options.ratio,
+    )
     _end_task(start)
 
     if _options.verbose and _options.reduce:
-        _print_info("{0:.2%} literals removed by forall reduction".format(_stat_removed_lits / _stat_total_lits))
+        _print_info(
+            "{0:.2%} literals removed by forall reduction".format(
+                _stat_removed_lits / _stat_total_lits
+            )
+        )
 
     # create free variables by removing them from random quantifier sets
     if _options.free_ratio is not None:
-        num_free_vars = max(1,
-                            math.floor(_options.num_vars * _options.free_ratio))
+        num_free_vars = max(1, math.floor(_options.num_vars * _options.free_ratio))
         while num_free_vars > 0:
             qindex = random.randint(0, len(quantsets) - 1)
             # check if quantifier set contains at least one variable
@@ -1055,7 +1165,7 @@ def _start_task(msg):
     global _options
 
     if _options.verbose:
-        print("\n\033[1;32m*\033[0;39m {0:s}".format(msg), end='', file=sys.stderr)
+        print("\n\033[1;32m*\033[0;39m {0:s}".format(msg), end="", file=sys.stderr)
         sys.stderr.flush()
         return time.time() * 1000
 
@@ -1069,7 +1179,11 @@ def _end_task(start):
     Prints amount of time used by specific task.
     """
     if start > 0:
-        print("[\033[1;32mdone\033[0;39m] {0:8.2f}ms".format(time.time() * 1000 - start), end='', file=sys.stderr)
+        print(
+            "[\033[1;32mdone\033[0;39m] {0:8.2f}ms".format(time.time() * 1000 - start),
+            end="",
+            file=sys.stderr,
+        )
 
 
 def _print_info(msg):
@@ -1078,11 +1192,11 @@ def _print_info(msg):
 
     Prints given message as information to last task.
     """
-    print("\n    {0:s}".format(msg), end='', file=sys.stderr)
+    print("\n    {0:s}".format(msg), end="", file=sys.stderr)
 
 
 if __name__ == "__main__":
-    """ QBFuzz main progam. """
+    """QBFuzz main progam."""
 
     try:
         qbfuzz_main()

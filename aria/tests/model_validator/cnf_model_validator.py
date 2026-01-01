@@ -1,6 +1,7 @@
 """
 Validate a CNF model
 """
+
 import os
 import sys
 import linecache
@@ -17,10 +18,10 @@ def parse_model(file_name):
 
 def parse_problem(prob_file, model):
     """Parse a problem file and return the status of the model."""
-    with open(prob_file, "r", encoding='utf-8') as file:
+    with open(prob_file, "r", encoding="utf-8") as file:
         for line in file:
             line = line.rstrip()
-            if len(line) == 0 or line[0] == 'p' or line[0] == 'c':
+            if len(line) == 0 or line[0] == "p" or line[0] == "c":
                 continue
             values = list(map(int, line.split()))
 

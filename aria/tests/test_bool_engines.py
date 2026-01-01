@@ -4,6 +4,7 @@ For testing theBoolean-level reasoning engines in the parallel CDCL(T) SMT solvi
 """
 
 from aria.tests import TestCase, main
+
 # from ..theory import SMTLibTheorySolver, SMTLibPortfolioTheorySolver
 from aria.tests.grammar_gene import gen_cnf_numeric_clauses
 from aria.bool.sat.pysat_solver import PySATSolver
@@ -23,9 +24,9 @@ class TestBoolEngines(TestCase):
                 print("SAT")
                 models = s.sample_models(10)
                 reduced_models = s.reduce_models(models)
-                assert (len(models) <= len(reduced_models))
+                assert len(models) <= len(reduced_models)
                 break
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

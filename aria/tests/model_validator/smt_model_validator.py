@@ -2,6 +2,7 @@
 From SMT-COMP
 https://github.com/SMT-COMP/postprocessors/tree/master/model-validation-track
 """
+
 import argparse
 import sys
 from os import path
@@ -9,6 +10,7 @@ from os import path
 from pysmt.exceptions import PysmtSyntaxError
 from pysmt.shortcuts import get_env
 from pysmt.smtlib.parser import SmtLibParser
+
 # pylint: disable=import-error,no-name-in-module
 from pysmt.smtlib.utils import SmtLibModelValidationSimplifier
 
@@ -17,12 +19,12 @@ get_env().allow_empty_var_names = True
 
 def read_model(parser, model_file, input_file):
     """Read a model file and return the status and the model."""
-    with open(model_file, encoding='utf-8') as script:
+    with open(model_file, encoding="utf-8") as script:
         lino = 0
         for line in script:
             lino += 1
             read_status = line.strip()
-            if read_status != 'success':
+            if read_status != "success":
                 break
 
         if read_status == "unknown":
@@ -31,7 +33,7 @@ def read_model(parser, model_file, input_file):
             sys.exit(0)
         if read_status == "unsat":
             status = None
-            with open(input_file, 'r', encoding='utf-8') as infile:
+            with open(input_file, "r", encoding="utf-8") as infile:
                 for line in infile:
                     if ":status" in line:
                         if "unsat" in line:
@@ -72,7 +74,7 @@ def read_model(parser, model_file, input_file):
 
 def read_smt_file(parser, smt_file):
     """Read a SMT file and return the formula and the symbols."""
-    with open(smt_file, encoding='utf-8') as stream:
+    with open(smt_file, encoding="utf-8") as stream:
         script = parser.get_script(stream)
         formula = script.get_strict_formula()
         return formula, script.get_declared_symbols()
@@ -82,10 +84,7 @@ def check_full_model(model, interpretation, symbols):
     """Check if the model is full."""
     if len(model) + len(interpretation) > len(symbols):
         print("model_validator_pysmt_status=UNKNOWN")
-        print(
-            "model_validator_pysmt_error="
-            "more_variables_in_model_than_input"
-        )
+        print("model_validator_pysmt_error=" "more_variables_in_model_than_input")
         sys.exit(0)
 
     for symbol in symbols:
@@ -132,28 +131,29 @@ def validate_model(smt_file, model_file, input_file):
         print("model_validator_pysmt_error=unhandled_exception")
         # starexec cut the last = instead of the first
         exception_str = (
-            str(exp).replace("'", "\\'")
+            str(exp)
+            .replace("'", "\\'")
             .replace('"', '\\"')
-            .replace('\n', ' ')
-            .replace('=', '⩵')
+            .replace("\n", " ")
+            .replace("=", "⩵")
         )
-        print(f"model_validator_pysmt_exception=\"{exception_str}\"")
+        print(f'model_validator_pysmt_exception="{exception_str}"')
         sys.exit(0)
 
 
 def main():
     parser = argparse.ArgumentParser(
         description=(
-            'Model validator for QF logics with bit-vectors '
-            'and linear arithemetic.'
+            "Model validator for QF logics with bit-vectors " "and linear arithemetic."
         )
     )
-    parser.add_argument('--smt2', type=str,
-                        help='SMT-LIB v2 benchmark',
-                        required=True)
-    parser.add_argument('--model', type=str,
-                        help='The full model returned by the SMT solver',
-                        required=True)
+    parser.add_argument("--smt2", type=str, help="SMT-LIB v2 benchmark", required=True)
+    parser.add_argument(
+        "--model",
+        type=str,
+        help="The full model returned by the SMT solver",
+        required=True,
+    )
 
     args = parser.parse_args()
     validate_model(args.smt2, args.model, args.smt2)
@@ -164,10 +164,6 @@ try:
 except Exception as e:
     print("model_validator_pysmt_status=UNKNOWN")
     print("model_validator_pysmt_error=toplevel_unhandled_exception")
-    exception_str = (
-        str(e).replace("'", "\\'")
-        .replace('"', '\\"')
-        .replace('\n', ' ')
-    )
-    print(f"model_validator_pysmt_exception=\"{exception_str}\"")
+    exception_str = str(e).replace("'", "\\'").replace('"', '\\"').replace("\n", " ")
+    print(f'model_validator_pysmt_exception="{exception_str}"')
     sys.exit(0)

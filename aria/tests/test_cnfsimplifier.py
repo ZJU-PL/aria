@@ -15,7 +15,7 @@ from aria.bool.cnfsimplifier import (
     cnf_tautoly_elimination,
     cnf_hidden_tautoly_elimination,
     cnf_blocked_clause_elimination,
-    cnf_hidden_blocked_clause_elimination
+    cnf_hidden_blocked_clause_elimination,
 )
 
 
@@ -29,8 +29,9 @@ def test_tautology_elimination():
 
     # Should remove the tautological clause [1, -1]
     expected = [[2, 3], [1, -2]]
-    assert sorted_clauses(result) == sorted_clauses(expected), \
-        f"Expected {expected}, got {result}"
+    assert sorted_clauses(result) == sorted_clauses(
+        expected
+    ), f"Expected {expected}, got {result}"
 
 
 def test_subsumption_elimination():
@@ -43,8 +44,9 @@ def test_subsumption_elimination():
 
     # Should remove [1, 2] as it's subsumed by [1]
     expected = [[1], [2, 3]]
-    assert sorted_clauses(result) == sorted_clauses(expected), \
-        f"Expected {expected}, got {result}"
+    assert sorted_clauses(result) == sorted_clauses(
+        expected
+    ), f"Expected {expected}, got {result}"
 
 
 def test_hidden_tautology_elimination():
@@ -56,8 +58,9 @@ def test_hidden_tautology_elimination():
     result = simplified.get_numeric_clauses()
 
     # Should identify and remove hidden tautologies
-    assert len(result) <= len(clauses), \
-        f"Expected fewer clauses than {len(clauses)}, got {len(result)}"
+    assert len(result) <= len(
+        clauses
+    ), f"Expected fewer clauses than {len(clauses)}, got {len(result)}"
 
 
 def test_blocked_clause_elimination():
@@ -74,12 +77,12 @@ def test_blocked_clause_elimination():
     result = simplified.get_numeric_clauses()
 
     # Test that simplification occurred
-    assert len(result) <= len(clauses), \
-        f"Expected {len(clauses)} or fewer clauses, got {len(result)}"
+    assert len(result) <= len(
+        clauses
+    ), f"Expected {len(clauses)} or fewer clauses, got {len(result)}"
 
     # Verify result validity
-    assert all(len(clause) > 0 for clause in result), \
-        "Empty clause found in result"
+    assert all(len(clause) > 0 for clause in result), "Empty clause found in result"
 
 
 def test_asymmetric_tautology_elimination():
@@ -90,8 +93,9 @@ def test_asymmetric_tautology_elimination():
     result = simplified.get_numeric_clauses()
 
     # Should remove asymmetric tautologies
-    assert len(result) < len(clauses), \
-        f"Expected fewer clauses than {len(clauses)}, got {len(result)}"
+    assert len(result) < len(
+        clauses
+    ), f"Expected fewer clauses than {len(clauses)}, got {len(result)}"
 
 
 def sorted_clauses(clauses: List[List[int]]) -> List[List[int]]:
@@ -108,7 +112,7 @@ def run_all_tests():
         test_subsumption_elimination,
         test_hidden_tautology_elimination,
         test_blocked_clause_elimination,
-        test_asymmetric_tautology_elimination
+        test_asymmetric_tautology_elimination,
     ]
 
     for test in tests:

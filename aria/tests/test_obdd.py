@@ -22,21 +22,21 @@ class TestOBDD(TestCase):
         clausal_form, nvars = parse_cnf_string(cnf_foo3, True)
         print(clausal_form)
         # Using separator as key
-        print('================================================')
-        print('Using separator as key')
+        print("================================================")
+        print("Using separator as key")
         compiler = BDD_Compiler(nvars, clausal_form)
-        obdd = compiler.compile(key_type='separator')
+        obdd = compiler.compile(key_type="separator")
         obdd.print_info(nvars)
 
         # Using cutset as key
-        print('================================================')
-        print('Using cutset as key')
+        print("================================================")
+        print("Using cutset as key")
         compiler = BDD_Compiler(nvars, clausal_form)
-        obdd = compiler.compile(key_type='cutset')
+        obdd = compiler.compile(key_type="cutset")
         obdd.print_info(nvars)
 
-        print('End')
+        print("End")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -33,7 +33,9 @@ class TestSygusInv(TestCase):
 
 (check-synth)
 """
-        self.temp_file = tempfile.NamedTemporaryFile(suffix='.sl', mode='w', delete=False)
+        self.temp_file = tempfile.NamedTemporaryFile(
+            suffix=".sl", mode="w", delete=False
+        )
         self.temp_file.write(self.sample_sygus_content)
         self.temp_file.close()
 
@@ -48,13 +50,13 @@ class TestSygusInv(TestCase):
         """Test parsing a SyGuS file."""
         result = self.sygus_inv.parse_sygus_file(self.temp_file.name)
 
-        self.assertEqual(result['logic'], 'LIA')
-        self.assertEqual(result['inv_fun_name'], 'inv_fun')
-        self.assertEqual(result['var_list'], ['x', 'y'])
-        self.assertEqual(result['var_sorts'], {'x': 'Int', 'y': 'Int'})
-        self.assertTrue('pre_body' in result)
-        self.assertTrue('trans_body' in result)
-        self.assertTrue('post_body' in result)
+        self.assertEqual(result["logic"], "LIA")
+        self.assertEqual(result["inv_fun_name"], "inv_fun")
+        self.assertEqual(result["var_list"], ["x", "y"])
+        self.assertEqual(result["var_sorts"], {"x": "Int", "y": "Int"})
+        self.assertTrue("pre_body" in result)
+        self.assertTrue("trans_body" in result)
+        self.assertTrue("post_body" in result)
 
     def test_synthesize_invariant(self):
         """Test synthesizing an invariant function.
@@ -87,5 +89,5 @@ class TestSygusInv(TestCase):
             print("Synthesized invariant:", result)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

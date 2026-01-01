@@ -36,7 +36,11 @@ def get_free_vars(expr: z3.AstRef) -> list[z3.ExprRef]:
             continue
         seen.add(key)
         try:
-            if z3.is_const(e) and e.num_args() == 0 and e.decl().kind() == z3.Z3_OP_UNINTERPRETED:
+            if (
+                z3.is_const(e)
+                and e.num_args() == 0
+                and e.decl().kind() == z3.Z3_OP_UNINTERPRETED
+            ):
                 out.append(e)
         except Exception:
             pass

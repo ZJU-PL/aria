@@ -12,12 +12,12 @@ class TestGenerator(TestCase):
             fmlstr = generate_from_grammar_as_str(logic="QF_BV")
             if not fmlstr:  # generation error?
                 self.skipTest("Formula generation error")
-                
+
             # Check if the output is an error message or usage information
-            if fmlstr.startswith('usage:') or 'error:' in fmlstr:
+            if fmlstr.startswith("usage:") or "error:" in fmlstr:
                 # Skip the test if we get command line output instead of SMT-LIB2 formula
                 self.skipTest("Invalid SMT-LIB2 formula generated")
-                
+
             fml = z3.And(z3.parse_smt2_string(fmlstr))
             # Just verify we can parse the formula
             self.assertIsNotNone(fml)
@@ -28,5 +28,5 @@ class TestGenerator(TestCase):
             self.fail(f"Exception occurred: {str(ex)}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

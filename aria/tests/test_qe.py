@@ -96,5 +96,5 @@ class TestQuantifierElimination(TestCase):
         assert is_equivalent(qf4, qfml4)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

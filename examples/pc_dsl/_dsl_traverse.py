@@ -56,7 +56,9 @@ def traverse(value: Value, vars: dict[str, Any]):
                 return z3.Not(arg)
             return eval(f"~(__arg)", {"__arg": arg})
         else:
-            return eval(f"{UNARY_OPS[value.op]} (__arg)", {"__arg": traverse(value.arg, vars)})
+            return eval(
+                f"{UNARY_OPS[value.op]} (__arg)", {"__arg": traverse(value.arg, vars)}
+            )
     elif isinstance(value, Binop):
         if value.op == "__pow__":
             base = traverse(value.left, vars)
@@ -70,12 +72,17 @@ def traverse(value: Value, vars: dict[str, Any]):
                     k = None
             except Exception:
                 k = None
-            if hasattr(base, "sort") and base.sort() == z3.IntSort() and isinstance(k, int) and k >= 0:
+            if (
+                hasattr(base, "sort")
+                and base.sort() == z3.IntSort()
+                and isinstance(k, int)
+                and k >= 0
+            ):
                 result = z3.IntVal(1)
                 for _ in range(k):
                     result = result * base
                 return result
-            return base ** exp
+            return base**exp
         if value.op in ("__and__", "__or__", "__xor__"):
             left = traverse(value.left, vars)
             right = traverse(value.right, vars)
@@ -85,10 +92,13 @@ def traverse(value: Value, vars: dict[str, Any]):
                 if value.op == "__or__":
                     return z3.Or(left, right)
                 return z3.Xor(left, right)
-            return eval(f"(__left) {BIN_OPS[value.op]} (__right)", {
-                "__left": coerce_int_to_bv(left, right),
-                "__right": coerce_int_to_bv(right, left),
-            })
+            return eval(
+                f"(__left) {BIN_OPS[value.op]} (__right)",
+                {
+                    "__left": coerce_int_to_bv(left, right),
+                    "__right": coerce_int_to_bv(right, left),
+                },
+            )
         elif value.op in ("__rshift__", "__lshift__"):
             left = traverse(value.left, vars)
             right = traverse(value.right, vars)
@@ -97,10 +107,13 @@ def traverse(value: Value, vars: dict[str, Any]):
                     return z3.Implies(left, right)
                 else:
                     return z3.Implies(right, left)
-            return eval(f"(__left) {BIN_OPS[value.op]} (__right)", {
-                "__left": coerce_int_to_bv(left, right),
-                "__right": coerce_int_to_bv(right, left),
-            })
+            return eval(
+                f"(__left) {BIN_OPS[value.op]} (__right)",
+                {
+                    "__left": coerce_int_to_bv(left, right),
+                    "__right": coerce_int_to_bv(right, left),
+                },
+            )
         else:
             left = traverse(value.left, vars)
             right = traverse(value.right, vars)
@@ -113,11 +126,24 @@ def traverse(value: Value, vars: dict[str, Any]):
                     return z3.fpMul(DEFAULT_RM, left, right)
                 if value.op == "__truediv__":
                     return z3.fpDiv(DEFAULT_RM, left, right)
-                if value.op in ("__lt__", "__le__", "__gt__", "__ge__", "__eq__", "__ne__"):
-                    return eval(f"(__left) {BIN_OPS[value.op]} (__right)", {"__left": left, "__right": right})
+                if value.op in (
+                    "__lt__",
+                    "__le__",
+                    "__gt__",
+                    "__ge__",
+                    "__eq__",
+                    "__ne__",
+                ):
+                    return eval(
+                        f"(__left) {BIN_OPS[value.op]} (__right)",
+                        {"__left": left, "__right": right},
+                    )
             left = coerce_int_to_bv(left, right)
             right = coerce_int_to_bv(right, left)
-            return eval(f"(__left) {BIN_OPS[value.op]} (__right)", {"__left": left, "__right": right})
+            return eval(
+                f"(__left) {BIN_OPS[value.op]} (__right)",
+                {"__left": left, "__right": right},
+            )
     elif isinstance(value, Call):
         return traverse(value.fn, vars)(*(traverse(arg, vars) for arg in value.args))
     elif isinstance(value, Index):

@@ -10,7 +10,11 @@ from aria.tests.allpairspy import AllPairs
 class Test_pairewise_OrderedDict:
     def test_normal(self):
         parameters = OrderedDict(
-            {"brand": ["Brand X", "Brand Y"], "os": ["NT", "2000", "XP"], "minute": [15, 30, 60]}
+            {
+                "brand": ["Brand X", "Brand Y"],
+                "os": ["NT", "2000", "XP"],
+                "minute": [15, 30, 60],
+            }
         )
 
         for pairs in AllPairs(parameters):
@@ -241,7 +245,9 @@ class Test_pairewise_filter:
         assert list(
             AllPairs(
                 [x[1] for x in parameters],
-                filter_func=lambda values: is_valid_combination(values, [x[0] for x in parameters]),
+                filter_func=lambda values: is_valid_combination(
+                    values, [x[0] for x in parameters]
+                ),
             )
         ) == [
             ["Brand X", "98", "Internal", "Salaried", 6],

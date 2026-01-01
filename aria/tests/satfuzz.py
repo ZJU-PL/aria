@@ -148,7 +148,7 @@ if g_min_rclause_len > g_max_rclause_len:
     print("minimum random clause length must not be > maximum")
     sys.exit(1)
 
-g_num_vars = random.randint(g_min_num_vars, g_max_num_vars);
+g_num_vars = random.randint(g_min_num_vars, g_max_num_vars)
 for i in range(0, g_num_vars):
     g_unfinished1[str(i)] = g_nodes[str(i)] = Node(VAR)
     g_id += 1
@@ -201,7 +201,7 @@ while len(g_unfinished2.keys()) > 1:
     g_unfinished2[str(g_id)] = g_nodes[str(g_id)] = Node(op, n0, n1, neg0, neg1)
     g_id += 1
 
-assert (len(g_unfinished2) == 1)
+assert len(g_unfinished2) == 1
 
 # tseitin transformation
 stack = list()
@@ -212,14 +212,14 @@ root = list(g_unfinished2.values())[0]
 stack.append(root)
 while len(stack) > 0:
     cur = stack.pop()
-    assert (cur != None)
-    assert (cur.mark >= 0 and cur.mark <= 2)
+    assert cur != None
+    assert cur.mark >= 0 and cur.mark <= 2
 
     if cur.mark == 2:
         continue
 
     if cur.kind == VAR:
-        assert (cur.cnf_id == 0)
+        assert cur.cnf_id == 0
         cur.cnf_id = cnf_id
         cnf_id += 1
         cur.mark = 2
@@ -230,17 +230,17 @@ while len(stack) > 0:
             stack.append(cur.n1)
             stack.append(cur.n0)
         else:
-            assert (cur.mark == 1)
+            assert cur.mark == 1
             cur.mark = 2
-            assert (cur.cnf_id == 0)
+            assert cur.cnf_id == 0
             x = cur.cnf_id = cnf_id
             cnf_id += 1
             y = cur.n0.cnf_id
-            assert (y != 0)
+            assert y != 0
             if cur.neg_n0:
                 y = -y
             z = cur.n1.cnf_id
-            assert (z != 0)
+            assert z != 0
             if cur.neg_n1:
                 z = -z
 
@@ -320,7 +320,7 @@ while len(stack) > 0:
                     cnf += " 0\n"
                     num_clauses += 1
             else:
-                assert (cur.kind == XOR)
+                assert cur.kind == XOR
                 if g_taut or (-y != -z and -y != -x and z != -x):
                     cnf += str(-y)
                     if g_multilit or -y != z:
@@ -354,21 +354,20 @@ while len(stack) > 0:
                     cnf += " 0\n"
                     num_clauses += 1
 
-assert (len(g_nodes) == g_id)
+assert len(g_nodes) == g_id
 g_rclauses_perc = random.randint(g_min_rclauses_perc, g_max_rclauses_perc)
 num_rclauses = int(round((g_rclauses_perc / 100.0) * num_clauses))
 for i in range(0, num_rclauses):
     clause_len = random.randint(g_min_rclause_len, g_max_rclause_len)
-    assert (clause_len > 0)
+    assert clause_len > 0
     g_hash.clear()
     for j in range(0, clause_len):
         id = random.randint(0, g_id - 1)
         x = g_nodes[str(id)].cnf_id
-        assert (x != 0)
+        assert x != 0
         if random.randint(0, 1) == 1:
             x = -x
-        if (g_taut or not str(-x) in g_hash) and \
-                (g_multilit or not str(x) in g_hash):
+        if (g_taut or not str(-x) in g_hash) and (g_multilit or not str(x) in g_hash):
             cnf += str(x) + " "
             g_hash[str(x)] = True
     cnf += "0\n"
@@ -376,5 +375,5 @@ num_clauses += num_rclauses
 
 print("p cnf " + str(cnf_id - 1) + " " + str(num_clauses + 1))
 sys.stdout.write(cnf)
-assert (root.cnf_id != 0)
+assert root.cnf_id != 0
 print(str(root.cnf_id) + " 0")

@@ -20,6 +20,7 @@ import os
 import subprocess
 from z3 import *
 
+
 def process_file(source_file, output_file_path, unwind, timeout):
     """Process a single C file using CBMC and save the SMT2 output.
 
@@ -36,8 +37,16 @@ def process_file(source_file, output_file_path, unwind, timeout):
 
     # Construct CBMC command
     cbmc_command = [
-        'timeout', str(timeout), 'cbmc', '--smt2', source_file,
-        '--outfile', output_file_path, '--z3', '--unwind', str(unwind)
+        "timeout",
+        str(timeout),
+        "cbmc",
+        "--smt2",
+        source_file,
+        "--outfile",
+        output_file_path,
+        "--z3",
+        "--unwind",
+        str(unwind),
     ]
 
     # Execute CBMC command
@@ -52,9 +61,9 @@ def process_file(source_file, output_file_path, unwind, timeout):
 
         # Check if output file contains "Array" string
         if os.path.exists(output_file_path):
-            with open(output_file_path, 'r') as f:
+            with open(output_file_path, "r") as f:
                 content = f.read()
-                if 'Array' in content:
+                if "Array" in content:
                     os.remove(output_file_path)
                     print(f"Deleted file containing Array: {output_file_path}")
 
@@ -63,16 +72,31 @@ def process_file(source_file, output_file_path, unwind, timeout):
         if os.path.exists(output_file_path):
             os.remove(output_file_path)
 
+
 def main():
-    parser = argparse.ArgumentParser(description='Collect CBMC queries from C source files')
-    parser.add_argument('--source-dir', required=True,
-                       help='Directory containing C source files to process')
-    parser.add_argument('--output-dir', required=True,
-                       help='Directory where SMT2 files will be saved')
-    parser.add_argument('--unwind', type=int, default=10,
-                       help='Maximum number of loop unwindings (default: 10)')
-    parser.add_argument('--timeout', type=int, default=600,
-                       help='Timeout in seconds for each file processing (default: 600)')
+    parser = argparse.ArgumentParser(
+        description="Collect CBMC queries from C source files"
+    )
+    parser.add_argument(
+        "--source-dir",
+        required=True,
+        help="Directory containing C source files to process",
+    )
+    parser.add_argument(
+        "--output-dir", required=True, help="Directory where SMT2 files will be saved"
+    )
+    parser.add_argument(
+        "--unwind",
+        type=int,
+        default=10,
+        help="Maximum number of loop unwindings (default: 10)",
+    )
+    parser.add_argument(
+        "--timeout",
+        type=int,
+        default=600,
+        help="Timeout in seconds for each file processing (default: 600)",
+    )
 
     args = parser.parse_args()
 
@@ -83,17 +107,18 @@ def main():
     # Process all .c files in the source directory
     for root, dirs, files in os.walk(args.source_dir):
         for file in files:
-            if file.endswith('.c'):
+            if file.endswith(".c"):
                 # Construct full path for source file
                 source_file = os.path.join(root, file)
 
                 # Construct output file path
                 relative_path = os.path.relpath(root, args.source_dir)
-                output_file_path = os.path.join(args.output_dir, relative_path,
-                                              file.replace('.c', '.smt2'))
+                output_file_path = os.path.join(
+                    args.output_dir, relative_path, file.replace(".c", ".smt2")
+                )
 
                 process_file(source_file, output_file_path, args.unwind, args.timeout)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

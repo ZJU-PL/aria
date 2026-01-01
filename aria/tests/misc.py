@@ -22,7 +22,7 @@ def gen_small_formula(logic: str):
 
 def is_simple_formula(fml: z3.ExprRef):
     # for pruning sample formulas that can be solved by the pre-processing
-    clauses = z3.Then('simplify', 'elim-uncnstr', 'solve-eqs', 'tseitin-cnf')(fml)
+    clauses = z3.Then("simplify", "elim-uncnstr", "solve-eqs", "tseitin-cnf")(fml)
     after_simp = clauses.as_expr()
     if z3.is_false(after_simp) or z3.is_true(after_simp):
         return True

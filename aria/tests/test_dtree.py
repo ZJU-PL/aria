@@ -35,5 +35,5 @@ class TestDTree(TestCase):
             assert clause in dtree.clauses
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

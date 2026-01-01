@@ -5,7 +5,10 @@ import os
 
 # Add the parent directory to the path to allow importing from aria
 # sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-from aria.utils.values import RE_GET_EXPR_VALUE_ALL, convert_smtlib_models_to_python_value
+from aria.utils.values import (
+    RE_GET_EXPR_VALUE_ALL,
+    convert_smtlib_models_to_python_value,
+)
 
 
 def test_regex_match():
@@ -17,7 +20,7 @@ def test_regex_match():
         "(flag true)",  # 布尔值
         "(count 42)",  # 整数
         "(rate 3.14)",  # 实数
-        "(name \"hello\")",  # 字符串
+        '(name "hello")',  # 字符串
         "(neg -10)",  # 负整数
         "(small -0.005)",  # 负实数
     ]
@@ -47,16 +50,19 @@ def test_value_conversion():
         ("false", False),  # 布尔值 false
         ("42", 42),  # 整数
         ("3.14", 3.14),  # 实数
-        ("\"hello\"", "hello"),  # 字符串
+        ('"hello"', "hello"),  # 字符串
         ("-10", -10),  # 负整数
         ("-0.005", -0.005),  # 负实数
     ]
 
     for input_val, expected in test_cases:
         result = convert_smtlib_models_to_python_value(input_val)
-        assert result == expected, f"Failed conversion for {input_val}: got {result}, expected {expected}"
+        assert (
+            result == expected
+        ), f"Failed conversion for {input_val}: got {result}, expected {expected}"
         assert type(result) == type(
-            expected), f"Type mismatch for {input_val}: got {type(result)}, expected {type(expected)}"
+            expected
+        ), f"Type mismatch for {input_val}: got {type(result)}, expected {type(expected)}"
 
 
 def test_extraction_from_smt_output():
@@ -73,20 +79,24 @@ def test_extraction_from_smt_output():
 
     # 使用正则表达式模拟提取值
     # 注：在实际应用中，可能需要更复杂的解析逻辑
-    matches = re.findall(r'\(define-fun ([a-zA-Z0-9_]*) \(\) [a-zA-Z]+ ([^)]+)\)', smt_output)
+    matches = re.findall(
+        r"\(define-fun ([a-zA-Z0-9_]*) \(\) [a-zA-Z]+ ([^)]+)\)", smt_output
+    )
     expected_values = {
-        'x': 42,
-        'y': 3.14,
-        's': "hello",
-        'b': True,
-        'bv': 31,
+        "x": 42,
+        "y": 3.14,
+        "s": "hello",
+        "b": True,
+        "bv": 31,
     }
 
     for var, val_str in matches:
         val_str = val_str.strip()
         if var in expected_values:
             val = convert_smtlib_models_to_python_value(val_str)
-            assert val == expected_values[var], f"Failed for variable {var}: got {val}, expected {expected_values[var]}"
+            assert (
+                val == expected_values[var]
+            ), f"Failed for variable {var}: got {val}, expected {expected_values[var]}"
 
 
 def test_binary_edge_cases():
@@ -98,15 +108,18 @@ def test_binary_edge_cases():
         ("#b1111", 15),  # Multiple ones
         ("#b10000000", 128),  # Power of two
         ("#b11111111", 255),  # 8-bit max value
-        ("#b1" + "0" * 63, 2 ** 63),  # Large binary number
-        ("#b" + "1" * 64, 2 ** 64 - 1),  # Very large binary number
+        ("#b1" + "0" * 63, 2**63),  # Large binary number
+        ("#b" + "1" * 64, 2**64 - 1),  # Very large binary number
     ]
 
     for input_val, expected in test_cases:
         result = convert_smtlib_models_to_python_value(input_val)
-        assert result == expected, f"Failed conversion for {input_val}: got {result}, expected {expected}"
+        assert (
+            result == expected
+        ), f"Failed conversion for {input_val}: got {result}, expected {expected}"
         assert type(result) == type(
-            expected), f"Type mismatch for {input_val}: got {type(result)}, expected {type(expected)}"
+            expected
+        ), f"Type mismatch for {input_val}: got {type(result)}, expected {type(expected)}"
 
 
 def test_hex_edge_cases():
@@ -119,16 +132,19 @@ def test_hex_edge_cases():
         ("#xff", 255),  # 8-bit max value
         ("#xFF", 255),  # Case insensitivity
         ("#xdeadbeef", 3735928559),  # Common test value
-        ("#x" + "f" * 16, 2 ** 64 - 1),  # 64-bit max value
+        ("#x" + "f" * 16, 2**64 - 1),  # 64-bit max value
         ("#x" + "0" * 15 + "1", 1),  # Leading zeros in large number
         ("#xffffffffffffffff", 18446744073709551615),  # Very large hex number
     ]
 
     for input_val, expected in test_cases:
         result = convert_smtlib_models_to_python_value(input_val)
-        assert result == expected, f"Failed conversion for {input_val}: got {result}, expected {expected}"
+        assert (
+            result == expected
+        ), f"Failed conversion for {input_val}: got {result}, expected {expected}"
         assert type(result) == type(
-            expected), f"Type mismatch for {input_val}: got {type(result)}, expected {type(expected)}"
+            expected
+        ), f"Type mismatch for {input_val}: got {type(result)}, expected {type(expected)}"
 
 
 def test_bitvector_edge_cases():
@@ -140,17 +156,26 @@ def test_bitvector_edge_cases():
         ("(_ bv1 1)", 1),  # 1-bit one
         ("(_ bv42 32)", 42),  # 32-bit common value
         ("(_ bv4294967295 32)", 4294967295),  # 32-bit max value
-        ("(_ bv9223372036854775807 64)", 9223372036854775807),  # 64-bit max signed value
-        ("(_ bv18446744073709551615 64)", 18446744073709551615),  # 64-bit max unsigned value
+        (
+            "(_ bv9223372036854775807 64)",
+            9223372036854775807,
+        ),  # 64-bit max signed value
+        (
+            "(_ bv18446744073709551615 64)",
+            18446744073709551615,
+        ),  # 64-bit max unsigned value
         ("_ bv0 8", 0),  # Alternative syntax without parentheses
         ("_ bv255 8", 255),  # Alternative syntax without parentheses
     ]
 
     for input_val, expected in test_cases:
         result = convert_smtlib_models_to_python_value(input_val)
-        assert result == expected, f"Failed conversion for {input_val}: got {result}, expected {expected}"
+        assert (
+            result == expected
+        ), f"Failed conversion for {input_val}: got {result}, expected {expected}"
         assert type(result) == type(
-            expected), f"Type mismatch for {input_val}: got {type(result)}, expected {type(expected)}"
+            expected
+        ), f"Type mismatch for {input_val}: got {type(result)}, expected {type(expected)}"
 
 
 def test_numeric_edge_cases():
@@ -169,8 +194,14 @@ def test_numeric_edge_cases():
         ("0.1", 0.1),  # Simple float
         ("-0.1", -0.1),  # Negative float
         ("3.1415926", 3.1415926),  # Pi approximation
-        ("1.0e10", 1.0e10),  # Scientific notation (not supported in current implementation)
-        ("1.0e-10", 1.0e-10),  # Negative exponent (not supported in current implementation)
+        (
+            "1.0e10",
+            1.0e10,
+        ),  # Scientific notation (not supported in current implementation)
+        (
+            "1.0e-10",
+            1.0e-10,
+        ),  # Negative exponent (not supported in current implementation)
     ]
 
     for input_val, expected in test_cases:
@@ -178,34 +209,40 @@ def test_numeric_edge_cases():
             # Skip scientific notation tests if not supported
             continue
         result = convert_smtlib_models_to_python_value(input_val)
-        assert result == expected, f"Failed conversion for {input_val}: got {result}, expected {expected}"
+        assert (
+            result == expected
+        ), f"Failed conversion for {input_val}: got {result}, expected {expected}"
         assert type(result) == type(
-            expected), f"Type mismatch for {input_val}: got {type(result)}, expected {type(expected)}"
+            expected
+        ), f"Type mismatch for {input_val}: got {type(result)}, expected {type(expected)}"
 
 
 def test_string_edge_cases():
     """Test string value edge cases"""
     test_cases = [
-        ("\"\"", ""),  # Empty string
-        ("\"hello\"", "hello"),  # Basic string
-        ("\"123\"", "123"),  # Numeric string
-        ("\"true\"", "true"),  # Boolean-like string
-        ("\"false\"", "false"),  # Boolean-like string
-        ("\"#x1F\"", "#x1F"),  # Hex-like string
-        ("\"\\\"escaped\\\"\"", "\\\"escaped\\\""),  # Escaped quotes (keeps escaping)
-        ("\"\\\\backslash\"", "\\\\backslash"),  # Escaped backslash (keeps escaping)
-        ("\"Line1\\nLine2\"", "Line1\\nLine2"),  # Newline character
-        ("\"Tab\\tCharacter\"", "Tab\\tCharacter"),  # Tab character
-        ("\"Unicode: \\u03C0\"", "Unicode: \\u03C0"),  # Unicode character
-        ("\"Very long string " + "x" * 100 + "\"", "Very long string " + "x" * 100),
+        ('""', ""),  # Empty string
+        ('"hello"', "hello"),  # Basic string
+        ('"123"', "123"),  # Numeric string
+        ('"true"', "true"),  # Boolean-like string
+        ('"false"', "false"),  # Boolean-like string
+        ('"#x1F"', "#x1F"),  # Hex-like string
+        ('"\\"escaped\\""', '\\"escaped\\"'),  # Escaped quotes (keeps escaping)
+        ('"\\\\backslash"', "\\\\backslash"),  # Escaped backslash (keeps escaping)
+        ('"Line1\\nLine2"', "Line1\\nLine2"),  # Newline character
+        ('"Tab\\tCharacter"', "Tab\\tCharacter"),  # Tab character
+        ('"Unicode: \\u03C0"', "Unicode: \\u03C0"),  # Unicode character
+        ('"Very long string ' + "x" * 100 + '"', "Very long string " + "x" * 100),
         # Long string (shortened to avoid test slowness)
     ]
 
     for input_val, expected in test_cases:
         result = convert_smtlib_models_to_python_value(input_val)
-        assert result == expected, f"Failed conversion for {input_val}: got {result}, expected {expected}"
+        assert (
+            result == expected
+        ), f"Failed conversion for {input_val}: got {result}, expected {expected}"
         assert type(result) == type(
-            expected), f"Type mismatch for {input_val}: got {type(result)}, expected {type(expected)}"
+            expected
+        ), f"Type mismatch for {input_val}: got {type(result)}, expected {type(expected)}"
 
 
 def test_boolean_edge_cases():
@@ -222,9 +259,12 @@ def test_boolean_edge_cases():
 
     for input_val, expected in test_cases:
         result = convert_smtlib_models_to_python_value(input_val)
-        assert result == expected, f"Failed conversion for {input_val}: got {result}, expected {expected}"
+        assert (
+            result == expected
+        ), f"Failed conversion for {input_val}: got {result}, expected {expected}"
         assert type(result) == type(
-            expected), f"Type mismatch for {input_val}: got {type(result)}, expected {type(expected)}"
+            expected
+        ), f"Type mismatch for {input_val}: got {type(result)}, expected {type(expected)}"
 
 
 def test_regex_match_complex_cases():
@@ -236,7 +276,7 @@ def test_regex_match_complex_cases():
         "(flag_123 false)",  # Boolean with complex name
         "(count_it -42000)",  # Large negative integer
         "(precise_rate -3.141592654)",  # High precision negative real
-        "(long_name \"hello world with spaces\")",  # String with spaces
+        '(long_name "hello world with spaces")',  # String with spaces
         "(multi_line \n #b101)",  # Newline in the expression
         "(spaced_out  42)",  # Reasonable amount of whitespace
     ]
@@ -270,25 +310,29 @@ def test_complex_smt_output_extraction():
     """
 
     # Use regex to extract model definitions for non-BitVec values
-    matches = re.findall(r'\(define-fun ([a-zA-Z0-9_]*) \(\) (?!_)([a-zA-Z_]+) ([^)]+)\)', smt_output)
+    matches = re.findall(
+        r"\(define-fun ([a-zA-Z0-9_]*) \(\) (?!_)([a-zA-Z_]+) ([^)]+)\)", smt_output
+    )
 
     # Extract BitVec values separately with a specific regex
-    bv_matches = re.findall(r'\(define-fun ([a-zA-Z0-9_]*) \(\) \(_ BitVec [0-9]+\) ([^)]+)\)', smt_output)
+    bv_matches = re.findall(
+        r"\(define-fun ([a-zA-Z0-9_]*) \(\) \(_ BitVec [0-9]+\) ([^)]+)\)", smt_output
+    )
 
     expected_values = {
-        'x': 42,
-        'negative_int': -100,
-        'y': 3.14159265358979,
-        'negative_real': -0.00000001,
-        'empty_string': "",
-        's': "hello world",
-        'escaped_string': "Line1\\nLine2\\t\\\"quoted\\\"",  # Escaping preserved in the actual implementation
-        'b_true': True,
-        'b_false': False,
-        'bv_zero': 0,
-        'bv_max': 255,
-        'bv_large': 18446744073709551615,
-        'bin_val': 10,
+        "x": 42,
+        "negative_int": -100,
+        "y": 3.14159265358979,
+        "negative_real": -0.00000001,
+        "empty_string": "",
+        "s": "hello world",
+        "escaped_string": 'Line1\\nLine2\\t\\"quoted\\"',  # Escaping preserved in the actual implementation
+        "b_true": True,
+        "b_false": False,
+        "bv_zero": 0,
+        "bv_max": 255,
+        "bv_large": 18446744073709551615,
+        "bin_val": 10,
     }
 
     # Track which variables we've tested
@@ -302,13 +346,16 @@ def test_complex_smt_output_extraction():
             val = convert_smtlib_models_to_python_value(val_str)
             if isinstance(expected_values[var], float):
                 # Use approximate comparison for floats
-                assert abs(val - expected_values[
-                    var]) < 1e-10, f"Failed for variable {var}: got {val}, expected {expected_values[var]}"
+                assert (
+                    abs(val - expected_values[var]) < 1e-10
+                ), f"Failed for variable {var}: got {val}, expected {expected_values[var]}"
             else:
-                assert val == expected_values[
-                    var], f"Failed for variable {var}: got {val}, expected {expected_values[var]}"
-            assert type(val) == type(expected_values[
-                                         var]), f"Type mismatch for {var}: got {type(val)}, expected {type(expected_values[var])}"
+                assert (
+                    val == expected_values[var]
+                ), f"Failed for variable {var}: got {val}, expected {expected_values[var]}"
+            assert type(val) == type(
+                expected_values[var]
+            ), f"Type mismatch for {var}: got {type(val)}, expected {type(expected_values[var])}"
 
     # Process BitVec values
     for var, val_str in bv_matches:
@@ -316,13 +363,17 @@ def test_complex_smt_output_extraction():
         if var in expected_values:
             tested_vars.add(var)
             val = convert_smtlib_models_to_python_value(val_str)
-            assert val == expected_values[var], f"Failed for variable {var}: got {val}, expected {expected_values[var]}"
-            assert type(val) == type(expected_values[
-                                         var]), f"Type mismatch for {var}: got {type(val)}, expected {type(expected_values[var])}"
+            assert (
+                val == expected_values[var]
+            ), f"Failed for variable {var}: got {val}, expected {expected_values[var]}"
+            assert type(val) == type(
+                expected_values[var]
+            ), f"Type mismatch for {var}: got {type(val)}, expected {type(expected_values[var])}"
 
     # Verify that we've tested all expected variables
     assert tested_vars == set(
-        expected_values.keys()), f"Not all variables were tested: missing {set(expected_values.keys()) - tested_vars}"
+        expected_values.keys()
+    ), f"Not all variables were tested: missing {set(expected_values.keys()) - tested_vars}"
 
 
 def test_scientific_notation_handling():
@@ -343,9 +394,12 @@ def test_scientific_notation_handling():
 
     for input_val, expected in supported_cases:
         result = convert_smtlib_models_to_python_value(input_val)
-        assert abs(result - expected) < 1e-15, f"Failed conversion for {input_val}: got {result}, expected {expected}"
+        assert (
+            abs(result - expected) < 1e-15
+        ), f"Failed conversion for {input_val}: got {result}, expected {expected}"
         assert type(result) == type(
-            expected), f"Type mismatch for {input_val}: got {type(result)}, expected {type(expected)}"
+            expected
+        ), f"Type mismatch for {input_val}: got {type(result)}, expected {type(expected)}"
 
     # For unsupported cases, we just document the behavior without asserting
     # This helps with understanding current implementation limitations

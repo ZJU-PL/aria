@@ -12,6 +12,7 @@ from aria.allpairspy import AllPairs
 
 Parameters = Dict[str, List[str]]
 
+
 # --------------------------------------------------------------------------- #
 # Test-case generator                                                         #
 # --------------------------------------------------------------------------- #
@@ -21,7 +22,7 @@ def generate_pairwise(parameters: Parameters) -> Iterator[Dict[str, str]]:
 
     >>> for case in generate_pairwise({...}): ...
     """
-    keys = list(parameters)        # preserves insertion order (≥3.7)
+    keys = list(parameters)  # preserves insertion order (≥3.7)
     for row in AllPairs(parameters.values()):
         yield {k: v for k, v in zip(keys, row)}
 
@@ -32,8 +33,8 @@ def generate_pairwise(parameters: Parameters) -> Iterator[Dict[str, str]]:
 def main() -> None:
     parameters: Parameters = {
         "Browser": ["Chrome", "Firefox"],
-        "OS":      ["Windows", "Linux"],
-        "Screen":  ["Mobile", "Desktop"],
+        "OS": ["Windows", "Linux"],
+        "Screen": ["Mobile", "Desktop"],
         # add more parameters/levels here ─ the generator scales well
     }
 

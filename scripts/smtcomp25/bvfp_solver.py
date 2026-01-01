@@ -31,16 +31,16 @@ def signal_handler(sig: int, frame) -> None:
 def detect_logic_from_file(file_path):
     """Extract logic type from SMT-LIB file"""
     try:
-        with open(file_path, 'r') as f:
+        with open(file_path, "r") as f:
             for line in f:
-                if 'set-logic' in line and not line.strip().startswith(';'):
-                    match = re.search(r'\(set-logic\s+([A-Z_]+)\s*\)', line)
+                if "set-logic" in line and not line.strip().startswith(";"):
+                    match = re.search(r"\(set-logic\s+([A-Z_]+)\s*\)", line)
                     if match:
                         return match.group(1)
     except Exception as e:
         print(f"Error reading file {file_path}: {str(e)}", file=sys.stderr)
         sys.exit(1)
-    
+
     return None
 
 
@@ -61,16 +61,17 @@ def process_file(filename: str):
     else:
         # Use the specified logic
         logic = G_ARGS.logic
-    logic2solver = {'QF_BV': QFBVSolver,
-                    'QF_UFBV': QFUFBVSolver,
-                    'QF_AUFBV': QFAUFBVSolver,
-                    'QF_ABV': QFAUFBVSolver,
-                    'QF_FP': QFFPSolver,
-                    'QF_BVFP': QFFPSolver,
-                    'QF_UFFP': QFFPSolver,
-                    "QF_ABVFP": QFAUFBVFPSolver,
-                    "QF_AUFBVFP": QFAUFBVFPSolver
-                    }
+    logic2solver = {
+        "QF_BV": QFBVSolver,
+        "QF_UFBV": QFUFBVSolver,
+        "QF_AUFBV": QFAUFBVSolver,
+        "QF_ABV": QFAUFBVSolver,
+        "QF_FP": QFFPSolver,
+        "QF_BVFP": QFFPSolver,
+        "QF_UFFP": QFFPSolver,
+        "QF_ABVFP": QFAUFBVFPSolver,
+        "QF_AUFBVFP": QFAUFBVFPSolver,
+    }
 
     if logic in logic2solver:
         solver_class = logic2solver[logic]
@@ -84,44 +85,65 @@ def process_file(filename: str):
         else:
             print("unknown")
     else:
-        raise NotImplementedError(f'Unsupported logic: {logic}')
+        raise NotImplementedError(f"Unsupported logic: {logic}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="SMT solver for BV and FP logics")
     parser.add_argument(
-        '--timeout',
-        dest='timeout',
-        default=8,
-        type=int,
-        help='timeout in seconds')
+        "--timeout", dest="timeout", default=8, type=int, help="timeout in seconds"
+    )
     parser.add_argument(
-        '--workers',
-        dest='workers',
+        "--workers",
+        dest="workers",
         default=1,
         type=int,
-        help='number of threads/processes')
+        help="number of threads/processes",
+    )
     parser.add_argument(
-        '--logic',
-        dest='logic',
-        default='AUTO',  # Changed default to AUTO for automatic detection
+        "--logic",
+        dest="logic",
+        default="AUTO",  # Changed default to AUTO for automatic detection
         type=str,
-        help='logic of the formula (AUTO for automatic detection)')
-    parser.add_argument('--model', dest='model', default=False, action='store_true',
-                        help='enable model generation or not')
-    parser.add_argument('--verbose', dest='verbosity', default=0, type=int, help="verbosity")
-    parser.add_argument('--unsat_core', dest='unsat_core', default=False, action='store_true',
-                        help='enable core generation or not')
-    parser.add_argument('--incremental', dest='incremental', default=False, action='store_true',
-                        help='enable incremental solving or not')
-    parser.add_argument('--sat_engine', dest='sat_engine', default="mgh", type=str,
-                        help='set the SAT backend: z3, cd(cadical103), cd15(cadical153),'
-                             'gc3(gluecard3), gc4(glucard4), g3(glucose3), g4(glucose4),'
-                             'lgl(lingeling), mcb(maplechrono), mcm(maplecm), mpl(maplesat)'
-                             'mg3(mergesat3), mc(minicard), m22(minisat22, mgh(minsatgh)')
-    parser.add_argument('infile', help='the input file (in SMT-LIB v2 format)')
+        help="logic of the formula (AUTO for automatic detection)",
+    )
+    parser.add_argument(
+        "--model",
+        dest="model",
+        default=False,
+        action="store_true",
+        help="enable model generation or not",
+    )
+    parser.add_argument(
+        "--verbose", dest="verbosity", default=0, type=int, help="verbosity"
+    )
+    parser.add_argument(
+        "--unsat_core",
+        dest="unsat_core",
+        default=False,
+        action="store_true",
+        help="enable core generation or not",
+    )
+    parser.add_argument(
+        "--incremental",
+        dest="incremental",
+        default=False,
+        action="store_true",
+        help="enable incremental solving or not",
+    )
+    parser.add_argument(
+        "--sat_engine",
+        dest="sat_engine",
+        default="mgh",
+        type=str,
+        help="set the SAT backend: z3, cd(cadical103), cd15(cadical153),"
+        "gc3(gluecard3), gc4(glucard4), g3(glucose3), g4(glucose4),"
+        "lgl(lingeling), mcb(maplechrono), mcm(maplecm), mpl(maplesat)"
+        "mg3(mergesat3), mc(minicard), m22(minisat22, mgh(minsatgh)",
+    )
+    parser.add_argument("infile", help="the input file (in SMT-LIB v2 format)")
 
     G_ARGS = parser.parse_args()
 

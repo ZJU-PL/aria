@@ -1,4 +1,5 @@
 import pytest
+
 z3 = pytest.importorskip("z3")
 
 from pc_dsl.easy_z3 import Solver, Concat, Length, Store, ForAll

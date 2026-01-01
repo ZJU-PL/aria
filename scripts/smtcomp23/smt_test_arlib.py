@@ -13,12 +13,25 @@ import time
 # except subprocess.TimeoutExpired:
 #     print("out of time")
 
-dataset_to_build = ["bmc-bv", "20170501-Heizmann-UltimateAutomizer", "bmc-bv-svcomp14", "pipe",
-                    "20170531-Hansen-Check", "brummayerbiere", "pspace", "2017-BuchwaldFried",
-                    "brummayerbiere2", "brummayerbiere3", "2018-Goel-hwbench", "rubik",
-                    "2018-Mann", "brummayerbiere4", "RWS", "20190311-bv-term-small-rw-Noetzli",
-                    "bruttomesso"
-                    ]
+dataset_to_build = [
+    "bmc-bv",
+    "20170501-Heizmann-UltimateAutomizer",
+    "bmc-bv-svcomp14",
+    "pipe",
+    "20170531-Hansen-Check",
+    "brummayerbiere",
+    "pspace",
+    "2017-BuchwaldFried",
+    "brummayerbiere2",
+    "brummayerbiere3",
+    "2018-Goel-hwbench",
+    "rubik",
+    "2018-Mann",
+    "brummayerbiere4",
+    "RWS",
+    "20190311-bv-term-small-rw-Noetzli",
+    "bruttomesso",
+]
 if __name__ == "__main__":
     from pathlib import Path
     import sys
@@ -37,10 +50,12 @@ if __name__ == "__main__":
             file_path = os.path.join(dir_path, file)
             before = time.time()
             try:
-                p = subprocess.run(["python3", "smt_main.py", file_path],
-                                   timeout=1200,
-                                   stdout=subprocess.PIPE,
-                                   text=True)
+                p = subprocess.run(
+                    ["python3", "smt_main.py", file_path],
+                    timeout=1200,
+                    stdout=subprocess.PIPE,
+                    text=True,
+                )
                 if p.stdout == "SolverResult.UNSAT\n":
                     Solved_UnSat += 1
                 else:

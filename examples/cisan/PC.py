@@ -16,6 +16,7 @@ REACHABLE = {}
 
 from IndependenceSolver import KnowledgeBase, FUNCTION_TIME_DICT
 import IndependenceSolver
+
 IndependenceSolver.CONSTRAINT_SLICING = ENABLE_PREFETCHING
 from Utility import CIStatement
 from GraphUtils import *
@@ -25,27 +26,30 @@ from Chisq import Chisq
 
 import functools
 
+
 def logme(func):
     @functools.wraps(func)
     def wrapped(*args, **kwargs):
         print(func.__name__)
         return func(*args, **kwargs)
+
     return wrapped
 
-def pc_skl(var_num, independence_func, enable_solver=True): # Legacy code
+
+def pc_skl(var_num, independence_func, enable_solver=True):  # Legacy code
 
     TOTAL_CI = 0
-    
+
     graph = {i: set(range(var_num)) - {i} for i in range(var_num)}
     kb = KnowledgeBase([], var_num, False)
-    
-    for (node_x, node_y) in combinations(range(var_num), 2):
+
+    for node_x, node_y in combinations(range(var_num), 2):
         TOTAL_CI += 1
         if independence_func(node_x, node_y, set()):
             graph[node_x].remove(node_y)
             graph[node_y].remove(node_x)
             kb.AddFact(CIStatement.createByXYZ(node_x, node_y, set(), True))
-        else: 
+        else:
             kb.AddFact(CIStatement.createByXYZ(node_x, node_y, set(), False))
     order = 1
     while order <= MAX_ORDER:
@@ -53,21 +57,32 @@ def pc_skl(var_num, independence_func, enable_solver=True): # Legacy code
         for node_x in graph:
             neighbors = graph[node_x]
             for node_y in neighbors:
-                if (node_y, node_x) in edges_to_remove or (node_x, node_y) in edges_to_remove: continue
-                if len(neighbors) - 1 < order: continue
+                if (node_y, node_x) in edges_to_remove or (
+                    node_x,
+                    node_y,
+                ) in edges_to_remove:
+                    continue
+                if len(neighbors) - 1 < order:
+                    continue
                 print(node_x, node_y, edges_to_remove, graph, TOTAL_CI)
                 cond_set_list = list(combinations(neighbors - {node_y}, order))
-                ci_relation_candidate = [CIStatement.createByXYZ(node_x, node_y, set(cond_set), True) for cond_set in cond_set_list]
+                ci_relation_candidate = [
+                    CIStatement.createByXYZ(node_x, node_y, set(cond_set), True)
+                    for cond_set in cond_set_list
+                ]
                 if enable_solver:
                     for ci in ci_relation_candidate:
                         TOTAL_CI += 1
                         psan_outcome = kb.SinglePSan(ci)
                         x, y, z = list(ci.x)[0], list(ci.y)[0], ci.z
-                        if psan_outcome is None: 
+                        if psan_outcome is None:
                             is_ind = independence_func(x, y, z)
                             kb.AddFact(CIStatement.createByXYZ(x, y, z, is_ind))
-                            print("CI Query", str(CIStatement.createByXYZ(x, y, z, is_ind)))
-                        else: 
+                            print(
+                                "CI Query",
+                                str(CIStatement.createByXYZ(x, y, z, is_ind)),
+                            )
+                        else:
                             is_ind = psan_outcome.ci
                             assert is_ind == independence_func(x, y, z, True)
                             kb.AddFact(psan_outcome)
@@ -87,12 +102,13 @@ def pc_skl(var_num, independence_func, enable_solver=True): # Legacy code
         order += 1
     return graph, TOTAL_CI
 
-def EDsan_pc_skl(var_num, independence_func, enable_solver=True): 
+
+def EDsan_pc_skl(var_num, independence_func, enable_solver=True):
     TOTAL_CI = 0
     graph = {i: set(range(var_num)) - {i} for i in range(var_num)}
     kb = KnowledgeBase([], var_num, False)
-    
-    for (node_x, node_y) in combinations(range(var_num), 2):
+
+    for node_x, node_y in combinations(range(var_num), 2):
         TOTAL_CI += 1
         is_ind = independence_func(node_x, node_y, set())
         ci = CIStatement.createByXYZ(node_x, node_y, set(), is_ind)
@@ -107,11 +123,19 @@ def EDsan_pc_skl(var_num, independence_func, enable_solver=True):
         for node_x in graph:
             neighbors = graph[node_x]
             for node_y in neighbors:
-                if (node_y, node_x) in edges_to_remove or (node_x, node_y) in edges_to_remove: continue
-                if len(neighbors) - 1 < order: continue
+                if (node_y, node_x) in edges_to_remove or (
+                    node_x,
+                    node_y,
+                ) in edges_to_remove:
+                    continue
+                if len(neighbors) - 1 < order:
+                    continue
                 print(node_x, node_y, edges_to_remove, graph, TOTAL_CI)
                 cond_set_list = list(combinations(neighbors - {node_y}, order))
-                ci_relation_candidate = [CIStatement.createByXYZ(node_x, node_y, set(cond_set), True) for cond_set in cond_set_list]
+                ci_relation_candidate = [
+                    CIStatement.createByXYZ(node_x, node_y, set(cond_set), True)
+                    for cond_set in cond_set_list
+                ]
                 if enable_solver:
                     for ci in ci_relation_candidate:
                         TOTAL_CI += 1
@@ -144,7 +168,7 @@ def Psan_pc_skl(var_num, independence_func, enable_solver=True):
     graph = {i: set(range(var_num)) - {i} for i in range(var_num)}
     kb = KnowledgeBase([], var_num, False)
 
-    for (node_x, node_y) in combinations(range(var_num), 2):
+    for node_x, node_y in combinations(range(var_num), 2):
         TOTAL_CI += 1
         ci = CIStatement.createByXYZ(node_x, node_y, set(), True)
         psan_outcome = kb.SinglePSan(ci)
@@ -165,15 +189,19 @@ def Psan_pc_skl(var_num, independence_func, enable_solver=True):
         for node_x in graph:
             neighbors = graph[node_x]
             for node_y in neighbors:
-                if (node_y, node_x) in edges_to_remove or (node_x, node_y) in edges_to_remove:
+                if (node_y, node_x) in edges_to_remove or (
+                    node_x,
+                    node_y,
+                ) in edges_to_remove:
                     continue
                 if len(neighbors) - 1 < order:
                     continue
                 print(node_x, node_y, edges_to_remove, graph, TOTAL_CI)
                 cond_set_list = list(combinations(neighbors - {node_y}, order))
-                ci_relation_candidate = [CIStatement.createByXYZ(
-                    node_x, node_y, set(cond_set),
-                    True) for cond_set in cond_set_list]
+                ci_relation_candidate = [
+                    CIStatement.createByXYZ(node_x, node_y, set(cond_set), True)
+                    for cond_set in cond_set_list
+                ]
                 if enable_solver:
                     for ci in ci_relation_candidate:
                         TOTAL_CI += 1
@@ -182,7 +210,10 @@ def Psan_pc_skl(var_num, independence_func, enable_solver=True):
                         if psan_outcome is None:
                             is_ind = independence_func(x, y, z)
                             kb.AddFact(CIStatement.createByXYZ(x, y, z, is_ind))
-                            print("CI Query", str(CIStatement.createByXYZ(x, y, z, is_ind)))
+                            print(
+                                "CI Query",
+                                str(CIStatement.createByXYZ(x, y, z, is_ind)),
+                            )
                         else:
                             is_ind = psan_outcome.ci
                             # assert is_ind == independence_func(x, y, z, True)
@@ -204,21 +235,23 @@ def Psan_pc_skl(var_num, independence_func, enable_solver=True):
         order += 1
     return graph, TOTAL_CI
 
+
 @logme
 def run_dpkt_pc(benchmark):
     dag_path = f"./benchmarks/{benchmark}_graph.txt"
     data_path = f"data/{benchmark}-10k.csv"
-    dag=read_dag(dag_path)
+    dag = read_dag(dag_path)
     dpkt = DPKendalTau(read_table(data_path), dag=dag)
     est, TOTAL_CI = Psan_pc_skl(dag.get_num_nodes(), dpkt.kendaltau_ci, True)
     return est, TOTAL_CI, dpkt.ci_invoke_count, dpkt.get_eps_prime()
 
+
 @logme
 def run_dpkt_pc_repeat(benchmark):
     with Pool() as pool:
-        result = pool.map(run_dpkt_pc, [benchmark]*10)
+        result = pool.map(run_dpkt_pc, [benchmark] * 10)
     dag_path = f"./benchmarks/{benchmark}_graph.txt"
-    dag=read_dag(dag_path)
+    dag = read_dag(dag_path)
     avg_shd = np.mean([compare_skeleton(rlt[0], dag) for rlt in result])
     avg_total_ci = np.mean([rlt[1] for rlt in result])
     avg_ci_count = np.mean([rlt[2] for rlt in result])
@@ -226,39 +259,50 @@ def run_dpkt_pc_repeat(benchmark):
 
     return avg_shd, avg_total_ci, avg_ci_count, avg_eps
 
+
 @logme
 def run_chisq_pc(benchmark):
     dag_path = f"./benchmarks/{benchmark}_graph.txt"
     data_path = f"data/{benchmark}-10k.csv"
-    dag=read_dag(dag_path)
+    dag = read_dag(dag_path)
     chisq = Chisq(read_table(data_path), dag=dag)
     # est, TOTAL_CI = pc_skl(dag.get_num_nodes(), chisq.chisq_ci, True)
     est, TOTAL_CI = Psan_pc_skl(dag.get_num_nodes(), chisq.chisq_ci, True)
     return est, TOTAL_CI, chisq.ci_invoke_count
 
+
 @logme
 def run_oracle_pc(benchmark):
     dag_path = f"./benchmarks/{benchmark}_graph.txt"
-    dag=read_dag(dag_path)
+    dag = read_dag(dag_path)
     oracle = OracleCI(dag=dag)
     # est, TOTAL_CI = pc_skl(dag.get_num_nodes(), oracle.oracle_ci, True)
     est, TOTAL_CI = Psan_pc_skl(dag.get_num_nodes(), oracle.oracle_ci, True)
     # est, TOTAL_CI = EDsan_pc_skl(dag.get_num_nodes(), oracle.oracle_ci, True)
     return est, TOTAL_CI, oracle.ci_invoke_count
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--benchmarks", "-b", type=str,
-                        choices=["earthquake", "survey", "cancer", "sachs", "insurance"],
-                        default="earthquake")
-    parser.add_argument("--function", "-f", type=str,
-                        choices=["dpkt", "chisq", "oracle"],
-                        default="oracle")
+    parser.add_argument(
+        "--benchmarks",
+        "-b",
+        type=str,
+        choices=["earthquake", "survey", "cancer", "sachs", "insurance"],
+        default="earthquake",
+    )
+    parser.add_argument(
+        "--function",
+        "-f",
+        type=str,
+        choices=["dpkt", "chisq", "oracle"],
+        default="oracle",
+    )
 
     args = parser.parse_args()
 
     start_time = datetime.now()
-    
+
     benchmarks = [args.benchmarks]
     print(args)
     print("=========================================")
@@ -271,7 +315,7 @@ if __name__ == "__main__":
     for benchmark in benchmarks:
 
         dag_path = f"./benchmarks/{benchmark}_graph.txt"
-        dag=read_dag(dag_path)
+        dag = read_dag(dag_path)
         # dag = read_dag(dag_path)
         # REACHABLE = {}
         # NUM_OF_CI_TEST = 0
@@ -279,30 +323,28 @@ if __name__ == "__main__":
         # print("reachable", REACHABLE)
         # print("NUM_OF_CI_TEST",NUM_OF_CI_TEST, "TOTAL_CI", TOTAL_CI)
 
-        
-    #     # kendal tau
-    #     for rlt in results:
-    #         est, TOTAL_CI, ci_invoke_count, eps_prime = rlt
-    #         result[benchmark]["shd"].append(compare_skeleton(est, dag))
-    #         result[benchmark]["#CI Test"].append(ci_invoke_count)
-    #         result[benchmark]["#CI Query"].append(TOTAL_CI)
-    #         result[benchmark]["Eps"].append(eps_prime)
-        
-    # # for benchmark in benchmarks:
-    #     print(benchmark)
-    #     print("SHD", np.mean(result[benchmark]["shd"]), np.std(result[benchmark]["shd"]))
-    #     print("NUM_OF_CI_TEST", np.mean(result[benchmark]["#CI Test"]), np.std(result[benchmark]["#CI Test"]))
-    #     print("TOTAL_CI", np.mean(result[benchmark]["#CI Query"]), np.std(result[benchmark]["#CI Query"]))
-    #     print("Eps", np.mean(result[benchmark]["Eps"]), np.std(result[benchmark]["Eps"]))
+        #     # kendal tau
+        #     for rlt in results:
+        #         est, TOTAL_CI, ci_invoke_count, eps_prime = rlt
+        #         result[benchmark]["shd"].append(compare_skeleton(est, dag))
+        #         result[benchmark]["#CI Test"].append(ci_invoke_count)
+        #         result[benchmark]["#CI Query"].append(TOTAL_CI)
+        #         result[benchmark]["Eps"].append(eps_prime)
 
-        
+        # # for benchmark in benchmarks:
+        #     print(benchmark)
+        #     print("SHD", np.mean(result[benchmark]["shd"]), np.std(result[benchmark]["shd"]))
+        #     print("NUM_OF_CI_TEST", np.mean(result[benchmark]["#CI Test"]), np.std(result[benchmark]["#CI Test"]))
+        #     print("TOTAL_CI", np.mean(result[benchmark]["#CI Query"]), np.std(result[benchmark]["#CI Query"]))
+        #     print("Eps", np.mean(result[benchmark]["Eps"]), np.std(result[benchmark]["Eps"]))
+
         # est, TOTAL_CI, ci_invoke_count = run_oracle_pc(benchmark)
         # shd = compare_skeleton(est, dag)
         if args.function == "oracle":
             est, TOTAL_CI, ci_invoke_count = run_oracle_pc(benchmark)
         elif args.function == "chisq":
             est, TOTAL_CI, ci_invoke_count = run_chisq_pc(benchmark)
-        else: 
+        else:
             raise NotImplementedError
         # est, TOTAL_CI, ci_invoke_count, eps = run_dpkt_pc(benchmark)
 
@@ -334,5 +376,3 @@ if __name__ == "__main__":
 
         for key, val in FUNCTION_TIME_DICT.items():
             print(f"Function: {key}, Total time: {val[0]}, Total count: {val[1]}")
-        
-

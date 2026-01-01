@@ -30,7 +30,7 @@ class TestBVCounter(TestCase):
         self.assertTrue(count_value > 0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
 
 """

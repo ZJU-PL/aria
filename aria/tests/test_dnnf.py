@@ -46,24 +46,24 @@ class TestDNNF(TestCase):
         dnnf_conjoin = dnnf_compiler.conjoin(dnnf_conjoin, [1, 2])
         dnnf_conjoin.reset()
 
-        print('Instance is sat or not? ', dnnf_compiler.is_sat(dnnf))
+        print("Instance is sat or not? ", dnnf_compiler.is_sat(dnnf))
 
         dnnf_project = copy.deepcopy(dnnf)
         dnnf_project = dnnf_compiler.project(dnnf_project, [1, 2])
         dnnf_project = dnnf_compiler.simplify(dnnf_project)
         dnnf_project.reset()
 
-        print('Computing Min Card ... result = ', dnnf_compiler.m_card(dnnf))
+        print("Computing Min Card ... result = ", dnnf_compiler.m_card(dnnf))
 
         dnnf_min = copy.deepcopy(dnnf_smooth)
         dnnf_min = dnnf_compiler.minimize(dnnf_min)
 
-        print('Enumerating all models ....')
+        print("Enumerating all models ....")
         models = dnnf_compiler.enumerate_models(dnnf)
         for x in models:
             print(x)
 
-        print('Enumerating all models with smooth version ....')
+        print("Enumerating all models with smooth version ....")
         models = dnnf_compiler.enumerate_models(dnnf_smooth)
         for x in models:
             print(x)
@@ -71,5 +71,5 @@ class TestDNNF(TestCase):
         assert True
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

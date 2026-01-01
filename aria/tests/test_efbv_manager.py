@@ -10,6 +10,7 @@ import z3
 from aria.tests import TestCase, main
 from aria.tests.formula_generator import FormulaGenerator
 from aria.quant.efbv.efbv_parallel.efbv_utils import EFBVResult
+
 # from aria.quant.efbv.efbv_to_bool import EFBVFormulaTranslator
 from aria.utils.z3_expr_utils import get_variables
 
@@ -26,7 +27,7 @@ def gen_small_bv_formula(logic: str):
 
 def is_simple_formula(fml: z3.ExprRef):
     # for pruning sample formulas that can be solved by the pre-processing
-    clauses = z3.Then('simplify', 'elim-uncnstr', 'solve-eqs')(fml)
+    clauses = z3.Then("simplify", "elim-uncnstr", "solve-eqs")(fml)
     after_simp = clauses.as_expr()
     if z3.is_false(after_simp) or z3.is_true(after_simp):
         return True
@@ -64,5 +65,5 @@ class TestEFBVManager(TestCase):
             # solve_with_z3(qbf)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
