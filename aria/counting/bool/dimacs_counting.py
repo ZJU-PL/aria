@@ -134,41 +134,41 @@ def call_sharp_sat(cnf_filename: str):
         return -1, -1
     cmd = [global_config.get_solver_path("sharp_sat"), cnf_filename]
     print("Calling sharpSAT")
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    is_timeout = [False]
-    timer = Timer(SHARP_SAT_TIMEOUT, terminate, args=[p, is_timeout])
-    timer.start()
-    try:
-        find_sol_line = False
-        for line in iter(p.stdout.readline, b""):
-            if not line:
-                break
-            decode_line = line.decode("UTF-8")
-            if find_sol_line:
-                # print("sharpSAT res: ", decode_line)
-                solutions = int(decode_line)
-                break
-            if "solutions" in decode_line:
-                find_sol_line = True
-    except (ValueError, IOError) as ex:
-        # print(ex)
-        print(f"exception when running sharpSAT, will return false: {ex}")
-    finally:
-        timer.cancel()
-        p.stdout.close()
+    with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as p:
+        is_timeout = [False]
+        timer = Timer(SHARP_SAT_TIMEOUT, terminate, args=[p, is_timeout])
+        timer.start()
+        try:
+            find_sol_line = False
+            for line in iter(p.stdout.readline, b""):
+                if not line:
+                    break
+                decode_line = line.decode("UTF-8")
+                if find_sol_line:
+                    # print("sharpSAT res: ", decode_line)
+                    solutions = int(decode_line)
+                    break
+                if "solutions" in decode_line:
+                    find_sol_line = True
+        except (ValueError, IOError) as ex:
+            # print(ex)
+            print(f"exception when running sharpSAT, will return false: {ex}")
+        finally:
+            timer.cancel()
+            p.stdout.close()
 
-        # Make sure the process is terminated
-        if p.poll() is None:
-            p.terminate()
-            try:
-                p.wait(timeout=5)  # Wait up to 5 seconds for graceful termination
-            except subprocess.TimeoutExpired:
-                p.kill()  # Kill if termination doesn't complete
-                p.wait()
+            # Make sure the process is terminated
+            if p.poll() is None:
+                p.terminate()
+                try:
+                    p.wait(timeout=5)  # Wait up to 5 seconds for graceful termination
+                except subprocess.TimeoutExpired:
+                    p.kill()  # Kill if termination doesn't complete
+                    p.wait()
 
-        # Clean up the temp file
-        if os.path.isfile(cnf_filename):
-            os.remove(cnf_filename)
+    # Clean up the temp file
+    if os.path.isfile(cnf_filename):
+        os.remove(cnf_filename)
 
     if is_timeout[0]:
         logging.debug("sharpSAT timeout")
@@ -231,11 +231,8 @@ def count_dimacs_solutions_parallel(header: List[str], clauses: List[str]) -> in
         int: The number of solutions for the given DIMACS CNF formula.
     """
 
-    dimacs_str = ""
-    for info in header:
-        dimacs_str += f"{info}\n"
-    for cls in clauses:
-        dimacs_str += f"{cls} 0\n"
+    dimacs_str = "\n".join(header) + "\n"
+    dimacs_str += "\n".join(f"{cls} 0" for cls in clauses) + "\n"
 
     cnf = CNF(from_string=dimacs_str)
     cubes = gen_cubes(cnf, min(2, cnf.nv))
@@ -258,8 +255,7 @@ def count_dimacs_solutions_parallel(header: List[str], clauses: List[str]) -> in
         cnf_tasks.append(output_file)
 
     results = []
-    pool = multiprocessing.Pool(processes=cpu_count())  # process pool
-    try:
+    with multiprocessing.Pool(processes=cpu_count()) as pool:  # process pool
         for task_file in cnf_tasks:
             result = pool.apply_async(call_sharp_sat, (task_file,))
             results.append(result)
@@ -284,16 +280,14 @@ def count_dimacs_solutions_parallel(header: List[str], clauses: List[str]) -> in
         #     return result
         with open("temp.log", "a", encoding="utf-8") as f:
             f.write(f"{cnf.nv} {len(clauses)} {sharp_sat_times} 0\n")
-        return sum(raw_solutions)
-    finally:
-        # Ensure the pool is properly closed
-        pool.close()
-        pool.join()
+        total = sum(raw_solutions)
 
-        # Remove any temporary files that might be left
-        for file_path in cnf_tasks:
-            if os.path.isfile(file_path):
-                try:
-                    os.remove(file_path)
-                except OSError:
-                    pass
+    # Remove any temporary files that might be left
+    for file_path in cnf_tasks:
+        if os.path.isfile(file_path):
+            try:
+                os.remove(file_path)
+            except OSError:
+                pass
+
+    return total

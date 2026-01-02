@@ -14,7 +14,7 @@ from aria.bool.cnfsimplifier.clause import Clause
 def parse_dimacs(input_file) -> Cnf:
     """Parse DIMACS format CNF file"""
     clauses = []
-    with open(input_file, "r") as f:
+    with open(input_file, "r", encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if line.startswith("c") or line.startswith("p"):
@@ -33,7 +33,12 @@ def parse_dimacs(input_file) -> Cnf:
 
 def write_dimacs(cnf: Cnf, output_file=None):
     """Write CNF to DIMACS format"""
-    out = sys.stdout if output_file is None else open(output_file, "w")
+    if output_file is None:
+        out = sys.stdout
+        should_close = False
+    else:
+        out = open(output_file, "w", encoding="utf-8")
+        should_close = True
 
     # Write header
     num_vars = cnf.get_number_of_literals()
@@ -45,7 +50,7 @@ def write_dimacs(cnf: Cnf, output_file=None):
         lits = [str(lit) for lit in clause.literals_set]
         print(" ".join(lits + ["0"]), file=out)
 
-    if output_file:
+    if should_close:
         out.close()
 
 

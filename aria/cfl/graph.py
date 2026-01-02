@@ -20,7 +20,7 @@ Key Features:
 Author: aria team
 """
 
-from typing import List, Dict, Any, Union, Tuple, Optional, Set
+from typing import List, Dict, Any, Union, Tuple
 from aria.cfl.matrix import Matrix
 from aria.cfl.pag_matrix import PAG_Matrix
 
@@ -54,7 +54,7 @@ class Graph:
         elif ds_mode == "PAG_Matrix":
             self.ds_structure = PAG_Matrix(source_file)
         else:
-            raise Exception("This is not a valide ds_mode, ds_mode including Matrix")
+            raise ValueError("This is not a valide ds_mode, ds_mode including Matrix")
 
     def add_vertex(self, vertex: Any) -> bool:
         """

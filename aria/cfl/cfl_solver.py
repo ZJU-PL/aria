@@ -17,7 +17,7 @@ Adapted from: "Dynamic Transitive Closure-Based Static Analysis through the Lens
 """
 
 from math import sqrt, floor, log
-from typing import List, Dict, Any, Union, Tuple
+from typing import List, Any
 
 
 class CFLSolver:
@@ -127,65 +127,65 @@ class CFLSolver:
         gs_iteration: int = 0
         print("graph size: ", len(graph.ds_structure.vertices))
         nnn = len(graph.ds_structure.vertices)
-        Worklist: List[List[Union[str, Any]]] = graph.output_edge()
+        worklist: List[List[Any]] = graph.output_edge()
         for nullable_variable in grammar.epsilon:
             for node in graph.get_vertice():
                 graph.add_edge(node, node, nullable_variable)
-                Worklist.append([nullable_variable, node, node])
+                worklist.append([nullable_variable, node, node])
         # worklist analysis of DTC-based CFL-reachability
-        while Worklist != []:
-            selected_edge = Worklist.pop()
-            for X, right_list in grammar.items():
-                # X: key: variable right_list : list of all right handside of production
+        while worklist:
+            selected_edge = worklist.pop()
+            for x_var, right_list in grammar.items():
+                # x_var: key: variable right_list : list of all right handside of production
                 for right in right_list:
                     # X = Y
                     if len(right) == 1 and right[0] == selected_edge[0]:
-                        Y = right[0]
-                        for pair in graph.symbol_pair_l(Y):
+                        y_var = right[0]
+                        for pair in graph.symbol_pair_l(y_var):
                             # O(n) for graph.symbol_pair_l return list of node pair
-                            if not graph.new_check_edge(pair[0], pair[1], X):
+                            if not graph.new_check_edge(pair[0], pair[1], x_var):
                                 # O(m) m stand for len(varibale, terminal)
-                                graph.add_edge(pair[0], pair[1], X)
-                                Worklist.append([X, pair[0], pair[1]])
+                                graph.add_edge(pair[0], pair[1], x_var)
+                                worklist.append([x_var, pair[0], pair[1]])
             # codes that lead to cubic bottleneck
-            for X, right in grammar.items():
+            for x_var, right in grammar.items():
                 for right_symbols in right:
                     if len(right_symbols) == 2 and right_symbols[0] == selected_edge[0]:
-                        Y = right_symbols[0]
-                        Z = right_symbols[1]
-                        if Z in graph.symbol_pair():
+                        y_var = right_symbols[0]
+                        z_var = right_symbols[1]
+                        if z_var in graph.symbol_pair():
                             num_of_sol: int = 0
                             iteration: int = 0
-                            for pair in graph.symbol_pair_l(Z):
+                            for pair in graph.symbol_pair_l(z_var):
                                 iteration += 1
                                 j = selected_edge[2]
                                 i = selected_edge[1]
                                 k = pair[1]
                                 if pair[0] == selected_edge[2]:
-                                    if not graph.new_check_edge(i, k, X):
-                                        graph.add_edge(i, k, X)
-                                        Worklist.append([X, i, k])
+                                    if not graph.new_check_edge(i, k, x_var):
+                                        graph.add_edge(i, k, x_var)
+                                        worklist.append([x_var, i, k])
                                         num_of_sol += 1
                             # update number of classical and quantum iterations
                             gs_iteration += self.estimate(num_of_sol, iteration, nnn)
                             whole_iteration += iteration
-            for X, right in grammar.items():
+            for x_var, right in grammar.items():
                 for right_symbols in right:
                     if len(right_symbols) == 2 and right_symbols[1] == selected_edge[0]:
-                        Y = right_symbols[1]
-                        Z = right_symbols[0]
-                        if Z in graph.symbol_pair():
+                        y_var = right_symbols[1]
+                        z_var = right_symbols[0]
+                        if z_var in graph.symbol_pair():
                             num_of_sol: int = 0
                             iteration: int = 0
-                            for pair in graph.symbol_pair_l(Z):
+                            for pair in graph.symbol_pair_l(z_var):
                                 iteration += 1
                                 j = selected_edge[2]
                                 i = selected_edge[1]
                                 k = pair[0]
                                 if pair[1] == i:
-                                    if not graph.new_check_edge(k, j, X):
-                                        graph.add_edge(k, j, X)
-                                        Worklist.append([X, k, j])
+                                    if not graph.new_check_edge(k, j, x_var):
+                                        graph.add_edge(k, j, x_var)
+                                        worklist.append([x_var, k, j])
                                         num_of_sol += 1
                             # update number of classical and quantum iterations
                             gs_iteration += self.estimate(num_of_sol, iteration, nnn)

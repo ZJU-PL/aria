@@ -102,38 +102,38 @@ class RandomCFLSolver:
         # graph is accessed by [i, label, j]
         size = len(graph)
         grammar_size = len(graph[0])
-        Worklist: set = set()
+        worklist: set = set()
         for i in range(size):
             for label in range(grammar_size):
                 for j in range(size):
                     if graph[i][label][j] == 1:
-                        Worklist.add((i, label, j))
-        for X in grammar["epsilon"]:
+                        worklist.add((i, label, j))
+        for x_var in grammar["epsilon"]:
             for i in range(size):
-                if graph[i][X][i] == 0:
-                    graph[i][X][i] = 1
-                    Worklist.add((i, X, i))
+                if graph[i][x_var][i] == 0:
+                    graph[i][x_var][i] = 1
+                    worklist.add((i, x_var, i))
         # worklist analysis starts
-        while len(Worklist) > 0:
-            i, Y, j = Worklist.pop()
-            if Y in grammar["single"].keys():
-                for X in grammar["single"][Y]:
-                    if graph[i][X][j] == 0:
-                        graph[i][X][j] = 1
-                        Worklist.add((i, X, j))
+        while len(worklist) > 0:
+            i, y_var, j = worklist.pop()
+            if y_var in grammar["single"].keys():
+                for x_var in grammar["single"][y_var]:
+                    if graph[i][x_var][j] == 0:
+                        graph[i][x_var][j] = 1
+                        worklist.add((i, x_var, j))
             # save the solution indices in this list
             # for creating oracle of Grover search
             answer_num: int = 0
             sol: List[int] = [0 for i in range(size)]
             total_classical += 2 * size
-            if Y in grammar["double1"].keys():
-                for X, Z in grammar["double1"][Y]:
+            if y_var in grammar["double1"].keys():
+                for x_var, z_var in grammar["double1"][y_var]:
                     for k in range(size):
-                        if graph[i][X][k] == 0 and graph[j][Z][k] == 1:
+                        if graph[i][x_var][k] == 0 and graph[j][z_var][k] == 1:
                             sol[k] = 1
                             answer_num += 1
-                            graph[i][X][k] = 1
-                            Worklist.add((i, X, k))
+                            graph[i][x_var][k] = 1
+                            worklist.add((i, x_var, k))
             # simulate the process of Grover search
             # and store the number of quantum iterations needed for finding all targets
             total_quantum += self.estimate(sol, answer_num)
@@ -141,14 +141,14 @@ class RandomCFLSolver:
             # save the solution indices in this list
             # for creating oracle of Grover search
             sol = [0 for i in range(size)]
-            if Y in grammar["double2"].keys():
-                for X, Z in grammar["double2"][Y]:
+            if y_var in grammar["double2"].keys():
+                for x_var, z_var in grammar["double2"][y_var]:
                     for k in range(size):
-                        if graph[k][X][j] == 0 and graph[k][Z][i] == 1:
+                        if graph[k][x_var][j] == 0 and graph[k][z_var][i] == 1:
                             sol[k] = 1
                             answer_num += 1
-                            graph[k][X][j] = 1
-                            Worklist.add((k, X, j))
+                            graph[k][x_var][j] = 1
+                            worklist.add((k, x_var, j))
             # simulate the process of Grover search
             # and store the number of quantum iterations needed for finding all targets
             total_quantum += self.estimate(sol, answer_num)

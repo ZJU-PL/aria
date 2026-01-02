@@ -21,7 +21,7 @@ Author: aria team
 """
 
 import re
-from typing import Dict, List, Any, Union, Tuple
+from typing import Dict, List, Union, Tuple
 
 
 class Vertex:
@@ -97,8 +97,8 @@ class PAG_Matrix:
                         node2 = Vertex(node2_name)
                         self.add_vertex(node2)
                     self.add_edge(node1_name, node2_name, edge)
-            return
-        self.__read_dot_file()
+        else:
+            self.__read_dot_file()
 
     def __read_dot_file(self) -> None:
         edge_pattern = re.compile(r"(\w+)\s*->\s*(\w+)\s*\[.*color=(.*)\]")
@@ -145,7 +145,6 @@ class PAG_Matrix:
                             node = match.group(1)
                             node_i = Vertex(node)
                             self.add_vertex(node_i)
-        return
 
     def add_vertex(self, vertex: Vertex) -> bool:
         if isinstance(vertex, Vertex) and vertex.name not in self.vertices:

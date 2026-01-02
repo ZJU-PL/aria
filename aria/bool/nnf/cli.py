@@ -33,20 +33,20 @@ def timer(args: argparse.Namespace) -> t.Iterator[SimpleNamespace]:
         ns.end = time.monotonic()
         ns.time = ns.end - ns.begin
     if args.verbose:
-        print("Done after {:.3g} seconds.".format(ns.time))
+        print(f"Done after {ns.time:.3g} seconds.")
         print()
 
 
 def open_read(fname: str) -> t.TextIO:
     if fname == "-":
         return sys.stdin
-    return open(fname)
+    return open(fname, encoding="utf-8")
 
 
 def open_write(fname: str) -> t.TextIO:
     if fname == "-":
         return sys.stdout
-    return open(fname, "w")
+    return open(fname, "w", encoding="utf-8")
 
 
 def main(argv: t.Sequence[str] = sys.argv[1:]) -> int:
@@ -131,16 +131,16 @@ def print_stats(sentence: NNF) -> None:
         print("Sentence is decomposable.")
     if sentence.smooth():
         print("Sentence is smooth.")
-    print("Variables:   {}".format(len(sentence.vars())))
-    print("Size:        {}".format(sentence.size()))
+    print(f"Variables:   {len(sentence.vars())}")
+    print(f"Size:        {sentence.size()}")
     if sentence.is_CNF():
-        print("Clauses:     {}".format(len(sentence)))  # type: ignore
+        print(f"Clauses:     {len(sentence)}")  # type: ignore
         sizes = {len(clause) for clause in sentence}  # type: ignore
         low, high = min(sizes), max(sizes)
         if low == high:
-            print("Clause size: {}".format(low))
+            print(f"Clause size: {low}")
         else:
-            print("Clause size: {}-{}".format(low, high))
+            print(f"Clause size: {low}-{high}")
 
 
 def sat(args: argparse.Namespace) -> int:
@@ -149,15 +149,14 @@ def sat(args: argparse.Namespace) -> int:
     if args.verbose:
         print_stats(sentence)
     with timer(args):
-        sat = sentence.satisfiable()
-    if sat:
+        is_sat = sentence.satisfiable()
+    if is_sat:
         if not args.quiet:
             print("SATISFIABLE")
         return 0
-    else:
-        if not args.quiet:
-            print("UNSATISFIABLE")
-        return 1
+    if not args.quiet:
+        print("UNSATISFIABLE")
+    return 1
 
 
 def sharpsat(args: argparse.Namespace) -> int:
@@ -172,7 +171,7 @@ def sharpsat(args: argparse.Namespace) -> int:
     if args.quiet:
         print(num)
     else:
-        print("{} solutions found.".format(num))
+        print(f"{num} solutions found.")
     if num == 0:
         return 1
     return 0
@@ -206,21 +205,20 @@ def draw(args: argparse.Namespace) -> int:
         if args.out != "-":
             argv.append("-o" + args.out)
         try:
-            proc = subprocess.Popen(
+            with subprocess.Popen(
                 argv, stdin=subprocess.PIPE, universal_newlines=True
-            )
+            ) as proc:
+                assert proc.stdin
+                proc.stdin.write(dot)
+                proc.stdin.close()
+                ret = proc.wait()
+                if ret != 0:
+                    print(f"dot failed with status code {ret}")
+                return ret
         except FileNotFoundError:
-            print("Can't find `dot` executable. Is it installed and in your " "PATH?")
+            print("Can't find `dot` executable. Is it installed and in your PATH?")
             return 1
-        assert proc.stdin
-        proc.stdin.write(dot)
-        proc.stdin.close()
-        ret = proc.wait()
-        if ret != 0:
-            print("dot failed with status code {}".format(ret))
-        return ret
 
-    else:
-        with open_write(args.out) as f:
-            f.write(dot)
-        return 0
+    with open_write(args.out) as f:
+        f.write(dot)
+    return 0

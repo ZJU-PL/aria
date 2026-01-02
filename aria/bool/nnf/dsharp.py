@@ -57,7 +57,7 @@ def load(fp: t.TextIO, var_labels: t.Optional[t.Dict[int, Name]] = None) -> NNF:
         elif spec[0] == "O":
             nodes[num] = Or(nodes[int(n)] for n in spec[3:])
         else:
-            raise ValueError("Can't parse line {}: {}".format(num, spec))
+            raise ValueError(f"Can't parse line {num}: {spec}")
     if int(nodecount) == 0:
         raise ValueError("The sentence doesn't have any nodes.")
     return nodes[int(nodecount) - 1]
@@ -109,7 +109,7 @@ def compile(
 
     infd, infname = tempfile.mkstemp(text=True)
     try:
-        with open(infd, "w") as f:
+        with open(infd, "w", encoding="utf-8") as f:
             dimacs.dump(sentence, f, mode="cnf", var_labels=var_labels_inverse)
         outfd, outfname = tempfile.mkstemp()
         try:
@@ -120,7 +120,7 @@ def compile(
                 universal_newlines=True,
             )
             log, _ = proc.communicate()
-            with open(outfname) as f:
+            with open(outfname, encoding="utf-8") as f:
                 out = f.read()
         finally:
             os.remove(outfname)
@@ -128,15 +128,13 @@ def compile(
         os.remove(infname)
 
     if proc.returncode != 0:
-        raise RuntimeError(
-            "DSHARP failed with code {}. Log:\n\n{}".format(proc.returncode, log)
-        )
+        raise RuntimeError(f"DSHARP failed with code {proc.returncode}. Log:\n\n{log}")
 
     if out == "nnf 0 0 0\n" or "problem line expected" in log:
-        raise RuntimeError("Something went wrong. Log:\n\n{}".format(log))
+        raise RuntimeError(f"Something went wrong. Log:\n\n{log}")
 
     if "TIMEOUT" in log:
-        raise RuntimeError("DSHARP timed out after {} seconds".format(timeout))
+        raise RuntimeError(f"DSHARP timed out after {timeout} seconds")
 
     if "Theory is unsat" in log:
         return false

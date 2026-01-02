@@ -4,5 +4,4 @@ from .maxsat import MaxSATSolver
 from .sat.pysat_solver import PySATSolver
 
 # Export
-PySATSolver = PySATSolver
-MaxSATSolver = MaxSATSolver
+__all__ = ["PySATSolver", "MaxSATSolver"]

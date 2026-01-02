@@ -21,7 +21,7 @@ Author: aria team
 """
 
 import re
-from typing import Dict, List, Any, Union, Tuple, Optional
+from typing import Dict, List, Union, Tuple
 
 
 class Vertex:
@@ -83,7 +83,7 @@ class Matrix:
     def __read_graph(self) -> None:
         suffix = self.source_file.split(".")[-1]
         if suffix == "txt":
-            with open(self.source_file, "r") as f:
+            with open(self.source_file, "r", encoding="utf-8") as f:
                 for line in f.readlines():
                     node1_name, node2_name, edge = line.strip().split(",")
                     node1_name = node1_name.strip()
@@ -96,14 +96,13 @@ class Matrix:
                         node2 = Vertex(node2_name)
                         self.add_vertex(node2)
                     self.add_edge(node1_name, node2_name, edge)
-            return
         else:
-            return self.__read_dot_file()
+            self.__read_dot_file()
 
     def __read_dot_file(self) -> None:
         edge_pattern = re.compile(r"(\w+)\s*->\s*(\w+)\s*\[.*color=(.*)\]")
         node_pattern = re.compile(r"(\w+)")
-        with open(self.source_file, "r") as f:
+        with open(self.source_file, "r", encoding="utf-8") as f:
             lines = f.readlines()
             line_1 = lines[0]
             line_2 = lines[-1]
@@ -130,7 +129,7 @@ class Matrix:
                             if label == "red":
                                 label = "d"
                                 self.add_edge(node_2, node_1, label + "bar")
-                            elif label == "black" or label == "purple":
+                            elif label in ("black", "purple"):
                                 label = "a"
                                 self.add_edge(node_2, node_1, label + "bar")
                             self.add_edge(node_1, node_2, label)
@@ -140,7 +139,6 @@ class Matrix:
                             node = match.group(1)
                             node_i = Vertex(node)
                             self.add_vertex(node_i)
-        return
 
     def add_vertex(self, vertex: Vertex) -> bool:
         """
@@ -165,8 +163,7 @@ class Matrix:
                 self.edges[-1].append([])
             self.edge_indices[vertex.name] = len(self.edge_indices)
             return True
-        else:
-            return False
+        return False
 
     def add_edge(self, u: str, v: str, label: str) -> bool:
         """
@@ -188,19 +185,18 @@ class Matrix:
         """
         if u in self.vertices and v in self.vertices:
             self.edges[self.edge_indices[u]][self.edge_indices[v]].append(label)
-            if label in self.symbol_pair.keys():
+            if label in self.symbol_pair:
                 if self.new_check_edge(u, v, label):
                     self.symbol_pair[label].append((u, v))
             else:
                 self.symbol_pair[label] = []
                 self.symbol_pair[label].append((u, v))
             return True
-        elif u not in self.vertices and v in self.vertices:
-            raise Exception(f"Node {u} is not in the graph")
-        elif v not in self.vertices and u in self.vertices:
-            raise Exception(f"Node {v} is not in the graph")
-        else:
-            raise Exception(f"Node {u} and Node {v} are not in the graph")
+        if u not in self.vertices and v in self.vertices:
+            raise ValueError(f"Node {u} is not in the graph")
+        if v not in self.vertices and u in self.vertices:
+            raise ValueError(f"Node {v} is not in the graph")
+        raise ValueError(f"Node {u} and Node {v} are not in the graph")
 
     def output_edge(self) -> List[List[Union[str, str]]]:
         output_list: List[List[Union[str, str]]] = []
@@ -225,21 +221,18 @@ class Matrix:
         else:
             u_index = self.edge_indices[u]
             v_index = self.edge_indices[v]
-        if lable in self.edges[u_index][v_index]:
-            return True
-        else:
-            return False
+        return lable in self.edges[u_index][v_index]
 
     def output_set(self) -> List[Tuple[str, str]]:
         return self.symbol_pair["M"]
 
     def dump_dot(self) -> None:
-        with open("generated_file/dump_dot.dot", "w") as f:
+        with open("generated_file/dump_dot.dot", "w", encoding="utf-8") as f:
             f.write("digraph CFG{\n")
             for node in self.vertices:
                 f.write(f"\tn{node};\n")
-            for symbol in self.symbol_pair:
+            for symbol, pair_list in self.symbol_pair.items():
                 if symbol in "MVaabarddbar":
-                    for pair in self.symbol_pair[symbol]:
+                    for pair in pair_list:
                         f.write(f'\tn{pair[0]}->n{pair[1]}[label="{symbol}"]\n')
             f.write("}")

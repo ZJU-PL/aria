@@ -4,15 +4,16 @@ TODO: this file relies on qiskit, which is not installed in the aria environment
 
 #!pypy3
 import sys
+import time
 from copy import deepcopy
-from math import pi, sqrt, floor, ceil, log
-from typing import List, Dict, Any, Union, Tuple, Optional
+from math import sqrt, floor, ceil, log
+from typing import List, Tuple
+
 from qiskit import *
 from qiskit.quantum_info import Statevector
 from qiskit.algorithms import Grover, AmplificationProblem
 from qiskit.utils import QuantumInstance
 import numpy as np
-import time
 
 
 class DTC_simulation:
@@ -20,7 +21,6 @@ class DTC_simulation:
         self.reduced_time: float = 0
         # label for finding all targets
         self.correct: bool = True
-        pass
 
     # Algorithm 2 in the paper
     def subroutine(self, n: int, sol: List[int]) -> Tuple[int, int]:
@@ -53,11 +53,10 @@ class DTC_simulation:
             return_value = int(result.top_measurement, 2)
             if sol[return_value] == 1:
                 return return_value, total
-            else:
-                m = min(lab * m, sqrt(2**n))
-                # stop because reaching the threshold
-                if total > sqrt(2**n):
-                    return -1, total
+            m = min(lab * m, sqrt(2**n))
+            # stop because reaching the threshold
+            if total > sqrt(2**n):
+                return -1, total
 
     # Algorithm 3 in the paper
     def estimate(self, sol_list: List[int], answer_num: int) -> int:
@@ -109,14 +108,14 @@ class DTC_simulation:
         total_quantum: int = 0
         start_time = time.perf_counter()
         size = len(graph)
-        Worklist: set = set()
+        worklist: set = set()
         for i in range(size):
             for j in range(size):
                 if graph[i][j] == 1:
-                    Worklist.add((i, j))
+                    worklist.add((i, j))
         # worklist algorithm for DTC
-        while len(Worklist) > 0:
-            i, j = Worklist.pop()
+        while len(worklist) > 0:
+            i, j = worklist.pop()
             time1 = time.perf_counter()
             answer_num: int = 0
             # save the solution indices in this list
@@ -128,7 +127,7 @@ class DTC_simulation:
                     sol[k] = 1
                     answer_num += 1
                     graph[i][k] = 1
-                    Worklist.add((i, k))
+                    worklist.add((i, k))
             self.reduced_time += time.perf_counter() - time1
             # simulate the process of Grover search
             # and store the number of quantum iterations needed for finding all targets
@@ -142,7 +141,7 @@ class DTC_simulation:
                     sol[k] = 1
                     answer_num += 1
                     graph[k][j] = 1
-                    Worklist.add((k, j))
+                    worklist.add((k, j))
             self.reduced_time += time.perf_counter() - time1
             total_quantum += self.estimate(sol, answer_num)
         end_time = time.perf_counter()

@@ -46,7 +46,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             count = count_solutions(formula, timeout=args.timeout)
         else:
             # Handle DIMACS format
-            count = count_solutions(formula, format="dimacs", timeout=args.timeout)
+            count = count_solutions(formula, fmt="dimacs", timeout=args.timeout)
 
         print(f"Number of models: {count}")
         return 0

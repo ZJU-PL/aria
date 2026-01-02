@@ -1,8 +1,6 @@
 """CNF manipulation via pysat"""
 
-import sys
 import random
-from copy import deepcopy
 from typing import List
 from pysat.formula import CNF  # IDPool
 from pysat.solvers import Solver

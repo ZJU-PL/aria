@@ -123,11 +123,11 @@ def _convert_sexpr_to_z3(sexpr: Any, variables: Dict[str, Any]) -> z3.ExprRef:
     if isinstance(sexpr, str):
         if sexpr in variables:
             return variables[sexpr]
-        elif sexpr in ["true", "false"]:
+        if sexpr in ["true", "false"]:
             return z3.BoolVal(sexpr == "true")
-        elif sexpr.startswith("#x"):
+        if sexpr.startswith("#x"):
             return z3.BitVecVal(int(sexpr[2:], 16), 32)
-        elif sexpr.startswith("#b"):
+        if sexpr.startswith("#b"):
             return z3.BitVecVal(int(sexpr[2:], 2), len(sexpr) - 2)
         return z3.Int(sexpr)
 

@@ -23,7 +23,7 @@ Author: aria team
 
 import re
 import copy
-from typing import Dict, List, Any, Union, Tuple
+from typing import Dict, List, Union, Tuple
 
 
 class Grammar:
@@ -82,7 +82,7 @@ class Grammar:
             string = f.read()
         match_instance = search_pattern.search(string)
         if match_instance is None:
-            raise Exception("The form of ebnf is not correct.")
+            raise ValueError("The form of ebnf is not correct.")
         production_rules = match_instance.group(2).split(";")
         return production_rules
 
@@ -93,10 +93,10 @@ class Grammar:
         grammar: Dict[str, List[List[str]]] = {}
         for rule in production_rules:
             _ = rule.split("->")
-            head, LHS = _[0].strip(), _[1]
+            head, lhs = _[0].strip(), _[1]
             if head not in grammar:
                 grammar[head] = []
-            for rule in LHS.split("|"):
+            for rule in lhs.split("|"):
                 rule = rule.split()
                 grammar[head].append(rule)
         return grammar
@@ -107,7 +107,7 @@ class Grammar:
             if rule[index] == "(":
                 return index
             index -= 1
-        raise Exception("Ebnf form is not correct.")
+        raise ValueError("Ebnf form is not correct.")
 
     def num_generator(self) -> int:
         self.new_terminal_subscript += 1
@@ -121,7 +121,7 @@ class Grammar:
         self, grammar: Dict[str, List[List[str]]], sign: str
     ) -> Dict[str, List[List[str]]]:
         if sign not in ("?", "*"):
-            raise Exception("Only accept ? or *")
+            raise ValueError("Only accept ? or *")
         # select * position
         new_rule_checker: Dict[str, str] = {}
         for head in grammar:
@@ -130,7 +130,7 @@ class Grammar:
                 while i < len(rule):
                     if rule[i] == sign:
                         if i == 0:
-                            raise Exception("Ebnf form is not correct!")
+                            raise ValueError("Ebnf form is not correct!")
                         if rule[i - 1] != ")":
                             repetition_start = i - 1
                         else:
@@ -141,9 +141,9 @@ class Grammar:
                                 new_rule_checker[repetition]
                             ]
                         else:
-                            X = f"X{self.num_generator()}"
-                            rule[repetition_start : i + 1] = [X]
-                            new_rule_checker[repetition] = X
+                            x_var = f"X{self.num_generator()}"
+                            rule[repetition_start : i + 1] = [x_var]
+                            new_rule_checker[repetition] = x_var
                         i = repetition_start
                     i += 1
         for repetition in new_rule_checker:
@@ -177,7 +177,7 @@ class Grammar:
                     return in_head
         return False
 
-    def ebnf_BIN(
+    def ebnf_bin(
         self, grammar: Dict[str, List[List[str]]]
     ) -> Dict[str, List[List[str]]]:
         new_grammar: Dict[str, List[List[str]]] = {}
@@ -238,7 +238,7 @@ class Grammar:
         grammar = self.ebnf_sign_replace(grammar, "*")
         grammar = self.ebnf_sign_replace(grammar, "?")
         grammar = self.ebnf_group_replace(grammar)
-        grammar = self.ebnf_BIN(grammar)
+        grammar = self.ebnf_bin(grammar)
         return grammar
 
     def grammar(self, filename: str) -> None:

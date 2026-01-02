@@ -150,7 +150,7 @@ class SCSolver:
                             )
                             set_variable.add("Dst" + left + str(i))
                 else:
-                    raise Exception("grammar error")
+                    raise ValueError("grammar error")
         # save the constraint info
         self.constraint = constraint
         self.set_variable = set_variable
@@ -164,11 +164,11 @@ class SCSolver:
         constraint = deepcopy(self.constraint)
 
         # step 1
-        W: Set[Tuple[str, str, str]] = set()
+        worklist: Set[Tuple[str, str, str]] = set()
         for k in constraint["con0"]:
             for i in constraint["con0"][k]:
                 left, right = i.split(",")
-                W.add(("con", left, right))
+                worklist.add(("con", left, right))
         # step 2
         ground: Dict[str, int] = {}
         for i in self.set_variable:
@@ -179,53 +179,55 @@ class SCSolver:
         gs_iteration: int = 0
 
         # start the worklist analysis of SC-reduction
-        while len(W) > 0:
-            a = W.pop()
+        while len(worklist) > 0:
+            a = worklist.pop()
             if a[0] == "con":
                 if len(a) < 4:
-                    X = a[1]
+                    x_var = a[1]
                     iteration: int = 0
                     num_of_sol: int = 0
                     for k in constraint["con1"]:
                         iteration += 1
                         for i in constraint["con1"][k]:
-                            if i.split(",")[0] == X:
+                            if i.split(",")[0] == x_var:
                                 if ground[i.split(",")[2]] == 0:
                                     ground[i.split(",")[2]] = 1
-                                    W.add(("con", i.split(",")[0], i.split(",")[2]))
+                                    worklist.add(
+                                        ("con", i.split(",")[0], i.split(",")[2])
+                                    )
                                     num_of_sol += 1
                     gs_iteration += self.estimate(num_of_sol, iteration)
                     whole_iteration += iteration
                 else:
-                    X = a[1]
-                    Y = a[2]
-                    Z = a[3]
+                    x_var = a[1]
+                    y_var = a[2]
+                    z_var = a[3]
                     iteration = 0
                     num_of_sol = 0
                     for k in constraint["pro"]:
                         iteration += 1
                         for i in constraint["pro"][k]:
-                            if i.split(",")[0] == X and i.split(",")[2] == Y:
+                            if i.split(",")[0] == x_var and i.split(",")[2] == y_var:
                                 if ground[i.split(",")[2]] == 1:
-                                    if ground[Z] == 0:
-                                        ground[Z] = 1
-                                        W.add(("con", X, Z))
+                                    if ground[z_var] == 0:
+                                        ground[z_var] = 1
+                                        worklist.add(("con", x_var, z_var))
                                         num_of_sol += 1
                     gs_iteration += self.estimate(num_of_sol, iteration)
                     whole_iteration += iteration
             else:
-                X = a[1]
-                Y = a[2]
+                x_var = a[1]
+                y_var = a[2]
                 iteration = 0
                 num_of_sol = 0
                 for k in constraint["pro"]:
                     iteration += 1
                     for i in constraint["pro"][k]:
-                        if i.split(",")[0] == X and i.split(",")[2] == Y:
+                        if i.split(",")[0] == x_var and i.split(",")[2] == y_var:
                             if ground[i.split(",")[2]] == 1:
-                                if ground[Y] == 0:
-                                    ground[Y] = 1
-                                    W.add(("con", X, Y))
+                                if ground[y_var] == 0:
+                                    ground[y_var] = 1
+                                    worklist.add(("con", x_var, y_var))
                                     num_of_sol += 1
                 gs_iteration += self.estimate(num_of_sol, iteration)
                 whole_iteration += iteration

@@ -1,6 +1,6 @@
 [MASTER]
 # Use multiple processes to speed up Pylint
-jobs=0
+jobs=8
 
 # Python code to execute, usually for sys.path manipulation such as pygtk.require().
 init-hook='import sys; sys.path.append("stubs")'
@@ -47,6 +47,8 @@ disable=raw-checker-failed,
         too-many-instance-attributes,
         too-many-public-methods,
         too-few-public-methods,
+        line-too-long,
+        too-many-return-statements,
         # Disable checks that are handled by mypy
         missing-module-docstring,
         missing-class-docstring,
@@ -60,7 +62,9 @@ disable=raw-checker-failed,
         # Allow broad except clauses (sometimes needed)
         broad-except,
         # Allow import outside toplevel (sometimes needed for compatibility)
-        import-outside-toplevel
+        import-outside-toplevel,
+        # Disable duplicate-code check (too many false positives for common patterns)
+        duplicate-code
 
 [REPORTS]
 # Python expression which should return a score less than or equal to 10. You
@@ -277,7 +281,7 @@ ignore-comments=yes
 ignore-docstrings=yes
 
 # Imports are removed from the similarity computation
-ignore-imports=no
+ignore-imports=yes
 
 # Signatures are removed from the similarity computation
 ignore-signatures=no
