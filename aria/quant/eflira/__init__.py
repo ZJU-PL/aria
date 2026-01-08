@@ -1,1 +1,1 @@
-"""TODO (add pysmt-based implemenation)"""
+"""EFLIRA solvers (sequential and parallel CEGIS)."""
