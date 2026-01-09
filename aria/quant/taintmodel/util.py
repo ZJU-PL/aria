@@ -1,7 +1,7 @@
 # sic_smt/util.py -------------------------------------------------------------
 from __future__ import annotations
 import itertools
-from typing import Dict, Iterable, Iterator, Sequence, Tuple
+from typing import Dict, Iterator, Sequence, Tuple
 from z3 import *  # type: ignore
 
 
@@ -25,6 +25,18 @@ def iter_qblocks(f: ExprRef) -> Iterator[QuantifierRef]:
             yield n
         else:
             stack.extend(reversed(n.children()))
+
+
+def iter_prefix_blocks(f: ExprRef) -> Iterator[QuantifierRef]:
+    """
+    Iterate over quantifier blocks in a prenex-style prefix.
+
+    Stops once a non-quantifier body is reached.
+    """
+    cur = f
+    while is_quantifier(cur):
+        yield cur
+        cur = cur.body()
 
 
 # ---------------------------------------------------------------- skolemise
