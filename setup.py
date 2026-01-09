@@ -119,7 +119,8 @@ setup(
     entry_points={
         'console_scripts': [
             'aria-smt-server=aria.cli.smt_server:main',
-            'aria-pyomt=aria.cli.pyomt:main'
+            'aria-pyomt=aria.cli.pyomt:main',
+            'aria-efsmt=aria.cli.efsmt:main'
         ],
     },
 
