@@ -22,7 +22,7 @@ from z3 import (  # type: ignore
 )
 
 from .taint import infer_sic_and_wic
-from .util import skolemize_block, project_model
+from .util import skolemize_block, project_model, let_sharing
 from aria.utils.z3_expr_utils import get_variables
 import logging
 
@@ -41,10 +41,12 @@ class QuantSolver:
         timeout_ms: Optional[int] = None,
         confirm_unsat: bool = True,
         simplify_sic: bool = True,
+        verify_wic: bool = False,
     ) -> None:
         self.timeout_ms = timeout_ms
         self.confirm_unsat = confirm_unsat
         self.simplify_sic = simplify_sic
+        self.verify_wic = verify_wic
 
     # ------------------------------------------------------------------ core
     def solve(self, formula: ExprRef) -> Tuple[str, Optional[ModelRef]]:
@@ -95,13 +97,18 @@ class QuantSolver:
         assert q.eq(formula)
 
         sk_body, skol_consts = skolemize_block(q)
+        sk_body = let_sharing(sk_body)
         if q.is_forall():
             targets = set(skol_consts.values())
             sic, is_wic = infer_sic_and_wic(
-                sk_body, targets, do_simplify=self.simplify_sic
+                sk_body,
+                targets,
+                do_simplify=self.simplify_sic,
+                verify_wic=self.verify_wic,
             )
             return And(sk_body, sic), is_wic
-        return sk_body, True
+        # For ∃ (or other), keep the block (no elimination) to stay aligned with solveQ
+        return formula, False
 
     def _eliminate_all_quantifiers(
         self, expr: ExprRef, wic_acc: bool
@@ -109,18 +116,22 @@ class QuantSolver:
         """Recursively eliminate all quantifiers in expr."""
         if is_quantifier(expr):
             new_expr, is_wic = self._eliminate_head_block(expr, expr)
+            # If not eliminated (e.g., ∃), stop recursion under this block
+            if new_expr.eq(expr):
+                return new_expr, wic_acc and is_wic
             return self._eliminate_all_quantifiers(new_expr, wic_acc and is_wic)
 
         if expr.num_args() == 0:
             return expr, wic_acc
 
         rebuilt_children = []
-        child_wic = wic_acc
+        all_children_wic = True
         for c in expr.children():
-            new_c, child_wic = self._eliminate_all_quantifiers(c, child_wic)
+            new_c, child_wic = self._eliminate_all_quantifiers(c, wic_acc)
             rebuilt_children.append(new_c)
+            all_children_wic = all_children_wic and child_wic
         rebuilt = self._rebuild_expr(expr, rebuilt_children)
-        return rebuilt, child_wic
+        return rebuilt, wic_acc and all_children_wic
 
     @staticmethod
     def _rebuild_expr(expr: ExprRef, children: list[ExprRef]) -> ExprRef:

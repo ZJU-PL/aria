@@ -1,6 +1,7 @@
 # sic_smt/util.py -------------------------------------------------------------
 from __future__ import annotations
 import itertools
+from collections import defaultdict
 from typing import Dict, Iterator, Sequence, Tuple
 from z3 import *  # type: ignore
 
@@ -67,3 +68,52 @@ def project_model(model: ModelRef, keep: Sequence[ExprRef]) -> ModelRef:
         if c in keep:
             m[d] = model[d]
     return m
+
+
+# -------------------------------------------------------------- let sharing
+def let_sharing(expr: ExprRef) -> ExprRef:
+    """
+    Introduce sharing (Tseitin-style) for repeated subexpressions to emulate SSA.
+    Leaves quantifiers untouched.
+    """
+    counts: Dict[ExprRef, int] = defaultdict(int)
+
+    def count(e: ExprRef):
+        counts[e] += 1
+        if is_quantifier(e):
+            return
+        for c in e.children():
+            count(c)
+
+    count(expr)
+
+    shared_eqs = []
+    cache: Dict[ExprRef, ExprRef] = {}
+
+    def rebuild(e: ExprRef) -> ExprRef:
+        if is_quantifier(e):
+            return e
+        if counts[e] > 1 and e.num_args() > 0:
+            if e in cache:
+                return cache[e]
+            new_children = [rebuild(c) for c in e.children()]
+            try:
+                rebuilt = e.decl()(*new_children)
+            except Exception:
+                rebuilt = e
+            name = fresh_const(e.sort(), "ssa")
+            shared_eqs.append(name == rebuilt)
+            cache[e] = name
+            return name
+        if e.num_args() == 0:
+            return e
+        new_children = [rebuild(c) for c in e.children()]
+        try:
+            return e.decl()(*new_children)
+        except Exception:
+            return e
+
+    new_root = rebuild(expr)
+    if shared_eqs:
+        return And(new_root, *shared_eqs)
+    return new_root
