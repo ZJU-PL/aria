@@ -177,12 +177,59 @@ def traverse(value: Value, vars: dict[str, Any]):
         args = [traverse(a, vars) for a in value.args]
         if name == "concat":
             return z3.Concat(*args)
+        if name == "bv_concat":
+            return z3.Concat(*args)
+        if name == "extract":
+            hi, lo, val = args
+            return z3.Extract(int(hi), int(lo), val)
+        if name == "zeroext":
+            ext, val = args
+            return z3.ZeroExt(int(ext), val)
+        if name == "signext":
+            ext, val = args
+            return z3.SignExt(int(ext), val)
+        if name == "lshr":
+            left, shift = args
+            return z3.LShR(left, shift)
+        if name == "rol":
+            val, bits = args
+            return z3.RotateLeft(val, int(bits))
+        if name == "ror":
+            val, bits = args
+            return z3.RotateRight(val, int(bits))
+        if name == "repeat":
+            reps, val = args
+            return z3.RepeatBitVec(int(reps), val)
+        if name == "bv2int":
+            val, signed = args
+            return z3.BV2Int(val, is_signed=bool(signed))
+        if name == "int2bv":
+            width, val = args
+            return z3.Int2BV(int(width), val)
         if name == "ite":
             return z3.If(*args)
         if name == "distinct":
             return z3.Distinct(*args)
         if name == "length":
             return z3.Length(*args)
+        if name == "contains":
+            return z3.Contains(*args)
+        if name == "prefixof":
+            return z3.PrefixOf(*args)
+        if name == "suffixof":
+            return z3.SuffixOf(*args)
+        if name == "substring":
+            return z3.SubString(*args)
+        if name == "indexof":
+            if len(args) == 3:
+                return z3.IndexOf(args[0], args[1], args[2])
+            return z3.IndexOf(args[0], args[1])
+        if name == "replace":
+            return z3.Replace(*args)
+        if name == "str_to_int":
+            return z3.StrToInt(*args)
+        if name == "int_to_str":
+            return z3.IntToStr(*args)
         raise NotImplementedError(f"Unknown builtin: {name}")
     elif isinstance(value, Quantifier):
         local = dict(vars)

@@ -19,6 +19,10 @@ from ._dsl_sorts import (
     BV,
     FP,
     Array,
+    Seq,
+    SetSort,
+    Tuple,
+    Enum,
     U,
     BVVal,
     FPVal,
@@ -54,6 +58,10 @@ __all__ = (
     "BV",
     "FP",
     "Array",
+    "Seq",
+    "SetSort",
+    "Tuple",
+    "Enum",
     "U",
     # array ops
     "Store",
@@ -64,9 +72,27 @@ __all__ = (
     "BVVal",
     "FPVal",
     "Concat",
+    "BVConcat",
+    "Extract",
+    "ZeroExt",
+    "SignExt",
+    "LShR",
+    "RotateLeft",
+    "RotateRight",
+    "RepeatBV",
+    "BV2Int",
+    "Int2BV",
     "IfThenElse",
     "Distinct",
     "Length",
+    "Contains",
+    "PrefixOf",
+    "SuffixOf",
+    "Substring",
+    "IndexOf",
+    "Replace",
+    "StrToInt",
+    "IntToStr",
     # external APIs
     "get_constraints",
     "rename_free_vars",
@@ -168,6 +194,7 @@ class SolverMeta(type):
         cls.__model = None
         cls.__vars = vars
         cls.__constraints = tuple(constraints)
+        cls.__unsat_core: tuple[z3.ExprRef, ...] | None = None
         # Scoping frames for additional declarations
         cls.__frames: list[dict[str, dict[str, Any]]] = [
             {"vars": {}, "funs": {}, "sorts": {}}
@@ -281,95 +308,146 @@ def Length(s: Any):
     return Builtin("length", s, ns=ns)
 
 
-# ---------- External API helpers ----------
+def BVConcat(*args: Any):
+    from ._dsl_nodes import Builtin, Value
+
+    if not args:
+        raise ValueError("BVConcat requires at least one argument")
+    ns = next((a.ns for a in args if isinstance(a, Value)), (lambda: None))
+    return Builtin("bv_concat", *args, ns=ns)
 
 
-def get_constraints(solver_cls: type["Solver"]) -> tuple[Any, ...]:
-    return solver_cls.constraints()
+def Extract(high: int, low: int, value: Any):
+    from ._dsl_nodes import Builtin, Value
+
+    ns = value.ns if isinstance(value, Value) else (lambda: None)
+    return Builtin("extract", int(high), int(low), value, ns=ns)
 
 
-def get_free_vars(expr: z3.AstRef) -> list[z3.ExprRef]:
-    seen: set[int] = set()
-    out: list[z3.ExprRef] = []
-    stack = [expr]
-    while stack:
-        e = stack.pop()
-        try:
-            key = z3.Z3_get_ast_id(e.ctx_ref(), e.as_ast())
-        except Exception:
-            key = id(e)
-        if key in seen:
-            continue
-        seen.add(key)
-        try:
-            if (
-                z3.is_const(e)
-                and e.num_args() == 0
-                and e.decl().kind() == z3.Z3_OP_UNINTERPRETED
-            ):
-                out.append(e)
-        except Exception:
-            pass
-        try:
-            stack.extend(list(e.children()))
-        except Exception:
-            pass
-    return out
+def ZeroExt(ext: int, value: Any):
+    from ._dsl_nodes import Builtin, Value
+
+    ns = value.ns if isinstance(value, Value) else (lambda: None)
+    return Builtin("zeroext", int(ext), value, ns=ns)
 
 
-def rename_free_vars(expr: z3.AstRef, prefix: str = "", postfix: str = "") -> z3.AstRef:
-    consts = get_free_vars(expr)
-    subs = []
-    for c in consts:
-        try:
-            name = c.decl().name()
-        except Exception:
-            name = str(c)
-        new = z3.Const(f"{prefix}{name}{postfix}", c.sort())
-        subs.append((c, new))
-    if not subs:
-        return expr
-    return z3.substitute(expr, *subs)
+def SignExt(ext: int, value: Any):
+    from ._dsl_nodes import Builtin, Value
+
+    ns = value.ns if isinstance(value, Value) else (lambda: None)
+    return Builtin("signext", int(ext), value, ns=ns)
 
 
-class Z3Wrapper(Value):
-    def __repr__(self):
-        return f"z3({self.expr})"
+def LShR(value: Any, shift: Any):
+    from ._dsl_nodes import Builtin, Value
 
-    def __init__(self, expr: Any, **kwargs):
-        self.expr = expr
-        super().__init__(**kwargs)
-
-
-def from_z3(expr: Any) -> Value:
-    # Wrap a raw z3 expression/value in a Value so it can participate in the DSL
-    if isinstance(expr, Value):
-        return expr
-    ns = Namespace()
-    return Z3Wrapper(expr, ns=weakref.ref(ns))
+    ns = value.ns if isinstance(value, Value) else (
+        shift.ns if isinstance(shift, Value) else (lambda: None)
+    )
+    return Builtin("lshr", value, shift, ns=ns)
 
 
-def to_z3(value: Any, env: dict[str, Any] | None = None) -> Any:
-    # Convert a Value to a z3 expression using provided environment mapping
-    # env maps variable names to z3 Const/Func declarations or SortRefs
-    if isinstance(value, z3.AstRef) or isinstance(value, z3.SortRef):
-        return value
-    if not isinstance(value, Value):
-        return value
-    if isinstance(value, Z3Wrapper):
-        return value.expr
-    if env is None:
-        raise ValueError(
-            "to_z3 requires an env mapping of variable names to z3 symbols or sorts"
-        )
-    vars: dict[str, Any] = {}
-    for k, v in env.items():
-        if isinstance(v, z3.AstRef):
-            vars[k] = v
-        else:
-            sort = resolve_sort(v)
-            vars[k] = z3.Const(k, sort)
-    return traverse(value, vars)
+def RotateLeft(value: Any, bits: int):
+    from ._dsl_nodes import Builtin, Value
+
+    ns = value.ns if isinstance(value, Value) else (lambda: None)
+    return Builtin("rol", value, int(bits), ns=ns)
+
+
+def RotateRight(value: Any, bits: int):
+    from ._dsl_nodes import Builtin, Value
+
+    ns = value.ns if isinstance(value, Value) else (lambda: None)
+    return Builtin("ror", value, int(bits), ns=ns)
+
+
+def RepeatBV(count: int, value: Any):
+    from ._dsl_nodes import Builtin, Value
+
+    ns = value.ns if isinstance(value, Value) else (lambda: None)
+    return Builtin("repeat", int(count), value, ns=ns)
+
+
+def BV2Int(value: Any, signed: bool = False):
+    from ._dsl_nodes import Builtin, Value
+
+    ns = value.ns if isinstance(value, Value) else (lambda: None)
+    return Builtin("bv2int", value, bool(signed), ns=ns)
+
+
+def Int2BV(width: int, value: Any):
+    from ._dsl_nodes import Builtin, Value
+
+    ns = value.ns if isinstance(value, Value) else (lambda: None)
+    return Builtin("int2bv", int(width), value, ns=ns)
+
+
+def Contains(s: Any, sub: Any):
+    from ._dsl_nodes import Builtin, Value
+
+    ns = s.ns if isinstance(s, Value) else (lambda: None)
+    return Builtin("contains", s, sub, ns=ns)
+
+
+def PrefixOf(prefix: Any, s: Any):
+    from ._dsl_nodes import Builtin, Value
+
+    ns = s.ns if isinstance(s, Value) else (
+        prefix.ns if isinstance(prefix, Value) else (lambda: None)
+    )
+    return Builtin("prefixof", prefix, s, ns=ns)
+
+
+def SuffixOf(suffix: Any, s: Any):
+    from ._dsl_nodes import Builtin, Value
+
+    ns = s.ns if isinstance(s, Value) else (
+        suffix.ns if isinstance(suffix, Value) else (lambda: None)
+    )
+    return Builtin("suffixof", suffix, s, ns=ns)
+
+
+def Substring(s: Any, offset: Any, length: Any):
+    from ._dsl_nodes import Builtin, Value
+
+    ns = s.ns if isinstance(s, Value) else (
+        offset.ns if isinstance(offset, Value) else (lambda: None)
+    )
+    return Builtin("substring", s, offset, length, ns=ns)
+
+
+def IndexOf(s: Any, sub: Any, start: Any | None = None):
+    from ._dsl_nodes import Builtin, Value
+
+    ns = s.ns if isinstance(s, Value) else (
+        sub.ns if isinstance(sub, Value) else (lambda: None)
+    )
+    if start is None:
+        return Builtin("indexof", s, sub, ns=ns)
+    return Builtin("indexof", s, sub, start, ns=ns)
+
+
+def Replace(s: Any, old: Any, new: Any):
+    from ._dsl_nodes import Builtin, Value
+
+    ns = s.ns if isinstance(s, Value) else (
+        old.ns if isinstance(old, Value) else (lambda: None)
+    )
+    return Builtin("replace", s, old, new, ns=ns)
+
+
+def StrToInt(s: Any):
+    from ._dsl_nodes import Builtin, Value
+
+    ns = s.ns if isinstance(s, Value) else (lambda: None)
+    return Builtin("str_to_int", s, ns=ns)
+
+
+def IntToStr(i: Any):
+    from ._dsl_nodes import Builtin, Value
+
+    ns = i.ns if isinstance(i, Value) else (lambda: None)
+    return Builtin("int_to_str", i, ns=ns)
 
 
 from ._dsl_nodes import Store, ForAll, Exists  # noqa: F401
@@ -401,6 +479,11 @@ class Solver(metaclass=SolverMeta):
             s.add(c)
         cls._SolverMeta__solver = s
         cls._SolverMeta__model = None
+        cls._SolverMeta__unsat_core = None
+
+    @classmethod
+    def set(cls, **options: Any):
+        getattr(cls, "_SolverMeta__solver").set(**options)
 
     @classmethod
     def push(cls, n: int = 1):
@@ -433,13 +516,28 @@ class Solver(metaclass=SolverMeta):
         s.add(*z3exprs)
 
     @classmethod
-    def check(cls) -> z3.CheckSatResult:
+    def check(cls, *assumptions: Any) -> z3.CheckSatResult:
         s = getattr(cls, "_SolverMeta__solver")
-        res = s.check()
+        env = cls.current_env()
+        z3_assumptions = []
+        for a in assumptions:
+            if isinstance(a, str):
+                z3_assumptions.append(z3.Bool(a))
+            elif isinstance(a, z3.AstRef):
+                z3_assumptions.append(a)
+            else:
+                z3_assumptions.append(to_z3(a, env))
+        res = s.check(*z3_assumptions)
+        cls._SolverMeta__unsat_core = None
         if res == z3.sat:
             cls._SolverMeta__model = s.model()
         else:
             cls._SolverMeta__model = None
+            if res == z3.unsat:
+                try:
+                    cls._SolverMeta__unsat_core = tuple(s.unsat_core())
+                except Exception:
+                    cls._SolverMeta__unsat_core = ()
         return res
 
     @classmethod
@@ -501,6 +599,14 @@ class Solver(metaclass=SolverMeta):
         srt = U(name)
         cls._SolverMeta__frames[-1]["sorts"][name] = srt
         return srt
+
+    @classmethod
+    def unsat_core(cls) -> tuple[z3.ExprRef, ...] | None:
+        return getattr(
+            cls,
+            "_SolverMeta__unsat_core",
+            getattr(cls, "_Solver__unsat_core", None),
+        )
 
 
 # Module-level proxies for scoping helpers (default to latest Solver subclass if desired)
