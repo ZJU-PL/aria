@@ -11,11 +11,17 @@ from .cfg import (
     BinOp,
     BoolOp,
     Branch,
+    Break,
     CFG,
     Compare,
     Const,
+    Continue,
     Expr,
     Goto,
+    IfExp,
+    List,
+    Subscript,
+    Tuple,
     UnaryOp,
     Var,
 )
@@ -28,12 +34,14 @@ class _CFGBuilder:
         entry = self._new_block()
         self.entry = entry.block_id
         self.variables: Set[str] = set()
+        self.loop_stack: List[Tuple[str, str]] = []  # (loop_header, after_loop)
 
     def build(self, module: ast.Module) -> Tuple[CFG, List[str]]:
         open_blocks = [self.entry]
         open_blocks = self._build_body(module.body, open_blocks)
         # Nothing to do with dangling exits; analysis treats missing terminator as exit.
-        cfg = CFG(self.entry, self.blocks)
+        loop_headers = {header for header, _ in self.loop_stack}
+        cfg = CFG(self.entry, self.blocks, loop_headers)
         return cfg, sorted(self.variables)
 
     # --- block helpers -------------------------------------------------
@@ -129,6 +137,22 @@ class _CFGBuilder:
                 op_str,
                 self._parse_expr(node.comparators[0]),
             )
+        if isinstance(node, ast.IfExp):
+            return IfExp(
+                self._parse_expr(node.test),
+                self._parse_expr(node.body),
+                self._parse_expr(node.orelse),
+            )
+        if isinstance(node, ast.List):
+            return List([self._parse_expr(e) for e in node.elts])
+        if isinstance(node, ast.Tuple):
+            return Tuple([self._parse_expr(e) for e in node.elts])
+        if isinstance(node, ast.Subscript):
+            value = self._parse_expr(node.value)
+            if isinstance(node.slice, ast.Slice):
+                raise ValueError("Slice operations not yet supported")
+            slice_val = self._parse_expr(node.slice)
+            return Subscript(value, slice_val)
         raise ValueError(f"Unsupported expression node: {ast.dump(node)}")
 
     # --- statement lowering ---------------------------------------------
@@ -140,12 +164,16 @@ class _CFGBuilder:
 
     def _lower_stmt(self, stmt: ast.stmt, open_blocks: List[str]) -> List[str]:
         if isinstance(stmt, ast.Assign):
-            if len(stmt.targets) != 1 or not isinstance(stmt.targets[0], ast.Name):
-                raise ValueError("Only simple assignments to names are supported")
+            # Support multiple assignment: a = b = 0
+            for target in stmt.targets:
+                if not isinstance(target, ast.Name):
+                    raise ValueError("Only simple assignments to names are supported")
             block = self._ensure_single_open(open_blocks)
-            target = stmt.targets[0].id
-            self.variables.add(target)
-            block.add_statement(AssignStmt(target, "=", self._parse_expr(stmt.value)))
+            value_expr = self._parse_expr(stmt.value)
+            for target in stmt.targets:
+                target_name = target.id
+                self.variables.add(target_name)
+                block.add_statement(AssignStmt(target_name, "=", value_expr))
             return [block.block_id]
 
         if isinstance(stmt, ast.AugAssign):
@@ -170,12 +198,17 @@ class _CFGBuilder:
             )
 
             then_exits = self._build_body(stmt.body, [then_entry.block_id])
-            else_body = stmt.orelse if stmt.orelse else []
-            else_exits = self._build_body(else_body, [else_entry.block_id])
+
+            if stmt.orelse and len(stmt.orelse) == 1 and isinstance(stmt.orelse[0], ast.If):
+                elif_exits = self._lower_stmt(stmt.orelse[0], [else_entry.block_id])
+            else:
+                else_body = stmt.orelse if stmt.orelse else []
+                elif_exits = self._build_body(else_body, [else_entry.block_id])
 
             join = self._new_block()
-            for b in then_exits + else_exits:
-                self._set_goto(b, join.block_id)
+            for b in then_exits + elif_exits:
+                if self.blocks[b].terminator is None:
+                    self._set_goto(b, join.block_id)
             return [join.block_id]
 
         if isinstance(stmt, ast.While):
@@ -187,7 +220,10 @@ class _CFGBuilder:
                 self._parse_expr(stmt.test), body_entry.block_id, after_loop.block_id
             )
 
+            self.loop_stack.append((cond_block.block_id, after_loop.block_id))
             body_exits = self._build_body(stmt.body, [body_entry.block_id])
+            self.loop_stack.pop()
+
             for b in body_exits:
                 self._set_goto(b, cond_block.block_id)
             return [after_loop.block_id]
@@ -197,6 +233,31 @@ class _CFGBuilder:
 
         if isinstance(stmt, ast.Pass):
             return open_blocks
+
+        if isinstance(stmt, ast.Assert):
+            block = self._ensure_single_open(open_blocks)
+            cond_expr = self._parse_expr(stmt.test)
+            assert_entry = self._new_block()
+            assert_fail = self._new_block()
+            # On assert failure, go to a dead end (no exit)
+            block.terminator = Branch(cond_expr, assert_entry.block_id, assert_fail.block_id)
+            return [assert_entry.block_id]
+
+        if isinstance(stmt, ast.Break):
+            if not self.loop_stack:
+                raise ValueError("Break statement outside of loop")
+            block = self._ensure_single_open(open_blocks)
+            _, after_loop = self.loop_stack[-1]
+            block.terminator = Goto(after_loop)
+            return [after_loop]
+
+        if isinstance(stmt, ast.Continue):
+            if not self.loop_stack:
+                raise ValueError("Continue statement outside of loop")
+            block = self._ensure_single_open(open_blocks)
+            loop_header, _ = self.loop_stack[-1]
+            block.terminator = Goto(loop_header)
+            return [loop_header]
 
         raise ValueError(f"Unsupported statement: {ast.dump(stmt)}")
 
@@ -246,16 +307,19 @@ class _CFGBuilder:
             cond_expr, body_entry.block_id, after_loop.block_id
         )
 
+        self.loop_stack.append((cond_block.block_id, after_loop.block_id))
         body_exits = self._build_body(stmt.body, [body_entry.block_id])
+        self.loop_stack.pop()
 
-        # Increment iterator at end of body.
+        # Increment iterator at end of body (only for blocks without terminators).
         increment_op = "+=" if (step_const is None or step_const > 0) else "-="
         increment_expr = step_expr if increment_op == "+=" else Const(abs(step_const))
         for b in body_exits:
-            self.blocks[b].add_statement(
-                AssignStmt(target_name, increment_op, increment_expr)
-            )
-            self._set_goto(b, cond_block.block_id)
+            if self.blocks[b].terminator is None:
+                self.blocks[b].add_statement(
+                    AssignStmt(target_name, increment_op, increment_expr)
+                )
+                self._set_goto(b, cond_block.block_id)
 
         return [after_loop.block_id]
 

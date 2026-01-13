@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from collections import deque
 from dataclasses import dataclass, field
-from typing import Dict, List, Union
+from typing import Dict, List, Optional, Set, Union
 
 import z3
 
@@ -69,8 +69,36 @@ class BoolOp(Expr):
 @dataclass(frozen=True)
 class Compare(Expr):
     left: Expr
-    op: str  # "<", "<=", ">", ">=", "==", "!="
+    op: str  # "<", "<=", ">", ">=", "==", "!=", "is", "is not", "in", "not in"
     right: Expr
+
+
+@dataclass(frozen=True)
+class List(Expr):
+    """List literal expression."""
+    elements: List[Expr]
+
+
+@dataclass(frozen=True)
+class Tuple(Expr):
+    """Tuple literal expression."""
+    elements: List[Expr]
+
+
+@dataclass(frozen=True)
+class Subscript(Expr):
+    """Subscript expression: arr[index]."""
+    value: Expr
+    index: Expr
+    slice: Optional[Expr] = None  # For slice operations (e.g., arr[1:5])
+
+
+@dataclass(frozen=True)
+class IfExp(Expr):
+    """Ternary conditional expression: x if cond else y."""
+    test: Expr
+    body: Expr
+    orelse: Expr
 
 
 # === Statements and terminators ===========================================
@@ -95,7 +123,17 @@ class Goto:
     target: str
 
 
-Terminator = Union[Branch, Goto, None]
+@dataclass(frozen=True)
+class Break:
+    """Break statement: exit the nearest enclosing loop."""
+
+
+@dataclass(frozen=True)
+class Continue:
+    """Continue statement: jump to the next iteration of the loop."""
+
+
+Terminator = Union[Branch, Goto, Break, Continue, None]
 
 
 @dataclass
@@ -114,6 +152,7 @@ class CFG:
 
     entry: str
     blocks: Dict[str, BasicBlock]
+    loop_headers: Set[str] = field(default_factory=set)
 
     def successors(self, block_id: str) -> List[str]:
         block = self.blocks[block_id]
@@ -126,6 +165,9 @@ class CFG:
 
     def is_exit(self, block_id: str) -> bool:
         return len(self.successors(block_id)) == 0
+
+    def is_loop_header(self, block_id: str) -> bool:
+        return block_id in self.loop_headers
 
 
 # === Z3 lowering ===========================================================
@@ -195,6 +237,19 @@ def expr_to_z3(expr: Expr, env: Dict[str, z3.ArithRef]) -> z3.ExprRef:
         if expr.op == "!=":
             return lhs != rhs
         raise ValueError(f"Unsupported comparison op: {expr.op}")
+    if isinstance(expr, List):
+        raise ValueError("List literals not yet supported in analysis")
+    if isinstance(expr, Tuple):
+        raise ValueError("Tuple literals not yet supported in analysis")
+    if isinstance(expr, Subscript):
+        value = expr_to_z3(expr.value, env)
+        index = expr_to_z3(expr.index, env)
+        raise ValueError("Subscript operations not yet supported in analysis")
+    if isinstance(expr, IfExp):
+        test = expr_to_z3(expr.test, env)
+        body = expr_to_z3(expr.body, env)
+        orelse = expr_to_z3(expr.orelse, env)
+        return z3.If(test, body, orelse)
     raise TypeError(f"Unhandled expression type: {type(expr).__name__}")
 
 
@@ -267,7 +322,9 @@ def _refine(
     domain: ConjunctiveDomain, state: AbstractState, constraint: z3.ExprRef
 ) -> AbstractState:
     phi = domain.logic_and([domain.gamma_hat(state), constraint])
-    return bilateral(domain, phi)
+    # Create a fresh domain to avoid solver state corruption from iterative_solvers caching
+    fresh_domain = type(domain)(domain.variables)
+    return bilateral(fresh_domain, phi)
 
 
 def analyze_cfg(
@@ -297,6 +354,14 @@ def analyze_cfg(
             _propagate(domain, states, worklist, term.false_target, false_state)
         elif isinstance(term, Goto):
             _propagate(domain, states, worklist, term.target, post_state)
+        elif isinstance(term, Break):
+            for target in cfg.successors(block_id):
+                if not cfg.is_loop_header(target):
+                    _propagate(domain, states, worklist, target, post_state)
+        elif isinstance(term, Continue):
+            for target in cfg.successors(block_id):
+                if cfg.is_loop_header(target):
+                    _propagate(domain, states, worklist, target, post_state)
         else:
             exit_states.append(post_state)
 
@@ -317,6 +382,6 @@ def _propagate(
         worklist.append(target)
         return
     joined = domain.join([states[target], candidate])
-    if joined > states[target]:  # type: ignore[operator]
+    if not (joined <= states[target]):  # type: ignore[operator]
         states[target] = joined
         worklist.append(target)
