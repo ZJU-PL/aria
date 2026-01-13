@@ -1,0 +1,434 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CFL OBDD (Context-Free Language Ordered Binary Decision Diagrams) &mdash; ARIA Documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=a74d790d"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            ARIA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">CFL OBDD (Context-Free Language Ordered Binary Decision Diagrams)</a><ul>
+<li><a class="reference internal" href="#directory-structure">Directory Structure</a></li>
+<li><a class="reference internal" href="#key-concepts">Key Concepts</a></li>
+<li><a class="reference internal" href="#key-components">Key Components</a></li>
+<li><a class="reference internal" href="#usage-examples">Usage Examples</a><ul>
+<li><a class="reference internal" href="#cflobvdd-api">### CFLOBVDD API</a></li>
+<li><a class="reference internal" href="#bvdd-api">### BVDD API</a></li>
+<li><a class="reference internal" href="#btor2-parser">### BTOR2 Parser</a></li>
+<li><a class="reference internal" href="#solver-interface-api">### Solver Interface API</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-purpose-summary">Module Purpose Summary</a></li>
+<li><a class="reference internal" href="#key-features">Key Features</a></li>
+<li><a class="reference internal" href="#size-statistics">Size Statistics</a></li>
+<li><a class="reference internal" href="#source-attribution">Source Attribution</a></li>
+<li><a class="reference internal" href="#notes">Notes</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ARIA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">CFL OBDD (Context-Free Language Ordered Binary Decision Diagrams)</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/cflobdd.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="cfl-obdd-context-free-language-ordered-binary-decision-diagrams">
+<h1>CFL OBDD (Context-Free Language Ordered Binary Decision Diagrams)<a class="headerlink" href="#cfl-obdd-context-free-language-ordered-binary-decision-diagrams" title="Link to this heading"></a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">aria.cflobdd</span></code> module implements <strong>CFLOBVDD</strong> (Context-Free Language Ordered Bitvector Decision Diagrams), a generalization of CFLOBDDs for efficient symbolic computation on bitvector formulas.</p>
+<p>This module is adapted from the Selfie Project (University of Salzburg).</p>
+<nav class="contents local" id="table-of-contents">
+<p class="topic-title">Table of Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#directory-structure" id="id1">Directory Structure</a></p></li>
+<li><p><a class="reference internal" href="#key-concepts" id="id2">Key Concepts</a></p></li>
+<li><p><a class="reference internal" href="#key-components" id="id3">Key Components</a></p></li>
+<li><p><a class="reference internal" href="#usage-examples" id="id4">Usage Examples</a></p>
+<ul>
+<li><p><a class="reference internal" href="#cflobvdd-api" id="id5">### CFLOBVDD API</a></p></li>
+<li><p><a class="reference internal" href="#bvdd-api" id="id6">### BVDD API</a></p></li>
+<li><p><a class="reference internal" href="#btor2-parser" id="id7">### BTOR2 Parser</a></p></li>
+<li><p><a class="reference internal" href="#solver-interface-api" id="id8">### Solver Interface API</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#module-purpose-summary" id="id9">Module Purpose Summary</a></p></li>
+<li><p><a class="reference internal" href="#key-features" id="id10">Key Features</a></p></li>
+<li><p><a class="reference internal" href="#size-statistics" id="id11">Size Statistics</a></p></li>
+<li><p><a class="reference internal" href="#source-attribution" id="id12">Source Attribution</a></p></li>
+<li><p><a class="reference internal" href="#notes" id="id13">Notes</a></p></li>
+</ul>
+</nav>
+<section id="directory-structure">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Directory Structure</a><a class="headerlink" href="#directory-structure" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">`</span>
+<span class="pre">cflobdd/</span>
+<span class="pre">├──</span> <span class="pre">__init__.py</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">(0</span> <span class="pre">lines</span> <span class="pre">-</span> <span class="pre">empty)</span>
+<span class="pre">├──</span> <span class="pre">cflobvdd.py</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">(1992</span> <span class="pre">lines</span> <span class="pre">-</span> <span class="pre">main</span> <span class="pre">CFLOBVDD</span> <span class="pre">implementation)</span>
+<span class="pre">├──</span> <span class="pre">bvdd.py</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">(1012</span> <span class="pre">lines</span> <span class="pre">-</span> <span class="pre">BVDD</span> <span class="pre">base</span> <span class="pre">classes)</span>
+<span class="pre">├──</span> <span class="pre">btor2.py</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">(1938</span> <span class="pre">lines</span> <span class="pre">-</span> <span class="pre">BTOR2</span> <span class="pre">parser/serializer)</span>
+<span class="pre">├──</span> <span class="pre">z3interface.py</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">(438</span> <span class="pre">lines</span> <span class="pre">-</span> <span class="pre">Z3</span> <span class="pre">solver</span> <span class="pre">interface)</span>
+<span class="pre">└──</span> <span class="pre">bitwuzlainterface.py</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">(514</span> <span class="pre">lines</span> <span class="pre">-</span> <span class="pre">Bitwuzla</span> <span class="pre">solver</span> <span class="pre">interface)</span>
+<span class="pre">`</span></code></p>
+<p><strong>No subdirectories</strong> - flat module structure.</p>
+</section>
+<section id="key-concepts">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Key Concepts</a><a class="headerlink" href="#key-concepts" title="Link to this heading"></a></h2>
+<p>### What are CFLOBVDDs?</p>
+<p><strong>CFLOBVDDs generalize CFLOBDDs in two ways:</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Multi-node BVDDs</strong>: CFLOBVDDs are CFLOBDDs over <strong>multi-node bitvector decision diagrams (BVDDs)</strong> rather than single-node BDDs
+- A single BVDD node maps an n-bit bitvector to no more than 2^n different values (vs just 2 values for standard BDDs)
+- A tree of BVDD nodes of depth f maps a bitvector of size n*2^f bits to no more than 2^(n*2^f) values</p></li>
+<li><p><strong>Minimization and Reordering</strong>:
+- CFLOBVDDs are kept minimal with respect to all recursively pairwise reorderings
+- Reorderings are explored from root nodes down to a configurable “swap level”
+- Support for “fork level” (downsampling) and “swap level” (upsampling)</p></li>
+</ol>
+</section>
+<section id="key-components">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Key Components</a><a class="headerlink" href="#key-components" title="Link to this heading"></a></h2>
+<p>### 1. BVDD (Bitvector Decision Diagrams) - <code class="docutils literal notranslate"><span class="pre">bvdd.py</span></code></p>
+<p><strong>Core Hierarchy:</strong></p>
+<ul class="simple">
+<li><p><strong>BVDD_Node</strong> - Base class for BVDD nodes (38 lines)</p></li>
+<li><p><strong>SBDD_i2o</strong> - Single-byte decision diagram with naive input-to-output mapping (407 lines)</p></li>
+<li><p><strong>SBDD_s2o</strong> - Single-byte decision diagram with set-to-output mapping (528 lines)</p></li>
+<li><p><strong>SBDD_o2s</strong> - Single-byte decision diagram with output-to-set mapping (662 lines)</p></li>
+<li><p><strong>BVDD_uncached</strong> - Uncached BVDD operations (773 lines)</p></li>
+<li><p><strong>BVDD_cached</strong> - Cached BVDD operations (863 lines)</p></li>
+<li><p><strong>BVDD</strong> - Main BVDD class (1011 lines)</p></li>
+</ul>
+<p><strong>Key Features:</strong></p>
+<ul class="simple">
+<li><p>Works with 8-bit bitvectors (n=8)</p></li>
+<li><p>Uses 2^8-bit unsigned integers to represent sets of bitvector values</p></li>
+<li><p>Theta(2^n)-time set intersection via bitwise conjunction</p></li>
+<li><p>Extensive caching for performance</p></li>
+<li><p>Support for unary, binary, and ternary operations</p></li>
+</ul>
+<p><strong>Performance Characteristics:</strong></p>
+<ul class="simple">
+<li><p>Set operations: O(2^n) for n-bit bitvectors</p></li>
+<li><p>Caching reduces repeated computations</p></li>
+<li><p>Thread-safe design for parallel usage</p></li>
+</ul>
+<p>### 2. CFLOBVDD - <code class="docutils literal notranslate"><span class="pre">cflobvdd.py</span></code></p>
+<p><strong>BV Grouping Hierarchy:</strong></p>
+<ul class="simple">
+<li><p><strong>BV_Grouping</strong> - Base grouping class with caching infrastructure (46 lines)</p></li>
+<li><p><strong>BV_Dont_Care_Grouping</strong> - Don’t-care grouping (276 lines)</p></li>
+<li><p><strong>BV_Fork_Grouping</strong> - Fork grouping for downsampling (382 lines)</p></li>
+<li><p><strong>BV_Internal_Grouping</strong> - Internal grouping with swap operations (679 lines)</p></li>
+<li><p><strong>BV_No_Distinction_Proto</strong> - No distinction prototype (1445 lines)</p></li>
+<li><p><strong>Collapsed_Classes</strong> - Collapsed equivalence classes (1524 lines)</p></li>
+<li><p><strong>CFLOBVDD</strong> - Main CFLOBVDD class (1568 lines)</p></li>
+</ul>
+<p><strong>Key Operations:</strong></p>
+<ul class="simple">
+<li><p>Factory methods (class methods):
+- <code class="docutils literal notranslate"><span class="pre">constant(level,</span> <span class="pre">swap_level,</span> <span class="pre">fork_level,</span> <span class="pre">output=0)</span></code>
+- <code class="docutils literal notranslate"><span class="pre">byte_constant(level,</span> <span class="pre">swap_level,</span> <span class="pre">fork_level,</span> <span class="pre">number_of_input_bytes,</span> <span class="pre">output)</span></code>
+- <code class="docutils literal notranslate"><span class="pre">false(level,</span> <span class="pre">swap_level,</span> <span class="pre">fork_level)</span></code>
+- <code class="docutils literal notranslate"><span class="pre">true(level,</span> <span class="pre">swap_level,</span> <span class="pre">fork_level)</span></code>
+- <code class="docutils literal notranslate"><span class="pre">projection(level,</span> <span class="pre">swap_level,</span> <span class="pre">fork_level,</span> <span class="pre">input_i,</span> <span class="pre">reorder=False)</span></code>
+- <code class="docutils literal notranslate"><span class="pre">representative(grouping,</span> <span class="pre">outputs)</span></code>
+- <code class="docutils literal notranslate"><span class="pre">print_profile()</span></code></p></li>
+<li><p>Instance methods:
+- <code class="docutils literal notranslate"><span class="pre">is_always_false()</span></code>
+- <code class="docutils literal notranslate"><span class="pre">is_always_true()</span></code>
+- <code class="docutils literal notranslate"><span class="pre">complement()</span></code>
+- <code class="docutils literal notranslate"><span class="pre">unary_apply_and_reduce(op,</span> <span class="pre">number_of_output_bits)</span></code>
+- <code class="docutils literal notranslate"><span class="pre">binary_apply_and_reduce(n2,</span> <span class="pre">op,</span> <span class="pre">number_of_output_bits)</span></code>
+- <code class="docutils literal notranslate"><span class="pre">ternary_apply_and_reduce(n2,</span> <span class="pre">n3,</span> <span class="pre">op,</span> <span class="pre">number_of_output_bits)</span></code>
+- <code class="docutils literal notranslate"><span class="pre">number_of_solutions(value)</span></code></p></li>
+</ul>
+<p><strong>Features:</strong></p>
+<ul class="simple">
+<li><p>Extensive caching with profile reporting</p></li>
+<li><p>Automatic minimization via reordering</p></li>
+<li><p>Support for fork/swap level configuration</p></li>
+<li><p>Thread-safe operations</p></li>
+</ul>
+<p>### 3. BTOR2 Parser - <code class="docutils literal notranslate"><span class="pre">btor2.py</span></code></p>
+<p><strong>Sort Classes:</strong></p>
+<ul class="simple">
+<li><p><strong>Sort</strong> - Base sort class (188 lines)</p></li>
+<li><p><strong>Bitvector</strong> - Bitvector sort (198 lines)</p></li>
+<li><p><strong>Bool</strong> - Boolean sort (233 lines)</p></li>
+<li><p><strong>Bitvec</strong> - Bitvec sort (242 lines)</p></li>
+<li><p><strong>Array</strong> - Array sort (250 lines)</p></li>
+</ul>
+<p><strong>Expression Classes:</strong></p>
+<ul class="simple">
+<li><p><strong>Expression</strong> - Base expression (298 lines)</p></li>
+<li><p><strong>Constant</strong>, <strong>Zero</strong>, <strong>One</strong>, <strong>Constd</strong>, <strong>Const</strong>, <strong>Consth</strong> - Constants (317-395 lines)</p></li>
+<li><p><strong>Variable</strong> - Variables (421 lines)</p></li>
+<li><p><strong>Input</strong>, <strong>State</strong> - Input and state variables (476-488 lines)</p></li>
+<li><p><strong>Ext</strong>, <strong>Slice</strong> - Indexed operations (534-587 lines)</p></li>
+<li><p><strong>Unary</strong>, <strong>Binary</strong> - Unary and binary operators (620-666 lines)</p></li>
+<li><p><strong>Implies</strong>, <strong>Comparison</strong>, <strong>Logical</strong>, <strong>Computation</strong> - Specific binary ops (744-833 lines)</p></li>
+<li><p><strong>Concat</strong>, <strong>Read</strong> - Bitvector operations (833-856 lines)</p></li>
+<li><p><strong>Ternary</strong>, <strong>Ite</strong>, <strong>Write</strong> - Ternary operations (987-1115 lines)</p></li>
+</ul>
+<p><strong>Transitional Classes:</strong></p>
+<ul class="simple">
+<li><p><strong>Transitional</strong> - Base transition (1181 lines)</p></li>
+<li><p><strong>Init</strong> - Initialization (1254 lines)</p></li>
+<li><p><strong>Next</strong> - Next-state function (1303 lines)</p></li>
+</ul>
+<p><strong>Property Classes:</strong></p>
+<ul class="simple">
+<li><p><strong>Property</strong> - Base property (1344 lines)</p></li>
+<li><p><strong>Constraint</strong> - Safety constraints (1360 lines)</p></li>
+<li><p><strong>Bad</strong> - Bad state properties (1379 lines)</p></li>
+</ul>
+<p><strong>Parser:</strong></p>
+<ul class="simple">
+<li><p><strong>Parser</strong> - BTOR2 parser with tokenization (1409 lines)</p></li>
+<li><p>Supports full BTOR2 language with operators: sort, zero, one, const, constd, consth, input, state, init, next, ext, uext, slice, not, inc, dec, neg, implies, eq, neq, sgt, ugt, sgte, ugte, slt, ult, slte, ulte, and, or, xor, sll, srl, sra, add, sub, mul, sdiv, udiv, srem, urem, concat, read, ite, write, bad, constraint</p></li>
+</ul>
+<p>### 4. Solver Interfaces</p>
+<p><strong>Z3 Interface (``z3interface.py``):</strong></p>
+<ul class="simple">
+<li><p><strong>Z3</strong> - Z3 wrapper (31 lines)</p></li>
+<li><p><strong>Bool</strong>, <strong>Bitvec</strong>, <strong>Array</strong> - Z3 sort adapters (41-51 lines)</p></li>
+<li><p><strong>Expression</strong> - Base expression with Z3 lambda generation (58 lines)</p></li>
+<li><p><strong>Constant</strong>, <strong>Constant_Array</strong> - Constants (105-113 lines)</p></li>
+<li><p><strong>Input</strong>, <strong>State</strong> - Variables (118-129 lines)</p></li>
+<li><p><strong>Ext</strong>, <strong>Slice</strong> - Indexed operations (142-151 lines)</p></li>
+<li><p><strong>Unary</strong>, <strong>Implies</strong>, <strong>Comparison</strong>, <strong>Logical</strong>, <strong>Computation</strong> - Operators (156-231 lines)</p></li>
+<li><p><strong>Concat</strong>, <strong>Read</strong> - Operations (258-263 lines)</p></li>
+<li><p><strong>Ite</strong>, <strong>Write</strong>, <strong>Init</strong>, <strong>Next</strong> - Higher-level operations (268-298 lines)</p></li>
+<li><p><strong>Property</strong>, <strong>Z3_Solver</strong> - Property and solver (344-349 lines)</p></li>
+</ul>
+<p><strong>Bitwuzla Interface (``bitwuzlainterface.py``):</strong></p>
+<ul class="simple">
+<li><p>Parallel structure to z3interface.py but for Bitwuzla solver</p></li>
+<li><p>Same class hierarchy with Bitwuzla-specific implementations</p></li>
+<li><p><strong>Bitwuzla_Solver</strong> class with assertion, checking, and model generation</p></li>
+</ul>
+</section>
+<section id="usage-examples">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Usage Examples</a><a class="headerlink" href="#usage-examples" title="Link to this heading"></a></h2>
+<section id="cflobvdd-api">
+<h3><a class="toc-backref" href="#id5" role="doc-backlink">### CFLOBVDD API</a><a class="headerlink" href="#cflobvdd-api" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.cflobdd</span><span class="w"> </span><span class="kn">import</span> <span class="n">CFLOBVDD</span>
+
+<span class="c1"># Factory methods</span>
+<span class="n">cflobvdd</span> <span class="o">=</span> <span class="n">CFLOBVDD</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">swap_level</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">fork_level</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">cflobvdd_false</span> <span class="o">=</span> <span class="n">CFLOBVDD</span><span class="o">.</span><span class="n">false</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">swap_level</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">fork_level</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">cflobvdd_true</span> <span class="o">=</span> <span class="n">CFLOBVDD</span><span class="o">.</span><span class="n">true</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">swap_level</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">fork_level</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">cflobvdd_proj</span> <span class="o">=</span> <span class="n">CFLOBVDD</span><span class="o">.</span><span class="n">projection</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">swap_level</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">fork_level</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">input_i</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="c1"># Instance methods</span>
+<span class="n">cflobvdd</span><span class="o">.</span><span class="n">is_always_false</span><span class="p">()</span>
+<span class="n">cflobvdd</span><span class="o">.</span><span class="n">is_always_true</span><span class="p">()</span>
+<span class="n">complemented</span> <span class="o">=</span> <span class="n">cflobvdd</span><span class="o">.</span><span class="n">complement</span><span class="p">()</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">cflobvdd</span><span class="o">.</span><span class="n">unary_apply_and_reduce</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">cflobvdd</span><span class="o">.</span><span class="n">binary_apply_and_reduce</span><span class="p">(</span><span class="n">cflobvdd2</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">cflobvdd</span><span class="o">.</span><span class="n">ternary_apply_and_reduce</span><span class="p">(</span><span class="n">cflobvdd2</span><span class="p">,</span> <span class="n">cflobvdd3</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+<span class="n">count</span> <span class="o">=</span> <span class="n">cflobvdd</span><span class="o">.</span><span class="n">number_of_solutions</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+
+<span class="c1"># Print cache profile</span>
+<span class="n">CFLOBVDD</span><span class="o">.</span><span class="n">print_profile</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="bvdd-api">
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">### BVDD API</a><a class="headerlink" href="#bvdd-api" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.cflobdd.bvdd</span><span class="w"> </span><span class="kn">import</span> <span class="n">SBDD_i2o</span>
+
+<span class="c1"># Create constant</span>
+<span class="n">sbdd</span> <span class="o">=</span> <span class="n">SBDD_i2o</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">output_value</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span>
+
+<span class="c1"># Create projection</span>
+<span class="n">sbdd</span> <span class="o">=</span> <span class="n">SBDD_i2o</span><span class="o">.</span><span class="n">projection</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c1"># Operations</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">sbdd</span><span class="o">.</span><span class="n">compute_unary</span><span class="p">(</span><span class="n">op</span><span class="o">=</span><span class="s1">&#39;not&#39;</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">sbdd</span><span class="o">.</span><span class="n">compute_binary</span><span class="p">(</span><span class="n">op</span><span class="o">=</span><span class="s1">&#39;and&#39;</span><span class="p">,</span> <span class="n">bvdd2</span><span class="o">=</span><span class="n">sbdd2</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">sbdd</span><span class="o">.</span><span class="n">compute_ternary</span><span class="p">(</span><span class="n">op</span><span class="o">=</span><span class="s1">&#39;ite&#39;</span><span class="p">,</span> <span class="n">bvdd2</span><span class="o">=</span><span class="n">sbdd2</span><span class="p">,</span> <span class="n">bvdd3</span><span class="o">=</span><span class="n">sbdd3</span><span class="p">)</span>
+
+<span class="c1"># Reduce</span>
+<span class="n">reduced</span> <span class="o">=</span> <span class="n">sbdd</span><span class="o">.</span><span class="n">reduce_SBDD</span><span class="p">()</span>
+<span class="n">reduced</span> <span class="o">=</span> <span class="n">sbdd</span><span class="o">.</span><span class="n">reduce_BVDD</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="btor2-parser">
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">### BTOR2 Parser</a><a class="headerlink" href="#btor2-parser" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.cflobdd.btor2</span><span class="w"> </span><span class="kn">import</span> <span class="n">Parser</span>
+
+<span class="n">parser</span> <span class="o">=</span> <span class="n">Parser</span><span class="p">()</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_btor2</span><span class="p">(</span><span class="n">modelfile</span><span class="o">=</span><span class="s1">&#39;model.btor2&#39;</span><span class="p">,</span> <span class="n">outputfile</span><span class="o">=</span><span class="s1">&#39;output.txt&#39;</span><span class="p">)</span>
+
+<span class="c1"># Access parsed elements</span>
+<span class="n">line</span> <span class="o">=</span> <span class="n">Line</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">nid</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">states</span> <span class="o">=</span> <span class="n">State</span><span class="o">.</span><span class="n">states</span>  <span class="c1"># Dictionary of all states</span>
+<span class="n">inputs</span> <span class="o">=</span> <span class="n">Input</span><span class="o">.</span><span class="n">inputs</span>  <span class="c1"># Dictionary of all inputs</span>
+<span class="n">nexts</span> <span class="o">=</span> <span class="n">Next</span><span class="o">.</span><span class="n">nexts</span>  <span class="c1"># Dictionary of next-state functions</span>
+<span class="n">inits</span> <span class="o">=</span> <span class="n">Init</span><span class="o">.</span><span class="n">inits</span>  <span class="c1"># Dictionary of initializations</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="n">Constraint</span><span class="o">.</span><span class="n">constraints</span>  <span class="c1"># Dictionary of constraints</span>
+<span class="n">bads</span> <span class="o">=</span> <span class="n">Bad</span><span class="o">.</span><span class="n">bads</span>  <span class="c1"># Dictionary of bad state properties</span>
+</pre></div>
+</div>
+</section>
+<section id="solver-interface-api">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">### Solver Interface API</a><a class="headerlink" href="#solver-interface-api" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Z3</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.cflobdd.z3interface</span><span class="w"> </span><span class="kn">import</span> <span class="n">Z3_Solver</span>
+
+<span class="n">z3_solver</span> <span class="o">=</span> <span class="n">Z3_Solver</span><span class="p">(</span><span class="n">print_message</span><span class="o">=</span><span class="nb">print</span><span class="p">,</span> <span class="n">LAMBDAS</span><span class="o">=</span><span class="n">lambdas</span><span class="p">,</span> <span class="n">UNROLL</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">z3_solver</span><span class="o">.</span><span class="n">push</span><span class="p">()</span>
+<span class="n">z3_solver</span><span class="o">.</span><span class="n">assert_this</span><span class="p">(</span><span class="n">assertions</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">z3_solver</span><span class="o">.</span><span class="n">assert_not_this</span><span class="p">(</span><span class="n">assertions</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">z3_solver</span><span class="o">.</span><span class="n">prove</span><span class="p">()</span>
+<span class="n">z3_solver</span><span class="o">.</span><span class="n">simplify</span><span class="p">()</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">z3_solver</span><span class="o">.</span><span class="n">is_SAT</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+<span class="c1"># Bitwuzla (similar interface)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.cflobdd.bitwuzlainterface</span><span class="w"> </span><span class="kn">import</span> <span class="n">Bitwuzla_Solver</span>
+
+<span class="n">bitwuzla_solver</span> <span class="o">=</span> <span class="n">Bitwuzla_Solver</span><span class="p">(</span><span class="n">print_message</span><span class="o">=</span><span class="nb">print</span><span class="p">,</span> <span class="n">LAMBDAS</span><span class="o">=</span><span class="n">lambdas</span><span class="p">,</span> <span class="n">UNROLL</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="c1"># ... same methods as Z3_Solver</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="module-purpose-summary">
+<h2><a class="toc-backref" href="#id9" role="doc-backlink">Module Purpose Summary</a><a class="headerlink" href="#module-purpose-summary" title="Link to this heading"></a></h2>
+<p>The cflobdd module provides:</p>
+<ol class="arabic simple">
+<li><p><strong>Efficient symbolic computation</strong> using CFLOBVDD data structures for handling large bitvector formulas</p></li>
+<li><p><strong>BTOR2 parsing</strong> for reading bitvector transition systems from SMT-LIB compatible format</p></li>
+<li><p><strong>Solver integration</strong> with Z3 and Bitwuzla for verification and model checking</p></li>
+<li><p><strong>Advanced decision diagram algorithms</strong> with automatic minimization and reordering</p></li>
+</ol>
+<p>This is likely used for:</p>
+<ul class="simple">
+<li><p><strong>Formal verification</strong> - Model checking hardware/software systems</p></li>
+<li><p><strong>Symbolic execution</strong> - Analyzing program behavior</p></li>
+<li><p><strong>Bitvector analysis</strong> - Efficient reasoning over fixed-width bitvectors</p></li>
+</ul>
+</section>
+<section id="key-features">
+<h2><a class="toc-backref" href="#id10" role="doc-backlink">Key Features</a><a class="headerlink" href="#key-features" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><strong>Minimal representations</strong> - Automatic minimization via pairwise reordering</p></li>
+<li><p><strong>Configurable levels</strong> - Fork and swap level parameters for precision tuning</p></li>
+<li><p><strong>Multi-node BVDDs</strong> - More expressive than traditional BDDs</p></li>
+<li><p><strong>Thread-safe</strong> - Extensive use of threading locks for safe concurrent operations</p></li>
+<li><p><strong>Comprehensive parsing</strong> - Full BTOR2 language support</p></li>
+<li><p><strong>Multiple solver backends</strong> - Z3 and Bitwuzla integration</p></li>
+<li><p><strong>Caching</strong> - Extensive cache infrastructure with profiling support</p></li>
+</ol>
+</section>
+<section id="size-statistics">
+<h2><a class="toc-backref" href="#id11" role="doc-backlink">Size Statistics</a><a class="headerlink" href="#size-statistics" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Total Python lines: ~5,900</p></li>
+<li><p>CFLOBVDD implementation: ~1,992 lines</p></li>
+<li><p>BVDD implementation: ~1,012 lines</p></li>
+<li><p>BTOR2 parser: ~1,938 lines</p></li>
+<li><p>Z3 interface: ~438 lines</p></li>
+<li><p>Bitwuzla interface: ~514 lines</p></li>
+</ul>
+</section>
+<section id="source-attribution">
+<h2><a class="toc-backref" href="#id12" role="doc-backlink">Source Attribution</a><a class="headerlink" href="#source-attribution" title="Link to this heading"></a></h2>
+<p>Code adapted from Selfie Project (University of Salzburg) - <cite>selfie.cs.uni-salzburg.at</cite></p>
+<p><strong>License</strong>: BSD License (see LICENSE file for details)</p>
+</section>
+<section id="notes">
+<h2><a class="toc-backref" href="#id13" role="doc-backlink">Notes</a><a class="headerlink" href="#notes" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>The module’s <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> is empty - requires explicit imports</p></li>
+<li><p>No subdirectories - flat module structure</p></li>
+<li><p>Threading used extensively for thread-safe caching</p></li>
+<li><p>Both Z3 and Bitwuzla interfaces provided for flexibility</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

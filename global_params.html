@@ -1,0 +1,393 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Global Parameters &mdash; ARIA Documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=a74d790d"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            ARIA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Global Parameters</a><ul>
+<li><a class="reference internal" href="#directory-structure">Directory Structure</a></li>
+<li><a class="reference internal" href="#module-overview">Module Overview</a></li>
+<li><a class="reference internal" href="#key-components">Key Components</a></li>
+<li><a class="reference internal" href="#usage-patterns-across-codebase">Usage Patterns Across Codebase</a></li>
+<li><a class="reference internal" href="#physical-directory-structure">Physical Directory Structure</a></li>
+<li><a class="reference internal" href="#domains-using-global-parameters">Domains Using Global Parameters</a></li>
+<li><a class="reference internal" href="#design-patterns">Design Patterns</a></li>
+<li><a class="reference internal" href="#documentation-quality">Documentation Quality</a></li>
+<li><a class="reference internal" href="#recommendations-for-enhancement">Recommendations for Enhancement</a></li>
+<li><a class="reference internal" href="#integration-points">Integration Points</a></li>
+<li><a class="reference internal" href="#key-features">Key Features</a></li>
+<li><a class="reference internal" href="#size-statistics">Size Statistics</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ARIA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Global Parameters</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/global_params.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="global-parameters">
+<h1>Global Parameters<a class="headerlink" href="#global-parameters" title="Link to this heading"></a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">aria.global_params</span></code> module provides centralized configuration management for the ARIA project. It handles SMT solver discovery, path management, and provides a singleton-based global configuration interface used throughout the codebase.</p>
+<nav class="contents local" id="table-of-contents">
+<p class="topic-title">Table of Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#directory-structure" id="id7">Directory Structure</a></p></li>
+<li><p><a class="reference internal" href="#module-overview" id="id8">Module Overview</a></p></li>
+<li><p><a class="reference internal" href="#key-components" id="id9">Key Components</a></p></li>
+<li><p><a class="reference internal" href="#usage-patterns-across-codebase" id="id10">Usage Patterns Across Codebase</a></p></li>
+<li><p><a class="reference internal" href="#physical-directory-structure" id="id11">Physical Directory Structure</a></p></li>
+<li><p><a class="reference internal" href="#domains-using-global-parameters" id="id12">Domains Using Global Parameters</a></p></li>
+<li><p><a class="reference internal" href="#design-patterns" id="id13">Design Patterns</a></p></li>
+<li><p><a class="reference internal" href="#documentation-quality" id="id14">Documentation Quality</a></p></li>
+<li><p><a class="reference internal" href="#recommendations-for-enhancement" id="id15">Recommendations for Enhancement</a></p></li>
+<li><p><a class="reference internal" href="#integration-points" id="id16">Integration Points</a></p></li>
+<li><p><a class="reference internal" href="#key-features" id="id17">Key Features</a></p></li>
+<li><p><a class="reference internal" href="#size-statistics" id="id18">Size Statistics</a></p></li>
+</ul>
+</nav>
+<section id="directory-structure">
+<h2><a class="toc-backref" href="#id7" role="doc-backlink">Directory Structure</a><a class="headerlink" href="#directory-structure" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">`</span>
+<span class="pre">global_params/</span>
+<span class="pre">├──</span> <span class="pre">__init__.py</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">(7</span> <span class="pre">lines</span> <span class="pre">-</span> <span class="pre">module</span> <span class="pre">entry</span> <span class="pre">point)</span>
+<span class="pre">└──</span> <span class="pre">paths.py</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">(206</span> <span class="pre">lines</span> <span class="pre">-</span> <span class="pre">core</span> <span class="pre">implementation)</span>
+<span class="pre">`</span></code></p>
+<p><strong>No subdirectories</strong> - flat module structure.</p>
+</section>
+<section id="module-overview">
+<h2><a class="toc-backref" href="#id8" role="doc-backlink">Module Overview</a><a class="headerlink" href="#module-overview" title="Link to this heading"></a></h2>
+<p>### Centralized Configuration System</p>
+<p>The global_params module implements a <strong>singleton pattern</strong> configuration manager that:</p>
+<ol class="arabic simple">
+<li><p><strong>Manages SMT solver paths</strong> and availability</p></li>
+<li><p><strong>Provides project-wide constants</strong> for important directories</p></li>
+<li><p><strong>Implements solver discovery</strong> (local binaries → system PATH)</p></li>
+<li><p><strong>Offers consistent API</strong> for configuration access across the codebase</p></li>
+</ol>
+<p><strong>Usage Pattern</strong>: This module is imported in 21 files across the project for solver path resolution and configuration access.</p>
+</section>
+<section id="key-components">
+<h2><a class="toc-backref" href="#id9" role="doc-backlink">Key Components</a><a class="headerlink" href="#key-components" title="Link to this heading"></a></h2>
+<p>### 1. <code class="docutils literal notranslate"><span class="pre">SolverConfig</span></code> Class</p>
+<p>A data class representing configuration for a single SMT solver.</p>
+<p><strong>Attributes:</strong></p>
+<p>### 2. <code class="docutils literal notranslate"><span class="pre">SolverRegistry</span></code> Metaclass</p>
+<p>Implements the <strong>singleton pattern</strong> to ensure only one <code class="docutils literal notranslate"><span class="pre">GlobalConfig</span></code> instance exists:</p>
+<ul class="simple">
+<li><p>Prevents duplicate initialization</p></li>
+<li><p>Provides consistent access across the application</p></li>
+<li><p>Thread-safe configuration management</p></li>
+</ul>
+<p>### 3. <code class="docutils literal notranslate"><span class="pre">GlobalConfig</span></code> Class (Singleton)</p>
+<p>The core configuration manager with comprehensive capabilities.</p>
+<p><strong>Managed Solvers</strong> (5 solvers total):</p>
+<p><strong>Path Properties:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">PROJECT_ROOT</span></code> - Root directory of ARIA project</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">BIN_SOLVERS_PATH</span></code> - Path to binary executables (<code class="docutils literal notranslate"><span class="pre">bin_solvers/</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">BENCHMARKS_PATH</span></code> - Path to benchmark files (<code class="docutils literal notranslate"><span class="pre">benchmarks/</span></code>)</p></li>
+</ul>
+<p><strong>Key Methods:</strong></p>
+<p><strong>Solver Discovery Logic:</strong></p>
+<ol class="arabic simple">
+<li><p>First searches in local <code class="docutils literal notranslate"><span class="pre">bin_solvers/</span></code> directory</p></li>
+<li><p>Falls back to system PATH</p></li>
+<li><p>Logs warnings for unavailable solvers</p></li>
+<li><p>Caches results for performance</p></li>
+</ol>
+<p><strong>Solver Configuration Details:</strong></p>
+<p>From <code class="docutils literal notranslate"><span class="pre">get_smt_solvers_config()</span></code>:</p>
+<p>### 4. Module-Level Exports</p>
+<p>From <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.global_params</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">global_config</span><span class="p">,</span>      <span class="c1"># GlobalConfig singleton instance</span>
+    <span class="n">SMT_SOLVERS_PATH</span><span class="p">,</span>  <span class="c1"># Dictionary of solver configurations</span>
+    <span class="n">PROJECT_ROOT</span><span class="p">,</span>       <span class="c1"># Path object pointing to project root</span>
+    <span class="n">BIN_SOLVERS_PATH</span><span class="p">,</span>  <span class="c1"># Path object to bin_solvers directory</span>
+    <span class="n">BENCHMARKS_PATH</span>     <span class="c1"># Path object to benchmarks directory</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="usage-patterns-across-codebase">
+<h2><a class="toc-backref" href="#id10" role="doc-backlink">Usage Patterns Across Codebase</a><a class="headerlink" href="#usage-patterns-across-codebase" title="Link to this heading"></a></h2>
+<p>The module is imported in <strong>21 files</strong> across the project, with common use cases:</p>
+<p>### 1. Solver Path Retrieval (Most Common)</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.global_params</span><span class="w"> </span><span class="kn">import</span> <span class="n">global_config</span>
+
+<span class="n">solver_path</span> <span class="o">=</span> <span class="n">global_config</span><span class="o">.</span><span class="n">get_solver_path</span><span class="p">(</span><span class="s2">&quot;z3&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Used in</strong>: efbv_bin_solvers.py, mathsat_solver.py, cvc5_sygus_abduct.py, cvc5_interpolant.py, smtinterpol_interpolant.py, z3_plus_smtlib_solver.py, dimacs_counting.py, optimization/bin_solver.py, eflira_parallel.py</p>
+<p>### 2. Availability Checking</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.global_params</span><span class="w"> </span><span class="kn">import</span> <span class="n">global_config</span>
+
+<span class="k">if</span> <span class="n">global_config</span><span class="o">.</span><span class="n">is_solver_available</span><span class="p">(</span><span class="s2">&quot;sharp_sat&quot;</span><span class="p">):</span>
+    <span class="c1"># Use solver</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+<p><strong>Used in</strong>: test_bv_counting.py, test_bool_counting.py, test_sygus_inv.py, dimacs_counting.py</p>
+<p>### 3. SMT Solver Configuration Dictionary</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.global_params</span><span class="w"> </span><span class="kn">import</span> <span class="n">SMT_SOLVERS_PATH</span>
+
+<span class="n">z3_config</span> <span class="o">=</span> <span class="n">SMT_SOLVERS_PATH</span><span class="p">[</span><span class="s2">&quot;z3&quot;</span><span class="p">]</span>
+<span class="n">solver_bin</span> <span class="o">=</span> <span class="n">z3_config</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">z3_config</span><span class="p">[</span><span class="s2">&quot;args&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Used in</strong>: pcdclt/solver.py, pcdclt/eval_smt.py, pcdclt/tests/test_solver.py, pcdclt/tests/test_process_cleanup.py</p>
+<p>### 4. Benchmark Path Access</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.global_params</span><span class="w"> </span><span class="kn">import</span> <span class="n">BENCHMARKS_PATH</span>
+
+<span class="n">cnf_path</span> <span class="o">=</span> <span class="n">BENCHMARKS_PATH</span> <span class="o">/</span> <span class="s2">&quot;dimacs&quot;</span> <span class="o">/</span> <span class="s2">&quot;parity_5.cnf&quot;</span>
+</pre></div>
+</div>
+<p><strong>Used in</strong>: bool/features/sat_instance.py</p>
+</section>
+<section id="physical-directory-structure">
+<h2><a class="toc-backref" href="#id11" role="doc-backlink">Physical Directory Structure</a><a class="headerlink" href="#physical-directory-structure" title="Link to this heading"></a></h2>
+<p><a href="#id1"><span class="problematic" id="id2">``</span></a>`
+bin_solvers/          # Solver binaries
+├── z3               # 23.7 MB Z3 executable
+├── cvc5             # 25.1 MB CVC5 executable
+├── mathsat          # 11.5 MB MathSAT executable
+└── sharpSAT         # 1.2 MB SharpSAT executable</p>
+<p>benchmarks/          # Test and evaluation benchmarks
+├── abduction/
+├── chc/
+├── dimacs/
+├── fzn/
+├── qbf/
+├── smtlib2/
+├── sygus-inv/
+└── sygus-pbe/
+<a href="#id3"><span class="problematic" id="id4">``</span></a><a href="#id5"><span class="problematic" id="id6">`</span></a></p>
+</section>
+<section id="domains-using-global-parameters">
+<h2><a class="toc-backref" href="#id12" role="doc-backlink">Domains Using Global Parameters</a><a class="headerlink" href="#domains-using-global-parameters" title="Link to this heading"></a></h2>
+<p>The module serves as a central hub for:</p>
+<p>### SMT Solving
+<strong>aria/smt/pcdclt/</strong> - Parallel CDCL(T) solver configuration**</p>
+<ul class="simple">
+<li><p>Solver path resolution</p></li>
+<li><p>Configuration dictionary access</p></li>
+</ul>
+<p>### Quantifier Elimination
+<strong>aria/quant/efbv/</strong>, <strong>aria/quant/eflira/</strong>, <strong>aria/quant/qe/</strong> - Multiple solver orchestration</p>
+<ul class="simple">
+<li><p>Multiple solver integration</p></li>
+<li><p>Custom path support</p></li>
+</ul>
+<p>### Model Counting
+<strong>aria/counting/bool/</strong> - SharpSAT integration</p>
+<ul class="simple">
+<li><p>Solver availability checking</p></li>
+<li><p>Model counter invocation</p></li>
+</ul>
+<p>### Synthesis
+<strong>aria/synthesis/cvc5/</strong> - SyGuS synthesis with CVC5</p>
+<ul class="simple">
+<li><p>Solver path access</p></li>
+<li><p>Binary management</p></li>
+</ul>
+<p>### Abduction
+<strong>aria/abduction/</strong> - Abductive reasoning</p>
+<ul class="simple">
+<li><p>Solver orchestration</p></li>
+<li><p>Multi-solver support</p></li>
+</ul>
+<p>### Interpolation
+<strong>aria/interpolant/</strong> - Interpolant generation</p>
+<ul class="simple">
+<li><p>Multiple solver backends</p></li>
+<li><p>Path configuration</p></li>
+</ul>
+<p>### Boolean Reasoning
+<strong>aria/bool/features/</strong> - SAT instance feature extraction</p>
+<ul class="simple">
+<li><p>Benchmark path access</p></li>
+<li><p>Feature computation infrastructure</p></li>
+</ul>
+</section>
+<section id="design-patterns">
+<h2><a class="toc-backref" href="#id13" role="doc-backlink">Design Patterns</a><a class="headerlink" href="#design-patterns" title="Link to this heading"></a></h2>
+<p>### 1. Singleton Pattern</p>
+<p>Ensures single <code class="docutils literal notranslate"><span class="pre">GlobalConfig</span></code> instance via metaclass:</p>
+<ul class="simple">
+<li><p><strong>Benefits</strong>:
+- Consistent configuration across all imports
+- Prevents initialization conflicts
+- Efficient memory usage</p></li>
+</ul>
+<p>### 2. Lazy Initialization</p>
+<p>Solvers located on first access:</p>
+<ul class="simple">
+<li><p>Reduces startup time</p></li>
+<li><p>Only searches when needed</p></li>
+<li><p>Caches results for performance</p></li>
+</ul>
+<p>### 3. Fallback Strategy</p>
+<p>Three-tier discovery:</p>
+<ol class="arabic simple">
+<li><p>Local <code class="docutils literal notranslate"><span class="pre">bin_solvers/</span></code> directory (preferred)</p></li>
+<li><p>System PATH (secondary)</p></li>
+<li><p>Unavailable (logged as warning)</p></li>
+</ol>
+<p>### 4. Logging Integration</p>
+<p>Uses Python logging for:</p>
+<ul class="simple">
+<li><p>Unavailable solver warnings</p></li>
+<li><p>Configuration errors</p></li>
+<li><p>Debug information for troubleshooting</p></li>
+</ul>
+</section>
+<section id="documentation-quality">
+<h2><a class="toc-backref" href="#id14" role="doc-backlink">Documentation Quality</a><a class="headerlink" href="#documentation-quality" title="Link to this heading"></a></h2>
+<p><strong>Strengths:</strong></p>
+<ul class="simple">
+<li><p>Comprehensive docstrings for all classes and methods</p></li>
+<li><p>Clear parameter and return type documentation</p></li>
+<li><p>Includes exception documentation</p></li>
+<li><p>Explains design rationale (e.g., singleton pattern purpose)</p></li>
+</ul>
+<p><strong>Coverage:</strong></p>
+<ul class="simple">
+<li><p>All public methods have docstrings</p></li>
+<li><p>Classes have descriptive summaries</p></li>
+<li><p>Complex logic (solver discovery) is well documented</p></li>
+</ul>
+</section>
+<section id="recommendations-for-enhancement">
+<h2><a class="toc-backref" href="#id15" role="doc-backlink">Recommendations for Enhancement</a><a class="headerlink" href="#recommendations-for-enhancement" title="Link to this heading"></a></h2>
+<p>Based on the analysis, potential improvements include:</p>
+<ol class="arabic simple">
+<li><p><strong>Usage Examples</strong> - Add common usage patterns for each configuration method</p></li>
+<li><p><strong>Version Documentation</strong> - Document expected solver versions/compatibility</p></li>
+<li><p><strong>Troubleshooting Guide</strong> - Add section for solving common solver installation issues</p></li>
+<li><p><strong>Environment Variable Support</strong> - Document environment variables for custom solver paths</p></li>
+<li><p><strong>Download Script Documentation</strong> - Explain bin_solvers/download.py for initial solver setup</p></li>
+</ol>
+</section>
+<section id="integration-points">
+<h2><a class="toc-backref" href="#id16" role="doc-backlink">Integration Points</a><a class="headerlink" href="#integration-points" title="Link to this heading"></a></h2>
+<p>The module serves as the <strong>central hub</strong> for:</p>
+<ol class="arabic simple">
+<li><p><strong>Solver Orchestration</strong>: All external solver invocations route through this module</p></li>
+<li><p><strong>Path Resolution</strong>: Standardizes project-wide path references</p></li>
+<li><p><strong>Feature Testing</strong>: Test files check solver availability before running</p></li>
+<li><p><strong>Parallel Processing</strong>: Used in multi-process contexts (singleton ensures consistency)</p></li>
+</ol>
+</section>
+<section id="key-features">
+<h2><a class="toc-backref" href="#id17" role="doc-backlink">Key Features</a><a class="headerlink" href="#key-features" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><strong>Singleton Management</strong>: Ensures single GlobalConfig instance</p></li>
+<li><p><strong>Solver Discovery</strong>: Automatic path resolution with fallback strategy</p></li>
+<li><p><strong>Path Management</strong>: Centralized project constants (PROJECT_ROOT, BIN_SOLVERS_PATH, BENCHMARKS_PATH)</p></li>
+<li><p><strong>5 Supported Solvers</strong>: Z3, CVC5, MathSAT, Yices2, SharpSAT</p></li>
+<li><p><strong>21 Integration Points</strong>: Used across SMT, quantifiers, synthesis, Boolean reasoning</p></li>
+<li><p><strong>Thread-Safe</strong>: Singleton pattern with metaclass for concurrent access</p></li>
+<li><p><strong>Logging Integration</strong>: Warnings and errors properly logged</p></li>
+<li><p><strong>Extensible</strong>: Easy to add new solvers to configuration</p></li>
+</ol>
+</section>
+<section id="size-statistics">
+<h2><a class="toc-backref" href="#id18" role="doc-backlink">Size Statistics</a><a class="headerlink" href="#size-statistics" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Total Python files: 2</p></li>
+<li><p>Total Python lines: ~213</p></li>
+<li><p>paths.py: 206 lines</p></li>
+<li><p>__init__.py: 7 lines</p></li>
+<li><p>Managed solvers: 5</p></li>
+<li><p>Integration points: 21+</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

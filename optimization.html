@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Optimization Modulo Theory &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
@@ -18,9 +18,7 @@
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Parallel SMT CDCL(T) Solving" href="pcdclt.html" />
-    <link rel="prev" title="Monadic Predicate Abstraction" href="monabs.html" /> 
+    <link rel="search" title="Search" href="search.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -42,63 +40,16 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="topics.html">Research Topics and Thesis Projects</a></li>
-<li class="toctree-l1"><a class="reference internal" href="applications.html">Applications</a></li>
-<li class="toctree-l1"><a class="reference internal" href="abduction.html">Abduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="allsmt.html">AllSMT</a></li>
-<li class="toctree-l1"><a class="reference internal" href="automata.html">Automata</a></li>
-<li class="toctree-l1"><a class="reference internal" href="automata.html#introduction">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="automata.html#components">Components</a></li>
-<li class="toctree-l1"><a class="reference internal" href="automata.html#applications">Applications</a></li>
-<li class="toctree-l1"><a class="reference internal" href="automata.html#references">References</a></li>
-<li class="toctree-l1"><a class="reference internal" href="backbone.html">Backbone Computation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cfl.html">Context-Free Language Reachability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cfl.html#introduction">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cfl.html#components">Components</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cfl.html#applications">Applications</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cfl.html#references">References</a></li>
-<li class="toctree-l1"><a class="reference internal" href="chctools.html">Constrained Horn Clauses (CHC) Tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="counting.html">Model Counting</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ff.html">SMT Solving for Finite Field</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ff.html#theory-reference-finite-fields">Theory Reference: Finite Fields</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ff.html#references">References</a></li>
-<li class="toctree-l1"><a class="reference internal" href="itp.html">Interactive Theorem Proving (ITP)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="llm.html">LLM Integration</a></li>
-<li class="toctree-l1"><a class="reference internal" href="llm.html#introduction">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="llm.html#components">Components</a></li>
-<li class="toctree-l1"><a class="reference internal" href="llm.html#applications">Applications</a></li>
-<li class="toctree-l1"><a class="reference internal" href="llm.html#references">References</a></li>
-<li class="toctree-l1"><a class="reference internal" href="monabs.html">Monadic Predicate Abstraction</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Optimization Modulo Theory</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#omt-in-aria">OMT in Aria</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Optimization Modulo Theory</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a></li>
+<li><a class="reference internal" href="#omt-in-aria">OMT in Aria</a></li>
+<li><a class="reference internal" href="#references">References</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="pcdclt.html">Parallel SMT CDCL(T) Solving</a></li>
-<li class="toctree-l1"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (aria/prob)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
-<li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
-<li class="toctree-l1"><a class="reference internal" href="srk.html">SRK Symbolic Reasoning Kit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="symbolic_abstraction.html">Symbolic Abstraction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="symautomata.html">Symbolic Finite Automata</a></li>
-<li class="toctree-l1"><a class="reference internal" href="synthesis.html">Program Synthesis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="synthesis.html#introduction">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="synthesis.html#components">Components</a></li>
-<li class="toctree-l1"><a class="reference internal" href="synthesis.html#applications">Applications</a></li>
-<li class="toctree-l1"><a class="reference internal" href="synthesis.html#references">References</a></li>
-<li class="toctree-l1"><a class="reference internal" href="unification.html">Unification</a></li>
-<li class="toctree-l1"><a class="reference internal" href="unification.html#introduction">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="unification.html#components">Components</a></li>
-<li class="toctree-l1"><a class="reference internal" href="unification.html#applications">Applications</a></li>
-<li class="toctree-l1"><a class="reference internal" href="unification.html#references">References</a></li>
-<li class="toctree-l1"><a class="reference internal" href="unsat_core.html">UNSAT Core Extraction</a></li>
 </ul>
-
+</div>
         </div>
       </div>
     </nav>
@@ -152,10 +103,7 @@ to add it as a requirement)</p>
 
            </div>
           </div>
-          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="monabs.html" class="btn btn-neutral float-left" title="Monadic Predicate Abstraction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="pcdclt.html" class="btn btn-neutral float-right" title="Parallel SMT CDCL(T) Solving" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-    </div>
+          <footer>
 
   <hr/>
 

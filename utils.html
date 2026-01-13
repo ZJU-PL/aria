@@ -1,0 +1,454 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Utilities &mdash; ARIA Documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=a74d790d"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            ARIA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Utilities</a><ul>
+<li><a class="reference internal" href="#directory-structure">Directory Structure</a></li>
+<li><a class="reference internal" href="#module-level-exports">Module-Level Exports</a></li>
+<li><a class="reference internal" href="#key-components">Key Components</a></li>
+<li><a class="reference internal" href="#usage-across-codebase">Usage Across Codebase</a></li>
+<li><a class="reference internal" href="#design-patterns">Design Patterns</a></li>
+<li><a class="reference internal" href="#usage-examples">Usage Examples</a><ul>
+<li><a class="reference internal" href="#solver-result-type">### Solver Result Type</a></li>
+<li><a class="reference internal" href="#exception-handling">### Exception Handling</a></li>
+<li><a class="reference internal" href="#s-expression-parsing">### S-Expression Parsing</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#key-features">Key Features</a></li>
+<li><a class="reference internal" href="#integration-points">Integration Points</a></li>
+<li><a class="reference internal" href="#design-philosophy">Design Philosophy</a></li>
+<li><a class="reference internal" href="#notes">Notes</a></li>
+<li><a class="reference internal" href="#size-statistics">Size Statistics</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ARIA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Utilities</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/utils.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="utilities">
+<h1>Utilities<a class="headerlink" href="#utilities" title="Link to this heading"></a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">aria.utils</span></code> module provides common helper functions, type definitions, exception handling, and utility classes used throughout the ARIA codebase. It serves as a foundation for all other modules, offering standardized interfaces for solvers, expressions, values, and file parsing.</p>
+<nav class="contents local" id="table-of-contents">
+<p class="topic-title">Table of Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#directory-structure" id="id1">Directory Structure</a></p></li>
+<li><p><a class="reference internal" href="#module-level-exports" id="id2">Module-Level Exports</a></p></li>
+<li><p><a class="reference internal" href="#key-components" id="id3">Key Components</a></p></li>
+<li><p><a class="reference internal" href="#usage-across-codebase" id="id4">Usage Across Codebase</a></p></li>
+<li><p><a class="reference internal" href="#design-patterns" id="id5">Design Patterns</a></p></li>
+<li><p><a class="reference internal" href="#usage-examples" id="id6">Usage Examples</a></p>
+<ul>
+<li><p><a class="reference internal" href="#solver-result-type" id="id7">### Solver Result Type</a></p></li>
+<li><p><a class="reference internal" href="#exception-handling" id="id8">### Exception Handling</a></p></li>
+<li><p><a class="reference internal" href="#s-expression-parsing" id="id9">### S-Expression Parsing</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#key-features" id="id10">Key Features</a></p></li>
+<li><p><a class="reference internal" href="#integration-points" id="id11">Integration Points</a></p></li>
+<li><p><a class="reference internal" href="#design-philosophy" id="id12">Design Philosophy</a></p></li>
+<li><p><a class="reference internal" href="#notes" id="id13">Notes</a></p></li>
+<li><p><a class="reference internal" href="#size-statistics" id="id14">Size Statistics</a></p></li>
+</ul>
+</nav>
+<section id="directory-structure">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Directory Structure</a><a class="headerlink" href="#directory-structure" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">`</span>
+<span class="pre">utils/</span>
+<span class="pre">├──</span> <span class="pre">__init__.py</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">(7</span> <span class="pre">lines</span> <span class="pre">-</span> <span class="pre">main</span> <span class="pre">entry</span> <span class="pre">point)</span>
+<span class="pre">├──</span> <span class="pre">types.py</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">(Type</span> <span class="pre">definitions)</span>
+<span class="pre">├──</span> <span class="pre">exceptions.py</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">(Exception</span> <span class="pre">hierarchy)</span>
+<span class="pre">├──</span> <span class="pre">(Other</span> <span class="pre">utility</span> <span class="pre">modules</span> <span class="pre">across</span> <span class="pre">utils/)</span>
+<span class="pre">└──</span> <span class="pre">(Various</span> <span class="pre">subdirectories</span> <span class="pre">for</span> <span class="pre">specialized</span> <span class="pre">utilities)</span>
+<span class="pre">`</span></code></p>
+<p><strong>Note</strong>: The utils module is distributed across multiple subdirectories. Key utilities are documented below.</p>
+</section>
+<section id="module-level-exports">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Module-Level Exports</a><a class="headerlink" href="#module-level-exports" title="Link to this heading"></a></h2>
+<p>From <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">SExprParser</span><span class="p">,</span>          <span class="c1"># S-expression parser</span>
+    <span class="n">SolverResult</span><span class="p">,</span>          <span class="c1"># Unified solver result type</span>
+    <span class="n">RE_GET_EXPR_VALUE_ALL</span>  <span class="c1"># Regex pattern for extracting values</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="key-components">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Key Components</a><a class="headerlink" href="#key-components" title="Link to this heading"></a></h2>
+<p>### 1. Type Definitions (<code class="docutils literal notranslate"><span class="pre">types.py</span></code>)</p>
+<p>Provides common type definitions used throughout ARIA.</p>
+<p><strong>Key Types:</strong></p>
+<ul class="simple">
+<li><p><strong>SolverResult</strong> (enum): Unified solver result type
+- <code class="docutils literal notranslate"><span class="pre">SAT</span></code>: Formula is satisfiable
+- <code class="docutils literal notranslate"><span class="pre">UNSAT</span></code>: Formula is unsatisfiable
+- <code class="docutils literal notranslate"><span class="pre">UNKNOWN</span></code>: Solver couldn’t determine status
+- <code class="docutils literal notranslate"><span class="pre">ERROR</span></code>: Solver error occurred</p></li>
+<li><p><strong>OSType</strong> (enum): Operating system type for solver binaries</p></li>
+<li><p><strong>BinarySMTSolverType</strong> (enum): Types of binary SMT solvers</p></li>
+</ul>
+<p><strong>Usage Pattern</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.utils.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">SolverResult</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">SolverResult</span><span class="o">.</span><span class="n">SAT</span>
+<span class="k">if</span> <span class="n">result</span> <span class="o">==</span> <span class="n">SolverResult</span><span class="o">.</span><span class="n">SAT</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Satisfiable&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>### 2. Exception Hierarchy (<code class="docutils literal notranslate"><span class="pre">exceptions.py</span></code>)</p>
+<p>Custom exception hierarchy for ARIA-specific errors.</p>
+<p><strong>Base Exception:</strong></p>
+<ul class="simple">
+<li><p><strong>AriaException</strong>: Base exception class for all ARIA errors
+- Provides consistent error handling across modules
+- Supports chaining for error context</p></li>
+</ul>
+<p><strong>Usage Pattern</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.utils.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">AriaException</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="c1"># Some aria operation</span>
+    <span class="k">pass</span>
+<span class="k">except</span> <span class="n">AriaException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ARIA error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>### 3. S-Expression Parser (<code class="docutils literal notranslate"><span class="pre">SExprParser</span></code>)</p>
+<p>Parses S-expression format commonly used in SMT-LIB and related formats.</p>
+<p><strong>Key Methods:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">parse(string)</span></code>: Parse S-expression string into Python objects</p></li>
+<li><p>Supports nested expressions</p></li>
+<li><p>Handles quoted strings and special characters</p></li>
+</ul>
+<p><strong>Usage Pattern</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">SExprParser</span>
+
+<span class="n">parser</span> <span class="o">=</span> <span class="n">SExprParser</span><span class="p">()</span>
+<span class="n">parsed</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s2">&quot;(and x y z)&quot;</span><span class="p">)</span>
+<span class="c1"># Returns nested Python structure</span>
+</pre></div>
+</div>
+<p><strong>Use Cases</strong>:</p>
+<ul class="simple">
+<li><p><strong>SMT-LIB2 parsing</strong>: Read S-expressions from SMT-LIB format files</p></li>
+<li><p><strong>Formula parsing</strong>: Convert S-expression to internal representations</p></li>
+<li><p><strong>Communication protocols</strong>: Parse solver output in S-expression format</p></li>
+</ul>
+<p>### 4. Solver Utilities</p>
+<p>Various utilities for working with external solvers:</p>
+<p><strong>Common Patterns:</strong></p>
+<ul class="simple">
+<li><p>Binary solver execution and output parsing</p></li>
+<li><p>Standardized error handling across different solver backends</p></li>
+<li><p>File I/O for solver communication</p></li>
+<li><p>Process management for parallel solver execution</p></li>
+</ul>
+<p>### 5. Expression Utilities</p>
+<p>Helpers for working with Z3 and SMT expressions:</p>
+<p><strong>Common Functions:</strong></p>
+<ul class="simple">
+<li><p>Variable extraction from formulas</p></li>
+<li><p>Expression transformation and simplification</p></li>
+<li><p>Type checking and validation</p></li>
+<li><p>Substitution and evaluation utilities</p></li>
+</ul>
+<p><strong>Related Modules:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">z3_expr_utils.py</span></code>: Z3-specific expression utilities</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">z3_solver_utils.py</span></code>: Z3 solver wrapper utilities</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pysmt_solver.py</span></code>: PySMT solver interface</p></li>
+</ul>
+<p>### 6. Value Conversion</p>
+<p>Utilities for converting between different value representations:</p>
+<p><strong>Use Cases:</strong></p>
+<ul class="simple">
+<li><p>Converting solver outputs to ARIA internal types</p></li>
+<li><p>Handling different numeric representations (integers, bit-vectors, reals)</p></li>
+<li><p>String/bytes parsing and conversion</p></li>
+</ul>
+</section>
+<section id="usage-across-codebase">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Usage Across Codebase</a><a class="headerlink" href="#usage-across-codebase" title="Link to this heading"></a></h2>
+<p>The utils module is used extensively throughout ARIA in these domains:</p>
+<p>### SMT Solving
+<strong>aria/smt/pcdclt/</strong> - Parallel CDCL(T) solver**</p>
+<ul class="simple">
+<li><p>Solver configuration access</p></li>
+<li><p>Type checking</p></li>
+<li><p>Process management</p></li>
+</ul>
+<p>### Quantifier Solving
+<strong>aria/quant/efbv/</strong>, <strong>aria/quant/eflira/</strong>, <strong>aria/quant/qe/</strong> - Multiple solver orchestration</p>
+<ul class="simple">
+<li><p>Binary solver invocation</p></li>
+<li><p>Custom path configuration</p></li>
+<li><p>Multi-solver coordination</p></li>
+</ul>
+<p>### Model Counting
+<strong>aria/counting/bool/</strong> - Boolean model counting</p>
+<ul class="simple">
+<li><p>Solver availability checking</p></li>
+<li><p>Model counter invocation</p></li>
+</ul>
+<p>### Synthesis
+<strong>aria/synthesis/cvc5/</strong> - SyGuS synthesis with CVC5</p>
+<ul class="simple">
+<li><p>Solver path access</p></li>
+<li><p>Binary management</p></li>
+</ul>
+<p>### Abduction
+<strong>aria/abduction/</strong> - Abductive reasoning</p>
+<ul class="simple">
+<li><p>Solver orchestration</p></li>
+<li><p>Multi-solver support</p></li>
+</ul>
+<p>### Interpolation
+<strong>aria/interpolant/</strong> - Interpolant generation</p>
+<ul class="simple">
+<li><p>Multiple solver backends</p></li>
+<li><p>Path configuration</p></li>
+</ul>
+<p>### Boolean Reasoning
+<strong>aria/bool/</strong> - Boolean logic operations</p>
+<ul class="simple">
+<li><p>SAT solver wrappers</p></li>
+<li><p>Expression utilities</p></li>
+</ul>
+<p>### General Utilities
+<strong>Expression parsing</strong>, <strong>file I/O</strong>, <strong>process management</strong></p>
+</section>
+<section id="design-patterns">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">Design Patterns</a><a class="headerlink" href="#design-patterns" title="Link to this heading"></a></h2>
+<p>### 1. Centralized Configuration</p>
+<p>Utils provide standardized access to:</p>
+<ul class="simple">
+<li><p>Solver paths and availability</p></li>
+<li><p>Type definitions</p></li>
+<li><p>Common interfaces</p></li>
+</ul>
+<p><strong>Benefits:</strong></p>
+<ul class="simple">
+<li><p><strong>Consistency</strong>: Single source of truth for solver configuration</p></li>
+<li><p><strong>Maintainability</strong>: Changes propagate automatically</p></li>
+<li><p><strong>Testing</strong>: Easy to mock utilities for testing</p></li>
+</ul>
+<p>### 2. Error Handling</p>
+<p>Unified exception hierarchy:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">AriaException</span></code> base class</p></li>
+<li><p>Specific exceptions can inherit from it</p></li>
+<li><p>Consistent error catching across modules</p></li>
+</ul>
+<p>### 3. Type Safety</p>
+<p>Strong typing with enums:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">SolverResult</span></code> for clear status communication</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">OSType</span></code> for platform-specific behavior</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">BinarySMTSolverType</span></code> for solver categorization</p></li>
+</ul>
+<p>### 4. Parser Utilities</p>
+<p><strong>SExprParser</strong> for S-expression parsing:</p>
+<ul class="simple">
+<li><p>Standard format in SMT and logic communities</p></li>
+<li><p>Robust parsing with error handling</p></li>
+<li><p>Support for nested structures</p></li>
+</ul>
+</section>
+<section id="usage-examples">
+<h2><a class="toc-backref" href="#id6" role="doc-backlink">Usage Examples</a><a class="headerlink" href="#usage-examples" title="Link to this heading"></a></h2>
+<section id="solver-result-type">
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">### Solver Result Type</a><a class="headerlink" href="#solver-result-type" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.utils.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">SolverResult</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">solve_formula</span><span class="p">(</span><span class="n">formula</span><span class="p">):</span>
+    <span class="c1"># ... solver logic ...</span>
+    <span class="k">return</span> <span class="n">SolverResult</span><span class="o">.</span><span class="n">SAT</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">check_result</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">result</span> <span class="o">==</span> <span class="n">SolverResult</span><span class="o">.</span><span class="n">SAT</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Formula is satisfiable&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">result</span> <span class="o">==</span> <span class="n">SolverResult</span><span class="o">.</span><span class="n">UNSAT</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Formula is unsatisfiable&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Unknown or error&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="exception-handling">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">### Exception Handling</a><a class="headerlink" href="#exception-handling" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.utils.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">AriaException</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">some_aria_function</span><span class="p">():</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Operation that might fail</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">perform_solver_call</span><span class="p">()</span>
+    <span class="k">except</span> <span class="n">AriaException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ARIA operation failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">raise</span>
+</pre></div>
+</div>
+</section>
+<section id="s-expression-parsing">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">### S-Expression Parsing</a><a class="headerlink" href="#s-expression-parsing" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">SExprParser</span>
+
+<span class="c1"># Parse S-expression</span>
+<span class="n">parser</span> <span class="o">=</span> <span class="n">SExprParser</span><span class="p">()</span>
+<span class="n">parsed</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s2">&quot;(define-fun my-fun (x) (ite (is-sat x) true false))&quot;</span><span class="p">)</span>
+
+<span class="c1"># Access parsed structure</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">parsed</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="key-features">
+<h2><a class="toc-backref" href="#id10" role="doc-backlink">Key Features</a><a class="headerlink" href="#key-features" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><strong>Type Safety</strong>: Strong typing with enums for results and configurations</p></li>
+<li><p><strong>Error Handling</strong>: Centralized exception hierarchy for consistent error management</p></li>
+<li><p><strong>Parser Support</strong>: S-expression parser for SMT-LIB compatibility</p></li>
+<li><p><strong>Solver Integration</strong>: Utilities for working with external solver binaries</p></li>
+<li><p><strong>Expression Utilities</strong>: Helpers for expression manipulation and analysis</p></li>
+<li><p><strong>Value Conversion</strong>: Standardized conversion between different representations</p></li>
+<li><p><strong>Extensibility</strong>: Easy to add new utilities as needed</p></li>
+</ol>
+</section>
+<section id="integration-points">
+<h2><a class="toc-backref" href="#id11" role="doc-backlink">Integration Points</a><a class="headerlink" href="#integration-points" title="Link to this heading"></a></h2>
+<p>The utils module is imported in <strong>numerous files across ARIA</strong>:</p>
+<ul class="simple">
+<li><p><strong>SMT solving</strong>: aria/smt/pcdclt/</p></li>
+<li><p><strong>Quantifiers</strong>: aria/quant/efbv/, aria/quant/eflira/</p></li>
+<li><p><strong>Model counting</strong>: aria/counting/bool/</p></li>
+<li><p><strong>Synthesis</strong>: aria/synthesis/cvc5/</p></li>
+<li><p><strong>Abduction</strong>: aria/abduction/</p></li>
+<li><p><strong>Interpolation</strong>: aria/interpolant/</p></li>
+<li><p><strong>Boolean reasoning</strong>: aria/bool/</p></li>
+<li><p><strong>Testing</strong>: aria/tests/</p></li>
+</ul>
+</section>
+<section id="design-philosophy">
+<h2><a class="toc-backref" href="#id12" role="doc-backlink">Design Philosophy</a><a class="headerlink" href="#design-philosophy" title="Link to this heading"></a></h2>
+<p><strong>“Utility First”</strong>: Provide small, focused, well-tested utilities that:</p>
+<ol class="arabic simple">
+<li><p><strong>Do one thing well</strong> - Each utility has a clear, single purpose</p></li>
+<li><p><strong>Be reusable</strong> - Designed for use across multiple modules</p></li>
+<li><p><strong>Stay simple</strong> - Avoid unnecessary complexity</p></li>
+<li><p><strong>Document thoroughly</strong> - Clear docstrings explain purpose and usage</p></li>
+<li><p><strong>Handle errors gracefully</strong> - Proper exception raising and catching</p></li>
+<li><p><strong>Standardize interfaces</strong> - Consistent APIs for similar functionality</p></li>
+</ol>
+</section>
+<section id="notes">
+<h2><a class="toc-backref" href="#id13" role="doc-backlink">Notes</a><a class="headerlink" href="#notes" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>The utils module is the foundation upon which all other ARIA modules build</p></li>
+<li><p>Changes to utils should be made carefully as they have wide-ranging effects</p></li>
+<li><p>Priority is on correctness and reliability over performance</p></li>
+<li><p>Documentation is essential due to the module’s foundational role</p></li>
+</ul>
+</section>
+<section id="size-statistics">
+<h2><a class="toc-backref" href="#id14" role="doc-backlink">Size Statistics</a><a class="headerlink" href="#size-statistics" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Total documented components: 6+ (from analysis)</p></li>
+<li><p>Type definitions: 3+ enums</p></li>
+<li><p>Core utilities: SExprParser, exception hierarchy, solver wrappers</p></li>
+<li><p>Integration points: 15+ modules across ARIA</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

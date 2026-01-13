@@ -1,0 +1,408 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>First-Order Logic (FOL) &mdash; ARIA Documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=a74d790d"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            ARIA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">First-Order Logic (FOL)</a><ul>
+<li><a class="reference internal" href="#directory-structure">Directory Structure</a></li>
+<li><a class="reference internal" href="#module-purpose">Module Purpose</a></li>
+<li><a class="reference internal" href="#key-components">Key Components</a></li>
+<li><a class="reference internal" href="#algorithms-implemented">Algorithms Implemented</a></li>
+<li><a class="reference internal" href="#usage-examples">Usage Examples</a><ul>
+<li><a class="reference internal" href="#python-api">### Python API</a></li>
+<li><a class="reference internal" href="#interactive-cli">### Interactive CLI</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#key-features">Key Features</a></li>
+<li><a class="reference internal" href="#size-statistics">Size Statistics</a></li>
+<li><a class="reference internal" href="#testing">Testing</a></li>
+<li><a class="reference internal" href="#use-cases">Use Cases</a></li>
+<li><a class="reference internal" href="#notable-design-decisions">Notable Design Decisions</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ARIA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">First-Order Logic (FOL)</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/fol.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="first-order-logic-fol">
+<h1>First-Order Logic (FOL)<a class="headerlink" href="#first-order-logic-fol" title="Link to this heading"></a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">aria.fol</span></code> module provides <strong>Miniprover</strong>, an automated theorem prover for first-order logic. This is a pedagogical implementation that is guaranteed to find proofs for all provable formulae (though it may loop forever for some unprovable ones, per Gödel’s Entscheidungsproblem).</p>
+<nav class="contents local" id="table-of-contents">
+<p class="topic-title">Table of Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#directory-structure" id="id7">Directory Structure</a></p></li>
+<li><p><a class="reference internal" href="#module-purpose" id="id8">Module Purpose</a></p></li>
+<li><p><a class="reference internal" href="#key-components" id="id9">Key Components</a></p></li>
+<li><p><a class="reference internal" href="#algorithms-implemented" id="id10">Algorithms Implemented</a></p></li>
+<li><p><a class="reference internal" href="#usage-examples" id="id11">Usage Examples</a></p>
+<ul>
+<li><p><a class="reference internal" href="#python-api" id="id12">### Python API</a></p></li>
+<li><p><a class="reference internal" href="#interactive-cli" id="id13">### Interactive CLI</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#key-features" id="id14">Key Features</a></p></li>
+<li><p><a class="reference internal" href="#size-statistics" id="id15">Size Statistics</a></p></li>
+<li><p><a class="reference internal" href="#testing" id="id16">Testing</a></p></li>
+<li><p><a class="reference internal" href="#use-cases" id="id17">Use Cases</a></p></li>
+<li><p><a class="reference internal" href="#notable-design-decisions" id="id18">Notable Design Decisions</a></p></li>
+</ul>
+</nav>
+<section id="directory-structure">
+<h2><a class="toc-backref" href="#id7" role="doc-backlink">Directory Structure</a><a class="headerlink" href="#directory-structure" title="Link to this heading"></a></h2>
+<p><a href="#id1"><span class="problematic" id="id2">``</span></a>`
+fol/
+└── miniprover/</p>
+<blockquote>
+<div><p>├── __init__.py          (0 lines - empty)
+├── language.py          (517 lines)
+├── prover.py            (525 lines)
+├── main.py              (526 lines)
+└── README.md            (95 lines)
+└── __pycache__/         (compiled Python files)</p>
+</div></blockquote>
+<p><a href="#id3"><span class="problematic" id="id4">``</span></a><a href="#id5"><span class="problematic" id="id6">`</span></a></p>
+</section>
+<section id="module-purpose">
+<h2><a class="toc-backref" href="#id8" role="doc-backlink">Module Purpose</a><a class="headerlink" href="#module-purpose" title="Link to this heading"></a></h2>
+<p>Miniprover is an educational first-order logic theorem prover using sequent calculus. It serves as:</p>
+<ol class="arabic simple">
+<li><p><strong>Pedagogical tool</strong> for teaching proof search strategies</p></li>
+<li><p><strong>Reference implementation</strong> for building efficient FOL provers</p></li>
+<li><p><strong>Research foundation</strong> for experimenting with inference rules</p></li>
+</ol>
+<p><strong>Note</strong>: This is intentionally slow for practical use - it’s designed for correctness and educational value, not performance.</p>
+</section>
+<section id="key-components">
+<h2><a class="toc-backref" href="#id9" role="doc-backlink">Key Components</a><a class="headerlink" href="#key-components" title="Link to this heading"></a></h2>
+<p>### 1. Language Definitions (<code class="docutils literal notranslate"><span class="pre">language.py</span></code> - 517 lines)</p>
+<p>Defines the complete FOL language with support for unification and substitution.</p>
+<p><strong>Terms:</strong></p>
+<ul class="simple">
+<li><p><strong>Variable</strong>: FOL variables with name and instantiation time tracking
+- Tracks when variables were created for temporal reasoning</p></li>
+<li><p><strong>Function</strong>: Represents function applications with recursive term structure
+- Example: <code class="docutils literal notranslate"><span class="pre">f(g(x),</span> <span class="pre">h(f(a),</span> <span class="pre">b)</span></code></p></li>
+<li><p><strong>UnificationTerm</strong>: Metavariables used during unification
+- Supports occurs-check to prevent infinite unification</p></li>
+</ul>
+<p><strong>Formulae:</strong></p>
+<ul class="simple">
+<li><p><strong>Predicate</strong>: Atomic formulas with name and term arguments
+- Example: <code class="docutils literal notranslate"><span class="pre">P(x),</span> <span class="pre">R(f(x),</span> <span class="pre">y)</span></code></p></li>
+<li><p><strong>Not</strong>: Logical negation (<code class="docutils literal notranslate"><span class="pre">¬φ</span></code>)</p></li>
+<li><p><strong>And</strong>/<code class="docutils literal notranslate"><span class="pre">Or</span></code>: Logical conjunction and disjunction</p></li>
+<li><p><strong>Implies</strong>: Logical implication (<code class="docutils literal notranslate"><span class="pre">φ</span> <span class="pre">→</span> <span class="pre">ψ</span></code>)</p></li>
+<li><p><strong>ForAll</strong>/<code class="docutils literal notranslate"><span class="pre">ThereExists</span></code>: Universal and existential quantification</p></li>
+</ul>
+<p><strong>Common Methods (across all classes):</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">freeVariables()</span></code>: Extract all free variables</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">freeUnificationTerms()</span></code>: Extract all unification metavariables</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">replace(old,</span> <span class="pre">new)</span></code>: Substitute terms/variables</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">occurs(term)</span></code>: Occurs-check for unification safety</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">setInstantiationTime(time)</span></code>: Track when terms were created</p></li>
+</ul>
+<p>### 2. Theorem Prover (<code class="docutils literal notranslate"><span class="pre">prover.py</span></code> - 525 lines)</p>
+<p>Implements complete sequent calculus with unification-based proof search.</p>
+<p><strong>Unification Engine:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">unify(term_a,</span> <span class="pre">term_b)</span></code>: Solves single unification equations
+- Uses occurs-check to prevent infinite loops
+- Returns unification substitution or failure</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unify_list(pairs)</span></code>: Solves multiple unification equations simultaneously
+- More efficient than pairwise solving</p></li>
+</ul>
+<p><strong>Sequent Calculus:</strong></p>
+<ul class="simple">
+<li><p><strong>Sequent class</strong>: Represents sequents (Γ ⊢ Δ)
+- <strong>Left side (Γ)</strong>: Set of formulae assumed true
+- <strong>Right side (Δ)</strong>: Set of formulae to be proven
+- <strong>Sibling tracking</strong>: Manages parallel proof branches
+- <strong>Depth information</strong>: Tracks proof depth for ordering</p></li>
+</ul>
+<p><strong>Proof Search:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">proveSequent(sequent)</span></code>: Main proof search algorithm
+- <strong>Breadth-first expansion</strong> of sequents
+- <strong>Formula ordering</strong>: Expands by creation time (depth-first within each sequent)
+- <strong>Inference rules</strong>: Complete set of left and right rules for all connectives
+- <strong>Parallel branch handling</strong>: Manages sibling sequents for unification across branches</p></li>
+</ul>
+<p><strong>Key Inference Rules Implemented:</strong></p>
+<ul class="simple">
+<li><p><strong>Left rules</strong> (for Γ):
+- Not-left: If ¬φ ∈ Γ, add φ to Γ and move ¬φ to Δ
+- And-left: If φ∧ψ ∈ Γ, create two branches (φ) and (ψ)
+- Or-left: If φ∨ψ ∈ Γ, add both to Γ
+- Implies-left: If φ→ψ ∈ Γ, add ψ to Γ, move φ to Δ
+- ForAll-left: If ∀x.φ ∈ Γ, instantiate with fresh term</p></li>
+<li><p><strong>Right rules</strong> (for Δ):
+- Not-right: Move ¬φ to Γ, add φ to Δ
+- And-right: If φ∧ψ ∈ Δ, add both to Δ
+- Or-right: If φ∨ψ ∈ Δ, create two branches
+- Implies-right: If φ→ψ ∈ Δ, move φ to Γ, add ψ to Δ
+- ThereExists-right: If ∃x.φ ∈ Δ, instantiate with fresh term</p></li>
+</ul>
+<p><strong>Proof Strategy:</strong></p>
+<ul class="simple">
+<li><p><strong>Formula selection</strong>: Expands formulas in order of creation time
+- Within sequent: depth-first (most recent first)</p></li>
+<li><p><strong>Universal quantification</strong>: Skolem-style unification terms
+- Introduces unification metavariables for instantiations</p></li>
+<li><p><strong>Existential quantification</strong>: Fresh variable instantiation
+- Ensures no variable capture during substitution</p></li>
+</ul>
+<p>### 3. Command-Line Interface (<code class="docutils literal notranslate"><span class="pre">main.py</span></code> - 526 lines)</p>
+<p>Interactive theorem prover REPL with formula management.</p>
+<p><strong>Lexer/Parser:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">lex(inp)</span></code>: Tokenizes input strings into tokens
+- Handles identifiers, operators, quantifiers, parentheses
+- Supports whitespace and comments</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">parse(tokens)</span></code>: Recursive descent parser
+- <strong>Operator precedence</strong>: quantifiers &gt; implication &gt; disjunction &gt; conjunction &gt; not &gt; atoms
+- <strong>Type checking</strong>: Validates well-formedness of formulae
+- <strong>Error messages</strong>: Clear feedback on parse errors</p></li>
+</ul>
+<p><strong>Syntax Support:</strong></p>
+<ul class="simple">
+<li><p><strong>Variables</strong>: <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, <code class="docutils literal notranslate"><span class="pre">z</span></code> (lowercase identifiers)</p></li>
+<li><p><strong>Functions</strong>: <code class="docutils literal notranslate"><span class="pre">f(term,</span> <span class="pre">...)</span></code></p></li>
+<li><p><strong>Predicates</strong>: <code class="docutils literal notranslate"><span class="pre">P(term)</span></code> (uppercase identifiers)</p></li>
+<li><p><strong>Logical operators</strong>: <code class="docutils literal notranslate"><span class="pre">not</span></code>, <code class="docutils literal notranslate"><span class="pre">and</span></code>, <code class="docutils literal notranslate"><span class="pre">or</span></code>, <code class="docutils literal notranslate"><span class="pre">implies</span></code></p></li>
+<li><p><strong>Quantifiers</strong>: <code class="docutils literal notranslate"><span class="pre">forall</span> <span class="pre">x.</span> <span class="pre">P</span></code>, <code class="docutils literal notranslate"><span class="pre">exists</span> <span class="pre">x.</span> <span class="pre">P</span></code></p></li>
+</ul>
+<p><strong>Interactive Session:</strong></p>
+<ul class="simple">
+<li><p>Formula input and proof verification</p></li>
+<li><p><strong>Axiom management</strong>: add, list, remove axioms</p></li>
+<li><p><strong>Lemma management</strong>: prove lemmas, add them, list, remove
+- Tracks dependencies between lemmas</p></li>
+<li><p><strong>Reset functionality</strong>: Clear session state</p></li>
+</ul>
+<p><strong>Session Commands:</strong></p>
+<p>### 4. Documentation (<code class="docutils literal notranslate"><span class="pre">README.md</span></code> - 95 lines)</p>
+<p>Comprehensive guide including:</p>
+<ul class="simple">
+<li><p>Purpose and limitations
+- <strong>Pedagogical tool</strong>: Intentionally slow
+- <strong>Completeness</strong>: Guaranteed to find proofs for provable formulae
+- <strong>Gödel limitation</strong>: May loop forever on unprovable formulae
+- <strong>Logic</strong>: Implements intuitionistic sequent calculus (not classical)</p></li>
+<li><p><strong>Syntax reference</strong>: Complete grammar with examples</p></li>
+<li><p><strong>Interactive session example</strong>: Demonstrates proof steps with sequent numbering</p></li>
+<li><p><strong>Axiom and lemma usage</strong>: Examples of building knowledge bases</p></li>
+</ul>
+</section>
+<section id="algorithms-implemented">
+<h2><a class="toc-backref" href="#id10" role="doc-backlink">Algorithms Implemented</a><a class="headerlink" href="#algorithms-implemented" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><strong>Unification Algorithm</strong>: First-order unification with occurs-check
+- Time-based instantiation constraints
+- Handles substitution composition</p></li>
+<li><p><strong>Sequent Calculus</strong>: Complete set of inference rules
+- Left rules (for assumptions in Γ)
+- Right rules (for goals in Δ)
+- Proper handling of quantifiers</p></li>
+<li><p><strong>Proof Search</strong>: Breadth-first exploration
+- Parallel branch management
+- Unification for closing branches
+- Skolemization for universal quantification
+- Fresh variable generation for existential quantification</p></li>
+<li><p><strong>Formula Ordering</strong>: Depth-first within sequent, breadth-first globally</p></li>
+</ol>
+</section>
+<section id="usage-examples">
+<h2><a class="toc-backref" href="#id11" role="doc-backlink">Usage Examples</a><a class="headerlink" href="#usage-examples" title="Link to this heading"></a></h2>
+<section id="python-api">
+<h3><a class="toc-backref" href="#id12" role="doc-backlink">### Python API</a><a class="headerlink" href="#python-api" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.fol.miniprover.language</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.fol.miniprover.prover</span><span class="w"> </span><span class="kn">import</span> <span class="n">proveFormula</span>
+
+<span class="c1"># Define axioms and prove formulae</span>
+<span class="n">axioms</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">ForAll</span><span class="p">(</span><span class="n">Variable</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">),</span> <span class="n">Predicate</span><span class="p">(</span><span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">Variable</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)])),</span>
+    <span class="n">ForAll</span><span class="p">(</span><span class="n">Variable</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">),</span> <span class="n">Predicate</span><span class="p">(</span><span class="s1">&#39;Q&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">Variable</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)]))</span>
+<span class="p">}</span>
+
+<span class="n">formula</span> <span class="o">=</span> <span class="n">Implies</span><span class="p">(</span>
+    <span class="n">And</span><span class="p">(</span><span class="n">Predicate</span><span class="p">(</span><span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">Variable</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)]),</span>
+    <span class="n">Predicate</span><span class="p">(</span><span class="s1">&#39;Q&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">Variable</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)]))</span>
+<span class="p">)</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">proveFormula</span><span class="p">(</span><span class="n">axioms</span><span class="p">,</span> <span class="n">formula</span><span class="p">)</span>
+<span class="c1"># Returns sequent or None if no proof found</span>
+</pre></div>
+</div>
+</section>
+<section id="interactive-cli">
+<h3><a class="toc-backref" href="#id13" role="doc-backlink">### Interactive CLI</a><a class="headerlink" href="#interactive-cli" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>aria.fol.miniprover.main
+
+<span class="c1"># Interactive session:</span>
+<span class="c1"># Input: forall x. P(x)</span>
+<span class="c1"># Prover: Added to axioms: [1]</span>
+<span class="c1"># Input: P(a)</span>
+<span class="c1"># Prover: ✓ Provable</span>
+<span class="c1">#</span>
+<span class="c1"># Input: implies (P(a)) (Q(a))</span>
+<span class="c1"># Prover: ✓ Provable (1 steps)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="key-features">
+<h2><a class="toc-backref" href="#id14" role="doc-backlink">Key Features</a><a class="headerlink" href="#key-features" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><strong>Complete</strong>: Guaranteed to find proofs for all provable formulae</p></li>
+<li><p><strong>Educational</strong>: Shows detailed proof steps with sequent numbering</p></li>
+<li><p><strong>Unification-based</strong>: Handles equality and substitution automatically</p></li>
+<li><p><strong>Axiom System</strong>: Supports custom axioms and lemma management
+- Dependency tracking for lemmas</p></li>
+<li><p><strong>Interactive REPL</strong>: Rich command-line interface for experimentation</p></li>
+</ol>
+<p><strong>Strengths:</strong></p>
+<ul class="simple">
+<li><p>Clear separation between language definitions, prover logic, and CLI</p></li>
+<li><p>Well-documented with comprehensive README</p></li>
+<li><p>Proper error handling and user feedback</p></li>
+<li><p>Comprehensive proof search with parallel branch handling</p></li>
+</ul>
+<p><strong>Limitations (as stated in documentation):</strong></p>
+<ul class="simple">
+<li><p><strong>Performance</strong>: Too slow for practical use (pedagogical tool only)</p></li>
+<li><p><strong>Termination</strong>: May loop forever on unprovable formulae (Entscheidungsproblem)</p></li>
+<li><p><strong>Logic</strong>: Implements intuitionistic sequent calculus (not classical logic)</p></li>
+<li><p><strong>No practical applications</strong>: Intended for teaching and research, not production use</p></li>
+</ul>
+</section>
+<section id="size-statistics">
+<h2><a class="toc-backref" href="#id15" role="doc-backlink">Size Statistics</a><a class="headerlink" href="#size-statistics" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Total Python lines: ~1,568</p></li>
+<li><p>language.py: 517 lines</p></li>
+<li><p>prover.py: 525 lines</p></li>
+<li><p>main.py: 526 lines</p></li>
+<li><p>README.md: 95 lines</p></li>
+</ul>
+</section>
+<section id="testing">
+<h2><a class="toc-backref" href="#id16" role="doc-backlink">Testing</a><a class="headerlink" href="#testing" title="Link to this heading"></a></h2>
+<p>While no explicit test files were found in the analysis, the module includes:</p>
+<ul class="simple">
+<li><p>Manual testing through interactive sessions</p></li>
+<li><p>Formula validation via type checking</p></li>
+<li><p>Example proofs demonstrating various inference patterns</p></li>
+</ul>
+</section>
+<section id="use-cases">
+<h2><a class="toc-backref" href="#id17" role="doc-backlink">Use Cases</a><a class="headerlink" href="#use-cases" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><strong>Teaching first-order logic proof strategies</strong></p></li>
+<li><p><strong>Understanding sequent calculus mechanics</strong></p></li>
+<li><p><strong>Experimenting with axiom systems and lemma development</strong></p></li>
+<li><p><strong>Reference implementation for building efficient provers</strong></p></li>
+<li><p><strong>Research in automated deduction systems</strong></p></li>
+</ol>
+</section>
+<section id="notable-design-decisions">
+<h2><a class="toc-backref" href="#id18" role="doc-backlink">Notable Design Decisions</a><a class="headerlink" href="#notable-design-decisions" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Intuitionistic over classical</strong>: Matches pedagogical use case</p></li>
+<li><p><strong>Breadth-first search</strong>: Ensures completeness (won’t miss shorter proofs)</p></li>
+<li><p><strong>Creation time ordering</strong>: Reproduces typical textbook proofs</p></li>
+<li><p><strong>Unification terms</strong>: Implements Skolemization naturally</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

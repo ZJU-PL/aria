@@ -1,0 +1,533 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Boolean Reasoning &mdash; ARIA Documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=a74d790d"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            ARIA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Boolean Reasoning</a><ul>
+<li><a class="reference internal" href="#directory-structure">Directory Structure</a><ul>
+<li><a class="reference internal" href="#sat-solvers-sat">SAT Solvers (<code class="docutils literal notranslate"><span class="pre">sat/</span></code>)</a></li>
+<li><a class="reference internal" href="#maxsat-solvers-maxsat">MaxSAT Solvers (<code class="docutils literal notranslate"><span class="pre">maxsat/</span></code>)</a></li>
+<li><a class="reference internal" href="#nnf-reasoning-nnf">NNF Reasoning (<code class="docutils literal notranslate"><span class="pre">nnf/</span></code>)</a></li>
+<li><a class="reference internal" href="#cnf-simplification-cnfsimplifier">CNF Simplification (<code class="docutils literal notranslate"><span class="pre">cnfsimplifier/</span></code>)</a></li>
+<li><a class="reference internal" href="#qbf-support-qbf">QBF Support (<code class="docutils literal notranslate"><span class="pre">qbf/</span></code>)</a></li>
+<li><a class="reference internal" href="#feature-extraction-features">Feature Extraction (<code class="docutils literal notranslate"><span class="pre">features/</span></code>)</a></li>
+<li><a class="reference internal" href="#distributed-sat-solver-dissolve">Distributed SAT Solver (<code class="docutils literal notranslate"><span class="pre">dissolve/</span></code>)</a></li>
+<li><a class="reference internal" href="#knowledge-compilation-knowledge-compiler">Knowledge Compilation (<code class="docutils literal notranslate"><span class="pre">knowledge_compiler/</span></code>)</a></li>
+<li><a class="reference internal" href="#boolean-interpolation-interpolant">Boolean Interpolation (<code class="docutils literal notranslate"><span class="pre">interpolant/</span></code>)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#usage-examples">Usage Examples</a><ul>
+<li><a class="reference internal" href="#sat-solving">SAT Solving</a></li>
+<li><a class="reference internal" href="#maxsat-solving">MaxSAT Solving</a></li>
+<li><a class="reference internal" href="#nnf-reasoning">NNF Reasoning</a></li>
+<li><a class="reference internal" href="#cnf-simplification">CNF Simplification</a></li>
+<li><a class="reference internal" href="#qbf-solving">QBF Solving</a></li>
+<li><a class="reference internal" href="#feature-extraction">Feature Extraction</a></li>
+<li><a class="reference internal" href="#dissolve-distributed-sat">Dissolve (Distributed SAT)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#main-api-entry-points">Main API Entry Points</a></li>
+<li><a class="reference internal" href="#key-dependencies">Key Dependencies</a></li>
+<li><a class="reference internal" href="#notable-features">Notable Features</a></li>
+<li><a class="reference internal" href="#size-statistics">Size Statistics</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ARIA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Boolean Reasoning</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/bool.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="boolean-reasoning">
+<h1>Boolean Reasoning<a class="headerlink" href="#boolean-reasoning" title="Link to this heading"></a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">aria.bool</span></code> module is a comprehensive toolkit for Boolean reasoning, providing algorithms and tools for SAT solving, MaxSAT optimization, quantified Boolean formulas (QBF), CNF simplification, knowledge compilation, and related logical reasoning tasks.</p>
+<p>The module contains approximately 8,600+ lines of Python code across 9 main submodules.</p>
+<nav class="contents local" id="table-of-contents">
+<p class="topic-title">Table of Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#directory-structure" id="id1">Directory Structure</a></p>
+<ul>
+<li><p><a class="reference internal" href="#sat-solvers-sat" id="id2">SAT Solvers (<code class="docutils literal notranslate"><span class="pre">sat/</span></code>)</a></p></li>
+<li><p><a class="reference internal" href="#maxsat-solvers-maxsat" id="id3">MaxSAT Solvers (<code class="docutils literal notranslate"><span class="pre">maxsat/</span></code>)</a></p></li>
+<li><p><a class="reference internal" href="#nnf-reasoning-nnf" id="id4">NNF Reasoning (<code class="docutils literal notranslate"><span class="pre">nnf/</span></code>)</a></p></li>
+<li><p><a class="reference internal" href="#cnf-simplification-cnfsimplifier" id="id5">CNF Simplification (<code class="docutils literal notranslate"><span class="pre">cnfsimplifier/</span></code>)</a></p></li>
+<li><p><a class="reference internal" href="#qbf-support-qbf" id="id6">QBF Support (<code class="docutils literal notranslate"><span class="pre">qbf/</span></code>)</a></p></li>
+<li><p><a class="reference internal" href="#feature-extraction-features" id="id7">Feature Extraction (<code class="docutils literal notranslate"><span class="pre">features/</span></code>)</a></p></li>
+<li><p><a class="reference internal" href="#distributed-sat-solver-dissolve" id="id8">Distributed SAT Solver (<code class="docutils literal notranslate"><span class="pre">dissolve/</span></code>)</a></p></li>
+<li><p><a class="reference internal" href="#knowledge-compilation-knowledge-compiler" id="id9">Knowledge Compilation (<code class="docutils literal notranslate"><span class="pre">knowledge_compiler/</span></code>)</a></p></li>
+<li><p><a class="reference internal" href="#boolean-interpolation-interpolant" id="id10">Boolean Interpolation (<code class="docutils literal notranslate"><span class="pre">interpolant/</span></code>)</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#usage-examples" id="id11">Usage Examples</a></p>
+<ul>
+<li><p><a class="reference internal" href="#sat-solving" id="id12">SAT Solving</a></p></li>
+<li><p><a class="reference internal" href="#maxsat-solving" id="id13">MaxSAT Solving</a></p></li>
+<li><p><a class="reference internal" href="#nnf-reasoning" id="id14">NNF Reasoning</a></p></li>
+<li><p><a class="reference internal" href="#cnf-simplification" id="id15">CNF Simplification</a></p></li>
+<li><p><a class="reference internal" href="#qbf-solving" id="id16">QBF Solving</a></p></li>
+<li><p><a class="reference internal" href="#feature-extraction" id="id17">Feature Extraction</a></p></li>
+<li><p><a class="reference internal" href="#dissolve-distributed-sat" id="id18">Dissolve (Distributed SAT)</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#main-api-entry-points" id="id19">Main API Entry Points</a></p></li>
+<li><p><a class="reference internal" href="#key-dependencies" id="id20">Key Dependencies</a></p></li>
+<li><p><a class="reference internal" href="#notable-features" id="id21">Notable Features</a></p></li>
+<li><p><a class="reference internal" href="#size-statistics" id="id22">Size Statistics</a></p></li>
+</ul>
+</nav>
+<section id="directory-structure">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Directory Structure</a><a class="headerlink" href="#directory-structure" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">`</span>
+<span class="pre">aria/bool/</span>
+<span class="pre">├──</span> <span class="pre">__init__.py</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">#</span> <span class="pre">Main</span> <span class="pre">API</span> <span class="pre">exports</span>
+<span class="pre">├──</span> <span class="pre">cnf_simplify.py</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">#</span> <span class="pre">CNF</span> <span class="pre">simplification</span> <span class="pre">CLI</span> <span class="pre">tool</span>
+<span class="pre">├──</span> <span class="pre">pysat_cnf.py</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">#</span> <span class="pre">CNF</span> <span class="pre">manipulation</span> <span class="pre">utilities</span>
+<span class="pre">├──</span> <span class="pre">tseitin_converter.py</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">#</span> <span class="pre">DNF</span> <span class="pre">to</span> <span class="pre">CNF</span> <span class="pre">transformation</span>
+<span class="pre">├──</span> <span class="pre">cnfsimplifier/</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">#</span> <span class="pre">CNF</span> <span class="pre">simplification</span> <span class="pre">framework</span>
+<span class="pre">├──</span> <span class="pre">sat/</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">#</span> <span class="pre">SAT</span> <span class="pre">solver</span> <span class="pre">implementations</span>
+<span class="pre">├──</span> <span class="pre">maxsat/</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">#</span> <span class="pre">MaxSAT</span> <span class="pre">solvers</span> <span class="pre">and</span> <span class="pre">algorithms</span>
+<span class="pre">├──</span> <span class="pre">nnf/</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">#</span> <span class="pre">NNF</span> <span class="pre">reasoning</span> <span class="pre">library</span> <span class="pre">(largest</span> <span class="pre">submodule)</span>
+<span class="pre">├──</span> <span class="pre">qbf/</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">#</span> <span class="pre">QBF</span> <span class="pre">solver</span> <span class="pre">and</span> <span class="pre">parsers</span>
+<span class="pre">├──</span> <span class="pre">features/</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">#</span> <span class="pre">SAT</span> <span class="pre">instance</span> <span class="pre">feature</span> <span class="pre">extraction</span>
+<span class="pre">├──</span> <span class="pre">dissolve/</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">#</span> <span class="pre">Distributed</span> <span class="pre">SAT</span> <span class="pre">solver</span>
+<span class="pre">├──</span> <span class="pre">knowledge_compiler/</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">#</span> <span class="pre">DNNF</span> <span class="pre">and</span> <span class="pre">OBDD</span> <span class="pre">compilation</span>
+<span class="pre">└──</span> <span class="pre">interpolant/</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">#</span> <span class="pre">Boolean</span> <span class="pre">interpolation</span> <span class="pre">algorithms</span>
+<span class="pre">`</span></code></p>
+<section id="sat-solvers-sat">
+<h3><a class="toc-backref" href="#id2" role="doc-backlink">SAT Solvers (<code class="docutils literal notranslate"><span class="pre">sat/</span></code>)</a><a class="headerlink" href="#sat-solvers-sat" title="Link to this heading"></a></h3>
+<p>Multiple SAT solver backends with unified interface.</p>
+<p><strong>Key Classes:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">PySATSolver</span></code>: Wrapper around PySAT supporting 14+ solvers (CDCL, Glucose, MapleSAT, etc.)
+- Methods: <code class="docutils literal notranslate"><span class="pre">check_sat()</span></code>, <code class="docutils literal notranslate"><span class="pre">check_sat_assuming()</span></code>, <code class="docutils literal notranslate"><span class="pre">get_model()</span></code>, <code class="docutils literal notranslate"><span class="pre">sample_models()</span></code>, <code class="docutils literal notranslate"><span class="pre">reduce_models()</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Z3SATSolver</span></code>: Z3-based SAT solver implementation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">BruteForceSolver</span></code>: Pure Python brute-force solver with parallel support</p></li>
+</ul>
+<p><strong>Features:</strong></p>
+<ul class="simple">
+<li><p>Support for 14 solver backends (cadical, glucose, lingeling, maple, minisat, etc.)</p></li>
+<li><p>Model enumeration and sampling</p></li>
+<li><p>Model reduction using dual SAT solver technique</p></li>
+<li><p>Parallel solving capabilities</p></li>
+<li><p>UNSAT core extraction</p></li>
+</ul>
+</section>
+<section id="maxsat-solvers-maxsat">
+<h3><a class="toc-backref" href="#id3" role="doc-backlink">MaxSAT Solvers (<code class="docutils literal notranslate"><span class="pre">maxsat/</span></code>)</a><a class="headerlink" href="#maxsat-solvers-maxsat" title="Link to this heading"></a></h3>
+<p>Solve weighted and unweighted MaxSAT optimization problems.</p>
+<p><strong>Key Classes:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">MaxSATSolver</span></code>: Main wrapper supporting multiple engines
+- Methods: <code class="docutils literal notranslate"><span class="pre">solve()</span></code>, <code class="docutils literal notranslate"><span class="pre">solve_wcnf()</span></code>, <code class="docutils literal notranslate"><span class="pre">tacas16_binary_search()</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MaxSATSolverResult</span></code>: Dataclass for results (cost, solution, runtime, status)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FM</span></code>: Fu-Malik algorithm implementation (WMSU1 variant)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RC2</span></code>: Relaxable Cardinality Constraints solver (top-ranked in MaxSAT Evaluation)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">AnytimeSolver</span></code>: Anytime MaxSAT solving</p></li>
+</ul>
+<p><strong>Features:</strong></p>
+<ul class="simple">
+<li><p>Weighted and partial MaxSAT support</p></li>
+<li><p>Multiple algorithms: FM, RC2, OBV-BS, OBV-BS-Anytime</p></li>
+<li><p>TACAS’16 binary search for bit-vector optimization</p></li>
+<li><p>Integration with PySAT solvers</p></li>
+</ul>
+</section>
+<section id="nnf-reasoning-nnf">
+<h3><a class="toc-backref" href="#id4" role="doc-backlink">NNF Reasoning (<code class="docutils literal notranslate"><span class="pre">nnf/</span></code>)</a><a class="headerlink" href="#nnf-reasoning-nnf" title="Link to this heading"></a></h3>
+<p>Comprehensive library for Negation Normal Form manipulation and reasoning.</p>
+<p><strong>Key Classes:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">NNF</span></code>: Base abstract class for all NNF sentences (~1,770 lines)
+- Properties: <code class="docutils literal notranslate"><span class="pre">decomposable</span></code>, <code class="docutils literal notranslate"><span class="pre">deterministic</span></code>, <code class="docutils literal notranslate"><span class="pre">smooth</span></code>, <code class="docutils literal notranslate"><span class="pre">is_CNF</span></code>, <code class="docutils literal notranslate"><span class="pre">is_DNF</span></code>
+- Methods: <code class="docutils literal notranslate"><span class="pre">satisfiable()</span></code>, <code class="docutils literal notranslate"><span class="pre">valid()</span></code>, <code class="docutils literal notranslate"><span class="pre">models()</span></code>, <code class="docutils literal notranslate"><span class="pre">solve()</span></code>, <code class="docutils literal notranslate"><span class="pre">model_count()</span></code>, <code class="docutils literal notranslate"><span class="pre">negate()</span></code>, <code class="docutils literal notranslate"><span class="pre">to_CNF()</span></code>, <code class="docutils literal notranslate"><span class="pre">condition()</span></code>, <code class="docutils literal notranslate"><span class="pre">forget()</span></code>, <code class="docutils literal notranslate"><span class="pre">implicates()</span></code>, <code class="docutils literal notranslate"><span class="pre">implicants()</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Var</span></code>: Variable/literal representation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Aux</span></code>: Auxiliary variables (UUID-based)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">And</span></code>, <code class="docutils literal notranslate"><span class="pre">Or</span></code>: Internal node types</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Internal</span></code>: Generic internal node class</p></li>
+</ul>
+<p><strong>Key Modules:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">tseitin.py</span></code>: Tseitin transformation (NNF → CNF)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dimacs.py</span></code>: DIMACS format load/dump for SAT and CNF</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pysat.py</span></code>: PySAT backend integration</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">kissat.py</span></code>: Kissat solver integration</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amc.py</span></code>: Algebraic Model Counting (WMC, probability, gradient computation)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dsharp.py</span></code>: DSHARP d-DNNF compiler interface</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">operators.py</span></code>: Logical operators (xor, nand, nor, iff, implies, etc.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">builders.py</span></code>: NNF construction utilities</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cli.py</span></code>: Command-line interface</p></li>
+</ul>
+<p><strong>Features:</strong></p>
+<ul class="simple">
+<li><p>Full NNF manipulation with DAG structure</p></li>
+<li><p>Model enumeration (native, PySAT, Kissat backends)</p></li>
+<li><p>Efficient operations on d-DNNF (decomposable deterministic NNF)</p></li>
+<li><p>Prime implicant/implicate extraction</p></li>
+<li><p>Variable forgetting/projection</p></li>
+<li><p>Smoothness enforcement</p></li>
+<li><p>Visualization (DOT format, Jupyter SVG)</p></li>
+<li><p>Knowledge compilation map properties verification</p></li>
+</ul>
+</section>
+<section id="cnf-simplification-cnfsimplifier">
+<h3><a class="toc-backref" href="#id5" role="doc-backlink">CNF Simplification (<code class="docutils literal notranslate"><span class="pre">cnfsimplifier/</span></code>)</a><a class="headerlink" href="#cnf-simplification-cnfsimplifier" title="Link to this heading"></a></h3>
+<p>Advanced CNF formula simplification.</p>
+<p><strong>Simplification Techniques</strong> (8 methods):</p>
+<ol class="arabic simple">
+<li><p>Tautology elimination</p></li>
+<li><p>Hidden tautology elimination</p></li>
+<li><p>Asymmetric tautology elimination</p></li>
+<li><p>Subsumption elimination</p></li>
+<li><p>Hidden subsumption elimination</p></li>
+<li><p>Asymmetric subsumption elimination</p></li>
+<li><p>Blocked clause elimination</p></li>
+<li><p>Hidden blocked clause elimination</p></li>
+</ol>
+<p><strong>Key Functions:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">simplify_numeric_clauses()</span></code>: High-level simplification API</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cnf_subsumption_elimination()</span></code>, <code class="docutils literal notranslate"><span class="pre">cnf_tautoly_elimination()</span></code>, etc.</p></li>
+</ul>
+</section>
+<section id="qbf-support-qbf">
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">QBF Support (<code class="docutils literal notranslate"><span class="pre">qbf/</span></code>)</a><a class="headerlink" href="#qbf-support-qbf" title="Link to this heading"></a></h3>
+<p>Quantified Boolean Formula handling.</p>
+<p><strong>Key Classes:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">QBF</span></code>: QBF formula representation with quantifier list
+- Methods: <code class="docutils literal notranslate"><span class="pre">solve()</span></code>, <code class="docutils literal notranslate"><span class="pre">solve_with_skolem()</span></code>, <code class="docutils literal notranslate"><span class="pre">to_z3()</span></code>, <code class="docutils literal notranslate"><span class="pre">negate()</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">QDIMACSParser</span></code>: Parser for QDIMACS format files</p></li>
+</ul>
+<p><strong>Features:</strong></p>
+<ul class="simple">
+<li><p>QDIMACS and QCIR format parsing</p></li>
+<li><p>Z3 backend integration</p></li>
+<li><p>Skolem function extraction</p></li>
+<li><p>Variable uniqueness validation</p></li>
+</ul>
+</section>
+<section id="feature-extraction-features">
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">Feature Extraction (<code class="docutils literal notranslate"><span class="pre">features/</span></code>)</a><a class="headerlink" href="#feature-extraction-features" title="Link to this heading"></a></h3>
+<p>SATzilla-style feature extraction for SAT instance analysis.</p>
+<p><strong>Key Classes:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">SATInstance</span></code>: Main class for feature extraction
+- Methods: Extracts 40+ features from CNF files</p></li>
+</ul>
+<p><strong>Feature Categories:</strong></p>
+<ul class="simple">
+<li><p>Size features (clauses, variables, ratios)</p></li>
+<li><p>Variable-clause graph features (degree statistics, entropy)</p></li>
+<li><p>Variable graph features</p></li>
+<li><p>Balance features (positive/negative ratios)</p></li>
+<li><p>Horn clause proximity features</p></li>
+<li><p>DPLL probing features (unit propagations at various depths)</p></li>
+<li><p>Local search probing features (SAPS, GSAT statistics)</p></li>
+<li><p>Structural features (power law exponent, modularity, fractal dimension)</p></li>
+<li><p>Graph features (8 weighted graphs with detailed statistics)</p></li>
+</ul>
+<p><strong>Key Modules:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">dpll.py</span></code>: DPLL probing implementation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">base_features.py</span></code>: Core feature extraction algorithms</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">active_features.py</span></code>: Active feature computation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sat_instance.py</span></code>: High-level API</p></li>
+</ul>
+</section>
+<section id="distributed-sat-solver-dissolve">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">Distributed SAT Solver (<code class="docutils literal notranslate"><span class="pre">dissolve/</span></code>)</a><a class="headerlink" href="#distributed-sat-solver-dissolve" title="Link to this heading"></a></h3>
+<p>Practical implementation of Dissolve distributed SAT solver.</p>
+<p><strong>Key Classes:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Dissolve</span></code>: Main distributed solver class
+- Methods: <code class="docutils literal notranslate"><span class="pre">solve()</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DissolveConfig</span></code>: Configuration for solver parameters</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DissolveResult</span></code>: Result container</p></li>
+</ul>
+<p><strong>Features:</strong></p>
+<ul class="simple">
+<li><p>Asynchronous dilemma-rule splits (Algorithm 3)</p></li>
+<li><p>Clause sharing via UBTree-like bucket store</p></li>
+<li><p>Variable picking with vote aggregation</p></li>
+<li><p>Budget strategies (constant or Luby sequence)</p></li>
+<li><p>Distribution strategies (dilemma or portfolio)</p></li>
+<li><p>PySAT backend support</p></li>
+</ul>
+</section>
+<section id="knowledge-compilation-knowledge-compiler">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">Knowledge Compilation (<code class="docutils literal notranslate"><span class="pre">knowledge_compiler/</span></code>)</a><a class="headerlink" href="#knowledge-compilation-knowledge-compiler" title="Link to this heading"></a></h3>
+<p>Compile logical formulas into efficient representations.</p>
+<p><strong>Key Classes:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">DNF_Node</span></code>: Node in DNNF tree</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">BDD</span></code>: Binary Decision Diagram node</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DecisionTree</span></code>: Decision tree representation</p></li>
+</ul>
+<p><strong>Features:</strong></p>
+<ul class="simple">
+<li><p>DNNF (Decomposable Negation Normal Form) compilation</p></li>
+<li><p>OBDD (Ordered Binary Decision Diagram) compilation</p></li>
+<li><p>Decision tree compilation</p></li>
+<li><p>Visualization support (DOT format)</p></li>
+<li><p>Model counting on compiled structures</p></li>
+</ul>
+</section>
+<section id="boolean-interpolation-interpolant">
+<h3><a class="toc-backref" href="#id10" role="doc-backlink">Boolean Interpolation (<code class="docutils literal notranslate"><span class="pre">interpolant/</span></code>)</a><a class="headerlink" href="#boolean-interpolation-interpolant" title="Link to this heading"></a></h3>
+<p>Compute Craig interpolants for proof analysis.</p>
+<p><strong>Key Algorithms:</strong></p>
+<ul class="simple">
+<li><p>Proof-based interpolation (McMillan’s method from CAV 2003)</p></li>
+<li><p>Core-based interpolation</p></li>
+<li><p>PySMT integration</p></li>
+</ul>
+<p><strong>Key Files:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">proof_based_itp.py</span></code>: McMillan’s interpolation from resolution proofs</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">core_based_itp.py</span></code>: Core-based interpolation algorithms</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pysmt_itp.py</span></code>: PySMT solver integration</p></li>
+</ul>
+</section>
+</section>
+<section id="usage-examples">
+<h2><a class="toc-backref" href="#id11" role="doc-backlink">Usage Examples</a><a class="headerlink" href="#usage-examples" title="Link to this heading"></a></h2>
+<section id="sat-solving">
+<h3><a class="toc-backref" href="#id12" role="doc-backlink">SAT Solving</a><a class="headerlink" href="#sat-solving" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.bool</span><span class="w"> </span><span class="kn">import</span> <span class="n">PySATSolver</span>
+
+<span class="n">solver</span> <span class="o">=</span> <span class="n">PySATSolver</span><span class="p">()</span>
+<span class="n">solver</span><span class="o">.</span><span class="n">add_cnf</span><span class="p">(</span><span class="n">cnf_formula</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">check_sat</span><span class="p">()</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">get_model</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="maxsat-solving">
+<h3><a class="toc-backref" href="#id13" role="doc-backlink">MaxSAT Solving</a><a class="headerlink" href="#maxsat-solving" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.bool.maxsat</span><span class="w"> </span><span class="kn">import</span> <span class="n">MaxSATSolver</span>
+
+<span class="n">maxsat</span> <span class="o">=</span> <span class="n">MaxSATSolver</span><span class="p">(</span><span class="n">wcnf_formula</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">maxsat</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>  <span class="c1"># Returns MaxSATSolverResult</span>
+</pre></div>
+</div>
+</section>
+<section id="nnf-reasoning">
+<h3><a class="toc-backref" href="#id14" role="doc-backlink">NNF Reasoning</a><a class="headerlink" href="#nnf-reasoning" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.bool.nnf</span><span class="w"> </span><span class="kn">import</span> <span class="n">Var</span><span class="p">,</span> <span class="n">And</span><span class="p">,</span> <span class="n">Or</span>
+
+<span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">Var</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">),</span> <span class="n">Var</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+<span class="n">sentence</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&amp;</span> <span class="n">b</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">a</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">b</span><span class="p">)</span>
+<span class="n">is_sat</span> <span class="o">=</span> <span class="n">sentence</span><span class="o">.</span><span class="n">satisfiable</span><span class="p">()</span>
+
+<span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">sentence</span><span class="o">.</span><span class="n">models</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="cnf-simplification">
+<h3><a class="toc-backref" href="#id15" role="doc-backlink">CNF Simplification</a><a class="headerlink" href="#cnf-simplification" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.bool.cnfsimplifier</span><span class="w"> </span><span class="kn">import</span> <span class="n">simplify_numeric_clauses</span>
+
+<span class="n">simplified</span> <span class="o">=</span> <span class="n">simplify_numeric_clauses</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]])</span>
+</pre></div>
+</div>
+</section>
+<section id="qbf-solving">
+<h3><a class="toc-backref" href="#id16" role="doc-backlink">QBF Solving</a><a class="headerlink" href="#qbf-solving" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.bool.qbf</span><span class="w"> </span><span class="kn">import</span> <span class="n">QBF</span><span class="p">,</span> <span class="n">QDIMACSParser</span>
+
+<span class="n">parser</span> <span class="o">=</span> <span class="n">QDIMACSParser</span><span class="p">()</span>
+<span class="n">qbf</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_qdimacs</span><span class="p">(</span><span class="n">qdimacs_str</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">qbf</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="feature-extraction">
+<h3><a class="toc-backref" href="#id17" role="doc-backlink">Feature Extraction</a><a class="headerlink" href="#feature-extraction" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.bool.features.sat_instance</span><span class="w"> </span><span class="kn">import</span> <span class="n">SATInstance</span>
+
+<span class="n">instance</span> <span class="o">=</span> <span class="n">SATInstance</span><span class="p">(</span><span class="s2">&quot;formula.cnf&quot;</span><span class="p">)</span>
+<span class="c1"># Extract features via instance.features_dict</span>
+</pre></div>
+</div>
+</section>
+<section id="dissolve-distributed-sat">
+<h3><a class="toc-backref" href="#id18" role="doc-backlink">Dissolve (Distributed SAT)</a><a class="headerlink" href="#dissolve-distributed-sat" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.bool.dissolve</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dissolve</span><span class="p">,</span> <span class="n">DissolveConfig</span>
+
+<span class="n">cfg</span> <span class="o">=</span> <span class="n">DissolveConfig</span><span class="p">(</span><span class="n">k_split_vars</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">Dissolve</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">cnf</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="main-api-entry-points">
+<h2><a class="toc-backref" href="#id19" role="doc-backlink">Main API Entry Points</a><a class="headerlink" href="#main-api-entry-points" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.bool</span><span class="w"> </span><span class="kn">import</span> <span class="n">PySATSolver</span><span class="p">,</span> <span class="n">MaxSATSolver</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.bool.cnfsimplifier</span><span class="w"> </span><span class="kn">import</span> <span class="n">simplify_numeric_clauses</span>
+
+<span class="c1"># SAT solving</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.bool.sat.pysat_solver</span><span class="w"> </span><span class="kn">import</span> <span class="n">PySATSolver</span>
+<span class="n">solver</span> <span class="o">=</span> <span class="n">PySATSolver</span><span class="p">()</span>
+<span class="n">solver</span><span class="o">.</span><span class="n">add_cnf</span><span class="p">(</span><span class="n">cnf_formula</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">check_sat</span><span class="p">()</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">get_model</span><span class="p">()</span>
+
+<span class="c1"># MaxSAT solving</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.bool.maxsat</span><span class="w"> </span><span class="kn">import</span> <span class="n">MaxSATSolver</span>
+<span class="n">maxsat</span> <span class="o">=</span> <span class="n">MaxSATSolver</span><span class="p">(</span><span class="n">wcnf_formula</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">maxsat</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>  <span class="c1"># Returns MaxSATSolverResult</span>
+
+<span class="c1"># NNF reasoning</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.bool.nnf</span><span class="w"> </span><span class="kn">import</span> <span class="n">Var</span><span class="p">,</span> <span class="n">And</span><span class="p">,</span> <span class="n">Or</span>
+<span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">Var</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">),</span> <span class="n">Var</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+<span class="n">sentence</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&amp;</span> <span class="n">b</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">a</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">b</span><span class="p">)</span>
+<span class="n">is_sat</span> <span class="o">=</span> <span class="n">sentence</span><span class="o">.</span><span class="n">satisfiable</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">sentence</span><span class="o">.</span><span class="n">models</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+
+<span class="c1"># CNF simplification</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.bool.cnfsimplifier</span><span class="w"> </span><span class="kn">import</span> <span class="n">simplify_numeric_clauses</span>
+<span class="n">simplified</span> <span class="o">=</span> <span class="n">simplify_numeric_clauses</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]])</span>
+
+<span class="c1"># QBF solving</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.bool.qbf</span><span class="w"> </span><span class="kn">import</span> <span class="n">QBF</span><span class="p">,</span> <span class="n">QDIMACSParser</span>
+<span class="n">parser</span> <span class="o">=</span> <span class="n">QDIMACSParser</span><span class="p">()</span>
+<span class="n">qbf</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_qdimacs</span><span class="p">(</span><span class="n">qdimacs_str</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">qbf</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+
+<span class="c1"># Feature extraction</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.bool.features.sat_instance</span><span class="w"> </span><span class="kn">import</span> <span class="n">SATInstance</span>
+<span class="n">instance</span> <span class="o">=</span> <span class="n">SATInstance</span><span class="p">(</span><span class="s2">&quot;formula.cnf&quot;</span><span class="p">)</span>
+<span class="c1"># Extract features via instance.features_dict</span>
+
+<span class="c1"># Dissolve (Distributed SAT)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.bool.dissolve</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dissolve</span><span class="p">,</span> <span class="n">DissolveConfig</span>
+<span class="n">cfg</span> <span class="o">=</span> <span class="n">DissolveConfig</span><span class="p">(</span><span class="n">k_split_vars</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">Dissolve</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">cnf</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="key-dependencies">
+<h2><a class="toc-backref" href="#id20" role="doc-backlink">Key Dependencies</a><a class="headerlink" href="#key-dependencies" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>PySAT</strong>: Core SAT solving library</p></li>
+<li><p><strong>Z3</strong>: SMT solver for QBF and additional SAT solving</p></li>
+<li><p><strong>NetworkX</strong>: Graph operations (feature extraction)</p></li>
+<li><p><strong>NumPy</strong>: Numerical computations (feature extraction)</p></li>
+<li><p><strong>Multiprocessing</strong>: Parallel computing support</p></li>
+</ul>
+</section>
+<section id="notable-features">
+<h2><a class="toc-backref" href="#id21" role="doc-backlink">Notable Features</a><a class="headerlink" href="#notable-features" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><strong>Modular Design</strong>: Clean separation of concerns with dedicated submodules</p></li>
+<li><p><strong>Multiple Backends</strong>: Support for various SAT/QBF solvers (PySAT, Z3, Kissat)</p></li>
+<li><p><strong>Knowledge Compilation</strong>: Efficient reasoning through DNNF, OBDD compilation</p></li>
+<li><p><strong>Scalability</strong>: Distributed solving (Dissolve) for large instances</p></li>
+<li><p><strong>Comprehensive Testing</strong>: nnf/tests/test_nnf.py with extensive test coverage</p></li>
+<li><p><strong>CLI Tools</strong>: Command-line interfaces for common operations</p></li>
+<li><p><strong>Feature Extraction</strong>: SATzilla-style features for machine learning applications</p></li>
+</ol>
+</section>
+<section id="size-statistics">
+<h2><a class="toc-backref" href="#id22" role="doc-backlink">Size Statistics</a><a class="headerlink" href="#size-statistics" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Total Python files: ~45</p></li>
+<li><p>Lines of code: ~8,600+</p></li>
+<li><p>Main NNF library: ~1,770 lines</p></li>
+<li><p>Supported SAT solvers: 14+</p></li>
+<li><p>Supported MaxSAT algorithms: 4 (FM, RC2, OBV-BS, Anytime)</p></li>
+<li><p>Extracted features: 40+</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
