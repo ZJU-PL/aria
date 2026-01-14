@@ -1,13 +1,15 @@
 """
 SYMBA: Symbolic Optimization with SMT Solvers
 
-This module implements the SYMBA algorithm for optimizing objective functions
+This module implements of SYMBA algorithm for optimizing objective functions
 in linear real arithmetic using SMT solvers as black boxes.
 
-Based on the paper "Symbolic Optimization with SMT Solvers" by Li, Albarghouthi,
+Based on paper "Symbolic Optimization with SMT Solvers" by Li, Albarghouthi,
 Kincaid, Gurinkel, and Chechik.
 """
 
+# pylint: disable=invalid-name
+# Names U, O, M, T follow mathematical notation from SYMBA paper
 import logging
 import time
 from dataclasses import dataclass, field
@@ -111,7 +113,7 @@ class SYMBA:
         """
         self.formula = formula
         self.objectives = objectives
-        self.solver_factory = solver_factory or (lambda: z3.Solver())
+        self.solver_factory = solver_factory or z3.Solver
         self.timeout = timeout
 
         # Initialize state

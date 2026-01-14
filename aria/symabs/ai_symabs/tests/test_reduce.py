@@ -11,16 +11,16 @@ from aria.symabs.ai_symabs.domains.sign import Sign, SignAbstractState, SignDoma
 
 
 def test_reduce_sign_interval():
-    domain_A = SignDomain(["x", "y", "z"])
-    input_state_A = SignAbstractState(
+    domain_a = SignDomain(["x", "y", "z"])
+    input_state_a = SignAbstractState(
         {
             "x": Sign.Negative,
             "y": Sign.Positive,
             "z": Sign.Top,
         }
     )
-    domain_B = IntervalDomain(["x", "y", "z"])
-    input_state_B = IntervalAbstractState(
+    domain_b = IntervalDomain(["x", "y", "z"])
+    input_state_b = IntervalAbstractState(
         {
             "x": Interval(-2, 3),
             "y": Interval(-5, 5),
@@ -28,8 +28,8 @@ def test_reduce_sign_interval():
         }
     )
 
-    domain = ReducedProductDomain(["x", "y", "z"], domain_A, domain_B)
-    input_state = ReducedProductAbstractState(input_state_A, input_state_B)
+    domain = ReducedProductDomain(["x", "y", "z"], domain_a, domain_b)
+    input_state = ReducedProductAbstractState(input_state_a, input_state_b)
     reduced = domain.reduce(input_state)
 
     assert reduced.state_A.sign_of("x") == Sign.Negative

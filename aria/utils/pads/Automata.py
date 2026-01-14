@@ -57,10 +57,10 @@ class RegularLanguage:
         return not self == other
 
     def __le__(self, other):
-        return not (self & ~other)
+        return not self & ~other
 
     def __ge__(self, other):
-        return not (other & ~self)
+        return not other & ~self
 
     def __lt__(self, other):
         return self <= other and self != other
@@ -112,8 +112,6 @@ class FiniteAutomaton:
      - x.asDFA(): return an equivalent DFA
      - x.asNFA(): return an equivalent NFA
     """
-
-    initial = alphabet = transition = isfinal = asDFA = asNFA = None
 
     def __len__(self):
         """How many states does this automaton have?"""

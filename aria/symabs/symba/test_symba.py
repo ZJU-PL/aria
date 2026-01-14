@@ -3,10 +3,11 @@
 import os
 import sys
 
-import z3
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
-from aria.symabs.symba import SYMBA, MultiSYMBA
+
+import z3  # pylint: disable=wrong-import-position
+
+from aria.symabs.symba import SYMBA, MultiSYMBA  # pylint: disable=wrong-import-position
 
 
 def run_symba_test(constraints, objectives, expected_bounds=None, desc="Test"):

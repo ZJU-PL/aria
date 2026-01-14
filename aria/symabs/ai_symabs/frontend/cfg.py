@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from collections import deque
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Set, Union
+from typing import Dict, List as ListType, Optional, Set, Union
 
 import z3
 
@@ -63,7 +63,7 @@ class BinOp(Expr):
 @dataclass(frozen=True)
 class BoolOp(Expr):
     op: str  # "and" or "or"
-    values: List[Expr]
+    values: ListType[Expr]
 
 
 @dataclass(frozen=True)
@@ -76,13 +76,13 @@ class Compare(Expr):
 @dataclass(frozen=True)
 class List(Expr):
     """List literal expression."""
-    elements: List[Expr]
+    elements: ListType[Expr]
 
 
 @dataclass(frozen=True)
 class Tuple(Expr):
     """Tuple literal expression."""
-    elements: List[Expr]
+    elements: ListType[Expr]
 
 
 @dataclass(frozen=True)
@@ -139,7 +139,7 @@ Terminator = Union[Branch, Goto, Break, Continue, None]
 @dataclass
 class BasicBlock:
     block_id: str
-    statements: List[AssignStmt] = field(default_factory=list)
+    statements: ListType[AssignStmt] = field(default_factory=list)
     terminator: Terminator = None
 
     def add_statement(self, stmt: AssignStmt) -> None:
@@ -333,7 +333,7 @@ def analyze_cfg(
     """Run abstract interpretation over the CFG and return join of exit states."""
     states: Dict[str, AbstractState] = {cfg.entry: input_state}
     worklist: deque[str] = deque([cfg.entry])
-    exit_states: List[AbstractState] = []
+    exit_states: ListType[AbstractState] = []
 
     while worklist:
         block_id = worklist.popleft()
@@ -382,6 +382,6 @@ def _propagate(
         worklist.append(target)
         return
     joined = domain.join([states[target], candidate])
-    if not (joined <= states[target]):  # type: ignore[operator]
+    if not joined <= states[target]:  # type: ignore[operator]
         states[target] = joined
         worklist.append(target)

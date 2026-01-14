@@ -131,6 +131,8 @@ def _bounds_to_bv_constraints(
     return (z3.ULE(l, x), z3.ULE(x, u))
 
 
+# pylint: disable=invalid-name
+# Variable name S represents a mathematical set of intervals
 def set_abstraction(
     fml: z3.BoolRef,
     x: z3.BitVecRef,

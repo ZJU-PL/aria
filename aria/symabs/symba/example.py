@@ -1,19 +1,19 @@
 """
 Example usage of SYMBA for symbolic optimization.
 
-This script demonstrates how to use the SYMBA algorithm for optimizing
+This script demonstrates how to use SYMBA algorithm for optimizing
 objective functions in linear real arithmetic using SMT solvers.
 """
 
 import os
 import sys
 
-import z3
-
-# Add the parent directory to the path to import aria modules
+# Add parent directory to path to import aria modules
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from aria.symabs.symba import SYMBA, MultiSYMBA
+import z3  # pylint: disable=wrong-import-position
+
+from aria.symabs.symba import SYMBA, MultiSYMBA  # pylint: disable=wrong-import-position
 
 
 def example_1_resource_allocation():

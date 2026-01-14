@@ -38,7 +38,7 @@ class MultiSYMBA:
         """
         self.formula = formula
         self.objectives = objectives
-        self.solver_factory = solver_factory or (lambda: z3.Solver())
+        self.solver_factory = solver_factory or z3.Solver
         self.timeout = timeout
 
         # Use the base SYMBA implementation

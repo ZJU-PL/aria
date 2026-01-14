@@ -6,6 +6,7 @@ from ..core.abstract import AbstractState
 
 
 # pylint: disable=too-few-public-methods
+# pylint: disable=invalid-name
 class Sign(Enum):
     """Represents the sign of a variable"""
 
