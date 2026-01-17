@@ -115,7 +115,7 @@ class SmtlibProc:
 
         while True:
             try:
-                buf = buf + self._proc.stdout.read()  # type: ignore
+                buf = buf + self._proc.stdout.read(4096)  # type: ignore
                 buf = buf.strip()
             except TypeError:
                 if not wait:

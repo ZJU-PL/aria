@@ -34,6 +34,8 @@ def build_sharpsat():
         subprocess.run([
             "cmake", 
             "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+            # "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
             ".."
         ], cwd=sharp_sat_dir / "build", check=True)
         
