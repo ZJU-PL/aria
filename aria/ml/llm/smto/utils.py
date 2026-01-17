@@ -104,9 +104,12 @@ def values_equal(val1, val2) -> bool:
     return val1 == val2
 
 
-def generate_cache_key(oracle_name: str, inputs: Dict) -> str:
+def generate_cache_key(
+    oracle_name: str, inputs: Dict, signature: Optional[str] = None
+) -> str:
     """Generate a stable hash cache key for oracle inputs."""
-    key_data = f"{oracle_name}_{json.dumps(inputs, sort_keys=True)}"
+    key_sig = signature or oracle_name
+    key_data = f"{key_sig}_{json.dumps(inputs, sort_keys=True)}"
     return hashlib.md5(key_data.encode()).hexdigest()
 
 

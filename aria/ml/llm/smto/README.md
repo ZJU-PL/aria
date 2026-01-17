@@ -24,6 +24,7 @@ oracle = OracleInfo(
     name="strlen",
     input_types=[z3.StringSort()],
     output_type=z3.IntSort(),
+    description="Return the length of a string.",
     examples=[
         {"input": {"arg0": "hello"}, "output": "5"},
         {"input": {"arg0": "world!"}, "output": "6"}
@@ -53,9 +54,14 @@ password_oracle = WhiteboxOracleInfo(
     name="check_password",
     input_types=[z3.StringSort()],
     output_type=z3.BoolSort(),
+    description="Return true if password meets complexity requirements.",
     analysis_mode=OracleAnalysisMode.SOURCE_CODE,
     source_code="def check_password(password): return len(password) >= 8 and any(c.isdigit() for c in password)",
-    examples=[{"input": {"arg0": "password123"}, "output": "false"}]
+    examples=[{"input": {"arg0": "password123"}, "output": "false"}],
+    external_knowledge=[
+        "Existing tests: check_password('abc12345') == True",
+        "Docs: Passwords must include at least one digit and be 8+ chars.",
+    ],
 )
 solver.register_oracle(password_oracle)
 
@@ -79,6 +85,7 @@ bv_oracle = OracleInfo(
     name="bitwise_and",
     input_types=[z3.BitVecSort(8), z3.BitVecSort(8)],
     output_type=z3.BitVecSort(8),
+    description="Return bitwise AND of two 8-bit inputs.",
     examples=[
         {"input": {"arg0": "#b11001100", "arg1": "#b10101010"}, "output": "#b10001000"}
     ]
@@ -108,6 +115,7 @@ oracle = OracleInfo(
     name="my_oracle",
     input_types=[z3.StringSort()],
     output_type=z3.IntSort(),
+    description="Return the length of the input string.",
     oracle_type=OracleType.FUNCTION,
     function=my_oracle
 )

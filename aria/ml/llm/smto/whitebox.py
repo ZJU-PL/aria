@@ -6,6 +6,7 @@ import z3
 
 from aria.ml.llm.llmtool.LLM_utils import LLM
 from aria.ml.llm.smto.oracles import WhiteboxOracleInfo, OracleAnalysisMode
+from aria.ml.llm.smto.utils import z3_value_to_python
 
 
 class WhiteboxAnalyzer:
@@ -244,19 +245,19 @@ class ModelEvaluator:
 
             # Create output variable
             if oracle_info.output_type == z3.IntSort():
-                z3.Int("output")
+                output = z3.Int("output")
             elif oracle_info.output_type == z3.RealSort():
-                z3.Real("output")
+                output = z3.Real("output")
             elif oracle_info.output_type == z3.BoolSort():
-                z3.Bool("output")
+                output = z3.Bool("output")
             elif oracle_info.output_type == z3.StringSort():
-                z3.String("output")
+                output = z3.String("output")
             elif z3.is_bv_sort(oracle_info.output_type):
-                z3.BitVec("output", oracle_info.output_type.size())
+                output = z3.BitVec("output", oracle_info.output_type.size())
             elif z3.is_fp_sort(oracle_info.output_type):
-                z3.FP("output", oracle_info.output_type)
+                output = z3.FP("output", oracle_info.output_type)
             elif z3.is_array_sort(oracle_info.output_type):
-                z3.Array(
+                output = z3.Array(
                     "output",
                     oracle_info.output_type.domain(),
                     oracle_info.output_type.range(),
@@ -264,9 +265,17 @@ class ModelEvaluator:
             else:
                 return None
 
-            # Placeholder: parsing model_str into Z3 constraints is not
-            # implemented
-            return None
+            decls = dict(z3_vars)
+            decls["output"] = output
+            smt = f"(assert (= output {oracle_info.symbolic_model}))"
+            assertions = z3.parse_smt2_string(smt, decls=decls)
+            for assertion in assertions:
+                solver.add(assertion)
+
+            if solver.check() != z3.sat:
+                return None
+            model = solver.model()
+            return z3_value_to_python(model.eval(output, True))
 
         except Exception as e:
             if self.explanation_callback:
