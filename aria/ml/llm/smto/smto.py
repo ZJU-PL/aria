@@ -1,5 +1,6 @@
 """Orax: SMTO solver integrating Z3 with LLM-powered oracles (blackbox/whitebox)."""
 
+import json
 import os
 import tempfile
 from typing import Dict, List, Optional, Any
@@ -13,6 +14,7 @@ from aria.ml.llm.smto.whitebox import WhiteboxAnalyzer, ModelEvaluator
 from aria.ml.llm.smto.utils import (
     OracleCache,
     ExplanationLogger,
+    parse_text_by_sort,
     z3_value_to_python,
     python_to_z3_value,
     values_equal,
@@ -92,6 +94,7 @@ class OraxSolver:
         self.whitebox_models: Dict[str, str] = (
             {}
         )  # Symbolic models for whitebox oracles
+        self._oracle_apps: Dict[str, Dict[str, z3.ExprRef]] = {}
 
     def _add_explanation(self, message: str, level: str = "basic"):
         """Add explanation to the logger."""
@@ -110,10 +113,13 @@ class OraxSolver:
             symbolic_model = self.whitebox_analyzer.analyze_oracle(oracle_info)
             if symbolic_model:
                 self.whitebox_models[oracle_info.name] = symbolic_model
+        for assertion in self.solver.assertions():
+            self._track_oracle_applications_from_constraint(assertion)
 
     def add_constraint(self, constraint: z3.BoolRef):
         """Add a constraint to the solver."""
         self.solver.add(constraint)
+        self._track_oracle_applications_from_constraint(constraint)
 
     def check(self, timeout_ms: int = 0) -> Optional[z3.ModelRef]:
         """Run SMTO solving with oracle feedback loop. Returns model or None."""
@@ -194,7 +200,9 @@ class OraxSolver:
         self, oracle_info: OracleInfo, inputs: Dict[str, Any]
     ) -> Optional[Any]:
         """Query oracle based on type, with caching and fallbacks."""
-        cache_key = generate_cache_key(oracle_info.name, inputs)
+        cache_key = generate_cache_key(
+            oracle_info.name, inputs, signature=self._oracle_signature(oracle_info)
+        )
 
         if self.cache.contains(cache_key):
             self._add_explanation(
@@ -245,7 +253,13 @@ class OraxSolver:
         prompt = (
             f"Act as the following function:\n{oracle_info.description}\n\n"
             f"Examples:\n{examples_text}\n\n"
-            f"Now, given the input: {inputs}\nWhat is the output?"
+            f"Now, given the input: {inputs}\n\n"
+            "Return ONLY valid JSON in this exact format:\n"
+            '{"output": <value>}\n\n'
+            "Rules:\n"
+            "- Use JSON primitives only (string/number/true/false/null)\n"
+            "- For bit-vectors, return an integer or #b/#x string\n"
+            "- No extra text"
         )
 
         try:
@@ -262,41 +276,93 @@ class OraxSolver:
             return None
 
     def _parse_llm_response(
-        self, response: str, output_type: z3.SortRef
+        self, response: Any, output_type: z3.SortRef
     ) -> Optional[Any]:
         """Parse LLM response according to expected output type."""
         try:
-            response = response.strip()
+            value = response
+            if isinstance(response, str):
+                cleaned = response.strip()
+                try:
+                    decoded = json.loads(cleaned)
+                    if isinstance(decoded, dict) and "output" in decoded:
+                        value = decoded["output"]
+                    else:
+                        value = cleaned
+                except Exception:
+                    value = cleaned
             if output_type == z3.BoolSort():
-                return response.lower() in ["true", "1", "yes"]
+                if isinstance(value, bool):
+                    return value
+                return parse_text_by_sort(str(value), output_type)
             if output_type == z3.IntSort():
-                return int(response)
+                if isinstance(value, int):
+                    return value
+                return int(value)
             if output_type == z3.RealSort():
-                return float(response)
+                if isinstance(value, (int, float)):
+                    return float(value)
+                return float(value)
             if output_type == z3.StringSort():
-                if response.startswith('"') and response.endswith('"'):
-                    return response[1:-1]
-                return response
-            return response
+                if isinstance(value, str):
+                    return value
+                return str(value)
+            if z3.is_bv_sort(output_type):
+                if isinstance(value, int):
+                    return value
+                return parse_text_by_sort(str(value), output_type)
+            if z3.is_fp_sort(output_type) or z3.is_array_sort(output_type):
+                return parse_text_by_sort(str(value), output_type)
+            return value
         except Exception as e:
             self._add_explanation(f"Error parsing LLM response: {e}")
             return None
 
-    def _iter_oracle_applications(self, model: z3.ModelRef, oracle_name: str):
-        """Yield (inputs_dict, decl) for each application of oracle in model."""
-        for decl in model.decls():
-            if decl.name() != oracle_name:
+    def _track_oracle_applications_from_constraint(self, constraint: z3.ExprRef):
+        """Record oracle applications found in a constraint AST."""
+        if constraint is None:
+            return
+        stack = [constraint]
+        visited = set()
+        while stack:
+            expr = stack.pop()
+            if expr in visited:
                 continue
-            args = [model.eval(arg, True) for arg in decl.children()]
+            visited.add(expr)
+            if z3.is_app(expr):
+                decl = expr.decl()
+                if decl.name() in self.oracles:
+                    self._track_oracle_app(expr)
+                for child in expr.children():
+                    stack.append(child)
+            elif z3.is_quantifier(expr):
+                stack.append(expr.body())
+
+    def _track_oracle_app(self, app_expr: z3.ExprRef):
+        """Track a single oracle application expression."""
+        oracle_name = app_expr.decl().name()
+        if oracle_name not in self._oracle_apps:
+            self._oracle_apps[oracle_name] = {}
+        key = app_expr.sexpr()
+        self._oracle_apps[oracle_name].setdefault(key, app_expr)
+
+    def _iter_oracle_applications(self, model: z3.ModelRef, oracle_name: str):
+        """Yield (inputs_dict, app_expr) for each application of oracle in model."""
+        for app_expr in self._oracle_apps.get(oracle_name, {}).values():
+            args = [model.eval(arg, True) for arg in app_expr.children()]
             inputs = {f"arg{i}": z3_value_to_python(arg) for i, arg in enumerate(args)}
-            yield inputs, decl
+            yield inputs, app_expr
 
     def _add_oracle_constraints(self, model: z3.ModelRef):
         """Add learned constraints from oracle feedback."""
         constraints_added = 0
         for oracle_name, oracle_info in self.oracles.items():
-            for inputs, decl in self._iter_oracle_applications(model, oracle_name):
-                cache_key = generate_cache_key(oracle_name, inputs)
+            for inputs, app_expr in self._iter_oracle_applications(model, oracle_name):
+                cache_key = generate_cache_key(
+                    oracle_name,
+                    inputs,
+                    signature=self._oracle_signature(oracle_info),
+                )
                 result = (
                     self.cache.get(cache_key)
                     if self.cache.contains(cache_key)
@@ -305,7 +371,7 @@ class OraxSolver:
                 if result is None:
                     continue
                 z3_actual = python_to_z3_value(result, oracle_info.output_type)
-                self.solver.add(decl() == z3_actual)
+                self.solver.add(app_expr == z3_actual)
                 constraints_added += 1
 
         if constraints_added > 0:
@@ -316,16 +382,17 @@ class OraxSolver:
     ) -> List[Dict[str, Any]]:
         """Find all applications of an oracle function in the model."""
         return [
-            inputs for inputs, _ in self._iter_oracle_applications(model, oracle_name)
+            inputs
+            for inputs, _ in self._iter_oracle_applications(model, oracle_name)
         ]
 
     def _get_model_result(
         self, model: z3.ModelRef, oracle_name: str, inputs: Dict[str, Any]
     ) -> Optional[Any]:
         """Get the result of an oracle function application from the model."""
-        for decl_inputs, decl in self._iter_oracle_applications(model, oracle_name):
+        for decl_inputs, app_expr in self._iter_oracle_applications(model, oracle_name):
             if decl_inputs == inputs:
-                return z3_value_to_python(model.eval(decl(), True))
+                return z3_value_to_python(model.eval(app_expr, True))
         return None
 
     def clear_explanations(self):
@@ -342,3 +409,8 @@ class OraxSolver:
         ):
             return oracle_info.symbolic_model
         return None
+
+    def _oracle_signature(self, oracle_info: OracleInfo) -> str:
+        """Return a stable signature string for caching."""
+        input_sig = ",".join(str(sort) for sort in oracle_info.input_types)
+        return f"{oracle_info.name}({input_sig})->{oracle_info.output_type}"
