@@ -61,11 +61,6 @@ class CoreGuidedSolver(MaxSMTSolverBase):
         Returns:
             Tuple of (sat, model, optimal_cost)
         """
-        # Create relaxation variables for soft constraints
-        relax_vars: List[z3.ExprRef] = [
-            z3.Bool(f"_relax_{i}") for i in range(len(self.soft_constraints))
-        ]
-
         # Add hard constraints to solver
         solver = z3.Solver()
         for hc in self.hard_constraints:
@@ -76,79 +71,84 @@ class CoreGuidedSolver(MaxSMTSolverBase):
             logger.warning("Hard constraints are unsatisfiable")
             return False, None, float("inf")
 
-        # Initialize with all soft constraints with relaxation variables
-        relaxed_soft: List[z3.ExprRef] = []
+        # Build soft clauses with relaxation variables
+        soft_clauses: List[dict] = []
+        relax_counter = 0
         for i, sc in enumerate(self.soft_constraints):
-            # Add relaxed version of soft constraint: sc OR relax_var
-            relaxed_soft.append(z3.Or(sc, relax_vars[i]))
-            solver.add(z3.Or(sc, relax_vars[i]))
+            relax = z3.Bool(f"_relax_{relax_counter}")
+            relax_counter += 1
+            solver.add(z3.Or(sc, relax))
+            soft_clauses.append(
+                {
+                    "formula": sc,
+                    "relax": relax,
+                    "weight": float(self.weights[i]),
+                    "active": True,
+                }
+            )
 
-        # Keep track of blocking variables and their weights
-        block_vars: List[z3.ExprRef] = []
-        block_weights: List[float] = []
+        lower_bound = 0.0
 
-        # Main loop: find and relax cores
+        # Main loop: find and relax cores (weighted Fu-Malik / WPM1-style)
         while True:
-            # Assume all relaxation variables are false (soft constraints must be satisfied)
             assumptions: List[z3.ExprRef] = [
-                z3.Not(rv) for rv in relax_vars if rv not in block_vars
+                z3.Not(clause["relax"])
+                for clause in soft_clauses
+                if clause["active"]
             ]
 
-            # Check satisfiability with current assumptions
             result = solver.check(assumptions)
 
             if result == z3.sat:
-                # All remaining soft constraints can be satisfied
                 model = solver.model()
 
                 # Calculate standardized cost (sum of weights of violated constraints)
                 standardized_cost = 0.0
                 for i, sc in enumerate(self.soft_constraints):
-                    if not model.evaluate(sc, model_completion=True):
+                    if not self._evaluate(model, sc):
                         standardized_cost += self.original_weights[i]
+
+                # Guard against tiny numerical discrepancies
+                if standardized_cost + 1e-6 < lower_bound:
+                    standardized_cost = lower_bound
 
                 return True, model, standardized_cost
 
-            # Get the unsatisfiable core
             core = solver.unsat_core()
-
             if not core:
-                # No core found, problem is unsatisfiable
                 return False, None, float("inf")
 
-            # Find soft constraints in the core
-            core_indices: List[int] = []
-            for i, rv in enumerate(relax_vars):
-                if z3.Not(rv) in core:
-                    core_indices.append(i)
-
-            if not core_indices:
-                # No soft constraints in the core, problem is unsatisfiable
+            core_clauses = [
+                clause
+                for clause in soft_clauses
+                if clause["active"] and z3.Not(clause["relax"]) in core
+            ]
+            if not core_clauses:
                 return False, None, float("inf")
 
-            # Find the minimum weight in the core
-            min_weight = min(self.weights[i] for i in core_indices)
+            min_weight = min(clause["weight"] for clause in core_clauses)
+            lower_bound += min_weight
 
-            # Create a blocking variable for this core
-            block_var = z3.Bool(f"_block_{len(block_vars)}")
-            block_vars.append(block_var)
-            block_weights.append(min_weight)
+            # At least one relaxation variable in the core must be true
+            solver.add(
+                z3.PbGe([(clause["relax"], 1) for clause in core_clauses], 1)
+            )
 
-            # Add cardinality constraint to allow at most one soft constraint
-            # to be relaxed in the core
-            at_most_one: List[z3.ExprRef] = []
-            for i in core_indices:
-                # Update the weight by subtracting the minimum weight
-                self.weights[i] -= min_weight
+            # Split weights: pay min_weight now, keep residuals as new clauses
+            for clause in core_clauses:
+                residual = clause["weight"] - min_weight
+                clause["weight"] = 0.0
+                clause["active"] = False
 
-                # If weight becomes 0, move to block_vars
-                if self.weights[i] < 1e-6:  # Numerical tolerance
-                    if relax_vars[i] not in block_vars:
-                        block_vars.append(relax_vars[i])
-
-                # Add relaxation variable to at_most_one constraint
-                at_most_one.append(relax_vars[i])
-
-            # Add constraint: block_var OR at_most_one(relax_vars in core)
-            at_most_one_constraint = z3.PbLe([(var, 1) for var in at_most_one], 1)
-            solver.add(z3.Or(block_var, at_most_one_constraint))
+                if residual > 1e-6:
+                    relax = z3.Bool(f"_relax_{relax_counter}")
+                    relax_counter += 1
+                    solver.add(z3.Or(clause["formula"], relax))
+                    soft_clauses.append(
+                        {
+                            "formula": clause["formula"],
+                            "relax": relax,
+                            "weight": residual,
+                            "active": True,
+                        }
+                    )

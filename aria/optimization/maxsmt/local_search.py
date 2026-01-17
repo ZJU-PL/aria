@@ -57,69 +57,69 @@ class LocalSearchSolver(MaxSMTSolverBase):
         best_model = current_model
         best_cost = self._calculate_cost(current_model)
 
+        if best_cost <= 0:
+            return True, best_model, 0.0
+
         # Main local search loop
         for _ in range(max_iterations):
-            # Try to improve the current model
-            improved = False
+            candidate_model = None
+            candidate_cost = best_cost
 
-            # Try to modify each variable
+            # Try to modify each variable (steepest-descent step)
             for var in all_vars:
-                if not z3.is_int(var):
-                    continue  # Currently only supports integer variables
-
                 try:
-                    # Get current value
-                    current_value = current_model.eval(
-                        var, model_completion=True
-                    ).as_long()
+                    # Determine neighbor assignments for this variable
+                    if z3.is_int(var):
+                        current_value = current_model.eval(
+                            var, model_completion=True
+                        ).as_long()
+                        neighbors = [current_value + offset for offset in [-2, -1, 1, 2]]
+                    elif z3.is_bool(var):
+                        current_value = z3.is_true(
+                            current_model.eval(var, model_completion=True)
+                        )
+                        neighbors = [not current_value]
+                    else:
+                        continue  # Skip unsupported variable types
 
-                    # Try neighboring values
-                    for offset in [-2, -1, 1, 2]:
-                        new_value = current_value + offset
-
-                        # Create a temporary solver and assign the new value
+                    for new_value in neighbors:
                         temp_solver = z3.Solver()
 
                         # Add all hard constraints
                         for hc in self.hard_constraints:
                             temp_solver.add(hc)
 
-                        # Add the fixed value for this variable
+                        # Fix the chosen variable to its candidate value
                         temp_solver.add(var == new_value)
 
-                        # Add the values for all other variables from the current model
-                        # (except the one we're modifying)
+                        # Keep other variables at their current values
                         for other_var in all_vars:
-                            if other_var != var and other_var in current_model.decls():
+                            if other_var != var:
                                 val = current_model.eval(
                                     other_var, model_completion=True
                                 )
                                 temp_solver.add(other_var == val)
 
-                        # Check if satisfiable
                         if temp_solver.check() == z3.sat:
-                            # Get the new model
                             new_model = temp_solver.model()
-
-                            # Calculate the new cost
                             new_cost = self._calculate_cost(new_model)
 
-                            # If better than current best, update
-                            if new_cost < best_cost:
-                                best_model = new_model
-                                best_cost = new_cost
-                                current_model = new_model
-                                improved = True
-                                break
+                            if new_cost + 1e-9 < candidate_cost:
+                                candidate_model = new_model
+                                candidate_cost = new_cost
                 except (AttributeError, z3.Z3Exception):
                     # Skip if there are any errors (e.g., variable not in model)
                     continue
 
-                if improved:
-                    break
-
             # If no improvement was found, stop
-            if not improved:
+            if candidate_model is None:
+                break
+
+            best_model = candidate_model
+            best_cost = candidate_cost
+            current_model = candidate_model
+
+            if best_cost <= 0:
                 break
 
         return True, best_model, best_cost

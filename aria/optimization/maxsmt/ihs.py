@@ -48,11 +48,8 @@ class ImplicitHittingSetSolver(MaxSMTSolverBase):
         for i, sc in enumerate(self.soft_constraints):
             core_solver.add(z3.Or(sc, relax_vars[i]))
 
-        # Set to keep track of all discovered cores
-        all_cores = []  # type: List[List[int]]
-
         # Current best model and cost
-        best_model = None
+        best_model: Optional[z3.ModelRef] = None
         best_cost = float("inf")
 
         # Solver for the hitting set problem
@@ -69,66 +66,65 @@ class ImplicitHittingSetSolver(MaxSMTSolverBase):
 
         while True:
             # Solve the hitting set problem
-            if hs_solver.check() == z3.sat:
-                hs_model = hs_solver.model()
-                hitting_set = [
-                    i
-                    for i in range(len(self.soft_constraints))
-                    if hs_model.evaluate(hs_vars[i])
-                ]
-
-                current_cost = sum(self.weights[i] for i in hitting_set)
-
-                # If the current cost equals the best cost, we're done
-                if best_model is not None and abs(current_cost - best_cost) < 1e-6:
+            if hs_solver.check() != z3.sat:
+                if best_model is not None:
                     return True, best_model, best_cost
+                return False, None, float("inf")
 
-                # Check if the current hitting set gives a satisfiable formula
-                assumptions = [
-                    z3.Not(relax_vars[i])
-                    for i in range(len(self.soft_constraints))
-                    if i not in hitting_set
+            hs_model = hs_solver.model()
+            hitting_set = [
+                i
+                for i in range(len(self.soft_constraints))
+                if z3.is_true(hs_model.evaluate(hs_vars[i], model_completion=True))
+            ]
+
+            # Check if the current hitting set gives a satisfiable formula
+            assumptions = [
+                z3.Not(relax_vars[i])
+                for i in range(len(self.soft_constraints))
+                if i not in hitting_set
+            ]
+
+            # Check satisfiability with assumptions
+            result = core_solver.check(assumptions)
+
+            if result == z3.sat:
+                candidate_model = core_solver.model()
+
+                # Compute the actual cost: weight of violated soft constraints
+                violated = [
+                    i
+                    for i, sc in enumerate(self.soft_constraints)
+                    if not z3.is_true(candidate_model.eval(sc, model_completion=True))
                 ]
+                current_cost = sum(self.weights[i] for i in violated)
 
-                # Check satisfiability with assumptions
-                result = core_solver.check(assumptions)
-
-                if result == z3.sat:
-                    # Found a better solution
-                    best_model = core_solver.model()
+                # Record strictly better solutions
+                if current_cost + 1e-6 < best_cost:
+                    best_model = candidate_model
                     best_cost = current_cost
 
-                    # Add constraint to find a better solution
-                    if hitting_set:  # If there are soft constraints violated
-                        # We want to find a solution where fewer than current_violated
-                        # soft constraints are violated
-                        # Instead of using PbLe with float, use a logical constraint
-                        # Exclude at least one of the current violated constraints
-                        hs_solver.add(z3.Not(z3.And([hs_vars[i] for i in hitting_set])))
-                    else:
-                        # If no soft constraints are violated, we've found the optimal solution
-                        return True, best_model, best_cost
-                else:
-                    # Extract the unsatisfiable core
-                    core = core_solver.unsat_core()
-                    core_indices = [
-                        i
-                        for i in range(len(self.soft_constraints))
-                        if z3.Not(relax_vars[i]) in core
-                    ]
+                # Add constraint to avoid returning the same hitting set again
+                if hitting_set:
+                    hs_solver.add(z3.Not(z3.And([hs_vars[i] for i in hitting_set])))
+                    continue
 
-                    if not core_indices:
-                        # No soft constraints in the core
-                        if best_model is not None:
-                            return True, best_model, best_cost
-                        return False, None, float("inf")
-
-                    # Add the core to the set of all cores
-                    all_cores.append(core_indices)
-
-                    # Add constraint: at least one variable from the core must be hit
-                    hs_solver.add(z3.Or([hs_vars[i] for i in core_indices]))
-            # Hitting set problem is unsatisfiable
-            if best_model is not None:
+                # If no soft constraints are violated, we've found the optimal solution
                 return True, best_model, best_cost
-            return False, None, float("inf")
+
+            # Extract the unsatisfiable core
+            core = core_solver.unsat_core()
+            core_indices = [
+                i
+                for i in range(len(self.soft_constraints))
+                if z3.Not(relax_vars[i]) in core
+            ]
+
+            if not core_indices:
+                # No soft constraints in the core
+                if best_model is not None:
+                    return True, best_model, best_cost
+                return False, None, float("inf")
+
+            # Add constraint: at least one variable from the core must be hit
+            hs_solver.add(z3.Or([hs_vars[i] for i in core_indices]))
