@@ -215,6 +215,15 @@ class TriggerSelector:
 
         # LLM suggestion first.
         if self.llm_generator:
+            if getattr(self.llm_generator, "direct_terms", False):
+                llm_groups = self.llm_generator.suggest_direct_trigger_groups(
+                    quantifier, bound_vars
+                )
+                if llm_groups:
+                    self._log("Using LLM-proposed triggers (direct).")
+                    return llm_groups[: self.max_groups]
+                self._log("LLM direct triggers unavailable or invalid.")
+                return []
             llm_groups = self.llm_generator.suggest_trigger_groups(
                 quantifier, candidates, list(bound_var_map.keys())
             )

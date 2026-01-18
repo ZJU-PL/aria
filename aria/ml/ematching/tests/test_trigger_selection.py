@@ -52,6 +52,38 @@ def test_trigger_selector_falls_back_to_heuristics():
     assert annotated.num_patterns() >= 0  # Should not raise when inspecting patterns
 
 
+def test_llm_direct_trigger_generator_parses_terms():
+    x, y = z3.Ints("x y")
+    f = z3.Function("f", z3.IntSort(), z3.IntSort())
+    g = z3.Function("g", z3.IntSort(), z3.IntSort())
+    quant = z3.ForAll([x, y], f(x) == g(y))
+    generator = LLMTriggerGenerator(
+        llm=_StubLLM('{"triggers": [["(f x)"], ["(g y)"]]}'),
+        direct_terms=True,
+    )
+
+    groups = generator.suggest_direct_trigger_groups(quant, [x, y])
+
+    assert len(groups) == 2
+    covered_vars = {str(v) for exprs in groups for v in _collect_vars(exprs)}
+    assert covered_vars == {"x", "y"}
+
+
+def test_trigger_selector_direct_rejects_invalid_symbols():
+    x = z3.Int("x")
+    int_sort = z3.IntSort()
+    f = z3.Function("f", int_sort, int_sort)
+    quant = z3.ForAll([x], f(x) > 0)
+    generator = LLMTriggerGenerator(
+        llm=_StubLLM('{"triggers": [["(g x)"]]}'),
+        direct_terms=True,
+    )
+    selector = TriggerSelector(quant, llm_generator=generator)
+
+    groups = selector.select_triggers(quant)
+    assert groups == []
+
+
 def _collect_vars(exprs):
     for expr in exprs:
         for child in _walk(expr):

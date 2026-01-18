@@ -28,6 +28,11 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         help="Use LLM-guided trigger selection (requires LLM deps/config).",
     )
     parser.add_argument(
+        "--llm-direct",
+        action="store_true",
+        help="Let the LLM synthesize SMT-LIB trigger terms directly.",
+    )
+    parser.add_argument(
         "--llm-model",
         default="gpt-4o-mini",
         help="LLM model name (default: gpt-4o-mini).",
@@ -77,12 +82,13 @@ def main(argv: list[str] | None = None) -> int:
     formula = _load_formula(input_path)
 
     llm_generator = None
-    if args.llm:
+    if args.llm or args.llm_direct:
         llm_generator = LLMTriggerGenerator(
             model=args.llm_model,
             temperature=args.llm_temperature,
             verbose=args.verbose,
             max_groups=args.max_groups,
+            direct_terms=args.llm_direct,
         )
         if llm_generator.llm is None:
             print(
