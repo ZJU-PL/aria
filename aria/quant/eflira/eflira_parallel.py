@@ -24,7 +24,7 @@ from aria.utils.exceptions import SMTSuccess, SMTUnknown
 logger = logging.getLogger(__name__)
 
 
-class ExitsSolverSuccess(SMTSuccess):
+class ExistsSolverSuccess(SMTSuccess):
     """The Exists solver proved UNSAT."""
 
 
@@ -32,7 +32,7 @@ class ForAllSolverSuccess(SMTSuccess):
     """The Forall solver validated a candidate."""
 
 
-class ExitsSolverUnknown(SMTUnknown):
+class ExistsSolverUnknown(SMTUnknown):
     """The Exists solver returned UNKNOWN."""
 
 
@@ -221,7 +221,7 @@ class ExistsSolver:
                 config=config,
             )
         except SamplingUnknown as exc:
-            raise ExitsSolverUnknown() from exc
+            raise ExistsSolverUnknown() from exc
 
 
 def _check_candidate(fml: z3.BoolRef, logic: str) -> z3.ModelRef:
@@ -262,32 +262,73 @@ class ForAllSolver:
         self.logic = logic
         self.solver_name = solver_name
         self.num_workers = num_workers
+        self._worker_solvers: List[z3.Solver] = []
+        self._worker_contexts: List[z3.Context] = []
 
     def check(self, cnt_list: List[z3.BoolRef]) -> List[z3.ModelRef]:
         if m_forall_solver_strategy == FSolverMode.SEQUENTIAL:
             return self._sequential_check(cnt_list)
         if m_forall_solver_strategy == FSolverMode.PARALLEL_THREAD:
-            models_in_other_ctx = _parallel_check_candidates(
-                cnt_list, num_workers=4, logic=self.logic
-            )
-            return [m.translate(self.ctx) for m in models_in_other_ctx]
+            return self._parallel_check_thread(cnt_list)
         if m_forall_solver_strategy == FSolverMode.PARALLEL_PROCESS_IPC:
             return self._parallel_check_ipc(cnt_list)
         raise NotImplementedError()
 
     def _sequential_check(self, cnt_list: List[z3.BoolRef]) -> List[z3.ModelRef]:
         models = []
+        solver = _make_solver(self.logic, ctx=self.ctx)
         for cnt in cnt_list:
-            s = _make_solver(self.logic)
-            s.add(cnt)
-            res = s.check()
-            if res == z3.sat:
-                models.append(s.model())
-            elif res == z3.unsat:
-                raise ForAllSolverSuccess()
-            else:
-                raise ForAllSolverUnknown()
+            solver.push()
+            solver.add(cnt)
+            try:
+                res = solver.check()
+                if res == z3.sat:
+                    models.append(solver.model())
+                elif res == z3.unsat:
+                    raise ForAllSolverSuccess()
+                else:
+                    raise ForAllSolverUnknown()
+            finally:
+                solver.pop()
         return models
+
+    def _ensure_worker_pool(self) -> None:
+        if self._worker_solvers:
+            return
+        for _ in range(self.num_workers):
+            worker_ctx = z3.Context()
+            self._worker_contexts.append(worker_ctx)
+            self._worker_solvers.append(_make_solver(self.logic, ctx=worker_ctx))
+
+    def _check_in_worker(self, worker_idx: int, fml: z3.BoolRef) -> z3.ModelRef:
+        solver = self._worker_solvers[worker_idx]
+        worker_ctx = self._worker_contexts[worker_idx]
+        local_fml = fml.translate(worker_ctx)
+        solver.push()
+        try:
+            solver.add(local_fml)
+            res = solver.check()
+            if res == z3.sat:
+                return solver.model()
+            if res == z3.unsat:
+                raise ForAllSolverSuccess()
+            raise ForAllSolverUnknown()
+        finally:
+            solver.pop()
+
+    def _parallel_check_thread(self, cnt_list: List[z3.BoolRef]) -> List[z3.ModelRef]:
+        self._ensure_worker_pool()
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=self.num_workers
+        ) as executor:
+            futures = []
+            for idx, cnt in enumerate(cnt_list):
+                worker_idx = idx % self.num_workers
+                futures.append(
+                    executor.submit(self._check_in_worker, worker_idx, cnt)
+                )
+            models_in_other_ctx = [f.result() for f in futures]
+        return [m.translate(self.ctx) for m in models_in_other_ctx]
 
     def _parallel_check_ipc(self, cnt_list: List[z3.BoolRef]) -> List[dict]:
         if not cnt_list:
@@ -389,16 +430,16 @@ def lira_efsmt_with_parallel_cegis(
                     y_mappings = [(y, fmodel.get(y, y)) for y in forall_vars]
                 sub_phi = z3.simplify(z3.substitute(phi, y_mappings))
                 if z3.is_false(sub_phi):
-                    raise ExitsSolverSuccess()
+                    raise ExistsSolverSuccess()
                 esolver.add_constraint(sub_phi)
 
     except ForAllSolverSuccess:
         result = EFLIRAResult.SAT
     except ForAllSolverUnknown:
         result = EFLIRAResult.UNKNOWN
-    except ExitsSolverSuccess:
+    except ExistsSolverSuccess:
         result = EFLIRAResult.UNSAT
-    except ExitsSolverUnknown:
+    except ExistsSolverUnknown:
         result = EFLIRAResult.UNKNOWN
     except Exception as ex:
         logger.error("Unexpected error: %s", ex)
