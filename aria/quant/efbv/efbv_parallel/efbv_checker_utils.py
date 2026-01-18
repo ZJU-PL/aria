@@ -9,7 +9,10 @@ from typing import List
 
 import z3
 
-from aria.quant.efbv.efbv_parallel.exceptions import ForAllSolverSuccess
+from aria.quant.efbv.efbv_parallel.exceptions import (
+    ForAllSolverSuccess,
+    ForAllSolverUnknown,
+)
 
 
 def check_candidate(fml: z3.BoolRef):
@@ -29,11 +32,13 @@ def check_candidate(fml: z3.BoolRef):
     # print("Checking one ...", fml)
     solver = z3.SolverFor("QF_BV", ctx=fml.ctx)
     solver.add(fml)
-    if solver.check() == z3.sat:
+    res = solver.check()
+    if res == z3.sat:
         m = solver.model()
-        # will the next line cause race?
         return m  # to the original context?
-    raise ForAllSolverSuccess()
+    if res == z3.unsat:
+        raise ForAllSolverSuccess()
+    raise ForAllSolverUnknown()
 
 
 def parallel_check_candidates(fmls: List[z3.BoolRef], num_workers: int):
@@ -62,60 +67,20 @@ def parallel_check_candidates(fmls: List[z3.BoolRef], num_workers: int):
 def parallel_check_candidates_multiprocessing(fmls: List[z3.ExprRef], num_workers):
     """Solve clauses under a set of assumptions (deal with each one in parallel).
 
-    FIXME: ValueError: ctypes objects containing pointers cannot be pickled
+    Note: still experimental; prefer the thread-based version.
     """
     assert num_workers >= 1
     tasks = []
     for fml in fmls:
-        # tasks.append((fml, main_ctx()))
         i_context = z3.Context()
         i_fml = fml.translate(i_context)
-        tasks.append((i_fml, i_context))
-
-    answers_async = [None for _ in fmls]
-    # Shared flag to track if pool was terminated
-    terminated = multiprocessing.Value("i", 0)
+        tasks.append(i_fml)
 
     with multiprocessing.Pool(num_workers) as p:
+        try:
+            answers = p.map(check_candidate, tasks)
+        finally:
+            p.close()
+            p.join()
 
-        def terminate_others(val):
-            if val:
-                with terminated.get_lock():
-                    terminated.value = 1
-                p.terminate()  # Terminate pool if a result is found
-
-        for i, task in enumerate(tasks):
-            answers_async[i] = p.apply_async(
-                check_candidate,
-                (task[0], task[1]),
-                callback=lambda val: terminate_others(val[0]),
-            )
-
-        # Give tasks time to complete
-        p.close()
-        p.join()
-
-    # Only process results if the pool wasn't terminated prematurely
-    results = []
-    with terminated.get_lock():
-        if terminated.value == 0:
-            # Normal completion - collect all ready results
-            answers = [
-                answer_async.get()
-                for answer_async in answers_async
-                if answer_async.ready()
-            ]
-            results = [pres for _pans, pres in answers]
-        else:
-            # Pool was terminated - get only the successful result
-            for answer_async in answers_async:
-                if answer_async.ready():
-                    try:
-                        result = answer_async.get(timeout=0.1)
-                        if result[0]:  # This was the successful one
-                            results = [result[1]]
-                            break
-                    except Exception:
-                        pass  # Ignore errors from terminated tasks
-
-    return results
+    return answers
