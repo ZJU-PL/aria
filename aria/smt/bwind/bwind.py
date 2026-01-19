@@ -145,6 +145,19 @@ DROP_BOUNDS_PATTERN = re.compile(r"0.k.....k..pow2.k")
 
 
 def translated_path(benchmark_path: Path, override: str | None) -> Path:
+    """
+    Get the path to the translated benchmark file.
+
+    If an override path is provided, it is used. Otherwise, a temporary
+    path is generated based on the original benchmark path.
+
+    Args:
+        benchmark_path: The path to the original benchmark file.
+        override: An optional override path.
+
+    Returns:
+        The path to the translated benchmark file.
+    """
     if override:
         return Path(override).expanduser()
     tmp_dir = Path(tempfile.gettempdir())
@@ -153,6 +166,20 @@ def translated_path(benchmark_path: Path, override: str | None) -> Path:
 
 
 def generate_bounds(lines: Iterable[str], pattern: str) -> List[str]:
+    """
+    Generate bounds for the variables in the benchmark.
+
+    This function searches for variable declarations in the input lines and
+    generates assertions that constrain the variables to be within the
+    bit-vector range.
+
+    Args:
+        lines: The lines of the benchmark file.
+        pattern: The regex pattern to match variable declarations.
+
+    Returns:
+        A list of bound assertions.
+    """
     regex = re.compile(pattern)
     bounds = []
     for line in lines:
@@ -164,6 +191,18 @@ def generate_bounds(lines: Iterable[str], pattern: str) -> List[str]:
 
 
 def translate_lines(lines: Iterable[str]) -> List[str]:
+    """
+    Translate the lines of the benchmark file.
+
+    This function replaces the bit-vector operators with their integer
+    counterparts and removes unnecessary lines.
+
+    Args:
+        lines: The lines of the benchmark file.
+
+    Returns:
+        A list of translated lines.
+    """
     translated = []
     for raw_line in lines:
         if any(tag in raw_line for tag in DROP_LINE_PATTERNS):
@@ -181,6 +220,15 @@ def write_translated_file(
     fun_bounds: Iterable[str],
     const_bounds: Iterable[str],
 ) -> None:
+    """
+    Write the translated benchmark to a file.
+
+    Args:
+        target: The path to the output file.
+        translated_lines: The translated lines of the benchmark.
+        fun_bounds: The bound assertions for functions.
+        const_bounds: The bound assertions for constants.
+    """
     with target.open("w", encoding="utf-8") as f:
         f.write(TEMPLATE)
         for line in translated_lines:
@@ -198,6 +246,16 @@ def write_translated_file(
 
 
 def run_cvc5(cvc5_bin: Path, benchmark_path: Path) -> int:
+    """
+    Run cvc5 on the translated benchmark.
+
+    Args:
+        cvc5_bin: The path to the cvc5 binary.
+        benchmark_path: The path to the translated benchmark file.
+
+    Returns:
+        The return code of the cvc5 process.
+    """
     result = subprocess.run(
         [
             str(cvc5_bin),
@@ -211,6 +269,12 @@ def run_cvc5(cvc5_bin: Path, benchmark_path: Path) -> int:
 
 
 def main() -> None:
+    """
+    The main function of the script.
+
+    This function parses the command-line arguments, translates the
+    benchmark, and runs cvc5 on it.
+    """
     parser = argparse.ArgumentParser(
         description="Translate a bit-vector benchmark to integer theory axioms and solve with cvc5."
     )

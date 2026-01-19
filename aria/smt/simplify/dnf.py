@@ -8,7 +8,19 @@ from pysmt.shortcuts import Real, TRUE, FALSE, Minus, LE, LT, Not, And, Or
 
 
 class BddDNFSimplifier(BddSimplifier):
+    """
+    A BDD-based simplifier that converts a formula to Disjunctive Normal Form (DNF).
+    """
+
     def __init__(self, env=None, static_ordering=None, bool_abstraction=True):
+        """
+        Initializes a new BddDNFSimplifier.
+
+        Args:
+            env: The PySMT environment.
+            static_ordering: An optional static ordering for the BDD variables.
+            bool_abstraction: Whether to use boolean abstraction.
+        """
         BddSimplifier.__init__(
             self, env=env, static_ordering=static_ordering, bool_abstraction=True
         )
@@ -16,6 +28,15 @@ class BddDNFSimplifier(BddSimplifier):
         self.dnf = True
 
     def abstract_and_simplify(self, formula):
+        """
+        Abstracts and simplifies a formula to DNF.
+
+        Args:
+            formula: The formula to simplify.
+
+        Returns:
+            The simplified formula in DNF.
+        """
         abs_formula = self.walk(formula)
         bdd_formula = self.convert(abs_formula)
 
@@ -52,6 +73,9 @@ class BddDNFSimplifier(BddSimplifier):
 
 
 class DNFConverter(object):
+    """
+    A class for converting a formula to Disjunctive Normal Form (DNF).
+    """
 
     class PostProcess(IdentityDagWalker):
         """
@@ -101,6 +125,12 @@ class DNFConverter(object):
             return And(LE(predicate, Real(0)), LE(Real(0), predicate))
 
     def __init__(self, env=None):
+        """
+        Initializes a new DNFConverter.
+
+        Args:
+            env: The PySMT environment.
+        """
         self.env = env
 
     def get_dnf(self, formula):

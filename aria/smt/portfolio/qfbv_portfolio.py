@@ -221,7 +221,12 @@ class FormulaParser:
 
 
 def main():
-    """Main entry point."""
+    """
+    The main entry point of the script.
+
+    Parses command-line arguments, solves the SMT formula specified in the
+    input JSON file, and writes the result to an output JSON file.
+    """
     parser = argparse.ArgumentParser(description="SMT formula solver")
     parser.add_argument("request_directory", help="Directory containing input files")
     args = parser.parse_args()

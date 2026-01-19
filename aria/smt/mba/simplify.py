@@ -1,4 +1,10 @@
 #!/usr/bin/python3
+"""
+This script simplifies linear mixed Boolean-arithmetic expressions.
+
+It uses a truth table-based approach to synthesize bitwise sub-expressions
+and compose a simpler linear combination according to a chosen metric.
+"""
 
 from __future__ import annotations
 
@@ -47,23 +53,47 @@ class Metric(IntEnum):
         return NotImplemented
 
 
-# Returns True iff the given expression constitutes a linear MBA for sure.
 def check_linear(expr: str, bitCount: int) -> bool:
+    """
+    Checks if the given expression is a linear MBA.
+
+    Args:
+        expr: The expression to check.
+        bitCount: The number of bits to use for the variables.
+
+    Returns:
+        True if the expression is a linear MBA, False otherwise.
+    """
     tree = parse(expr, bitCount, False, False, False)
     tree.refine()
     tree.mark_linear()
     return tree.is_linear()
 
 
-# Returns the number of terms in the given expression under the assumption
-# that it is linear.
 def count_terms(expr: str) -> int:
+    """
+    Counts the number of terms in a linear MBA.
+
+    Args:
+        expr: The linear MBA expression.
+
+    Returns:
+        The number of terms in the expression.
+    """
     return expr.count("+") + expr.count("-") + int(expr[0] != "-")
 
 
-# Returns a complexity penalty for the bitwise operations in the given node's
-# expression.
 def compute_bitwise_complexity(root: Node) -> int:
+    """
+    Computes a complexity penalty for the bitwise operations in the given node's
+    expression.
+
+    Args:
+        root: The root node of the expression tree.
+
+    Returns:
+        An integer representing the complexity of the bitwise operations.
+    """
     # TODO: More sophisticated complexity?
     return root.count_nodes([NodeType.VARIABLE, NodeType.NEGATION])
 
@@ -1422,9 +1452,6 @@ class Simplifier:
         return simpl if self.__check_verify(simpl) else ""
 
 
-# Simplify the given expression with given number of variables. For that,
-# evaluate it for all possible combinations of truth values for the variables
-# and run the simplification procedure based on the resulting vector.
 def simplify_linear_mba(
     expr: str,
     bitCount: int,
@@ -1435,6 +1462,22 @@ def simplify_linear_mba(
     verifBitCount: Optional[int] = None,
     metric: Metric = Metric.ALTERNATION,
 ) -> str:
+    """
+    Simplifies a linear mixed Boolean-arithmetic expression.
+
+    Args:
+        expr: The expression to simplify.
+        bitCount: The number of bits to use for the variables.
+        useZ3: Whether to use Z3 to verify the simplification.
+        checkLinear: Whether to check if the input expression is a linear MBA.
+        modRed: Whether to reduce all constants modulo 2**bitCount.
+        refine: Whether to refine the output by not only using conjunctions.
+        verifBitCount: The number of bits to use for verification.
+        metric: The metric to use for comparing solutions.
+
+    Returns:
+        The simplified expression.
+    """
     if checkLinear and not check_linear(expr, bitCount):
         sys.exit("Error: Input expression may be no linear MBA: " + expr)
 

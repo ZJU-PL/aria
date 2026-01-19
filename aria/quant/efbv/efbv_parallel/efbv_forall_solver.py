@@ -25,8 +25,6 @@ class ForAllSolver:
         self.ctx = ctx  # the Z3 context of the main thread
         # self.phi = None
         self.num_workers = num_workers
-        self._worker_solvers = []
-        self._worker_contexts = []
 
     def push(self):
         """Push solver state (no-op)."""
@@ -64,41 +62,34 @@ class ForAllSolver:
         return models
 
     def _ensure_worker_pool(self):
-        if self._worker_solvers:
-            return
-        for _ in range(self.num_workers):
-            worker_ctx = z3.Context()
-            self._worker_contexts.append(worker_ctx)
-            self._worker_solvers.append(z3.SolverFor("QF_BV", ctx=worker_ctx))
+        # No longer needed - we create a new solver for each task
+        pass
 
     def _check_in_worker(self, worker_idx: int, cnt: z3.BoolRef) -> z3.ModelRef:
-        solver = self._worker_solvers[worker_idx]
-        worker_ctx = self._worker_contexts[worker_idx]
+        # Create a new context and solver for each task to avoid thread-safety issues
+        # Z3 solvers are not thread-safe, so we cannot reuse solver instances
+        worker_ctx = z3.Context()
         local_cnt = cnt.translate(worker_ctx)
-        solver.push()
-        try:
-            solver.add(local_cnt)
-            res = solver.check()
-            if res == z3.sat:
-                return solver.model()
-            if res == z3.unsat:
-                raise ForAllSolverSuccess()
-            raise ForAllSolverUnknown()
-        finally:
-            solver.pop()
+        solver = z3.SolverFor("QF_BV", ctx=worker_ctx)
+        solver.add(local_cnt)
+        res = solver.check()
+        if res == z3.sat:
+            return solver.model()
+        if res == z3.unsat:
+            raise ForAllSolverSuccess()
+        raise ForAllSolverUnknown()
 
     def parallel_check_thread(self, cnt_list: List[z3.BoolRef]):
         """Solve each formula in cnt_list in parallel."""
         logger.debug("Forall solver: Parallel checking the candidates")
-        self._ensure_worker_pool()
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=self.num_workers
         ) as executor:
             futures = []
-            for idx, cnt in enumerate(cnt_list):
-                worker_idx = idx % self.num_workers
+            for cnt in cnt_list:
+                # worker_idx is not used anymore but kept for compatibility
                 futures.append(
-                    executor.submit(self._check_in_worker, worker_idx, cnt)
+                    executor.submit(self._check_in_worker, 0, cnt)
                 )
             models_in_other_ctx = [f.result() for f in futures]
         return [m.translate(self.ctx) for m in models_in_other_ctx]

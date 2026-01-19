@@ -60,6 +60,9 @@ class QFBVSolver:
     sat_engine: str = "mgh"
 
     def __init__(self) -> None:
+        """
+        Initializes a new QFBVSolver.
+        """
         # z3.ExpeRef (not used for now!)
         self.fml: Optional[z3.ExprRef] = None
         # map a bit-vector variable to a list of Boolean variables
@@ -73,14 +76,41 @@ class QFBVSolver:
         self.model: List[Any] = []
 
     def solve_smt_file(self, filepath: str) -> SolverResult:
+        """
+        Solves a QF_BV formula from a SMT-LIB 2 file.
+
+        Args:
+            filepath: The path to the SMT-LIB 2 file.
+
+        Returns:
+            The result of the solver.
+        """
         fml_vec = z3.parse_smt2_file(filepath)
         return self.check_sat(z3.And(fml_vec))
 
     def solve_smt_string(self, smt_str: str) -> SolverResult:
+        """
+        Solves a QF_BV formula from a SMT-LIB 2 string.
+
+        Args:
+            smt_str: The SMT-LIB 2 string.
+
+        Returns:
+            The result of the solver.
+        """
         fml_vec = z3.parse_smt2_string(smt_str)
         return self.check_sat(z3.And(fml_vec))
 
     def solve_smt_formula(self, fml: z3.ExprRef) -> SolverResult:
+        """
+        Solves a QF_BV formula from a Z3 expression.
+
+        Args:
+            fml: The Z3 expression.
+
+        Returns:
+            The result of the solver.
+        """
         return self.check_sat(fml)
 
     def solve_qfbv_light(self, fml: z3.ExprRef) -> SolverResult:
@@ -135,7 +165,16 @@ class QFBVSolver:
             return SolverResult.SAT
         return SolverResult.UNSAT
 
-    def solve_qfbv_via_z3(self, fml: z3.ExprRef):
+    def solve_qfbv_via_z3(self, fml: z3.ExprRef) -> SolverResult:
+        """
+        Solves a QF_BV formula using Z3.
+
+        Args:
+            fml: The Z3 expression.
+
+        Returns:
+            The result of the solver.
+        """
         sol = z3.SolverFor("QF_BV")
         sol.add(fml)
         res = sol.check()
@@ -209,7 +248,19 @@ class QFBVSolver:
             return SolverResult.SAT
         return SolverResult.UNSAT
 
-    def check_sat(self, fml: z3.ExprRef):
+    def check_sat(self, fml: z3.ExprRef) -> SolverResult:
+        """
+        Checks the satisfiability of a QF_BV formula.
+
+        This method can use either Z3 or a combination of Z3 and pySAT
+        to solve the formula, depending on the value of `self.sat_engine`.
+
+        Args:
+            fml: The Z3 expression.
+
+        Returns:
+            The result of the solver.
+        """
         # z3.set_param("verbose", 15)
         # solve_qfbv_light
         # return self.solve_qfbv_via_z3(fml)
@@ -237,10 +288,16 @@ class QFBVSolver:
             clauses_numeric.append([int(lit) for lit in cls.split(" ")])
         return clauses_numeric
 
-    def check_sat_with_model(self):
-        """Check satisfiability of a bit-vector formula
+    def check_sat_with_model(self) -> SolverResult:
+        """
+        Check satisfiability of a bit-vector formula and returns a model.
+
         In this function, we use self.bit_blast to maintain the correlation between
-        the bit-vector and Boolean variables
+        the bit-vector and Boolean variables.
+
+        Returns:
+            The result of the solver. If the formula is satisfiable, the model
+            is stored in `self.model`.
         """
         clauses_numeric = self.bit_blast()
         # Main difficulty: how to infer signedness of each variable

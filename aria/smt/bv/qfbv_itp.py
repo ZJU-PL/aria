@@ -20,14 +20,42 @@ def is_inconsistent(fml_a, fml_b):
 
 
 class BooleanInterpolant:
+    """A class for computing boolean interpolants."""
+
     @staticmethod
-    def mk_lit(m: z3.ModelRef, x: z3.ExprRef):
+    def mk_lit(m: z3.ModelRef, x: z3.ExprRef) -> z3.ExprRef:
+        """
+        Creates a literal from a model and a variable.
+
+        If the variable is true in the model, it returns the variable.
+        Otherwise, it returns the negation of the variable.
+
+        Args:
+            m: The Z3 model.
+            x: The Z3 variable.
+
+        Returns:
+            The literal.
+        """
         if z3.is_true(m.eval(x)):
             return x
         return z3.Not(x)
 
     @staticmethod
-    def pogo(fml_a: z3.Solver, fml_b: z3.Solver, xs: List[z3.ExprRef]):
+    def pogo(
+        fml_a: z3.Solver, fml_b: z3.Solver, xs: List[z3.ExprRef]
+    ) -> z3.ExprRef:
+        """
+        Implements the POGO algorithm for finding interpolants.
+
+        Args:
+            fml_a: A Z3 solver with the first formula.
+            fml_b: A Z3 solver with the second formula.
+            xs: A list of common variables.
+
+        Yields:
+            The interpolants.
+        """
         while z3.sat == fml_a.check():
             m = fml_a.model()
             lits = [BooleanInterpolant.mk_lit(m, x) for x in xs]
@@ -44,6 +72,17 @@ class BooleanInterpolant:
     def compute_itp(
         fml_a: z3.ExprRef, fml_b: z3.ExprRef, var_list: List[z3.ExprRef]
     ) -> List[z3.ExprRef]:
+        """
+        Computes the interpolant between two formulas.
+
+        Args:
+            fml_a: The first formula.
+            fml_b: The second formula.
+            var_list: The list of common variables.
+
+        Returns:
+            A list of interpolants.
+        """
         solver_a = z3.SolverFor("QF_FD")
         solver_a.add(fml_a)
         solver_b = z3.SolverFor("QF_FD")
@@ -56,8 +95,12 @@ class ITPStrategy(Enum):
 
 
 class BVInterpolant:
+    """A class for computing bit-vector interpolants."""
 
     def __init__(self):
+        """
+        Initializes a new BVInterpolant.
+        """
         self.strategy = ITPStrategy.FLATTENING
 
         self.common_bool_vars_index = 1
@@ -65,12 +108,22 @@ class BVInterpolant:
         self.common_bool_vars = []
         self.common_vars2bool = {}
 
-    def mapped_bit_blast(self, fml: z3.BoolRef, cared_bv_vars: List[z3.ExprRef]):
-        """ "
-        :param fml: a formula
-        :param cared_bv_vars: the cared list of bit-vector variables (for ITP)
-        :return: the corresponding cared list of Boolean variables and
-                 the blasted clauses
+    def mapped_bit_blast(
+        self, fml: z3.BoolRef, cared_bv_vars: List[z3.ExprRef]
+    ) -> (List[int], List[List[int]]):
+        """
+        Bit-blasts a formula and returns the corresponding cared list of
+        Boolean variables and the blasted clauses.
+
+        Args:
+            fml: A Z3 bit-vector formula.
+            cared_bv_vars: The list of bit-vector variables to be considered
+                           for interpolation.
+
+        Returns:
+            A tuple containing:
+            - The corresponding cared list of Boolean variables as integers.
+            - The blasted clauses as a list of lists of integers.
         """
         # print(fml)
         bv2bool, id_table, header, clauses = translate_smt2formula_to_cnf(fml)
@@ -106,12 +159,17 @@ class BVInterpolant:
 
     def to_z3_clauses(
         self, prefix: str, cared_bool_vars: List[int], numeric_clauses: List[List[int]]
-    ):
+    ) -> z3.BoolRef:
         """
-        :param prefix: to distinguish the fml_a and fml_b in interpolant generation
-        :param cared_bool_vars: to label the common variables of fml_a and fml_b
-        :param numeric_clauses: the corresponding numeric clauses of fml_a or fml_b
-        :return:
+        Converts numeric clauses to Z3 clauses.
+
+        Args:
+            prefix: A prefix to distinguish the variables of the two formulas.
+            cared_bool_vars: The list of common variables.
+            numeric_clauses: The numeric clauses.
+
+        Returns:
+            The Z3 clauses.
         """
         int2var = {}
         expr_clauses = []

@@ -17,19 +17,49 @@ class QFUFBVSolver:
     sat_engine = "mgh"
 
     def __init__(self):
+        """
+        Initializes a new QFUFBVSolver.
+        """
         self.fml = None
         # self.vars = []
         self.verbose = 0
 
-    def solve_smt_file(self, filepath: str):
+    def solve_smt_file(self, filepath: str) -> SolverResult:
+        """
+        Solves a QF_UFBV formula from a SMT-LIB 2 file.
+
+        Args:
+            filepath: The path to the SMT-LIB 2 file.
+
+        Returns:
+            The result of the solver.
+        """
         fml_vec = z3.parse_smt2_file(filepath)
         return self.check_sat(z3.And(fml_vec))
 
-    def solve_smt_string(self, smt_str: str):
+    def solve_smt_string(self, smt_str: str) -> SolverResult:
+        """
+        Solves a QF_UFBV formula from a SMT-LIB 2 string.
+
+        Args:
+            smt_str: The SMT-LIB 2 string.
+
+        Returns:
+            The result of the solver.
+        """
         fml_vec = z3.parse_smt2_string(smt_str)
         return self.check_sat(z3.And(fml_vec))
 
-    def solve_smt_formula(self, fml: z3.ExprRef):
+    def solve_smt_formula(self, fml: z3.ExprRef) -> SolverResult:
+        """
+        Solves a QF_UFBV formula from a Z3 expression.
+
+        Args:
+            fml: The Z3 expression.
+
+        Returns:
+            The result of the solver.
+        """
         return self.check_sat(fml)
 
     def check_sat(self, fml):
@@ -92,7 +122,16 @@ class QFUFBVSolver:
         # sol = z3.Tactic('smt').solver()
         return self.solve_qfufbv_via_z3(after_simp)
 
-    def solve_qfufbv_via_z3(self, fml: z3.ExprRef):
+    def solve_qfufbv_via_z3(self, fml: z3.ExprRef) -> SolverResult:
+        """
+        Solves a QF_UFBV formula using Z3.
+
+        Args:
+            fml: The Z3 expression.
+
+        Returns:
+            The result of the solver.
+        """
         sol = z3.SolverFor("QF_UFBV")
         sol.add(fml)
         res = sol.check()

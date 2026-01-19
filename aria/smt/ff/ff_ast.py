@@ -48,7 +48,7 @@ class FieldConst(FieldExpr):
 
 
 class FieldSub(FieldExpr):
-    """AST node for finite field subtraction."""
+    """AST node for n-ary finite field subtraction."""
 
     def __init__(self, *args):
         if len(args) < 2:
@@ -135,6 +135,16 @@ class ParsedFormula:
         assertions: List[FieldExpr],
         expected_status: str | None = None,
     ):
+        """
+        Initializes a new ParsedFormula.
+
+        Args:
+            field_size: The size of the finite field.
+            variables: A dictionary mapping variable names to their sort ID.
+            assertions: A list of assertions in the formula.
+            expected_status: The expected status of the formula ('sat',
+                             'unsat', or None).
+        """
         self.field_size = field_size
         self.variables = variables  # name → sort id (unused here)
         self.assertions = assertions
