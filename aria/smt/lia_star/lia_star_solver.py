@@ -1,4 +1,27 @@
 #!/usr/bin/env python3
+r"""
+Main entry point for the LIA* Solver.
+
+This script solves BAPA (Boolean Algebra with Presburger Arithmetic) and MAPA
+(Multiset Algebra with Presburger Arithmetic) problems by translating them to LIA*
+and using an abstraction refinement loop.
+
+Algorithm Overview:
+1.  Translate the problem into two parts:
+    -   A(X): The constraints on the multiset counts/cardinalities.
+    -   B(X): The definition of valid count vectors (via summation over the domain).
+2.  Initialize the Semi-Linear Set (SLS) under-approximation of B.
+3.  Loop:
+    a.  Check Satisfiability: Is A(X) /\ SLS(X) satisfiable?
+        -   If YES, we found a solution. Return SAT.
+    b.  Interpolation (Optional): Can we prove UNSAT?
+        -   Compute inductive invariants I that separate SLS from A.
+        -   If I implies Not(A), then no extension of SLS can satisfy A. Return UNSAT.
+    c.  Refinement:
+        -   Augment SLS with a new vector x such that B(x) is true but x is not in SLS.
+        -   Reduce/Simplify the SLS to keep it compact.
+    d.  If no new vector can be found (SLS covers B), and we haven't found a solution, return UNSAT.
+"""
 
 import argparse
 import sys
@@ -55,7 +78,18 @@ def free_arith_vars(fml):  # pylint: disable=invalid-name
 
 # Turn A and B into macros and get their shared variables
 def to_macro(fmls):  # pylint: disable=invalid-name
-    """Convert formulas into a macro function."""
+    """
+    Convert a list of formulas into a python function (macro) that returns a Z3 expression.
+    
+    This allows re-instantiating the formula with different Z3 variables (e.g. for quantifiers).
+    
+    Args:
+        fmls: List of Z3 formulas.
+        
+    Returns:
+        A function that takes an optional list of variables to substitute and returns the Z3 expression.
+        The function has attributes .args (free vars) and .fmls (original formulas).
+    """
     # Pull free variables from the assertion
     var_set = free_arith_vars(And(fmls))
 
@@ -84,7 +118,13 @@ def to_macro(fmls):  # pylint: disable=invalid-name
 
 # Print a solution vector and SLS or unsat and exit
 def return_solution(result, sls):  # pylint: disable=invalid-name
-    """Print solution or unsat and exit."""
+    """
+    Print solution or unsat and exit.
+    
+    Args:
+        result: Either z3.unsat or a list of assignments (tuples of (var, value)).
+        sls: The final Semi-Linear Set.
+    """
     # Print statistics if this is an instrumented run
     if instrument:
         stats = {
@@ -122,7 +162,12 @@ def return_solution(result, sls):  # pylint: disable=invalid-name
 def check_unsat_with_interpolant(
     inductive_clauses, a_func
 ):  # pylint: disable=invalid-name
-    """Check if inductive clauses imply not A."""
+    """
+    Check if inductive clauses imply not A.
+    
+    If I is an over-approximation of B (SLS <= B <= I), and I /\ A is UNSAT,
+    then B /\ A is UNSAT.
+    """
     # Assert that I, with non-negativity constraints, implies (not A)
     s = Solver()
     constraints = [x >= 0 for x in a_func.args] + inductive_clauses
@@ -135,7 +180,11 @@ def check_unsat_with_interpolant(
 # Return a non-negative vector which satisfies the formula A and SLS*
 # If no such vector exists, return None.
 def find_solution(a_func, sls):  # pylint: disable=invalid-name
-    """Find a solution vector satisfying A and SLS*."""
+    """
+    Find a solution vector satisfying A and SLS*.
+    
+    Checks: exists X. X >= 0 /\ A(X) /\ SLS(X).
+    """
     start = time.time()
 
     # Assert that X satisfies A and is in SLS*
@@ -212,6 +261,8 @@ def main():
     interpolation_on = not args.no_interp
 
     # Get assertions for A and B from bapa file
+    # A = fmls (constraints)
+    # B = star_defs (definitions of counts)
     multiset_fmls = dsl.parse_bapa(bapa_file, mapa)
     fmls, star_defs, star_fmls = dsl.to_lia_star(And(multiset_fmls))
     a_assertions = [fmls]  # pylint: disable=invalid-name
@@ -272,7 +323,7 @@ def main():
 
         # Add another vector to the SLS
         incomplete = sls.augment()
-        print_verbose(f"SLS: {sls.getSLS()}")
+        print_verbose(f"SLS: {sls.get_sls()}")
 
     # If the SLS is equivalent to B and a solution was not found, the problem is unsat
     return_solution(unsat, sls)

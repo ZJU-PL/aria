@@ -121,6 +121,14 @@ class MathematicaSolver(Solver):
     OptionsClass = MathematicaOptions
 
     def __init__(self, environment, logic, **options):
+        """
+        Initializes a new MathematicaSolver.
+
+        Args:
+            environment: The PySMT environment.
+            logic: The logic to be used by the solver.
+            **options: Additional options for the solver.
+        """
         Solver.__init__(self, environment=environment, logic=logic, **options)
 
         self.mgr = environment.formula_manager
@@ -140,15 +148,32 @@ class MathematicaSolver(Solver):
 
     @clear_pending_pop
     def reset_assertions(self):
+        """Resets the assertions stack."""
         true_formula = self.mgr.Bool(True)
         self.assertions_stack = [true_formula]
 
     @clear_pending_pop
     def add_assertion(self, formula, named=None):
+        """
+        Adds an assertion to the solver.
+
+        Args:
+            formula: The formula to be asserted.
+            named: An optional name for the assertion.
+        """
         self.assertions_stack.append(formula)
 
     @clear_pending_pop
     def solve(self, assumptions=None):
+        """
+        Solves the formula with the current assertions.
+
+        Args:
+            assumptions: A list of assumptions for the current query.
+
+        Returns:
+            True if the formula is satisfiable, False otherwise.
+        """
         if assumptions is not None:
             self.push()
             self.add_assertion(self.mgr.And(assumptions))
@@ -351,16 +376,34 @@ class MathematicaSolver(Solver):
 
     @clear_pending_pop
     def push(self, levels=1):
+        """
+        Pushes a new level on the assertion stack.
+
+        Args:
+            levels: The number of levels to push.
+        """
         for _ in range(levels):
             self.backtrack.append(len(self.assertions_stack))
 
     @clear_pending_pop
     def pop(self, levels=1):
+        """
+        Pops a level from the assertion stack.
+
+        Args:
+            levels: The number of levels to pop.
+        """
         for _ in range(levels):
             l = self.backtrack.pop()
             self.assertions_stack = self.assertions_stack[:l]
 
     def set_exit_callback(self, callback):
+        """
+        Sets a callback function to be called on exit.
+
+        Args:
+            callback: The callback function.
+        """
         self._exit_callback = callback
 
     def _exit(self):
@@ -397,6 +440,12 @@ class MathematicaConverter(Converter, DagWalker):
         return identifier.replace("_", "underscore")
 
     def __init__(self, environment):
+        """
+        Initializes a new MathematicaConverter.
+
+        Args:
+            environment: The PySMT environment.
+        """
         DagWalker.__init__(self)
 
         self.environment = environment
@@ -432,6 +481,15 @@ class MathematicaConverter(Converter, DagWalker):
         }
 
     def back(self, expr):
+        """
+        Converts a Mathematica expression back to a PySMT formula.
+
+        Args:
+            expr: The Mathematica expression to convert.
+
+        Returns:
+            The converted PySMT formula.
+        """
         return self._walk_back(expr, self.mgr)
 
     def _back_adapter(self, op):
@@ -469,6 +527,16 @@ class MathematicaConverter(Converter, DagWalker):
             raise ConvertExpressionError("Unsupported expression:", repr(term)) from exc
 
     def _walk_back(self, term, mgr):
+        """
+        Walks the Mathematica expression and converts it to a PySMT formula.
+
+        Args:
+            term: The Mathematica expression to convert.
+            mgr: The PySMT formula manager.
+
+        Returns:
+            The converted PySMT formula.
+        """
         stack = [term]
         while len(stack) > 0:
             current = stack.pop()

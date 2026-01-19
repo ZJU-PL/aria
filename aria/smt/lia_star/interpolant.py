@@ -29,15 +29,24 @@ import aria.smt.lia_star.statistics
 
 
 class Interpolant:
-    """Class for computing and managing interpolants."""
+    """
+    Class for computing and managing interpolants.
+    
+    This class uses Craig Interpolation (via Z3's Spacer/PDR fixed-point engine)
+    to find inductive invariants that separate the current SLS under-approximation
+    from the target formula A.
+    
+    If an inductive invariant I is found such that I implies Not(A), then we know
+    that A cannot be satisfied by any extension of the SLS, proving unsatisfiability.
+    """
 
     def __init__(self, a_func, b_func):
         """
         Initialize interpolant.
 
         Args:
-            a_func: A function returning a Z3 expression
-            b_func: A function returning a Z3 expression
+            a_func: A function returning a Z3 expression (Target formula A).
+            b_func: A function returning a Z3 expression (Definition formula B).
         """
         self.clauses = []
         self.inductive_clauses = []
@@ -47,10 +56,14 @@ class Interpolant:
 
     def update(self, sls):
         """
-        Update the sls underapproximation with each iteration.
+        Updates the semi-linear set (SLS) underapproximation for each iteration.
+
+        This method should be called at each step of the solving process to
+        provide the interpolant generator with the most recent underapproximation
+        of the solution space.
 
         Args:
-            sls: The semi-linear set
+            sls: The semi-linear set representing the current underapproximation.
         """
         self.sls = sls
 
@@ -82,6 +95,12 @@ class Interpolant:
     def _check_inductive(self, clause, inductive_set):
         """
         Check if a given clause is inductive on the given set.
+        
+        A clause C is inductive relative to a set I if:
+        Forall X, Y. (I(X) and B(Y)) => C(X + Y).
+        
+        This means if we start with a vector satisfying I, and add any vector
+        satisfying B (the definition), the result still satisfies C.
 
         Args:
             clause: Clause to check
@@ -116,14 +135,20 @@ class Interpolant:
     ):  # pylint: disable=too-many-positional-arguments
         """
         Call spacer to get the interpolant between 'left' and 'right'.
+        
+        Constructs a Horn clause system:
+        1. left(x) => I(x)
+        2. I(x) and right(x) => False
+        
+        Or with unfolding, effectively checking reachability.
 
         Args:
             lvars: Left variables
-            left: Left formula
+            left: Left formula (e.g., current SLS)
             rvars: Right variables
-            right: Right formula
-            x_vars: Input vector
-            unfold: Number of unfoldings
+            right: Right formula (e.g., A)
+            x_vars: Input vector (shared variables)
+            unfold: Number of unfoldings (steps of addition)
             direction: Direction of unfolding ("left" or "right")
 
         Returns:
@@ -208,6 +233,7 @@ class Interpolant:
         Sum n vectors satisfying B together to get an unfolding of n steps.
 
         To be added to the left and right side of an interpolation problem.
+        This simulates taking 'steps' transitions in the state space defined by B.
 
         Args:
             name: Base name for variables
@@ -243,11 +269,14 @@ class Interpolant:
 
     def add_forward_interpolant(self, unfold=0):
         """
-        Compute and record the forward interpolant for the given unfoldings.
+    Compute and record the forward interpolant for the given unfoldings.
+    
+    Interpolates between SLS (under-approximation) and A (target).
+    SLS => I, I /\ A => False.
 
-        Args:
-            unfold: Number of unfoldings (default: 0)
-        """
+    Args:
+        unfold: Number of unfoldings (default: 0)
+    """
         # Get B star and vars
         lambdas, star = self.sls.star_u()
 
@@ -261,11 +290,22 @@ class Interpolant:
 
     def add_backward_interpolant(self, unfold=0):
         """
-        Compute and record the backward interpolant for the given unfoldings.
+    Compute and record the backward interpolant for the given unfoldings.
+    
+    Interpolates between A (target) and SLS.
+    A => I, I /\ SLS => False.
+    Actually, the code does:
+    _interpolate(..., left=A, ..., right=SLS, ...)
+    
+    So A => I, I /\ SLS => False.
+    Then it records Not(I).
+    
+    If A => I and I /\ SLS => False, then SLS => Not(I).
+    So Not(I) is a candidate invariant for SLS that excludes A.
 
-        Args:
-            unfold: Number of unfoldings (default: 0)
-        """
+    Args:
+        unfold: Number of unfoldings (default: 0)
+    """
         # Get B star and vars
         lambdas, star = self.sls.star_u()
 
@@ -278,7 +318,12 @@ class Interpolant:
             self._add_clauses(simplify(Not(interp)))
 
     def filter_to_inductive(self):
-        """Filter all interpolants to only inductive clauses."""
+        """
+        Filter all interpolants to only inductive clauses.
+        
+        Iteratively removes clauses that are not inductive relative to the
+        remaining set of clauses.
+        """
         # Continue to apply the filter iteratively until every clause is kept
         inductive_subset = list(self.clauses)
         while True:

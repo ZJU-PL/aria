@@ -50,6 +50,13 @@ class FFBVSolver:
     """
 
     def __init__(self, theory: str = "QF_BV"):  # pylint: disable=unused-argument
+        """
+        Initializes a new FFBVSolver.
+
+        Args:
+            theory: The theory to be used by the solver. Currently, only
+                    'QF_BV' is supported.
+        """
         self.solver = z3.Solver()
         self.vars: Dict[str, z3.BitVecRef] = {}
         self.p: Optional[int] = None

@@ -33,7 +33,20 @@ def are_equal(s: z3.Solver, t1: z3.ExprRef, t2: z3.ExprRef) -> bool:
 
 
 def ctx_simplify(slv: z3.Solver, mdl: z3.ModelRef, t: z3.ExprRef) -> z3.ExprRef:
-    """Perform contextual simplification of a term based on a model"""
+    """
+    Performs contextual simplification of a term based on a model.
+
+    This function recursively simplifies a term by replacing subterms with
+    simpler equivalent terms in the given context.
+
+    Args:
+        slv: The Z3 solver context.
+        mdl: The Z3 model to use for simplification.
+        t: The term to simplify.
+
+    Returns:
+        The simplified term.
+    """
     subs: Set[z3.ExprRef] = subterms(t)
     values: Dict[z3.ExprRef, z3.ExprRef] = {s: mdl.eval(s) for s in subs}
     values[t] = mdl.eval(t)

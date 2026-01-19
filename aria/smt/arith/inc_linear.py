@@ -70,7 +70,14 @@ def abstract_to_linear(formula: ExprRef) -> Tuple[ExprRef, Dict[ExprRef, ExprRef
 
 
 def is_non_linear(expr: ExprRef) -> bool:
-    """Check if an expression is non-linear"""
+    """Check if an expression is non-linear.
+
+    Args:
+        expr: The Z3 expression to check.
+
+    Returns:
+        True if the expression is non-linear, False otherwise.
+    """
     if not is_app(expr):
         return False
 
@@ -124,12 +131,26 @@ def is_non_linear(expr: ExprRef) -> bool:
 
 
 def is_var_expr(expr: ExprRef) -> bool:
-    """Check if expression is a variable"""
+    """Check if an expression is a variable.
+
+    Args:
+        expr: The Z3 expression to check.
+
+    Returns:
+        True if the expression is a variable, False otherwise.
+    """
     return is_const(expr) and expr.decl().kind() == Z3_OP_UNINTERPRETED
 
 
 def post_order_traverse(formula: ExprRef) -> List[ExprRef]:
-    """Traverse formula in post-order"""
+    """Traverse a Z3 expression in post-order.
+
+    Args:
+        formula: The Z3 expression to traverse.
+
+    Returns:
+        A list of Z3 expressions in post-order.
+    """
     visited: Set[ExprRef] = set()
     result: List[ExprRef] = []
 
@@ -147,13 +168,29 @@ def post_order_traverse(formula: ExprRef) -> List[ExprRef]:
 
 
 def is_unsat(formula: ExprRef) -> bool:
+    """Check if a Z3 formula is unsatisfiable.
+
+    Args:
+        formula: The Z3 formula to check.
+
+    Returns:
+        True if the formula is unsatisfiable, False otherwise.
+    """
     solver = Solver()
     solver.add(formula)
     return solver.check() == unsat
 
 
 def validate_model(formula: ExprRef, model: ModelRef) -> bool:
-    """Validate if a model satisfies the formula in the non-linear world"""
+    """Validate if a model satisfies the formula in the non-linear world.
+
+    Args:
+        formula: The original non-linear Z3 formula.
+        model: The Z3 model to validate.
+
+    Returns:
+        True if the model satisfies the formula, False otherwise.
+    """
     # Substitute model values into the formula
     substituted = substitute_model(formula, model)
     # Check if the substituted formula is valid
@@ -163,7 +200,15 @@ def validate_model(formula: ExprRef, model: ModelRef) -> bool:
 
 
 def substitute_model(formula: ExprRef, model: ModelRef) -> ExprRef:
-    """Substitute model values into a formula"""
+    """Substitute model values into a formula.
+
+    Args:
+        formula: The Z3 expression to substitute into.
+        model: The Z3 model containing the values.
+
+    Returns:
+        The Z3 expression with the model values substituted.
+    """
     substitutions: List[Tuple[ExprRef, ExprRef]] = []
     for decl in model.decls():
         val = model[decl]
@@ -178,7 +223,24 @@ def substitute_model(formula: ExprRef, model: ModelRef) -> ExprRef:
 def generate_multiplication_refinements(
     expr: ExprRef, uf: FuncDeclRef, model: ModelRef
 ) -> List[ExprRef]:
-    """Generate refinement constraints for multiplication expressions"""
+    """Generate refinement constraints for multiplication expressions.
+
+    This function generates several types of constraints to refine the
+    abstraction of a multiplication expression:
+    - Zero constraints: If one of the operands is zero, the result must be zero.
+    - Monotonicity constraints: If the operands are positive, the multiplication
+      is monotonic.
+    - Tangent plane constraints: A linear approximation of the multiplication
+      at the current model's point.
+
+    Args:
+        expr: The multiplication expression.
+        uf: The uninterpreted function that abstracts the multiplication.
+        model: The current model.
+
+    Returns:
+        A list of refinement constraints.
+    """
     refinements = []
     x, y = expr.children()
 
@@ -225,7 +287,20 @@ def generate_multiplication_refinements(
 def generate_piecewise_linear_refinements(
     expr: ExprRef, uf: FuncDeclRef, model: ModelRef
 ) -> List[ExprRef]:
-    """Generate piecewise-linear refinement constraints"""
+    """Generate piecewise-linear refinement constraints for transcendental functions.
+
+    This function generates piecewise-linear approximations for transcendental
+    functions like sin and exp. It creates linear constraints for small
+    intervals around the current model's point.
+
+    Args:
+        expr: The transcendental function expression.
+        uf: The uninterpreted function that abstracts the transcendental function.
+        model: The current model.
+
+    Returns:
+        A list of refinement constraints.
+    """
     refinements = []
     op_name = str(expr.decl())
 
@@ -296,7 +371,21 @@ def generate_piecewise_linear_refinements(
 def generate_transcendental_refinements(
     expr: ExprRef, uf: FuncDeclRef, model: ModelRef
 ) -> List[ExprRef]:
-    """Generate refinement constraints for transcendental function expressions"""
+    """Generate refinement constraints for transcendental function expressions.
+
+    This function generates constraints to refine the abstraction of a
+    transcendental function. It adds tangent constraints at perturbed points
+    around the current model's point and also adds piecewise-linear
+    approximations.
+
+    Args:
+        expr: The transcendental function expression.
+        uf: The uninterpreted function that abstracts the transcendental function.
+        model: The current model.
+
+    Returns:
+        A list of refinement constraints.
+    """
     refinements = []
     op_name = str(expr.decl())
 
@@ -338,7 +427,20 @@ def generate_transcendental_refinements(
 def generate_refinement(
     formula: ExprRef, model: ModelRef, expr_to_uf_map: Dict[ExprRef, ExprRef]
 ) -> ExprRef:
-    """Generate comprehensive refinement constraints based on the current model"""
+    """Generate comprehensive refinement constraints based on the current model.
+
+    This function iterates through the formula and for each expression that
+    was abstracted, it generates a set of refinement constraints.
+
+    Args:
+        formula: The original non-linear formula.
+        model: The current model.
+        expr_to_uf_map: A map from original expressions to their UF replacements.
+
+    Returns:
+        A Z3 expression representing the conjunction of all refinement
+        constraints.
+    """
     refinements: List[ExprRef] = []
 
     for expr in post_order_traverse(formula):

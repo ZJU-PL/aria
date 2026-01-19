@@ -22,8 +22,21 @@ def is_literal(exp: z3.ExprRef) -> bool:
     return z3.is_const(exp) and exp.decl().kind() == z3.Z3_OP_UNINTERPRETED
 
 
-def bitblast(formula: z3.ExprRef):
-    """Bit-blast a formula and return the CNF, variable mapping, and bv2bool mapping."""
+def bitblast(
+    formula: z3.ExprRef,
+) -> Tuple[z3.ExprRef, Dict[str, int], Dict[str, List[str]]]:
+    """Bit-blast a formula and return the CNF, variable mapping, and bv2bool mapping.
+
+    Args:
+        formula: The Z3 formula to bit-blast.
+
+    Returns:
+        A tuple containing:
+        - The bit-blasted formula in CNF.
+        - A dictionary mapping variable names to their DIMACS ID.
+        - A dictionary mapping bit-vector variable names to a list of their
+          corresponding Boolean variable names.
+    """
     input_vars = get_variables(formula)
     map_clauses, map_vars, bv2bool = map_bitvector(input_vars)
 
@@ -39,8 +52,25 @@ def bitblast(formula: z3.ExprRef):
     return blasted, id_table, bv2bool
 
 
-def map_bitvector(input_vars):
-    """Map bit-vector variables to Boolean variables."""
+def map_bitvector(
+    input_vars: List[z3.ExprRef],
+) -> Tuple[List[z3.ExprRef], List[z3.ExprRef], Dict[str, List[str]]]:
+    """Map bit-vector variables to Boolean variables.
+
+    For each bit-vector variable, this function creates a set of Boolean
+    variables, one for each bit. It also creates clauses that enforce the
+    equivalence between the bit-vector variable and its Boolean representation.
+
+    Args:
+        input_vars: A list of Z3 variables.
+
+    Returns:
+        A tuple containing:
+        - A list of clauses that define the mapping.
+        - A list of the newly created Boolean variables.
+        - A dictionary mapping bit-vector variable names to a list of their
+          corresponding Boolean variable names.
+    """
     clauses = []
     mapped_vars = []
     bv2bool = {}
@@ -63,8 +93,19 @@ def map_bitvector(input_vars):
     return clauses, mapped_vars, bv2bool
 
 
-def dimacs_visitor(exp, table):
-    """Visit a Z3 expression and yield DIMACS variables."""
+def dimacs_visitor(exp: z3.ExprRef, table: Dict[str, int]):
+    """Recursively visit a Z3 expression and yield DIMACS variables.
+
+    This function is a generator that traverses a Z3 expression and yields
+    the corresponding DIMACS variables.
+
+    Args:
+        exp: The Z3 expression to visit.
+        table: A dictionary mapping variable names to their DIMACS ID.
+
+    Yields:
+        The DIMACS variables as strings.
+    """
     if is_literal(exp):
         name = exp.decl().name()
         if name not in table:
@@ -82,8 +123,19 @@ def dimacs_visitor(exp, table):
         raise ValueError(f"Unhandled type: {exp}")
 
 
-def dimacs_visitor_numeric(exp, table):
-    """Visit a Z3 expression and yield numeric DIMACS variables."""
+def dimacs_visitor_numeric(exp: z3.ExprRef, table: Dict[str, int]):
+    """Recursively visit a Z3 expression and yield numeric DIMACS variables.
+
+    This function is a generator that traverses a Z3 expression and yields
+    the corresponding DIMACS variables as integers.
+
+    Args:
+        exp: The Z3 expression to visit.
+        table: A dictionary mapping variable names to their DIMACS ID.
+
+    Yields:
+        The DIMACS variables as integers.
+    """
     if is_literal(exp):
         name = exp.decl().name()
         if name not in table:
@@ -99,8 +151,20 @@ def dimacs_visitor_numeric(exp, table):
         raise ValueError(f"Unhandled type: {exp}")
 
 
-def to_dimacs(cnf, table) -> Tuple[List[str], List[str]]:
-    """Convert a Z3 CNF formula to DIMACS format."""
+def to_dimacs(
+    cnf: z3.ExprRef, table: Dict[str, int]
+) -> Tuple[List[str], List[str]]:
+    """Convert a Z3 CNF formula to DIMACS format.
+
+    Args:
+        cnf: The Z3 CNF formula.
+        table: A dictionary mapping variable names to their DIMACS ID.
+
+    Returns:
+        A tuple containing:
+        - The DIMACS header.
+        - The DIMACS clauses.
+    """
     cnf_clauses = []
 
     for clause_expr in cnf:
@@ -122,8 +186,20 @@ def to_dimacs(cnf, table) -> Tuple[List[str], List[str]]:
     return cnf_header, cnf_clauses
 
 
-def to_dimacs_numeric(cnf, table):
-    """Convert a Z3 CNF formula to numeric DIMACS format."""
+def to_dimacs_numeric(
+    cnf: z3.ExprRef, table: Dict[str, int]
+) -> Tuple[List[str], List[List[int]]]:
+    """Convert a Z3 CNF formula to numeric DIMACS format.
+
+    Args:
+        cnf: The Z3 CNF formula.
+        table: A dictionary mapping variable names to their DIMACS ID.
+
+    Returns:
+        A tuple containing:
+        - The DIMACS header.
+        - The DIMACS clauses as a list of lists of integers.
+    """
     cnf_clauses = []
 
     for clause_expr in cnf:
@@ -144,7 +220,19 @@ def to_dimacs_numeric(cnf, table):
 def translate_smt2formula_to_cnf(
     formula: z3.ExprRef,
 ) -> Tuple[Dict[str, list], Dict[str, int], List[str], List[str]]:
-    """Translate a SMT2 formula to CNF format."""
+    """Translate a SMT2 formula to CNF format.
+
+    Args:
+        formula: The Z3 SMT2 formula to translate.
+
+    Returns:
+        A tuple containing:
+        - A dictionary mapping bit-vector variable names to a list of their
+          corresponding Boolean variable names.
+        - A dictionary mapping variable names to their DIMACS ID.
+        - The DIMACS header.
+        - The DIMACS clauses.
+    """
     blasted, id_table, bv2bool = bitblast(formula)
     header, clauses = to_dimacs(blasted, id_table)
     return bv2bool, id_table, header, clauses
@@ -152,15 +240,32 @@ def translate_smt2formula_to_cnf(
 
 def translate_smt2formula_to_numeric_clauses(
     formula: z3.ExprRef,
-) -> Tuple[Dict[str, list], Dict[str, int], List[str], List[int]]:
-    """Translate a SMT2 formula to numeric CNF format."""
+) -> Tuple[Dict[str, list], Dict[str, int], List[str], List[List[int]]]:
+    """Translate a SMT2 formula to numeric CNF format.
+
+    Args:
+        formula: The Z3 SMT2 formula to translate.
+
+    Returns:
+        A tuple containing:
+        - A dictionary mapping bit-vector variable names to a list of their
+          corresponding Boolean variable names.
+        - A dictionary mapping variable names to their DIMACS ID.
+        - The DIMACS header.
+        - The DIMACS clauses as a list of lists of integers.
+    """
     blasted, id_table, bv2bool = bitblast(formula)
     header, clauses = to_dimacs_numeric(blasted, id_table)
     return bv2bool, id_table, header, clauses
 
 
 def translate_smt2formula_to_cnf_file(formula: z3.ExprRef, output_file: str):
-    """Translate a SMT2 formula to CNF format and save it to a file."""
+    """Translate a SMT2 formula to CNF format and save it to a file.
+
+    Args:
+        formula: The Z3 SMT2 formula to translate.
+        output_file: The path to the output file.
+    """
     blasted, id_table, bv2bool = bitblast(formula)
     header, clauses = to_dimacs(blasted, id_table)
 

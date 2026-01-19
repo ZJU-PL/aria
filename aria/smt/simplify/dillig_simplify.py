@@ -134,7 +134,24 @@ def dillig_simplify(
     stats: Optional[SimplificationStats] = None,
     cache: Optional[SimplificationCache] = None,
 ) -> ExprRef:
-    """Simplify boolean expression using the Dillig algorithm."""
+    """
+    Simplifies a boolean expression using the Dillig algorithm.
+
+    This algorithm recursively simplifies a boolean expression by considering
+    the context of each sub-expression. For example, when simplifying a
+    sub-expression `c` in `And(c, rest)`, the context is `rest`.
+
+    Args:
+        expr: The Z3 expression to simplify.
+        solver: The Z3 solver to use. If None, a new solver is created.
+        ctx: The Z3 context to use. If None, the context of the expression
+             is used.
+        stats: An optional SimplificationStats object to store statistics.
+        cache: An optional SimplificationCache object to use for caching.
+
+    Returns:
+        The simplified expression.
+    """
     start_time = time.time()
 
     # Initialize tracking objects if needed
@@ -279,6 +296,9 @@ class TestDilligSimplify(unittest.TestCase):
     """Test cases for Dillig simplification algorithm."""
 
     def setUp(self):
+        """
+        Sets up the test case.
+        """
         self.ctx = Context()
         self.x = Bool("x", self.ctx)
         self.y = Bool("y", self.ctx)

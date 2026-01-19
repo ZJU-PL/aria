@@ -1,4 +1,10 @@
-"""Wrapper for MiniSat22 solver integration with SymPy."""
+"""
+This module provides a wrapper for the MiniSat22 SAT solver.
+
+It allows using MiniSat22 to check the satisfiability of a boolean
+expression in CNF format. The expression can be provided as a SymPy
+expression or as an EncodedCNF object.
+"""
 
 try:
     from sympy.assumptions.cnf import EncodedCNF

@@ -1,4 +1,12 @@
 #!/usr/bin/python3
+"""
+This script simplifies general (possibly nonlinear) mixed Boolean-arithmetic
+expressions.
+
+It uses a variety of techniques, including structural refactoring,
+partitioning, and targeted synthesis of linear parts. It can also
+optionally verify the simplification using Z3 or by evaluation.
+"""
 
 from __future__ import annotations
 
@@ -25,11 +33,21 @@ from node import mod_red, popcount
 from simplify import simplify_linear_mba, compute_bitwise_complexity
 
 
-# Verify that the original expression and the simplified one are equivalent
-# using Z3.
 def verify_using_z3(
     orig: str, simpl: str, bitCount: int, timeout: Optional[int] = None
 ) -> bool:
+    """
+    Verifies that the original and simplified expressions are equivalent using Z3.
+
+    Args:
+        orig: The original expression.
+        simpl: The simplified expression.
+        bitCount: The number of bits to use for the variables.
+        timeout: An optional timeout for the Z3 solver.
+
+    Returns:
+        True if the expressions are equivalent, False otherwise.
+    """
     if simpl == orig:
         return True
 
@@ -86,6 +104,14 @@ class GeneralSimplifier:
     def __init__(
         self, bitCount: int, modRed: bool = False, verifBitCount: Optional[int] = None
     ) -> None:
+        """
+        Initializes a new GeneralSimplifier.
+
+        Args:
+            bitCount: The number of bits to use for the variables.
+            modRed: Whether to reduce all constants modulo 2**bitCount.
+            verifBitCount: The number of bits to use for verification.
+        """
         self.__bitCount: int = bitCount
         self.__modulus: int = 2**bitCount
         self.__modRed: bool = modRed
@@ -796,7 +822,6 @@ class GeneralSimplifier:
         return simpl if self.__check_verify(expr, root) else ""
 
 
-# Simplify the given expression with given number of variables.
 def simplify_mba(
     expr: str,
     bitCount: int,
@@ -804,13 +829,26 @@ def simplify_mba(
     modRed: bool = False,
     verifBitCount: Optional[int] = None,
 ) -> str:
+    """
+    Simplifies a general mixed Boolean-arithmetic expression.
+
+    Args:
+        expr: The expression to simplify.
+        bitCount: The number of bits to use for the variables.
+        useZ3: Whether to use Z3 to verify the simplification.
+        modRed: Whether to reduce all constants modulo 2**bitCount.
+        verifBitCount: The number of bits to use for verification.
+
+    Returns:
+        The simplified expression.
+    """
     simplifier = GeneralSimplifier(bitCount, modRed, verifBitCount)
     simpl = simplifier.simplify(expr, useZ3)
     return simpl
 
 
-# Print options.
 def print_usage():
+    """Prints the usage instructions for the script."""
     print("Usage: python3 simplify.py")
     print(
         "Command line input not preceded by option indicators below are considered expressions to be simplified."
