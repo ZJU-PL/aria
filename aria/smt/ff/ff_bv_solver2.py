@@ -46,6 +46,16 @@ from .ff_ast import (
 __all__ = ["FFBVBridgeSolver"]
 
 
+def _is_prime(n: int) -> bool:
+    """Check if n is a prime number."""
+    if n < 2:
+        return False
+    for k in range(2, int(n**0.5) + 1):
+        if n % k == 0:
+            return False
+    return True
+
+
 class FFBVBridgeSolver:
     """Finite-field solver using Int/BV bridge for modulo arithmetic."""
 
@@ -80,8 +90,8 @@ class FFBVBridgeSolver:
     # Helpers
     # ------------------------------------------------------------------
     def _setup_field(self, p: int) -> None:
-        if p <= 1:
-            raise ValueError("Field size must be prime ≥ 2")
+        if not _is_prime(p):
+            raise ValueError(f"Field size must be prime ≥ 2, got {p}")
         self.p = p
         self.k = (p - 1).bit_length()
 
