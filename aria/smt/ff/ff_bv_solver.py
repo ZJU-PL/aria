@@ -33,6 +33,16 @@ from .ff_ast import (
 # -----------------------------------------------------------------------
 
 
+def _is_prime(n: int) -> bool:
+    """Check if n is a prime number."""
+    if n < 2:
+        return False
+    for k in range(2, int(n**0.5) + 1):
+        if n % k == 0:
+            return False
+    return True
+
+
 class FFBVSolver:
     """
     Faithful translation of finite-field (prime field) constraints to QF_BV.
@@ -69,8 +79,8 @@ class FFBVSolver:
     # -----------------------  helpers  ---------------------------------
     def _setup_field(self, p: int) -> None:
         """Set up the finite field with prime p."""
-        if p <= 1:
-            raise ValueError("Field size must be prime ≥ 2")
+        if not _is_prime(p):
+            raise ValueError(f"Field size must be prime ≥ 2, got {p}")
         self.p = p
         self.k = (p - 1).bit_length()
         self.kw = self.k * 2
@@ -86,7 +96,10 @@ class FFBVSolver:
             else:  # 'ff' or finite field
                 self.vars[v] = z3.BitVec(v, self.k)
                 # 0 ≤ v < p
-                self.solver.add(z3.ULT(self.vars[v], z3.BitVecVal(self.p, self.k)))
+                bound = z3.BitVecVal(self.p, self.k + 1)
+                self.solver.add(
+                    z3.ULT(z3.ZeroExt(1, self.vars[v]), bound)
+                )
 
     # ----------  BV arithmetic with exact mod-p reduction  --------------
     def _to_wide(self, e: z3.BitVecRef) -> z3.BitVecRef:
