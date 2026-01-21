@@ -4,6 +4,8 @@ from typing import List
 import z3
 from aria.utils import SolverResult
 
+import logging
+logger = logging.getLogger(__name__)
 
 def extract_literals_from_cnf(clauses: List) -> List[List]:
     """Convert Z3 Or-expr list into CNF-like list-of-lists."""
@@ -100,10 +102,23 @@ class FormulaAbstraction:
         fml = z3.And(z3.parse_smt2_string(smt2_string))
 
         # Apply preprocessing tactics
-        tactics = z3.Then(
-            "simplify", "elim-uncnstr", "solve-eqs", "simplify", "tseitin-cnf"
-        )
-        simplified = tactics(fml)
+        simplified = z3.Then(
+            z3.Tactic("simplify"),
+            z3.Tactic("elim-uncnstr"),
+            z3.Tactic("solve-eqs"),
+            z3.Tactic("simplify"),
+            z3.Tactic("tseitin-cnf"),
+        )(fml)
+
+        # for debugging, we keep it simple
+        # SMT-COMP 2025 - parallel/QF_LIA/scrambled103783.smt2
+        # simplified = z3.Tactic("simplify")(fml)
+        # simplified = z3.Tactic("elim-uncnstr")(simplified.as_expr())
+        # simplified = z3.Tactic("solve-eqs")(simplified.as_expr())
+        # simplified = z3.Tactic("simplify")(simplified.as_expr())
+        # # logger.debug(simplified.as_expr().sexpr())
+        # simplified = z3.Tactic("tseitin-cnf")(simplified.as_expr())
+
         result_expr = simplified.as_expr()
 
         # Check if we can decide immediately
