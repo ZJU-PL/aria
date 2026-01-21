@@ -1,37 +1,31 @@
 """
-SMTO (Satisfiability Modulo Theories and Oracles) solver using LLM as oracle handler.
+PS_SMTO: SMT Solver with Synthesized Specifications
 
-Supports two modes:
-1. Blackbox mode: Traditional SMTO where we can only observe input-output behavior
-2. Whitebox mode: Enhanced SMTO where we use LLM to analyze available component information
-
-Related: "Satisfiability and Synthesis Modulo Oracles"
-[Polgreen/Reynolds/Seshia VMCAI 2022]
+Bidirectional SAT/UNSAT solving for formulas with closed-box functions.
+Uses LLM to synthesize specifications from code/docs/examples.
 """
 
-# Import main solver
-from aria.ml.llm.smto.smto import OraxSolver
-
-# Import oracle definitions
-from aria.ml.llm.smto.oracles import (
-    OracleInfo,
-    WhiteboxOracleInfo,
-    OracleType,
-    OracleAnalysisMode,
+from aria.ml.llm.smto.ps_smto import (
+    PS_SMTOConfig,
+    PS_SMTOSolver,
+    SolvingMode,
+    SolvingResult,
+    SolvingStatus,
 )
-
-# Import utility classes
+from aria.ml.llm.smto.oracles import OracleInfo, WhiteboxOracleInfo
 from aria.ml.llm.smto.utils import OracleCache, ExplanationLogger
+from aria.ml.llm.smto.spec_synth import SpecSynthesizer, SynthesizedSpec
 
 __all__ = [
-    # Main solver
-    "OraxSolver",
-    # Oracle definitions
+    "PS_SMTOConfig",
+    "PS_SMTOSolver",
+    "SolvingMode",
+    "SolvingResult",
+    "SolvingStatus",
     "OracleInfo",
     "WhiteboxOracleInfo",
-    "OracleType",
-    "OracleAnalysisMode",
-    # Utility classes
     "OracleCache",
     "ExplanationLogger",
+    "SpecSynthesizer",
+    "SynthesizedSpec",
 ]
