@@ -7,7 +7,13 @@ This demonstrates the new PS_SMTO solver with:
 """
 
 import z3
-from aria.ml.llm.smto import PS_SMTOConfig, PS_SMTOSolver, WhiteboxOracleInfo
+from aria.ml.llm.smto import (
+    PS_SMTOConfig,
+    PS_SMTOSolver,
+    SolvingMode,
+    SolvingStatus,
+    WhiteboxOracleInfo,
+)
 
 
 def demo_simple_oracle():
@@ -25,7 +31,7 @@ def max2(x, y):
     config = PS_SMTOConfig(
         model="gpt-4",
         enable_spec_synthesis=True,
-        mode=PS_SMTOSolver.SolvingMode.BIDIRECTIONAL,
+        mode=SolvingMode.BIDIRECTIONAL,
     )
     
     solver = PS_SMTOSolver(config)
@@ -72,7 +78,7 @@ def abs(x):
     config = PS_SMTOConfig(
         model="gpt-4",
         enable_spec_synthesis=True,
-        mode=PS_SMTOSolver.SolvingMode.UNSAT_ONLY,
+        mode=SolvingMode.UNSAT_ONLY,
     )
     
     solver = PS_SMTOSolver(config)
@@ -109,7 +115,7 @@ def demo_docs_only():
     config = PS_SMTOConfig(
         model="gpt-4",
         enable_spec_synthesis=True,
-        mode=PS_SMTOSolver.SolvingMode.BIDIRECTIONAL,
+        mode=SolvingMode.BIDIRECTIONAL,
     )
     
     solver = PS_SMTOSolver(config)
@@ -143,8 +149,6 @@ def demo_docs_only():
 
 
 if __name__ == "__main__":
-    from aria.ml.llm.smto import SolvingStatus
-    
     print("=" * 50)
     print("PS_SMTO Demo - Specification Synthesis")
     print("=" * 50)

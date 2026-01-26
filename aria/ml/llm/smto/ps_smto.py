@@ -6,6 +6,7 @@ This module extends the base SMTO solver with:
 3. CDCL-style conflict learning
 """
 
+import re
 import time
 from dataclasses import dataclass, field
 from enum import Enum
@@ -15,6 +16,7 @@ import z3
 
 from aria.ml.llm.llmtool.LLM_utils import LLM
 from aria.ml.llm.smto.oracles import OracleInfo, WhiteboxOracleInfo
+from aria.ml.llm.smto.smtlib_parser import parse_smtlib_file, parse_smtlib_string
 from aria.ml.llm.smto.spec_synth.synthesizer import (
     SpecSynthesizer,
     SynthesizedSpec,
@@ -118,6 +120,95 @@ class PS_SMTOSolver:
 
         if self.config.enable_spec_synthesis:
             self._synthesize_spec(oracle_info)
+
+    def load_smtlib_file(self, file_path: str):
+        """Load an SMT-LIB file with oracle declarations and register oracles and constraints.
+        
+        Args:
+            file_path: Path to the SMT-LIB file
+        """
+        oracles, remaining_content = parse_smtlib_file(file_path)
+        
+        # Register all oracles
+        for oracle_info in oracles:
+            self.register_oracle(oracle_info)
+        
+        # Parse and add remaining SMT-LIB constraints
+        self._add_smtlib_constraints(remaining_content)
+
+    def load_smtlib_string(self, content: str):
+        """Load SMT-LIB content with oracle declarations from string and register oracles and constraints.
+        
+        Args:
+            content: SMT-LIB file content as string
+        """
+        oracles, remaining_content = parse_smtlib_string(content)
+        
+        # Register all oracles
+        for oracle_info in oracles:
+            self.register_oracle(oracle_info)
+        
+        # Parse and add remaining SMT-LIB constraints
+        self._add_smtlib_constraints(remaining_content)
+
+    def _add_smtlib_constraints(self, smtlib_content: str):
+        """Parse and add SMT-LIB constraints to the solver.
+        
+        Args:
+            smtlib_content: SMT-LIB content (without declare-nl statements)
+        """
+        # Remove comments
+        lines = smtlib_content.split('\n')
+        cleaned_lines = []
+        for line in lines:
+            # Remove line comments
+            if ';' in line:
+                line = line[:line.index(';')]
+            cleaned_lines.append(line)
+        cleaned_content = '\n'.join(cleaned_lines)
+        
+        # Remove commands that aren't constraints (check-sat, get-model, etc.)
+        # Keep only declare-const, declare-fun, and assert statements
+        commands_to_remove = ['check-sat', 'get-model', 'exit', 'push', 'pop']
+        for cmd in commands_to_remove:
+            # Remove (check-sat) and similar commands
+            pattern = rf'\({re.escape(cmd)}\s*\)'
+            cleaned_content = re.sub(pattern, '', cleaned_content, flags=re.IGNORECASE)
+        
+        # Try to parse using Z3's SMT-LIB parser
+        try:
+            # Parse the SMT-LIB string
+            assertions = z3.parse_smt2_string(cleaned_content)
+            for assertion in assertions:
+                self.solver.add(assertion)
+        except Exception as e:
+            self.explanation_logger.log(
+                f"Warning: Could not parse some SMT-LIB constraints: {e}",
+                level="basic"
+            )
+            # Fallback: try to extract individual assert statements
+            self._parse_assert_statements(cleaned_content)
+
+    def _parse_assert_statements(self, content: str):
+        """Fallback parser for assert statements.
+        
+        Args:
+            content: SMT-LIB content
+        """
+        # Find all assert statements
+        assert_pattern = r'\(assert\s+([^)]+)\)'
+        
+        for match in re.finditer(assert_pattern, content, re.MULTILINE | re.DOTALL):
+            assert_content = match.group(1)
+            try:
+                # Try to parse as SMT-LIB
+                smt = f"(assert {assert_content})"
+                assertions = z3.parse_smt2_string(smt)
+                for assertion in assertions:
+                    self.solver.add(assertion)
+            except Exception:
+                # Skip if we can't parse it
+                continue
 
     def _synthesize_spec(self, oracle_info: OracleInfo):
         """Synthesize specification from oracle information."""

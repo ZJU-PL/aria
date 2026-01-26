@@ -3,6 +3,7 @@ PS_SMTO: SMT Solver with Synthesized Specifications
 
 Bidirectional SAT/UNSAT solving for formulas with closed-box functions.
 Uses LLM to synthesize specifications from code/docs/examples.
+Supports SMTONL input format (SMT-LIB with declare-nl statements).
 """
 
 from aria.ml.llm.smto.ps_smto import (
@@ -13,6 +14,7 @@ from aria.ml.llm.smto.ps_smto import (
     SolvingStatus,
 )
 from aria.ml.llm.smto.oracles import OracleInfo, WhiteboxOracleInfo
+from aria.ml.llm.smto.smtlib_parser import parse_smtlib_file, parse_smtlib_string
 from aria.ml.llm.smto.utils import OracleCache, ExplanationLogger
 from aria.ml.llm.smto.spec_synth import SpecSynthesizer, SynthesizedSpec
 
@@ -28,4 +30,6 @@ __all__ = [
     "ExplanationLogger",
     "SpecSynthesizer",
     "SynthesizedSpec",
+    "parse_smtlib_file",
+    "parse_smtlib_string",
 ]
