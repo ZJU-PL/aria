@@ -11,10 +11,20 @@ CONDA_ENV_NAME="$(basename "${VENV_DIR}")"
 
 echo "Setting up aria environment..."
 
-# Ask user to choose between venv and conda
+# Prefer uv if available
+if command -v uv &> /dev/null; then
+    echo "Using uv for fast install."
+    if [ ! -d "${VENV_DIR}" ]; then
+        uv venv "${VENV_DIR}"
+    fi
+    source "${VENV_DIR}/bin/activate"
+    uv pip install -e "${SCRIPT_DIR}"
+else
+# Ask user to choose between venv and conda when uv is not available
 echo "Please choose your preferred environment manager:"
 echo "1) Python venv (default)"
 echo "2) Conda"
+echo "Tip: Install uv (https://docs.astral.sh/uv/) for much faster installs."
 read -p "Enter your choice (1/2): " env_choice
 
 # Default to venv if no choice is made
@@ -58,10 +68,11 @@ else
     exit 1
 fi
 
-# 2. Install dependencies
-echo "Installing dependencies..."
-pip install --upgrade pip
-pip install -r "${SCRIPT_DIR}/requirements.txt"
+    # 2. Install the package and its dependencies (from pyproject.toml)
+    echo "Installing package and dependencies..."
+    pip install --upgrade pip
+    pip install -e "${SCRIPT_DIR}"
+fi
 
 # 3. Download solver binaries
 # echo "Downloading solver binaries..."

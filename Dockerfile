@@ -30,17 +30,17 @@ RUN apt-get install -y \
     default-jre \
     zip
 
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
 # Create working directory
 WORKDIR /aria
 
 # Copy project files
 COPY . .
 
-# Install Python dependencies from requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Install project in development mode
-RUN pip install -e .
+# Install the package and its dependencies (from pyproject.toml)
+RUN uv pip install --system --no-cache -e .
 
 # Download additional binary solvers
 RUN python bin_solvers/download.py
