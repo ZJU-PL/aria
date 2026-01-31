@@ -15,10 +15,9 @@ bash setup_local_env.sh
 ~~~~
 
 
-The script will
+The script will use **uv** if installed (recommended, much faster); otherwise it will prompt for venv or Conda. It will
 - Create a Python virtual environment if it doesn't exist
-- Activate the virtual environment and install dependencies from requirements.txt
-- Download required solver binaries (CVC5, MathSAT, z3)
+- Install the package and its dependencies (from pyproject.toml)
 - Run unit tests if available
 
 TBD:
@@ -26,12 +25,18 @@ TBD:
 
 ## Install the Library Locally
 
-Local installziation via setup.py
+**With uv** (recommended; install from <https://docs.astral.sh/uv/>):
+~~~~
+uv venv && source .venv/bin/activate   # or on Windows: .venv\Scripts\activate
+uv pip install -e .
+~~~~
+
+With pip (dependencies are read from pyproject.toml):
 ~~~~
 pip install -e .
 ~~~~
 
-Then you can use a few cli tools of this library, add call the Python API in your own Python code.
+Then you can use the CLI tools and the Python API in your own code.
 
 ## Release the Repo to PyPI
 
@@ -49,9 +54,7 @@ aria/
 ├── docs/            # Documentation files
 ├── scripts/         # Utility scripts
 ├── examples/        # A few applications
-├── setup.py         # Package setup configuration (not ready)
-├── pytest.ini       # PyTest configuration
-└── requirements.txt # Project dependencies
+└── pyproject.toml   # Package config, dependencies, and tool settings
 ~~~~
 
 For Summer Research, Final Year Project Topics, please refer to
