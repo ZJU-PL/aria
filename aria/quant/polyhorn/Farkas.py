@@ -1,3 +1,5 @@
+"""Farkas lemma: linear duality for systems of polynomial inequalities."""
+
 from typing import List, Tuple
 
 from aria.quant.polyhorn.Constraint import CoefficientConstraint, PolynomialConstraint

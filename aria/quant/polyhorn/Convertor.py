@@ -1,3 +1,5 @@
+"""Conversion from strings/parse trees to polynomials and variable indexing."""
+
 from typing import List
 
 import lark

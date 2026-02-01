@@ -1,3 +1,5 @@
+"""Disjunctive normal form (DNF) for polynomial literals and conjunctions."""
+
 from typing import List
 
 

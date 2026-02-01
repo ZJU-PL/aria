@@ -1,3 +1,5 @@
+"""CLI helpers and boolean/argument parsing for CHC tools."""
+
 import argparse
 import os
 import os.path

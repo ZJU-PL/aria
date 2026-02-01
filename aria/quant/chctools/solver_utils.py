@@ -1,3 +1,5 @@
+"""Context manager for pushing/popping solver scope in CHC tools."""
+
 from typing import ContextManager
 
 

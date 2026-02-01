@@ -1,3 +1,5 @@
+"""Static helpers for equality/inequality constraints and coefficient solving."""
+
 from typing import List
 
 from aria.quant.polyhorn.Coefficient import Element

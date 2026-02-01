@@ -1,3 +1,5 @@
+"""Polynomial constraints: inequalities of the form polynomial sign 0 (e.g. p >= 0)."""
+
 from aria.quant.polyhorn.Coefficient import Coefficient
 from aria.quant.polyhorn.Polynomial import Polynomial
 

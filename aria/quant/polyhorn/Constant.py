@@ -1,3 +1,5 @@
+"""Constants, theorem names, and path/config helpers for PolyHorn."""
+
 import os
 import shutil
 from typing import Any

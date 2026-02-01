@@ -1,3 +1,5 @@
+"""Grammar-based parser for PolyHorn programs and constraints."""
+
 import lark
 from lark import Lark
 
