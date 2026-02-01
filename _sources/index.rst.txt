@@ -53,7 +53,7 @@ Install aria from source
 
 The setup script will:
 - Create a Python virtual environment if it doesn't exist
-- Activate the virtual environment and install dependencies from requirements.txt
+- Activate the virtual environment and install the package and its dependencies (from pyproject.toml)
 - Download required solver binaries (CVC5, MathSAT, z3)
 - Run unit tests if available
 
