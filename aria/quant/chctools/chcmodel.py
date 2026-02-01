@@ -1,4 +1,5 @@
-### Model Validator
+"""CHC model loading and validation from SMT-LIB files."""
+
 import logging
 import sys
 from typing import Any

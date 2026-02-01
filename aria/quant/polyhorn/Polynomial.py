@@ -1,3 +1,5 @@
+"""Polynomials, monomials, and arithmetic over them for PolyHorn."""
+
 from typing import List
 
 import numpy as np

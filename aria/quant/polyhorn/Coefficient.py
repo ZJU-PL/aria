@@ -1,3 +1,5 @@
+"""Coefficient elements and linear algebra for polynomial coefficients."""
+
 from fractions import Fraction
 from typing import List
 

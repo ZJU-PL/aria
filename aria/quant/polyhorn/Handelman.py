@@ -1,3 +1,5 @@
+"""Handelman representation: positivity via products of linear constraints."""
+
 from typing import List, Tuple
 
 from aria.quant.polyhorn.Constraint import PolynomialConstraint

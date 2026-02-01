@@ -1,3 +1,5 @@
+"""Positive-model construction: Horn clauses, theorem selection, and solver orchestration."""
+
 import os
 import subprocess
 from typing import List, Tuple

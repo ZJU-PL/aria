@@ -1,3 +1,5 @@
+"""Putinar's Positivstellensatz: polynomial positivity certificates for constraint systems."""
+
 from typing import List, Tuple
 
 import numpy as np

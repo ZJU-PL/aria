@@ -1,3 +1,5 @@
+"""SMT-LIB parser for constrained Horn clauses (declare-rel, rule, query)."""
+
 import collections
 import functools
 import sys

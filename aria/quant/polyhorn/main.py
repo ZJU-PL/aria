@@ -1,3 +1,5 @@
+"""PolyHorn entrypoint: config, pysmt integration, and main solver loop."""
+
 import json
 import random
 import string
