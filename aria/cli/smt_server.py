@@ -660,6 +660,24 @@ def parse_args():
     return parser.parse_args()
 
 
+def main():
+    """Entry point for the SMT server CLI."""
+    try:
+        args = parse_args()
+
+        # Set logging level
+        logging.getLogger().setLevel(getattr(logging, args.log_level))
+
+        # Start server
+        server = SmtServer(input_pipe=args.input_pipe, output_pipe=args.output_pipe)
+        server.run()
+    except KeyboardInterrupt:
+        logging.info("Server stopped by user")
+    except (OSError, IOError, ValueError) as e:
+        logging.error("Fatal error: %s", e)
+        sys.exit(1)
+
+
 if __name__ == "__main__":
     try:
         args = parse_args()

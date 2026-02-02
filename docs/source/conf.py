@@ -1,13 +1,23 @@
 # sys.path.insert(0, os.path.abspath('..'))
 
+import os
+import re
+
 # -- Project information -----------------------------------------------------
 
 project = "ARIA"
 copyright = "2024-2025, ZJU Programming Languages and Automated Reasoning Group"
 author = "ZJU Programming Languages and Automated Reasoning Group"
 
-# The full version, including alpha/beta/rc tags
-release = "v0.3"
+# Read version from pyproject.toml
+pyproject_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '..', 'pyproject.toml')
+with open(pyproject_path, 'r') as f:
+    content = f.read()
+    version_match = re.search(r'^version = ["\']([^"\']+)["\']', content, re.MULTILINE)
+    if version_match:
+        release = version_match.group(1)
+    else:
+        release = "0.1.0"
 
 # General configuration
 extensions = [

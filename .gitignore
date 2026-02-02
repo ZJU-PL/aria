@@ -1,8 +1,12 @@
+.codex
+.claude
+.trae
+.cursor
+.opencode
 # Build artifacts and temporary files
 .arla_logs
 smt_query_logs
 fully_existentially_constraints.txt
-.cursor
 .env
 .hypothesis
 .coverage*
@@ -366,14 +370,10 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-*smac3-output_*
-*smac3_output*
+*smac3*
 
 # Remove docker files
 docker
-
-# Others
-src
 
 projects
 _api
