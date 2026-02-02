@@ -38,9 +38,20 @@ pip install -e .
 
 Then you can use the CLI tools and the Python API in your own code.
 
+## Install from PyPI
+
+```bash
+pip install aria
+```
+
+Or install the latest development version:
+```bash
+pip install git+https://github.com/ZJU-PL/aria.git
+```
+
 ## Release the Repo to PyPI
 
-TBD (The repository is not yet released to PyPI.)
+See [PyPI Release Guide](https://github.com/ZJU-PL/aria/blob/main/RELEASE.md).
 
 ## Contributing
 
