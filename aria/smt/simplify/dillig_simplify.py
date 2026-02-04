@@ -54,23 +54,29 @@ class SimplificationStats:
 
 
 class SimplificationCache:
-    """LRU cache for solver results."""
+    """LRU cache for solver results keyed by expr + context."""
 
     def __init__(self, max_size: int = CACHE_SIZE):
         self.cache: Dict[str, bool] = {}
         self.max_size = max_size
 
-    def get(self, expr: z3.ExprRef) -> Optional[bool]:
-        key = expr.sexpr()
-        return self.cache.get(key)
+    @staticmethod
+    def _key(expr: z3.ExprRef, assertions: List[z3.ExprRef]) -> str:
+        # Include solver context to avoid unsound reuse across different contexts.
+        # Sorting provides stable ordering across solver clones.
+        assertions_key = "|".join(sorted(a.sexpr() for a in assertions))
+        return f"{expr.sexpr()}||{assertions_key}"
 
-    def put(self, expr: z3.ExprRef, result: bool):
+    def get(self, expr: z3.ExprRef, assertions: List[z3.ExprRef]) -> Optional[bool]:
+        return self.cache.get(self._key(expr, assertions))
+
+    def put(self, expr: z3.ExprRef, assertions: List[z3.ExprRef], result: bool):
         if len(self.cache) >= self.max_size:
             # Simple LRU: just clear half the cache
             keys = list(self.cache.keys())
             for k in keys[: len(keys) // 2]:
                 del self.cache[k]
-        self.cache[expr.sexpr()] = result
+        self.cache[self._key(expr, assertions)] = result
 
 
 def basic_simplify(expr: ExprRef) -> ExprRef:
@@ -106,7 +112,8 @@ def check_satisfiability(
     """Check if expression is satisfiable with timeout and caching."""
     try:
         # Check cache first
-        cached = cache.get(expr)
+        assertions = list(solver.assertions())
+        cached = cache.get(expr, assertions)
         if cached is not None:
             return cached
 
@@ -114,13 +121,15 @@ def check_satisfiability(
         result = solver.check()
 
         if result == sat:
-            cache.put(expr, True)
+            cache.put(expr, assertions, True)
             return True
         elif result == unsat:
-            cache.put(expr, False)
+            cache.put(expr, assertions, False)
             return False
         elif result == unknown:
-            raise TimeoutError(f"Solver timeout on expression: {expr}")
+            raise SimplificationTimeoutError(
+                f"Solver timeout on expression: {expr}"
+            )
         return None
     except Z3Exception as e:
         logger.error(f"Z3 error during satisfiability check: {e}")
@@ -189,16 +198,24 @@ def dillig_simplify(
 
         # Check if expression is always false
         check_solver.add(expr)
-        if check_satisfiability(check_solver, expr, cache) is False:
-            return BoolVal(False, ctx)
+        try:
+            if check_satisfiability(check_solver, expr, cache) is False:
+                return BoolVal(False, ctx)
+        except SimplificationTimeoutError as e:
+            logger.warning(str(e))
+            return expr
 
         # Check if expression is always true
         check_solver = Solver(ctx=ctx)
         for c in solver.assertions():
             check_solver.add(c)
         check_solver.add(Not(expr))
-        if check_satisfiability(check_solver, Not(expr), cache) is False:
-            return BoolVal(True, ctx)
+        try:
+            if check_satisfiability(check_solver, Not(expr), cache) is False:
+                return BoolVal(True, ctx)
+        except SimplificationTimeoutError as e:
+            logger.warning(str(e))
+            return expr
 
         return expr
 
@@ -254,7 +271,7 @@ def dillig_simplify(
 
             try:
                 new_ci = dillig_simplify(ci, child_solver, ctx, stats, cache)
-            except Z3Exception as e:
+            except (Z3Exception, SimplificationTimeoutError) as e:
                 logger.error(f"Z3 error during simplification: {e}")
                 new_ci = ci
 
@@ -311,12 +328,22 @@ class TestDilligSimplify(unittest.TestCase):
         self.assertEqual(dillig_simplify(expr).sexpr(), self.x.sexpr())
 
         # True/False cases
-        self.assertTrue(dillig_simplify(And(self.x, True)).eq(self.x))
-        self.assertTrue(dillig_simplify(Or(self.x, True)).eq(BoolVal(True, self.ctx)))
         self.assertTrue(
-            dillig_simplify(And(self.x, False)).eq(BoolVal(False, self.ctx))
+            dillig_simplify(And(self.x, BoolVal(True, self.ctx))).eq(self.x)
         )
-        self.assertTrue(dillig_simplify(Or(self.x, False)).eq(self.x))
+        self.assertTrue(
+            dillig_simplify(Or(self.x, BoolVal(True, self.ctx))).eq(
+                BoolVal(True, self.ctx)
+            )
+        )
+        self.assertTrue(
+            dillig_simplify(And(self.x, BoolVal(False, self.ctx))).eq(
+                BoolVal(False, self.ctx)
+            )
+        )
+        self.assertTrue(
+            dillig_simplify(Or(self.x, BoolVal(False, self.ctx))).eq(self.x)
+        )
 
 
 if __name__ == "__main__":
