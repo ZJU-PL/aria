@@ -26,6 +26,8 @@ from z3 import (
     is_bool,
     ExprRef,
     is_true,
+    is_const,
+    Z3_OP_UNINTERPRETED,
 )
 
 from ..base import Sampler, SamplingOptions, SamplingResult, Logic, SamplingMethod
@@ -93,17 +95,19 @@ class MCMCSampler(Sampler):
         # Extract variables from the formula
         self.variables = self._extract_variables(formula)
 
-    def _extract_variables(self, _formula):
+    def _extract_variables(self, formula: ExprRef):
         """Extract variables from the formula."""
-        # This is a simplified implementation - a more robust implementation
-        # would need to traverse the formula to find all variables
+        variables: Dict[str, ExprRef] = {}
 
-        # For simplicity, we'll just use the solver's model
-        if self.solver.check() == sat:
-            model = self.solver.model()
-            return {d.name(): d for d in model.decls()}
+        def visit(expr: ExprRef) -> None:
+            if is_const(expr) and expr.decl().kind() == Z3_OP_UNINTERPRETED:
+                variables[expr.decl().name()] = expr
+                return
+            for child in expr.children():
+                visit(child)
 
-        return {}
+        visit(formula)
+        return variables
 
     def get_supported_methods(self) -> Set[SamplingMethod]:
         """
@@ -144,6 +148,9 @@ class MCMCSampler(Sampler):
         if options is None:
             options = SamplingOptions(method=SamplingMethod.MCMC, num_samples=10)
 
+        if self.solver is None:
+            raise ValueError("Sampler is not initialized with a formula")
+
         # Ensure additional_options exists
         if (
             not hasattr(options, "additional_options")
@@ -158,6 +165,8 @@ class MCMCSampler(Sampler):
         # Extract MCMC-specific options
         burn_in = options.additional_options.get("burn_in", 100)
         step_size = options.additional_options.get("step_size", self.step_size)
+        range_min = options.additional_options.get("range_min")
+        range_max = options.additional_options.get("range_max")
         # max_attempts is available but not currently used in the loop
         # options.additional_options.get('max_attempts', self.max_attempts)
 
@@ -174,10 +183,12 @@ class MCMCSampler(Sampler):
                 },
             )
 
-        # Quick check for simple integer range problem (a >= min and a <= max)
-        # This is a special case that's easy to handle
-        if self._is_simple_integer_range():
-            return self._sample_simple_integer_range(options, start_time)
+        # Optional: simple integer range optimization when explicit bounds are provided
+        if range_min is not None and range_max is not None:
+            if self._is_simple_integer_range(range_min, range_max):
+                return self._sample_simple_integer_range(
+                    options, start_time, range_min, range_max
+                )
 
         samples = []
         unique_samples_set = set()
@@ -237,7 +248,10 @@ class MCMCSampler(Sampler):
             raise ValueError("Formula is unsatisfiable")
 
         model = self.solver.model()
-        return {str(d.name()): model[d] for d in model.decls()}
+        return {
+            name: model.eval(var, model_completion=True)
+            for name, var in self.variables.items()
+        }
 
     def _sample_to_tuple(self, sample: Dict[str, Any]) -> Tuple:
         """
@@ -372,56 +386,62 @@ class MCMCSampler(Sampler):
         self.solver.pop()
         return is_accepted
 
-    def _is_simple_integer_range(self) -> bool:
+    def _is_simple_integer_range(self, min_val: int, max_val: int) -> bool:
         """
         Check if the formula is a simple integer range (a >= min and a <= max).
 
         Returns:
             True if the formula is a simple integer range, False otherwise
         """
-        # This is a simplified detection - in practice would need more robust parsing
+        # Only attempt when explicit bounds are provided.
         try:
             if self.solver.check() != sat:
                 return False
 
             model = self.solver.model()
-            if len(model) != 1:  # Only one variable
+            if len(self.variables) != 1:  # Only one variable
                 return False
 
             # Get the variable and its value
-            var = model.decls()[0]
-            if not is_int(model[var]):  # Integer variable
+            var = next(iter(self.variables.values()))
+            if not is_int(model.eval(var, model_completion=True)):  # Integer variable
                 return False
 
-            # Check if the formula is of the form a >= min and a <= max
-            # by sampling several values and checking consistency
+            if min_val > max_val:
+                return False
 
-            # Sample a few points and check if they satisfy a continuous range
-            test_range = 20
-            valid_values = []
-
-            for i in range(1, test_range + 1):
+            # Verify all values within [min_val, max_val] are satisfiable
+            for i in range(min_val, max_val + 1):
                 self.solver.push()
                 self.solver.add(var == IntVal(i))
-                if self.solver.check() == sat:
-                    valid_values.append(i)
+                is_sat = self.solver.check() == sat
                 self.solver.pop()
-
-            # If no valid values or too few, not a simple range
-            if len(valid_values) <= 1:
-                return False
-
-            # Check if it's a continuous range
-            for i in range(1, len(valid_values)):
-                if valid_values[i] != valid_values[i - 1] + 1:
+                if not is_sat:
                     return False
+
+            # Verify bounds are tight
+            self.solver.push()
+            self.solver.add(var == IntVal(min_val - 1))
+            if self.solver.check() == sat:
+                self.solver.pop()
+                return False
+            self.solver.pop()
+
+            self.solver.push()
+            self.solver.add(var == IntVal(max_val + 1))
+            if self.solver.check() == sat:
+                self.solver.pop()
+                return False
+            self.solver.pop()
 
             # If we got here, it's likely a simple integer range
             return True
         except (ValueError, TypeError, AttributeError, IndexError):
             return False
 
-    def _sample_simple_integer_range(self, options, start_time) -> SamplingResult:
+    def _sample_simple_integer_range(
+        self, options, start_time, min_val: int, max_val: int
+    ) -> SamplingResult:
         """
         Sample from a simple integer range.
 
@@ -433,26 +453,10 @@ class MCMCSampler(Sampler):
             Sampling result with uniformly sampled integers
         """
         # Get the variable
-        model = self.solver.model()
-        var = model.decls()[0]
-        var_name = var.name()
+        var = next(iter(self.variables.values()))
+        var_name = var.decl().name()
 
-        # Find min and max by sampling
-        candidates = []
-        min_val = 1
-        max_val = 100  # An arbitrary upper bound to check
-
-        # Test each value
-        for i in range(min_val, max_val + 1):
-            self.solver.push()
-            self.solver.add(var == IntVal(i))
-            if self.solver.check() == sat:
-                candidates.append(i)
-            self.solver.pop()
-
-            # Stop if we haven't found a valid value for a while
-            if len(candidates) > 0 and i > candidates[-1] + 10:
-                break
+        candidates = list(range(min_val, max_val + 1))
 
         # Sample from candidates
         samples = []

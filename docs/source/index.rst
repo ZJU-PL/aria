@@ -70,39 +70,41 @@ Quick Start
   print(f"Formula is {'satisfiable' if result else 'unsatisfiable'}")
 
 .. toctree::
-   :maxdepth: 1
-   :caption: Contents:
+    :maxdepth: 2
+    :caption: Contents:
 
-    topics
-    applications
-    abduction
-    allsmt
-    automata
-    backbone
-    bool
-    cfl
-    cflobdd
-    chctools
-    cli
-    counting
-    ff
-    fol
-    global_params
-    itp
-    llm
-    monabs
-    optimization
-    pcdclt
-    polyhorn
-    prob
-    quantifiers
-    sampling
-    smt
-    srk
-    symbolic_abstraction
-    symautomata
-    synthesis
-    translator
-    unification
-    unsat_core
-    utils
+     tutorial
+     quickref
+     topics
+     applications
+     abduction
+     allsmt
+     automata
+     backbone
+     bool
+     cfl
+     cflobdd
+     chctools
+     cli
+     counting
+     ff
+     fol
+     global_params
+     itp
+     llm
+     monabs
+     optimization
+     pcdclt
+     polyhorn
+     prob
+     quantifiers
+     sampling
+     smt
+     srk
+     symbolic_abstraction
+     symautomata
+     synthesis
+     translator
+     unification
+     unsat_core
+     utils
