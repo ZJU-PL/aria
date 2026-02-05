@@ -1,0 +1,12 @@
+[package]
+name = "cnfsimplifier-rs"
+version = "0.1.0"
+edition = "2021"
+description = "Rust CNF simplifier with Python bindings"
+
+[lib]
+name = "cnfsimplifier_rs"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.22", features = ["extension-module"] }
