@@ -46,7 +46,7 @@ cnf_result = tseitin(dnf_formula)
 
 ## Submodules
 
-- `cnfsimplifier/`: Advanced CNF manipulation and simplification
+- `cnfsimplifier/`: Advanced CNF manipulation and simplification (optional Rust backend in `cnfsimplifier_rs/`)
 - `dissolve/`: Distributed SAT solving with dilemma rules
 - `features/`: SAT instance feature extraction and analysis
 - `interpolant/`: Boolean interpolation algorithms
