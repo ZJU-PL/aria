@@ -50,8 +50,5 @@ Optimization
 Learning & AI
 ==========
 
-**LLM-Enhanced Reasoning**
-  Integrate large language models with ``aria/llm`` for constraint solving.
-
 **Machine Learning Features**
   Extract features for ML-based solver selection with ``aria/ml``.

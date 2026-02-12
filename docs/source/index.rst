@@ -25,9 +25,8 @@ Aria is a comprehensive toolkit for automated reasoning and constraint solving. 
 * **MaxSAT Solving** (``aria/bool/maxsat``) - Solve maximum satisfiability problems
 * **QBF Solving** - Quantified Boolean formula solving
 * **Finite Field Solving** (``aria/smt/ff``) - SMT for Galois field constraints
-* **Interactive Theorem Proving** (``aria/itp``) - Proof assistant framework
-* **LLM Integration** (``aria/llm``) - Language model enhanced reasoning
-* **Automata Operations** (``aria/automata``) - Finite automata algorithms
+ * **Interactive Theorem Proving** (``aria/itp``) - Proof assistant framework
+ * **Automata Operations** (``aria/automata``) - Finite automata algorithms
 * **Program Synthesis** (``aria/synthesis``) - Synthesize programs from specifications
 * **Context-Free Language Reachability** (``aria/cfl``) - CFL solving algorithms
 * **Unification** (``aria/unification``) - Term unification algorithms
@@ -91,7 +90,6 @@ Quick Start
      fol
      global_params
      itp
-     llm
      monabs
      optimization
      pcdclt

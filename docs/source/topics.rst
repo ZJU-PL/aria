@@ -36,9 +36,6 @@ Theory-Specific Solving
 AI-Enhanced Reasoning
 =========
 
-**LLM-Driven Constraint Solving** (``aria/llm``)
-  Integrate large language models to guide solver heuristics, strategy selection, and formula preprocessing.
-
 **Machine Learning for Solvers** (``aria/ml``)
   Extract features for learned solver selection, clause learning prediction, and variable ordering heuristics.
 

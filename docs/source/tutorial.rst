@@ -444,29 +444,16 @@ Count the number of satisfying assignments:
 
 .. code-block:: python
 
-    from aria.counting import ModelCounter
+    from aria.counting.bool_counting import model_counter
+    import z3
 
-    from aria.smt import Solver, INT
-
-    # Create a simple formula
-    s = Solver()
-    x = s.NewSymbol(INT, "x")
-    y = s.NewSymbol(INT, "y")
-
-    s.add(x > 0)
-    s.add(x < 5)
-    s.add(y > 0)
-    s.add(y < 5)
-    s.add(y != x)
+    # Create a simple Boolean formula
+    a, b, c = z3.Bools("a b c")
+    formula = z3.And(z3.Or(a, b), z3.Or(b, c))
 
     # Count models
-    counter = ModelCounter(s)
-    count = counter.count()
+    count = model_counter(formula, [a, b, c])
     print(f"Number of solutions: {count}")
-
-    # Get approximate count for large solution spaces
-    approx = counter.approx_count()
-    print(f"Approximate count: {approx}")
 
 AllSMT (All Satisfying Models)
 ==============================
@@ -475,26 +462,19 @@ Enumerate all satisfying models:
 
 .. code-block:: python
 
-    from aria.allsmt import AllSMT
+    from aria.allsmt import create_allsmt_solver
+    import z3
 
-    from aria.smt import Solver, INT
+    # Create variables
+    x, y = z3.Ints("x y")
+    formula = z3.And(x > 0, x < 4, y > 0, y < 4)
 
-    s = Solver()
-    x = s.NewSymbol(INT, "x")
-    y = s.NewSymbol(INT, "y")
-
-    s.add(x > 0)
-    s.add(x < 4)
-    s.add(y > 0)
-    s.add(y < 4)
-
-    # Enumerate all models
-    all_smt = AllSMT(s)
-    for i, model in enumerate(all_smt):
-        if i >= 10:  # Limit output
-            print(f"... and more models exist")
-            break
-        print(f"Model {i+1}: x={model[x]}, y={model[y]}")
+    # Create AllSMT solver and enumerate models
+    solver = create_allsmt_solver("z3")
+    solver.solve(formula, [x, y], model_limit=10)
+    
+    print(f"Found {solver.get_model_count()} models")
+    solver.print_models(verbose=True)
 
 Unsat Core Extraction
 =====================
@@ -503,28 +483,29 @@ Find the minimal unsatisfiable subset of constraints:
 
 .. code-block:: python
 
-    from aria.unsat_core import MUSExtractor
+    from aria.unsat_core import UnsatCoreComputer, Algorithm
+    import z3
 
-    from aria.smt import Solver, INT
+    # Create constraints
+    x, y = z3.Ints("x y")
+    constraints = [
+        x > 0,
+        y > 0,
+        x + y < 10,
+        x > 100,  # This contradicts x + y < 10
+    ]
 
-    s = Solver()
+    # Extract unsat core using MARCO algorithm
+    def solver_factory():
+        s = z3.Solver()
+        return s
 
-    # Create a satisfiable base formula
-    x = s.NewSymbol(INT, "x")
-    y = s.NewSymbol(INT, "y")
+    computer = UnsatCoreComputer(Algorithm.MARCO)
+    result = computer.compute_unsat_core(constraints, solver_factory)
 
-    s.add_assertion(x > 0, name="x_positive")
-    s.add_assertion(y > 0, name="y_positive")
-    s.add_assertion(x + y < 10, name="sum_constraint")
-
-    # Now add an unsatisfiable constraint
-    s.add_assertion(x > 100, name="x_large")  # Contradicts x + y < 10
-
-    # Extract unsat core
-    extractor = MUSExtractor(s)
-    core = extractor.extract()
-
-    print(f"Unsatisfiable core: {core}")
+    print(f"Found {len(result.cores)} unsat core(s)")
+    for i, core in enumerate(result.cores):
+        print(f"Core {i+1}: {[j for j in core]}")
 
 Backbone Literals
 =================
@@ -533,23 +514,19 @@ Find literals that are true in all models:
 
 .. code-block:: python
 
-    from aria.backbone import BackboneComputer
+    from aria.backbone.sat_backbone import compute_backbone
+    from aria.bool.sat.pysat_solver import PySATSolver
+    from pysat.formula import CNF
 
-    from aria.smt import Solver, INT
+    # Create a CNF formula
+    cnf = CNF()
+    cnf.append([1, 2])      # x1 OR x2
+    cnf.append([-1, 3])     # NOT x1 OR x3
+    cnf.append([2, -3])     # x2 OR NOT x3
 
-    s = Solver()
-
-    x = s.NewSymbol(INT, "x")
-    y = s.NewSymbol(INT, "y")
-
-    s.add(x > 0)
-    s.add(x < 10)
-    s.add(y > x)
-    s.add(y < 5)
-
-    # Compute backbone
-    computer = BackboneComputer(s)
-    backbone = computer.compute()
+    # Compute backbone literals (those true in all models)
+    solver = PySATSolver()
+    backbone = compute_backbone(cnf, solver)
 
     print(f"Backbone literals: {backbone}")
     print(f"These literals are true in ALL satisfying assignments")
@@ -561,25 +538,19 @@ Eliminate quantifiers from formulas:
 
 .. code-block:: python
 
-    from aria.quant.qe import QuantifierEliminator
-
-    from aria.smt import Solver, INT
-
-    s = Solver()
-    x = s.NewSymbol(INT, "x")
-    y = s.NewSymbol(INT, "y")
+    from aria.quant.qe import ExternalQESolver, QEBackend
+    import z3
 
     # Formula: exists x. (x > 0 and x < y)
-    # Eliminating x gives: y > 0
+    # Eliminating x gives: y > 1
 
-    from pysmt.typing import BOOL
-    from pysmt.shortcuts import Plus, Equals, GT, LT, And, Exists
+    x, y = z3.Ints("x y")
+    formula = z3.Exists([x], z3.And(x > 0, x < y))
 
-    formula = Exists([x], And(x > 0, x < y))
-
-    eliminator = QuantifierEliminator(s)
-    result = eliminator.eliminate(formula)
-
+    # Use Z3's built-in quantifier elimination
+    qe = z3.Tactic("qe")
+    result = qe(z3.ForAll([x], z3.Not(formula)))
+    
     print(f"Original: exists x. (x > 0 and x < y)")
     print(f"After QE: {result}")
 
@@ -590,30 +561,26 @@ Find explanations for observations:
 
 .. code-block:: python
 
-    from aria.abduction import Abductor
+    from aria.abduction.abductor import abduce
+    import z3
 
-    from aria.smt import Solver, INT
-    from pysmt.shortcuts import And, GT, LT, Implies
+    x, y = z3.Ints("x y")
 
-    s = Solver()
+    # Background knowledge: x > 0 and x < 10
+    background = z3.And(x > 0, x < 10)
 
-    x = s.NewSymbol(INT, "x")
-    y = s.NewSymbol(INT, "y")
+    # Observation: y > 5 (with additional constraint)
+    observation = z3.And(y > 5, x == y)
 
-    # Background knowledge: x > 0 and x < 10 implies y > 5
-    background = And(x > 0, x < 10, Implies(And(x > 0, x < 10), y > 5))
+    # Find explanation (sufficient condition for observation given background)
+    explanation = abduce(background, observation)
 
-    # Observation: y > 5
-    observation = y > 5
-
-    # Find explanations
-    abductor = Abductor(s)
-    explanations = abductor.abduce(background, observation)
-
+    print(f"Background: {background}")
     print(f"Observation: {observation}")
-    print(f"Possible explanations:")
-    for exp in explanations:
-        print(f"  {exp}")
+    if explanation is not None:
+        print(f"Explanation: {explanation}")
+    else:
+        print(f"No explanation found")
 
 Sampling Solutions
 ===================
@@ -622,26 +589,22 @@ Generate diverse solutions:
 
 .. code-block:: python
 
-    from aria.sampling import SamplingEngine
+    from aria.sampling import sample_models_from_formula, Logic, SamplingOptions, SamplingMethod
+    import z3
 
-    from aria.smt import Solver, INT
-
-    s = Solver()
-    x = s.NewSymbol(INT, "x")
-    y = s.NewSymbol(INT, "y")
-
-    s.add(x > 0)
-    s.add(x < 100)
-    s.add(y > 0)
-    s.add(y < 100)
+    # Create formula
+    x, y = z3.Ints("x y")
+    formula = z3.And(x > 0, x < 100, y > 0, y < 100)
 
     # Sample diverse solutions
-    sampler = SamplingEngine(s)
+    options = SamplingOptions(
+        method=SamplingMethod.ENUMERATION,
+        num_samples=5
+    )
+    result = sample_models_from_formula(formula, Logic.QF_LIA, options)
 
-    # Get 5 diverse samples
-    samples = sampler.sample(num_samples=5)
-    for i, model in enumerate(samples):
-        print(f"Sample {i+1}: x={model[x]}, y={model[y]}")
+    for i, model in enumerate(result.samples):
+        print(f"Sample {i+1}: {model}")
 
 Optimization (MaxSAT)
 ====================
@@ -650,31 +613,27 @@ Find the optimal solution:
 
 .. code-block:: python
 
-    from aria.optimization import MaxSATSolver, SoftConstraint
+    from aria.bool.maxsat import MaxSATSolver
+    from pysat.formula import WCNF
 
-    from aria.smt import Solver, INT
+    # Create a weighted CNF formula
+    wcnf = WCNF()
 
-    s = Solver()
+    # Hard constraints (must be satisfied)
+    wcnf.append([1, 2])  # x1 OR x2
+    wcnf.append([-1, 3])  # NOT x1 OR x3
 
-    x = s.NewSymbol(INT, "x")
-    y = s.NewSymbol(INT, "y")
+    # Soft constraints (with weights - higher weight = more important)
+    wcnf.append([1], weight=1)   # Prefer x1
+    wcnf.append([2], weight=2)   # Strongly prefer x2
 
-    # Hard constraints
-    s.add(x >= 0)
-    s.add(y >= 0)
-    s.add(x + y <= 100)
+    # Solve MaxSAT
+    solver = MaxSATSolver(wcnf)
+    result = solver.solve()
 
-    # Soft constraints (optimization objectives)
-    soft1 = SoftConstraint(x + y <= 80, weight=1)  # Prefer x + y <= 80
-    soft2 = SoftConstraint(x >= y, weight=2)  # Strongly prefer x >= y
-
-    solver = MaxSATSolver(s, [soft1, soft2])
-    result = solver.max_sat()
-
-    if result.success:
-        print(f"Optimal x = {result.model[x]}")
-        print(f"Optimal y = {result.model[y]}")
-        print(f"Soft constraints satisfied: {result.num_soft_satisfied}")
+    if result.status == True:
+        print(f"Optimal solution: {result.model}")
+        print(f"Cost (unsatisfied weight): {result.cost}")
 
 --------------
 Best Practices
@@ -711,19 +670,25 @@ Always handle solver exceptions:
 
 .. code-block:: python
 
-    from aria.smt import Solver, SolverError, SolverTimeoutError
+    import z3
 
-    s = Solver()
-    x = s.NewSymbol(INT, "x")
+    # Create solver with timeout
+    s = z3.Solver()
+    s.set("timeout", 1000)  # 1 second timeout
+
+    x = z3.Int("x")
 
     try:
         s.add(x > 0)
-        if s.solve():
-            print(f"x = {s.get_value(x)}")
-    except SolverTimeoutError:
-        print("Solver timed out - try simplifying the problem")
-    except SolverError as e:
-        print(f"Solver error: {e}")
+        result = s.check()
+        if result == z3.sat:
+            print(f"x = {s.model()[x]}")
+        elif result == z3.unknown:
+            print("Solver returned unknown - try simplifying the problem")
+        else:
+            print("Unsatisfiable")
+    except z3.Z3Exception as e:
+        print(f"Z3 error: {e}")
 
 ------------
 Next Steps
