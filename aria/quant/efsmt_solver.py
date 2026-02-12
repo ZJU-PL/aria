@@ -28,7 +28,11 @@ class EFSMTStrategy(Enum):
 
 
 def simple_cegar_efsmt(logic: str, y: List[z3.ExprRef], phi: z3.ExprRef, maxloops=None):
-    """Solves exists x. forall y. phi(x, y) with simple CEGAR"""
+    """Solves exists x. forall y. phi(x, y) with simple CEGAR.
+    
+    Returns:
+        Tuple of (z3.CheckSatResult, Optional[z3.ModelRef])
+    """
     # x = [item for item in get_vars(phi) if item not in y]   # can be slow
     x = [item for item in get_variables(phi) if item not in y]
     # set_param("verbose", 15)
@@ -57,7 +61,7 @@ def simple_cegar_efsmt(logic: str, y: List[z3.ExprRef], phi: z3.ExprRef, maxloop
         # print("round: ", loops)
         eres = esolver.check()
         if eres == z3.unsat:
-            return z3.unsat
+            return z3.unsat, None
         emodel = esolver.model()
         mappings = [(var, emodel.eval(var, model_completion=True)) for var in x]
         sub_phi = z3.simplify(z3.substitute(phi, mappings))
@@ -70,8 +74,8 @@ def simple_cegar_efsmt(logic: str, y: List[z3.ExprRef], phi: z3.ExprRef, maxloop
             esolver.add(sub_phi)
             fsolver.pop()
         else:
-            return z3.sat
-    return z3.unknown
+            return z3.sat, emodel
+    return z3.unknown, None
 
 
 class EFSMTSolver:
