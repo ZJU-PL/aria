@@ -553,106 +553,83 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <section id="model-counting">
 <h3><a class="toc-backref" href="#id11" role="doc-backlink">Model Counting</a><a class="headerlink" href="#model-counting" title="Link to this heading"></a></h3>
 <p>Count the number of satisfying assignments:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.counting</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModelCounter</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.counting.bool_counting</span><span class="w"> </span><span class="kn">import</span> <span class="n">model_counter</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">aria.smt</span><span class="w"> </span><span class="kn">import</span> <span class="n">Solver</span><span class="p">,</span> <span class="n">INT</span>
-
-<span class="c1"># Create a simple formula</span>
-<span class="n">s</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">()</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">NewSymbol</span><span class="p">(</span><span class="n">INT</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">NewSymbol</span><span class="p">(</span><span class="n">INT</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
-
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">x</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">)</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">y</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">y</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">)</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">y</span> <span class="o">!=</span> <span class="n">x</span><span class="p">)</span>
+<span class="c1"># Create a simple Boolean formula</span>
+<span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Bools</span><span class="p">(</span><span class="s2">&quot;a b c&quot;</span><span class="p">)</span>
+<span class="n">formula</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="n">z3</span><span class="o">.</span><span class="n">Or</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">),</span> <span class="n">z3</span><span class="o">.</span><span class="n">Or</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">))</span>
 
 <span class="c1"># Count models</span>
-<span class="n">counter</span> <span class="o">=</span> <span class="n">ModelCounter</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-<span class="n">count</span> <span class="o">=</span> <span class="n">counter</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+<span class="n">count</span> <span class="o">=</span> <span class="n">model_counter</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="p">[</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">])</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of solutions: </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-<span class="c1"># Get approximate count for large solution spaces</span>
-<span class="n">approx</span> <span class="o">=</span> <span class="n">counter</span><span class="o">.</span><span class="n">approx_count</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Approximate count: </span><span class="si">{</span><span class="n">approx</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="allsmt-all-satisfying-models">
 <h3><a class="toc-backref" href="#id12" role="doc-backlink">AllSMT (All Satisfying Models)</a><a class="headerlink" href="#allsmt-all-satisfying-models" title="Link to this heading"></a></h3>
 <p>Enumerate all satisfying models:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.allsmt</span><span class="w"> </span><span class="kn">import</span> <span class="n">AllSMT</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.allsmt</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_allsmt_solver</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">aria.smt</span><span class="w"> </span><span class="kn">import</span> <span class="n">Solver</span><span class="p">,</span> <span class="n">INT</span>
+<span class="c1"># Create variables</span>
+<span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="s2">&quot;x y&quot;</span><span class="p">)</span>
+<span class="n">formula</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">,</span> <span class="n">y</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">y</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">)</span>
 
-<span class="n">s</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">()</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">NewSymbol</span><span class="p">(</span><span class="n">INT</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">NewSymbol</span><span class="p">(</span><span class="n">INT</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="c1"># Create AllSMT solver and enumerate models</span>
+<span class="n">solver</span> <span class="o">=</span> <span class="n">create_allsmt_solver</span><span class="p">(</span><span class="s2">&quot;z3&quot;</span><span class="p">)</span>
+<span class="n">solver</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">],</span> <span class="n">model_limit</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">x</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">)</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">y</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">y</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">)</span>
-
-<span class="c1"># Enumerate all models</span>
-<span class="n">all_smt</span> <span class="o">=</span> <span class="n">AllSMT</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">model</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">all_smt</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">10</span><span class="p">:</span>  <span class="c1"># Limit output</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;... and more models exist&quot;</span><span class="p">)</span>
-        <span class="k">break</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">: x=</span><span class="si">{</span><span class="n">model</span><span class="p">[</span><span class="n">x</span><span class="p">]</span><span class="si">}</span><span class="s2">, y=</span><span class="si">{</span><span class="n">model</span><span class="p">[</span><span class="n">y</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="n">solver</span><span class="o">.</span><span class="n">get_model_count</span><span class="p">()</span><span class="si">}</span><span class="s2"> models&quot;</span><span class="p">)</span>
+<span class="n">solver</span><span class="o">.</span><span class="n">print_models</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="unsat-core-extraction">
 <h3><a class="toc-backref" href="#id13" role="doc-backlink">Unsat Core Extraction</a><a class="headerlink" href="#unsat-core-extraction" title="Link to this heading"></a></h3>
 <p>Find the minimal unsatisfiable subset of constraints:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.unsat_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">MUSExtractor</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.unsat_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnsatCoreComputer</span><span class="p">,</span> <span class="n">Algorithm</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">aria.smt</span><span class="w"> </span><span class="kn">import</span> <span class="n">Solver</span><span class="p">,</span> <span class="n">INT</span>
+<span class="c1"># Create constraints</span>
+<span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="s2">&quot;x y&quot;</span><span class="p">)</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">y</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="n">x</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">,</span>  <span class="c1"># This contradicts x + y &lt; 10</span>
+<span class="p">]</span>
 
-<span class="n">s</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">()</span>
+<span class="c1"># Extract unsat core using MARCO algorithm</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">solver_factory</span><span class="p">():</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Solver</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">s</span>
 
-<span class="c1"># Create a satisfiable base formula</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">NewSymbol</span><span class="p">(</span><span class="n">INT</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">NewSymbol</span><span class="p">(</span><span class="n">INT</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="n">computer</span> <span class="o">=</span> <span class="n">UnsatCoreComputer</span><span class="p">(</span><span class="n">Algorithm</span><span class="o">.</span><span class="n">MARCO</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">computer</span><span class="o">.</span><span class="n">compute_unsat_core</span><span class="p">(</span><span class="n">constraints</span><span class="p">,</span> <span class="n">solver_factory</span><span class="p">)</span>
 
-<span class="n">s</span><span class="o">.</span><span class="n">add_assertion</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;x_positive&quot;</span><span class="p">)</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add_assertion</span><span class="p">(</span><span class="n">y</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;y_positive&quot;</span><span class="p">)</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add_assertion</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;sum_constraint&quot;</span><span class="p">)</span>
-
-<span class="c1"># Now add an unsatisfiable constraint</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add_assertion</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;x_large&quot;</span><span class="p">)</span>  <span class="c1"># Contradicts x + y &lt; 10</span>
-
-<span class="c1"># Extract unsat core</span>
-<span class="n">extractor</span> <span class="o">=</span> <span class="n">MUSExtractor</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-<span class="n">core</span> <span class="o">=</span> <span class="n">extractor</span><span class="o">.</span><span class="n">extract</span><span class="p">()</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsatisfiable core: </span><span class="si">{</span><span class="n">core</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">cores</span><span class="p">)</span><span class="si">}</span><span class="s2"> unsat core(s)&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">core</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">cores</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Core </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="p">[</span><span class="n">j</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">core</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="backbone-literals">
 <h3><a class="toc-backref" href="#id14" role="doc-backlink">Backbone Literals</a><a class="headerlink" href="#backbone-literals" title="Link to this heading"></a></h3>
 <p>Find literals that are true in all models:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.backbone</span><span class="w"> </span><span class="kn">import</span> <span class="n">BackboneComputer</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.backbone.sat_backbone</span><span class="w"> </span><span class="kn">import</span> <span class="n">compute_backbone</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.bool.sat.pysat_solver</span><span class="w"> </span><span class="kn">import</span> <span class="n">PySATSolver</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pysat.formula</span><span class="w"> </span><span class="kn">import</span> <span class="n">CNF</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">aria.smt</span><span class="w"> </span><span class="kn">import</span> <span class="n">Solver</span><span class="p">,</span> <span class="n">INT</span>
+<span class="c1"># Create a CNF formula</span>
+<span class="n">cnf</span> <span class="o">=</span> <span class="n">CNF</span><span class="p">()</span>
+<span class="n">cnf</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>      <span class="c1"># x1 OR x2</span>
+<span class="n">cnf</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>     <span class="c1"># NOT x1 OR x3</span>
+<span class="n">cnf</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">])</span>     <span class="c1"># x2 OR NOT x3</span>
 
-<span class="n">s</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">()</span>
-
-<span class="n">x</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">NewSymbol</span><span class="p">(</span><span class="n">INT</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">NewSymbol</span><span class="p">(</span><span class="n">INT</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
-
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">x</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">)</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">y</span> <span class="o">&gt;</span> <span class="n">x</span><span class="p">)</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">y</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">)</span>
-
-<span class="c1"># Compute backbone</span>
-<span class="n">computer</span> <span class="o">=</span> <span class="n">BackboneComputer</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-<span class="n">backbone</span> <span class="o">=</span> <span class="n">computer</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
+<span class="c1"># Compute backbone literals (those true in all models)</span>
+<span class="n">solver</span> <span class="o">=</span> <span class="n">PySATSolver</span><span class="p">()</span>
+<span class="n">backbone</span> <span class="o">=</span> <span class="n">compute_backbone</span><span class="p">(</span><span class="n">cnf</span><span class="p">,</span> <span class="n">solver</span><span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Backbone literals: </span><span class="si">{</span><span class="n">backbone</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;These literals are true in ALL satisfying assignments&quot;</span><span class="p">)</span>
@@ -662,24 +639,18 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <section id="quantifier-elimination">
 <h3><a class="toc-backref" href="#id15" role="doc-backlink">Quantifier Elimination</a><a class="headerlink" href="#quantifier-elimination" title="Link to this heading"></a></h3>
 <p>Eliminate quantifiers from formulas:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.quant.qe</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantifierEliminator</span>
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">aria.smt</span><span class="w"> </span><span class="kn">import</span> <span class="n">Solver</span><span class="p">,</span> <span class="n">INT</span>
-
-<span class="n">s</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">()</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">NewSymbol</span><span class="p">(</span><span class="n">INT</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">NewSymbol</span><span class="p">(</span><span class="n">INT</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.quant.qe</span><span class="w"> </span><span class="kn">import</span> <span class="n">ExternalQESolver</span><span class="p">,</span> <span class="n">QEBackend</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
 
 <span class="c1"># Formula: exists x. (x &gt; 0 and x &lt; y)</span>
-<span class="c1"># Eliminating x gives: y &gt; 0</span>
+<span class="c1"># Eliminating x gives: y &gt; 1</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">pysmt.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">BOOL</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pysmt.shortcuts</span><span class="w"> </span><span class="kn">import</span> <span class="n">Plus</span><span class="p">,</span> <span class="n">Equals</span><span class="p">,</span> <span class="n">GT</span><span class="p">,</span> <span class="n">LT</span><span class="p">,</span> <span class="n">And</span><span class="p">,</span> <span class="n">Exists</span>
+<span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="s2">&quot;x y&quot;</span><span class="p">)</span>
+<span class="n">formula</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Exists</span><span class="p">([</span><span class="n">x</span><span class="p">],</span> <span class="n">z3</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">y</span><span class="p">))</span>
 
-<span class="n">formula</span> <span class="o">=</span> <span class="n">Exists</span><span class="p">([</span><span class="n">x</span><span class="p">],</span> <span class="n">And</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">y</span><span class="p">))</span>
-
-<span class="n">eliminator</span> <span class="o">=</span> <span class="n">QuantifierEliminator</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">eliminator</span><span class="o">.</span><span class="n">eliminate</span><span class="p">(</span><span class="n">formula</span><span class="p">)</span>
+<span class="c1"># Use Z3&#39;s built-in quantifier elimination</span>
+<span class="n">qe</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Tactic</span><span class="p">(</span><span class="s2">&quot;qe&quot;</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">qe</span><span class="p">(</span><span class="n">z3</span><span class="o">.</span><span class="n">ForAll</span><span class="p">([</span><span class="n">x</span><span class="p">],</span> <span class="n">z3</span><span class="o">.</span><span class="n">Not</span><span class="p">(</span><span class="n">formula</span><span class="p">)))</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Original: exists x. (x &gt; 0 and x &lt; y)&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;After QE: </span><span class="si">{</span><span class="n">result</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -689,87 +660,75 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <section id="abductive-reasoning">
 <h3><a class="toc-backref" href="#id16" role="doc-backlink">Abductive Reasoning</a><a class="headerlink" href="#abductive-reasoning" title="Link to this heading"></a></h3>
 <p>Find explanations for observations:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.abduction</span><span class="w"> </span><span class="kn">import</span> <span class="n">Abductor</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.abduction.abductor</span><span class="w"> </span><span class="kn">import</span> <span class="n">abduce</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">aria.smt</span><span class="w"> </span><span class="kn">import</span> <span class="n">Solver</span><span class="p">,</span> <span class="n">INT</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pysmt.shortcuts</span><span class="w"> </span><span class="kn">import</span> <span class="n">And</span><span class="p">,</span> <span class="n">GT</span><span class="p">,</span> <span class="n">LT</span><span class="p">,</span> <span class="n">Implies</span>
+<span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="s2">&quot;x y&quot;</span><span class="p">)</span>
 
-<span class="n">s</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">()</span>
+<span class="c1"># Background knowledge: x &gt; 0 and x &lt; 10</span>
+<span class="n">background</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">)</span>
 
-<span class="n">x</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">NewSymbol</span><span class="p">(</span><span class="n">INT</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">NewSymbol</span><span class="p">(</span><span class="n">INT</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="c1"># Observation: y &gt; 5 (with additional constraint)</span>
+<span class="n">observation</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="n">y</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">,</span> <span class="n">x</span> <span class="o">==</span> <span class="n">y</span><span class="p">)</span>
 
-<span class="c1"># Background knowledge: x &gt; 0 and x &lt; 10 implies y &gt; 5</span>
-<span class="n">background</span> <span class="o">=</span> <span class="n">And</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">,</span> <span class="n">Implies</span><span class="p">(</span><span class="n">And</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">),</span> <span class="n">y</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">))</span>
+<span class="c1"># Find explanation (sufficient condition for observation given background)</span>
+<span class="n">explanation</span> <span class="o">=</span> <span class="n">abduce</span><span class="p">(</span><span class="n">background</span><span class="p">,</span> <span class="n">observation</span><span class="p">)</span>
 
-<span class="c1"># Observation: y &gt; 5</span>
-<span class="n">observation</span> <span class="o">=</span> <span class="n">y</span> <span class="o">&gt;</span> <span class="mi">5</span>
-
-<span class="c1"># Find explanations</span>
-<span class="n">abductor</span> <span class="o">=</span> <span class="n">Abductor</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-<span class="n">explanations</span> <span class="o">=</span> <span class="n">abductor</span><span class="o">.</span><span class="n">abduce</span><span class="p">(</span><span class="n">background</span><span class="p">,</span> <span class="n">observation</span><span class="p">)</span>
-
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Background: </span><span class="si">{</span><span class="n">background</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Observation: </span><span class="si">{</span><span class="n">observation</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Possible explanations:&quot;</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">exp</span> <span class="ow">in</span> <span class="n">explanations</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">exp</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">explanation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Explanation: </span><span class="si">{</span><span class="n">explanation</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No explanation found&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="sampling-solutions">
 <h3><a class="toc-backref" href="#id17" role="doc-backlink">Sampling Solutions</a><a class="headerlink" href="#sampling-solutions" title="Link to this heading"></a></h3>
 <p>Generate diverse solutions:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.sampling</span><span class="w"> </span><span class="kn">import</span> <span class="n">SamplingEngine</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.sampling</span><span class="w"> </span><span class="kn">import</span> <span class="n">sample_models_from_formula</span><span class="p">,</span> <span class="n">Logic</span><span class="p">,</span> <span class="n">SamplingOptions</span><span class="p">,</span> <span class="n">SamplingMethod</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">aria.smt</span><span class="w"> </span><span class="kn">import</span> <span class="n">Solver</span><span class="p">,</span> <span class="n">INT</span>
-
-<span class="n">s</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">()</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">NewSymbol</span><span class="p">(</span><span class="n">INT</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">NewSymbol</span><span class="p">(</span><span class="n">INT</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
-
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">x</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">)</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">y</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">y</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">)</span>
+<span class="c1"># Create formula</span>
+<span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="s2">&quot;x y&quot;</span><span class="p">)</span>
+<span class="n">formula</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">,</span> <span class="n">y</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">y</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">)</span>
 
 <span class="c1"># Sample diverse solutions</span>
-<span class="n">sampler</span> <span class="o">=</span> <span class="n">SamplingEngine</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="n">options</span> <span class="o">=</span> <span class="n">SamplingOptions</span><span class="p">(</span>
+    <span class="n">method</span><span class="o">=</span><span class="n">SamplingMethod</span><span class="o">.</span><span class="n">ENUMERATION</span><span class="p">,</span>
+    <span class="n">num_samples</span><span class="o">=</span><span class="mi">5</span>
+<span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">sample_models_from_formula</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">Logic</span><span class="o">.</span><span class="n">QF_LIA</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
 
-<span class="c1"># Get 5 diverse samples</span>
-<span class="n">samples</span> <span class="o">=</span> <span class="n">sampler</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">num_samples</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">model</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">samples</span><span class="p">):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sample </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">: x=</span><span class="si">{</span><span class="n">model</span><span class="p">[</span><span class="n">x</span><span class="p">]</span><span class="si">}</span><span class="s2">, y=</span><span class="si">{</span><span class="n">model</span><span class="p">[</span><span class="n">y</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">model</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">samples</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sample </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">model</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="optimization-maxsat">
 <h3><a class="toc-backref" href="#id18" role="doc-backlink">Optimization (MaxSAT)</a><a class="headerlink" href="#optimization-maxsat" title="Link to this heading"></a></h3>
 <p>Find the optimal solution:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.optimization</span><span class="w"> </span><span class="kn">import</span> <span class="n">MaxSATSolver</span><span class="p">,</span> <span class="n">SoftConstraint</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.bool.maxsat</span><span class="w"> </span><span class="kn">import</span> <span class="n">MaxSATSolver</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pysat.formula</span><span class="w"> </span><span class="kn">import</span> <span class="n">WCNF</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">aria.smt</span><span class="w"> </span><span class="kn">import</span> <span class="n">Solver</span><span class="p">,</span> <span class="n">INT</span>
+<span class="c1"># Create a weighted CNF formula</span>
+<span class="n">wcnf</span> <span class="o">=</span> <span class="n">WCNF</span><span class="p">()</span>
 
-<span class="n">s</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">()</span>
+<span class="c1"># Hard constraints (must be satisfied)</span>
+<span class="n">wcnf</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>  <span class="c1"># x1 OR x2</span>
+<span class="n">wcnf</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>  <span class="c1"># NOT x1 OR x3</span>
 
-<span class="n">x</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">NewSymbol</span><span class="p">(</span><span class="n">INT</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">NewSymbol</span><span class="p">(</span><span class="n">INT</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="c1"># Soft constraints (with weights - higher weight = more important)</span>
+<span class="n">wcnf</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="mi">1</span><span class="p">],</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>   <span class="c1"># Prefer x1</span>
+<span class="n">wcnf</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="mi">2</span><span class="p">],</span> <span class="n">weight</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>   <span class="c1"># Strongly prefer x2</span>
 
-<span class="c1"># Hard constraints</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">y</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">100</span><span class="p">)</span>
+<span class="c1"># Solve MaxSAT</span>
+<span class="n">solver</span> <span class="o">=</span> <span class="n">MaxSATSolver</span><span class="p">(</span><span class="n">wcnf</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
 
-<span class="c1"># Soft constraints (optimization objectives)</span>
-<span class="n">soft1</span> <span class="o">=</span> <span class="n">SoftConstraint</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">80</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># Prefer x + y &lt;= 80</span>
-<span class="n">soft2</span> <span class="o">=</span> <span class="n">SoftConstraint</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="n">y</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># Strongly prefer x &gt;= y</span>
-
-<span class="n">solver</span> <span class="o">=</span> <span class="n">MaxSATSolver</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="p">[</span><span class="n">soft1</span><span class="p">,</span> <span class="n">soft2</span><span class="p">])</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">max_sat</span><span class="p">()</span>
-
-<span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">success</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Optimal x = </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">x</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Optimal y = </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">y</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Soft constraints satisfied: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">num_soft_satisfied</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Optimal solution: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">model</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cost (unsatisfied weight): </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">cost</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -798,19 +757,25 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <section id="error-handling">
 <h3><a class="toc-backref" href="#id22" role="doc-backlink">Error Handling</a><a class="headerlink" href="#error-handling" title="Link to this heading"></a></h3>
 <p>Always handle solver exceptions:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.smt</span><span class="w"> </span><span class="kn">import</span> <span class="n">Solver</span><span class="p">,</span> <span class="n">SolverError</span><span class="p">,</span> <span class="n">SolverTimeoutError</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
 
-<span class="n">s</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">()</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">NewSymbol</span><span class="p">(</span><span class="n">INT</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="c1"># Create solver with timeout</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Solver</span><span class="p">()</span>
+<span class="n">s</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;timeout&quot;</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>  <span class="c1"># 1 second timeout</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">solve</span><span class="p">():</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;x = </span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="k">except</span> <span class="n">SolverTimeoutError</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Solver timed out - try simplifying the problem&quot;</span><span class="p">)</span>
-<span class="k">except</span> <span class="n">SolverError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Solver error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">check</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">result</span> <span class="o">==</span> <span class="n">z3</span><span class="o">.</span><span class="n">sat</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;x = </span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">model</span><span class="p">()[</span><span class="n">x</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">result</span> <span class="o">==</span> <span class="n">z3</span><span class="o">.</span><span class="n">unknown</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Solver returned unknown - try simplifying the problem&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Unsatisfiable&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">z3</span><span class="o">.</span><span class="n">Z3Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Z3 error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Now that you’ve completed this tutorial, explore these topics:</p>
