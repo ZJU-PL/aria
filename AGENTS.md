@@ -4,7 +4,7 @@ This file provides guidance for AI agents working in this repository.
 
 ## Project Overview
 
-ARIA is a library for automated reasoning including SMT solving, model counting, and symbolic computation. It supports Python 3.8+.
+ARIA is a library for automated reasoning including SMT solving, theorem proving, and symbolic computation. It supports Python 3.8+.
 
 ## Build, Lint, and Test Commands
 
@@ -121,53 +121,3 @@ if __name__ == "__main__":
     main()
 ```
 
-### Working with LLM-Generated Code
-
-This repository contains LLM-generated code marked with `FIXME` or `TODO`. When modifying such code:
-
-1. Verify the algorithm against academic papers or established implementations
-2. Test against known solvers (e.g., PySat's RC2 for MaxSAT)
-3. Remove the `FIXME` comment once validated
-
-### Common Patterns
-
-```python
-# SAT solver (pysat)
-solver = Solver(name='glucose4', bootstrap_with=hard_clauses, incr=True)
-solver.add_clause([1, 2, -3])
-result = solver.solve()
-if result:
-    model = solver.get_model()
-solver.delete()
-
-# PySMT
-x = Symbol("x", INT)
-with Solver(name="z3", logic=QF_LIA) as solver:
-    solver.add_assertion(x > y)
-    if solver.solve():
-        model = solver.get_model()
-```
-
-## File Organization
-
-```
-aria/
-├── bool/           # SAT, MaxSAT, CNF
-├── smt/            # SMT solving
-├── quant/          # Quantified formulas
-├── optimization/   # MaxSAT, OMT
-├── srk/            # Symbolic reasoning kernel
-├── sampling/       # Model sampling
-├── tests/          # Main test suite
-└── cli/            # Command-line interfaces
-```
-
-## Key Dependencies
-
-- **PySMT**: Formula manipulation and SMT interface
-- **z3-solver**: Z3 SMT solver
-- **python-sat**: SAT solver interface (glucose, cadical, etc.)
-
-## Environment Variables
-
-- `ARIA_DEBUG`: Set to "true" to enable debug mode
