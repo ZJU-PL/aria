@@ -20,7 +20,22 @@ if solver is None or solver == Z3SOLVER:
     import z3
     from z3 import *
 
-    _py2expr = z3.z3._py2expr
+    if hasattr(z3, "_py2expr"):
+        _py2expr = z3._py2expr
+    elif hasattr(z3.z3, "_py2expr"):
+        _py2expr = z3.z3._py2expr
+    else:
+        def _py2expr(value):
+            """Convert Python literals into Z3 expressions."""
+            if isinstance(value, z3.ExprRef):
+                return value
+            if isinstance(value, bool):
+                return z3.BoolVal(value)
+            if isinstance(value, int):
+                return z3.IntVal(value)
+            if isinstance(value, float):
+                return z3.RealVal(value)
+            raise TypeError("Cannot convert to Z3 expression: {}".format(type(value)))
 
     def is_if(x: z3.ExprRef) -> bool:
         """

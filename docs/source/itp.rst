@@ -218,6 +218,69 @@ Global configuration options in ``config.py``:
 - ``admit_enabled`` - Whether to allow admitting theorems without proof
 - ``timing`` - Enable/disable performance logging
 
+Bounded Second-Order Decision Procedure (PoC)
+---------------------------------------------
+
+The reverse-math PoC module provides a bounded, finite-domain decision
+procedure for a two-sorted language (natural numbers + sets of naturals):
+
+- module: ``aria.itp.theories.logic.reverse_math_poc``
+- intended scope: closed formulas in a finite universe
+- not a full implementation of ``RCA_0`` / ``ACA_0``
+
+AST-based usage
+~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   from aria.itp.theories.logic.reverse_math_poc import (
+       ExistsSet,
+       FiniteSecondOrderDecisionProcedure,
+       ForallNat,
+       NatConst,
+       NatIn,
+       NatLt,
+       NatVar,
+       iff,
+   )
+
+   n = NatVar("n")
+   formula = ExistsSet(
+       "X",
+       ForallNat("n", 4, iff(NatIn(n, "X"), NatLt(n, NatConst(2)))),
+   )
+   proc = FiniteSecondOrderDecisionProcedure(universe_size=4)
+   result = proc.decide(formula)
+   print(result.valid, result.evaluated_states)
+
+Text parser usage
+~~~~~~~~~~~~~~~~~
+
+For scripts and CLI-like flows, formulas can be parsed from a compact
+S-expression DSL:
+
+.. code-block:: python
+
+   from aria.itp.theories.logic.reverse_math_poc import (
+       FiniteSecondOrderDecisionProcedure,
+       parse_formula_text,
+   )
+
+   src = "(exists_set X (forall_nat n 4 (iff (in n X) (lt n 2))))"
+   formula = parse_formula_text(src)
+   result = FiniteSecondOrderDecisionProcedure(4).decide(formula)
+   print(result.valid)
+
+Supported parser operators include:
+
+- ``true``, ``false``
+- ``(eq t1 t2)``, ``(lt t1 t2)``, ``(in t X)``
+- ``(not f)``, ``(and f1 f2 ...)``, ``(or f1 f2 ...)``
+- ``(implies f1 f2)``, ``(iff f1 f2)``
+- ``(forall_nat n bound f)``, ``(exists_nat n bound f)``
+- ``(forall_set X f)``, ``(exists_set X f)``
+- terms: integer literals, variables, and ``(+ t1 t2)``
+
 Installation
 -----------
 
