@@ -61,6 +61,11 @@
 </ul>
 </li>
 <li><a class="reference internal" href="#configuration">Configuration</a></li>
+<li><a class="reference internal" href="#bounded-second-order-decision-procedure-poc">Bounded Second-Order Decision Procedure (PoC)</a><ul>
+<li><a class="reference internal" href="#ast-based-usage">AST-based usage</a></li>
+<li><a class="reference internal" href="#text-parser-usage">Text parser usage</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#installation">Installation</a></li>
 <li><a class="reference internal" href="#api-reference">API Reference</a><ul>
 <li><a class="reference internal" href="#core-classes">Core Classes</a><ul>
@@ -310,6 +315,66 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">admit_enabled</span></code> - Whether to allow admitting theorems without proof</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">timing</span></code> - Enable/disable performance logging</p></li>
 </ul>
+</section>
+<section id="bounded-second-order-decision-procedure-poc">
+<h2>Bounded Second-Order Decision Procedure (PoC)<a class="headerlink" href="#bounded-second-order-decision-procedure-poc" title="Link to this heading"></a></h2>
+<p>The reverse-math PoC module provides a bounded, finite-domain decision
+procedure for a two-sorted language (natural numbers + sets of naturals):</p>
+<ul class="simple">
+<li><p>module: <code class="docutils literal notranslate"><span class="pre">aria.itp.theories.logic.reverse_math_poc</span></code></p></li>
+<li><p>intended scope: closed formulas in a finite universe</p></li>
+<li><p>not a full implementation of <code class="docutils literal notranslate"><span class="pre">RCA_0</span></code> / <code class="docutils literal notranslate"><span class="pre">ACA_0</span></code></p></li>
+</ul>
+<section id="ast-based-usage">
+<h3>AST-based usage<a class="headerlink" href="#ast-based-usage" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.itp.theories.logic.reverse_math_poc</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ExistsSet</span><span class="p">,</span>
+    <span class="n">FiniteSecondOrderDecisionProcedure</span><span class="p">,</span>
+    <span class="n">ForallNat</span><span class="p">,</span>
+    <span class="n">NatConst</span><span class="p">,</span>
+    <span class="n">NatIn</span><span class="p">,</span>
+    <span class="n">NatLt</span><span class="p">,</span>
+    <span class="n">NatVar</span><span class="p">,</span>
+    <span class="n">iff</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">n</span> <span class="o">=</span> <span class="n">NatVar</span><span class="p">(</span><span class="s2">&quot;n&quot;</span><span class="p">)</span>
+<span class="n">formula</span> <span class="o">=</span> <span class="n">ExistsSet</span><span class="p">(</span>
+    <span class="s2">&quot;X&quot;</span><span class="p">,</span>
+    <span class="n">ForallNat</span><span class="p">(</span><span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">iff</span><span class="p">(</span><span class="n">NatIn</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="s2">&quot;X&quot;</span><span class="p">),</span> <span class="n">NatLt</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">NatConst</span><span class="p">(</span><span class="mi">2</span><span class="p">)))),</span>
+<span class="p">)</span>
+<span class="n">proc</span> <span class="o">=</span> <span class="n">FiniteSecondOrderDecisionProcedure</span><span class="p">(</span><span class="n">universe_size</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">proc</span><span class="o">.</span><span class="n">decide</span><span class="p">(</span><span class="n">formula</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">valid</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">evaluated_states</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="text-parser-usage">
+<h3>Text parser usage<a class="headerlink" href="#text-parser-usage" title="Link to this heading"></a></h3>
+<p>For scripts and CLI-like flows, formulas can be parsed from a compact
+S-expression DSL:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.itp.theories.logic.reverse_math_poc</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">FiniteSecondOrderDecisionProcedure</span><span class="p">,</span>
+    <span class="n">parse_formula_text</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">src</span> <span class="o">=</span> <span class="s2">&quot;(exists_set X (forall_nat n 4 (iff (in n X) (lt n 2))))&quot;</span>
+<span class="n">formula</span> <span class="o">=</span> <span class="n">parse_formula_text</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">FiniteSecondOrderDecisionProcedure</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">decide</span><span class="p">(</span><span class="n">formula</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">valid</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Supported parser operators include:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">true</span></code>, <code class="docutils literal notranslate"><span class="pre">false</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">(eq</span> <span class="pre">t1</span> <span class="pre">t2)</span></code>, <code class="docutils literal notranslate"><span class="pre">(lt</span> <span class="pre">t1</span> <span class="pre">t2)</span></code>, <code class="docutils literal notranslate"><span class="pre">(in</span> <span class="pre">t</span> <span class="pre">X)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">(not</span> <span class="pre">f)</span></code>, <code class="docutils literal notranslate"><span class="pre">(and</span> <span class="pre">f1</span> <span class="pre">f2</span> <span class="pre">...)</span></code>, <code class="docutils literal notranslate"><span class="pre">(or</span> <span class="pre">f1</span> <span class="pre">f2</span> <span class="pre">...)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">(implies</span> <span class="pre">f1</span> <span class="pre">f2)</span></code>, <code class="docutils literal notranslate"><span class="pre">(iff</span> <span class="pre">f1</span> <span class="pre">f2)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">(forall_nat</span> <span class="pre">n</span> <span class="pre">bound</span> <span class="pre">f)</span></code>, <code class="docutils literal notranslate"><span class="pre">(exists_nat</span> <span class="pre">n</span> <span class="pre">bound</span> <span class="pre">f)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">(forall_set</span> <span class="pre">X</span> <span class="pre">f)</span></code>, <code class="docutils literal notranslate"><span class="pre">(exists_set</span> <span class="pre">X</span> <span class="pre">f)</span></code></p></li>
+<li><p>terms: integer literals, variables, and <code class="docutils literal notranslate"><span class="pre">(+</span> <span class="pre">t1</span> <span class="pre">t2)</span></code></p></li>
+</ul>
+</section>
 </section>
 <section id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
