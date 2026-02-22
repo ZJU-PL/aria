@@ -5,7 +5,7 @@ Utilities for rewriting and simplification including pattern matching and unific
 import aria.itp.smt as smt
 import aria.itp as itp
 from enum import Enum
-from typing import NamedTuple, Optional, Sequence
+from typing import NamedTuple, Optional, Sequence, Union, List
 import aria.itp.utils as utils
 from collections import defaultdict
 
@@ -257,7 +257,7 @@ class RewriteRule(NamedTuple):
             pf=self.pf,
         )
 
-    def to_expr(self) -> smt.BoolRef | smt.QuantifierRef:
+    def to_expr(self) -> Union[smt.BoolRef, smt.QuantifierRef]:
         """Convert the rule to a theorem of form `forall vs, lhs = rhs`.
 
         >>> x,y = smt.Reals("x y")
@@ -271,7 +271,7 @@ class RewriteRule(NamedTuple):
 
     @classmethod
     def from_expr(
-            cls, expr: smt.BoolRef | smt.QuantifierRef | itp.kernel.Proof
+            cls, expr: Union[smt.BoolRef, smt.QuantifierRef, itp.kernel.Proof]
     ) -> "RewriteRule":
         """Convert a theorem of form `forall vs, lhs = rhs` to a rule."""
         return rewrite_of_expr(expr)
@@ -317,7 +317,7 @@ class RewriteRuleException(Exception): ...
 
 
 def rewrite_of_expr(
-        thm: smt.BoolRef | smt.QuantifierRef | itp.kernel.Proof,
+        thm: Union[smt.BoolRef, smt.QuantifierRef, itp.kernel.Proof],
 ) -> RewriteRule:
     """
     Unpack theorem of form `forall vs, lhs = rhs` into a Rule tuple
@@ -352,7 +352,7 @@ def decl_index(rules: list[RewriteRule]) -> dict[smt.FuncDeclRef, RewriteRule]:
 
 def rewrite_slow(
         t: smt.ExprRef,
-        rules: list[smt.BoolRef | smt.QuantifierRef | itp.kernel.Proof],
+        rules: List[Union[smt.BoolRef, smt.QuantifierRef, itp.kernel.Proof]],
         trace=None,
 ) -> smt.ExprRef:
     """
@@ -378,7 +378,7 @@ def rewrite_slow(
 
 def rewrite(
         t: smt.ExprRef,
-        rules: Sequence[smt.BoolRef | smt.QuantifierRef | itp.kernel.Proof | RewriteRule],
+        rules: Sequence[Union[smt.BoolRef, smt.QuantifierRef, itp.kernel.Proof, RewriteRule]],
         trace=None,
 ) -> smt.ExprRef:
     """
@@ -479,7 +479,7 @@ class Rule(NamedTuple):
             pf=self.pf,
         )
 
-    def to_expr(self) -> smt.ExprRef | smt.QuantifierRef:
+    def to_expr(self) -> Union[smt.ExprRef, smt.QuantifierRef]:
         """Convert the rule to a theorem of form `forall vs, hyp => conc`.
 
         >>> x = smt.Real("x")
@@ -492,7 +492,7 @@ class Rule(NamedTuple):
             return smt.ForAll(self.vs, smt.Implies(self.hyp, self.conc))
 
 
-def rule_of_expr(pf_or_thm: smt.ExprRef | itp.kernel.Proof) -> Rule:
+def rule_of_expr(pf_or_thm: Union[smt.ExprRef, itp.kernel.Proof]) -> Rule:
     """Unpack theorem of form `forall vs, body => head` into a Rule tuple
 
     >>> x = smt.Real("x")

@@ -2,7 +2,7 @@ import aria.itp as itp
 import aria.itp.smt as smt
 import lark
 import aria.itp.rewrite as rw
-from typing import Sequence
+from typing import Sequence, Union, List, Tuple
 import sys
 
 grammar = r"""
@@ -57,7 +57,7 @@ def interp_pred(t: lark.Tree) -> smt.BoolRef:
     return smt.Function(name, *([Term] * len(args)), smt.BoolSort())(*args)
 
 
-def get_vars(e: smt.ExprRef) -> list[smt.ExprRef]:
+def get_vars(e: smt.ExprRef) -> List[smt.ExprRef]:
     todo = [e]
     res = set()
     while todo:
@@ -73,9 +73,9 @@ def get_vars(e: smt.ExprRef) -> list[smt.ExprRef]:
 
 def interp(
         t: lark.Tree,
-) -> tuple[
-    list[smt.BoolRef | smt.QuantifierRef],
-    list[tuple[list[smt.ExprRef], list[smt.BoolRef]]],
+) -> Tuple[
+    List[Union[smt.BoolRef, smt.QuantifierRef]],
+    List[Tuple[List[smt.ExprRef], List[smt.BoolRef]]],
 ]:
     assert t.data == "start"
     clauses = []
@@ -111,9 +111,9 @@ parser = lark.Lark(grammar, start="start", parser="lalr")
 
 
 def prolog(
-        vs0: list[smt.ExprRef],
-        goals: list[smt.BoolRef],
-        rules0: Sequence[rw.Rule | smt.QuantifierRef | smt.BoolRef],
+        vs0: List[smt.ExprRef],
+        goals: List[smt.BoolRef],
+        rules0: Sequence[Union[rw.Rule, smt.QuantifierRef, smt.BoolRef]],
 ):
     """
     A small prolog interpreter. THis is a generator of solutions consisting of variable list, substitution pairs.

@@ -10,6 +10,7 @@ Z3 also has built in datalog. https://microsoft.github.io/z3guide/docs/fixedpoin
 import aria.itp.smt as smt
 import aria.itp.rewrite as rw
 import sqlite3
+from typing import Union
 
 
 
@@ -104,7 +105,7 @@ class Datalog:
                             ({', '.join([f'x{i} {f.range().name()}' for i in range(f.arity())])},
                              PRIMARY KEY {primkey})""")
 
-    def run(self, rule: rw.Rule | smt.BoolRef):
+    def run(self, rule: Union[rw.Rule, smt.BoolRef]):
         if isinstance(rule, smt.BoolRef):
             rule = rw.rule_of_expr(rule)
         sql = _compile_rule(rule)

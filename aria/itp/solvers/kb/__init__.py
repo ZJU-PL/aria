@@ -16,6 +16,7 @@ For more see
 import aria.itp.smt as smt
 import aria.itp.rewrite as rw
 import sys
+from typing import Union, List
 
 
 def all_pairs(rules):
@@ -48,7 +49,7 @@ def all_pairs(rules):
     return res
 
 
-def orient(eq: smt.BoolRef | smt.QuantifierRef, order=rw.kbo) -> rw.RewriteRule:
+def orient(eq: Union[smt.BoolRef, smt.QuantifierRef], order=rw.kbo) -> rw.RewriteRule:
     """
     Orient an equation into a rewrite rule.
 
@@ -70,8 +71,8 @@ def orient(eq: smt.BoolRef | smt.QuantifierRef, order=rw.kbo) -> rw.RewriteRule:
 
 
 def simplify(
-    t: smt.BoolRef | smt.QuantifierRef, rules: list[rw.RewriteRule]
-) -> smt.BoolRef | smt.QuantifierRef:
+    t: Union[smt.BoolRef, smt.QuantifierRef], rules: List[rw.RewriteRule]
+) -> Union[smt.BoolRef, smt.QuantifierRef]:
     """
     Simplify an equation using a set of rewrite rules.
 
@@ -85,7 +86,7 @@ def simplify(
     return r._replace(lhs=lhs, rhs=rhs).to_expr()
 
 
-def is_trivial(t: smt.BoolRef | smt.QuantifierRef) -> bool:
+def is_trivial(t: Union[smt.BoolRef, smt.QuantifierRef]) -> bool:
     """
     See if equation is of form `s = s
 
@@ -127,8 +128,8 @@ def basic(E, order=rw.kbo):
 
 
 def huet(
-    E: list[smt.BoolRef | smt.QuantifierRef], order=rw.kbo
-) -> list[rw.RewriteRule]:
+    E: List[Union[smt.BoolRef, smt.QuantifierRef]], order=rw.kbo
+) -> List[rw.RewriteRule]:
     """
     Huet completion is a particular strategy.
     """
@@ -163,7 +164,7 @@ def huet(
             return R
 
 
-def huet_smt2_file(sexp_filename: str) -> list[rw.RewriteRule]:
+def huet_smt2_file(sexp_filename: str) -> List[rw.RewriteRule]:
     constrs = smt.parse_smt2_file(sexp_filename)
     return huet(list(constrs))
 

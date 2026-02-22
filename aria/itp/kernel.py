@@ -5,7 +5,7 @@ The kernel hold core proof datatypes and core inference rules. By and large, all
 import aria.itp as itp
 import aria.itp.smt as smt
 from dataclasses import dataclass
-from typing import Any, Iterable, Sequence
+from typing import Any, Iterable, Sequence, Union
 import logging
 from . import config
 
@@ -69,7 +69,7 @@ class LemmaError(Exception):
 
 def prove(
         thm: smt.BoolRef,
-        by: Proof | Iterable[Proof] = [],
+        by: Union[Proof, Iterable[Proof]] = [],
         admit=False,
         timeout=1000,
         dump=False,

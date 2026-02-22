@@ -1,9 +1,10 @@
 import aria.itp.smt as smt
 import aria.itp as kd
 import functools
+from typing import Union, List, Tuple
 
-type SubSort = smt.QuantifierRef | smt.ArrayRef
-type Type = SubSort
+SubSort = Union[smt.QuantifierRef, smt.ArrayRef]
+Type = SubSort
 # User telescope
 """
 User telescope type.
@@ -12,11 +13,11 @@ Telescopes are dependent or refined contexts of variables.
 They can tag variables with SubSet expressions or formulas that involve the bound variable.
 Internally, the are normalized to _Tele, which is a list of (variable, formula) pairs.
 """
-type Telescope = list[
-    tuple[smt.ExprRef, smt.BoolRef] | tuple[smt.ExprRef, SubSort] | smt.ExprRef
+Telescope = List[
+    Union[Tuple[smt.ExprRef, smt.BoolRef], Tuple[smt.ExprRef, SubSort], smt.ExprRef]
 ]
 # Internal normalized telescope
-type _Tele = list[tuple[smt.ExprRef, smt.BoolRef]]
+_Tele = List[Tuple[smt.ExprRef, smt.BoolRef]]
 
 
 def subsort_domain(T: SubSort) -> smt.SortRef:

@@ -6,13 +6,13 @@ from aria.itp.kernel import is_proof
 import aria.itp.smt as smt
 import sys
 import aria.itp as itp
-from typing import Optional, Generator, Any
+from typing import Optional, Generator, Any, Union, List, Tuple, Dict
 import os
 import glob
 import inspect
 
 
-def open_binder(lam: smt.QuantifierRef) -> tuple[list[smt.ExprRef], smt.ExprRef]:
+def open_binder(lam: smt.QuantifierRef) -> Tuple[List[smt.ExprRef], smt.ExprRef]:
     """
     Open a quantifier with fresh variables. This achieves the locally nameless representation
     https://chargueraud.org/research/2009/ln/main.pdf
@@ -401,7 +401,7 @@ def free_vars(t: smt.ExprRef) -> set[smt.ExprRef]:
     return fvs
 
 
-def sanity_check_consistency(thms: list[smt.ExprRef | itp.kernel.Proof], timeout=1000):
+def sanity_check_consistency(thms: List[Union[smt.ExprRef, itp.kernel.Proof]], timeout=1000):
     """
     Sanity check theorems or proofs for consistency. If they are inconsistent, raise an error.
     Otherwise, return the result of the check. A sat result shows consistency, but an unknown result does not imply anything.
@@ -431,8 +431,8 @@ def sanity_check_consistency(thms: list[smt.ExprRef | itp.kernel.Proof], timeout
 
 
 def prune(
-        thm: smt.BoolRef | smt.QuantifierRef | itp.kernel.Proof, by=[], timeout=1000
-) -> list[smt.ExprRef | itp.kernel.Proof]:
+        thm: Union[smt.BoolRef, smt.QuantifierRef, itp.kernel.Proof], by=[], timeout=1000
+) -> List[Union[smt.ExprRef, itp.kernel.Proof]]:
     """
     Prune the theorems used using unsat core. Helpful to speedup future proof verification.
 
@@ -609,8 +609,8 @@ def search_decl(
 
 
 def search(
-        *es: smt.FuncDeclRef | smt.ExprRef, db: dict[Any, itp.kernel.Proof] = {}
-) -> dict[tuple[str, itp.kernel.Proof], Any]:
+        *es: Union[smt.FuncDeclRef, smt.ExprRef], db: Dict[Any, itp.kernel.Proof] = {}
+) -> Dict[Tuple[str, itp.kernel.Proof], Any]:
     """
     Search for function declarations or expressions.
     Takes intersection of found results if given multiple arguments.
@@ -653,7 +653,7 @@ def prompt(prompt: str):
     It is a semiautomated theorem prover that uses z3py and other solvers to disharge obligations.
     The syntax tree is literally z3.
     The Proof datatype is a protected wrapped z3 BoolRef object.
-    Proofs largely proceed by stating small steps with reference to previously proofs in the `by` parameter of `lemma` 
+    Proofs largely proceed by stating small steps with reference to previously proofs in the `by` parameter of `lemma`
     \n\n\n
     """
     ]
