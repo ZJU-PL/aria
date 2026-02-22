@@ -2,8 +2,9 @@ import aria.itp as kd
 import aria.itp.theories.set as set_
 import aria.itp.smt as smt
 import functools
+from typing import Union
 
-type PropRef = smt.ArrayRef | smt.QuantifierRef
+PropRef = Union[smt.ArrayRef, smt.QuantifierRef]
 
 
 class Sep:

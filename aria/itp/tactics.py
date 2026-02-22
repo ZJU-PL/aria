@@ -8,7 +8,7 @@ import aria.itp.config as config
 import aria.itp.rewrite as rewrite
 from enum import IntEnum
 import operator as op
-from typing import NamedTuple, Optional, Sequence, Callable
+from typing import NamedTuple, Optional, Sequence, Callable, Union, List
 import pprint
 import time
 from dataclasses import dataclass
@@ -133,8 +133,8 @@ class Calc:
         self.mode = self._Mode.EQ
 
     def _forall(
-        self, body: smt.BoolRef | smt.QuantifierRef
-    ) -> smt.BoolRef | smt.QuantifierRef:
+        self, body: Union[smt.BoolRef, smt.QuantifierRef]
+    ) -> Union[smt.BoolRef, smt.QuantifierRef]:
         if len(self.assume) == 1:
             body = smt.Implies(self.assume[0], body)
         elif len(self.assume) > 1:
@@ -217,9 +217,9 @@ def auto(shows=None, **kwargs) -> kd.kernel.Proof:
 
 def prove(
     thm: smt.BoolRef,
-    fixes: list[smt.ExprRef] = [],
-    assumes: list[smt.BoolRef] = [],
-    by: Optional[kd.kernel.Proof | Sequence[kd.kernel.Proof]] = None,
+    fixes: List[smt.ExprRef] = [],
+    assumes: List[smt.BoolRef] = [],
+    by: Optional[Union[kd.kernel.Proof, Sequence[kd.kernel.Proof]]] = None,
     admit=False,
     timeout=1000,
     dump=False,
@@ -228,7 +228,7 @@ def prove(
     # induct=False,
     # simps=simps,
     # intros / fix / herb = False
-    unfold: Optional[int | list[smt.FuncDeclRef]] = None,
+    unfold: Optional[Union[int, List[smt.FuncDeclRef]]] = None,
 ) -> kd.kernel.Proof:
     """Prove a theorem using a list of previously proved lemmas.
 
@@ -346,9 +346,9 @@ def subst(
 
 class Goal(NamedTuple):
     # TODO: also put eigenvariables, unification variables in here
-    sig: list[smt.ExprRef]
-    ctx: list[smt.BoolRef]
-    goal: smt.BoolRef | smt.QuantifierRef
+    sig: List[smt.ExprRef]
+    ctx: List[smt.BoolRef]
+    goal: Union[smt.BoolRef, smt.QuantifierRef]
 
     def __repr__(self):
         if self.is_empty():
@@ -579,7 +579,7 @@ class ProofState:
             raise ValueError("fix tactic failed. More than one variable in quantifier")
         return vs[0]
 
-    def intros(self) -> smt.ExprRef | list[smt.ExprRef] | Goal:
+    def intros(self) -> Union[smt.ExprRef, List[smt.ExprRef], Goal]:
         """
         intros opens an implication. ?|= p -> q becomes p ?|= q
 
@@ -960,7 +960,7 @@ class ProofState:
         return self
 
     def rewrite(
-        self, rule: kd.kernel.Proof | int, at=None, rev=False, **kwargs
+        self, rule: Union[kd.kernel.Proof, int], at=None, rev=False, **kwargs
     ) -> "ProofState":
         """
         `rewrite` allows you to apply rewrite rule (which may either be a Proof or an index into the context) to the goal or to the context.
@@ -1035,7 +1035,7 @@ class ProofState:
             else:
                 return self
 
-    def rw(self, rule: kd.kernel.Proof | int, at=None, rev=False, **kwargs):
+    def rw(self, rule: Union[kd.kernel.Proof, int], at=None, rev=False, **kwargs):
         """
         shorthand for rewrite
         """
@@ -1163,7 +1163,7 @@ class ProofState:
 
         return self
 
-    def apply(self, pf: kd.kernel.Proof | int):
+    def apply(self, pf: Union[kd.kernel.Proof, int]):
         """
         `apply` matches the conclusion of a proven clause
 

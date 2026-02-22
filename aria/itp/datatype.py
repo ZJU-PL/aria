@@ -20,7 +20,7 @@ pred(n)
 import aria.itp.smt as smt
 import aria.itp as itp
 import typing
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Union
 from aria.itp.kernel import Inductive
 
 
@@ -314,7 +314,7 @@ def NewType(name: str, sort: smt.SortRef, pred=None) -> smt.DatatypeSortRef:
     return Struct(name, ("val", sort), pred=pred)
 
 
-def Enum(name: str, args: str | List[str]) -> smt.DatatypeSortRef:
+def Enum(name: str, args: Union[str, List[str]]) -> smt.DatatypeSortRef:
     """Shorthand for simple enumeration datatypes. Similar to python's Enum.
     >>> Color = Enum("Color", "Red Green Blue")
     >>> smt.And(Color.Red != Color.Green, Color.Red != Color.Blue)

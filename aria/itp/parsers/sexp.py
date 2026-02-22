@@ -1,7 +1,8 @@
 import re
+from typing import Union, List
 
 
-type Sexp = str | int | float | list["Sexp"]
+Sexp = Union[str, int, float, List["Sexp"]]
 
 tokens = [
     ("WS", r"\s+"),
@@ -17,7 +18,7 @@ regex = "|".join(f"(?P<{name}>{regex})" for name, regex in tokens)
 pattern = re.compile(regex)
 
 
-def parse(s: str) -> list[Sexp]:
+def parse(s: str) -> List[Sexp]:
     """
     Parse an s-expression
 

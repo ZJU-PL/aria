@@ -2,6 +2,7 @@ import aria.itp as itp
 import aria.itp.smt as smt
 import functools
 import operator
+from typing import Union
 
 
 def lift_unop(S, op):
@@ -155,7 +156,7 @@ def Ints(names: str) -> list[smt.DatatypeRef]:
     return smt.Consts(names, TInt)
 
 
-def TLift(n: smt.ExprRef | int | str) -> smt.DatatypeRef:
+def TLift(n: Union[smt.ExprRef, int, str]) -> smt.DatatypeRef:
     """
     Lift a value into a constant signal
 
