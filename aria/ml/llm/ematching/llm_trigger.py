@@ -19,8 +19,8 @@ from typing import Iterable, List, Optional, Sequence
 import z3
 
 try:
-    from aria.ml.llm.llmtool.LLM_utils import LLM  # type: ignore
-    from aria.ml.llm.llmtool.logger import Logger  # type: ignore
+    from aria.llmtools.LLM_utils import LLM  # type: ignore
+    from aria.llmtools.logger import Logger  # type: ignore
 except ImportError:  # pragma: no cover - optional dependency
     LLM = None  # type: ignore
     Logger = None  # type: ignore
@@ -105,7 +105,7 @@ class LLMTriggerGenerator:
         return (
             "You choose E-matching triggers for a quantified SMT formula.\n"
             f"Pick at most {self.max_groups} trigger groups. Each group is a list "
-            "of candidate ids. Use JSON: {{\"triggers\": [[id1, id2], [id3]]}}.\n"
+            'of candidate ids. Use JSON: {{"triggers": [[id1, id2], [id3]]}}.\n'
             "Rules:\n"
             "1) Cover every bound variable across the chosen groups "
             f"({', '.join(bound_var_names)}).\n"
@@ -188,12 +188,16 @@ class LLMTriggerGenerator:
         Ask the LLM to synthesize trigger terms directly. Returns empty on failure.
         """
         if self.llm is None:
-            self._debug("LLM backend not configured; skipping direct trigger selection.")
+            self._debug(
+                "LLM backend not configured; skipping direct trigger selection."
+            )
             return []
 
         bound_var_names = [str(var) for var in bound_vars]
         decls = self._collect_decls(quantifier.body(), bound_vars)
-        allowed_symbols = self._collect_allowed_symbols(quantifier.body(), bound_var_names)
+        allowed_symbols = self._collect_allowed_symbols(
+            quantifier.body(), bound_var_names
+        )
         prompt = self.build_direct_prompt(quantifier, bound_var_names, allowed_symbols)
         response, _, _ = self.llm.infer(prompt)  # type: ignore[attr-defined]
         self._debug(f"LLM raw response: {response}")
@@ -232,12 +236,16 @@ class LLMTriggerGenerator:
         if not parsed_groups:
             return []
         if not self._covers_all_bound_vars(parsed_groups, bound_var_names):
-            self._debug("LLM direct suggestion rejected: missing bound variable coverage.")
+            self._debug(
+                "LLM direct suggestion rejected: missing bound variable coverage."
+            )
             return []
         return parsed_groups
 
     def _indexes_to_triggers(
-        self, index_groups: Sequence[Sequence[int]], candidates: Sequence[TriggerCandidate]
+        self,
+        index_groups: Sequence[Sequence[int]],
+        candidates: Sequence[TriggerCandidate],
     ) -> List[List[z3.ExprRef]]:
         seen: set[str] = set()
         result: List[List[z3.ExprRef]] = []
@@ -248,16 +256,18 @@ class LLMTriggerGenerator:
                     exprs.append(candidates[idx].expr)
             if not exprs:
                 continue
-            key = "|".join(sorted(candidates[idx].text for idx in group if 0 <= idx < len(candidates)))
+            key = "|".join(
+                sorted(
+                    candidates[idx].text for idx in group if 0 <= idx < len(candidates)
+                )
+            )
             if key in seen:
                 continue
             seen.add(key)
             result.append(exprs)
         return result
 
-    def _parse_response(
-        self, response: str, num_candidates: int
-    ) -> List[List[int]]:
+    def _parse_response(self, response: str, num_candidates: int) -> List[List[int]]:
         """
         Parse the LLM output and return index groups.
         """
@@ -426,7 +436,9 @@ class LLMTriggerGenerator:
         return seen.issubset(allowed)
 
 
-def _collect_var_names(expr: z3.ExprRef, whitelist: Optional[set[str]] = None) -> set[str]:
+def _collect_var_names(
+    expr: z3.ExprRef, whitelist: Optional[set[str]] = None
+) -> set[str]:
     """
     Collect variable names that appear as uninterpreted constants inside expr.
     """

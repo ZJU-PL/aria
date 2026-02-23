@@ -14,7 +14,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import z3
 
-from aria.ml.llm.llmtool.LLM_utils import LLM
+from aria.llmtools.LLM_utils import LLM
 from aria.ml.llm.smto.oracles import OracleInfo, WhiteboxOracleInfo
 from aria.ml.llm.smto.smtlib_parser import parse_smtlib_file, parse_smtlib_string
 from aria.ml.llm.smto.spec_synth.synthesizer import (
@@ -31,6 +31,7 @@ from aria.ml.llm.smto.utils import (
 
 class SolvingMode(Enum):
     """Mode of operation for PS_SMTO."""
+
     SAT_FIRST = "sat_first"
     UNSAT_FIRST = "unsat_first"
     BIDIRECTIONAL = "bidirectional"
@@ -40,6 +41,7 @@ class SolvingMode(Enum):
 
 class SolvingStatus(Enum):
     """Result status of solving."""
+
     SAT = "sat"
     UNSAT = "unsat"
     UNKNOWN = "unknown"
@@ -49,6 +51,7 @@ class SolvingStatus(Enum):
 @dataclass
 class SolvingResult:
     """Result of a solving attempt."""
+
     status: SolvingStatus
     model: Optional[z3.ModelRef] = None
     unsat_core: Optional[List[z3.BoolRef]] = None
@@ -62,6 +65,7 @@ class SolvingResult:
 @dataclass
 class PS_SMTOConfig:
     """Configuration for PS_SMTO solver."""
+
     api_key: Optional[str] = None
     model: str = "gpt-4"
     provider: str = "openai"
@@ -94,8 +98,9 @@ class PS_SMTOSolver:
         if llm is not None:
             self.llm = llm
         else:
-            from aria.ml.llm.llmtool.LLM_utils import LLM  # type: ignore
-            from aria.ml.llm.llmtool.logger import Logger  # type: ignore
+            from aria.llmtools.LLM_utils import LLM  # type: ignore
+            from aria.llmtools.logger import Logger  # type: ignore
+
             logger = Logger("ps_smto.log")
             self.llm = LLM(  # type: ignore
                 online_model_name=self.config.model,
@@ -106,9 +111,7 @@ class PS_SMTOSolver:
         self.spec_synthesizer = SpecSynthesizer(self.llm)
         self.solver = z3.Solver()
         self.cache = OracleCache(cache_dir=self.config.cache_dir)  # type: ignore
-        self.explanation_logger = ExplanationLogger(
-            level=self.config.explanation_level
-        )
+        self.explanation_logger = ExplanationLogger(level=self.config.explanation_level)
 
         self.oracles: Dict[str, OracleInfo] = {}
         self.specs: Dict[str, SynthesizedSpec] = {}
@@ -123,58 +126,58 @@ class PS_SMTOSolver:
 
     def load_smtlib_file(self, file_path: str):
         """Load an SMT-LIB file with oracle declarations and register oracles and constraints.
-        
+
         Args:
             file_path: Path to the SMT-LIB file
         """
         oracles, remaining_content = parse_smtlib_file(file_path)
-        
+
         # Register all oracles
         for oracle_info in oracles:
             self.register_oracle(oracle_info)
-        
+
         # Parse and add remaining SMT-LIB constraints
         self._add_smtlib_constraints(remaining_content)
 
     def load_smtlib_string(self, content: str):
         """Load SMT-LIB content with oracle declarations from string and register oracles and constraints.
-        
+
         Args:
             content: SMT-LIB file content as string
         """
         oracles, remaining_content = parse_smtlib_string(content)
-        
+
         # Register all oracles
         for oracle_info in oracles:
             self.register_oracle(oracle_info)
-        
+
         # Parse and add remaining SMT-LIB constraints
         self._add_smtlib_constraints(remaining_content)
 
     def _add_smtlib_constraints(self, smtlib_content: str):
         """Parse and add SMT-LIB constraints to the solver.
-        
+
         Args:
             smtlib_content: SMT-LIB content (without declare-nl statements)
         """
         # Remove comments
-        lines = smtlib_content.split('\n')
+        lines = smtlib_content.split("\n")
         cleaned_lines = []
         for line in lines:
             # Remove line comments
-            if ';' in line:
-                line = line[:line.index(';')]
+            if ";" in line:
+                line = line[: line.index(";")]
             cleaned_lines.append(line)
-        cleaned_content = '\n'.join(cleaned_lines)
-        
+        cleaned_content = "\n".join(cleaned_lines)
+
         # Remove commands that aren't constraints (check-sat, get-model, etc.)
         # Keep only declare-const, declare-fun, and assert statements
-        commands_to_remove = ['check-sat', 'get-model', 'exit', 'push', 'pop']
+        commands_to_remove = ["check-sat", "get-model", "exit", "push", "pop"]
         for cmd in commands_to_remove:
             # Remove (check-sat) and similar commands
-            pattern = rf'\({re.escape(cmd)}\s*\)'
-            cleaned_content = re.sub(pattern, '', cleaned_content, flags=re.IGNORECASE)
-        
+            pattern = rf"\({re.escape(cmd)}\s*\)"
+            cleaned_content = re.sub(pattern, "", cleaned_content, flags=re.IGNORECASE)
+
         # Try to parse using Z3's SMT-LIB parser
         try:
             # Parse the SMT-LIB string
@@ -183,21 +186,20 @@ class PS_SMTOSolver:
                 self.solver.add(assertion)
         except Exception as e:
             self.explanation_logger.log(
-                f"Warning: Could not parse some SMT-LIB constraints: {e}",
-                level="basic"
+                f"Warning: Could not parse some SMT-LIB constraints: {e}", level="basic"
             )
             # Fallback: try to extract individual assert statements
             self._parse_assert_statements(cleaned_content)
 
     def _parse_assert_statements(self, content: str):
         """Fallback parser for assert statements.
-        
+
         Args:
             content: SMT-LIB content
         """
         # Find all assert statements
-        assert_pattern = r'\(assert\s+([^)]+)\)'
-        
+        assert_pattern = r"\(assert\s+([^)]+)\)"
+
         for match in re.finditer(assert_pattern, content, re.MULTILINE | re.DOTALL):
             assert_content = match.group(1)
             try:
@@ -212,16 +214,14 @@ class PS_SMTOSolver:
 
     def _synthesize_spec(self, oracle_info: OracleInfo):
         """Synthesize specification from oracle information."""
-        self.explanation_logger.log(
-            f"Synthesizing spec for {oracle_info.name}"
-        )
+        self.explanation_logger.log(f"Synthesizing spec for {oracle_info.name}")
 
         source_code = None
         if isinstance(oracle_info, WhiteboxOracleInfo):
             source_code = oracle_info.source_code
 
         examples = []
-        if hasattr(oracle_info, 'examples'):
+        if hasattr(oracle_info, "examples"):
             examples = oracle_info.examples
 
         spec = self.spec_synthesizer.synthesize(
@@ -261,9 +261,7 @@ class PS_SMTOSolver:
         else:
             return self._solve_bidirectional(start_time, timeout)
 
-    def _solve_bidirectional(
-        self, start_time: float, timeout_ms: int
-    ) -> SolvingResult:
+    def _solve_bidirectional(self, start_time: float, timeout_ms: int) -> SolvingResult:
         """Bidirectional search: alternate between SAT and UNSAT."""
         sat_time_budget = int(timeout_ms * self.config.sat_timeout_ratio)
         unsat_time_budget = timeout_ms - sat_time_budget
@@ -317,9 +315,7 @@ class PS_SMTOSolver:
         result.time_elapsed = time_elapsed(start_time)
         return result
 
-    def _sat_search(
-        self, time_budget: int, iterations_remaining: int
-    ) -> SolvingResult:
+    def _sat_search(self, time_budget: int, iterations_remaining: int) -> SolvingResult:
         """Model-finding with synthesized specifications."""
         self._add_spec_constraints()
 
@@ -436,12 +432,12 @@ class PS_SMTOSolver:
     def _contains_oracle_call(self, expr, oracle_name: str) -> bool:
         """Check if expression contains a call to the given oracle."""
         try:
-            decl = getattr(expr, 'decl', None)
+            decl = getattr(expr, "decl", None)
             if decl is not None:
-                name = getattr(decl, 'name', None)
+                name = getattr(decl, "name", None)
                 if name == oracle_name:
                     return True
-            children = getattr(expr, 'children', lambda: [])()
+            children = getattr(expr, "children", lambda: [])()
             for child in children:
                 if self._contains_oracle_call(child, oracle_name):
                     return True
@@ -452,14 +448,14 @@ class PS_SMTOSolver:
     def _extract_inputs(self, expr, oracle_name: str) -> Optional[Dict[str, Any]]:
         """Extract input values from an oracle call expression."""
         try:
-            decl = getattr(expr, 'decl', None)
+            decl = getattr(expr, "decl", None)
             if decl is None:
                 return None
-            name = getattr(decl, 'name', None)
+            name = getattr(decl, "name", None)
             if name != oracle_name:
                 return None
             inputs = {}
-            children = list(getattr(expr, 'children', lambda: [])())  # type: ignore
+            children = list(getattr(expr, "children", lambda: [])())  # type: ignore
             for i, child in enumerate(children):
                 try:
                     inputs[f"arg{i}"] = str(child)
@@ -469,9 +465,7 @@ class PS_SMTOSolver:
         except Exception:
             return None
 
-    def _execute_oracle(
-        self, oracle_name: str, inputs: Dict[str, Any]
-    ) -> Any:
+    def _execute_oracle(self, oracle_name: str, inputs: Dict[str, Any]) -> Any:
         """Execute oracle with given inputs."""
         cache_key = generate_cache_key(oracle_name, inputs)
         if self.cache.contains(cache_key):
@@ -503,9 +497,7 @@ class PS_SMTOSolver:
         except Exception:
             return None
 
-    def _parse_oracle_response(
-        self, response: str, output_type: z3.SortRef
-    ) -> Any:
+    def _parse_oracle_response(self, response: str, output_type: z3.SortRef) -> Any:
         """Parse LLM oracle response."""
         try:
             text = response.strip()

@@ -1,8 +1,8 @@
 # pylint: disable=invalid-name
 from abc import ABC, abstractmethod
 from typing import Dict
-from aria.ml.llm.llmtool.LLM_utils import *
-from aria.ml.llm.llmtool.logger import Logger
+from aria.llmtools.LLM_utils import *
+from aria.llmtools.logger import Logger
 
 
 class LLMToolInput(ABC):

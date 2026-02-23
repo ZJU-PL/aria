@@ -1,6 +1,7 @@
 # pylint: disable=invalid-name
 import concurrent.futures
 import importlib
+import time, os
 from typing import Tuple, Optional, Any
 
 try:
@@ -8,15 +9,11 @@ try:
 except ImportError:
     OpenAI = None  # type: ignore
 try:
-    from zhipuai import ZhipuAI  # pylint: disable=import-error
-except ImportError:
-    ZhipuAI = None  # type: ignore
-try:
     import tiktoken  # pylint: disable=import-error
 except ImportError:
     tiktoken = None  # type: ignore
 
-from aria.ml.llm.llmtool.logger import Logger
+from aria.llmtools.logger import Logger
 
 
 def _optional_import(module_name: str, from_name: str = None) -> Optional[Any]:
@@ -37,7 +34,7 @@ anthropic = _optional_import("anthropic", "Anthropic")
 
 
 class LLM:
-    """Multi-provider LLM inference: Gemini, OpenAI, DeepSeek, Claude, GLM"""
+    """Multi-provider LLM inference: Gemini, OpenAI, DeepSeek, Claude"""
 
     def __init__(
         self,
@@ -67,9 +64,6 @@ class LLM:
             output = self.infer_with_openai_model(message)
         elif "o3-mini" in self.online_model_name:
             output = self.infer_with_o3_mini_model(message)
-        elif "glm" in self.online_model_name or "zhipu" in self.online_model_name:
-            # Zhipu/GLM models (e.g., glm-4, glm-4-flash)
-            output = self.infer_with_glm_model(message)
         elif "claude" in self.online_model_name:
             output = self.infer_with_claude(message)
         elif "deepseek" in self.online_model_name:
@@ -227,32 +221,7 @@ class LLM:
 
         return self._retry_api_call(call_api)
 
-    def infer_with_glm_model(self, message):
-        """Infer using GLM model"""
-        if not ZhipuAI:
-            self.logger.print_log("ZhipuAI SDK not installed")
-            return ""
-
-        def call_api():
-            client = ZhipuAI(
-                api_key=os.environ.get("GLM_API_KEY") or os.environ.get("ZHIPU_API_KEY")
-            )
-            return (
-                client.chat.completions.create(
-                    model=self.online_model_name,
-                    messages=[
-                        {"role": "system", "content": self.systemRole},
-                        {"role": "user", "content": message},
-                    ],
-                    temperature=self.temperature,
-                )
-                .choices[0]
-                .message.content
-            )
-
-        return self._retry_api_call(call_api)
-
 
 if __name__ == "__main__":
-    llm = LLM(online_model_name="glm-4-plus", logger=Logger("tmp.txt"))
+    llm = LLM(online_model_name="gpt-4", logger=Logger("tmp.txt"))
     print(llm.infer("Hello, how are you?"))
