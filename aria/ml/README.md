@@ -6,6 +6,24 @@ This directory contains machine learning-based tools for automated reasoning and
 
 ## Components
 
+### LLM Components: Large Language Model Integration for Automated Reasoning
+AI-powered tools leveraging large language models for enhanced SMT solving and theorem proving capabilities.
+
+**Key Features:**
+- Natural language processing for SMT formulas
+- LLM-assisted abductive reasoning
+- Trigger generation for E-matching
+- Interpolant synthesis with LLM
+- Specification synthesis for closed-box functions
+
+**Files:**
+- `llm/` - Main LLM integration module
+  - `smt2nl.py` - Converts SMT-LIB assertions to natural language
+  - `abduct/` - LLM-based abduction for hypothesis generation
+  - `ematching/` - LLM-trigger generation for E-matching
+  - `interpolant/` - LLM-based interpolant generation
+  - `smto/` - SMT solver with synthesized specifications
+
 ### SMTGazer: Machine Learning-Based SMT Solver Portfolio System
 An effective algorithm scheduling method for SMT solving that uses machine learning to select optimal combinations of SMT solvers for different problem categories and instances.
 
@@ -81,6 +99,39 @@ print(tactic_seq.to_string())
 # ga.evaluate(); ga.dump(); ga.repopulate()  # Repeat for 128 generations
 ```
 
+### LLM Components
+
+#### SMT to Natural Language
+```bash
+# Convert SMT-LIB formula to natural language
+python -m aria.ml.llm.smt2nl "(assert (and (> x 5) (<= y 10)))"
+# Output: "both x is greater than 5 and y is less than or equal to 10"
+```
+
+#### LLM-Based Abduction
+```python
+from aria.ml.llm.abduct import LLMAbductor, AbductionProblem
+
+# Create abduction problem
+problem = AbductionProblem(
+    premise="(assert (> x 0))",
+    conclusion="(assert (> x 5))"
+)
+
+# Generate hypothesis using LLM
+abductor = LLMAbductor()
+result = abductor.solve(problem)
+```
+
+#### E-Matching Trigger Generation
+```python
+from aria.ml.llm.ematching import LLMTriggerGenerator
+
+# Generate triggers for a given formula
+generator = LLMTriggerGenerator()
+triggers = generator.generate_triggers("(assert (forall ((x Int)) (> x 0)))")
+```
+
 ## Publications
 
 - **SMTGazer**: "SMTGazer: Machine Learning-Based SMT Solver Portfolio Selection" (ASE 2025)
@@ -93,6 +144,12 @@ print(tactic_seq.to_string())
 - `scikit-learn` - Machine learning utilities
 - `numpy` - Numerical computing
 - `machsmt` - SMT feature extraction library
+
+### LLM Dependencies
+
+- `openai` - OpenAI API client (for GPT models)
+- `anthropic` - Anthropic API client (for Claude models)
+- `aria.llmtools` - ARIA's LLM utilities module
 
 ## Configuration
 

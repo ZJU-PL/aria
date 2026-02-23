@@ -5,12 +5,11 @@ to make chat completion requests without requiring an API key.
 """
 
 import asyncio
+from typing import Dict, List
 
-from aria.llmtools.cli_providers.opencode import (
-    chat_opencode,
+from aria.llmtools.providers.cli.opencode import (
     OPENCODE_FREE_MODELS,
-    is_opencode_model,
-    strip_opencode_prefix,
+    chat_opencode,
 )
 
 
@@ -27,8 +26,7 @@ async def demo_basic_chat() -> None:
 
     # Simple message
     messages = [
-        {"role": "user", "content": "Hello! Please introduce yourself briefly."}
-    ]
+        {"role": "user", "content": "Hello! Please introduce yourself briefly."}]
 
     print("\nSending request...")
     response = await chat_opencode(
@@ -68,7 +66,7 @@ async def demo_multi_turn_conversation() -> None:
     print(f"Description: {OPENCODE_FREE_MODELS.get(model, 'Unknown')}")
 
     # Initialize message history
-    messages = []
+    messages: List[Dict[str, str]] = []
 
     # ===== First turn =====
     print("\n" + "-" * 40)
@@ -89,7 +87,8 @@ async def demo_multi_turn_conversation() -> None:
     print(f"Assistant: {response1.content}")
 
     # Append assistant's response to message history
-    messages.append({"role": "assistant", "content": response1.content})
+    assistant_content = response1.content or ""
+    messages.append({"role": "assistant", "content": assistant_content})
 
     # ===== Second turn =====
     print("\n" + "-" * 40)
@@ -116,7 +115,8 @@ async def demo_multi_turn_conversation() -> None:
     print("=" * 40)
     for i, msg in enumerate(messages):
         print(f"{i+1}. [{msg['role']}]: {msg['content'][:100]}...")
-    print(f"{len(messages)+1}. [assistant]: {response2.content[:100]}...")
+    response2_content = response2.content or ""
+    print(f"{len(messages)+1}. [assistant]: {response2_content[:100]}...")
 
 
 async def main() -> None:

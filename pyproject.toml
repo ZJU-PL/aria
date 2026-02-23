@@ -49,7 +49,9 @@ dependencies = [
     "toolz==1.0.0",
     "numpy",
     "hypothesis",
-    "loguru"
+    "loguru",
+    "openai",
+    "oauth_cli_kit"
 ]
 
 [project.license]

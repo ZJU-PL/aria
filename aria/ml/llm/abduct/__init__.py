@@ -14,8 +14,8 @@ from .data_structures import (
 from .base_abductor import LLMAbductor
 from .feedback_abductor import FeedbackLLMAbductor
 from .validation import validate_hypothesis, generate_counterexample
-from .prompts import create_basic_prompt, create_feedback_prompt
-from .utils import extract_smt_from_llm_response, parse_smt2_string
+from .prompts import create_basic_prompt, create_feedback_prompt, create_cot_prompt, create_few_shot_prompt
+from .parsing import extract_smt_from_llm_response, parse_smt2_string
 
 __all__ = [
     "AbductionProblem",
@@ -28,6 +28,8 @@ __all__ = [
     "generate_counterexample",
     "create_basic_prompt",
     "create_feedback_prompt",
+    "create_cot_prompt",
+    "create_few_shot_prompt",
     "extract_smt_from_llm_response",
     "parse_smt2_string",
 ]
