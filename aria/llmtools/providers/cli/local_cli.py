@@ -1,7 +1,7 @@
 """
 Using Kilo or OpenCode CLI to call free LLMs as the LLM provider.
 
-Note: this file is differnet from kilocode.py and opencode.py. Those files do not require installing kilocode or opencode locally.
+Note: this file is different from kilocode.py and opencode.py. Those files do not require installing kilocode or opencode locally.
 
 Requires one of:
   - kilo: npm install -g @kilocode/cli
@@ -14,12 +14,15 @@ Free models:
 
 import concurrent.futures
 import subprocess
-from typing import Literal, Optional, Tuple
+from typing import Any, Callable, Literal, Optional, Tuple
 
+_tiktoken: Any = None
 try:
-    import tiktoken
+    import tiktoken as _tiktoken
 except ImportError:
-    tiktoken = None
+    pass
+
+tiktoken = _tiktoken
 
 CLIProvider = Literal["kilo", "opencode"]
 
@@ -170,7 +173,7 @@ class LLMCli:
         if measure_cost and tiktoken:
             self.encoding = tiktoken.encoding_for_model("gpt-3.5-turbo-0125")
 
-    def _log(self, *args) -> None:
+    def _log(self, *args: Any) -> None:
         if self.logger and hasattr(self.logger, "print_log"):
             self.logger.print_log(*args)
 
@@ -209,7 +212,11 @@ class LLMCli:
             output_token_cost = len(enc.encode(output)) if output else 0
         return output, input_token_cost, output_token_cost
 
-    def run_with_timeout(self, func, timeout_seconds: Optional[int] = None) -> str:
+    def run_with_timeout(
+        self,
+        func: Callable[[], str],
+        timeout_seconds: Optional[int] = None,
+    ) -> str:
         """
         Run a function with timeout (for compatibility with LLMLocal interface).
 
@@ -226,7 +233,8 @@ class LLMCli:
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
             future = executor.submit(func)
             try:
-                return future.result(timeout=timeout)
+                result = future.result(timeout=timeout)
+                return str(result)
             except concurrent.futures.TimeoutError:
                 self._log("Operation timed out")
                 return ""
@@ -241,7 +249,8 @@ LLMKiloCode = LLMCli
 
 if __name__ == "__main__":
     import sys
-    from efmc.llmtools.logger import Logger
+
+    from aria.llmtools.logger import Logger
 
     logger = Logger("llm_cli.log")
     # Default: kilo. Use opencode/kimi-k2.5-free for opencode.

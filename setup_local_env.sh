@@ -1,6 +1,6 @@
+#!/bin/bash
 # Set up the working environment without Dockerfile
 # FIXME: be tested
-#!/bin/bash
 # Exit on any error
 set -e  # should we do this?
 
@@ -8,6 +8,14 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VENV_DIR="${SCRIPT_DIR}/venv"
 # Use the same name as the venv directory for conda environment
 CONDA_ENV_NAME="$(basename "${VENV_DIR}")"
+
+ensure_pip_and_install() {
+    local project_dir="$1"
+    # Bootstrap pip in environments where pip entrypoints are missing.
+    python -m ensurepip --upgrade || true
+    python -m pip install --upgrade pip setuptools wheel
+    python -m pip install -e "${project_dir}"
+}
 
 echo "Setting up aria environment..."
 
@@ -70,8 +78,7 @@ fi
 
     # 2. Install the package and its dependencies (from pyproject.toml)
     echo "Installing package and dependencies..."
-    pip install --upgrade pip
-    pip install -e "${SCRIPT_DIR}"
+    ensure_pip_and_install "${SCRIPT_DIR}"
 fi
 
 # 3. Download solver binaries

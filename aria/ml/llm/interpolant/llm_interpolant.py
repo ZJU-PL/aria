@@ -23,7 +23,7 @@ from typing import List, Optional, Tuple, Sequence, Union
 
 import z3
 
-from aria.llmtools.LLM_tool import LLMTool
+from aria.llmtools.client import LLM
 from aria.llmtools.logger import Logger
 from aria.ml.llm.interpolant.prompts import mk_interpolant_prompt_with_type
 
@@ -81,12 +81,10 @@ class LLMInterpolantGenerator:
         log_dir = os.environ.get("ARIA_LOG_DIR", ".aria_logs")
         os.makedirs(log_dir, exist_ok=True)
         logger = Logger(os.path.join(log_dir, "interpolant_llm.log"))
-        self.tool = LLMTool(
-            model_name=model_name,
-            temperature=temperature,
-            language="en",
-            max_query_num=3,
+        self.llm = LLM(
+            online_model_name=model_name,
             logger=logger,
+            temperature=temperature,
         )
         self.prompt_type = prompt_type
 
@@ -105,7 +103,8 @@ class LLMInterpolantGenerator:
 
         last_text = ""
         for _ in range(max_attempts):
-            text = self.tool.invoke(prompt) or ""
+            content, _, _ = self.llm.infer(prompt, is_measure_cost=False)
+            text = content or ""
             last_text = text or last_text
             if not text:
                 continue

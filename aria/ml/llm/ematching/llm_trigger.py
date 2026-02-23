@@ -19,7 +19,7 @@ from typing import Iterable, List, Optional, Sequence
 import z3
 
 try:
-    from aria.llmtools.LLM_utils import LLM  # type: ignore
+    from aria.llmtools.client import LLM  # type: ignore
     from aria.llmtools.logger import Logger  # type: ignore
 except ImportError:  # pragma: no cover - optional dependency
     LLM = None  # type: ignore

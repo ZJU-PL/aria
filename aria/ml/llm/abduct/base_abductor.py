@@ -1,11 +1,11 @@
 """Basic LLM-based abductor implementation."""
 
 import time
-from aria.llmtools.LLM_utils import LLM
+from aria.llmtools.client import LLM
 from .data_structures import AbductionProblem, AbductionResult
 from .validation import validate_hypothesis
 from .prompts import create_basic_prompt
-from .utils import extract_smt_from_llm_response, parse_smt2_string
+from .parsing import extract_smt_from_llm_response, parse_smt2_string
 
 
 class LLMAbductor:

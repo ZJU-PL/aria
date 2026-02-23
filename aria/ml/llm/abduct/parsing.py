@@ -1,4 +1,4 @@
-"""Utility functions for abduction module."""
+"""SMT-LIB2 parsing utilities for abduction module."""
 
 import re
 from typing import Optional

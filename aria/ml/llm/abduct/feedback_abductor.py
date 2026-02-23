@@ -1,7 +1,7 @@
 """Feedback-based LLM abductor implementation."""
 
 import time
-from aria.llmtools.LLM_utils import LLM
+from aria.llmtools.client import LLM
 from .data_structures import (
     AbductionProblem,
     AbductionIterationResult,
@@ -10,7 +10,7 @@ from .data_structures import (
 from .base_abductor import LLMAbductor
 from .validation import validate_hypothesis, generate_counterexample
 from .prompts import create_basic_prompt, create_feedback_prompt
-from .utils import extract_smt_from_llm_response, parse_smt2_string
+from .parsing import extract_smt_from_llm_response, parse_smt2_string
 
 
 class FeedbackLLMAbductor(LLMAbductor):
