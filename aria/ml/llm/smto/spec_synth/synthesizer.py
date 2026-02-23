@@ -15,12 +15,13 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import z3
 
-from aria.ml.llm.llmtool.LLM_utils import LLM
+from aria.llmtools.LLM_utils import LLM
 
 
 @dataclass
 class SynthesizedSpec:
     """Synthesized specification for an oracle."""
+
     oracle_name: str
     constraints: List[str]  # SMT-LIB constraint strings
     z3_constraints: List[z3.BoolRef] = field(default_factory=list)
@@ -29,7 +30,9 @@ class SynthesizedSpec:
     is_validated: bool = False
     validation_examples: List[Dict[str, Any]] = field(default_factory=list)
 
-    def to_z3(self, input_vars: Dict[str, z3.ExprRef], output_var: z3.ExprRef) -> z3.BoolRef:
+    def to_z3(
+        self, input_vars: Dict[str, z3.ExprRef], output_var: z3.ExprRef
+    ) -> z3.BoolRef:
         """Convert constraints to Z3 formula."""
         if not self.z3_constraints:
             self._parse_constraints(input_vars, output_var)
@@ -191,7 +194,9 @@ class SpecSynthesizer:
             out = ex.get("output", "?")
             inp_str = ", ".join(str(inp.get(name, "?")) for name in input_names)
             example_lines.append(f"({inp_str}) -> {out}")
-        examples_str = "\n".join(example_lines) if example_lines else "No examples provided"
+        examples_str = (
+            "\n".join(example_lines) if example_lines else "No examples provided"
+        )
 
         # Format source code
         source_str = source_code if source_code else "No source code available"
@@ -250,7 +255,7 @@ class SpecSynthesizer:
     def _parse_response(self, response: str) -> Optional[Dict[str, Any]]:
         """Parse LLM response as JSON."""
         # Find JSON object in response
-        json_match = re.search(r'\{[\s\S]*\}', response)
+        json_match = re.search(r"\{[\s\S]*\}", response)
         if not json_match:
             return None
 

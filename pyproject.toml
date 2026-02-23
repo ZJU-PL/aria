@@ -49,6 +49,7 @@ dependencies = [
     "toolz==1.0.0",
     "numpy",
     "hypothesis",
+    "loguru"
 ]
 
 [project.license]

@@ -23,8 +23,8 @@ from typing import List, Optional, Tuple, Sequence, Union
 
 import z3
 
-from aria.ml.llm.llmtool.LLM_tool import LLMTool
-from aria.ml.llm.llmtool.logger import Logger
+from aria.llmtools.LLM_tool import LLMTool
+from aria.llmtools.logger import Logger
 from aria.ml.llm.interpolant.prompts import mk_interpolant_prompt_with_type
 
 

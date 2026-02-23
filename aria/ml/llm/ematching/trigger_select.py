@@ -82,7 +82,9 @@ class TriggerSelector:
                 key = normalized.sexpr()
                 if key not in seen:
                     seen.add(key)
-                    vars_in_term = sorted(self._collect_var_names(normalized, bound_names))
+                    vars_in_term = sorted(
+                        self._collect_var_names(normalized, bound_names)
+                    )
                     candidates.append(
                         TriggerCandidate(
                             expr=normalized,
@@ -252,7 +254,9 @@ class TriggerSelector:
         candidates: List[TriggerCandidate],
         bound_var_map: Dict[str, ExprRef],
     ) -> List[List[ExprRef]]:
-        needed = set(bound_var_map.keys()) - self._covered_vars(selected_groups, bound_var_map)
+        needed = set(bound_var_map.keys()) - self._covered_vars(
+            selected_groups, bound_var_map
+        )
         if not needed:
             return selected_groups
 

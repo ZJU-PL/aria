@@ -8,6 +8,7 @@ Calling local LLMs
 import concurrent.futures
 import importlib
 from typing import Tuple, Optional, Any
+import time
 
 try:
     from openai import OpenAI  # pylint: disable=import-error
@@ -18,7 +19,7 @@ try:
 except ImportError:
     tiktoken = None  # type: ignore
 
-from aria.ml.llm.llmtool.logger import Logger
+from aria.llmtools.logger import Logger
 
 
 class LLMLocal:

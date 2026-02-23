@@ -1,7 +1,7 @@
 """Feedback-based LLM abductor implementation."""
 
 import time
-from aria.ml.llm.llmtool.LLM_utils import LLM
+from aria.llmtools.LLM_utils import LLM
 from .data_structures import (
     AbductionProblem,
     AbductionIterationResult,
