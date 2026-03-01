@@ -1,17 +1,18 @@
-"""Programming by Example (PBE) Solver using Version Space Algebra.
-
-This module provides a PBE solver that synthesizes programs from
-input-output examples using version space algebra.
-"""
+"""Programming by Example solver using typed version-space filtering."""
 
 import time
-from typing import List, Dict, Any, Optional
-from .vsa import VSAlgebra, VersionSpace
-from .expressions import Expression
+from typing import Any, Dict, List, Optional
+
 from .expression_generators import (
     generate_expressions_for_theory,
+    get_output_type,
     get_theory_from_variables,
+    get_variable_names,
+    rank_expressions,
+    validate_examples,
 )
+from .expressions import Expression, Theory
+from .vsa import VSAlgebra, VersionSpace
 
 
 class SynthesisResult:
@@ -23,13 +24,29 @@ class SynthesisResult:
         expression: Optional[Expression] = None,
         version_space: Optional[VersionSpace] = None,
         message: str = "",
+        ranked_expressions: Optional[List[Expression]] = None,
+        distinguishing_inputs: Optional[List[Dict[str, Any]]] = None,
+        statistics: Optional[Dict[str, Any]] = None,
     ):
         self.success = success
         self.expression = expression
         self.version_space = version_space
         self.message = message
+        self.ranked_expressions = ranked_expressions or []
+        self.distinguishing_inputs = distinguishing_inputs or []
+        self.statistics = statistics or {}
 
     def __str__(self) -> str:
+        if (
+            self.success
+            and self.expression
+            and self.version_space
+            and len(self.version_space) > 1
+        ):
+            return (
+                "Synthesis ambiguous: selected "
+                f"{self.expression} from {len(self.version_space)} programs"
+            )
         if self.success and self.expression:
             return f"Synthesis successful: {self.expression}"
         if self.success and self.version_space:
@@ -38,198 +55,145 @@ class SynthesisResult:
 
 
 class PBESolver:
-    """Programming by Example solver using Version Space Algebra."""
+    """Programming by Example solver with typed ranking and validation."""
 
     def __init__(
         self,
         max_expression_depth: int = 3,
         timeout: float = 30.0,
         max_counterexamples: int = 10,
+        theory_hint: Optional[Theory] = None,
+        max_candidates: int = 2000,
+        bitwidth: int = 32,
     ):
         self.max_expression_depth = max_expression_depth
         self.timeout = timeout
         self.max_counterexamples = max_counterexamples
+        self.theory_hint = theory_hint
+        self.max_candidates = max_candidates
+        self.bitwidth = bitwidth
 
-    def synthesize(self, examples: List[Dict[str, Any]]) -> SynthesisResult:
+    def synthesize(
+        self, examples: List[Dict[str, Any]], theory: Optional[Theory] = None
+    ) -> SynthesisResult:
         """Synthesize a program from input-output examples."""
-        if not examples:
-            return SynthesisResult(False, message="No examples provided")
-
-        # Infer the theory from examples
         try:
-            theory = get_theory_from_variables(examples)
-        except ValueError as e:
-            return SynthesisResult(False, message=str(e))
+            validate_examples(examples)
+            selected_theory = get_theory_from_variables(
+                examples, theory_hint=theory or self.theory_hint
+            )
+            output_type = get_output_type(examples, selected_theory)
+            variables = get_variable_names(examples)
+        except ValueError as error:
+            return SynthesisResult(False, message=str(error))
 
-        # Extract variable names from examples
-        variables = self._extract_variables(examples)
+        start_time = time.time()
 
-        # Generate initial version space
         try:
             expressions = generate_expressions_for_theory(
-                theory, variables, max_depth=self.max_expression_depth
+                selected_theory,
+                variables,
+                max_depth=self.max_expression_depth,
+                output_type=output_type,
+                examples=examples,
+                bitwidth=self.bitwidth,
+                max_candidates=self.max_candidates,
             )
-        except Exception as e:
+        except Exception as error:
             return SynthesisResult(
-                False, message=f"Failed to generate expressions: {e}"
+                False, message=f"Failed to generate expressions: {error}"
             )
 
         if not expressions:
             return SynthesisResult(False, message="No expressions generated")
 
-        # Create VSA algebra
-        def expression_generator():
+        if time.time() - start_time > self.timeout:
+            return SynthesisResult(False, message="Timeout during enumeration")
+
+        def expression_generator() -> List[Expression]:
             return generate_expressions_for_theory(
-                theory, variables, max_depth=self.max_expression_depth
+                selected_theory,
+                variables,
+                max_depth=self.max_expression_depth,
+                output_type=output_type,
+                examples=examples,
+                bitwidth=self.bitwidth,
+                max_candidates=self.max_candidates,
             )
 
-        algebra = VSAlgebra(theory, expression_generator)
+        algebra = VSAlgebra(
+            selected_theory,
+            expression_generator,
+            enable_caching=True,
+            max_workers=4,
+        )
 
-        # Create initial version space with all expressions
-        initial_vs = VersionSpace(set(expressions))
+        filtered_vs = algebra.filter_consistent(
+            VersionSpace(set(expressions)), examples
+        )
+        if filtered_vs.is_empty():
+            return SynthesisResult(False, message="No consistent programs found")
 
-        # Iteratively refine the version space with examples
-        current_vs = initial_vs
-        start_time = time.time()
+        ranked = rank_expressions(filtered_vs.expressions)
+        best = ranked[0]
+        statistics = {
+            "theory": selected_theory.value,
+            "output_type": output_type.value,
+            "generated_expressions": len(expressions),
+            "consistent_expressions": len(filtered_vs),
+            "search_time_seconds": round(time.time() - start_time, 6),
+        }
+        statistics.update(algebra.get_cache_stats())
 
-        for i, example in enumerate(examples):
-            # Filter version space to be consistent with this example
-            current_vs = algebra.filter_consistent(current_vs, [example])
-
-            if current_vs.is_empty():
-                return SynthesisResult(
-                    False, message=f"No consistent programs found after example {i+1}"
-                )
-
-            # Check timeout
-            if time.time() - start_time > self.timeout:
-                return SynthesisResult(
-                    False,
-                    message=f"Timeout after {time.time() - start_time:.2f} seconds",
-                )
-
-        # Try to find a unique solution by generating counterexamples
-        if len(current_vs) > 1:
-            counterexample_result = self._find_unique_solution(
-                algebra, current_vs, examples, start_time
-            )
-
-            if counterexample_result.success:
-                return counterexample_result
-            # Return the version space if we can't find a unique solution
+        if len(filtered_vs) == 1:
             return SynthesisResult(
                 True,
-                version_space=current_vs,
-                message=f"Found {len(current_vs)} possible programs",
+                expression=best,
+                version_space=filtered_vs,
+                ranked_expressions=ranked[:10],
+                statistics=statistics,
             )
 
-        # We have a unique solution
-        unique_expr = list(current_vs.expressions)[0]
-        return SynthesisResult(True, expression=unique_expr)
-
-    def _extract_variables(self, examples: List[Dict[str, Any]]) -> List[str]:
-        """Extract variable names from examples."""
-        variables = set()
-        for example in examples:
-            for key in example.keys():
-                if key != "output":
-                    variables.add(key)
-        return list(variables)
-
-    def _find_unique_solution(
-        self,
-        algebra: VSAlgebra,
-        version_space: VersionSpace,
-        examples: List[Dict[str, Any]],
-        start_time: float,
-    ) -> SynthesisResult:
-        """Try to find a unique solution by generating counterexamples."""
-
-        for _ in range(self.max_counterexamples):
-            # Check timeout
-            if time.time() - start_time > self.timeout:
-                return SynthesisResult(
-                    False,
-                    version_space=version_space,
-                    message=f"Timeout while searching for unique solution",
-                )
-
-            # Find a counterexample
-            counterexample = algebra.find_counterexample(version_space, examples)
-
-            if counterexample is None:
-                # No more counterexamples found
-                break
-
-            # Evaluate the counterexample with expressions in the version space
-            outputs = {}
-            for expr in version_space.expressions:
-                try:
-                    output = expr.evaluate(counterexample)
-                    outputs[expr] = output
-                except:
-                    continue
-
-            if len(set(outputs.values())) == 1:
-                # All expressions produce the same output, this isn't a good counterexample
-                continue
-
-            # Add the counterexample with the expected output
-            # For now, we'll use the output from the first expression as the expected output
-            first_expr = next(iter(version_space.expressions))
-            counterexample["output"] = outputs.get(first_expr)
-
-            # Filter the version space with this counterexample
-            new_vs = algebra.filter_consistent(version_space, [counterexample])
-
-            if new_vs.is_empty():
-                return SynthesisResult(
-                    False, message="Counterexample eliminated all possible programs"
-                )
-
-            version_space = new_vs
-
-            # Check if we now have a unique solution
-            if len(version_space) == 1:
-                unique_expr = list(version_space.expressions)[0]
-                return SynthesisResult(True, expression=unique_expr)
-            elif len(version_space) == 0:
-                return SynthesisResult(
-                    False, message="No consistent programs found after counterexample"
-                )
-
-        # Return the current version space if we couldn't find a unique solution
+        distinguishing_inputs = self._find_distinguishing_inputs(
+            algebra, filtered_vs, examples
+        )
         return SynthesisResult(
             True,
-            version_space=version_space,
-            message=f"Could not find unique solution, found {len(version_space)} possible programs",
+            expression=best,
+            version_space=filtered_vs,
+            message=(
+                f"Ambiguous specification: {len(filtered_vs)} programs satisfy the "
+                "examples; returning the simplest candidate"
+            ),
+            ranked_expressions=ranked[:10],
+            distinguishing_inputs=distinguishing_inputs,
+            statistics=statistics,
         )
 
     def verify(self, expression: Expression, examples: List[Dict[str, Any]]) -> bool:
         """Verify that an expression is consistent with all examples."""
+        validate_examples(examples)
         algebra = VSAlgebra(expression.theory)
-        return algebra._is_consistent(expression, examples)
+        return algebra.is_consistent(expression, examples)
 
     def generate_counterexample(
         self, expressions: List[Expression], examples: List[Dict[str, Any]]
     ) -> Optional[Dict[str, Any]]:
-        """Generate a counterexample that distinguishes between expressions."""
+        """Generate an input that distinguishes a set of expressions."""
         if not expressions:
             return None
 
-        # Use the first expression's theory
-        theory = expressions[0].theory
         variables = set()
         for expr in expressions:
             variables.update(expr.get_variables())
 
-        def expression_generator():
-            return generate_expressions_for_theory(theory, list(variables))
+        theory = expressions[0].theory
+
+        def expression_generator() -> List[Expression]:
+            return list(expressions)
 
         algebra = VSAlgebra(theory, expression_generator)
-        vs = VersionSpace(set(expressions))
-
-        return algebra.find_counterexample(vs, examples)
+        return algebra.find_counterexample(VersionSpace(set(expressions)), examples)
 
     def minimize_version_space(self, version_space: VersionSpace) -> VersionSpace:
         """Minimize a version space by removing redundant expressions."""
@@ -237,13 +201,7 @@ class PBESolver:
         if theory is None:
             return version_space
 
-        def expression_generator():
-            variables = set()
-            for expr in version_space.expressions:
-                variables.update(expr.get_variables())
-            return generate_expressions_for_theory(theory, list(variables))
-
-        algebra = VSAlgebra(theory, expression_generator)
+        algebra = VSAlgebra(theory)
         return algebra.minimize(version_space)
 
     def sample_from_version_space(
@@ -254,11 +212,29 @@ class PBESolver:
         if theory is None:
             return []
 
-        def expression_generator():
-            variables = set()
-            for expr in version_space.expressions:
-                variables.update(expr.get_variables())
-            return generate_expressions_for_theory(theory, list(variables))
-
-        algebra = VSAlgebra(theory, expression_generator)
+        algebra = VSAlgebra(theory)
         return algebra.sample(version_space, n)
+
+    def _find_distinguishing_inputs(
+        self,
+        algebra: VSAlgebra,
+        version_space: VersionSpace,
+        examples: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        """Suggest additional distinguishing inputs without fabricating outputs."""
+        suggestions: List[Dict[str, Any]] = []
+        seen = set()
+
+        for _ in range(self.max_counterexamples):
+            counterexample = algebra.find_counterexample(
+                version_space, examples + suggestions
+            )
+            if counterexample is None:
+                break
+            frozen = tuple(sorted(counterexample.items()))
+            if frozen in seen:
+                break
+            seen.add(frozen)
+            suggestions.append(counterexample)
+
+        return suggestions
