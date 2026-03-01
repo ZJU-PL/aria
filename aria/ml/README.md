@@ -13,15 +13,15 @@ AI-powered tools leveraging large language models for enhanced SMT solving and t
 - Natural language processing for SMT formulas
 - LLM-assisted abductive reasoning
 - Trigger generation for E-matching
-- Interpolant synthesis with LLM
+- Specification synthesis for closed-box functions
 - Specification synthesis for closed-box functions
 
 **Files:**
 - `llm/` - Main LLM integration module
   - `smt2nl.py` - Converts SMT-LIB assertions to natural language
-  - `abduct/` - LLM-based abduction for hypothesis generation
+  - `abduction/` - LLM-based abduction for hypothesis generation
   - `ematching/` - LLM-trigger generation for E-matching
-  - `interpolant/` - LLM-based interpolant generation
+  - `smto/` - SMT solver with synthesized specifications
   - `smto/` - SMT solver with synthesized specifications
 
 ### SMTGazer: Machine Learning-Based SMT Solver Portfolio System
@@ -108,20 +108,27 @@ python -m aria.ml.llm.smt2nl "(assert (and (> x 5) (<= y 10)))"
 # Output: "both x is greater than 5 and y is less than or equal to 10"
 ```
 
-#### LLM-Based Abduction
+#### LLM-Based Abduction (Natural Language)
 ```python
-from aria.ml.llm.abduct import LLMAbductor, AbductionProblem
+from aria.llmtools.client import LLM
+from aria.ml.llm.abduction import NLAbductor
 
-# Create abduction problem
-problem = AbductionProblem(
-    premise="(assert (> x 0))",
-    conclusion="(assert (> x 5))"
-)
+# Initialize LLM (requires ARIA_LLM_MODEL env var or use default)
+llm = LLM(online_model_name="gpt-4.1-mini", temperature=0.2)
+abductor = NLAbductor(llm=llm)
 
-# Generate hypothesis using LLM
-abductor = LLMAbductor()
-result = abductor.solve(problem)
+# Provide natural language premise and conclusion
+text = """Premise: Alice and Bob each have a positive integer number of apples.
+Conclusion: Alice has more than 5 apples, and together they have more than 10 apples."""
+
+# Generate abductive hypothesis
+result = abductor.abduce(text)
+if result.hypothesis:
+    print("Hypothesis (SMT):", [t.sexpr() for t in result.hypothesis.smt_terms])
+    print("Hypothesis (NL):", list(result.hypothesis.nl_terms))
 ```
+
+
 
 #### E-Matching Trigger Generation
 ```python
