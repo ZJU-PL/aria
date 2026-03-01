@@ -1,7 +1,7 @@
 CLI Tools
 =========
 
-The ``aria.cli`` module provides command-line interface tools for various automated reasoning tasks, including EFSMT solving, model counting, optimization problems, and an enhanced SMT server with advanced features.
+The ``aria.cli`` module provides command-line interface tools for various automated reasoning tasks, including EFSMT solving, model counting, optimization (OMT/MaxSAT), UNSAT core and MUS computation, AllSMT model enumeration, and an enhanced SMT server with advanced features.
 
 .. contents:: Table of Contents
    :local:
@@ -13,14 +13,20 @@ Directory Structure
 ```
 cli/
 ├── __init__.py                      (0 lines - empty)
-├── efsmt.py                        (270 lines)
-├── fmldoc.py                       (305 lines)
-├── mc.py                           (206 lines)
-├── pyomt.py                        (149 lines)
-├── smt_server.py                   (678 lines)
-├── README.md                       (169 lines)
+├── efsmt.py                         Exists-Forall SMT solver
+├── fmldoc.py                        Format conversion and validation
+├── mc.py                            Model counting
+├── pyomt.py                         OMT / MaxSMT optimization
+├── maxsat.py                        MaxSAT (WCNF) solver
+├── unsat_core.py                    UNSAT core / MUS / MSS
+├── allsmt.py                        All satisfying models enumeration
+├── smt_server.py                    Enhanced SMT server (IPC)
+├── README.md                        CLI usage guide
 └── tests/
-    └── test_smt_server.py           (155 lines)
+    ├── test_smt_server.py
+    ├── test_cli_maxsat.py
+    ├── test_cli_unsat_core.py
+    └── test_cli_allsmt.py
 ```
 
 **No subdirectories** - flat module structure with tests/ subdirectory.
@@ -260,7 +266,92 @@ CLI Tools Overview
 
 **Note**: MaxSMT support is not yet implemented in the CLI.
 
-### 5. **smt_server.py** - Enhanced SMT Server
+### 5. **maxsat.py** - MaxSAT Solver
+
+**Purpose**: Solve (weighted partial) MaxSAT problems from WCNF files using RC2, FM, or LSU engines.
+
+**Usage**:
+
+.. code-block:: bash
+
+   python3 -m aria.cli.maxsat <file> [options]
+   aria-maxsat <file> [options]
+
+**Arguments**:
+
+* ``file`` - WCNF formula file (``.wcnf``, ``.cnf``)
+
+**Options**:
+
+.. list-table::
+   :header: "Option, Default, Description"
+   :widths: 25, 60
+
+   ``--solver``, ``rc2``, MaxSAT engine (rc2, fm, lsu)
+   ``--timeout``, (none), Timeout in seconds
+   ``--print-model``, (off), Print optimal assignment
+   ``--log-level``, ``WARNING``, Logging level
+
+**Output**: Prints ``cost: <n>``, optional ``status``, and with ``--print-model`` the satisfying literals.
+
+### 6. **unsat_core.py** - UNSAT Core / MUS / MSS
+
+**Purpose**: Compute one minimal unsatisfiable core or enumerate all MUSes from an SMT-LIB2 formula.
+
+**Usage**:
+
+.. code-block:: bash
+
+   python3 -m aria.cli.unsat_core <file> [options]
+   aria-unsat-core <file> [options]
+
+**Arguments**:
+
+* ``file`` - SMT-LIB2 formula file (``.smt2``)
+
+**Options**:
+
+.. list-table::
+   :header: "Option, Default, Description"
+   :widths: 25, 60
+
+   ``--algorithm``, ``marco``, Algorithm (marco, musx, optux)
+   ``--all-mus``, (off), Enumerate all minimal unsatisfiable subsets (MARCO only)
+   ``--timeout``, (none), Timeout in seconds
+   ``--no-formulas``, (off), Print only core indices, not assertion formulas
+
+If the formula is satisfiable, the tool reports that and exits successfully. For unsatisfiable formulas, prints one or more cores (assertion indices and optionally the formulas).
+
+### 7. **allsmt.py** - All Satisfying Models
+
+**Purpose**: Enumerate all satisfying models of an SMT-LIB2 formula up to a configurable limit.
+
+**Usage**:
+
+.. code-block:: bash
+
+   python3 -m aria.cli.allsmt <file> [options]
+   aria-allsmt <file> [options]
+
+**Arguments**:
+
+* ``file`` - SMT-LIB2 formula file (``.smt2``)
+
+**Options**:
+
+.. list-table::
+   :header: "Option, Default, Description"
+   :widths: 25, 60
+
+   ``--solver``, ``z3``, AllSMT backend (z3, pysmt, mathsat)
+   ``--limit``, ``100``, Maximum number of models to enumerate
+   ``--project``, (all vars), Comma-separated variable names to include
+   ``--count-only``, (off), Print only the model count
+   ``--verbose``, (off), Print each model in detail
+
+**Output**: Without ``--count-only``, prints each model; with ``--count-only``, a single line with the count.
+
+### 8. **smt_server.py** - Enhanced SMT Server
 
 **Purpose**: IPC-based SMT-LIB2 server with advanced aria features (AllSMT, UNSAT cores, backbone, model counting).
 
@@ -346,53 +437,53 @@ CLI Tools Overview
 * **Scope Management**: Push/pop for incremental solving
 * **Named Pipe IPC**: Unix-style pipe communication
 
-### 6. **README.md** - SMT Server Documentation
+### 9. **README.md** - CLI Documentation
 
-Comprehensive documentation (169 lines) covering:
+Comprehensive documentation in ``aria/cli/README.md`` covering:
 
+* All CLI tools (fmldoc, mc, pyomt, efsmt, maxsat, unsat_core, allsmt, smt_server)
 * Server architecture and IPC mechanisms
-* Complete command reference
-* Configuration options
-* Usage examples
-* Troubleshooting tips
+* Complete command reference and options
+* Usage examples and testing
 
 Testing
 -------
 
-### SMT Server Test Suite
-
-**Location**: ``aria/cli/tests/test_smt_server.py`` (155 lines)
-
-**Run tests**:
+**Run all CLI tests**:
 
 .. code-block:: bash
 
-   python3 aria/cli/tests/test_smt_server.py
+   pytest aria/tests/test_cli_*.py -v
 
-**Test Coverage:**
+**Per-tool tests**:
 
-* Basic functionality (declare-const, assert, check-sat, get-model)
-* Advanced features (AllSMT, UNSAT core, model counting)
-* Help command
-* Automatic server startup/shutdown
+* ``test_cli_fmldoc.py`` - Format converter
+* ``test_cli_mc.py`` - Model counting
+* ``test_cli_efsmt.py`` - EFSMT solver
+* ``test_cli_pyomt.py`` - OMT solver
+* ``test_cli_maxsat.py`` - MaxSAT solver
+* ``test_cli_unsat_core.py`` - UNSAT core / MUS
+* ``test_cli_allsmt.py`` - AllSMT enumeration
+* ``test_smt_server.py`` - SMT server (declare-const, assert, check-sat, get-model, AllSMT, UNSAT core, model counting, help)
 
 Code Statistics
 ---------------
 
-**Total Python lines**: 1,603
-
 .. list-table::
-   :header: "File, Lines"
-   :widths: 30, 15
+   :header: "File, Description"
+   :widths: 30, 50
 
-   efsmt.py, 269
-   fmldoc.py, 304
-   mc.py, 205
-   pyomt.py, 148
-   smt_server.py, 677
+   efsmt.py, Exists-Forall SMT solver
+   fmldoc.py, Format conversion and validation
+   mc.py, Model counting
+   pyomt.py, OMT / MaxSMT optimization
+   maxsat.py, MaxSAT (WCNF) solver
+   unsat_core.py, UNSAT core / MUS / MSS
+   allsmt.py, All satisfying models enumeration
+   smt_server.py, Enhanced SMT server (IPC)
 
-**Documentation**: README.md (169 lines)
-**Tests**: 155 lines
+**Documentation**: ``aria/cli/README.md``
+**Tests**: ``test_cli_*.py``, ``test_smt_server.py``
 
 Dependencies
 -----------
@@ -416,10 +507,13 @@ All CLI tools can be invoked via Python module syntax:
 Where ``<tool_name>`` is one of:
 
 * ``efsmt`` - Exists-Forall SMT solver
-* ``fmldoc`` - Format translator (placeholder)
+* ``fmldoc`` - Format translator and validator
 * ``mc`` - Model counting
-* ``pyomt`` - Optimization solver
-* ``smt_server`` - SMT server
+* ``pyomt`` - OMT / MaxSMT optimization solver
+* ``maxsat`` - MaxSAT (WCNF) solver (RC2, FM, LSU)
+* ``unsat_core`` - UNSAT core / MUS / MSS computation
+* ``allsmt`` - Enumerate all satisfying models
+* ``smt_server`` - SMT server (IPC)
 
 Key Features
 ------------

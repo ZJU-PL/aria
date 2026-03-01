@@ -12,7 +12,12 @@ This package provides CLI tools for various automated reasoning tasks:
 | `mc` | Model counting for Boolean, QF_BV, and arithmetic theories |
 | `pyomt` | Optimization modulo theories (OMT) solving |
 | `efsmt` | Exists-Forall SMT solving |
+| `maxsat` | MaxSAT solving (WCNF, engines: RC2, FM, LSU) |
+| `unsat_core` | UNSAT core, MUS, and MSS computation from SMT-LIB2 |
+| `allsmt` | Enumerate all satisfying models of an SMT formula |
 | `smt_server` | Enhanced SMT server with advanced features |
+
+After `pip install -e .`, the same tools are available as `aria-fmldoc`, `aria-mc`, `aria-pyomt`, `aria-efsmt`, `aria-maxsat`, `aria-unsat-core`, `aria-allsmt`, and `aria-smt-server`.
 
 ## Quick Start
 
@@ -28,6 +33,15 @@ python -m aria.cli.pyomt problem.smt2
 
 # Exists-Forall solving
 python -m aria.cli.efsmt problem.smt2
+
+# MaxSAT (WCNF)
+aria-maxsat formula.wcnf --solver rc2
+
+# UNSAT core
+aria-unsat-core formula.smt2
+
+# AllSMT (enumerate models)
+aria-allsmt formula.smt2 --limit 100
 
 # SMT server
 python -m aria.cli.smt_server
@@ -190,6 +204,137 @@ Example:
 
 ---
 
+## maxsat - MaxSAT Solver
+
+Solve (weighted partial) MaxSAT problems from WCNF files.
+
+### Usage
+
+```bash
+# Default engine (RC2)
+aria-maxsat formula.wcnf
+python -m aria.cli.maxsat formula.wcnf
+
+# Choose engine
+aria-maxsat formula.wcnf --solver rc2
+aria-maxsat formula.wcnf --solver fm
+aria-maxsat formula.wcnf --solver lsu
+
+# Print satisfying assignment
+aria-maxsat formula.wcnf --print-model
+
+# Timeout and logging
+aria-maxsat formula.wcnf --timeout 60 --log-level INFO
+```
+
+### Options
+
+| Option | Values | Default | Description |
+|--------|--------|---------|-------------|
+| `file` | path | (required) | WCNF formula file (.wcnf, .cnf) |
+| `--solver` | rc2, fm, lsu | rc2 | MaxSAT engine |
+| `--timeout` | integer | None | Timeout in seconds |
+| `--print-model` | flag | false | Print optimal assignment |
+| `--log-level` | DEBUG, INFO, WARNING, ERROR | WARNING | Logging level |
+
+### Output
+
+- `cost: <number>` — cost of the solution (sum of weights of unsatisfied soft clauses).
+- `status: optimal|satisfied|unknown`
+- With `--print-model`: `model: <literals>`
+
+---
+
+## unsat_core - UNSAT Core / MUS / MSS
+
+Compute one minimal unsatisfiable core or enumerate all MUSes from an SMT-LIB2 formula.
+
+### Usage
+
+```bash
+# One UNSAT core (default: MARCO)
+aria-unsat-core formula.smt2
+python -m aria.cli.unsat_core formula.smt2
+
+# Algorithm choice
+aria-unsat-core formula.smt2 --algorithm marco
+aria-unsat-core formula.smt2 --algorithm musx
+aria-unsat-core formula.smt2 --algorithm optux
+
+# Enumerate all MUSes (MARCO only)
+aria-unsat-core formula.smt2 --all-mus
+
+# Only print assertion indices
+aria-unsat-core formula.smt2 --no-formulas
+
+# Timeout
+aria-unsat-core formula.smt2 --timeout 30
+```
+
+If the formula is satisfiable, the tool reports that and exits with code 0.
+
+### Options
+
+| Option | Values | Default | Description |
+|--------|--------|---------|-------------|
+| `file` | path | (required) | SMT-LIB2 formula file (.smt2) |
+| `--algorithm` | marco, musx, optux | marco | Core-extraction algorithm |
+| `--all-mus` | flag | false | Enumerate all minimal unsatisfiable subsets |
+| `--timeout` | integer | None | Timeout in seconds |
+| `--no-formulas` | flag | false | Print only core indices, not formulas |
+
+### Output
+
+- For satisfiable input: `Formula is satisfiable; no UNSAT core.`
+- For unsatisfiable: one or more cores, each as `core N: indices [i, j, ...]` and optionally the corresponding assertion formulas.
+
+---
+
+## allsmt - All Satisfying Models
+
+Enumerate all satisfying models of an SMT-LIB2 formula (up to a limit).
+
+### Usage
+
+```bash
+# Enumerate models (default limit 100)
+aria-allsmt formula.smt2
+python -m aria.cli.allsmt formula.smt2
+
+# Limit and backend
+aria-allsmt formula.smt2 --limit 50
+aria-allsmt formula.smt2 --solver z3
+aria-allsmt formula.smt2 --solver pysmt
+aria-allsmt formula.smt2 --solver mathsat
+
+# Only count models
+aria-allsmt formula.smt2 --count-only
+
+# Project to specific variables
+aria-allsmt formula.smt2 --project x,y,z
+
+# Verbose (detailed model output)
+aria-allsmt formula.smt2 --verbose
+```
+
+### Options
+
+| Option | Values | Default | Description |
+|--------|--------|---------|-------------|
+| `file` | path | (required) | SMT-LIB2 formula file (.smt2) |
+| `--solver` | z3, pysmt, mathsat | z3 | AllSMT backend |
+| `--limit` | integer | 100 | Maximum number of models to enumerate |
+| `--project` | VAR1,VAR2,... | (all) | Comma-separated variable names to include |
+| `--count-only` | flag | false | Print only the model count |
+| `--verbose` | flag | false | Print each model in detail |
+
+### Output
+
+- Without `--count-only`: for each model, `Model N: <assignment>`; if the limit is reached, a note that more models may exist.
+- With `--count-only`: a single line with the number of models found.
+
+---
+
 ## smt_server - Enhanced SMT Server
 
 Run an SMT server with advanced features via IPC.
@@ -281,6 +426,9 @@ pytest aria/tests/test_cli_*.py
 # Specific tool
 pytest aria/tests/test_cli_fmldoc.py -v
 pytest aria/tests/test_cli_mc.py -v
+pytest aria/tests/test_cli_maxsat.py -v
+pytest aria/tests/test_cli_unsat_core.py -v
+pytest aria/tests/test_cli_allsmt.py -v
 ```
 
 ## Dependencies
