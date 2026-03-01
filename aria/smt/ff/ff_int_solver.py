@@ -1,57 +1,59 @@
 #!/usr/bin/env python3
 """
-ff_int_solver.py  –  Finite-field formulas via integer translation
-Sound for every prime field GF(p).
+ff_int_solver.py  –  Finite-field formulas via integer translation.
 """
 from __future__ import annotations
+
+import functools
 from typing import Dict, Optional
-import math
+
 import z3
+
 from .ff_ast import (
-    FieldExpr,
+    BoolAnd,
+    BoolConst,
+    BoolIte,
+    BoolImplies,
+    BoolNot,
+    BoolOr,
+    BoolVar,
+    BoolXor,
     FieldAdd,
-    FieldMul,
-    FieldEq,
-    FieldVar,
     FieldConst,
-    FieldSub,
+    FieldDiv,
+    FieldEq,
+    FieldExpr,
+    FieldMul,
     FieldNeg,
     FieldPow,
-    FieldDiv,
-    BoolOr,
-    BoolAnd,
-    BoolNot,
-    BoolImplies,
-    BoolIte,
-    BoolVar,
+    FieldSub,
+    FieldVar,
     ParsedFormula,
+    field_modulus_from_sort,
+    infer_field_modulus,
+    is_bool_sort,
 )
-
-# ---------------------------------------------------------------------
-
-
-def _is_prime(n: int) -> bool:
-    """Check if n is a prime number."""
-    return n >= 2 and all(n % k for k in range(2, int(math.isqrt(n)) + 1))
+from .ff_numbertheory import is_probable_prime
+from .ff_preprocess import preprocess_formula
 
 
 class FFIntSolver:
-    """
-    Prime-field solver via a direct translation to non-linear integers.
-    """
+    """Prime-field solver via a direct translation to non-linear integers."""
 
     def __init__(self):
         self.solver = z3.SolverFor("QF_NIA")
-        self.vars: Dict[str, z3.IntRef] = {}
-        self.p: Optional[int] = None
+        self.vars: Dict[str, z3.ExprRef] = {}
+        self.var_sorts: Dict[str, str] = {}
 
-    # ---------------------------------------------------------------
     def check(self, formula: ParsedFormula) -> z3.CheckSatResult:
         """Check satisfiability of a finite-field formula."""
-        self._setup_field(formula.field_size)
-        self._declare_vars(formula.variables)
-        for a in formula.assertions:
-            self.solver.add(self._tr(a))
+        normalized = preprocess_formula(formula)
+        self._reset()
+        self._setup_fields(normalized.field_sizes)
+        self.var_sorts = dict(normalized.variables)
+        self._declare_vars(normalized.variables)
+        for assertion in normalized.assertions:
+            self.solver.add(self._tr(assertion))
         return self.solver.check()
 
     def model(self) -> Optional[z3.ModelRef]:
@@ -60,104 +62,128 @@ class FFIntSolver:
             return self.solver.model()
         return None
 
-    # ---------------------------------------------------------------
-    def _setup_field(self, p: int) -> None:
-        """Set up the finite field with prime p."""
-        if not _is_prime(p):
-            raise ValueError(f"Finite-field sort requires prime p, got {p}")
-        self.p = p
+    def _reset(self) -> None:
+        self.solver = z3.SolverFor("QF_NIA")
+        self.vars = {}
+        self.var_sorts = {}
+
+    def _setup_fields(self, fields) -> None:
+        for modulus in fields:
+            if not is_probable_prime(modulus):
+                raise ValueError(
+                    "Finite-field sort requires prime p, got %d" % modulus
+                )
 
     def _declare_vars(self, varmap: Dict[str, str]) -> None:
-        """Declare variables in the solver."""
-        for v, sort_type in varmap.items():
-            if v in self.vars:
+        for name, sort_id in varmap.items():
+            if is_bool_sort(sort_id):
+                self.vars[name] = z3.Bool(name)
                 continue
-            if sort_type == "bool":
-                self.vars[v] = z3.Bool(v)
-            else:  # 'ff' or finite field
-                iv = z3.Int(v)
-                self.vars[v] = iv
-                self.solver.add(z3.And(iv >= 0, iv < self.p))
+            modulus = field_modulus_from_sort(sort_id)
+            if modulus is None:
+                raise ValueError("unsupported sort %s" % sort_id)
+            iv = z3.Int(name)
+            self.vars[name] = iv
+            self.solver.add(z3.And(iv >= 0, iv < modulus))
 
-    # ---------------- translation helpers --------------------------
-    def _mod(self, term: z3.IntRef) -> z3.IntRef:
-        """Apply modulo reduction."""
-        return term % self.p  # ← portable remainder
+    def _mod(self, term: z3.ArithRef, modulus: int) -> z3.ArithRef:
+        return term % modulus
 
-    def _pow_mod(self, base: z3.IntRef, exp: int) -> z3.IntRef:
-        """Return (base ** exp) mod p using square-and-multiply."""
+    def _pow_mod(self, base: z3.ArithRef, modulus: int, exp: int) -> z3.ArithRef:
         result = z3.IntVal(1)
-        b = base
-        e = exp
-        while e > 0:
-            if e & 1:
-                result = self._mod(result * b)
-            e >>= 1
-            if e:
-                b = self._mod(b * b)
+        running_base = base
+        exponent = exp
+        while exponent > 0:
+            if exponent & 1:
+                result = self._mod(result * running_base, modulus)
+            exponent >>= 1
+            if exponent:
+                running_base = self._mod(running_base * running_base, modulus)
         return result
 
+    def _field_modulus(self, expr: FieldExpr) -> int:
+        modulus = infer_field_modulus(expr, self.var_sorts)
+        if modulus is None:
+            raise ValueError("expected a finite-field expression")
+        return modulus
+
     def _tr(
-        self, e: FieldExpr
+        self, expr: FieldExpr
     ) -> z3.ExprRef:  # pylint: disable=too-many-return-statements,too-many-branches
-        """Translate a finite-field expression to Z3."""
-        if isinstance(e, FieldAdd):
-            res = z3.IntVal(0)
-            for arg in e.args:
-                res = self._mod(res + self._tr(arg))
-            return res
+        if isinstance(expr, FieldAdd):
+            modulus = self._field_modulus(expr)
+            result = z3.IntVal(0)
+            for arg in expr.args:
+                result = self._mod(result + self._tr(arg), modulus)
+            return result
 
-        if isinstance(e, FieldMul):
-            res = z3.IntVal(1)
-            for arg in e.args:
-                res = self._mod(res * self._tr(arg))
-            return res
+        if isinstance(expr, FieldMul):
+            modulus = self._field_modulus(expr)
+            result = z3.IntVal(1)
+            for arg in expr.args:
+                result = self._mod(result * self._tr(arg), modulus)
+            return result
 
-        if isinstance(e, FieldEq):
-            return self._tr(e.left) == self._tr(e.right)
+        if isinstance(expr, FieldEq):
+            return self._tr(expr.left) == self._tr(expr.right)
 
-        if isinstance(e, FieldVar):
-            return self.vars[e.name]
+        if isinstance(expr, FieldVar):
+            return self.vars[expr.name]
 
-        if isinstance(e, FieldConst):
-            if not 0 <= e.value < self.p:
+        if isinstance(expr, FieldConst):
+            if expr.modulus is None:
+                raise ValueError("field constants must carry a modulus")
+            if not 0 <= expr.value < expr.modulus:
                 raise ValueError("constant outside field range")
-            return z3.IntVal(e.value)
+            return z3.IntVal(expr.value)
 
-        if isinstance(e, FieldSub):
-            res = self._tr(e.args[0])
-            for arg in e.args[1:]:
-                res = self._mod(res - self._tr(arg))
-            return res
+        if isinstance(expr, FieldSub):
+            modulus = self._field_modulus(expr)
+            result = self._tr(expr.args[0])
+            for arg in expr.args[1:]:
+                result = self._mod(result - self._tr(arg), modulus)
+            return result
 
-        if isinstance(e, FieldNeg):
-            return self._mod(-self._tr(e.arg))
+        if isinstance(expr, FieldNeg):
+            modulus = self._field_modulus(expr)
+            return self._mod(-self._tr(expr.arg), modulus)
 
-        if isinstance(e, FieldPow):
-            base_int = self._tr(e.base)
-            return self._pow_mod(base_int, e.exponent)
+        if isinstance(expr, FieldPow):
+            modulus = self._field_modulus(expr)
+            return self._pow_mod(self._tr(expr.base), modulus, expr.exponent)
 
-        if isinstance(e, FieldDiv):
-            # num * denom^{p-2}  mod p   (for prime p)
-            inv = self._pow_mod(self._tr(e.denom), self.p - 2)
-            return self._mod(self._tr(e.num) * inv)
+        if isinstance(expr, FieldDiv):
+            raise ValueError(
+                "Finite-field division is unsupported without an explicit nonzero side condition"
+            )
 
-        if isinstance(e, BoolOr):
-            return z3.Or(*[self._tr(a) for a in e.args])
+        if isinstance(expr, BoolOr):
+            return z3.Or(*[self._tr(arg) for arg in expr.args])
 
-        if isinstance(e, BoolAnd):
-            return z3.And(*[self._tr(a) for a in e.args])
+        if isinstance(expr, BoolAnd):
+            return z3.And(*[self._tr(arg) for arg in expr.args])
 
-        if isinstance(e, BoolNot):
-            return z3.Not(self._tr(e.arg))
+        if isinstance(expr, BoolXor):
+            args = [self._tr(arg) for arg in expr.args]
+            return functools.reduce(z3.Xor, args)
 
-        if isinstance(e, BoolImplies):
-            return z3.Implies(self._tr(e.antecedent), self._tr(e.consequent))
+        if isinstance(expr, BoolNot):
+            return z3.Not(self._tr(expr.arg))
 
-        if isinstance(e, BoolIte):
-            return z3.If(self._tr(e.cond), self._tr(e.then_expr), self._tr(e.else_expr))
+        if isinstance(expr, BoolImplies):
+            return z3.Implies(self._tr(expr.antecedent), self._tr(expr.consequent))
 
-        if isinstance(e, BoolVar):
-            return self.vars[e.name]
+        if isinstance(expr, BoolIte):
+            return z3.If(
+                self._tr(expr.cond),
+                self._tr(expr.then_expr),
+                self._tr(expr.else_expr),
+            )
 
-        raise TypeError(f"unknown AST node {type(e).__name__}")
+        if isinstance(expr, BoolVar):
+            return self.vars[expr.name]
+
+        if isinstance(expr, BoolConst):
+            return z3.BoolVal(expr.value)
+
+        raise TypeError("unknown AST node %s" % type(expr).__name__)

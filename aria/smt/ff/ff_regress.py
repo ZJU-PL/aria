@@ -6,6 +6,7 @@ Usage:
     python ff_regress.py bv <benchmark_dir>    # Test BV encoding solver (wide-BV)
     python ff_regress.py bv2 <benchmark_dir>   # Test BV bridge solver (Int/BV bridge)
     python ff_regress.py int <benchmark_dir>   # Test integer encoding solver
+    python ff_regress.py auto <benchmark_dir>  # Test automatic backend selection
     python ff_regress.py both <benchmark_dir>  # Test both solvers
 """
 from __future__ import annotations
@@ -29,6 +30,7 @@ try:
     from aria.smt.ff.ff_bv_solver import FFBVSolver
     from aria.smt.ff.ff_bv_solver2 import FFBVBridgeSolver
     from aria.smt.ff.ff_int_solver import FFIntSolver
+    from aria.smt.ff.ff_solver import FFAutoSolver
     from aria.smt.ff.ff_ast import (
         FieldAdd,
         FieldMul,
@@ -43,6 +45,7 @@ except ImportError:
     from .ff_bv_solver import FFBVSolver
     from .ff_bv_solver2 import FFBVBridgeSolver
     from .ff_int_solver import FFIntSolver
+    from .ff_solver import FFAutoSolver
     from .ff_ast import FieldAdd, FieldMul, FieldEq, FieldVar, FieldConst, ParsedFormula
 
 
@@ -69,6 +72,8 @@ def run_demo(solver_type: str = "bv"):
         solver = FFBVBridgeSolver()
     elif solver_type == "int":
         solver = FFIntSolver()
+    elif solver_type == "auto":
+        solver = FFAutoSolver()
     else:
         print(f"Unknown solver type: {solver_type}")
         return
@@ -133,6 +138,8 @@ def solve_single(file_path: str, solver_type: str) -> str:
             solver = FFBVBridgeSolver()
         elif solver_type == "int":
             solver = FFIntSolver()
+        elif solver_type == "auto":
+            solver = FFAutoSolver()
         else:
             return "error"
         result = solver.check(formula)
@@ -152,8 +159,10 @@ def regress(
         solver_type: "bv", "bv2", "int", or "both"
         timeout: Timeout per test in seconds (default 5.0)
     """
-    if solver_type not in ("bv", "bv2", "int", "both"):
-        print(f"Unknown solver type: {solver_type}. Use 'bv', 'bv2', 'int', or 'both'")
+    if solver_type not in ("bv", "bv2", "int", "auto", "both"):
+        print(
+            f"Unknown solver type: {solver_type}. Use 'bv', 'bv2', 'int', 'auto', or 'both'"
+        )
         return
 
     stats = {"total": 0, "passed": 0, "failed": 0, "parse_errors": 0, "timeouts": 0}
@@ -243,8 +252,8 @@ if __name__ == "__main__":
         regress(sys.argv[2], sys.argv[1], float(sys.argv[3]))
     else:
         print("Usage:")
-        print("  python ff_regress.py demo [bv|bv2|int]")
-        print("  python ff_regress.py <bv|bv2|int|both> <benchmark_dir> [timeout]")
+        print("  python ff_regress.py demo [bv|bv2|int|auto]")
+        print("  python ff_regress.py <bv|bv2|int|auto|both> <benchmark_dir> [timeout]")
         print("\nExamples:")
         print("  python ff_regress.py demo bv")
         print("  python ff_regress.py bv2 benchmarks/smtlib2/ff/")
