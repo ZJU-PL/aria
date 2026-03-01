@@ -106,6 +106,9 @@ aria-pyomt = "aria.cli.pyomt:main"
 aria-mc = "aria.cli.mc:main"
 aria-efsmt = "aria.cli.efsmt:main"
 aria-fmldoc = "aria.cli.fmldoc:main"
+aria-maxsat = "aria.cli.maxsat:main"
+aria-unsat-core = "aria.cli.unsat_core:main"
+aria-allsmt = "aria.cli.allsmt:main"
 
 [tool.black]
 line-length = 88

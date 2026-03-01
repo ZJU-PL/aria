@@ -53,6 +53,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **CLI**: `aria-maxsat` — MaxSAT solver for WCNF (engines: RC2, FM, LSU)
+- **CLI**: `aria-unsat-core` — UNSAT core / MUS / MSS from SMT-LIB2 (marco, musx, optux)
+- **CLI**: `aria-allsmt` — Enumerate all satisfying models of SMT formulas
+
 ### Planned
 
 - Additional documentation and tutorials
