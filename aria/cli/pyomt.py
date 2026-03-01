@@ -4,6 +4,7 @@ import argparse
 import logging
 import sys
 from pathlib import Path
+from typing import Optional
 
 import z3
 
@@ -13,8 +14,10 @@ from aria.optimization.omtarith.arith_opt_qsmt import arith_opt_with_qsmt
 from aria.optimization.omtarith.arith_opt_ls import arith_opt_with_ls
 
 
-def solve_omt_problem(filename: str, engine: str, solver_name: str, theory: str = None):
-    """Solve OMT problem (supports both BV and arithmetic)."""
+def solve_omt_problem(
+    filename: str, engine: str, solver_name: str, theory: Optional[str] = None
+) -> None:
+    """Solve OMT problem (supports both BV and arithmetic). Prints result to stdout."""
     parser = OMTParser()
     parser.parse_with_z3(filename, is_file=True)
 
@@ -23,7 +26,6 @@ def solve_omt_problem(filename: str, engine: str, solver_name: str, theory: str 
 
     # Auto-detect theory if not specified
     if theory is None:
-        # Check if objective is bitvector or arithmetic
         obj_sort = obj.sort()
         sort_kind = obj_sort.kind()
         if sort_kind == z3.Z3_BV_SORT:
@@ -31,34 +33,33 @@ def solve_omt_problem(filename: str, engine: str, solver_name: str, theory: str 
         elif sort_kind in (z3.Z3_INT_SORT, z3.Z3_REAL_SORT):
             theory = "arith"
         else:
-            # Try to infer from formula - check for BV operations in string representation
-            obj_str = str(obj)
-            if "BitVec" in obj_str or "BV" in obj_str:
-                theory = "bv"
-            else:
-                theory = "bv"  # default to BV for OMT solver compatibility
+            # Default to BV for OMT solver compatibility
+            theory = "bv"
 
     if theory == "arith":
-        # Use arithmetic optimization
         if engine == "qsmt":
             result = arith_opt_with_qsmt(
                 fml, obj, minimize=False, solver_name=solver_name
             )
             logging.info("Arithmetic QSMT result: %s", result)
+            print(f"optimal-value: {result}")
         elif engine == "iter":
             result = arith_opt_with_ls(
                 fml, obj, minimize=False, solver_name=solver_name
             )
             logging.info("Arithmetic iterative search result: %s", result)
+            print(f"optimal-value: {result}")
         else:
-            # Fall back to general OMT solver
-            solve_opt_file(filename, engine, solver_name)
+            result = solve_opt_file(filename, engine, solver_name)
+            if result is not None:
+                print(f"optimal-value: {result}")
     else:
-        # Use general OMT solver (handles BV by default)
-        solve_opt_file(filename, engine, solver_name)
+        result = solve_opt_file(filename, engine, solver_name)
+        if result is not None:
+            print(f"optimal-value: {result}")
 
 
-def main():
+def main() -> int:
     """Main entry point for optimization CLI."""
     parser = argparse.ArgumentParser(
         description="Solve optimization problems (OMT, MaxSMT, etc.)",
@@ -124,14 +125,12 @@ def main():
 
     try:
         if args.type == "maxsmt":
-            # MaxSMT requires different handling - would need to parse hard/soft constraints
             print("Error: MaxSMT support not yet implemented in CLI", file=sys.stderr)
             print(
                 "Note: MaxSMT problems need hard/soft constraint specification",
                 file=sys.stderr,
             )
             return 1
-        # OMT problem
         theory = None if args.theory == "auto" else args.theory
         solve_omt_problem(args.file, args.engine, solver, theory)
         return 0
