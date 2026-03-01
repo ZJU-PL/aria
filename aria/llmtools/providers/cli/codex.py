@@ -10,7 +10,11 @@ from typing import Any, AsyncGenerator, Awaitable, Callable, Dict, List, Optiona
 
 import httpx
 from loguru import logger
-from oauth_cli_kit import get_token as get_codex_token  # type: ignore[import-untyped]
+
+try:
+    from oauth_cli_kit import get_token as get_codex_token  # type: ignore[import-untyped]
+except ImportError:
+    get_codex_token = None
 
 from aria.llmtools.providers.cli.base import (
     LLMProvider,
@@ -29,6 +33,11 @@ class OpenAICodexProvider(LLMProvider):
     def __init__(self, default_model: str = "openai-codex/gpt-5.1-codex"):
         super().__init__(api_key=None, api_base=None)
         self.default_model = default_model
+        if get_codex_token is None:
+            raise ImportError(
+                "oauth_cli_kit is required for OpenAICodexProvider. "
+                "Install it with: pip install oauth-cli-kit"
+            )
 
     async def chat(
         self,

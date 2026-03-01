@@ -51,7 +51,6 @@ dependencies = [
     "hypothesis",
     "loguru",
     "openai",
-    "oauth_cli_kit"
 ]
 
 [project.license]
