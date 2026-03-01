@@ -4,6 +4,7 @@ Cmd line interface for solving OMT(BV) problems with different solvers.
 
 import argparse
 import logging
+from typing import Optional
 
 import z3
 
@@ -16,7 +17,7 @@ from aria.optimization.omtbv.bv_opt_qsmt import bv_opt_with_qsmt
 from aria.optimization.omt_parser import OMTParser
 
 
-def solve_opt_file(filename: str, engine: str, solver_name: str) -> None:
+def solve_opt_file(filename: str, engine: str, solver_name: str) -> Optional[str]:
     """Interface for solving single-objective optimization problems.
 
     Args:
@@ -24,62 +25,60 @@ def solve_opt_file(filename: str, engine: str, solver_name: str) -> None:
         engine: Optimization engine to use
         solver_name: Name of the solver to use
 
-    Currently, the OMTParser will convert all objectives to the "maximal objecives"
+    Returns:
+        String result (optimal value or status), or None if the engine
+        prints its own output (e.g. z3py).
+
+    Note:
+        The OMTParser converts all objectives to "maximize" internally.
     """
-    logger = logging.getLogger(__name__)  # Move logger here
+    logger = logging.getLogger(__name__)
 
     s = OMTParser()
     s.parse_with_z3(filename, is_file=True)
-    # print(s.objectives)
     fml = z3.And(s.assertions)
     obj = s.objective
-    # print(fml, obj)
-    # 1. use z3 OPT
-    # z3_res = optimize_as_long(fml, obj)
-    # print("z3 res: ", z3_res)
-    # print("----------------------------------")
 
     if engine == "iter":
         solver_type = solver_name.split("-")[0]
         search_type = solver_name.split("-")[-1]
-        # 2. use SMT-based linear search
         if search_type == "ls":
             lin_res = bv_opt_with_linear_search(
                 fml, obj, minimize=False, solver_name=solver_type
             )
-            # print("lin res: ", lin_res)
             logger.info("Linear search result: %s", lin_res)
-        elif search_type == "bs":
-            # 2. use SMT-based binary search
+            return str(lin_res)
+        if search_type == "bs":
             bin_res = bv_opt_with_binary_search(
                 fml, obj, minimize=False, solver_name=solver_type
             )
             logger.info("Binary search result: %s", bin_res)
-    elif engine == "maxsat":
-        # 3. use MaxSAT
+            return str(bin_res)
+        return None
+    if engine == "maxsat":
         maxsat_res = bv_opt_with_maxsat(
             fml, obj, minimize=False, solver_name=solver_name
         )
         logger.info("MaxSAT result: %s", maxsat_res)
-    elif engine == "qsmt":
-        # 4. use QSMT
+        return str(maxsat_res)
+    if engine == "qsmt":
         qsmt_res = bv_opt_with_qsmt(fml, obj, minimize=False, solver_name=solver_name)
         logger.info("QSMT result: %s", qsmt_res)
-    elif engine == "z3py":
+        return str(qsmt_res)
+    if engine == "z3py":
         opt = z3.Optimize()
         opt.from_file(filename=filename)
-        # Check and get result
         if opt.check() == z3.sat:
             print("Solution found:")
             model = opt.model()
-            # Print all variables in the model
             for decl in model:
                 print(f"{decl} = {model[decl]}")
         else:
             print("No solution")
+        return None
 
-    else:
-        logger.warning("No result - invalid engine specified")
+    logger.warning("No result - invalid engine specified")
+    return None
 
 
 def main() -> None:

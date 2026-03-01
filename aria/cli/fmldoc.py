@@ -1,37 +1,18 @@
-"""All-in-one translator for different logic constraints?
+"""CLI for logic constraint formats: translate, validate, and analyze.
 
-- DIMACS
-- QDIMACS
-- TPLP
-- FZN
-- SMT-LIB2
-- Sympy?
-- LP
-- SyGuS
-- Datalog
-- ...
-
-TODO: to be tested
+Supported formats (for validate/analyze): dimacs, smtlib2.
+Supported translations: dimacs -> smtlib2.
 """
 
 import argparse
 import sys
 from pathlib import Path
-from typing import Optional, Sequence
+from typing import List, Optional, Sequence, Tuple
 
-
-def get_translator(input_format: str, output_format: str):
-    """Get appropriate translator function based on formats"""
-    # Note: Translator modules don't currently expose a standard translate interface
-    # This is a placeholder for future implementation
-    translators = {
-        # TODO: Implement actual translator functions
-        # ('dimacs', 'smtlib2'): dimacs2smt.convert_dimacs_to_smt2,
-        # ('dimacs', 'lp'): cnf2lp.cnf2lp,
-        # etc.
-    }
-
-    return translators.get((input_format, output_format))
+# Translation pairs (input_format, output_format) that are implemented.
+SUPPORTED_TRANSLATIONS: List[Tuple[str, str]] = [
+    ("dimacs", "smtlib2"),
+]
 
 
 def detect_format(filename: str) -> str:
@@ -51,9 +32,8 @@ def detect_format(filename: str) -> str:
     return ext_map.get(ext)
 
 
-def handle_translate(args):
-    """Handle translation between formats"""
-    # Auto-detect formats if requested
+def handle_translate(args) -> int:
+    """Handle translation between formats."""
     input_format = args.input_format
     output_format = args.output_format
 
@@ -66,112 +46,124 @@ def handle_translate(args):
     if not input_format or not output_format:
         raise ValueError("Input and output formats must be specified or auto-detected")
 
-    # Get appropriate translator
-    translator = get_translator(input_format, output_format)
-    if not translator:
-        raise ValueError(
-            f"No translator available for {input_format} to {output_format}"
-        )
+    pair = (input_format.lower(), output_format.lower())
+    if pair == ("dimacs", "smtlib2"):
+        from aria.translator.dimacs2smt import (
+            convert_dimacs_to_smt2,
+        )  # pylint: disable=import-outside-toplevel
 
-    # Read input
-    with open(args.input_file, encoding="utf-8") as f:
-        input_content = f.read()
+        convert_dimacs_to_smt2(args.input_file, args.output_file)
+        return 0
 
-    # Translate
-    output_content = translator(input_content)
-
-    # Write output
-    with open(args.output_file, "w", encoding="utf-8") as f:
-        f.write(output_content)
-
-    return 0
+    supported = ", ".join(f"{i} -> {o}" for i, o in SUPPORTED_TRANSLATIONS)
+    raise ValueError(
+        f"No translator for {input_format} -> {output_format}. "
+        f"Supported: {supported}"
+    )
 
 
-def handle_validate(args):
-    """Validate file format"""
-    # Read input file
+def handle_validate(args) -> int:
+    """Validate file format."""
     with open(args.input_file, encoding="utf-8") as f:
         content = f.read()
 
-    # Try parsing based on format
+    fmt = args.format or detect_format(args.input_file)
+    if not fmt:
+        raise ValueError(
+            "Could not detect format from file extension. Use -f/--format."
+        )
+
     try:
-        if args.format == "smtlib2":
-            # TODO: Fix import when FFParser is available
-            # from aria.smt.ff.ff_parser import FFParser as EnhancedSMTParser
-            # parser = EnhancedSMTParser()
-            # parser.parse_smt(content)
-            pass
-        elif args.format == "dimacs":
-            # Basic validation by trying to parse
+        if fmt == "smtlib2":
+            import z3  # pylint: disable=import-outside-toplevel
+
+            z3.parse_smt2_string(content)
+        elif fmt == "dimacs":
             lines = [
                 line
                 for line in content.splitlines()
-                if line and not line.startswith("c")
+                if line.strip() and not line.strip().startswith("c")
             ]
-            if not any(line.startswith("p cnf") for line in lines):
-                raise ValueError("Missing problem line")
-        # Add validation for other formats
+            p_lines = [line for line in lines if line.strip().startswith("p ")]
+            if not p_lines:
+                raise ValueError("Missing problem line (p cnf ...)")
+            parts = p_lines[0].split()
+            if len(parts) < 4 or parts[0] != "p" or parts[1] != "cnf":
+                raise ValueError("Invalid problem line: expected 'p cnf <vars> <clauses>'")
+            int(parts[2])
+            int(parts[3])
+        else:
+            raise ValueError(f"Validation not implemented for format: {fmt}")
 
         print(f"Successfully validated {args.input_file}")
         return 0
-
     except (ValueError, IOError, OSError) as e:
-        print(f"Validation failed: {e}")
+        print(f"Validation failed: {e}", file=sys.stderr)
         return 1
 
 
-def handle_analyze(args):
-    """Analyze constraint properties"""
-    # Auto-detect format if not specified
-    if not args.format:
-        args.format = detect_format(args.input_file)
-        if not args.format:
-            raise ValueError("Could not detect format - please specify explicitly")
+def handle_analyze(args) -> int:
+    """Analyze constraint properties."""
+    fmt = args.format or detect_format(args.input_file)
+    if not fmt:
+        raise ValueError(
+            "Could not detect format from file extension. Use -f/--format."
+        )
 
     with open(args.input_file, encoding="utf-8") as f:
         content = f.read()
 
-    # Analyze based on format
-    if args.format == "dimacs":
-        # Count variables and clauses
+    if fmt == "dimacs":
         lines = [
-            line for line in content.splitlines() if line and not line.startswith("c")
+            line.strip()
+            for line in content.splitlines()
+            if line.strip() and not line.strip().startswith("c")
         ]
-        p_line = next(line for line in lines if line.startswith("p cnf"))
-        num_vars, num_clauses = map(int, p_line.split()[2:4])
+        p_lines = [line for line in lines if line.startswith("p cnf")]
+        if not p_lines:
+            print("Error: Missing problem line (p cnf ...)", file=sys.stderr)
+            return 1
+        parts = p_lines[0].split()
+        if len(parts) < 4:
+            print("Error: Invalid problem line", file=sys.stderr)
+            return 1
+        num_vars = int(parts[2])
+        num_clauses = int(parts[3])
         print(f"Number of variables: {num_vars}")
         print(f"Number of clauses: {num_clauses}")
 
-    elif args.format == "smtlib2":
-        # TODO: Fix import when FFParser is available
-        # from aria.smt.ff.ff_parser import FFParser as EnhancedSMTParser
-        # parser = EnhancedSMTParser()
-        # Count declarations and assertions
-        decls = len(
-            [
-                line
-                for line in content.splitlines()
-                if line.strip().startswith("(declare-")
-            ]
+    elif fmt == "smtlib2":
+        decls = sum(
+            1
+            for line in content.splitlines()
+            if line.strip().startswith("(declare-")
         )
-        asserts = len(
-            [
-                line
-                for line in content.splitlines()
-                if line.strip().startswith("(assert")
-            ]
+        asserts = sum(
+            1
+            for line in content.splitlines()
+            if line.strip().startswith("(assert")
         )
         print(f"Number of declarations: {decls}")
         print(f"Number of assertions: {asserts}")
 
-    # Add analysis for other formats
+    else:
+        print(f"Analysis not implemented for format: {fmt}", file=sys.stderr)
+        return 1
 
     return 0
 
 
-def handle_batch(args):
-    """Handle batch processing"""
+def handle_formats(_args: argparse.Namespace) -> int:
+    """Print supported formats and translation pairs."""
+    print("Supported validation/analysis formats: dimacs, smtlib2")
+    print("Supported translations:")
+    for i, o in SUPPORTED_TRANSLATIONS:
+        print(f"  {i} -> {o}")
+    return 0
 
+
+def handle_batch(args) -> int:
+    """Handle batch processing."""
     input_dir = Path(args.input_dir)
     output_dir = Path(args.output_dir)
 
@@ -235,13 +227,18 @@ def handle_batch(args):
     return 0 if failed == 0 else 1
 
 
-def create_parser():
-    """Create command line argument parser"""
-    parser = argparse.ArgumentParser(description="Logic constraint format translator")
+def create_parser() -> argparse.ArgumentParser:
+    """Create command line argument parser."""
+    parser = argparse.ArgumentParser(
+        description="Logic constraint format translator, validator, and analyzer."
+    )
     parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
     parser.add_argument("-d", "--debug", action="store_true", help="Debug output")
 
     subparsers = parser.add_subparsers(dest="command", help="Commands")
+
+    # Formats (list supported)
+    subparsers.add_parser("formats", help="List supported formats and translations")
 
     # Translate
     t = subparsers.add_parser("translate", help="Translate between formats")
@@ -280,12 +277,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         parser.print_help()
         return 1
 
-    # Execute appropriate command
     command_handlers = {
         "translate": handle_translate,
         "validate": handle_validate,
         "analyze": handle_analyze,
         "batch": handle_batch,
+        "formats": handle_formats,
     }
 
     try:

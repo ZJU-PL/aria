@@ -4,6 +4,7 @@ import argparse
 import logging
 import sys
 from pathlib import Path
+from typing import Optional
 
 import z3
 
@@ -16,7 +17,7 @@ def count_from_file(
     filename: str,
     theory: str = "auto",
     method: str = "auto",  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
-    timeout: int = None,
+    timeout: Optional[int] = None,
 ):
     """Count models from a file.
 
@@ -140,7 +141,7 @@ def count_from_file(
         return count
 
 
-def main():
+def main() -> int:
     """Main entry point for model counting CLI."""
     parser = argparse.ArgumentParser(
         description="Count models of formulas (Boolean, QF_BV, Arithmetic, etc.)",
