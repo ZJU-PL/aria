@@ -1,213 +1,187 @@
-"""SMT-based verification for program synthesis.
+"""SMT-based verification utilities for PBE."""
 
-This module provides SMT-based verification and counterexample generation
-for expressions in the Version Space Algebra.
-"""
-
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 import z3
 
-from .expressions import Expression, Theory
-from .expression_to_smt import SMTConverter, expression_to_smt
+from .expression_to_smt import SMTConverter
+from .expressions import Expression, Theory, ValueType
 
 
 class SMTVerifier:
-    """SMT-based verifier for expressions."""
-
-    def __init__(self):
-        self.converter = SMTConverter()
-        self.solver = z3.Solver(ctx=self.converter.context)
+    """SMT-based verifier for candidate expressions."""
 
     def verify_expression(
         self,
         expr: Expression,
         examples: List[Dict[str, Any]],
-        var_types: Dict[str, str] = None,
+        var_types: Optional[Dict[str, int]] = None,
     ) -> bool:
-        """Verify that an expression is consistent with all examples using SMT."""
+        """Verify that an expression matches all examples."""
         try:
-            # Create SMT formula for the expression
-            smt_expr = expression_to_smt(expr, var_types)
+            context = z3.Context()
+            converter = SMTConverter(context)
+            smt_expr = converter.convert_expression(expr, var_types)
 
-            # For each example, check if it satisfies the expression
             for example in examples:
-                # Create constraints for input variables
-                constraints = []
-                output_var = None
-
+                solver = z3.Solver(ctx=context)
                 for var_name, value in example.items():
                     if var_name == "output":
-                        output_var = value
                         continue
-
-                    var_smt = self.converter.variable_map.get(var_name)
-                    if var_smt is None:
-                        # Variable not yet in context, create it
-                        var_smt = self._create_variable(
-                            var_name, expr.theory, var_types
+                    variable = converter.get_variables().get(var_name)
+                    if variable is None:
+                        continue
+                    solver.add(
+                        variable
+                        == self._python_value_to_smt(
+                            value, expr, context, variable
                         )
-                        self.converter.variable_map[var_name] = var_smt
+                    )
 
-                    constraints.append(var_smt == value)
-
-                # Add constraints to solver
-                self.solver.push()
-                self.solver.add(constraints)
-
-                # Check if the expression equals the expected output
-                if output_var is not None:
-                    self.solver.add(smt_expr != output_var)
-                    result = self.solver.check()
-
-                    # If UNSAT, expression equals output (constraint is false)
-                    # If SAT, expression does NOT equal output (constraint satisfiable)
-                    if result == z3.sat:
-                        self.solver.pop()
-                        return False
-
-                self.solver.pop()
+                solver.add(
+                    smt_expr
+                    != self._python_output_to_smt(example["output"], expr, context)
+                )
+                if solver.check() == z3.sat:
+                    return False
 
             return True
-
-        except Exception as e:
-            print(f"SMT verification failed: {e}")
+        except Exception:
             return False
 
     def find_counterexample(
         self,
         expressions: List[Expression],
         examples: List[Dict[str, Any]],
-        var_types: Dict[str, str] = None,
+        var_types: Optional[Dict[str, int]] = None,
     ) -> Optional[Dict[str, Any]]:
-        """Find a counterexample that distinguishes between expressions using SMT."""
+        """Find an unlabeled input on which the expressions disagree."""
+        if not expressions:
+            return None
+
         try:
-            if not expressions:
+            context = z3.Context()
+            converter = SMTConverter(context)
+            smt_expressions = [
+                converter.convert_expression(expr, var_types) for expr in expressions
+            ]
+            variables = converter.get_variables()
+            solver = z3.Solver(ctx=context)
+
+            differences = []
+            for index, first in enumerate(smt_expressions):
+                for second in smt_expressions[index + 1 :]:
+                    differences.append(first != second)
+            if not differences:
+                return None
+            solver.add(z3.Or(differences))
+
+            for example in examples:
+                equalities = []
+                for name, value in example.items():
+                    if name == "output" or name not in variables:
+                        continue
+                    equalities.append(
+                        variables[name]
+                        == self._python_value_to_smt(
+                            value, expressions[0], context, variables[name]
+                        )
+                    )
+                if equalities:
+                    solver.add(z3.Not(z3.And(equalities)))
+
+            for variable in variables.values():
+                solver.add(
+                    *self._domain_constraints(
+                        variable, expressions[0].theory, context
+                    )
+                )
+
+            if solver.check() != z3.sat:
                 return None
 
-            theory = expressions[0].theory
-
-            # Get all variables used in expressions
-            all_variables = set()
-            for expr in expressions:
-                all_variables.update(expr.get_variables())
-
-            # Create SMT expressions for all candidates
-            smt_expressions = []
-            for expr in expressions:
-                smt_expr = expression_to_smt(expr, var_types)
-                smt_expressions.append(smt_expr)
-
-            # Create variables for counterexample search
-            counterexample_vars = {}
-            for var_name in all_variables:
-                var_smt = self._create_variable(var_name, theory, var_types)
-                counterexample_vars[var_name] = var_smt
-
-            # Try to find an assignment where expressions produce different outputs
-            for attempt in range(10):  # Limit attempts
-                self.solver.push()
-
-                # Add constraints that expressions must be different
-                if len(smt_expressions) >= 2:
-                    # At least two expressions must differ
-                    diff_constraints = []
-                    for i, expr1 in enumerate(smt_expressions):
-                        for j in range(i + 1, len(smt_expressions)):
-                            expr2 = smt_expressions[j]
-                            diff_constraints.append(expr1 != expr2)
-
-                    # Require at least one difference
-                    self.solver.add(z3.Or(diff_constraints))
-
-                # Add some basic constraints to avoid trivial cases
-                for var_name, var_smt in counterexample_vars.items():
-                    if theory == Theory.LIA:
-                        # Reasonable integer range
-                        self.solver.add(var_smt >= -100)
-                        self.solver.add(var_smt <= 100)
-                    elif theory == Theory.BV:
-                        # Reasonable bitvector range
-                        self.solver.add(z3.ULT(var_smt, 2**16))  # Less than 65536
-
-                result = self.solver.check()
-
-                if result == z3.sat:
-                    model = self.solver.model()
-
-                    # Extract counterexample from model
-                    counterexample = {}
-                    for var_name, var_smt in counterexample_vars.items():
-                        value = model[var_smt]
-                        if theory == Theory.LIA:
-                            counterexample[var_name] = int(value.as_long())
-                        elif theory == Theory.BV:
-                            counterexample[var_name] = int(value.as_long())
-                        elif theory == Theory.STRING:
-                            counterexample[var_name] = str(value)
-
-                    # Verify this is actually a good counterexample
-                    outputs = []
-                    for expr in expressions:
-                        try:
-                            output = expr.evaluate(counterexample)
-                            outputs.append(output)
-                        except (KeyError, TypeError, ZeroDivisionError):
-                            continue
-
-                    if len(set(outputs)) > 1:  # Different outputs
-                        self.solver.pop()
-                        return counterexample
-
-                self.solver.pop()
-
+            model = solver.model()
+            return {
+                name: self._model_value_to_python(
+                    model.eval(symbol, model_completion=True)
+                )
+                for name, symbol in variables.items()
+            }
+        except Exception:
             return None
-
-        except Exception as e:
-            print(f"SMT counterexample generation failed: {e}")
-            return None
-
-    def _create_variable(
-        self, var_name: str, theory: Theory, var_types: Dict[str, str] = None
-    ) -> z3.ExprRef:
-        """Create a variable in the SMT context."""
-        var_types = var_types or {}
-
-        if theory == Theory.LIA:
-            return z3.Int(var_name, self.converter.context)
-        if theory == Theory.BV:
-            bitwidth = var_types.get(var_name, 32)
-            return z3.BitVec(var_name, bitwidth, self.converter.context)
-        if theory == Theory.STRING:
-            return z3.String(var_name, self.converter.context)
-        raise ValueError(f"Unsupported theory: {theory}")
 
     def prove_equivalence(
-        self, expr1: Expression, expr2: Expression, var_types: Dict[str, str] = None
+        self,
+        expr1: Expression,
+        expr2: Expression,
+        var_types: Optional[Dict[str, int]] = None,
     ) -> bool:
-        """Prove that two expressions are equivalent using SMT."""
+        """Prove two expressions equivalent with SMT."""
         try:
-            smt_expr1 = expression_to_smt(expr1, var_types)
-            smt_expr2 = expression_to_smt(expr2, var_types)
-
-            # Check if expr1 != expr2 is unsatisfiable (i.e., they are equivalent)
-            self.solver.push()
-            self.solver.add(smt_expr1 != smt_expr2)
-
-            result = self.solver.check()
-
-            is_equivalent = result == z3.unsat
-            self.solver.pop()
-
-            return is_equivalent
-
-        except Exception as e:
-            print(f"SMT equivalence check failed: {e}")
+            context = z3.Context()
+            converter = SMTConverter(context)
+            left = converter.convert_expression(expr1, var_types)
+            right = converter.convert_expression(expr2, var_types)
+            solver = z3.Solver(ctx=context)
+            solver.add(left != right)
+            return solver.check() == z3.unsat
+        except Exception:
             return False
 
     def get_smt_formula(
-        self, expr: Expression, var_types: Dict[str, str] = None
+        self, expr: Expression, var_types: Optional[Dict[str, int]] = None
     ) -> str:
-        """Get SMT-LIB format string for an expression."""
-        smt_expr = expression_to_smt(expr, var_types)
-        return smt_expr.sexpr()
+        """Return the SMT-LIB body for an expression."""
+        context = z3.Context()
+        converter = SMTConverter(context)
+        return converter.convert_expression(expr, var_types).sexpr()
+
+    def _python_output_to_smt(
+        self, value: Any, expr: Expression, context: z3.Context
+    ) -> z3.ExprRef:
+        if expr.value_type == ValueType.BOOL:
+            return z3.BoolVal(bool(value), context)
+        if expr.value_type == ValueType.STRING:
+            return z3.StringVal(str(value), context)
+        if expr.value_type == ValueType.BV:
+            return z3.BitVecVal(int(value), expr.bitwidth or 32, context)
+        return z3.IntVal(int(value), context)
+
+    def _python_value_to_smt(
+        self,
+        value: Any,
+        expr: Expression,
+        context: z3.Context,
+        symbol: z3.ExprRef,
+    ) -> z3.ExprRef:
+        if z3.is_bool(symbol):
+            return z3.BoolVal(bool(value), context)
+        if z3.is_string(symbol):
+            return z3.StringVal(str(value), context)
+        if z3.is_bv(symbol):
+            return z3.BitVecVal(int(value), symbol.size(), context)
+        del expr
+        return z3.IntVal(int(value), context)
+
+    def _domain_constraints(
+        self, symbol: z3.ExprRef, theory: Theory, context: z3.Context
+    ) -> List[z3.ExprRef]:
+        if z3.is_int(symbol):
+            return [
+                symbol >= z3.IntVal(-64, context),
+                symbol <= z3.IntVal(64, context),
+            ]
+        if z3.is_bv(symbol):
+            return [z3.ULE(symbol, z3.BitVecVal(255, symbol.size(), context))]
+        if theory == Theory.STRING and z3.is_string(symbol):
+            return [z3.Length(symbol) <= z3.IntVal(8, context)]
+        return []
+
+    def _model_value_to_python(self, value: z3.ExprRef) -> Any:
+        if z3.is_true(value) or z3.is_false(value):
+            return z3.is_true(value)
+        if z3.is_int_value(value) or z3.is_bv_value(value):
+            return value.as_long()
+        if z3.is_string_value(value):
+            return value.as_string()
+        return str(value)
