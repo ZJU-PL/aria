@@ -48,13 +48,6 @@ There are many interesting research topics. You are welcome to contribute to the
 - GPU-accelerated constraint solving
 - Portfolio solving with diverse configurations
 
-## Documentation
-
-See `aria/docs`
-
-- Interactive tutorials and examples
-- API reference with complete examples
-- Performance guidelines and optimization tips
 
 ## Applications
 You are welcome to contribute to the following applications:
