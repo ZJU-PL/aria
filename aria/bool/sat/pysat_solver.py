@@ -94,6 +94,7 @@ class PySATSolver:
         self.solver_name = solver
         self._solver = Solver(name=solver)
         self._clauses = []
+        self._unigen_sampler = Sampler()
         self.parallel_sampling = False  # parallel sampling of satisfying assignments
         # reduce the size of each sampled model
         self.reduce_samples = True
@@ -124,7 +125,7 @@ class PySATSolver:
         """add clause"""
         self._solver.add_clause(clause)
         self._clauses.append(clause)
-
+        self._unigen_sampler.add_clause(clause)
     def add_clauses(self, clauses: List[List[int]]):
         """Add multiple clauses to the solver."""
         for cls in clauses:
