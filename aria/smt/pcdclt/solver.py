@@ -51,11 +51,22 @@ def _theory_worker(
 
             try:
                 # Check theory consistency
+                logger.info(
+                    f"worker {worker_id} check sat start", extra={"is_timing": True}
+                )
                 result = theory_solver.check_sat_assuming(assumptions)
-
+                logger.info(
+                    f"worker {worker_id} check sat over", extra={"is_timing": True}
+                )
                 if result == SolverResult.UNSAT:
                     # Get unsat core
+                    logger.info(
+                    f"worker {worker_id} get unsat core start", extra={"is_timing": True}
+                )
                     unsat_core = theory_solver.get_unsat_core()
+                    logger.info(
+                    f"worker {worker_id} get unsat core end", extra={"is_timing": True}
+                )
                     result_queue.put((task_id, unsat_core))
                 else:
                     # Theory consistent - signal SAT

@@ -43,7 +43,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install -e .
 
 # Download additional binary solvers
-RUN python bin_solvers/download.py
+RUN python3 bin_solvers/download.py
 
 # Set working directory
 WORKDIR /aria

@@ -25,6 +25,7 @@ SAT solver → ───→ ├─→ worker₂: check model₂ ─┤ → colle
 2. **Theory checking is slow**: SMT queries can take milliseconds to seconds
 3. **Embarrassingly parallel**: Checking different models requires no coordination
 4. **Better learning**: Multiple unsat cores per iteration → stronger blocking clauses
+    - TODO: those unsat cores are often different...?
 
 ## Quick Start
 
@@ -117,3 +118,26 @@ With parallelism (NUM_SAMPLES=3):
 - Python 3.7+
 - Z3 solver binary (for theory checking)
 - PySAT (for Boolean solving)
+
+
+## 与 parallel by var 的比较
+- 它使用了 ICP, 这个技术使得 theory solver 变得容易求解了.
+    - 真的吗? 还是仅仅加速了找某一类 UNSAT 的 case. 
+    - 应该是吧, 加了很多信息给 theory solver 就是好使呀, 后面的.
+- 如果解不出来可以一直尝试降低 theory solver 的压力.
+    - 我们的子任务是**不可递归分割的**, 只有两层的切割 && 迭代式?
+
+## TODO
+- 核心问题是 theory solver 在一堆 AND_atomic 的问题中, 表现很差
+    - 这种情况和直接交给 z3 差不多, 所以一定跑得慢
+    - 一个合理的操作是手动操纵布尔结构...?
+        - 我擦, 为什么按变量的数值域划分不会遇到这个问题呢
+            - 它也没怎么操纵布尔结构, 只是分类讨论的话子问题也是一样的复杂
+            - 或者说...给出形如 `a_3 > 7` 这样的 lemma 非常有助于 theory solver 去求解?
+            - 还真是 ?
+            - 至少解不出来的时候可以无限细分下去.
+- 什么是简单的布尔结构, 是否和 AND_atomic 完全一致?
+- 这个东西能不能规约成一种特殊的 cube_and_conquer.
+    - 在起步的时候是完全一致的呃啊啊啊啊
+        - 都是不能分割, 给不出有效信息, 整出几个 lemma 之后再说
+    - 来查查大家怎么优化的

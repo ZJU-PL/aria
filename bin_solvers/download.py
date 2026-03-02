@@ -34,7 +34,7 @@ SOLVER_URLS = {
     'linux': {
         'cvc5': "https://github.com/cvc5/cvc5/releases/download/cvc5-1.0.3/cvc5-Linux",
         'z3': "https://github.com/Z3Prover/z3/releases/download/z3-4.10.2/z3-4.10.2-x64-glibc-2.31.zip",
-        # 'mathsat': "https://mathsat.fbk.eu/download.php?file=mathsat-5.6.9-linux-x86_64.tar.gz"
+        'mathsat': "https://mathsat.fbk.eu/release/mathsat-5.6.15-linux-x86_64.tar.gz"
     }
 }
 

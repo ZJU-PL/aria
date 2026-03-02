@@ -16,3 +16,4 @@ toolz==1.0.0
 numpy
 hypothesis
 #pytest-benchmark==5.1.0
+pyunigen==2.5.8

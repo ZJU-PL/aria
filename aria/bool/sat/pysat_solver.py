@@ -15,6 +15,7 @@ from pysat.formula import CNF
 from pysat.solvers import Solver
 
 from aria.utils.types import SolverResult
+from pyunigen import Sampler
 
 logger = logging.getLogger(__name__)
 
@@ -93,6 +94,7 @@ class PySATSolver:
         self.solver_name = solver
         self._solver = Solver(name=solver)
         self._clauses = []
+        self._unigen_sampler = Sampler()
         self.parallel_sampling = False  # parallel sampling of satisfying assignments
         # reduce the size of each sampled model
         self.reduce_samples = True
@@ -123,12 +125,11 @@ class PySATSolver:
         """add clause"""
         self._solver.add_clause(clause)
         self._clauses.append(clause)
-
+        self._unigen_sampler.add_clause(clause)
     def add_clauses(self, clauses: List[List[int]]):
         """Add multiple clauses to the solver."""
         for cls in clauses:
-            self._solver.add_clause(cls)
-            self._clauses.append(cls)
+            self.add_clause(cls)
 
     def add_cnf(self, cnf: CNF):
         """Add a CNF formula to the solver."""
@@ -137,7 +138,7 @@ class PySATSolver:
             self._solver.add_clause(cls)
             self._clauses.append(cls)
 
-    def sample_models(self, to_enum: int) -> List[List[int]]:
+    def sample_models(self, to_enum: int, strategy: str = "unigen") -> List[List[int]]:
         """
         Sample to_enum number of models
         Currently, I use the Solver::enum_models of pySAT
@@ -145,11 +146,16 @@ class PySATSolver:
           -  Unigen and other third-party (uniform) samplers
           -  Allow for passing a set of support variables
         """
-        results = []
-        for i, model in enumerate(self._solver.enum_models(), 1):
-            results.append(model)
-            if i == to_enum:
-                break
+        
+
+        if strategy == "enum":
+            results = self._sample_model_by_enum(to_enum)
+        elif strategy == "unigen":
+            results = self._sample_model_by_unigen(to_enum)
+        else:
+            raise ValueError(f"Unknown sampling strategy: {strategy}")
+        
+        
         logger.debug("Sampled models: %s", results)
         if not self.reduce_samples:
             # do not reduce the sampled models
@@ -228,7 +234,19 @@ class PySATSolver:
         res = [pres for pans, pres in answers]
         return res
 
-
+    def _sample_model_by_enum(self, to_enum: int) -> List[List[int]]:
+        results = []
+        for i, model in enumerate(self._solver.enum_models(), 1):
+            results.append(model)
+            if i == to_enum:
+                break
+        return results
+    def _sample_model_by_unigen(self, to_enum: int) -> List[List[int]]:
+        """
+        Use pyunigen to sample models
+        """
+        cells, hashes, samples = self._unigen_sampler.sample(num=to_enum)
+        return samples
 def test_pysat():
     """Test the PySAT solver functionality."""
     cnf = CNF(from_clauses=[[1, 3], [-1, 2, -4], [2, 4]])
