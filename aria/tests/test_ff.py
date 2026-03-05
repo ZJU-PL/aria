@@ -1,4 +1,5 @@
 import tempfile
+import os
 
 import z3
 
@@ -6,7 +7,9 @@ from aria.smt.ff.ff_ast import FieldConst, FieldEq, FieldVar, ParsedFormula
 from aria.smt.ff.ff_bv_solver import FFBVSolver
 from aria.smt.ff.ff_bv_solver2 import FFBVBridgeSolver
 from aria.smt.ff.ff_int_solver import FFIntSolver
+from aria.smt.ff.ff_modkernels import ModKernelSelector, ModReducer
 from aria.smt.ff.ff_parser import parse_ff_file, parse_ff_file_strict
+from aria.smt.ff.ff_perf_solver import FFPerfSolver
 from aria.smt.ff.ff_solver import FFAutoSolver
 from aria.tests import TestCase, main
 
@@ -136,7 +139,79 @@ class TestFiniteFieldSMT(TestCase):
         self.assertEqual(solver._select_backend(medium), "bv2")
 
         solver = FFAutoSolver()
+        self.assertEqual(solver._select_backend(large), "perf")
+
+        solver = FFAutoSolver(enable_perf_backend=False)
         self.assertEqual(solver._select_backend(large), "int")
+
+    def test_perf_solver_basic_sat_and_stats(self):
+        formula = _parse_text(
+            """
+            (set-logic QF_FF)
+            (define-sort F () (_ FiniteField 17))
+            (declare-const x F)
+            (assert (= (ff.mul x x) (as ff1 F)))
+            (check-sat)
+            """
+        )
+        solver = FFPerfSolver()
+        self.assertEqual(solver.check(formula), z3.sat)
+        stats = solver.stats()
+        self.assertGreater(stats.get("reductions_total", 0), 0)
+
+    def test_perf_solver_recovery_path(self):
+        formula = _parse_text(
+            """
+            (set-logic QF_FF)
+            (define-sort F () (_ FiniteField 17))
+            (declare-const x F)
+            (assert (= (ff.add x (as ff1 F)) (as ff2 F)))
+            (check-sat)
+            """
+        )
+        solver = FFPerfSolver(schedule="lazy", recovery=True)
+        self.assertEqual(solver.check(formula), z3.sat)
+        self.assertGreaterEqual(solver.stats().get("fallback_attempts", 0), 0)
+
+    def test_perf_solver_honors_env(self):
+        formula = _parse_text(
+            """
+            (set-logic QF_FF)
+            (define-sort F () (_ FiniteField 17))
+            (declare-const x F)
+            (assert (= x (as ff3 F)))
+            (check-sat)
+            """
+        )
+        old_schedule = os.environ.get("ARIA_FF_SCHEDULE")
+        old_kernel = os.environ.get("ARIA_FF_KERNEL_MODE")
+        try:
+            os.environ["ARIA_FF_SCHEDULE"] = "eager"
+            os.environ["ARIA_FF_KERNEL_MODE"] = "generic"
+            solver = FFPerfSolver()
+            self.assertEqual(solver.check(formula), z3.sat)
+            self.assertEqual(solver.initial_schedule, "eager")
+            self.assertEqual(solver.kernel_mode, "generic")
+        finally:
+            if old_schedule is None:
+                os.environ.pop("ARIA_FF_SCHEDULE", None)
+            else:
+                os.environ["ARIA_FF_SCHEDULE"] = old_schedule
+            if old_kernel is None:
+                os.environ.pop("ARIA_FF_KERNEL_MODE", None)
+            else:
+                os.environ["ARIA_FF_KERNEL_MODE"] = old_kernel
+
+    def test_mod_kernel_reduction_equivalence(self):
+        moduli = [17, 31, 127]
+        values = [0, 1, 7, 15, 63, 127, 255, 1024, 99991]
+        for modulus in moduli:
+            spec = ModKernelSelector(kernel_mode="structured").classify(modulus)
+            reducer = ModReducer({modulus: spec})
+            for value in values:
+                reduced = reducer.reduce(z3.IntVal(value), modulus)
+                simplify_val = z3.simplify(reduced).as_long()
+                self.assertEqual(simplify_val, value % modulus)
 
 
 if __name__ == "__main__":

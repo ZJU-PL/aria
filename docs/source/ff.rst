@@ -102,10 +102,25 @@ Experimental features (may be removed in the future):
 Implementation
 ================
 
-Aria provides SMT solving over finite fields in the ``aria/smt/ff`` module with two encoding strategies:
+Aria provides SMT solving over finite fields in the ``aria/smt/ff`` module with multiple encoding strategies:
 
 * **Bit-vector encoding** (``ff_bv_solver.py``): Encodes field elements as bit-vectors (width log₂(field_size)) with modular constraints
 * **Integer encoding** (``ff_int_solver.py``): Encodes field elements as integers in [0, field_size-1] with explicit modulo operations
+* **Performance encoding** (``ff_perf_solver.py``): Integer encoding with adaptive reduction scheduling and structured-prime modular kernels
+
+The automatic solver (``FFAutoSolver``) can route large-prime instances to the
+performance backend and still fall back to the stable integer backend when a
+recovery run is required.
+
+The performance backend supports environment controls:
+
+* ``ARIA_FF_SCHEDULE`` = ``eager`` | ``balanced`` | ``lazy`` | ``strict-recovery``
+* ``ARIA_FF_KERNEL_MODE`` = ``auto`` | ``generic`` | ``structured``
+
+Automatic backend selection can be configured through ``FFAutoSolver``:
+
+* ``enable_perf_backend`` (default ``True``)
+* ``perf_policy`` in ``auto``, ``always``, ``never``, ``large-prime``
 
 Core components include formula parsing (``ff_parser.py``) and translation to bit-vector or integer arithmetic.
 
@@ -115,17 +130,25 @@ Usage Example
 
 .. code-block:: python
 
-    from aria.smt.ff.ff_bv_solver import solve_qfff
+    from aria.smt.ff import FFAutoSolver, FFPerfSolver, parse_ff_file
 
-    smt_input = """
-    (set-logic QF_FF)
-    (declare-fun x () (_ FiniteField 17))
-    (declare-fun y () (_ FiniteField 17))
-    (assert (= (ff.add x y) #f3m17))
-    (assert (= (ff.mul x y) #f5m17))
-    (check-sat)
-    """
-    solve_qfff(smt_input)  # Solves x + y = 3 and x * y = 5 in GF(17)
+    formula = parse_ff_file("benchmarks/smtlib2/ff/simple.smt2")
+
+    auto = FFAutoSolver()
+    print(auto.check(formula), auto.backend_name)
+
+    perf = FFPerfSolver(schedule="balanced", kernel_mode="auto", recovery=True)
+    print(perf.check(formula))
+    print(perf.stats())
+
+.. code-block:: bash
+
+    python3 scripts/run_ff_perf_bench.py \
+      --bench-dir benchmarks/smtlib2/ff \
+      --backends bv,bv2,int,auto,perf \
+      --timeouts 10,30,60 \
+      --repetitions 3 \
+      --out results/ff_perf_bench.json
 
 References
 ==========
