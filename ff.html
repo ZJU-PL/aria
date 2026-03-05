@@ -157,26 +157,47 @@
 </ul>
 <section id="implementation">
 <h2>Implementation<a class="headerlink" href="#implementation" title="Link to this heading"></a></h2>
-<p>Aria provides SMT solving over finite fields in the <code class="docutils literal notranslate"><span class="pre">aria/smt/ff</span></code> module with two encoding strategies:</p>
+<p>Aria provides SMT solving over finite fields in the <code class="docutils literal notranslate"><span class="pre">aria/smt/ff</span></code> module with multiple encoding strategies:</p>
 <ul class="simple">
 <li><p><strong>Bit-vector encoding</strong> (<code class="docutils literal notranslate"><span class="pre">ff_bv_solver.py</span></code>): Encodes field elements as bit-vectors (width log₂(field_size)) with modular constraints</p></li>
 <li><p><strong>Integer encoding</strong> (<code class="docutils literal notranslate"><span class="pre">ff_int_solver.py</span></code>): Encodes field elements as integers in [0, field_size-1] with explicit modulo operations</p></li>
+<li><p><strong>Performance encoding</strong> (<code class="docutils literal notranslate"><span class="pre">ff_perf_solver.py</span></code>): Integer encoding with adaptive reduction scheduling and structured-prime modular kernels</p></li>
+</ul>
+<p>The automatic solver (<code class="docutils literal notranslate"><span class="pre">FFAutoSolver</span></code>) can route large-prime instances to the
+performance backend and still fall back to the stable integer backend when a
+recovery run is required.</p>
+<p>The performance backend supports environment controls:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ARIA_FF_SCHEDULE</span></code> = <code class="docutils literal notranslate"><span class="pre">eager</span></code> | <code class="docutils literal notranslate"><span class="pre">balanced</span></code> | <code class="docutils literal notranslate"><span class="pre">lazy</span></code> | <code class="docutils literal notranslate"><span class="pre">strict-recovery</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ARIA_FF_KERNEL_MODE</span></code> = <code class="docutils literal notranslate"><span class="pre">auto</span></code> | <code class="docutils literal notranslate"><span class="pre">generic</span></code> | <code class="docutils literal notranslate"><span class="pre">structured</span></code></p></li>
+</ul>
+<p>Automatic backend selection can be configured through <code class="docutils literal notranslate"><span class="pre">FFAutoSolver</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">enable_perf_backend</span></code> (default <code class="docutils literal notranslate"><span class="pre">True</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">perf_policy</span></code> in <code class="docutils literal notranslate"><span class="pre">auto</span></code>, <code class="docutils literal notranslate"><span class="pre">always</span></code>, <code class="docutils literal notranslate"><span class="pre">never</span></code>, <code class="docutils literal notranslate"><span class="pre">large-prime</span></code></p></li>
 </ul>
 <p>Core components include formula parsing (<code class="docutils literal notranslate"><span class="pre">ff_parser.py</span></code>) and translation to bit-vector or integer arithmetic.</p>
 </section>
 <section id="usage-example">
 <h2>Usage Example<a class="headerlink" href="#usage-example" title="Link to this heading"></a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.smt.ff.ff_bv_solver</span><span class="w"> </span><span class="kn">import</span> <span class="n">solve_qfff</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.smt.ff</span><span class="w"> </span><span class="kn">import</span> <span class="n">FFAutoSolver</span><span class="p">,</span> <span class="n">FFPerfSolver</span><span class="p">,</span> <span class="n">parse_ff_file</span>
 
-<span class="n">smt_input</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">(set-logic QF_FF)</span>
-<span class="s2">(declare-fun x () (_ FiniteField 17))</span>
-<span class="s2">(declare-fun y () (_ FiniteField 17))</span>
-<span class="s2">(assert (= (ff.add x y) #f3m17))</span>
-<span class="s2">(assert (= (ff.mul x y) #f5m17))</span>
-<span class="s2">(check-sat)</span>
-<span class="s2">&quot;&quot;&quot;</span>
-<span class="n">solve_qfff</span><span class="p">(</span><span class="n">smt_input</span><span class="p">)</span>  <span class="c1"># Solves x + y = 3 and x * y = 5 in GF(17)</span>
+<span class="n">formula</span> <span class="o">=</span> <span class="n">parse_ff_file</span><span class="p">(</span><span class="s2">&quot;benchmarks/smtlib2/ff/simple.smt2&quot;</span><span class="p">)</span>
+
+<span class="n">auto</span> <span class="o">=</span> <span class="n">FFAutoSolver</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">auto</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="n">formula</span><span class="p">),</span> <span class="n">auto</span><span class="o">.</span><span class="n">backend_name</span><span class="p">)</span>
+
+<span class="n">perf</span> <span class="o">=</span> <span class="n">FFPerfSolver</span><span class="p">(</span><span class="n">schedule</span><span class="o">=</span><span class="s2">&quot;balanced&quot;</span><span class="p">,</span> <span class="n">kernel_mode</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="n">recovery</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">perf</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="n">formula</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">perf</span><span class="o">.</span><span class="n">stats</span><span class="p">())</span>
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>scripts/run_ff_perf_bench.py<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--bench-dir<span class="w"> </span>benchmarks/smtlib2/ff<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--backends<span class="w"> </span>bv,bv2,int,auto,perf<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--timeouts<span class="w"> </span><span class="m">10</span>,30,60<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--repetitions<span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--out<span class="w"> </span>results/ff_perf_bench.json
 </pre></div>
 </div>
 </section>

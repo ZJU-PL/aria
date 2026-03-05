@@ -89,7 +89,7 @@
              
   <section id="cli-tools">
 <h1>CLI Tools<a class="headerlink" href="#cli-tools" title="Link to this heading"></a></h1>
-<p>The <code class="docutils literal notranslate"><span class="pre">aria.cli</span></code> module provides command-line interface tools for various automated reasoning tasks, including EFSMT solving, model counting, optimization problems, and an enhanced SMT server with advanced features.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">aria.cli</span></code> module provides command-line interface tools for various automated reasoning tasks, including EFSMT solving, model counting, optimization (OMT/MaxSAT), UNSAT core and MUS computation, AllSMT model enumeration, and an enhanced SMT server with advanced features.</p>
 <nav class="contents local" id="table-of-contents">
 <p class="topic-title">Table of Contents</p>
 <ul class="simple">
@@ -117,15 +117,21 @@
 <p><a href="#id1"><span class="problematic" id="id2">``</span></a>`
 cli/
 ├── __init__.py                      (0 lines - empty)
-├── efsmt.py                        (270 lines)
-├── fmldoc.py                       (305 lines)
-├── mc.py                           (206 lines)
-├── pyomt.py                        (149 lines)
-├── smt_server.py                   (678 lines)
-├── README.md                       (169 lines)
+├── efsmt.py                         Exists-Forall SMT solver
+├── fmldoc.py                        Format conversion and validation
+├── mc.py                            Model counting
+├── pyomt.py                         OMT / MaxSMT optimization
+├── maxsat.py                        MaxSAT (WCNF) solver
+├── unsat_core.py                    UNSAT core / MUS / MSS
+├── allsmt.py                        All satisfying models enumeration
+├── smt_server.py                    Enhanced SMT server (IPC)
+├── README.md                        CLI usage guide
 └── tests/</p>
 <blockquote>
-<div><p>└── test_smt_server.py           (155 lines)</p>
+<div><p>├── test_smt_server.py
+├── test_cli_maxsat.py
+├── test_cli_unsat_core.py
+└── test_cli_allsmt.py</p>
 </div></blockquote>
 <p><a href="#id3"><span class="problematic" id="id4">``</span></a><a href="#id5"><span class="problematic" id="id6">`</span></a></p>
 <p><strong>No subdirectories</strong> - flat module structure with tests/ subdirectory.</p>
@@ -267,7 +273,46 @@ cli/
 <li><p>z3py → z3py</p></li>
 </ul>
 <p><strong>Note</strong>: MaxSMT support is not yet implemented in the CLI.</p>
-<p>### 5. <strong>smt_server.py</strong> - Enhanced SMT Server</p>
+<p>### 5. <strong>maxsat.py</strong> - MaxSAT Solver</p>
+<p><strong>Purpose</strong>: Solve (weighted partial) MaxSAT problems from WCNF files using RC2, FM, or LSU engines.</p>
+<p><strong>Usage</strong>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>aria.cli.maxsat<span class="w"> </span>&lt;file&gt;<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
+aria-maxsat<span class="w"> </span>&lt;file&gt;<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
+</pre></div>
+</div>
+<p><strong>Arguments</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">file</span></code> - WCNF formula file (<code class="docutils literal notranslate"><span class="pre">.wcnf</span></code>, <code class="docutils literal notranslate"><span class="pre">.cnf</span></code>)</p></li>
+</ul>
+<p><strong>Options</strong>:</p>
+<p><strong>Output</strong>: Prints <code class="docutils literal notranslate"><span class="pre">cost:</span> <span class="pre">&lt;n&gt;</span></code>, optional <code class="docutils literal notranslate"><span class="pre">status</span></code>, and with <code class="docutils literal notranslate"><span class="pre">--print-model</span></code> the satisfying literals.</p>
+<p>### 6. <strong>unsat_core.py</strong> - UNSAT Core / MUS / MSS</p>
+<p><strong>Purpose</strong>: Compute one minimal unsatisfiable core or enumerate all MUSes from an SMT-LIB2 formula.</p>
+<p><strong>Usage</strong>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>aria.cli.unsat_core<span class="w"> </span>&lt;file&gt;<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
+aria-unsat-core<span class="w"> </span>&lt;file&gt;<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
+</pre></div>
+</div>
+<p><strong>Arguments</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">file</span></code> - SMT-LIB2 formula file (<code class="docutils literal notranslate"><span class="pre">.smt2</span></code>)</p></li>
+</ul>
+<p><strong>Options</strong>:</p>
+<p>If the formula is satisfiable, the tool reports that and exits successfully. For unsatisfiable formulas, prints one or more cores (assertion indices and optionally the formulas).</p>
+<p>### 7. <strong>allsmt.py</strong> - All Satisfying Models</p>
+<p><strong>Purpose</strong>: Enumerate all satisfying models of an SMT-LIB2 formula up to a configurable limit.</p>
+<p><strong>Usage</strong>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>aria.cli.allsmt<span class="w"> </span>&lt;file&gt;<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
+aria-allsmt<span class="w"> </span>&lt;file&gt;<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
+</pre></div>
+</div>
+<p><strong>Arguments</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">file</span></code> - SMT-LIB2 formula file (<code class="docutils literal notranslate"><span class="pre">.smt2</span></code>)</p></li>
+</ul>
+<p><strong>Options</strong>:</p>
+<p><strong>Output</strong>: Without <code class="docutils literal notranslate"><span class="pre">--count-only</span></code>, prints each model; with <code class="docutils literal notranslate"><span class="pre">--count-only</span></code>, a single line with the count.</p>
+<p>### 8. <strong>smt_server.py</strong> - Enhanced SMT Server</p>
 <p><strong>Purpose</strong>: IPC-based SMT-LIB2 server with advanced aria features (AllSMT, UNSAT cores, backbone, model counting).</p>
 <p><strong>Usage</strong>:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>aria.cli.smt_server<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
@@ -304,38 +349,38 @@ cat<span class="w"> </span>/tmp/smt_output<span class="w">  </span><span class="
 <li><p><strong>Scope Management</strong>: Push/pop for incremental solving</p></li>
 <li><p><strong>Named Pipe IPC</strong>: Unix-style pipe communication</p></li>
 </ul>
-<p>### 6. <strong>README.md</strong> - SMT Server Documentation</p>
-<p>Comprehensive documentation (169 lines) covering:</p>
+<p>### 9. <strong>README.md</strong> - CLI Documentation</p>
+<p>Comprehensive documentation in <code class="docutils literal notranslate"><span class="pre">aria/cli/README.md</span></code> covering:</p>
 <ul class="simple">
+<li><p>All CLI tools (fmldoc, mc, pyomt, efsmt, maxsat, unsat_core, allsmt, smt_server)</p></li>
 <li><p>Server architecture and IPC mechanisms</p></li>
-<li><p>Complete command reference</p></li>
-<li><p>Configuration options</p></li>
-<li><p>Usage examples</p></li>
-<li><p>Troubleshooting tips</p></li>
+<li><p>Complete command reference and options</p></li>
+<li><p>Usage examples and testing</p></li>
 </ul>
 </section>
 </section>
 <section id="testing">
 <h2><a class="toc-backref" href="#id16" role="doc-backlink">Testing</a><a class="headerlink" href="#testing" title="Link to this heading"></a></h2>
-<p>### SMT Server Test Suite</p>
-<p><strong>Location</strong>: <code class="docutils literal notranslate"><span class="pre">aria/cli/tests/test_smt_server.py</span></code> (155 lines)</p>
-<p><strong>Run tests</strong>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>aria/cli/tests/test_smt_server.py
+<p><strong>Run all CLI tests</strong>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest<span class="w"> </span>aria/tests/test_cli_*.py<span class="w"> </span>-v
 </pre></div>
 </div>
-<p><strong>Test Coverage:</strong></p>
+<p><strong>Per-tool tests</strong>:</p>
 <ul class="simple">
-<li><p>Basic functionality (declare-const, assert, check-sat, get-model)</p></li>
-<li><p>Advanced features (AllSMT, UNSAT core, model counting)</p></li>
-<li><p>Help command</p></li>
-<li><p>Automatic server startup/shutdown</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">test_cli_fmldoc.py</span></code> - Format converter</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">test_cli_mc.py</span></code> - Model counting</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">test_cli_efsmt.py</span></code> - EFSMT solver</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">test_cli_pyomt.py</span></code> - OMT solver</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">test_cli_maxsat.py</span></code> - MaxSAT solver</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">test_cli_unsat_core.py</span></code> - UNSAT core / MUS</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">test_cli_allsmt.py</span></code> - AllSMT enumeration</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">test_smt_server.py</span></code> - SMT server (declare-const, assert, check-sat, get-model, AllSMT, UNSAT core, model counting, help)</p></li>
 </ul>
 </section>
 <section id="code-statistics">
 <h2><a class="toc-backref" href="#id17" role="doc-backlink">Code Statistics</a><a class="headerlink" href="#code-statistics" title="Link to this heading"></a></h2>
-<p><strong>Total Python lines</strong>: 1,603</p>
-<p><strong>Documentation</strong>: README.md (169 lines)
-<strong>Tests</strong>: 155 lines</p>
+<p><strong>Documentation</strong>: <code class="docutils literal notranslate"><span class="pre">aria/cli/README.md</span></code>
+<strong>Tests</strong>: <code class="docutils literal notranslate"><span class="pre">test_cli_*.py</span></code>, <code class="docutils literal notranslate"><span class="pre">test_smt_server.py</span></code></p>
 </section>
 <section id="dependencies">
 <h2><a class="toc-backref" href="#id18" role="doc-backlink">Dependencies</a><a class="headerlink" href="#dependencies" title="Link to this heading"></a></h2>
@@ -355,10 +400,13 @@ cat<span class="w"> </span>/tmp/smt_output<span class="w">  </span><span class="
 <p>Where <code class="docutils literal notranslate"><span class="pre">&lt;tool_name&gt;</span></code> is one of:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">efsmt</span></code> - Exists-Forall SMT solver</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">fmldoc</span></code> - Format translator (placeholder)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fmldoc</span></code> - Format translator and validator</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">mc</span></code> - Model counting</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">pyomt</span></code> - Optimization solver</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">smt_server</span></code> - SMT server</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pyomt</span></code> - OMT / MaxSMT optimization solver</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maxsat</span></code> - MaxSAT (WCNF) solver (RC2, FM, LSU)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unsat_core</span></code> - UNSAT core / MUS / MSS computation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">allsmt</span></code> - Enumerate all satisfying models</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">smt_server</span></code> - SMT server (IPC)</p></li>
 </ul>
 </section>
 <section id="key-features">
