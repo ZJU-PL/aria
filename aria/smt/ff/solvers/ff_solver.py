@@ -8,7 +8,7 @@ from typing import Optional
 
 import z3
 
-from .ff_ast import ParsedFormula
+from ..core.ff_ast import ParsedFormula
 from .ff_bv_solver import FFBVSolver
 from .ff_bv_solver2 import FFBVBridgeSolver
 from .ff_int_solver import FFIntSolver

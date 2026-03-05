@@ -26,12 +26,12 @@ if __name__ == "__main__":
         sys.path.insert(0, _aria_dir)
 
 try:
-    from aria.smt.ff.ff_parser import parse_ff_file
-    from aria.smt.ff.ff_bv_solver import FFBVSolver
-    from aria.smt.ff.ff_bv_solver2 import FFBVBridgeSolver
-    from aria.smt.ff.ff_int_solver import FFIntSolver
-    from aria.smt.ff.ff_solver import FFAutoSolver
-    from aria.smt.ff.ff_ast import (
+    from aria.smt.ff.frontend.ff_parser import parse_ff_file
+    from aria.smt.ff.solvers.ff_bv_solver import FFBVSolver
+    from aria.smt.ff.solvers.ff_bv_solver2 import FFBVBridgeSolver
+    from aria.smt.ff.solvers.ff_int_solver import FFIntSolver
+    from aria.smt.ff.solvers.ff_solver import FFAutoSolver
+    from aria.smt.ff.core.ff_ast import (
         FieldAdd,
         FieldMul,
         FieldEq,
@@ -41,12 +41,19 @@ try:
     )
 except ImportError:
     # Fallback to relative imports when used as a module
-    from .ff_parser import parse_ff_file
-    from .ff_bv_solver import FFBVSolver
-    from .ff_bv_solver2 import FFBVBridgeSolver
-    from .ff_int_solver import FFIntSolver
-    from .ff_solver import FFAutoSolver
-    from .ff_ast import FieldAdd, FieldMul, FieldEq, FieldVar, FieldConst, ParsedFormula
+    from .frontend.ff_parser import parse_ff_file
+    from .solvers.ff_bv_solver import FFBVSolver
+    from .solvers.ff_bv_solver2 import FFBVBridgeSolver
+    from .solvers.ff_int_solver import FFIntSolver
+    from .solvers.ff_solver import FFAutoSolver
+    from .core.ff_ast import (
+        FieldAdd,
+        FieldMul,
+        FieldEq,
+        FieldVar,
+        FieldConst,
+        ParsedFormula,
+    )
 
 
 def tiny_demo() -> ParsedFormula:

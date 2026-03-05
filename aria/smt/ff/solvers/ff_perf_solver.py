@@ -13,7 +13,7 @@ from typing import Dict, List, Optional
 
 import z3
 
-from .ff_ast import (
+from ..core.ff_ast import (
     BoolAnd,
     BoolConst,
     BoolIte,
@@ -39,11 +39,11 @@ from .ff_ast import (
     is_bool_sort,
 )
 from .ff_int_solver import FFIntSolver
-from .ff_ir import FFIRMetadata, build_ir_metadata, expr_key
-from .ff_modkernels import ModKernelSelector, ModReducer
-from .ff_numbertheory import is_probable_prime
-from .ff_preprocess import preprocess_formula
-from .ff_reduction_scheduler import ReductionScheduler, stricter_schedule
+from ..core.ff_ir import FFIRMetadata, build_ir_metadata, expr_key
+from ..core.ff_modkernels import ModKernelSelector, ModReducer
+from ..core.ff_numbertheory import is_probable_prime
+from ..frontend.ff_preprocess import preprocess_formula
+from ..core.ff_reduction_scheduler import ReductionScheduler, stricter_schedule
 
 
 class FFPerfSolver:

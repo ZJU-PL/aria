@@ -13,7 +13,7 @@ import pathlib
 import re
 from typing import Dict, List, NamedTuple, Optional, Set, Tuple, Union
 
-from .ff_ast import (
+from ..core.ff_ast import (
     BOOL_SORT,
     BoolAnd,
     BoolConst,
