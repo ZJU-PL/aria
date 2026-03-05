@@ -9,7 +9,7 @@ from typing import Dict, Optional
 
 import z3
 
-from .ff_ast import (
+from ..core.ff_ast import (
     BoolAnd,
     BoolConst,
     BoolIte,
@@ -33,8 +33,8 @@ from .ff_ast import (
     infer_field_modulus,
     is_bool_sort,
 )
-from .ff_numbertheory import is_probable_prime
-from .ff_preprocess import preprocess_formula
+from ..core.ff_numbertheory import is_probable_prime
+from ..frontend.ff_preprocess import preprocess_formula
 
 
 class FFBVSolver:

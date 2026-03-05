@@ -7,9 +7,19 @@ This package uses a two-layer design:
 2. A set of strict solver backends that encode the resulting typed AST into
    Z3 integer or bit-vector formulas.
 
+## Module Layout
+
+The package is organized by responsibility:
+
+- `aria.smt.ff.frontend`: parser and preprocess entry points
+- `aria.smt.ff.solvers`: backend implementations and auto-selection
+- `aria.smt.ff.core`: shared AST/IR/reduction helpers
+
+For details, see [ARCHITECTURE.md](aria/smt/ff/ARCHITECTURE.md).
+
 ## Front-End
 
-The parser in [ff_parser.py](/Users/rainoftime/Work/logic/aria/aria/smt/ff/ff_parser.py)
+The parser in [frontend/ff_parser.py](aria/smt/ff/frontend/ff_parser.py)
 supports:
 
 - multiple finite-field sorts in one formula
@@ -32,7 +42,7 @@ contract and want mixed-field inputs to fail early.
 ## Preprocessing
 
 The normalization pass in
-[ff_preprocess.py](/Users/rainoftime/Work/logic/aria/aria/smt/ff/ff_preprocess.py)
+[frontend/ff_preprocess.py](aria/smt/ff/frontend/ff_preprocess.py)
 is run before every backend.
 
 It performs:
@@ -56,14 +66,14 @@ that need normalization diagnostics (split counts and derived gadget facts).
 
 Backends:
 
-- [ff_bv_solver.py](/Users/rainoftime/Work/logic/aria/aria/smt/ff/ff_bv_solver.py):
+- [solvers/ff_bv_solver.py](aria/smt/ff/solvers/ff_bv_solver.py):
   faithful bit-vector encoding with modular reduction after every arithmetic
   step
-- [ff_bv_solver2.py](/Users/rainoftime/Work/logic/aria/aria/smt/ff/ff_bv_solver2.py):
+- [solvers/ff_bv_solver2.py](aria/smt/ff/solvers/ff_bv_solver2.py):
   BV/Int bridge encoding using `BV2Int` and `Int2BV`
-- [ff_int_solver.py](/Users/rainoftime/Work/logic/aria/aria/smt/ff/ff_int_solver.py):
+- [solvers/ff_int_solver.py](aria/smt/ff/solvers/ff_int_solver.py):
   direct integer encoding over bounded residues
-- [ff_perf_solver.py](/Users/rainoftime/Work/logic/aria/aria/smt/ff/ff_perf_solver.py):
+- [solvers/ff_perf_solver.py](aria/smt/ff/solvers/ff_perf_solver.py):
   performance-oriented integer encoding with adaptive modulo scheduling and
   prime-structured reduction kernels
 
@@ -79,7 +89,7 @@ extended with an explicit nonzero side condition. The previous silent
 
 ## Automatic Backend Selection
 
-[ff_solver.py](/Users/rainoftime/Work/logic/aria/aria/smt/ff/ff_solver.py)
+[solvers/ff_solver.py](aria/smt/ff/solvers/ff_solver.py)
 provides `FFAutoSolver`, which chooses a backend by the largest field bit-width:
 
 - up to 31 bits: wide bit-vectors
@@ -136,5 +146,5 @@ timeouts, PAR-2) for each timeout budget.
 
 ## Regression Driver
 
-[ff_regress.py](/Users/rainoftime/Work/logic/aria/aria/smt/ff/ff_regress.py)
+[ff_regress.py](aria/smt/ff/ff_regress.py)
 now accepts `auto` in addition to `bv`, `bv2`, `int`, and `both`.

@@ -3,14 +3,14 @@ import os
 
 import z3
 
-from aria.smt.ff.ff_ast import FieldConst, FieldEq, FieldVar, ParsedFormula
-from aria.smt.ff.ff_bv_solver import FFBVSolver
-from aria.smt.ff.ff_bv_solver2 import FFBVBridgeSolver
-from aria.smt.ff.ff_int_solver import FFIntSolver
-from aria.smt.ff.ff_modkernels import ModKernelSelector, ModReducer
-from aria.smt.ff.ff_parser import parse_ff_file, parse_ff_file_strict
-from aria.smt.ff.ff_perf_solver import FFPerfSolver
-from aria.smt.ff.ff_solver import FFAutoSolver
+from aria.smt.ff.core.ff_ast import FieldConst, FieldEq, FieldVar, ParsedFormula
+from aria.smt.ff.core.ff_modkernels import ModKernelSelector, ModReducer
+from aria.smt.ff.frontend.ff_parser import parse_ff_file, parse_ff_file_strict
+from aria.smt.ff.solvers.ff_bv_solver import FFBVSolver
+from aria.smt.ff.solvers.ff_bv_solver2 import FFBVBridgeSolver
+from aria.smt.ff.solvers.ff_int_solver import FFIntSolver
+from aria.smt.ff.solvers.ff_perf_solver import FFPerfSolver
+from aria.smt.ff.solvers.ff_solver import FFAutoSolver
 from aria.tests import TestCase, main
 
 

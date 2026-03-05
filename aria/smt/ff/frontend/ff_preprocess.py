@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from typing import Dict, List, Optional, Sequence, Set, Tuple
 
-from .ff_ast import (
+from ..core.ff_ast import (
     BoolAnd,
     BoolConst,
     BoolIte,
