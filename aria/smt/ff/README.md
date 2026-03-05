@@ -1,6 +1,6 @@
 # Finite-Field SMT in ARIA
 
-This package now has a two-layer design:
+This package uses a two-layer design:
 
 1. A fuller SMT-LIB front-end that parses the QF_FF-style benchmark fragment
    used in this repository.
@@ -20,14 +20,14 @@ supports:
 - Boolean connectives `and`, `or`, `xor`, `not`, `=>`, `ite`
 - negative finite-field literals such as `(as ff-1 F)`
 
-Two entry points are exposed:
+Entry points:
 
 - `parse_ff_file(...)`: full front-end, accepts mixed-field formulas
 - `parse_ff_file_strict(...)`: same parser, but rejects formulas that mention
   more than one finite-field sort
 
-The strict entry point is useful when you want the old single-field discipline
-as an explicit contract instead of an accidental parser limitation.
+`parse_ff_file_strict(...)` is useful when you want an explicit single-field
+contract and want mixed-field inputs to fail early.
 
 ## Preprocessing
 
@@ -49,9 +49,12 @@ It performs:
 These rewrites are intended to make the encoded formula more explicit without
 changing satisfiability.
 
+`preprocess_formula_with_metadata(...)` is available for experiment pipelines
+that need normalization diagnostics (split counts and derived gadget facts).
+
 ## Backends
 
-Three direct backends are available:
+Backends:
 
 - [ff_bv_solver.py](/Users/rainoftime/Work/logic/aria/aria/smt/ff/ff_bv_solver.py):
   faithful bit-vector encoding with modular reduction after every arithmetic
@@ -60,8 +63,11 @@ Three direct backends are available:
   BV/Int bridge encoding using `BV2Int` and `Int2BV`
 - [ff_int_solver.py](/Users/rainoftime/Work/logic/aria/aria/smt/ff/ff_int_solver.py):
   direct integer encoding over bounded residues
+- [ff_perf_solver.py](/Users/rainoftime/Work/logic/aria/aria/smt/ff/ff_perf_solver.py):
+  performance-oriented integer encoding with adaptive modulo scheduling and
+  prime-structured reduction kernels
 
-All three backends now:
+All backends:
 
 - reset their solver state on every `check(...)`
 - support more than one finite-field sort in a single formula
@@ -78,11 +84,55 @@ provides `FFAutoSolver`, which chooses a backend by the largest field bit-width:
 
 - up to 31 bits: wide bit-vectors
 - up to 160 bits: BV/Int bridge
-- above 160 bits: integer encoding
+- above 160 bits: performance backend (`FFPerfSolver`) by default, with
+  fallback to stable integer encoding when needed
 
 This is a practical large-prime strategy. It avoids forcing every large field
 through the wide-BV `URem` path, which is the main source of the old large-prime
 timeouts.
+
+`FFAutoSolver` accepts:
+
+- `enable_perf_backend`: enable or disable the perf backend route
+- `perf_policy`: one of `auto`, `always`, `never`, `large-prime`
+
+`FFPerfSolver` environment knobs:
+
+- `ARIA_FF_SCHEDULE={eager,balanced,lazy,strict-recovery}`
+- `ARIA_FF_KERNEL_MODE={auto,generic,structured}`
+
+## API Quickstart
+
+```python
+from aria.smt.ff import FFAutoSolver, FFPerfSolver, parse_ff_file
+
+formula = parse_ff_file("benchmarks/smtlib2/ff/simple.smt2")
+
+# Automatic backend routing (perf backend enabled by default for large primes)
+auto = FFAutoSolver()
+print(auto.check(formula), auto.backend_name)
+
+# Force the performance backend with explicit tuning knobs
+perf = FFPerfSolver(schedule="balanced", kernel_mode="auto", recovery=True)
+print(perf.check(formula))
+print(perf.stats())
+```
+
+## Reproducible Performance Runs
+
+Use the deterministic benchmark script:
+
+```bash
+python3 scripts/run_ff_perf_bench.py \
+  --bench-dir benchmarks/smtlib2/ff \
+  --backends bv,bv2,int,auto,perf \
+  --timeouts 10,30,60 \
+  --repetitions 3 \
+  --out results/ff_perf_bench.json
+```
+
+Output JSON contains per-instance verdicts/timings and summary metrics (solved,
+timeouts, PAR-2) for each timeout budget.
 
 ## Regression Driver
 

@@ -51,6 +51,47 @@ def preprocess_formula(formula: ParsedFormula) -> ParsedFormula:
     )
 
 
+def preprocess_formula_with_metadata(
+    formula: ParsedFormula,
+) -> Tuple[ParsedFormula, Dict[str, int]]:
+    """Normalize a formula and expose lightweight preprocessing metadata.
+
+    Metadata fields:
+        input_assertions: assertions in the original parsed formula.
+        rewritten_assertions: assertions after normalization/splitting.
+        split_assertions: number of additional assertions introduced by split.
+        derived_is_zero_assertions: assertions generated from gadget inference.
+        output_assertions: assertions in the final normalized formula.
+    """
+    rewritten_assertions: List[FieldExpr] = []
+    split_assertions = 0
+    for assertion in formula.assertions:
+        normalized = _rewrite(assertion, formula.variables)
+        split = _split_top_level_and(normalized)
+        split_assertions += max(0, len(split) - 1)
+        rewritten_assertions.extend(split)
+
+    derived_assertions = _derive_is_zero_implications(
+        rewritten_assertions, formula.variables
+    )
+    all_assertions = rewritten_assertions + derived_assertions
+    normalized_formula = ParsedFormula(
+        formula.field_size,
+        formula.variables,
+        [_rewrite(assertion, formula.variables) for assertion in all_assertions],
+        expected_status=formula.expected_status,
+        field_sizes=formula.field_sizes,
+    )
+    metadata = {
+        "input_assertions": len(formula.assertions),
+        "rewritten_assertions": len(rewritten_assertions),
+        "split_assertions": split_assertions,
+        "derived_is_zero_assertions": len(derived_assertions),
+        "output_assertions": len(normalized_formula.assertions),
+    }
+    return normalized_formula, metadata
+
+
 def _split_top_level_and(expr: FieldExpr) -> List[FieldExpr]:
     if isinstance(expr, BoolAnd):
         result: List[FieldExpr] = []
