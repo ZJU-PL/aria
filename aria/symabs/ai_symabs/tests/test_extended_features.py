@@ -257,7 +257,7 @@ x = (y if y > z else z) if (y + z) > 0 else 0
 def test_break_with_augmented_assignment():
     program = PythonProgram(
         """
-x = 0
+x = 1
 for i in range(100):
     x *= 2
     if x > 10:
@@ -267,7 +267,7 @@ for i in range(100):
     domain = IntervalDomain(["x", "i"])
     input_state = IntervalAbstractState(
         {
-            "x": Interval(0, 0),
+            "x": Interval(1, 1),
             "i": Interval(0, 0),
         }
     )

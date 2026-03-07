@@ -26,6 +26,12 @@ class Interval:
         """True iff @rhs represents a superset of the integers as @self."""
         return rhs <= self
 
+    def __lt__(self, rhs: "Interval") -> bool:
+        return not self >= rhs
+
+    def __gt__(self, rhs: "Interval") -> bool:
+        return not self <= rhs
+
     def __eq__(self, rhs: Any) -> bool:
         """True iff this interval represents the same integers as @rhs."""
         if not isinstance(rhs, Interval):
@@ -81,6 +87,11 @@ class IntervalAbstractState(AbstractState):
         return all(
             self.interval_of(name) <= rhs.interval_of(name) for name in self.variables
         )
+
+    def __eq__(self, rhs: Any) -> bool:
+        if not isinstance(rhs, IntervalAbstractState):
+            return False
+        return self.variable_intervals == rhs.variable_intervals
 
     def translate(self, translation: Dict[str, str]) -> "IntervalAbstractState":
         """Translate the state to use different variable names."""

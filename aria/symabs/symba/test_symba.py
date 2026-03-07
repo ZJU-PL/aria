@@ -140,7 +140,11 @@ def test_correctness_properties():
     constraints = z3.And(x >= 0, y >= 0, x + y <= 10, x + 2 * y >= 5)
 
     # Test feasibility: known solution (3,1) should be findable
-    assert constraints.substitute([(x, z3.IntVal(3)), (y, z3.IntVal(1))])
+    assert z3.is_true(
+        z3.simplify(
+            z3.substitute(constraints, (x, z3.IntVal(3)), (y, z3.IntVal(1)))
+        )
+    )
     symba = SYMBA(constraints, [x + y])
     state = symba.optimize()
     assert len(state.M) > 0, "Should find feasible solutions"

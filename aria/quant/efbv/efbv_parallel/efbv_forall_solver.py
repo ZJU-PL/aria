@@ -2,7 +2,7 @@
 
 import logging
 import concurrent.futures
-from typing import List
+from typing import Dict, List
 
 import z3
 from aria.quant.efbv.efbv_parallel.efbv_utils import FSolverMode
@@ -14,6 +14,21 @@ from aria.quant.efbv.efbv_parallel.exceptions import (
 logger = logging.getLogger(__name__)
 
 m_forall_solver_strategy = FSolverMode.PARALLEL_THREAD
+
+
+class ModelSnapshot:
+    """Minimal model wrapper for cross-context variable evaluation."""
+
+    def __init__(self, assignments: Dict[str, z3.ExprRef]):
+        self.assignments = assignments
+
+    def eval(self, expr: z3.ExprRef, model_completion: bool = False) -> z3.ExprRef:
+        del model_completion
+        if z3.is_const(expr) and expr.decl().kind() == z3.Z3_OP_UNINTERPRETED:
+            value = self.assignments.get(str(expr))
+            if value is not None:
+                return value
+        raise KeyError(f"No assignment recorded for expression: {expr}")
 
 
 class ForAllSolver:
@@ -65,16 +80,34 @@ class ForAllSolver:
         # No longer needed - we create a new solver for each task
         pass
 
-    def _check_in_worker(self, worker_idx: int, cnt: z3.BoolRef) -> z3.ModelRef:
+    def _serialize_model(
+        self, model: z3.ModelRef, expr: z3.ExprRef
+    ) -> Dict[str, z3.ExprRef]:
+        assignments: Dict[str, z3.ExprRef] = {}
+        stack = [expr]
+        seen = set()
+        while stack:
+            current = stack.pop()
+            key = current.get_id()
+            if key in seen:
+                continue
+            seen.add(key)
+            if z3.is_const(current) and current.decl().kind() == z3.Z3_OP_UNINTERPRETED:
+                assignments[str(current)] = model.eval(current, model_completion=True)
+            stack.extend(current.children())
+        return assignments
+
+    def _check_in_worker(self, worker_idx: int, cnt: z3.BoolRef) -> Dict[str, z3.ExprRef]:
         # Create a new context and solver for each task to avoid thread-safety issues
         # Z3 solvers are not thread-safe, so we cannot reuse solver instances
+        del worker_idx
         worker_ctx = z3.Context()
         local_cnt = cnt.translate(worker_ctx)
         solver = z3.SolverFor("QF_BV", ctx=worker_ctx)
         solver.add(local_cnt)
         res = solver.check()
         if res == z3.sat:
-            return solver.model()
+            return self._serialize_model(solver.model(), local_cnt)
         if res == z3.unsat:
             raise ForAllSolverSuccess()
         raise ForAllSolverUnknown()
@@ -91,8 +124,18 @@ class ForAllSolver:
                 futures.append(
                     executor.submit(self._check_in_worker, 0, cnt)
                 )
-            models_in_other_ctx = [f.result() for f in futures]
-        return [m.translate(self.ctx) for m in models_in_other_ctx]
+            assignment_sets = [f.result() for f in futures]
+        translated = []
+        for assignments in assignment_sets:
+            translated.append(
+                ModelSnapshot(
+                    {
+                        name: value.translate(self.ctx)
+                        for name, value in assignments.items()
+                    }
+                )
+            )
+        return translated
 
     def parallel_check_process(self, cnt_list: List[z3.BoolRef]):
         """Parallel check using processes (not implemented)."""

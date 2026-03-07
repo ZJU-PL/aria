@@ -2,6 +2,9 @@
 """
 Test module for LIRA symbolic abstraction functionality.
 """
+import shutil
+
+import pytest
 import z3
 from aria.tests.formula_generator import FormulaGenerator
 
@@ -22,6 +25,9 @@ def is_sat(e):
 
 def test_lira_symbolic_abstraction():
     """Test LIRA symbolic abstraction with different OMT engines."""
+    if shutil.which("optimathsat") is None:
+        pytest.skip("optimathsat is not installed")
+
     try:
         w, x, y, z = z3.Ints("w x y z")
         fg = FormulaGenerator([w, x, y, z])

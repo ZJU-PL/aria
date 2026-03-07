@@ -32,14 +32,15 @@ class _CFGBuilder:
         entry = self._new_block()
         self.entry = entry.block_id
         self.variables: Set[str] = set()
-        self.loop_stack: List[Tuple[str, str]] = []  # (loop_header, after_loop)
+        self.loop_stack: List[Tuple[str, str]] = []  # (continue_target, break_target)
+        self.loop_limits: dict[str, int] = {}
 
     def build(self, module: ast.Module) -> Tuple[CFG, List[str]]:
         open_blocks = [self.entry]
         open_blocks = self._build_body(module.body, open_blocks)
         # Nothing to do with dangling exits; analysis treats missing terminator as exit.
         loop_headers = {header for header, _ in self.loop_stack}
-        cfg = CFG(self.entry, self.blocks, loop_headers)
+        cfg = CFG(self.entry, self.blocks, loop_headers, self.loop_limits)
         return cfg, sorted(self.variables)
 
     # --- block helpers -------------------------------------------------
@@ -247,15 +248,15 @@ class _CFGBuilder:
             block = self._ensure_single_open(open_blocks)
             _, after_loop = self.loop_stack[-1]
             block.terminator = Goto(after_loop)
-            return [after_loop]
+            return []
 
         if isinstance(stmt, ast.Continue):
             if not self.loop_stack:
                 raise ValueError("Continue statement outside of loop")
             block = self._ensure_single_open(open_blocks)
-            loop_header, _ = self.loop_stack[-1]
-            block.terminator = Goto(loop_header)
-            return [loop_header]
+            continue_target, _ = self.loop_stack[-1]
+            block.terminator = Goto(continue_target)
+            return []
 
         raise ValueError(f"Unsupported statement: {ast.dump(stmt)}")
 
@@ -289,10 +290,57 @@ class _CFGBuilder:
         if step_const == 0:
             raise ValueError("range() step cannot be zero")
 
+        start_const = _maybe_const_int(start_expr)
+        stop_const = _maybe_const_int(stop_expr)
+        increment_op = "+=" if (step_const is None or step_const > 0) else "-="
+        increment_expr = step_expr if increment_op == "+=" else Const(abs(step_const))
+
         # Initialize iterator variable.
         block = self._ensure_single_open(open_blocks)
         target_name = stmt.target.id
         self.variables.add(target_name)
+        has_loop_control = any(
+            isinstance(node, (ast.Break, ast.Continue)) for node in ast.walk(stmt)
+        )
+        if (
+            start_const is not None
+            and stop_const is not None
+            and step_const is not None
+            and has_loop_control
+        ):
+            trip_count = len(range(start_const, stop_const, step_const))
+            after_loop = self._new_block()
+            if trip_count <= 0:
+                self._set_goto(block.block_id, after_loop.block_id)
+                return [after_loop.block_id]
+
+            block.add_statement(AssignStmt(target_name, "=", start_expr))
+            first_entry = self._new_block()
+            self._set_goto(block.block_id, first_entry.block_id)
+            current = [first_entry.block_id]
+
+            for iteration in range(trip_count):
+                increment_block = self._new_block()
+                self.loop_stack.append((increment_block.block_id, after_loop.block_id))
+                body_exits = self._build_body(stmt.body, current)
+                self.loop_stack.pop()
+
+                for b in body_exits:
+                    if self.blocks[b].terminator is None:
+                        self._set_goto(b, increment_block.block_id)
+
+                increment_block.add_statement(
+                    AssignStmt(target_name, increment_op, increment_expr)
+                )
+                if iteration == trip_count - 1:
+                    self._set_goto(increment_block.block_id, after_loop.block_id)
+                else:
+                    next_entry = self._new_block()
+                    self._set_goto(increment_block.block_id, next_entry.block_id)
+                    current = [next_entry.block_id]
+
+            return [after_loop.block_id]
+
         block.add_statement(AssignStmt(target_name, "=", start_expr))
 
         cond_block = self._new_block()
@@ -304,20 +352,25 @@ class _CFGBuilder:
         cond_block.terminator = Branch(
             cond_expr, body_entry.block_id, after_loop.block_id
         )
+        if step_const is not None and start_const is not None and stop_const is not None:
+            self.loop_limits[cond_block.block_id] = len(
+                range(start_const, stop_const, step_const)
+            ) + 1
 
-        self.loop_stack.append((cond_block.block_id, after_loop.block_id))
+        increment_block = self._new_block()
+
+        self.loop_stack.append((increment_block.block_id, after_loop.block_id))
         body_exits = self._build_body(stmt.body, [body_entry.block_id])
         self.loop_stack.pop()
 
-        # Increment iterator at end of body (only for blocks without terminators).
-        increment_op = "+=" if (step_const is None or step_const > 0) else "-="
-        increment_expr = step_expr if increment_op == "+=" else Const(abs(step_const))
         for b in body_exits:
             if self.blocks[b].terminator is None:
-                self.blocks[b].add_statement(
-                    AssignStmt(target_name, increment_op, increment_expr)
-                )
-                self._set_goto(b, cond_block.block_id)
+                self._set_goto(b, increment_block.block_id)
+
+        increment_block.add_statement(
+            AssignStmt(target_name, increment_op, increment_expr)
+        )
+        self._set_goto(increment_block.block_id, cond_block.block_id)
 
         return [after_loop.block_id]
 

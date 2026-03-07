@@ -60,7 +60,11 @@ class GlobalConfig(metaclass=SolverRegistry):
         "cvc5": SolverConfig("cvc5", "cvc5"),
         "mathsat": SolverConfig("mathsat", "mathsat"),
         "yices2": SolverConfig("yices2", "yices-smt2"),
-        "sharp_sat": SolverConfig("sharp_sat", "sharpSAT")
+        "sharp_sat": SolverConfig("sharp_sat", "sharpSAT"),
+        "caqe": SolverConfig("caqe", "caqe"),
+        "btor": SolverConfig("btor", "boolector"),
+        "bitwuzla": SolverConfig("bitwuzla", "bitwuzla"),
+        "q3b": SolverConfig("q3b", "q3b"),
     }
 
     def __init__(self):

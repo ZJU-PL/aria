@@ -6,6 +6,7 @@ This demonstrates basic WMI usage with different density functions.
 """
 
 import sys
+import pytest
 
 # Add the aria path so we can import it
 
@@ -93,6 +94,7 @@ try:
             sys.exit(1)
 
 except ImportError as e:
-    print(f"Import error: {e}")
-    print("Make sure aria and its dependencies are properly installed.")
-    sys.exit(1)
+    pytest.skip(
+        f"WMI tests require optional probabilistic APIs: {e}",
+        allow_module_level=True,
+    )

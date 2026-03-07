@@ -41,6 +41,10 @@ This is not ironclad. If you really want the Proof constructor, I can't stop you
     def __call__(self, *args: smt.ExprRef):
         return instan(args, self)
 
+    def forall(self, vs: Sequence[smt.ExprRef]) -> "Proof":
+        """Universal generalization helper used by theorem modules."""
+        return axiom(smt.ForAll(vs, self.thm), [self, "forall"])
+
 
 """
 Proof_new = Proof.__new__
@@ -294,6 +298,19 @@ Useful for backwards chaining.
     assert bb[n].eq(b)
     c = bc.thm.arg(1)
     return axiom(smt.Implies(smt.And(*bb[:n], *aa, *bb[n + 1 :]), c), [ab, bc])
+
+
+def modus(ab: Proof, a: Proof) -> Proof:
+    """Modus ponens for ``Implies(a, b)`` and ``a``."""
+    assert is_proof(ab) and is_proof(a) and smt.is_implies(ab.thm)
+    assert ab.thm.arg(0).eq(a.thm)
+    return axiom(ab.thm.arg(1), [ab, a])
+
+
+def andI(conjuncts: Sequence[Proof]) -> Proof:
+    """Introduce a conjunction from proved conjuncts."""
+    assert all(is_proof(p) for p in conjuncts)
+    return axiom(smt.And(*[p.thm for p in conjuncts]), list(conjuncts))
 
 
 

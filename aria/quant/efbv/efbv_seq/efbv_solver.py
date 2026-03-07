@@ -13,8 +13,6 @@ from aria.quant.efbv.efbv_seq.efbv_bin_solvers import (
     solve_with_bin_smt,
     solve_with_bin_qbf,
 )
-from aria.quant.efbv.efbv_seq.efbv_cegis_solvers import simple_cegis_efsmt
-from aria.quant.efbv.efbv_seq.efbv_to_bool import EFBVFormulaTranslator
 from aria.quant.efbv.efbv_seq.efbv_sat_solver import solve_with_sat_solver
 
 logger = logging.getLogger(__name__)
@@ -92,6 +90,8 @@ class EFBVSequentialSolver:
     def dump_qbf_file(self, qdimacs_file_name: str):
         """Dump to QBF formula."""
         assert self.logic in ("BV", "UFBV")
+        from aria.quant.efbv.efbv_seq.efbv_to_bool import EFBVFormulaTranslator
+
         fml_manager = EFBVFormulaTranslator()
         qdimacs_str = fml_manager.to_qdimacs_str(
             self.phi, existential_vars=self.exists_vars, universal_vars=self.forall_vars
@@ -180,6 +180,8 @@ class EFBVSequentialSolver:
         (perhaps not a good idea for NRA). Maybe good for LRA or BV?
         NOTE: Currently, we use pySMT for the implementation.
         """
+        from aria.quant.efbv.efbv_seq.efbv_cegis_solvers import simple_cegis_efsmt
+
         print("Simple, sequential, CEGIS-style EFSMT!")
         z3_res = simple_cegis_efsmt(
             self.logic,
@@ -193,6 +195,8 @@ class EFBVSequentialSolver:
     def solve_with_z3_qbf(self) -> str:
         """Translate to QBF and solve."""
         assert self.logic in ("BV", "UFBV")
+        from aria.quant.efbv.efbv_seq.efbv_to_bool import EFBVFormulaTranslator
+
         fml_manager = EFBVFormulaTranslator()
         sol = z3.Solver()
         vc = fml_manager.to_z3_qbf(self.phi, self.exists_vars, self.forall_vars)
@@ -208,6 +212,8 @@ class EFBVSequentialSolver:
         """Solve using quantifier elimination + SAT solving."""
         assert self.logic in ("BV", "UFBV")
         print("Quantifier elimination + SAT solving")
+        from aria.quant.efbv.efbv_seq.efbv_to_bool import EFBVFormulaTranslator
+
         fml_manager = EFBVFormulaTranslator()
         sol = z3.Solver()
         vc = fml_manager.to_z3_sat(self.phi, self.exists_vars, self.forall_vars)

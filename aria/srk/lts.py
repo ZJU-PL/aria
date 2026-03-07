@@ -62,55 +62,76 @@ def nullspace(matrix: QQMatrix, dims: List[int]) -> List[QQVector]:
 
         return null_space(matrix)
     except ImportError:
-        # Fallback implementation without numpy
-        # Use Gaussian elimination to find nullspace
-        if not matrix.rows:
-            # Empty matrix has full nullspace
-            return [QQVector.of_term(QQ.one(), dim) for dim in dims]
-
-        # Create augmented matrix with identity columns
-        max_dim = max(dims) if dims else 0
-        num_cols = max(
-            max_dim + 1,
-            max(
-                (max(row.dimensions()) for row in matrix.rows if row.dimensions()),
-                default=0,
+        cols = sorted(
+            set(dims).union(
+                dim for row in matrix.rows for dim in row.dimensions()
             )
-            + 1,
         )
+        if not cols:
+            return []
 
-        # Build augmented matrix [matrix | identity]
-        augmented_rows = []
-        for row in matrix.rows:
-            new_row = row
-            for i in range(num_cols):
-                new_row = new_row.set(i, new_row.get(i, QQ(0)))
-            augmented_rows.append(new_row)
+        if not matrix.rows:
+            return [QQVector.of_term(QQ.one(), dim) for dim in cols]
 
-        # Add identity rows for each dimension
-        for dim in dims:
-            identity_row = QQVector.of_term(QQ.one(), dim + num_cols)
-            augmented_rows.append(identity_row)
+        dense_rows = [
+            [row.get(dim, QQ.zero()) for dim in cols] for row in matrix.rows
+        ]
 
-        augmented_matrix = QQMatrix(augmented_rows)
-
-        # Use Gaussian elimination to find nullspace
-        # This is a simplified version - full implementation would use proper row reduction
-        nullspace_vectors = []
-
-        # For each dimension, check if it's free
-        for dim in dims:
-            # Check if this dimension has no constraints
-            is_free = True
-            for row in matrix.rows:
-                if row.get(dim, QQ(0)) != 0:
-                    is_free = False
+        pivot_cols = []
+        pivot_row = 0
+        for col_idx in range(len(cols)):
+            pivot_idx = None
+            for row_idx in range(pivot_row, len(dense_rows)):
+                if dense_rows[row_idx][col_idx] != 0:
+                    pivot_idx = row_idx
                     break
 
-            if is_free:
-                nullspace_vectors.append(QQVector.of_term(QQ.one(), dim))
+            if pivot_idx is None:
+                continue
 
-        return nullspace_vectors
+            if pivot_idx != pivot_row:
+                dense_rows[pivot_row], dense_rows[pivot_idx] = (
+                    dense_rows[pivot_idx],
+                    dense_rows[pivot_row],
+                )
+
+            pivot_value = dense_rows[pivot_row][col_idx]
+            dense_rows[pivot_row] = [
+                value / pivot_value for value in dense_rows[pivot_row]
+            ]
+
+            for row_idx in range(len(dense_rows)):
+                if row_idx == pivot_row:
+                    continue
+                factor = dense_rows[row_idx][col_idx]
+                if factor == 0:
+                    continue
+                dense_rows[row_idx] = [
+                    current - factor * pivot
+                    for current, pivot in zip(
+                        dense_rows[row_idx], dense_rows[pivot_row]
+                    )
+                ]
+
+            pivot_cols.append(col_idx)
+            pivot_row += 1
+            if pivot_row == len(dense_rows):
+                break
+
+        free_cols = [idx for idx in range(len(cols)) if idx not in pivot_cols]
+        if not free_cols:
+            return []
+
+        basis = []
+        for free_col in free_cols:
+            entries = {cols[free_col]: QQ.one()}
+            for row_idx, pivot_col in enumerate(pivot_cols):
+                coeff = dense_rows[row_idx][free_col]
+                if coeff != 0:
+                    entries[cols[pivot_col]] = -coeff
+            basis.append(QQVector(entries))
+
+        return basis
 
 
 def linear_solve(matrix: QQMatrix, vector: QQVector) -> Optional[QQVector]:
@@ -448,6 +469,7 @@ def determinize(lts: LinearTransitionSystem) -> Tuple[PartialLinearMap, QQMatrix
         mS = QQMatrix(identity_vectors)
         # For deterministic systems, the deterministic LTS map is the original A
         mT = mA
+        return (PartialLinearMap.make(mT, []), mS)
     else:
         # Compute simulation matrix S (basis of A's row space)
         mS = QQMatrix(QQVectorSpace.simplify(QQVectorSpace.of_matrix(mA).basis))

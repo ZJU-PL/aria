@@ -219,6 +219,12 @@ def ground_quantifier(qexpr):
     FIXME: it seems that this can be very slow?
     """
     # from z3.z3util import get_vars
+    if isinstance(qexpr, (list, tuple)):
+        qexpr = z3.And(qexpr) if qexpr else z3.BoolVal(True)
+
+    if not z3.is_quantifier(qexpr):
+        return get_variables(qexpr), [], qexpr
+
     body = qexpr.body()
     forall_vars_local = []
     for i in range(qexpr.num_vars()):

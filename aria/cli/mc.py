@@ -73,7 +73,15 @@ def count_from_file(
             return count
         # Parse SMT-LIB2 and count Boolean models
         try:
-            formula = z3.And(z3.parse_smt2_string(content))
+            smt_body = "\n".join(
+                line
+                for line in content.splitlines()
+                if not line.lstrip().startswith("(set-logic")
+                and not line.lstrip().startswith("(check-sat")
+            )
+            solver = z3.Solver()
+            solver.from_string(smt_body)
+            formula = z3.And(solver.assertions())
             count = count_bool_models(
                 formula, method=method if method != "auto" else "solver"
             )

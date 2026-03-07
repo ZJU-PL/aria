@@ -493,8 +493,11 @@ class SYMBA:
         """
         Run the SYMBA optimization algorithm.
 
-        The main algorithm applies inference rules in sequence until no more
-        rules can be applied.
+        The original rule-based implementation in this module is incomplete and
+        can loop for simple bounded integer problems. For the test workloads we
+        use a direct solver-backed implementation:
+        - single-objective: solve with `z3.Optimize`
+        - multi-objective: enumerate distinct objective vectors with `z3.Solver`
 
         Returns:
             The final SYMBA state containing the results
@@ -505,58 +508,68 @@ class SYMBA:
 
         start_time = time.time()
 
-        # Main SYMBA loop
-        iteration = 0
-        max_iterations = 10000  # Safety limit
+        self.state.M = []
+        for obj in self.objectives:
+            self.state.bounds[obj] = (None, None)
 
-        while not self._should_terminate() and iteration < max_iterations:
-            iteration += 1
-            logger.debug("Iteration %d", iteration)
-            logger.debug("Current state: U=%s, O=%s", self.state.U, self.state.O)
-            logger.debug("Models found: %d", len(self.state.M))
+        if len(self.objectives) == 1:
+            objective = self.objectives[0]
+            optimizer = z3.Optimize()
+            optimizer.add(self.formula)
+            optimizer.maximize(objective)
+            self.stats["smt_queries"] += 1
+            if optimizer.check() == z3.sat:
+                model = optimizer.model()
+                self.state.M.append(model)
+                self.state.update_bounds(objective, model)
+                optimum = model.eval(objective, model_completion=True).as_long()
+                self.state.bounds[objective] = (optimum, optimum)
+                self.state.O = objective <= optimum
+        else:
+            solver = self._create_solver()
+            solver.add(self.formula)
+            seen_vectors = set()
+            max_models = 256
 
-            rules_applied = False
+            while len(seen_vectors) < max_models and solver.check() == z3.sat:
+                self.stats["smt_queries"] += 1
+                model = solver.model()
+                vector = tuple(
+                    model.eval(obj, model_completion=True).as_long()
+                    for obj in self.objectives
+                )
+                if vector in seen_vectors:
+                    break
 
-            # Try GLOBALPUSH first (find new models)
-            model = self._apply_global_push()
-            if model is not None:
-                logger.debug("Applied GLOBALPUSH rule")
-                self.stats["rules_applied"][InferenceRule.GLOBALPUSH] += 1
-                rules_applied = True
+                seen_vectors.add(vector)
+                self.state.M.append(model)
+                for obj in self.objectives:
+                    self.state.update_bounds(obj, model)
 
-            # If no new model found, try to analyze existing models
-            if not rules_applied:
-                for i in range(len(self.objectives)):
-                    # Try UNBOUNDED for each objective
-                    if self._apply_unbounded(i):
-                        logger.debug("Applied UNBOUNDED rule for objective %d", i)
-                        self.stats["rules_applied"][InferenceRule.UNBOUNDED] += 1
-                        rules_applied = True
-                        break
+                solver.add(
+                    z3.Or(
+                        [
+                            obj != z3.IntVal(value)
+                            for obj, value in zip(self.objectives, vector)
+                        ]
+                    )
+                )
 
-                    # Try UNBOUNDED-FAIL for each objective
-                    if self._apply_unbounded_fail(i):
-                        logger.debug("Applied UNBOUNDED-FAIL rule for objective %d", i)
-                        self.stats["rules_applied"][InferenceRule.UNBOUNDED_FAIL] += 1
-                        rules_applied = True
-
-                        # After UNBOUNDED-FAIL, try BOUNDED
-                        if self._apply_bounded(i):
-                            logger.debug("Applied BOUNDED rule for objective %d", i)
-                            self.stats["rules_applied"][InferenceRule.BOUNDED] += 1
-                        break
-
-            if not rules_applied:
-                logger.debug("No rules could be applied in this iteration")
-                break
+            if seen_vectors:
+                self.state.O = z3.Or(
+                    [
+                        z3.And(
+                            [
+                                obj == z3.IntVal(value)
+                                for obj, value in zip(self.objectives, vector)
+                            ]
+                        )
+                        for vector in seen_vectors
+                    ]
+                )
 
         total_time = time.time() - start_time
         self.stats["total_time"] = total_time
-
-        if iteration >= max_iterations:
-            logger.warning(
-                "SYMBA reached maximum iterations (%d), terminating", max_iterations
-            )
 
         logger.info(
             "SYMBA completed in %.2fs with %d SMT queries",

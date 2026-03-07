@@ -25,7 +25,7 @@ def calculate_cost(model, soft_constraints, weights):
     return total_violated_weight
 
 
-def test_algorithm(hard, soft, weights, algorithm, timeout_sec=30):
+def run_algorithm(hard, soft, weights, algorithm, timeout_sec=30):
     """Test a specific algorithm on a problem instance"""
     print(f"Running {algorithm}...", end="", flush=True)
     start_time = time.time()
@@ -195,7 +195,7 @@ def compare_algorithms(timeout_sec=30):
         successful_algs = []
 
         for alg in algorithms:
-            sat, model, cost, elapsed_time = test_algorithm(
+            sat, model, cost, elapsed_time = run_algorithm(
                 hard, soft, weights, alg, timeout_sec
             )
 

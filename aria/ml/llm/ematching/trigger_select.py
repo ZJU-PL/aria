@@ -5,7 +5,7 @@ from typing import Dict, Iterable, List, Sequence, Tuple
 import z3
 from z3 import Const, Exists, ExprRef, ForAll, Solver
 
-from aria.ml.ematching.llm_trigger import (
+from aria.ml.llm.ematching.llm_trigger import (
     LLMTriggerGenerator,
     TriggerCandidate,
 )

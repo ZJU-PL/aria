@@ -192,9 +192,8 @@ class TestCLIArgumentValidation:
         with patch.object(
             sys, "argv", ["efsmt", str(in_file), "--engine", "invalid"]
         ):
-            # Should still run but may fail gracefully
-            result = main()
-            assert result in (0, 1)
+            with pytest.raises(SystemExit):
+                main()
 
     def test_invalid_log_level(self, tmp_path):
         in_file = _write_file(tmp_path, EFSMT_BOOL_SAMPLE)

@@ -51,7 +51,7 @@ python -m aria.cli.smt_server
 
 ## fmldoc - Format Converter
 
-Convert between logic constraint formats and validate files.
+Translate, validate, and analyze supported logic constraint files.
 
 ### Commands
 
@@ -76,8 +76,8 @@ python -m aria.cli.fmldoc batch -i input_dir/ -o output_dir/
 
 | Format | Extension | Validate | Analyze | Translate From | Translate To |
 |--------|-----------|----------|---------|----------------|--------------|
-| DIMACS | .cnf | ✓ | ✓ | ✓ | ✓ |
-| SMT-LIB2 | .smt2 | ✓ | ✓ | - | ✓ |
+| DIMACS | .cnf | ✓ | ✓ | ✓ | SMT-LIB2 |
+| SMT-LIB2 | .smt2 | ✓ | ✓ | - | - |
 
 ---
 
