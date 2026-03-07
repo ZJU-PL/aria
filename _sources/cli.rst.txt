@@ -77,9 +77,9 @@ CLI Tools Overview
 * **LIRA**: Linear Integer/Real Arithmetic
 * **Auto**: Auto-detect from problem content
 
-### 2. **fmldoc.py** - Logic Constraint Format Translator
+### 2. **fmldoc.py** - Logic Constraint Format Utilities
 
-**Purpose**: Translate between different logic constraint formats (placeholder for future implementation).
+**Purpose**: Translate, validate, and analyze supported logic constraint formats.
 
 **Usage**:
 
@@ -140,6 +140,18 @@ CLI Tools Overview
    ``-i, --input-file``, Input file (required)
    ``-f, --format``, File format
 
+#### ``formats`` - List supported formats and translations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: bash
+
+   python3 -m aria.cli.fmldoc formats
+
+**Output:**
+
+* Validation and analysis formats currently supported
+* Implemented translation pairs
+
 #### ``batch`` - Batch process files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -158,24 +170,20 @@ CLI Tools Overview
    ``--input-format``, Input format
    ``--output-format``, Output format
 
-**Supported Formats (planned):**
+**Currently Supported Formats:**
 
-* DIMACS (``.cnf``)
-* QDIMACS (``.qdimacs``)
-* TPLP (``.tplp``)
-* FlatZinc (``.fzn``)
-* SMT-LIB2 (``.smt2``)
-* SyGuS (``.sy``)
-* Linear Programming (``.lp``)
-* Datalog (``.dl``)
+* DIMACS (``.cnf``): validate, analyze, translate to SMT-LIB2
+* SMT-LIB2 (``.smt2``): validate, analyze
+
+**Currently Implemented Translation Pairs:**
+
+* DIMACS -> SMT-LIB2
 
 **Global Options:**
 
 * ``-v, --verbose``: Verbose output
 * ``-d, --debug``: Debug output
 * ``-h, --help``: Show help message
-
-**Note**: This tool is currently a placeholder with TODO comments for actual implementation.
 
 ### 3. **mc.py** - Model Counting Tool
 
