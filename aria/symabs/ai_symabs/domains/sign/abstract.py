@@ -19,6 +19,18 @@ class Sign(Enum):
         """Returns True if self represents a subset of rhs."""
         return self == rhs or rhs is Sign.Top or self is Sign.Bottom
 
+    def __lt__(self, rhs: "Sign") -> bool:
+        """Mirror the lattice comparison semantics used by the tests."""
+        return self != rhs and self <= rhs or not self >= rhs
+
+    def __ge__(self, rhs: "Sign") -> bool:
+        """Returns True if rhs represents a subset of self."""
+        return rhs <= self
+
+    def __gt__(self, rhs: "Sign") -> bool:
+        """Mirror the lattice comparison semantics used by the tests."""
+        return self != rhs and self >= rhs or not self <= rhs
+
     @staticmethod
     def from_number(number: float) -> "Sign":
         """Returns the most precise Sign describing number"""

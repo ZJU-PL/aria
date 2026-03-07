@@ -142,8 +142,8 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-testpaths = ["aria/tests"]
-python_files = "test_*.py"
+testpaths = ["aria"]
+python_files = ["test_*.py", "*_test.py"]
 log_cli = true
 log_cli_level = "CRITICAL"
 log_cli_format = "%(message)s"

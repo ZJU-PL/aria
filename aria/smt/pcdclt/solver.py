@@ -1,8 +1,7 @@
 """Parallel CDCL(T) SMT Solver"""
 
 import logging
-from multiprocessing import cpu_count, Queue, Process, Manager
-from ctypes import c_char_p
+from multiprocessing import Process, Queue, cpu_count
 from typing import List
 
 from aria.bool import PySATSolver, simplify_numeric_clauses
@@ -39,7 +38,7 @@ def _theory_worker(
     theory_solver = None
     try:
         theory_solver = TheorySolver(solver_bin, worker_id=worker_id)
-        theory_solver.add_formula(init_theory_formula.value)
+        theory_solver.add_formula(init_theory_formula)
 
         while True:
             task_id, assumptions = task_queue.get()
@@ -190,10 +189,6 @@ def solve(smt2_string: str, logic: str = "ALL") -> SolverResult:
     else:
         solver_bin = f"{solver_bin} {z3_config['args']}"
 
-    # Create shared theory formula
-    manager = Manager()
-    shared_theory_formula = manager.Value(c_char_p, theory_formula)
-
     # Create worker queues
     task_queue = Queue()
     result_queue = Queue()
@@ -205,7 +200,7 @@ def solve(smt2_string: str, logic: str = "ALL") -> SolverResult:
             target=_theory_worker,
             args=(
                 worker_id,
-                shared_theory_formula,
+                theory_formula,
                 task_queue,
                 result_queue,
                 solver_bin,
@@ -331,7 +326,7 @@ def solve(smt2_string: str, logic: str = "ALL") -> SolverResult:
         else:
             logger.debug("All workers terminated cleanly")
 
-        # Ensure queues and manager are properly cleaned up to avoid hangs
+        # Ensure queues are properly cleaned up to avoid hangs
         try:
             task_queue.close()
             task_queue.join_thread()
@@ -342,11 +337,6 @@ def solve(smt2_string: str, logic: str = "ALL") -> SolverResult:
             result_queue.join_thread()
         except (OSError, RuntimeError) as e:
             logger.debug("result_queue cleanup error: %s", e)
-        try:
-            # Shutdown the manager server process explicitly
-            manager.shutdown()
-        except (OSError, RuntimeError) as e:
-            logger.debug("manager shutdown error: %s", e)
 
     return result
 

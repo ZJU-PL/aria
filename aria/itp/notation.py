@@ -24,7 +24,13 @@ smt.BoolRef.__invert__ = lambda self: smt.Not(self)
 
 smt.SortRef.__rshift__ = lambda self, other: smt.ArraySort(self, other)  # type: ignore
 
-smt.ArrayRef.__call__ = lambda self, *arg: self[arg]
+def _array_call(self, *args):
+    if len(args) == 1:
+        return self[args[0]]
+    return self[args]
+
+
+smt.ArrayRef.__call__ = _array_call
 
 
 def quantifier_call(self, *args):

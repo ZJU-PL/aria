@@ -38,6 +38,14 @@ class AbstractState:
         """Determines if self and rhs represent different AbstractStates."""
         return not self == rhs
 
+    def __lt__(self, rhs: Any) -> bool:
+        """Ordering used by the tests: strictly not a superset of rhs."""
+        return not self >= rhs
+
+    def __gt__(self, rhs: Any) -> bool:
+        """Ordering used by the tests: strictly not a subset of rhs."""
+        return not self <= rhs
+
     def translate(self, translation: Dict[str, str]) -> "AbstractState":
         """Rename variables in the abstract state.
         Used in frontend/program.py to deal with "primes," i.e. we might encode

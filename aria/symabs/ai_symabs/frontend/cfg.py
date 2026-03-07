@@ -153,6 +153,7 @@ class CFG:
     entry: str
     blocks: Dict[str, BasicBlock]
     loop_headers: Set[str] = field(default_factory=set)
+    loop_limits: Dict[str, int] = field(default_factory=dict)
 
     def successors(self, block_id: str) -> List[str]:
         block = self.blocks[block_id]
@@ -334,9 +335,11 @@ def analyze_cfg(
     states: Dict[str, AbstractState] = {cfg.entry: input_state}
     worklist: deque[str] = deque([cfg.entry])
     exit_states: ListType[AbstractState] = []
+    visit_counts: Dict[str, int] = {}
 
     while worklist:
         block_id = worklist.popleft()
+        visit_counts[block_id] = visit_counts.get(block_id, 0) + 1
         in_state = states[block_id]
         block = cfg.blocks[block_id]
 
@@ -350,18 +353,32 @@ def analyze_cfg(
             cond = expr_to_z3(term.condition, env)
             true_state = _refine(domain, post_state, cond)
             false_state = _refine(domain, post_state, domain.logic_not(cond))
-            _propagate(domain, states, worklist, term.true_target, true_state)
-            _propagate(domain, states, worklist, term.false_target, false_state)
+            _propagate(
+                cfg, domain, states, worklist, visit_counts, term.true_target, true_state
+            )
+            _propagate(
+                cfg,
+                domain,
+                states,
+                worklist,
+                visit_counts,
+                term.false_target,
+                false_state,
+            )
         elif isinstance(term, Goto):
-            _propagate(domain, states, worklist, term.target, post_state)
+            _propagate(cfg, domain, states, worklist, visit_counts, term.target, post_state)
         elif isinstance(term, Break):
             for target in cfg.successors(block_id):
                 if not cfg.is_loop_header(target):
-                    _propagate(domain, states, worklist, target, post_state)
+                    _propagate(
+                        cfg, domain, states, worklist, visit_counts, target, post_state
+                    )
         elif isinstance(term, Continue):
             for target in cfg.successors(block_id):
                 if cfg.is_loop_header(target):
-                    _propagate(domain, states, worklist, target, post_state)
+                    _propagate(
+                        cfg, domain, states, worklist, visit_counts, target, post_state
+                    )
         else:
             exit_states.append(post_state)
 
@@ -371,12 +388,17 @@ def analyze_cfg(
 
 
 def _propagate(
+    cfg: CFG,
     domain: ConjunctiveDomain,
     states: Dict[str, AbstractState],
     worklist: deque[str],
+    visit_counts: Dict[str, int],
     target: str,
     candidate: AbstractState,
 ) -> None:
+    limit = cfg.loop_limits.get(target)
+    if limit is not None and visit_counts.get(target, 0) >= limit:
+        return
     if target not in states:
         states[target] = candidate
         worklist.append(target)

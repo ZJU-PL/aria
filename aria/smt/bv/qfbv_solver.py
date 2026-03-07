@@ -197,8 +197,8 @@ class QFBVSolver:
         :rtype: SolverResult
         """
         qfbv_preamble = z3.AndThen(
-            z3.With("simplify", flat_and_or=False),
-            z3.With("propagate-values", flat_and_or=False),
+            z3.Tactic("simplify"),
+            z3.Tactic("propagate-values"),
             z3.Tactic("elim-uncnstr"),
             z3.With("solve-eqs", solve_eqs_max_occs=2),
             z3.Tactic("reduce-bv-size"),
@@ -211,13 +211,12 @@ class QFBVSolver:
                 local_ctx_limit=10000000,
                 flat=True,
                 hoist_mul=False,
-                flat_and_or=False,
             ),
-            z3.With("simplify", hoist_mul=False, som=False, flat_and_or=False),
+            z3.With("simplify", hoist_mul=False, som=False),
             "max-bv-sharing",
             "ackermannize_bv",
             "bit-blast",
-            z3.With("simplify", local_ctx=True, flat=False, flat_and_or=False),
+            z3.With("simplify", local_ctx=True, flat=False),
             # z3.With('solve-eqs', solve_eqs_max_occs=2),
             "aig",
             "tseitin-cnf",
