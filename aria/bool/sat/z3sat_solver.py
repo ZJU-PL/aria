@@ -13,6 +13,13 @@ import z3
 from aria.utils.types import SolverResult
 
 
+def _normalize_clause(clause: List[int]) -> List[int]:
+    """Strip an optional DIMACS terminator from an integer clause."""
+    if clause and clause[-1] == 0:
+        return clause[:-1]
+    return clause
+
+
 class Z3SATSolver:
     """Z3 SAT solver wrapper."""
 
@@ -36,9 +43,7 @@ class Z3SATSolver:
         # z3_clauses = []
         for clause in clauses:
             conds = []
-            for t in clause:
-                if t == 0:
-                    break
+            for t in _normalize_clause(clause):
                 a = abs(t)
                 if a in self.int2z3var:
                     b = self.int2z3var[a]
@@ -108,18 +113,14 @@ class Z3MaxSATSolver:
     def from_int_clauses(
         self, hard: List[List[int]], soft: List[List[int]], weight: List[int]
     ):
-        """
-        TODO: handle two different cases (each clause ends with 0 or not)
-        """
+        """Initialize the optimizer with integer clauses."""
         self.solver = z3.Optimize()
         # self.solver.set('maxsat_engine', 'wmax')
         self.solver.set("maxsat_engine", "maxres")
 
         for clause in hard:
             conds = []
-            for t in clause:
-                if t == 0:
-                    break
+            for t in _normalize_clause(clause):
                 a = abs(t)
                 if a in self.int2z3var:
                     b = self.int2z3var[a]
@@ -136,9 +137,7 @@ class Z3MaxSATSolver:
 
         for i, soft_clause in enumerate(soft):
             conds = []
-            for t in soft_clause:
-                if t == 0:  # TODO: need this?
-                    break
+            for t in _normalize_clause(soft_clause):
                 a = abs(t)
                 if a in self.int2z3var:
                     b = self.int2z3var[a]

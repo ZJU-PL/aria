@@ -90,7 +90,7 @@
 # - argmin(sol,x,ix,min_val)
 
 #
-# TODO
+# Planned additions:
 # lex_(le|lt|ge|gt)(sol,x,y)  : array x is lexicographic (equal or) less/greater than array y
 # subcircuit???
 #
