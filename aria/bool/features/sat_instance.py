@@ -1,6 +1,11 @@
 """The interface"""
 
 import json
+import os
+from typing import Any, List, Optional, Tuple
+
+from pysat.formula import CNF
+
 from aria.bool.features import parse_cnf, active_features, base_features
 from aria.bool.features.dpll import DPLLProbing
 
@@ -14,6 +19,87 @@ def write_features_to_json(results_dict):
         json.dump(results_dict, f)
 
 
+def _normalize_clauses(clauses: List[List[int]]) -> List[List[int]]:
+    """Drop optional DIMACS terminators from numeric clauses."""
+    normalized = []
+    for clause in clauses:
+        if clause and clause[-1] == 0:
+            normalized.append(clause[:-1])
+        else:
+            normalized.append(list(clause))
+    return normalized
+
+
+def _count_cnf_stats(clauses: List[List[int]]) -> Tuple[int, int]:
+    """Compute clause and variable counts when no DIMACS header is available."""
+    max_var = 0
+    for clause in clauses:
+        for lit in clause:
+            max_var = max(max_var, abs(lit))
+    return len(clauses), max_var
+
+
+def _parse_inline_cnf(cnf_text: str) -> Tuple[List[List[int]], int, int]:
+    """Parse inline DIMACS-like CNF content."""
+    clauses = []
+    declared_clauses = 0
+    declared_vars = 0
+    for raw_line in cnf_text.splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("c"):
+            continue
+        if line.startswith("p"):
+            parts = line.split()
+            if len(parts) >= 4 and parts[1] == "cnf":
+                declared_vars = int(parts[2])
+                declared_clauses = int(parts[3])
+            continue
+        lits = [int(part) for part in line.split()]
+        if lits and lits[-1] == 0:
+            lits = lits[:-1]
+        clauses.append(lits)
+
+    clause_count, var_count = _count_cnf_stats(clauses)
+    if declared_clauses:
+        clause_count = declared_clauses
+    if declared_vars:
+        var_count = declared_vars
+    return clauses, clause_count, var_count
+
+
+def _load_cnf(
+    input_cnf: Any,
+) -> Tuple[List[List[int]], int, int, Optional[str]]:
+    """Load CNF data from a path, DIMACS text, numeric clauses, or a PySAT CNF."""
+    if isinstance(input_cnf, CNF):
+        clauses, c, v = parse_cnf.parse_pysat_cnf(input_cnf)
+        clauses = _normalize_clauses(clauses)
+        c, v = _count_cnf_stats(clauses)
+        return clauses, c, v, None
+
+    if isinstance(input_cnf, (list, tuple)):
+        clauses, c, v = parse_cnf.parse_cnf_numeric_clauses(input_cnf)
+        clauses = _normalize_clauses(clauses)
+        c, v = _count_cnf_stats(clauses)
+        return clauses, c, v, None
+
+    if isinstance(input_cnf, os.PathLike):
+        path = os.fspath(input_cnf)
+        clauses, c, v = parse_cnf.parse_cnf_file(path)
+        clauses = _normalize_clauses(clauses)
+        return clauses, c, v, path
+
+    if isinstance(input_cnf, str):
+        if os.path.exists(input_cnf):
+            clauses, c, v = parse_cnf.parse_cnf_file(input_cnf)
+            clauses = _normalize_clauses(clauses)
+            return clauses, c, v, input_cnf
+        clauses, c, v = _parse_inline_cnf(input_cnf)
+        return clauses, c, v, None
+
+    raise TypeError(f"Unsupported CNF input type: {type(input_cnf)!r}")
+
+
 class SATInstance:
     """
     Class to hold the methods for generating features from a cnf. This class handles the parsing of the cnf file into
@@ -21,13 +107,10 @@ class SATInstance:
     stored in the features dictionary.
     """
 
-    def __init__(self, input_cnf: str, verbose=False):
+    def __init__(self, input_cnf: Any, verbose: bool = False):
         self.verbose = verbose
         #  However, we may consider using the one in aria.bool.cnfsimplifier
         self.preprocess = False
-        # TODO: allow using numerical clauses, cnf strings, and pysat CNF objects to
-        #  initialized this object
-        self.path_to_cnf = input_cnf  # path to a cnf file
 
         # satelite preprocessing
         # n.b. satelite only works on linux, mac no longer supports 32 bit binaries...
@@ -35,7 +118,7 @@ class SATInstance:
         # parse the cnf file
         if self.verbose:
             print("Parsing cnf file")
-        self.clauses, self.c, self.v = parse_cnf.parse_cnf_file(self.path_to_cnf)
+        self.clauses, self.c, self.v, self.path_to_cnf = _load_cnf(input_cnf)
 
         if self.v == 0 or self.c == 0:
             self.solved = True
