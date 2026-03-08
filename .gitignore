@@ -49,7 +49,6 @@ __pycache__/
 callgrind.out.*
 
 # Downloaded/external tools
-vampire*
 eprover*/
 twee*
 nanoCoP*
