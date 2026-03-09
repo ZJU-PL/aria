@@ -1,3 +1,5 @@
+"""Utilities and definitions for aria.quant.taintmodel.test_arrays."""
+
 import pytest
 from z3 import *
 from aria.quant.taintmodel.taint import infer_sic
