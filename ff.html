@@ -161,7 +161,7 @@
 <ul class="simple">
 <li><p><strong>Bit-vector encoding</strong> (<code class="docutils literal notranslate"><span class="pre">ff_bv_solver.py</span></code>): Encodes field elements as bit-vectors (width log₂(field_size)) with modular constraints</p></li>
 <li><p><strong>Integer encoding</strong> (<code class="docutils literal notranslate"><span class="pre">ff_int_solver.py</span></code>): Encodes field elements as integers in [0, field_size-1] with explicit modulo operations</p></li>
-<li><p><strong>Performance encoding</strong> (<code class="docutils literal notranslate"><span class="pre">ff_perf_solver.py</span></code>): Integer encoding with adaptive reduction scheduling and structured-prime modular kernels</p></li>
+<li><p><strong>Performance encoding</strong> (<code class="docutils literal notranslate"><span class="pre">ff_perf_solver.py</span></code>): Integer encoding with adaptive reduction scheduling, structured-prime modular kernels, and partition-driven CEGAR refinement</p></li>
 </ul>
 <p>The automatic solver (<code class="docutils literal notranslate"><span class="pre">FFAutoSolver</span></code>) can route large-prime instances to the
 performance backend and still fall back to the stable integer backend when a
@@ -170,13 +170,27 @@ recovery run is required.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">ARIA_FF_SCHEDULE</span></code> = <code class="docutils literal notranslate"><span class="pre">eager</span></code> | <code class="docutils literal notranslate"><span class="pre">balanced</span></code> | <code class="docutils literal notranslate"><span class="pre">lazy</span></code> | <code class="docutils literal notranslate"><span class="pre">strict-recovery</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">ARIA_FF_KERNEL_MODE</span></code> = <code class="docutils literal notranslate"><span class="pre">auto</span></code> | <code class="docutils literal notranslate"><span class="pre">generic</span></code> | <code class="docutils literal notranslate"><span class="pre">structured</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ARIA_FF_MAX_NONLINEAR_EQS</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ARIA_FF_MAX_NONLINEAR_VARS</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ARIA_FF_MAX_NONLINEAR_MODULUS</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ARIA_FF_MAX_NONLINEAR_SEARCH_SPACE</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ARIA_FF_MAX_NONLINEAR_WORK_BUDGET</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ARIA_FF_ROOTSET_BUDGET</span></code></p></li>
 </ul>
 <p>Automatic backend selection can be configured through <code class="docutils literal notranslate"><span class="pre">FFAutoSolver</span></code>:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">enable_perf_backend</span></code> (default <code class="docutils literal notranslate"><span class="pre">True</span></code>)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">perf_policy</span></code> in <code class="docutils literal notranslate"><span class="pre">auto</span></code>, <code class="docutils literal notranslate"><span class="pre">always</span></code>, <code class="docutils literal notranslate"><span class="pre">never</span></code>, <code class="docutils literal notranslate"><span class="pre">large-prime</span></code></p></li>
 </ul>
-<p>Core components include formula parsing (<code class="docutils literal notranslate"><span class="pre">ff_parser.py</span></code>) and translation to bit-vector or integer arithmetic.</p>
+<p>Core components include formula parsing (<code class="docutils literal notranslate"><span class="pre">ff_parser.py</span></code>), sparse polynomial
+normalization/partitioning, and translation to bit-vector or integer
+arithmetic.</p>
+<p>The performance backend exposes two experiment-facing interfaces:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">stats()</span></code>: counters for reductions, cuts, learned lemmas, partition
+selection, and bounded local algebra</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">trace()</span></code>: a per-round JSON-friendly refinement trace</p></li>
+</ul>
 </section>
 <section id="usage-example">
 <h2>Usage Example<a class="headerlink" href="#usage-example" title="Link to this heading"></a></h2>
@@ -190,6 +204,7 @@ recovery run is required.</p>
 <span class="n">perf</span> <span class="o">=</span> <span class="n">FFPerfSolver</span><span class="p">(</span><span class="n">schedule</span><span class="o">=</span><span class="s2">&quot;balanced&quot;</span><span class="p">,</span> <span class="n">kernel_mode</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="n">recovery</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">perf</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="n">formula</span><span class="p">))</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">perf</span><span class="o">.</span><span class="n">stats</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">perf</span><span class="o">.</span><span class="n">trace</span><span class="p">())</span>
 </pre></div>
 </div>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>scripts/run_ff_perf_bench.py<span class="w"> </span><span class="se">\</span>
