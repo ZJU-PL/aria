@@ -24,26 +24,37 @@ def _solver_cmd(backend: str, file_path: str) -> List[str]:
     """Build a one-shot subprocess command for a backend/file pair."""
     if backend == "bv":
         init = "from aria.smt.ff import parse_ff_file, FFBVSolver;"
-        run = "f=parse_ff_file(r'%s');s=FFBVSolver();print(s.check(f))" % file_path
+        solver_name = "FFBVSolver"
     elif backend == "bv2":
         init = "from aria.smt.ff import parse_ff_file, FFBVBridgeSolver;"
-        run = "f=parse_ff_file(r'%s');s=FFBVBridgeSolver();print(s.check(f))" % file_path
+        solver_name = "FFBVBridgeSolver"
     elif backend == "int":
         init = "from aria.smt.ff import parse_ff_file, FFIntSolver;"
-        run = "f=parse_ff_file(r'%s');s=FFIntSolver();print(s.check(f))" % file_path
+        solver_name = "FFIntSolver"
     elif backend == "auto":
         init = "from aria.smt.ff import parse_ff_file, FFAutoSolver;"
-        run = "f=parse_ff_file(r'%s');s=FFAutoSolver();print(s.check(f))" % file_path
+        solver_name = "FFAutoSolver"
     elif backend == "perf":
         init = "from aria.smt.ff import parse_ff_file, FFPerfSolver;"
-        run = "f=parse_ff_file(r'%s');s=FFPerfSolver();print(s.check(f))" % file_path
+        solver_name = "FFPerfSolver"
     else:
         raise ValueError("Unknown backend %s" % backend)
+    run = (
+        "import json;"
+        "f=parse_ff_file(r'%s');"
+        "s=%s();"
+        "verdict=str(s.check(f));"
+        "payload={'verdict': verdict};"
+        "payload['stats']=s.stats() if hasattr(s,'stats') else {};"
+        "payload['trace']=s.trace() if hasattr(s,'trace') else [];"
+        "payload['backend_name']=getattr(s,'backend_name',None);"
+        "print(json.dumps(payload, sort_keys=True))"
+    ) % (file_path, solver_name)
     return [sys.executable, "-c", init + run]
 
 
-def run_one(backend: str, file_path: str, timeout_s: int) -> Tuple[str, float]:
-    """Execute one backend run and return (verdict, elapsed_seconds)."""
+def run_one(backend: str, file_path: str, timeout_s: int) -> Tuple[str, float, Dict[str, object]]:
+    """Execute one backend run and return verdict, time, and payload."""
     cmd = _solver_cmd(backend, file_path)
     start = time.perf_counter()
     try:
@@ -56,11 +67,19 @@ def run_one(backend: str, file_path: str, timeout_s: int) -> Tuple[str, float]:
         )
         elapsed = time.perf_counter() - start
         if proc.returncode != 0:
-            return ("error", elapsed)
-        return (proc.stdout.strip() or "unknown", elapsed)
+            return ("error", elapsed, {"verdict": "error", "stats": {}, "trace": []})
+        try:
+            payload = json.loads(proc.stdout.strip())
+        except json.JSONDecodeError:
+            return (
+                "error",
+                elapsed,
+                {"verdict": "error", "stats": {}, "trace": [], "raw": proc.stdout},
+            )
+        return (str(payload.get("verdict", "unknown")), elapsed, payload)
     except subprocess.TimeoutExpired:
         elapsed = time.perf_counter() - start
-        return ("timeout", elapsed)
+        return ("timeout", elapsed, {"verdict": "timeout", "stats": {}, "trace": []})
 
 
 def par2(score_times: List[float], timeout_s: int) -> float:
@@ -78,6 +97,26 @@ def _majority_verdict(verdicts: List[str]) -> str:
         counts[verdict] = counts.get(verdict, 0) + 1
     ordered = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
     return ordered[0][0]
+
+
+def _aggregate_numeric_dict(dicts: List[Dict[str, object]]) -> Dict[str, float]:
+    aggregate: Dict[str, float] = {}
+    counts: Dict[str, int] = {}
+    for stats in dicts:
+        for key, value in stats.items():
+            if isinstance(value, bool):
+                numeric = float(int(value))
+            elif isinstance(value, (int, float)):
+                numeric = float(value)
+            else:
+                continue
+            aggregate[key] = aggregate.get(key, 0.0) + numeric
+            counts[key] = counts.get(key, 0) + 1
+    return {
+        key: aggregate[key] / float(counts[key])
+        for key in sorted(aggregate)
+        if counts.get(key, 0) > 0
+    }
 
 
 def main() -> int:
@@ -115,17 +154,40 @@ def main() -> int:
             for bench in bench_files:
                 verdicts = []
                 times = []
+                payloads = []
                 for _ in range(args.repetitions):
-                    verdict, elapsed = run_one(backend, str(bench), timeout_s)
+                    verdict, elapsed, payload = run_one(backend, str(bench), timeout_s)
                     verdicts.append(verdict)
                     times.append(elapsed)
+                    payloads.append(payload)
                 median_t = statistics.median(times)
                 majority_verdict = _majority_verdict(verdicts)
+                majority_payloads = [
+                    payloads[idx]
+                    for idx, verdict in enumerate(verdicts)
+                    if verdict == majority_verdict
+                ]
                 instance_runs[str(bench)] = {
                     "verdicts": verdicts,
                     "times": times,
                     "median_time": median_t,
                     "majority_verdict": majority_verdict,
+                    "payloads": payloads,
+                    "avg_stats": _aggregate_numeric_dict(
+                        [
+                            payload.get("stats", {})
+                            for payload in majority_payloads
+                            if isinstance(payload.get("stats", {}), dict)
+                        ]
+                    ),
+                    "avg_trace_length": statistics.mean(
+                        [
+                            len(payload.get("trace", []))
+                            for payload in majority_payloads
+                            if isinstance(payload.get("trace", []), list)
+                        ]
+                        or [0]
+                    ),
                 }
                 if majority_verdict in ("sat", "unsat"):
                     solved += 1
@@ -141,6 +203,20 @@ def main() -> int:
                 "solved": solved,
                 "timeouts": timeout_count,
                 "par2": par2(par2_times, timeout_s),
+                "avg_stats": _aggregate_numeric_dict(
+                    [
+                        run_data.get("avg_stats", {})
+                        for run_data in instance_runs.values()
+                        if isinstance(run_data.get("avg_stats", {}), dict)
+                    ]
+                ),
+                "avg_trace_length": statistics.mean(
+                    [
+                        float(run_data.get("avg_trace_length", 0.0))
+                        for run_data in instance_runs.values()
+                    ]
+                    or [0.0]
+                ),
             }
 
     out_path = pathlib.Path(args.out)

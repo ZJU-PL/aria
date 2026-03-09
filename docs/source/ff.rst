@@ -106,7 +106,7 @@ Aria provides SMT solving over finite fields in the ``aria/smt/ff`` module with 
 
 * **Bit-vector encoding** (``ff_bv_solver.py``): Encodes field elements as bit-vectors (width log₂(field_size)) with modular constraints
 * **Integer encoding** (``ff_int_solver.py``): Encodes field elements as integers in [0, field_size-1] with explicit modulo operations
-* **Performance encoding** (``ff_perf_solver.py``): Integer encoding with adaptive reduction scheduling and structured-prime modular kernels
+* **Performance encoding** (``ff_perf_solver.py``): Integer encoding with adaptive reduction scheduling, structured-prime modular kernels, and partition-driven CEGAR refinement
 
 The automatic solver (``FFAutoSolver``) can route large-prime instances to the
 performance backend and still fall back to the stable integer backend when a
@@ -116,13 +116,27 @@ The performance backend supports environment controls:
 
 * ``ARIA_FF_SCHEDULE`` = ``eager`` | ``balanced`` | ``lazy`` | ``strict-recovery``
 * ``ARIA_FF_KERNEL_MODE`` = ``auto`` | ``generic`` | ``structured``
+* ``ARIA_FF_MAX_NONLINEAR_EQS``
+* ``ARIA_FF_MAX_NONLINEAR_VARS``
+* ``ARIA_FF_MAX_NONLINEAR_MODULUS``
+* ``ARIA_FF_MAX_NONLINEAR_SEARCH_SPACE``
+* ``ARIA_FF_MAX_NONLINEAR_WORK_BUDGET``
+* ``ARIA_FF_ROOTSET_BUDGET``
 
 Automatic backend selection can be configured through ``FFAutoSolver``:
 
 * ``enable_perf_backend`` (default ``True``)
 * ``perf_policy`` in ``auto``, ``always``, ``never``, ``large-prime``
 
-Core components include formula parsing (``ff_parser.py``) and translation to bit-vector or integer arithmetic.
+Core components include formula parsing (``ff_parser.py``), sparse polynomial
+normalization/partitioning, and translation to bit-vector or integer
+arithmetic.
+
+The performance backend exposes two experiment-facing interfaces:
+
+* ``stats()``: counters for reductions, cuts, learned lemmas, partition
+  selection, and bounded local algebra
+* ``trace()``: a per-round JSON-friendly refinement trace
 
 ================
 Usage Example
@@ -140,6 +154,7 @@ Usage Example
     perf = FFPerfSolver(schedule="balanced", kernel_mode="auto", recovery=True)
     print(perf.check(formula))
     print(perf.stats())
+    print(perf.trace())
 
 .. code-block:: bash
 
