@@ -16,6 +16,10 @@ The package is organized by responsibility:
 - `aria.smt.ff.core`: shared AST/IR/reduction helpers
 
 For details, see [ARCHITECTURE.md](aria/smt/ff/ARCHITECTURE.md).
+For the current partition-driven refinement design, see
+[REFINEMENT.md](aria/smt/ff/REFINEMENT.md).
+For a paper-oriented framing of the current implementation, see
+[PAPER_SKETCH.md](aria/smt/ff/PAPER_SKETCH.md).
 
 ## Front-End
 
@@ -50,6 +54,8 @@ It performs:
 - flattening of associative field and Boolean operators
 - constant folding for field arithmetic and Boolean connectives
 - canonicalization of field equalities into `lhs - rhs = 0`
+- exact simplification of small linear/idempotent patterns such as
+  `c*x = 0`, `x + c = 0`, `x - y = 0`, and `x^2 = x`
 - lowering of Booleanity constraints `x * (x - 1) = 0` into
   `(x = 0) or (x = 1)`
 - detection of the standard `is_zero` witness gadget
@@ -60,7 +66,8 @@ These rewrites are intended to make the encoded formula more explicit without
 changing satisfiability.
 
 `preprocess_formula_with_metadata(...)` is available for experiment pipelines
-that need normalization diagnostics (split counts and derived gadget facts).
+that need normalization diagnostics (split counts, affine rewrites,
+duplicate-removal counts, and partition statistics).
 
 ## Backends
 
@@ -74,8 +81,17 @@ Backends:
 - [solvers/ff_int_solver.py](aria/smt/ff/solvers/ff_int_solver.py):
   direct integer encoding over bounded residues
 - [solvers/ff_perf_solver.py](aria/smt/ff/solvers/ff_perf_solver.py):
-  performance-oriented integer encoding with adaptive modulo scheduling and
-  prime-structured reduction kernels
+  performance-oriented integer encoding with adaptive modulo scheduling,
+  prime-structured reduction kernels, and partition-driven local CEGAR
+  refinement over modulo-aware cut variables
+
+The performance backend now uses a hybrid refinement ladder:
+
+1. affine partition lemmas;
+2. bounded nonlinear partition lemmas;
+3. assertion-local exact lemmas;
+4. partition-scoped cut definition/activation;
+5. schedule fallback and stable integer fallback.
 
 All backends:
 
@@ -110,6 +126,25 @@ timeouts.
 
 - `ARIA_FF_SCHEDULE={eager,balanced,lazy,strict-recovery}`
 - `ARIA_FF_KERNEL_MODE={auto,generic,structured}`
+- `ARIA_FF_MAX_NONLINEAR_EQS`
+- `ARIA_FF_MAX_NONLINEAR_VARS`
+- `ARIA_FF_MAX_NONLINEAR_MODULUS`
+- `ARIA_FF_MAX_NONLINEAR_SEARCH_SPACE`
+- `ARIA_FF_MAX_NONLINEAR_WORK_BUDGET`
+- `ARIA_FF_ROOTSET_BUDGET`
+
+`FFPerfSolver` also exposes local-refinement controls:
+
+- `cegar`: enable local SAT-model validation and cut refinement
+- `max_refinement_rounds`: cap the number of refinement rounds per schedule
+- `cut_seed_budget`: number of initially abstracted high-value subterms
+- `cut_refine_budget`: number of mismatching cuts defined per refinement round
+- `lemma_refine_budget`: number of learned lemmas per refinement round
+
+For experiments, `FFPerfSolver` exposes:
+
+- `stats()`: encoding/refinement counters, including partition-level metrics
+- `trace()`: per-round JSON-friendly refinement trace
 
 ## API Quickstart
 
@@ -142,7 +177,8 @@ python3 scripts/run_ff_perf_bench.py \
 ```
 
 Output JSON contains per-instance verdicts/timings and summary metrics (solved,
-timeouts, PAR-2) for each timeout budget.
+timeouts, PAR-2), plus averaged solver stats and trace lengths for each timeout
+budget.
 
 ## Regression Driver
 

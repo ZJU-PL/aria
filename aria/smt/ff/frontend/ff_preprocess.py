@@ -28,10 +28,13 @@ from ..core.ff_ast import (
     ParsedFormula,
     infer_field_modulus,
 )
+from ..core.ff_algebra import FFLocalAlgebraicReasoner
+from ..core.ff_poly import partition_polynomial_assertions, polynomial_from_equality
 
 
 def preprocess_formula(formula: ParsedFormula) -> ParsedFormula:
     """Normalize field arithmetic and add safe gadget implications."""
+    reasoner = FFLocalAlgebraicReasoner()
     rewritten_assertions: List[FieldExpr] = []
     for assertion in formula.assertions:
         normalized = _rewrite(assertion, formula.variables)
@@ -41,11 +44,19 @@ def preprocess_formula(formula: ParsedFormula) -> ParsedFormula:
         rewritten_assertions, formula.variables
     )
     all_assertions = rewritten_assertions + derived_assertions
+    final_assertions = [
+        _rewrite(
+            reasoner.rewrite_structured_assertion(assertion, formula.variables),
+            formula.variables,
+        )
+        for assertion in all_assertions
+    ]
+    final_assertions = _deduplicate_assertions(final_assertions, formula.variables)
 
     return ParsedFormula(
         formula.field_size,
         formula.variables,
-        [_rewrite(assertion, formula.variables) for assertion in all_assertions],
+        final_assertions,
         expected_status=formula.expected_status,
         field_sizes=formula.field_sizes,
     )
@@ -61,8 +72,18 @@ def preprocess_formula_with_metadata(
         rewritten_assertions: assertions after normalization/splitting.
         split_assertions: number of additional assertions introduced by split.
         derived_is_zero_assertions: assertions generated from gadget inference.
+        structured_rewrites: assertions changed by sparse algebraic rewriting.
+        affine_rewrites: assertions that became affine after rewriting.
+        duplicate_assertions_removed: duplicate normalized assertions removed.
+        polynomial_assertions: normalized assertions expressible as polynomials.
+        affine_assertions: normalized polynomial assertions of total degree <= 1.
+        affine_assertion_indices: output assertion indices that are affine.
+        polynomial_partitions: variable-connected polynomial components.
+        largest_partition_assertions: largest partition by assertion count.
+        largest_partition_variables: largest partition by variable count.
         output_assertions: assertions in the final normalized formula.
     """
+    reasoner = FFLocalAlgebraicReasoner()
     rewritten_assertions: List[FieldExpr] = []
     split_assertions = 0
     for assertion in formula.assertions:
@@ -75,18 +96,59 @@ def preprocess_formula_with_metadata(
         rewritten_assertions, formula.variables
     )
     all_assertions = rewritten_assertions + derived_assertions
+    structured_rewrites = 0
+    affine_rewrites = 0
+    final_assertions = []
+    for assertion in all_assertions:
+        pre_affine = _is_affine_assertion(assertion, formula.variables)
+        rewritten = reasoner.rewrite_structured_assertion(
+            assertion, formula.variables
+        )
+        if _expr_key(rewritten) != _expr_key(assertion):
+            structured_rewrites += 1
+        normalized_final = _rewrite(rewritten, formula.variables)
+        if not pre_affine and _is_affine_assertion(normalized_final, formula.variables):
+            affine_rewrites += 1
+        final_assertions.append(normalized_final)
+
+    deduped_assertions = _deduplicate_assertions(final_assertions, formula.variables)
+    duplicate_assertions_removed = len(final_assertions) - len(deduped_assertions)
+
     normalized_formula = ParsedFormula(
         formula.field_size,
         formula.variables,
-        [_rewrite(assertion, formula.variables) for assertion in all_assertions],
+        deduped_assertions,
         expected_status=formula.expected_status,
         field_sizes=formula.field_sizes,
+    )
+    partitions = partition_polynomial_assertions(
+        normalized_formula.assertions, normalized_formula.variables
+    )
+    affine_assertion_indices = tuple(
+        idx
+        for idx, assertion in enumerate(normalized_formula.assertions)
+        if _is_affine_assertion(assertion, normalized_formula.variables)
     )
     metadata = {
         "input_assertions": len(formula.assertions),
         "rewritten_assertions": len(rewritten_assertions),
         "split_assertions": split_assertions,
         "derived_is_zero_assertions": len(derived_assertions),
+        "structured_rewrites": structured_rewrites,
+        "affine_rewrites": affine_rewrites,
+        "duplicate_assertions_removed": duplicate_assertions_removed,
+        "polynomial_assertions": sum(
+            len(partition.assertion_indices) for partition in partitions
+        ),
+        "affine_assertions": len(affine_assertion_indices),
+        "affine_assertion_indices": affine_assertion_indices,
+        "polynomial_partitions": len(partitions),
+        "largest_partition_assertions": max(
+            (len(partition.assertion_indices) for partition in partitions), default=0
+        ),
+        "largest_partition_variables": max(
+            (len(partition.variables) for partition in partitions), default=0
+        ),
         "output_assertions": len(normalized_formula.assertions),
     }
     return normalized_formula, metadata
@@ -147,18 +209,30 @@ def _rewrite(expr: FieldExpr, variables: Dict[str, str]) -> FieldExpr:
             if _is_zero_const(right, modulus):
                 if isinstance(left, FieldConst):
                     return BoolConst(left.value == 0)
+                simplified = _rewrite_zero_equality_term(left, modulus)
+                if simplified is not None:
+                    return _rewrite(simplified, variables)
                 rewritten = _rewrite_booleanity_constraint(left, modulus)
                 if rewritten is not None:
                     return rewritten
                 return FieldEq(left, zero)
             if _is_zero_const(left, modulus):
+                simplified = _rewrite_zero_equality_term(right, modulus)
+                if simplified is not None:
+                    return _rewrite(simplified, variables)
                 rewritten = _rewrite_booleanity_constraint(right, modulus)
                 if rewritten is not None:
                     return rewritten
                 return FieldEq(right, zero)
+            rewritten = _rewrite_nonzero_special_equality(left, right, modulus)
+            if rewritten is not None:
+                return _rewrite(rewritten, variables)
             diff = _rewrite(FieldSub(left, right), variables)
             if isinstance(diff, FieldConst):
                 return BoolConst(diff.value == 0)
+            simplified = _rewrite_zero_equality_term(diff, modulus)
+            if simplified is not None:
+                return _rewrite(simplified, variables)
             rewritten = _rewrite_booleanity_constraint(diff, modulus)
             if rewritten is not None:
                 return rewritten
@@ -318,6 +392,91 @@ def _rewrite_field_mul(args: Sequence[FieldExpr], variables: Dict[str, str]) -> 
     if len(others) == 1:
         return others[0]
     return FieldMul(*others)
+
+
+def _rewrite_zero_equality_term(expr: FieldExpr, modulus: int) -> Optional[FieldExpr]:
+    zero = FieldConst(0, modulus)
+    one = FieldConst(1 % modulus, modulus)
+
+    if isinstance(expr, FieldVar):
+        return FieldEq(expr, zero)
+    if isinstance(expr, FieldPow) and isinstance(expr.base, FieldVar):
+        return FieldEq(expr.base, zero)
+    if isinstance(expr, FieldMul):
+        non_const_terms = []
+        coeff = 1
+        for factor in expr.args:
+            if isinstance(factor, FieldConst):
+                coeff = (coeff * factor.value) % modulus
+            else:
+                non_const_terms.append(factor)
+        if coeff != 0 and len(non_const_terms) == 1:
+            return FieldEq(non_const_terms[0], zero)
+    if isinstance(expr, FieldAdd) and len(expr.args) == 2:
+        var, const = _match_var_plus_const(expr)
+        if var is not None and const is not None:
+            return FieldEq(var, FieldConst((-const.value) % modulus, modulus))
+        left, right = expr.args
+        if isinstance(left, FieldVar) and isinstance(right, FieldNeg):
+            return FieldEq(left, right.arg)
+        if isinstance(right, FieldVar) and isinstance(left, FieldNeg):
+            return FieldEq(right, left.arg)
+    if isinstance(expr, FieldSub) and len(expr.args) == 2:
+        return FieldEq(expr.args[0], expr.args[1])
+    if isinstance(expr, FieldAdd) and len(expr.args) == 2:
+        bool_like = _match_idempotent_difference(expr, modulus)
+        if bool_like is not None:
+            return BoolOr(FieldEq(bool_like, zero), FieldEq(bool_like, one))
+    return None
+
+
+def _rewrite_nonzero_special_equality(
+    left: FieldExpr, right: FieldExpr, modulus: int
+) -> Optional[FieldExpr]:
+    zero = FieldConst(0, modulus)
+    one = FieldConst(1 % modulus, modulus)
+    if _is_square_of_var(left) and isinstance(right, FieldVar):
+        if left.base.name == right.name:
+            return BoolOr(FieldEq(right, zero), FieldEq(right, one))
+    if _is_square_of_var(right) and isinstance(left, FieldVar):
+        if right.base.name == left.name:
+            return BoolOr(FieldEq(left, zero), FieldEq(left, one))
+    return None
+
+
+def _match_var_plus_const(expr: FieldAdd) -> Tuple[Optional[FieldVar], Optional[FieldConst]]:
+    left, right = expr.args
+    if isinstance(left, FieldVar) and isinstance(right, FieldConst):
+        return (left, right)
+    if isinstance(right, FieldVar) and isinstance(left, FieldConst):
+        return (right, left)
+    return (None, None)
+
+
+def _is_square_of_var(expr: FieldExpr) -> bool:
+    return isinstance(expr, FieldPow) and expr.exponent == 2 and isinstance(
+        expr.base, FieldVar
+    )
+
+
+def _match_idempotent_difference(
+    expr: FieldAdd, modulus: int
+) -> Optional[FieldVar]:
+    left, right = expr.args
+    minus_one = (modulus - 1) % modulus
+    if _is_square_of_var(left) and isinstance(right, FieldMul):
+        if len(right.args) == 2 and isinstance(right.args[0], FieldConst):
+            coeff = right.args[0].value % modulus
+            if coeff == minus_one and isinstance(right.args[1], FieldVar):
+                if left.base.name == right.args[1].name:
+                    return right.args[1]
+    if _is_square_of_var(right) and isinstance(left, FieldMul):
+        if len(left.args) == 2 and isinstance(left.args[0], FieldConst):
+            coeff = left.args[0].value % modulus
+            if coeff == minus_one and isinstance(left.args[1], FieldVar):
+                if right.base.name == left.args[1].name:
+                    return left.args[1]
+    return None
 
 
 def _rewrite_booleanity_constraint(
@@ -496,3 +655,29 @@ def _expr_key(expr: FieldExpr):
     if isinstance(expr, BoolConst):
         return ("BoolConst", expr.value)
     return (type(expr).__name__, id(expr))
+
+
+def _assertion_dedup_key(expr: FieldExpr, variables: Dict[str, str]):
+    poly = polynomial_from_equality(expr, variables)
+    if poly is not None:
+        return ("poly", poly.modulus, tuple(sorted(poly.terms.items())))
+    return ("expr", _expr_key(expr))
+
+
+def _deduplicate_assertions(
+    assertions: Sequence[FieldExpr], variables: Dict[str, str]
+) -> List[FieldExpr]:
+    seen = set()
+    deduped: List[FieldExpr] = []
+    for assertion in assertions:
+        key = _assertion_dedup_key(assertion, variables)
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(assertion)
+    return deduped
+
+
+def _is_affine_assertion(expr: FieldExpr, variables: Dict[str, str]) -> bool:
+    poly = polynomial_from_equality(expr, variables)
+    return poly is not None and poly.degree() <= 1
