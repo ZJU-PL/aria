@@ -1,3 +1,5 @@
+"""Utilities and definitions for aria.symabs.rangeset.range_set_examples."""
+
 from __future__ import annotations
 
 import z3

@@ -1,3 +1,5 @@
+"""Utilities and definitions for aria.itp.theories.algebra.ordering."""
+
 import aria.itp as itp
 import aria.itp.smt as smt
 import aria.itp.property as prop

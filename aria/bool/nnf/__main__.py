@@ -1,3 +1,5 @@
+"""Entry point for aria.bool.nnf.__main__."""
+
 import sys
 
 import aria.bool.nnf.cli

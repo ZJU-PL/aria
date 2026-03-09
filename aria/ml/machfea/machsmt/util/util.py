@@ -1,3 +1,5 @@
+"""Utilities and definitions for aria.ml.machfea.machsmt.util.util."""
+
 import sys
 
 from ..config import args

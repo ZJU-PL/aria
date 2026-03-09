@@ -1,3 +1,5 @@
+"""Package initialization for aria.ml.machfea.machsmt.features."""
+
 from inspect import getmembers, isfunction
 
 from . import arrays, bv, fp, real, integer, quantifiers, string, extra, uf

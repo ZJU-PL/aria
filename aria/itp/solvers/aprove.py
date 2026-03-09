@@ -1,3 +1,5 @@
+"""Utilities and definitions for aria.itp.solvers.aprove."""
+
 import aria.itp.smt as smt
 import aria.itp.solvers
 

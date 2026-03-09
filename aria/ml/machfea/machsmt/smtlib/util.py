@@ -1,3 +1,5 @@
+"""Utilities and definitions for aria.ml.machfea.machsmt.smtlib.util."""
+
 def get_theories(logic):
     _logic = logic[:].replace("QF_", "").replace("IA", "I").replace("RA", "R")
     ret = []

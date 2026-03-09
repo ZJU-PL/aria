@@ -1,3 +1,5 @@
+"""Utilities and definitions for aria.itp.theories.real.interval."""
+
 import aria.itp as itp
 import aria.itp.theories.real as R
 import aria.itp.smt as smt
