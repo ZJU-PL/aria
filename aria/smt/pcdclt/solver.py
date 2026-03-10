@@ -223,7 +223,7 @@ def solve(smt2_string: str, logic: str = "ALL") -> SolverResult:
     try:
         while True:
             # Check Boolean satisfiability
-            if not bool_solver.check_sat():
+            if bool_solver.check_sat() != SolverResult.SAT:
                 result = SolverResult.UNSAT
                 break
 

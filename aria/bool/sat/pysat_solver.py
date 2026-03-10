@@ -94,7 +94,6 @@ class PySATSolver:
         self.solver_name = solver
         self._solver = Solver(name=solver)
         self._clauses = []
-        self._unigen_sampler = Sampler()
         self.parallel_sampling = False  # parallel sampling of satisfying assignments
         # reduce the size of each sampled model
         self.reduce_samples = True
@@ -125,7 +124,7 @@ class PySATSolver:
         """add clause"""
         self._solver.add_clause(clause)
         self._clauses.append(clause)
-        self._unigen_sampler.add_clause(clause)
+
     def add_clauses(self, clauses: List[List[int]]):
         """Add multiple clauses to the solver."""
         for cls in clauses:
@@ -133,10 +132,8 @@ class PySATSolver:
 
     def add_cnf(self, cnf: CNF):
         """Add a CNF formula to the solver."""
-        # self.solver.append_formula(cnf.clauses, no_return=False)
         for cls in cnf.clauses:
-            self._solver.add_clause(cls)
-            self._clauses.append(cls)
+            self.add_clause(cls)
 
     def sample_models(self, to_enum: int, strategy: str = "unigen") -> List[List[int]]:
         """
@@ -245,7 +242,10 @@ class PySATSolver:
         """
         Use pyunigen to sample models
         """
-        cells, hashes, samples = self._unigen_sampler.sample(num=to_enum)
+        sampler = Sampler()
+        for clause in self._clauses:
+            sampler.add_clause(clause)
+        cells, hashes, samples = sampler.sample(num=to_enum)
         return samples
 def test_pysat():
     """Test the PySAT solver functionality."""
