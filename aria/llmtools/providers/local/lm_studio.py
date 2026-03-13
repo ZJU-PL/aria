@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from aria.llmtools.providers.shared import OpenAICompatibleProvider
+from aria.llmtools.providers.adapters import OpenAICompatibleProvider
 
 
 class LMStudioProvider(OpenAICompatibleProvider):

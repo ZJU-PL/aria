@@ -20,7 +20,7 @@ import z3
 
 try:
     from aria.llmtools.client import LLM  # type: ignore
-    from aria.llmtools.logger import Logger  # type: ignore
+    from aria.llmtools import Logger  # type: ignore
 except ImportError:  # pragma: no cover - optional dependency
     LLM = None  # type: ignore
     Logger = None  # type: ignore
@@ -72,7 +72,7 @@ class LLMTriggerGenerator:
         elif LLM and Logger:
             # Lazily initialize the shared LLM wrapper
             self.llm = LLM(
-                online_model_name=model,
+                model_name=model,
                 logger=self.logger,
                 temperature=temperature,
                 system_role="You are an expert at E-matching trigger selection.",

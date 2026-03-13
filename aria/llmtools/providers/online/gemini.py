@@ -6,7 +6,7 @@ from __future__ import annotations
 from typing import Optional
 
 from aria.llmtools.core.base import BaseProvider, InferenceResult
-from aria.llmtools.providers.shared import error_result, result_from_usage
+from aria.llmtools.core.results import error_result, result_from_usage
 
 try:
     import google.generativeai as genai  # pylint: disable=import-error
@@ -26,12 +26,14 @@ class GeminiProvider(BaseProvider):
         system_role: str,
         temperature: float,
         max_output_length: int,
+        model_name: Optional[str] = None,
     ) -> InferenceResult:
         """Run inference with Gemini."""
         if not GENAI_AVAILABLE:
             return error_result("Gemini SDK not installed")
 
-        return self._call_api(message, system_role, temperature)
+        del max_output_length
+        return self._call_api(message, system_role, temperature, model_name)
 
     def _call_api(
         self,

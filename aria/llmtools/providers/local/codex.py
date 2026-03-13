@@ -8,18 +8,13 @@ from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 from openai import AsyncOpenAI
 
-try:
-    from oauth_cli_kit import get_token as get_codex_token  # type: ignore[import-untyped]
-except ImportError:
-    get_codex_token = None
-
-from aria.llmtools.providers.cli.base import (
+from aria.llmtools.providers.base import (
     LLMProvider,
     LLMResponse,
     error_response,
     parse_openai_chat_response,
 )
-from aria.llmtools.providers.shared import AsyncChatProvider
+from aria.llmtools.providers.adapters import AsyncChatProvider
 
 DEFAULT_CODEX_BASE_URL = "http://localhost:12580/tingly/openai"
 
@@ -29,7 +24,7 @@ class OpenAICodexProvider(LLMProvider):
 
     def __init__(
         self,
-        default_model: str = "openai-codex/gpt-5.1-codex",
+        default_model: str = "gpt-5.2",
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
     ):
@@ -84,17 +79,11 @@ class OpenAICodexProvider(LLMProvider):
         if self.api_key:
             return self.api_key
 
-        env_api_key = os.environ.get("ARIA_CODEX_API_KEY")
+        env_api_key = os.environ.get("CODEX_API_KEY")
         if env_api_key:
             return env_api_key
 
-        if get_codex_token is not None:
-            token = await asyncio.to_thread(get_codex_token)
-            return str(token.access)
-
-        raise ImportError(
-            "Set ARIA_CODEX_API_KEY or install oauth-cli-kit for Codex access."
-        )
+        raise ImportError("Set CODEX_API_KEY for Codex access.")
 
     def _get_base_url(self) -> str:
         """Resolve the OpenAI-compatible Codex base URL."""
@@ -116,7 +105,7 @@ class CodexProvider(AsyncChatProvider):
         max_output_length: int,
         model_name: Optional[str] = None,
     ) -> LLMResponse:
-        """Call Codex and normalize into the shared CLI response shape."""
+        """Call Codex and normalize into the shared response shape."""
         provider = OpenAICodexProvider(default_model=model_name or self.default_model)
         return await provider.chat(
             messages=messages,

@@ -1,3 +1,5 @@
+"""Logger for LLM inference (file and optional console output)."""
+
 import logging
 import sys
 import uuid
@@ -54,7 +56,7 @@ class Logger:
         self.log_file_path = path
         level = _log_level_to_str(log_level)
         if logger is None:
-            self._std_logger = logging.getLogger(f"aria.llmtools.{uuid.uuid4()}")
+            self._std_logger = logging.getLogger("aria.llmtools.{0}".format(uuid.uuid4()))
             self._std_logger.setLevel(level)
             self._std_logger.propagate = False
             formatter = logging.Formatter(

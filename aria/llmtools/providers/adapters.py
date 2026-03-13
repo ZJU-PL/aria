@@ -1,4 +1,4 @@
-"""Shared helpers for provider implementations."""
+"""Provider adapter base classes for inference-oriented clients."""
 
 from __future__ import annotations
 
@@ -6,17 +6,16 @@ import os
 from abc import abstractmethod
 from typing import Any, Dict, List, Optional, Tuple
 
+from openai import OpenAI  # pylint: disable=import-error
+
 from aria.llmtools.core.async_utils import run_async
 from aria.llmtools.core.base import BaseProvider, InferenceResult
-from aria.llmtools.providers.cli.base import LLMResponse
-
-try:
-    from openai import OpenAI  # pylint: disable=import-error
-
-    OPENAI_AVAILABLE = True
-except ImportError:
-    OpenAI = None  # type: ignore
-    OPENAI_AVAILABLE = False
+from aria.llmtools.core.results import (
+    error_result,
+    result_from_llm_response,
+    result_from_openai_response,
+)
+from aria.llmtools.core.responses import LLMResponse
 
 
 def build_messages(system_role: str, message: str) -> List[Dict[str, str]]:
@@ -25,65 +24,6 @@ def build_messages(system_role: str, message: str) -> List[Dict[str, str]]:
         {"role": "system", "content": system_role},
         {"role": "user", "content": message},
     ]
-
-
-def error_result(error: str) -> InferenceResult:
-    """Create a normalized provider error result."""
-    return InferenceResult(
-        content="",
-        input_tokens=0,
-        output_tokens=0,
-        finish_reason="error",
-        error=error,
-    )
-
-
-def result_from_usage(
-    content: str,
-    finish_reason: str,
-    usage: Optional[Dict[str, int]] = None,
-) -> InferenceResult:
-    """Create a normalized success result."""
-    normalized_usage = usage or {}
-    return InferenceResult(
-        content=content,
-        input_tokens=normalized_usage.get("prompt_tokens", 0),
-        output_tokens=normalized_usage.get("completion_tokens", 0),
-        finish_reason=finish_reason,
-        usage=normalized_usage,
-    )
-
-
-def result_from_llm_response(
-    response: LLMResponse, default_error: str
-) -> InferenceResult:
-    """Normalize a CLI-provider response."""
-    if response.finish_reason == "error":
-        return error_result(response.content or default_error)
-
-    return result_from_usage(
-        content=response.content or "",
-        finish_reason=response.finish_reason,
-        usage=response.usage,
-    )
-
-
-def result_from_openai_response(response: Any) -> InferenceResult:
-    """Normalize an OpenAI-compatible response."""
-    choice = response.choices[0]
-    usage = {}
-    if response.usage:
-        usage = {
-            "prompt_tokens": response.usage.prompt_tokens or 0,
-            "completion_tokens": response.usage.completion_tokens or 0,
-            "total_tokens": response.usage.total_tokens or 0,
-        }
-
-    return result_from_usage(
-        content=choice.message.content or "",
-        finish_reason=choice.finish_reason or "stop",
-        usage=usage,
-    )
 
 
 class AsyncChatProvider(BaseProvider):
@@ -98,6 +38,7 @@ class AsyncChatProvider(BaseProvider):
         system_role: str,
         temperature: float,
         max_output_length: int,
+        model_name: Optional[str] = None,
     ) -> InferenceResult:
         """Run inference through the provider chat adapter."""
         response = run_async(
@@ -105,7 +46,7 @@ class AsyncChatProvider(BaseProvider):
                 messages=build_messages(system_role, message),
                 temperature=temperature,
                 max_output_length=max_output_length,
-                model_name=None,
+                model_name=model_name,
             )
         )
         return result_from_llm_response(
@@ -125,7 +66,7 @@ class AsyncChatProvider(BaseProvider):
 
 
 class OpenAICompatibleProvider(BaseProvider):
-    """Base class for OpenAI-compatible providers."""
+    """Base class for providers backed by the OpenAI chat completions API."""
 
     default_model: str = ""
     base_url: Optional[str] = None
@@ -139,11 +80,9 @@ class OpenAICompatibleProvider(BaseProvider):
         system_role: str,
         temperature: float,
         max_output_length: int,
+        model_name: Optional[str] = None,
     ) -> InferenceResult:
         """Run inference against an OpenAI-compatible endpoint."""
-        if not OPENAI_AVAILABLE:
-            return error_result("OpenAI SDK not installed")
-
         api_key = self.get_api_key()
         if api_key is None:
             return error_result(self.get_missing_api_key_error())
@@ -154,6 +93,7 @@ class OpenAICompatibleProvider(BaseProvider):
             temperature=temperature,
             max_output_length=max_output_length,
             api_key=api_key,
+            model_name=model_name,
         )
 
     def get_api_key(self) -> Optional[str]:

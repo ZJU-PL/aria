@@ -110,11 +110,11 @@ python -m aria.ml.llm.smt2nl "(assert (and (> x 5) (<= y 10)))"
 
 #### LLM-Based Abduction (Natural Language)
 ```python
-from aria.llmtools.client import LLM
+from aria.llmtools import LLM, Logger
 from aria.ml.llm.abduction import NLAbductor
 
 # Initialize LLM (requires ARIA_LLM_MODEL env var or use default)
-llm = LLM(online_model_name="gpt-4.1-mini", temperature=0.2)
+llm = LLM(model_name="gpt-4.1-mini", logger=Logger("abduction.log"), temperature=0.2)
 abductor = NLAbductor(llm=llm)
 
 # Provide natural language premise and conclusion

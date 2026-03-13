@@ -7,11 +7,10 @@ import os
 from typing import Dict, Optional
 
 from aria.llmtools.core.base import BaseProvider, InferenceResult
-from aria.llmtools.providers.shared import error_result, result_from_usage
+from aria.llmtools.core.results import error_result, result_from_usage
 
 try:
     from anthropic import Anthropic  # pylint: disable=import-error
-
     ANTHROPIC_AVAILABLE = True
 except ImportError:
     Anthropic = None  # type: ignore
@@ -35,6 +34,7 @@ class ClaudeProvider(BaseProvider):
         system_role: str,
         temperature: float,
         max_output_length: int,
+        model_name: Optional[str] = None,
     ) -> InferenceResult:
         """Run inference with Claude."""
         if not ANTHROPIC_AVAILABLE:
@@ -45,7 +45,12 @@ class ClaudeProvider(BaseProvider):
             return error_result("ANTHROPIC_API_KEY is not set")
 
         return self._call_api(
-            message, system_role, temperature, max_output_length, api_key
+            message,
+            system_role,
+            temperature,
+            max_output_length,
+            api_key,
+            model_name,
         )
 
     def _call_api(

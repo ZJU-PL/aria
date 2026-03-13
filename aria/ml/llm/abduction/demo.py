@@ -10,8 +10,7 @@ from __future__ import annotations
 
 import os
 
-from aria.llmtools.client import LLM
-from aria.llmtools.logger import Logger
+from aria.llmtools import LLM, Logger
 
 from .abductor import NLAbductor
 
@@ -19,7 +18,7 @@ from .abductor import NLAbductor
 def main() -> None:
     model = os.environ.get("ARIA_LLM_MODEL", "gpt-4.1-mini")
     logger = Logger(log_file_path=".logs/nl_abduction_demo.log")
-    llm = LLM(online_model_name=model, logger=logger, temperature=0.2)
+    llm = LLM(model_name=model, logger=logger, temperature=0.2)
     abd = NLAbductor(llm=llm)
 
     text = """Premise: Alice and Bob each have a positive integer number of apples.

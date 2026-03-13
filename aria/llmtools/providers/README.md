@@ -1,11 +1,10 @@
-# Provider Subdirectories
+# Provider Organization
+Provider modules are split by deployment target:
 
 - `online/`: hosted providers reached directly through Python SDKs or HTTP APIs, such as OpenAI-compatible endpoints, Gemini, Claude, and DeepSeek.
-- `local/`: self-hosted providers exposed as local OpenAI-compatible HTTP servers, such as LM Studio, vLLM, and SGLang.
-- `cli/`: providers that depend on an installed CLI tool or custom transport layer rather than a simple direct SDK wrapper; this includes Kilo, OpenCode, Codex, shared CLI response parsing, and the local CLI adapter.
+- `local/`: self-hosted or workstation-local providers, such as LM Studio, vLLM, SGLang, and the local Codex-compatible endpoint.
 
-This split is based on transport style:
+Cross-cutting provider helpers live alongside those implementations:
 
-- `online` means remote API integration.
-- `local` means local server integration.
-- `cli` means subprocess, OAuth, or custom async transport integration.
+- `base.py`: async chat-provider protocol (`LLMProvider`) and OpenAI-response parsing helpers. Raw response types (`LLMResponse`, `ToolCallRequest`) live in `core.responses`.
+- `adapters.py`: inference-oriented adapter base classes (`AsyncChatProvider`, `OpenAICompatibleProvider`, `build_messages`) used by the routed `LLM` client.

@@ -7,8 +7,8 @@ import time
 from typing import Any, Callable
 
 from aria.llmtools.core.base import InferenceResult
-from aria.llmtools.logger import Logger
-from aria.llmtools.providers.cli.base import LLMResponse
+from aria.llmtools.core.logger import Logger
+from aria.llmtools.core.responses import LLMResponse
 
 
 def retry_with_backoff(

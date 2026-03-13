@@ -1,41 +1,16 @@
-"""Base LLM provider interface and shared response helpers."""
+"""LLM provider chat protocol and OpenAI-response parsing helpers."""
 
 from __future__ import annotations
 
 import json
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
 from typing import Any, Awaitable, Callable, Dict, List, Optional
 
-
-@dataclass
-class ToolCallRequest:
-    """A tool call request from the LLM."""
-
-    id: str
-    name: str
-    arguments: Dict[str, Any]
-
-
-@dataclass
-class LLMResponse:
-    """Response from an LLM provider."""
-
-    content: Optional[str]
-    tool_calls: List[ToolCallRequest] = field(default_factory=list)
-    finish_reason: str = "stop"
-    usage: Dict[str, int] = field(default_factory=dict)
-    reasoning_content: Optional[str] = None
-    thinking: Optional[str] = None
-
-    @property
-    def has_tool_calls(self) -> bool:
-        """Check if response contains tool calls."""
-        return len(self.tool_calls) > 0
+from aria.llmtools.core.responses import LLMResponse, ToolCallRequest
 
 
 class LLMProvider(ABC):
-    """Abstract base class for LLM providers."""
+    """Abstract base class for provider chat adapters."""
 
     def __init__(self, api_key: Optional[str] = None, api_base: Optional[str] = None):
         self.api_key = api_key

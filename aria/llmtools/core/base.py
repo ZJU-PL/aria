@@ -30,6 +30,7 @@ class BaseProvider(ABC):
         system_role: str,
         temperature: float,
         max_output_length: int,
+        model_name: Optional[str] = None,
     ) -> InferenceResult:
         """Run inference with the provider."""
         raise NotImplementedError
