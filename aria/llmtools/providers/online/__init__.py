@@ -1,3 +1,3 @@
-"""Online LLM providers (OpenAI, Gemini, Claude, DeepSeek)."""
+"""HTTP API providers for hosted services with direct SDK integration."""
 
 __all__ = []

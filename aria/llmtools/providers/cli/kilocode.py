@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from typing import Any, Dict, List, Optional
 
 from openai import AsyncOpenAI
@@ -11,8 +12,32 @@ from aria.llmtools.providers.cli.base import (
     error_response,
     parse_openai_chat_response,
 )
+from aria.llmtools.providers.shared import AsyncChatProvider
 
 KILOCODE_BASE = "https://api.kilo.ai/api/openrouter"
+
+
+class KiloCodeProvider(AsyncChatProvider):
+    """`BaseProvider` adapter for Kilo-backed models."""
+
+    default_model = "kilo/z-ai/glm-4.5-air:free"
+    error_name = "Kilo Code"
+
+    async def create_response(
+        self,
+        messages: List[Dict[str, str]],
+        temperature: float,
+        max_output_length: int,
+        model_name: Optional[str] = None,
+    ) -> LLMResponse:
+        """Call Kilo Code and normalize into the shared CLI response shape."""
+        return await chat_kilocode(
+            model=model_name or self.default_model,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_output_length,
+            api_key=os.environ.get("KILOCODE_API_KEY", ""),
+        )
 
 
 class KiloCodeAsyncOpenAI(AsyncOpenAI):

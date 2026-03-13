@@ -16,6 +16,9 @@ import concurrent.futures
 import subprocess
 from typing import Any, Callable, Literal, Optional, Tuple
 
+from aria.llmtools.core.base import BaseProvider, InferenceResult
+from aria.llmtools.providers.shared import error_result, result_from_usage
+
 _tiktoken: Any = None
 try:
     import tiktoken as _tiktoken
@@ -245,6 +248,35 @@ class LLMCli:
 
 # Backward compatibility
 LLMKiloCode = LLMCli
+
+
+class LocalCLIProvider(BaseProvider):
+    """`BaseProvider` adapter for local CLI-backed models."""
+
+    def __init__(self, model_name: str, logger: Any, temperature: float):
+        self.cli_provider = LLMCli(
+            model_name=model_name,
+            logger=logger,
+            temperature=temperature,
+            system_role="",
+            measure_cost=False,
+        )
+
+    def infer(
+        self,
+        message: str,
+        system_role: str,
+        temperature: float,
+        max_output_length: int,
+    ) -> InferenceResult:
+        """Run inference via the local CLI wrapper."""
+        del system_role, temperature, max_output_length
+        output, _, _ = self.cli_provider.infer(message)
+
+        if not output:
+            return error_result("Empty CLI response")
+
+        return result_from_usage(content=output, finish_reason="stop")
 
 
 if __name__ == "__main__":

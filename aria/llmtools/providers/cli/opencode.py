@@ -13,6 +13,7 @@ from aria.llmtools.providers.cli.base import (
     error_response,
     parse_openai_chat_response,
 )
+from aria.llmtools.providers.shared import AsyncChatProvider
 
 OPENCODE_ZEN_BASE = "https://opencode.ai/zen/v1"
 
@@ -21,6 +22,29 @@ OPENCODE_FREE_MODELS = {
     "glm-5-free": "GLM 5 Free",
     "kimi-k2.5-free": "Kimi K2.5 Free",
 }
+
+
+class OpenCodeProvider(AsyncChatProvider):
+    """`BaseProvider` adapter for OpenCode-backed models."""
+
+    default_model = "opencode/big-pickle"
+    error_name = "OpenCode"
+
+    async def create_response(
+        self,
+        messages: List[Dict[str, str]],
+        temperature: float,
+        max_output_length: int,
+        model_name: Optional[str] = None,
+    ) -> LLMResponse:
+        """Call OpenCode and normalize into the shared CLI response shape."""
+        model = strip_opencode_prefix(model_name or self.default_model)
+        return await chat_opencode(
+            model=model,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_output_length,
+        )
 
 
 class OpenCodeAsyncOpenAI(AsyncOpenAI):

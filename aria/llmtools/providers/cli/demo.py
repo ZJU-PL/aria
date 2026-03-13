@@ -61,7 +61,7 @@ async def demo_multi_turn_conversation() -> None:
     print("Demo: Multi-turn Conversation (Interactive)")
     print("=" * 60)
 
-    model = "glm-5-free"
+    model = "minimax-2.5-free"
     print(f"\nUsing model: {model}")
     print(f"Description: {OPENCODE_FREE_MODELS.get(model, 'Unknown')}")
 
