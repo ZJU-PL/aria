@@ -5,9 +5,14 @@ from z3 import (  # type: ignore
     ExprRef,
     QuantifierRef,
     And,
+    Exists,
+    ForAll,
     Or,
     ModelRef,
+    Then,
     is_quantifier,
+    simplify,
+    substitute_vars,
     Solver,
     sat,
     unsat,
@@ -22,7 +27,7 @@ from z3 import (  # type: ignore
 )
 
 from .taint import infer_sic_and_wic
-from .util import skolemize_block, project_model, let_sharing
+from .util import fresh_const, project_model, let_sharing
 from aria.utils.z3_expr_utils import get_variables
 import logging
 
@@ -64,14 +69,13 @@ class QuantSolver:
         work = formula
         keep_vars = get_variables(work)
 
-        wic_so_far = True
         # 1. eliminate quantifiers wherever they appear
-        work, wic_so_far = self._eliminate_all_quantifiers(work, wic_so_far)
+        work, wic_so_far = self._eliminate_all_quantifiers(work)
+        work = self._simplify_expr(work)
 
         # 2. residual formula is QF
         if self._contains_quantifier(work):
-            r, model = self._solve_quantified(work)
-            return r, project_model(model, keep_vars) if model is not None else None
+            return "unknown", None
 
         s = Solver()
         if self.timeout_ms:
@@ -83,55 +87,110 @@ class QuantSolver:
         if r == unsat:
             if wic_so_far:
                 return "unsat", None
-            if self.confirm_unsat and self._check_quantified_unsat(formula):
-                return "unsat", None
             return "unknown", None
         return "unknown", None
 
     # ---------------------------------------------------------------- helpers
-    def _eliminate_head_block(
-        self, formula: ExprRef, q: QuantifierRef
-    ) -> Tuple[ExprRef, bool]:
-        """Return formula where the head quantifier block is removed."""
-        assert is_quantifier(formula)
-        assert q.eq(formula)
-
-        sk_body, skol_consts = skolemize_block(q)
-        sk_body = let_sharing(sk_body)
-        if q.is_forall():
-            targets = set(skol_consts.values())
-            sic, is_wic = infer_sic_and_wic(
-                sk_body,
-                targets,
-                do_simplify=self.simplify_sic,
-                verify_wic=self.verify_wic,
-            )
-            return And(sk_body, sic), is_wic
-        # For ∃ (or other), keep the block (no elimination) to stay aligned with solveQ
-        return formula, False
-
     def _eliminate_all_quantifiers(
-        self, expr: ExprRef, wic_acc: bool
+        self, expr: ExprRef, universal_depth: int = 0
     ) -> Tuple[ExprRef, bool]:
-        """Recursively eliminate all quantifiers in expr."""
+        """Recursively eliminate quantifiers while preserving dependencies."""
         if is_quantifier(expr):
-            new_expr, is_wic = self._eliminate_head_block(expr, expr)
-            # If not eliminated (e.g., ∃), stop recursion under this block
-            if new_expr.eq(expr):
-                return new_expr, wic_acc and is_wic
-            return self._eliminate_all_quantifiers(new_expr, wic_acc and is_wic)
+            return self._eliminate_quantifier(expr, universal_depth)
 
         if expr.num_args() == 0:
-            return expr, wic_acc
+            return expr, True
 
         rebuilt_children = []
         all_children_wic = True
         for c in expr.children():
-            new_c, child_wic = self._eliminate_all_quantifiers(c, wic_acc)
+            new_c, child_wic = self._eliminate_all_quantifiers(c, universal_depth)
             rebuilt_children.append(new_c)
             all_children_wic = all_children_wic and child_wic
         rebuilt = self._rebuild_expr(expr, rebuilt_children)
-        return rebuilt, wic_acc and all_children_wic
+        return rebuilt, all_children_wic
+
+    def _eliminate_quantifier(
+        self, q: QuantifierRef, universal_depth: int
+    ) -> Tuple[ExprRef, bool]:
+        consts, body = self._open_quantifier(q)
+        child_depth = universal_depth + 1 if q.is_forall() else universal_depth
+        reduced_body, body_wic = self._eliminate_all_quantifiers(body, child_depth)
+        reduced_body = self._simplify_expr(let_sharing(reduced_body))
+
+        if q.is_forall():
+            eliminated, is_wic = self._try_eliminate_forall(
+                reduced_body, consts, universal_depth
+            )
+            if eliminated is not None:
+                return eliminated, body_wic and is_wic
+            return self._bind_quantifier(q, consts, reduced_body), False
+
+        if universal_depth == 0:
+            return reduced_body, body_wic
+        return Exists(consts, reduced_body), body_wic
+
+    def _try_eliminate_forall(
+        self,
+        body: ExprRef,
+        targets: Sequence[ExprRef],
+        outer_universal_depth: int,
+    ) -> Tuple[Optional[ExprRef], bool]:
+        matrix, witnesses = self._peel_existential_prefix(body)
+        if self._contains_quantifier(matrix):
+            return None, False
+        matrix = self._simplify_expr(matrix)
+
+        sic, is_wic = infer_sic_and_wic(
+            matrix,
+            set(targets),
+            do_simplify=self.simplify_sic,
+            verify_wic=self.verify_wic,
+        )
+
+        reduced = self._simplify_expr(And(matrix, sic))
+        if outer_universal_depth > 0:
+            bound = list(targets) + witnesses
+            if bound:
+                reduced = Exists(bound, reduced)
+        return reduced, is_wic
+
+    def _peel_existential_prefix(
+        self, expr: ExprRef
+    ) -> Tuple[ExprRef, List[ExprRef]]:
+        witnesses: List[ExprRef] = []
+        cur = expr
+        while is_quantifier(cur) and cur.is_exists():
+            consts, cur = self._open_quantifier(cur)
+            witnesses.extend(consts)
+        return cur, witnesses
+
+    @staticmethod
+    def _open_quantifier(q: QuantifierRef) -> Tuple[List[ExprRef], ExprRef]:
+        consts = [
+            fresh_const(q.var_sort(i), "q")
+            for i in range(q.num_vars())
+        ]
+        body = q.body()
+        if consts:
+            body = substitute_vars(body, *reversed(consts))
+        return consts, body
+
+    @staticmethod
+    def _bind_quantifier(
+        q: QuantifierRef, consts: Sequence[ExprRef], body: ExprRef
+    ) -> ExprRef:
+        if q.is_forall():
+            return ForAll(list(consts), body)
+        return Exists(list(consts), body)
+
+    @staticmethod
+    def _simplify_expr(expr: ExprRef) -> ExprRef:
+        try:
+            expr = Then("simplify", "solve-eqs")(expr).as_expr()
+        except Exception:
+            expr = simplify(expr)
+        return simplify(expr)
 
     @staticmethod
     def _rebuild_expr(expr: ExprRef, children: list[ExprRef]) -> ExprRef:
@@ -152,14 +211,6 @@ class QuantSolver:
         except Exception:
             return expr
 
-    def _check_quantified_unsat(self, formula: ExprRef) -> bool:
-        """Confirm unsat result with Z3's quantified reasoning."""
-        solver = Solver()
-        if self.timeout_ms:
-            solver.set("timeout", self.timeout_ms)
-        solver.add(formula)
-        return solver.check() == unsat
-
     @staticmethod
     def _contains_quantifier(expr: ExprRef) -> bool:
         stack = [expr]
@@ -169,18 +220,6 @@ class QuantSolver:
                 return True
             stack.extend(node.children())
         return False
-
-    def _solve_quantified(self, formula: ExprRef) -> Tuple[str, Optional[ModelRef]]:
-        solver = Solver()
-        if self.timeout_ms:
-            solver.set("timeout", self.timeout_ms)
-        solver.add(formula)
-        res = solver.check()
-        if res == sat:
-            return "sat", solver.model()
-        if res == unsat:
-            return "unsat", None
-        return "unknown", None
 
     # ------------------------------------------------------------------ file
 

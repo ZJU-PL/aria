@@ -5,7 +5,10 @@
 There are many interesting research topics. You are welcome to contribute to the following research topics:
 
 - Parallel CDCL(T): See `aria/smt/pcdclt`. Here we have a new algorithm for parallelizing lazy SMT solving
-- LLM-driven constraint solving: See `aria/llm`
+- Hybrid LLM-SMT constraint solving: See `aria/ml/llm/smto`
+- SMT solving for the theory of finite field: `aria/smt/ff`
+- Taint-based model finding for SMT: `aria/quant/taintmodel`
+- ...
 
 ## Features
 

@@ -27,6 +27,16 @@ def test_motivating_example(solver):
     assert run(solver, smt) == "sat"
 
 
+def test_motivating_example_returns_model_for_free_vars(solver):
+    a, b, x = Ints("a b x")
+    res, model = solver.solve(ForAll([x], a * x + b > 0))
+    assert res == "sat"
+    assert model is not None
+    assert {d.name() for d in model.decls()} == {"a", "b"}
+    assert model.eval(a, model_completion=True).as_long() == 0
+    assert is_true(model.eval(b > 0, model_completion=True))
+
+
 def test_unsat_simple(solver):
     smt = """
     (declare-const a Int)
@@ -34,7 +44,22 @@ def test_unsat_simple(solver):
     (assert (forall ((x Int)) (> x a)))
     (check-sat)
     """
-    assert run(solver, smt) == "unsat"
+    assert run(solver, smt) == "unknown"
+
+
+def test_non_wic_unsat_case_returns_unknown(solver):
+    x = Int("x")
+    res, model = solver.solve(ForAll([x], x < 0))
+    assert res == "unknown"
+    assert model is None
+
+
+def test_paper_wic_counterexample_returns_unknown(solver):
+    x = Int("x")
+    formula = ForAll([x], Or(x < 0, x >= 0))
+    res, model = solver.solve(formula)
+    assert res == "unknown"
+    assert model is None
 
 
 def test_array_select_store_rewrite():
@@ -75,3 +100,13 @@ def test_taint_variable_path_matches_direct():
     sic_direct = infer_sic(expr, {x})
     sic_taint, _ = infer_sic_with_taints(expr, {x})
     _assert_equiv(sic_direct, sic_taint)
+
+
+def test_alternating_quantifiers_do_not_crash(solver):
+    x, a, y, b = Ints("x a y b")
+    formula = ForAll(
+        [x],
+        Exists([a], ForAll([y], Exists([b], (x - a) * y + b > 0))),
+    )
+    res, _ = solver.solve(formula)
+    assert res == "sat"

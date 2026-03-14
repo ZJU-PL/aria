@@ -211,6 +211,11 @@ def infer_sic_and_wic(
     rel_indices: Dict[ExprRef, Set[ExprRef]] = {}
 
     def collect_indices(e: ExprRef):
+        if is_quantifier(e):
+            collect_indices(e.body())
+            return
+        if not is_app(e):
+            return
         k = e.decl().kind()
         if k == Z3_OP_SELECT:
             arr, idx = e.children()
@@ -334,6 +339,11 @@ def _collect_uninterp_consts(expr: ExprRef) -> Set[ExprRef]:
     stack = [expr]
     while stack:
         e = stack.pop()
+        if is_quantifier(e):
+            stack.append(e.body())
+            continue
+        if not is_app(e):
+            continue
         if e.decl().kind() == Z3_OP_UNINTERPRETED and e.num_args() == 0:
             syms.add(e)
         else:

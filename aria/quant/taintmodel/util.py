@@ -62,12 +62,11 @@ def project_model(model: ModelRef, keep: Sequence[ExprRef]) -> ModelRef:
     """
     Return a *shallow* copy of model restricted to declarations in *keep*.
     """
-    m = Model()
-    for d in model.decls():
-        c = d()
-        if c in keep:
-            m[d] = model[d]
-    return m
+    solver = Solver()
+    for c in keep:
+        solver.add(c == model.eval(c, model_completion=True))
+    assert solver.check() == sat
+    return solver.model()
 
 
 # -------------------------------------------------------------- let sharing

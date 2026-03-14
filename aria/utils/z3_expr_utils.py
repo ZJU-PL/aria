@@ -61,6 +61,9 @@ def get_expr_vars(exp) -> List[z3.ExprRef]:
 
         while stack:
             e = stack.pop()
+            if z3.is_quantifier(e):
+                stack.append(e.body())
+                continue
             if z3.is_app(e):
                 if e.num_args() == 0 and e.decl().kind() == z3.Z3_OP_UNINTERPRETED:
                     syms.add(e)
