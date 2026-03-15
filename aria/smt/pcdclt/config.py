@@ -17,6 +17,7 @@ SIMPLIFY_CLAUSES = True  # Simplify blocking clauses from theory solver
 
 # SAT solver
 SAT_SOLVER_ENGINE = "glucose4"
+BOOL_MODEL_SAMPLING_STRATEGY = "enum"
 
 # SMT query logging (optional, for debugging)
 ENABLE_QUERY_LOGGING = False

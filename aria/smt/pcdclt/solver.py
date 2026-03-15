@@ -1,11 +1,12 @@
 """Parallel CDCL(T) SMT Solver"""
 
 import logging
+import time
 from multiprocessing import Process, Queue, cpu_count
 from typing import List
 
 from aria.bool import PySATSolver, simplify_numeric_clauses
-from aria.utils import SolverResult, SExprParser
+from aria.utils import SolverResult
 from aria.global_params import SMT_SOLVERS_PATH
 from aria.smt.pcdclt.preprocessor import FormulaAbstraction
 from aria.smt.pcdclt.theory_solver import TheorySolver
@@ -14,9 +15,27 @@ from aria.smt.pcdclt.config import (
     MAX_T_CHECKING_PROCESSES,
     SIMPLIFY_CLAUSES,
     WORKER_SHUTDOWN_TIMEOUT,
+    BOOL_MODEL_SAMPLING_STRATEGY,
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _sanitize_incremental_smt2(smt2_string: str) -> str:
+    """Drop terminal commands so the file can be loaded into an interactive solver."""
+    filtered = []
+    for line in smt2_string.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("(check-sat"):
+            continue
+        if stripped.startswith("(get-model"):
+            continue
+        if stripped.startswith("(get-value"):
+            continue
+        if stripped == "(exit)":
+            continue
+        filtered.append(line)
+    return "\n".join(filtered) + "\n"
 
 
 def _theory_worker(
@@ -57,19 +76,7 @@ def _theory_worker(
                 logger.info(
                     f"worker {worker_id} check sat over", extra={"is_timing": True}
                 )
-                if result == SolverResult.UNSAT:
-                    # Get unsat core
-                    logger.info(
-                    f"worker {worker_id} get unsat core start", extra={"is_timing": True}
-                )
-                    unsat_core = theory_solver.get_unsat_core()
-                    logger.info(
-                    f"worker {worker_id} get unsat core end", extra={"is_timing": True}
-                )
-                    result_queue.put((task_id, unsat_core))
-                else:
-                    # Theory consistent - signal SAT
-                    result_queue.put((task_id, ""))
+                result_queue.put((task_id, result.name))
 
             except (OSError, RuntimeError, ValueError) as e:
                 logger.error("Worker %d error processing task: %s", worker_id, e)
@@ -86,33 +93,6 @@ def _theory_worker(
             except (OSError, RuntimeError) as e:
                 logger.warning("Worker %d cleanup error: %s", worker_id, e)
         logger.debug("Theory worker %d exiting", worker_id)
-
-
-def _parse_unsat_core(core: str, abstraction: FormulaAbstraction) -> List[int]:
-    """
-    Convert unsat core s-expression to blocking clause
-
-    Args:
-        core: Unsat core string like '(p@4 p@7 (not p@6))'
-        abstraction: Formula abstraction with var mappings
-
-    Returns:
-        Blocking clause as list of integers, e.g., [-4, -7, 6]
-    """
-    parsed = SExprParser.parse_sexpr_string(core)
-    blocking_clause = []
-
-    for element in parsed:
-        if isinstance(element, list):
-            # Negated literal: (not p@X)
-            var_name = element[1]
-            blocking_clause.append(abstraction.var_to_id[var_name])
-        else:
-            # Positive literal: p@X
-            blocking_clause.append(-abstraction.var_to_id[element])
-
-    return blocking_clause
-
 
 def _models_to_assumptions(
     bool_models: List[List[int]], abstraction: FormulaAbstraction
@@ -132,11 +112,13 @@ def _models_to_assumptions(
     for model in bool_models:
         assumptions = []
         for literal in model:
-            var_name = abstraction.id_to_var[abs(literal)]
+            if abs(literal) not in abstraction.id_to_atom:
+                continue
+            atom = abstraction.get_atom_sexpr(abs(literal))
             if literal > 0:
-                assumptions.append(var_name)
+                assumptions.append(atom)
             else:
-                assumptions.append(f"(not {var_name})")
+                assumptions.append(f"(not {atom})")
         all_assumptions.append(assumptions)
 
     return all_assumptions
@@ -174,12 +156,7 @@ def solve(smt2_string: str, logic: str = "ALL") -> SolverResult:
     num_workers = min(num_workers, cpu_count())
 
     # Build theory formula
-    theory_formula = (
-        f" (set-logic {logic}) "
-        f" (set-option :produce-unsat-cores true) "
-        + " ".join(abstraction.theory_signature)
-        + f"(assert {abstraction.theory_constraints})"
-    )
+    theory_formula = _sanitize_incremental_smt2(smt2_string)
 
     # Get solver binary
     z3_config = SMT_SOLVERS_PATH["z3"]
@@ -218,14 +195,35 @@ def solve(smt2_string: str, logic: str = "ALL") -> SolverResult:
     try:
         while True:
             # Check Boolean satisfiability
-            if bool_solver.check_sat() != SolverResult.SAT:
+            check_start = time.monotonic()
+            logger.info("bool check start", extra={"is_timing": True})
+            bool_result = bool_solver.check_sat()
+            logger.info(
+                "bool check over result=%s elapsed=%.3fs",
+                bool_result.name,
+                time.monotonic() - check_start,
+                extra={"is_timing": True},
+            )
+            if bool_result != SolverResult.SAT:
                 result = SolverResult.UNSAT
                 break
 
             logger.debug("Boolean abstraction is SAT")
 
             # Sample multiple Boolean models
-            bool_models = bool_solver.sample_models(to_enum=NUM_SAMPLES_PER_ROUND)
+            sample_start = time.monotonic()
+            logger.info("bool sample start", extra={"is_timing": True})
+            bool_models = bool_solver.sample_models(
+                to_enum=NUM_SAMPLES_PER_ROUND,
+                strategy=BOOL_MODEL_SAMPLING_STRATEGY,
+            )
+            logger.info(
+                "bool sample over strategy=%s models=%d elapsed=%.3fs",
+                BOOL_MODEL_SAMPLING_STRATEGY,
+                len(bool_models),
+                time.monotonic() - sample_start,
+                extra={"is_timing": True},
+            )
 
             if not bool_models:
                 result = SolverResult.UNSAT
@@ -236,38 +234,60 @@ def solve(smt2_string: str, logic: str = "ALL") -> SolverResult:
             # Convert to assumptions and submit to theory workers
             all_assumptions = _models_to_assumptions(bool_models, abstraction)
 
+            submit_start = time.monotonic()
+            logger.info("theory submit start", extra={"is_timing": True})
             for task_id, assumptions in enumerate(all_assumptions):
                 task_queue.put((task_id, assumptions))
+            logger.info(
+                "theory submit over tasks=%d elapsed=%.3fs",
+                len(all_assumptions),
+                time.monotonic() - submit_start,
+                extra={"is_timing": True},
+            )
 
             # Collect results from workers
-            unsat_cores = []
+            blocking_clauses = []
+            saw_unknown = False
+            collect_start = time.monotonic()
+            logger.info("theory collect start", extra={"is_timing": True})
             for _ in range(len(all_assumptions)):
                 task_id, core_result = result_queue.get()
 
                 if isinstance(core_result, str) and core_result.startswith("ERROR:"):
                     logger.error("Theory solver error: %s", core_result)
+                    saw_unknown = True
                     continue
 
-                if core_result == "":
+                if core_result == SolverResult.SAT.name:
                     # Found theory-consistent model - SAT!
                     logger.debug("Found theory-consistent model")
                     result = SolverResult.SAT
                     break
 
-                unsat_cores.append(core_result)
+                if core_result == SolverResult.UNSAT.name:
+                    blocking_clauses.append([-literal for literal in bool_models[task_id]])
+                else:
+                    saw_unknown = True
+
+            logger.info(
+                "theory collect over results=%d elapsed=%.3fs",
+                len(all_assumptions),
+                time.monotonic() - collect_start,
+                extra={"is_timing": True},
+            )
 
             if result == SolverResult.SAT:
                 break
 
-            # All models are theory-inconsistent - learn from unsat cores
-            logger.debug(
-                "All models theory-inconsistent, processing %d unsat cores",
-                len(unsat_cores),
-            )
+            if not blocking_clauses and saw_unknown:
+                result = SolverResult.UNKNOWN
+                break
 
-            blocking_clauses = [
-                _parse_unsat_core(core, abstraction) for core in unsat_cores
-            ]
+            # All models are theory-inconsistent - learn by blocking sampled models
+            logger.debug(
+                "All models theory-inconsistent, processing %d blocking clauses",
+                len(blocking_clauses),
+            )
 
             if SIMPLIFY_CLAUSES:
                 blocking_clauses = simplify_numeric_clauses(blocking_clauses)
