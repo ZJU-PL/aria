@@ -29,9 +29,9 @@ def cnf2lp(inf=None, outf=None):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 1:
+    if len(sys.argv) < 2:
         print(f"usage {sys.argv[0]} INPUT_CNF [OUTPUT_LP]")
-        sys.exit()
+        sys.exit(1)
     if len(sys.argv) == 2:
         cnf2lp(sys.argv[1])
     else:

@@ -5,20 +5,21 @@ This one is a bit tricky, as it uses bit-vector variables to "compactly" encode 
 
 import sys
 import os
+from typing import List, NoReturn
 
 
-def error(msg):
+def error(msg: str) -> NoReturn:
     """Print an error message and exit."""
     sys.stderr.write(f"{sys.argv[0]} : {msg}.{os.linesep}")
     sys.exit(1)
 
 
-def spacesplit(string):
+def spacesplit(string: str) -> List[str]:
     """Split a string by spaces and filter out empty strings."""
     return list(filter(None, string.split(" ")))
 
 
-def tointlist(lst):
+def tointlist(lst: List[str]) -> List[int]:
     """
     Converts a list of strings to a list of integers, and checks that it's 0-terminated.
 
@@ -37,7 +38,7 @@ def tointlist(lst):
             error("expected 0-terminated number list")
         return ns[:-1]
 
-    except ValueError:
+    except (ValueError, IndexError):
         error(f"expected number list (got: {lst})")
 
 
@@ -54,6 +55,8 @@ def parse(filename):
 
         for line in f.readlines():
             trimmed = line.strip()
+            if not trimmed:
+                continue
             if trimmed.startswith("c"):
                 # Comment
                 printed_comments = True

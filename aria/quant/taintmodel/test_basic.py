@@ -54,6 +54,20 @@ def test_non_wic_unsat_case_returns_unknown(solver):
     assert model is None
 
 
+def test_equality_unsat_no_longer_simplifies_to_sat(solver):
+    x, y = Ints("x y")
+    res, model = solver.solve(ForAll([x], x == y))
+    assert res == "unknown"
+    assert model is None
+
+
+def test_equality_unsat_can_be_confirmed_with_wic_verification():
+    x, y = Ints("x y")
+    res, model = QuantSolver(verify_wic=True).solve(ForAll([x], x == y))
+    assert res == "unsat"
+    assert model is None
+
+
 def test_paper_wic_counterexample_returns_unknown(solver):
     x = Int("x")
     formula = ForAll([x], Or(x < 0, x >= 0))
@@ -87,6 +101,13 @@ def test_motivation_ax_b_sic():
     _assert_equiv(sic, a == 0)
 
 
+def test_arith_equality_uses_conjunctive_sic():
+    a, x = Ints("a x")
+    expr = a * x == 0
+    sic = infer_sic(expr, {x})
+    _assert_equiv(sic, a == 0)
+
+
 def test_bv_or_sic():
     a, b = BitVecs("a b", 8)
     expr = a | b
@@ -109,4 +130,16 @@ def test_alternating_quantifiers_do_not_crash(solver):
         Exists([a], ForAll([y], Exists([b], (x - a) * y + b > 0))),
     )
     res, _ = solver.solve(formula)
-    assert res == "sat"
+    assert res in {"sat", "unknown"}
+
+
+def test_bv_add_quantifier_path_does_not_crash(solver):
+    a, b, c = BitVecs("a b c", 8)
+    res, _ = solver.solve(ForAll([a], ULT(a + b, c)))
+    assert res in {"unknown", "unsat"}
+
+
+def test_bv_ashr_no_longer_produces_spurious_sat(solver):
+    a, b, c = BitVecs("a b c", 8)
+    res, _ = solver.solve(ForAll([a], (a >> b) == c))
+    assert res in {"unknown", "unsat"}

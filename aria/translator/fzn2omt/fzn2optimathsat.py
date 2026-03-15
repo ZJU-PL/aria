@@ -11,7 +11,11 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import common
+
+try:
+    from . import common
+except ImportError:
+    import common
 
 
 ###################

@@ -16,8 +16,13 @@ import os
 import re
 import sys
 import tempfile
-import common
-import fzn2optimathsat
+
+try:
+    from . import common
+    from . import fzn2optimathsat
+except ImportError:
+    import common
+    import fzn2optimathsat
 
 
 ########################
@@ -45,7 +50,7 @@ def decode(config, solver_config=None):
         except FileNotFoundError:
             # This may happen if the original FZN file does not contain any output var.
             logging.critical("No output variables found.")
-            oskeleton = None
+            oskeleton = []
 
         # 3. extract status
         status = extract_search_status(output_trace)

@@ -4,7 +4,7 @@ Converting DIMACS (CNF format) to SMT2
 
 import sys
 import argparse
-from typing import TextIO
+from typing import Optional, TextIO
 
 
 def parse_header(line: str) -> int:
@@ -49,35 +49,42 @@ def parse_clause(line: str, output: TextIO, prefix: str = "v_") -> None:
         output: Output file handle
         prefix: Prefix to use for variable names
     """
-    literals = line.split()
-    if not literals or literals[-1] != "0":
+    raw_tokens = line.split()
+    if not raw_tokens:
+        raise ValueError("Invalid clause format (empty line)")
+
+    literals = []
+    saw_terminator = False
+    for token in raw_tokens:
+        try:
+            lit = int(token)
+        except ValueError as exc:
+            raise ValueError(f"Invalid literal in clause: {line}") from exc
+
+        if lit == 0:
+            saw_terminator = True
+            break
+        literals.append(lit)
+
+    if not saw_terminator:
         raise ValueError(f"Invalid clause format (must end with 0): {line}")
 
-    # Skip empty clauses
-    if len(literals) == 1 and literals[0] == "0":
+    if not literals:
+        output.write("(assert false)\n")
         return
 
     output.write("(assert (or ")
     for lit in literals:
-        if lit == "0":
-            break
-        try:
-            var_num = int(lit)
-            if var_num == 0:
-                continue
-            if var_num < 0:
-                output.write(f"(not {prefix}{abs(var_num)}) ")
-            else:
-                output.write(f"{prefix}{var_num} ")
-        except ValueError:
-            # Skip non-integer tokens (could be comments)
-            continue
+        if lit < 0:
+            output.write(f"(not {prefix}{abs(lit)}) ")
+        else:
+            output.write(f"{prefix}{lit} ")
     output.write("))\n")
 
 
 def convert_dimacs_to_smt2(
     input_path: str,
-    output_path: str = None,
+    output_path: Optional[str] = None,
     logic: str = "QF_UF",
     var_prefix: str = "v_",
 ) -> str:

@@ -95,16 +95,23 @@ class SMTToSympyWalker(IdentityDagWalker):
         # ITE(condition, A, B)
         return sympy.ITE(args[0], args[1], args[2])
 
-    def walk_real_constant(self, formula, **kwargs):
+    def walk_real_constant(self, formula, args, **kwargs):
+        del args
+        del kwargs
         frac = formula.constant_value()
         n, d = frac.numerator, frac.denominator
         return sympy.Rational(n, d)
 
-    def walk_int_constant(self, formula, **kwargs):
+    def walk_int_constant(self, formula, args, **kwargs):
+        del args
+        del kwargs
         assert is_pysmt_integer(formula.constant_value())
         return int(str(formula.constant_value()))
 
-    def walk_bool_constant(self, formula, **kwargs):
+    def walk_bool_constant(self, formula, args, **kwargs):
+        del formula
+        del args
+        del kwargs
         raise NotImplementedError()
 
     def walk_quantifier(self, formula, args, **kwargs):
@@ -130,7 +137,10 @@ class SMTToSympyWalker(IdentityDagWalker):
     walk_or = _make_walk_nary(
         lambda args: functools.reduce(lambda x, y: x | y, args, False)
     )
-    walk_not = lambda args: sympy.Not(args[0])
+    def walk_not(self, formula, args, **kwargs):
+        del formula
+        del kwargs
+        return sympy.Not(args[0])
 
     walk_plus = _make_walk_nary(
         lambda args: functools.reduce(lambda x, y: x + y, args, 0)
@@ -183,10 +193,15 @@ def smtlib_to_sympy_constraint(
     interpreted_symbols_declarations = "\n".join(
         [f"(declare-const {cname} Real)" for cname in interpreted_constants.keys()]
     )
-    interpreted_symbols_declarations += "\n".join(
+    interpreted_symbols_declarations = "\n".join(
         [
-            f"(declare-fun {fname} (Real) Real)"
-            for fname in interpreted_unary_functions.keys()
+            interpreted_symbols_declarations,
+            "\n".join(
+                [
+                    f"(declare-fun {fname} (Real) Real)"
+                    for fname in interpreted_unary_functions.keys()
+                ]
+            ),
         ]
     )
 
@@ -204,7 +219,7 @@ def smtlib_to_sympy_constraint(
     f_sympy = converter.walk(f)
     f_sympy = sympy.logic.simplify_logic(f_sympy)
     f_sympy = sympy.simplify(f_sympy)
-    if f_sympy.atoms(sympy.logic.Or):
+    if f_sympy.atoms(sympy.logic.boolalg.Or):
         warnings.warn(
             "Disjunctive constraints are not supported by RealPaver. Consider replacing it with an adequate interval constraint propagation tool for benefit from all the features of SYMPAIS"
         )

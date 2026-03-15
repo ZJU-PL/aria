@@ -34,10 +34,10 @@ def _sic_bool(op, args, subs) -> Tuple[BoolRef, bool]:
             return Or(And(sa, a == True), And(sb, b == True)), True
         if op == Z3_OP_IMPLIES:
             return Or(And(sa, a == False), And(sb, b == True)), True
+        # The paper does not define a special equality rule here; falling back
+        # to conjunction preserves SIC soundness for mixed dependent terms.
         if op == Z3_OP_XOR:
             return And(sa, sb), False
-        if op == Z3_OP_EQ:
-            return Or(And(sa, a == b), And(sb, a == b)), True
     if op == Z3_OP_DISTINCT:
         return And(*subs), False
     return BoolVal(False), False
@@ -53,7 +53,14 @@ def _sic_bv(op, args, subs) -> Tuple[BoolRef, bool]:
         sa = subs[0]
         if a.sort().kind() != Z3_BV_SORT:
             return BoolVal(False), False
-        if op in (Z3_OP_BNOT, Z3_OP_SIGN_EXT, Z3_OP_ZERO_EXT, Z3_OP_EXTRACT, Z3_OP_ROTATE_LEFT, Z3_OP_ROTATE_RIGHT):
+        if op in (
+            Z3_OP_BNOT,
+            Z3_OP_SIGN_EXT,
+            Z3_OP_ZERO_EXT,
+            Z3_OP_EXTRACT,
+            Z3_OP_ROTATE_LEFT,
+            Z3_OP_ROTATE_RIGHT,
+        ):
             return sa, True
         return BoolVal(False), False
 
@@ -77,28 +84,19 @@ def _sic_bv(op, args, subs) -> Tuple[BoolRef, bool]:
         width = a.size()
         shift_too_large = UGE(b, BitVecVal(width, b.size()))
         return And(sb, shift_too_large), True
-    if op in (Z3_OP_BASHR, Z3_OP_BSHR):
-        width = a.size()
-        shift_too_large = UGE(b, BitVecVal(width, b.size()))
-        return And(sb, shift_too_large), True
-    if op in (Z3_OP_BUDIV, Z3_OP_BSDIV, Z3_OP_BSMOD, Z3_OP_BUREM):
-        zero = _bv_zero(b)
-        return And(sb, b != zero), False
+    if op == Z3_OP_BASHR:
+        return And(sa, sb), False
+    if op in (
+        Z3_OP_BUDIV,
+        Z3_OP_BSDIV,
+        Z3_OP_BSMOD,
+        Z3_OP_BUREM,
+        Z3_OP_BSREM,
+    ):
+        return BoolVal(False), False
     if op in (Z3_OP_BADD, Z3_OP_BSUB):
         return And(sa, sb), False
     if op in (Z3_OP_CONCAT,):
-        return And(sa, sb), False
-    if op in (
-        Z3_OP_BLT,
-        Z3_OP_BGT,
-        Z3_OP_BLE,
-        Z3_OP_BGE,
-        Z3_OP_ULEQ,
-        Z3_OP_UGEQ,
-        Z3_OP_ULT,
-        Z3_OP_UGT,
-        Z3_OP_EQ,
-    ):
         return And(sa, sb), False
     return BoolVal(False), False
 
@@ -192,17 +190,6 @@ def infer_sic_and_wic(
     shadow_cache: Dict[ExprRef, Tuple[ExprRef, bool]] = {}
     shadow_constraints = []
     targets_set = set(targets)
-
-    def _node_count(e: ExprRef) -> int:
-        seen = set()
-        stack = [e]
-        while stack:
-            n = stack.pop()
-            if n in seen:
-                continue
-            seen.add(n)
-            stack.extend(n.children())
-        return len(seen)
 
     def _contains_target(e: ExprRef) -> bool:
         return any(s in targets_set for s in _collect_uninterp_consts(e))
@@ -313,16 +300,7 @@ def infer_sic_and_wic(
     if _contains_target(res):
         res = BoolVal(False)
         is_wic = False
-    # Bound SIC size to stay close to paper's linear overhead
-    orig_size = _node_count(root)
-    sic_size = _node_count(res)
-    if sic_size > max(orig_size * 10, 50):
-        res = simplify(res, flat=True, elim_and=True, elim_ite=True)
-        sic_size = _node_count(res)
-    if sic_size > max(orig_size * 10, 50):
-        res = BoolVal(False)
-        is_wic = False
-    if verify_wic and is_wic:
+    if verify_wic:
         is_wic = _prove_wic(root, res, targets_set)
     return res, is_wic
 

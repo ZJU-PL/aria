@@ -12,8 +12,13 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import common
-import fzn2optimathsat
+
+try:
+    from . import common
+    from . import fzn2optimathsat
+except ImportError:
+    import common
+    import fzn2optimathsat
 
 
 ############

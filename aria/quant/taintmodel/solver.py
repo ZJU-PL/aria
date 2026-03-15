@@ -186,10 +186,6 @@ class QuantSolver:
 
     @staticmethod
     def _simplify_expr(expr: ExprRef) -> ExprRef:
-        try:
-            expr = Then("simplify", "solve-eqs")(expr).as_expr()
-        except Exception:
-            expr = simplify(expr)
         return simplify(expr)
 
     @staticmethod
