@@ -1,0 +1,228 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Symbolic Abstraction &mdash; ARIA Documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            ARIA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Symbolic Abstraction</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#supported-abstract-domains">Supported Abstract Domains</a></li>
+<li><a class="reference internal" href="#algorithm">Algorithm</a></li>
+<li><a class="reference internal" href="#usage">Usage</a></li>
+<li><a class="reference internal" href="#command-line-options">Command-Line Options</a></li>
+<li><a class="reference internal" href="#programmatic-usage">Programmatic Usage</a></li>
+<li><a class="reference internal" href="#implementation-details">Implementation Details</a></li>
+<li><a class="reference internal" href="#advantages">Advantages</a></li>
+<li><a class="reference internal" href="#limitations">Limitations</a></li>
+<li><a class="reference internal" href="#related-work">Related Work</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ARIA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Symbolic Abstraction</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/symabs.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="symbolic-abstraction">
+<h1>Symbolic Abstraction<a class="headerlink" href="#symbolic-abstraction" title="Link to this heading"></a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>Symbolic Abstraction is a verification technique that computes the strongest consequence of a formula within a given abstract domain. Unlike template-based approaches that search for invariants by solving constraints, symbolic abstraction iteratively refines an invariant by computing the strongest abstract representation of the current invariant conjoined with the transition relation.</p>
+<p>The symbolic abstraction prover in EFMC implements a fixpoint computation that:
+1. Starts with the initial condition as the current invariant
+2. At each iteration, computes the strongest consequence of the current invariant and transition relation in the chosen abstract domain
+3. Takes the disjunction with the previous invariant
+4. Continues until a fixpoint is reached
+5. Verifies that the computed invariant implies the safety property</p>
+</section>
+<section id="supported-abstract-domains">
+<h2>Supported Abstract Domains<a class="headerlink" href="#supported-abstract-domains" title="Link to this heading"></a></h2>
+<p><strong>Interval Domain:</strong>
+- Tracks lower and upper bounds for each variable
+- Suitable for integer and real variables
+- Also supports bit-vector intervals</p>
+<p><strong>Bits Domain:</strong>
+- Tracks known bits for bit-vector variables
+- For each bit position, tracks if it must be 0, must be 1, or is unknown
+- Provides fine-grained bit-level information</p>
+<p><strong>Known Bits Domain:</strong>
+- Similar to bits domain but focuses on known bit patterns
+- More efficient than full bits analysis</p>
+</section>
+<section id="algorithm">
+<h2>Algorithm<a class="headerlink" href="#algorithm" title="Link to this heading"></a></h2>
+<p>The symbolic abstraction algorithm computes the least fixpoint:</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}I_0 = \text{init}\\I_{i+1} = I_i \vee \text{strongest\_consequence}(I_i \wedge \text{trans}, \text{domain})\end{aligned}\end{align} \]</div>
+<p>where <cite>strongest_consequence</cite> computes the strongest formula in the abstract domain that is implied by the input formula.</p>
+</section>
+<section id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
+<p>The symbolic abstraction prover can be used via the command line:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>efmc<span class="w"> </span>--engine<span class="w"> </span>symabs<span class="w"> </span>--symabs-domain<span class="w"> </span>interval<span class="w"> </span>--lang<span class="w"> </span>chc<span class="w"> </span>--file<span class="w"> </span>program.smt2
+</pre></div>
+</div>
+<p>For bit-vector programs with bit-level analysis:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>efmc<span class="w"> </span>--engine<span class="w"> </span>symabs<span class="w"> </span>--symabs-domain<span class="w"> </span>known_bits<span class="w"> </span>--lang<span class="w"> </span>chc<span class="w"> </span>--file<span class="w"> </span>program.smt2
+</pre></div>
+</div>
+</section>
+<section id="command-line-options">
+<h2>Command-Line Options<a class="headerlink" href="#command-line-options" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--symabs-domain</span></code>: Abstract domain to use
+- <code class="docutils literal notranslate"><span class="pre">interval</span></code>: Interval abstraction (default)
+- <code class="docutils literal notranslate"><span class="pre">bits</span></code>: Full bit-level analysis
+- <code class="docutils literal notranslate"><span class="pre">known_bits</span></code>: Known bits analysis</p></li>
+</ul>
+</section>
+<section id="programmatic-usage">
+<h2>Programmatic Usage<a class="headerlink" href="#programmatic-usage" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">efmc.engines.symabs</span><span class="w"> </span><span class="kn">import</span> <span class="n">SymbolicAbstractionProver</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">efmc.sts</span><span class="w"> </span><span class="kn">import</span> <span class="n">TransitionSystem</span>
+
+<span class="c1"># Create transition system</span>
+<span class="n">sts</span> <span class="o">=</span> <span class="n">TransitionSystem</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+
+<span class="c1"># Create prover</span>
+<span class="n">prover</span> <span class="o">=</span> <span class="n">SymbolicAbstractionProver</span><span class="p">(</span><span class="n">sts</span><span class="p">)</span>
+<span class="n">prover</span><span class="o">.</span><span class="n">domain</span> <span class="o">=</span> <span class="s1">&#39;interval&#39;</span>  <span class="c1"># or &#39;bits&#39;, &#39;known_bits&#39;</span>
+
+<span class="c1"># Solve</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">prover</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">is_safe</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;System is safe&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invariant: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">invariant</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;System is unsafe or unknown&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="implementation-details">
+<h2>Implementation Details<a class="headerlink" href="#implementation-details" title="Link to this heading"></a></h2>
+<p><strong>Bit-Vector Symbolic Abstraction:</strong>
+- Uses interval abstraction for bit-vector variables
+- Supports signed and unsigned interpretations
+- Can track overflow and underflow conditions</p>
+<p><strong>Bit-Level Symbolic Abstraction:</strong>
+- Analyzes individual bits of bit-vector variables
+- Tracks known bits (must be 0 or 1) vs unknown bits
+- More precise but computationally more expensive</p>
+<p><strong>Fixpoint Detection:</strong>
+- Uses validity checking to detect when the invariant has converged
+- Stops when the new invariant implies the previous one</p>
+</section>
+<section id="advantages">
+<h2>Advantages<a class="headerlink" href="#advantages" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Precision</strong>: Can be more precise than template-based approaches for certain domains</p></li>
+<li><p><strong>Automatic Refinement</strong>: Iteratively refines the invariant without manual template selection</p></li>
+<li><p><strong>Domain Flexibility</strong>: Supports multiple abstract domains</p></li>
+</ul>
+</section>
+<section id="limitations">
+<h2>Limitations<a class="headerlink" href="#limitations" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Computational Cost</strong>: Computing strongest consequences can be expensive</p></li>
+<li><p><strong>Domain Dependency</strong>: Precision depends heavily on the chosen abstract domain</p></li>
+<li><p><strong>Convergence</strong>: May require many iterations to reach fixpoint</p></li>
+</ul>
+</section>
+<section id="related-work">
+<h2>Related Work<a class="headerlink" href="#related-work" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Reps, T., Horwitz, S., &amp; Sagiv, S. (1995). Precise interprocedural dataflow analysis via graph reachability. POPL’95.</p></li>
+<li><p>Cousot, P., &amp; Cousot, R. (1977). Abstract interpretation: A unified lattice model for static analysis of programs. POPL’77.</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

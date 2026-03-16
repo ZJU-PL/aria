@@ -1,0 +1,291 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LLM Tools &mdash; ARIA Documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            ARIA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">LLM Tools</a><ul>
+<li><a class="reference internal" href="#architecture">Architecture</a></li>
+<li><a class="reference internal" href="#llmtool-base-classes">LLMTool Base Classes</a><ul>
+<li><a class="reference internal" href="#llmtoolinput">LLMToolInput</a></li>
+<li><a class="reference internal" href="#llmtooloutput">LLMToolOutput</a></li>
+<li><a class="reference internal" href="#llmtool">LLMTool</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#llm-utilities">LLM Utilities</a></li>
+<li><a class="reference internal" href="#llm-providers">LLM Providers</a><ul>
+<li><a class="reference internal" href="#local-models">Local Models</a></li>
+<li><a class="reference internal" href="#remote-models">Remote Models</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#logging">Logging</a></li>
+<li><a class="reference internal" href="#usage-in-llm4inv">Usage in LLM4Inv</a></li>
+<li><a class="reference internal" href="#configuration">Configuration</a></li>
+<li><a class="reference internal" href="#api-reference">API Reference</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ARIA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">LLM Tools</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/llmtools.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="llm-tools">
+<span id="llmtools"></span><h1>LLM Tools<a class="headerlink" href="#llm-tools" title="Link to this heading"></a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">llmtools</span></code> module provides utilities for integrating Large Language Models (LLMs) into the verification pipeline. This is primarily used by the LLM4Inv engine for generating candidate invariants.</p>
+<section id="architecture">
+<h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading"></a></h2>
+<p>The module follows an abstract base class pattern:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>efmc/llmtools/
+├── llm_tool.py      # Abstract base classes
+├── llm_utils.py     # LLM wrapper and utilities
+├── llm_local.py     # Local model support
+├── llm_opencode.py  # OpenCode API integration
+├── logger.py        # Logging utilities
+└── test_llm.py      # Test utilities
+</pre></div>
+</div>
+</section>
+<section id="llmtool-base-classes">
+<h2>LLMTool Base Classes<a class="headerlink" href="#llmtool-base-classes" title="Link to this heading"></a></h2>
+<section id="llmtoolinput">
+<h3>LLMToolInput<a class="headerlink" href="#llmtoolinput" title="Link to this heading"></a></h3>
+<p>Abstract base class for LLM tool inputs.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">efmc.llmtools.llm_tool</span><span class="w"> </span><span class="kn">import</span> <span class="n">LLMToolInput</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyToolInput</span><span class="p">(</span><span class="n">LLMToolInput</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">program</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">property</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">program</span> <span class="o">=</span> <span class="n">program</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">property</span> <span class="o">=</span> <span class="nb">property</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">program</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">property</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+<section id="llmtooloutput">
+<h3>LLMToolOutput<a class="headerlink" href="#llmtooloutput" title="Link to this heading"></a></h3>
+<p>Abstract base class for LLM tool outputs.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">efmc.llmtools.llm_tool</span><span class="w"> </span><span class="kn">import</span> <span class="n">LLMToolOutput</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyToolOutput</span><span class="p">(</span><span class="n">LLMToolOutput</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">candidates</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">candidates</span> <span class="o">=</span> <span class="n">candidates</span>
+</pre></div>
+</div>
+</section>
+<section id="llmtool">
+<h3>LLMTool<a class="headerlink" href="#llmtool" title="Link to this heading"></a></h3>
+<p>Abstract base class for LLM-based tools.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">efmc.llmtools.llm_tool</span><span class="w"> </span><span class="kn">import</span> <span class="n">LLMTool</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyLLMTool</span><span class="p">(</span><span class="n">LLMTool</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_prompt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tool_input</span><span class="p">:</span> <span class="n">MyToolInput</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="c1"># Generate prompt from input</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Generate invariants for:</span><span class="se">\n</span><span class="si">{</span><span class="n">tool_input</span><span class="o">.</span><span class="n">program</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_parse_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tool_input</span><span class="p">:</span> <span class="n">MyToolInput</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MyToolOutput</span><span class="p">:</span>
+        <span class="c1"># Parse LLM response</span>
+        <span class="k">return</span> <span class="n">MyToolOutput</span><span class="p">(</span><span class="n">candidates</span><span class="o">=</span><span class="n">response</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="llm-utilities">
+<h2>LLM Utilities<a class="headerlink" href="#llm-utilities" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">llm_utils</span></code> module provides the core LLM interface:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">efmc.llmtools.llm_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">LLM</span>
+
+<span class="c1"># Initialize LLM</span>
+<span class="n">llm</span> <span class="o">=</span> <span class="n">LLM</span><span class="p">(</span>
+    <span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;qwen/qwen3-coder-30b&quot;</span><span class="p">,</span>
+    <span class="n">logger</span><span class="o">=</span><span class="n">my_logger</span><span class="p">,</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="mf">0.1</span>
+<span class="p">)</span>
+
+<span class="c1"># Query the model</span>
+<span class="n">response</span><span class="p">,</span> <span class="n">input_tokens</span><span class="p">,</span> <span class="n">output_tokens</span> <span class="o">=</span> <span class="n">llm</span><span class="o">.</span><span class="n">infer</span><span class="p">(</span>
+    <span class="n">prompt</span><span class="o">=</span><span class="s2">&quot;Generate an invariant for x &gt;= 0&quot;</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="llm-providers">
+<h2>LLM Providers<a class="headerlink" href="#llm-providers" title="Link to this heading"></a></h2>
+<section id="local-models">
+<h3>Local Models<a class="headerlink" href="#local-models" title="Link to this heading"></a></h3>
+<p>Support for locally hosted models via various backends:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">efmc.llmtools.llm_local</span><span class="w"> </span><span class="kn">import</span> <span class="n">LocalLLM</span>
+
+<span class="c1"># LM Studio</span>
+<span class="n">local_llm</span> <span class="o">=</span> <span class="n">LocalLLM</span><span class="p">(</span>
+    <span class="n">provider</span><span class="o">=</span><span class="s2">&quot;lm-studio&quot;</span><span class="p">,</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;qwen/qwen3-coder-30b&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># vLLM</span>
+<span class="n">local_llm</span> <span class="o">=</span> <span class="n">LocalLLM</span><span class="p">(</span>
+    <span class="n">provider</span><span class="o">=</span><span class="s2">&quot;vllm&quot;</span><span class="p">,</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;meta-llama/Llama-2-7b-chat-hf&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># SGLang</span>
+<span class="n">local_llm</span> <span class="o">=</span> <span class="n">LocalLLM</span><span class="p">(</span>
+    <span class="n">provider</span><span class="o">=</span><span class="s2">&quot;sglang&quot;</span><span class="p">,</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;deepseek-ai/DeepSeek-V2&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="remote-models">
+<h3>Remote Models<a class="headerlink" href="#remote-models" title="Link to this heading"></a></h3>
+<p>Support for remote API providers:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">efmc.llmtools.llm_opencode</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenCodeLLM</span>
+
+<span class="n">remote_llm</span> <span class="o">=</span> <span class="n">OpenCodeLLM</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;deepseek-v3&quot;</span><span class="p">,</span>
+    <span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your-api-key&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="logging">
+<h2>Logging<a class="headerlink" href="#logging" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">logger</span></code> module provides structured logging for LLM interactions:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">efmc.llmtools.logger</span><span class="w"> </span><span class="kn">import</span> <span class="n">Logger</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">Logger</span><span class="p">(</span>
+    <span class="n">log_file</span><span class="o">=</span><span class="s2">&quot;llm.log&quot;</span><span class="p">,</span>
+    <span class="n">console_log</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">level</span><span class="o">=</span><span class="s2">&quot;INFO&quot;</span>
+<span class="p">)</span>
+
+<span class="n">logger</span><span class="o">.</span><span class="n">print_console</span><span class="p">(</span><span class="s2">&quot;Starting LLM inference...&quot;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">print_log</span><span class="p">(</span><span class="s2">&quot;Prompt:&quot;</span><span class="p">,</span> <span class="n">prompt</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">print_log</span><span class="p">(</span><span class="s2">&quot;Response:&quot;</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="usage-in-llm4inv">
+<h2>Usage in LLM4Inv<a class="headerlink" href="#usage-in-llm4inv" title="Link to this heading"></a></h2>
+<p>The LLM4Inv engine uses these utilities to generate candidate invariants:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">efmc.engines.llm4inv</span><span class="w"> </span><span class="kn">import</span> <span class="n">LLM4InvProver</span>
+
+<span class="n">prover</span> <span class="o">=</span> <span class="n">LLM4InvProver</span><span class="p">(</span>
+    <span class="n">transition_system</span><span class="o">=</span><span class="n">sts</span><span class="p">,</span>
+    <span class="n">max_candidates</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">provider</span><span class="o">=</span><span class="s2">&quot;local&quot;</span><span class="p">,</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;qwen/qwen3-coder-30b&quot;</span>
+<span class="p">)</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">prover</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h2>
+<p>LLM behavior can be configured via command-line arguments:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>efmc<span class="w"> </span>--file<span class="w"> </span>program.smt2<span class="w"> </span>--engine<span class="w"> </span>llm4inv<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--llm4inv-provider<span class="w"> </span><span class="nb">local</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--llm4inv-local-provider<span class="w"> </span>lm-studio<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--llm4inv-local-model<span class="w"> </span>qwen/qwen3-coder-30b<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--llm4inv-temperature<span class="w"> </span><span class="m">0</span>.1<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--llm4inv-max-candidates-per-iter<span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--llm4inv-max-iterations<span class="w"> </span><span class="m">10</span>
+</pre></div>
+</div>
+</section>
+<section id="api-reference">
+<h2>API Reference<a class="headerlink" href="#api-reference" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

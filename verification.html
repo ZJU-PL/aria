@@ -1,0 +1,158 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Program Verification &mdash; ARIA Documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            ARIA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Program Verification</a><ul>
+<li><a class="reference internal" href="#available-verification-engines">Available Verification Engines</a></li>
+<li><a class="reference internal" href="#correctness">Correctness</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ARIA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Program Verification</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/verification.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="program-verification">
+<h1>Program Verification<a class="headerlink" href="#program-verification" title="Link to this heading"></a></h1>
+<p>Program verification is the process of checking whether a program satisfies a given specification. The specification can be a set of properties that the program must satisfy, such as correctness, safety, or liveness. Verification can be done using various techniques, such as model checking, static analysis, and theorem proving.</p>
+<section id="available-verification-engines">
+<h2>Available Verification Engines<a class="headerlink" href="#available-verification-engines" title="Link to this heading"></a></h2>
+<p>EFMC provides multiple verification engines, each suited for different types of programs and properties:</p>
+<p><strong>Main Engines:</strong>
+- <strong>Template-based (EF)</strong>: Constraint-based invariant generation using predefined templates
+- <strong>PDR</strong>: Property-Directed Reachability using Z3’s Spacer engine
+- <strong>K-Induction</strong>: K-induction based verification with optional auxiliary invariants
+- <strong>LLM4Inv</strong>: LLM-guided invariant synthesis using a CEGIS loop</p>
+<p><strong>Additional Engines:</strong>
+- <strong>Houdini</strong>: Iterative weakening for conjunctive invariant inference
+- <strong>Abduction</strong>: Abductive inference for invariant generation
+- <strong>Quantifier Instantiation (QI)</strong>: Direct solving via quantifier instantiation
+- <strong>Quantifier Elimination (QE)</strong>: Quantifier elimination based verification
+- <strong>Predicate Abstraction</strong>: Finite-state abstraction using predicates
+- <strong>Symbolic Abstraction</strong>: Symbolic abstraction-based verification
+- <strong>BDD</strong>: Binary Decision Diagram based verification
+- <strong>K-Safety</strong>: Relational verification for hyperproperties (programmatic API)</p>
+<p><strong>Specialized Engines:</strong>
+- <strong>PolyHorn</strong>: Polynomial invariant generation for Horn clauses
+- <strong>Abstract Interpretation</strong>: Abstract interpretation based analysis</p>
+</section>
+<section id="correctness">
+<h2>Correctness<a class="headerlink" href="#correctness" title="Link to this heading"></a></h2>
+<p>Consider the following program that computes the factorial of a number
+.. code-block:: python</p>
+<blockquote>
+<div><dl class="simple">
+<dt>def factorial(n):</dt><dd><dl class="simple">
+<dt>if n == 0:</dt><dd><p>return 1</p>
+</dd>
+<dt>else:</dt><dd><p>return n * factorial(n-1)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</div></blockquote>
+<p>The program computes the factorial of a non-negative integer <cite>n</cite>. The correctness of this program can be verified by proving that it satisfies the specification: for all non-negative integers <cite>n</cite>, the program returns <cite>n!</cite>, where <cite>n!</cite> is the factorial of <cite>n</cite>.</p>
+<p>To verify the correctness of the program, we can use mathematical induction. The proof consists of two parts:
+1. Base case: Show that the program is correct for the base case <cite>n = 0</cite>.</p>
+<blockquote>
+<div><p>When <cite>n = 0</cite>, the program returns <cite>1</cite>, which is <cite>0!</cite>. Therefore, the base case holds.</p>
+</div></blockquote>
+<ol class="arabic" start="2">
+<li><p>Inductive step: Assume that the program is correct for <cite>n = k</cite>, i.e., assume that <cite>factorial(k)</cite> returns <cite>k!</cite>. Show that the program is correct for <cite>n = k + 1</cite>.</p>
+<p>When <cite>n = k + 1</cite>, the program returns <cite>(k + 1) * factorial(k)</cite>. By the inductive hypothesis, <cite>factorial(k)</cite> returns <cite>k!</cite>. Therefore, the program returns <cite>(k + 1) * k!</cite>, which is <cite>(k + 1)!</cite>. Hence, the inductive step holds.</p>
+</li>
+</ol>
+<p>Since both the base case and the inductive step have been proven, by mathematical induction, the program is correct for all non-negative integers <cite>n</cite>.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

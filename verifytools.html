@@ -1,0 +1,344 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verification Tools &mdash; ARIA Documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            ARIA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Verification Tools</a><ul>
+<li><a class="reference internal" href="#architecture">Architecture</a></li>
+<li><a class="reference internal" href="#common-utilities">Common Utilities</a><ul>
+<li><a class="reference internal" href="#common-ast">Common AST</a></li>
+<li><a class="reference internal" href="#common-parser">Common Parser</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#boogie-frontend-tools">Boogie Frontend Tools</a><ul>
+<li><a class="reference internal" href="#ast-and-interpretation">AST and Interpretation</a></li>
+<li><a class="reference internal" href="#basic-block-analysis">Basic Block Analysis</a></li>
+<li><a class="reference internal" href="#static-single-assignment-ssa">Static Single Assignment (SSA)</a></li>
+<li><a class="reference internal" href="#predicate-transformers">Predicate Transformers</a></li>
+<li><a class="reference internal" href="#z3-integration">Z3 Integration</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#verification-condition-generation">Verification Condition Generation</a><ul>
+<li><a class="reference internal" href="#verification-condition-checking">Verification Condition Checking</a></li>
+<li><a class="reference internal" href="#try-and-verify-strategy">Try-and-Verify Strategy</a></li>
+<li><a class="reference internal" href="#desugaring">Desugaring</a></li>
+<li><a class="reference internal" href="#format-conversions">Format Conversions</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#daikon-integration">Daikon Integration</a></li>
+<li><a class="reference internal" href="#cpachecker-integration">CPAchecker Integration</a></li>
+<li><a class="reference internal" href="#ice-based-invariant-generation">ICE-based Invariant Generation</a></li>
+<li><a class="reference internal" href="#api-reference">API Reference</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ARIA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Verification Tools</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/verifytools.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="verification-tools">
+<span id="verifytools"></span><h1>Verification Tools<a class="headerlink" href="#verification-tools" title="Link to this heading"></a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">verifytools</span></code> module provides supporting infrastructure for verification, including intermediate representations, verification condition generation, and integration with external tools.</p>
+<section id="architecture">
+<h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>efmc/verifytools/
+├── common/               # Common utilities and AST
+│   ├── ast.py           # Abstract syntax tree definitions
+│   ├── parser.py        # Common parser utilities
+│   └── util.py          # Utility functions
+├── boogie/              # Boogie-specific tooling
+│   ├── ast.py           # Boogie AST
+│   ├── bb.py            # Basic block analysis
+│   ├── eval.py          # Expression evaluation
+│   ├── grammar.py       # Boogie grammar
+│   ├── interp.py        # Interpreter
+│   ├── paths.py         # Path analysis
+│   ├── predicate_transformers.py  # Predicate transformers
+│   ├── ssa.py           # Static single assignment
+│   ├── analysis.py      # Static analysis
+│   ├── inv_networks.py  # Invariant networks
+│   └── z3_embed.py      # Z3 embedding
+├── tools/               # Verification tools
+│   ├── vc_check.py      # Verification condition checking
+│   ├── desugar.py       # Desugaring utilities
+│   ├── tryAndVerify.py  # Try-and-verify strategy
+│   ├── conversions.py   # Format conversions
+│   ├── boogie_loops.py  # Loop extraction
+│   ├── levels.py        # Level management
+│   ├── run_ice.py       # ICE-based generation
+│   ├── run_invgen.py    # Invariant generation runner
+│   └── run_daikon.py    # Daikon integration
+├── daikon/              # Daikon invariant detector
+│   ├── inv_ast.py       # Invariant AST
+│   └── inv_grammar.py   # Invariant grammar
+├── cpachecker/          # CPAchecker integration
+│   └── dummy.h          # Stub header
+└── invgen/              # Invariant generation utilities
+</pre></div>
+</div>
+</section>
+<section id="common-utilities">
+<h2>Common Utilities<a class="headerlink" href="#common-utilities" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">common</span></code> subpackage provides shared utilities:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">efmc.verifytools.common.ast</span><span class="w"> </span><span class="kn">import</span> <span class="n">Expr</span><span class="p">,</span> <span class="n">Stmt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">efmc.verifytools.common.parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_formula</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">efmc.verifytools.common.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">simplify</span>
+</pre></div>
+</div>
+<section id="common-ast">
+<h3>Common AST<a class="headerlink" href="#common-ast" title="Link to this heading"></a></h3>
+<p>Base classes for abstract syntax trees:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">efmc.verifytools.common.ast</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Expr</span><span class="p">,</span>      <span class="c1"># Base expression class</span>
+    <span class="n">Stmt</span><span class="p">,</span>      <span class="c1"># Base statement class</span>
+    <span class="n">Var</span><span class="p">,</span>       <span class="c1"># Variable reference</span>
+    <span class="n">Const</span><span class="p">,</span>     <span class="c1"># Constant</span>
+    <span class="n">BinOp</span><span class="p">,</span>     <span class="c1"># Binary operation</span>
+    <span class="n">UnOp</span><span class="p">,</span>      <span class="c1"># Unary operation</span>
+<span class="p">)</span>
+
+<span class="c1"># Create expressions</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">Var</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">expr</span> <span class="o">=</span> <span class="n">BinOp</span><span class="p">(</span><span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">Const</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+<section id="common-parser">
+<h3>Common Parser<a class="headerlink" href="#common-parser" title="Link to this heading"></a></h3>
+<p>Utility functions for parsing formulas:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">efmc.verifytools.common.parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_formula</span>
+
+<span class="c1"># Parse from string</span>
+<span class="n">formula</span> <span class="o">=</span> <span class="n">parse_formula</span><span class="p">(</span><span class="s2">&quot;x + y &gt; 0&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="boogie-frontend-tools">
+<h2>Boogie Frontend Tools<a class="headerlink" href="#boogie-frontend-tools" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">boogie</span></code> subpackage provides tools for working with Boogie programs:</p>
+<section id="ast-and-interpretation">
+<h3>AST and Interpretation<a class="headerlink" href="#ast-and-interpretation" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">efmc.verifytools.boogie.ast</span><span class="w"> </span><span class="kn">import</span> <span class="n">BoogieProgram</span><span class="p">,</span> <span class="n">Procedure</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">efmc.verifytools.boogie.interp</span><span class="w"> </span><span class="kn">import</span> <span class="n">BoogieInterpreter</span>
+
+<span class="c1"># Parse Boogie program</span>
+<span class="n">program</span> <span class="o">=</span> <span class="n">BoogieProgram</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s2">&quot;program.bpl&quot;</span><span class="p">)</span>
+
+<span class="c1"># Run interpreter</span>
+<span class="n">interp</span> <span class="o">=</span> <span class="n">BoogieInterpreter</span><span class="p">(</span><span class="n">program</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">interp</span><span class="o">.</span><span class="n">run_procedure</span><span class="p">(</span><span class="s2">&quot;main&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="basic-block-analysis">
+<h3>Basic Block Analysis<a class="headerlink" href="#basic-block-analysis" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">efmc.verifytools.boogie.bb</span><span class="w"> </span><span class="kn">import</span> <span class="n">BasicBlockAnalyzer</span>
+
+<span class="n">analyzer</span> <span class="o">=</span> <span class="n">BasicBlockAnalyzer</span><span class="p">(</span><span class="n">program</span><span class="p">)</span>
+<span class="n">blocks</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="n">get_basic_blocks</span><span class="p">(</span><span class="s2">&quot;procedure_name&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="static-single-assignment-ssa">
+<h3>Static Single Assignment (SSA)<a class="headerlink" href="#static-single-assignment-ssa" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">efmc.verifytools.boogie.ssa</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_ssa</span>
+
+<span class="n">ssa_program</span> <span class="o">=</span> <span class="n">to_ssa</span><span class="p">(</span><span class="n">program</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="predicate-transformers">
+<h3>Predicate Transformers<a class="headerlink" href="#predicate-transformers" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">efmc.verifytools.boogie.predicate_transformers</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">wp</span><span class="p">,</span>  <span class="c1"># Weakest precondition</span>
+    <span class="n">sp</span><span class="p">,</span>  <span class="c1"># Strongest postcondition</span>
+<span class="p">)</span>
+
+<span class="c1"># Compute weakest precondition</span>
+<span class="n">wp_expr</span> <span class="o">=</span> <span class="n">wp</span><span class="p">(</span><span class="n">statement</span><span class="p">,</span> <span class="n">postcondition</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="z3-integration">
+<h3>Z3 Integration<a class="headerlink" href="#z3-integration" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">efmc.verifytools.boogie.z3_embed</span><span class="w"> </span><span class="kn">import</span> <span class="n">BoogieToZ3</span>
+
+<span class="n">converter</span> <span class="o">=</span> <span class="n">BoogieToZ3</span><span class="p">()</span>
+<span class="n">z3_expr</span> <span class="o">=</span> <span class="n">converter</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">boogie_expr</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="verification-condition-generation">
+<h2>Verification Condition Generation<a class="headerlink" href="#verification-condition-generation" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">tools</span></code> subpackage provides verification condition generation:</p>
+<section id="verification-condition-checking">
+<h3>Verification Condition Checking<a class="headerlink" href="#verification-condition-checking" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">efmc.verifytools.tools.vc_check</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_vc</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">check_vc</span><span class="p">(</span><span class="n">vc_formula</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="s2">&quot;z3&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="try-and-verify-strategy">
+<h3>Try-and-Verify Strategy<a class="headerlink" href="#try-and-verify-strategy" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">efmc.verifytools.tools.tryAndVerify</span><span class="w"> </span><span class="kn">import</span> <span class="n">TryAndVerify</span>
+
+<span class="n">strategy</span> <span class="o">=</span> <span class="n">TryAndVerify</span><span class="p">(</span><span class="n">max_iterations</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">verify</span><span class="p">(</span><span class="n">transition_system</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="desugaring">
+<h3>Desugaring<a class="headerlink" href="#desugaring" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">efmc.verifytools.tools.desugar</span><span class="w"> </span><span class="kn">import</span> <span class="n">desugar_program</span>
+
+<span class="n">simplified</span> <span class="o">=</span> <span class="n">desugar_program</span><span class="p">(</span><span class="n">program</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="format-conversions">
+<h3>Format Conversions<a class="headerlink" href="#format-conversions" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">efmc.verifytools.tools.conversions</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">chc_to_smtlib</span><span class="p">,</span>
+    <span class="n">smtlib_to_chc</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="daikon-integration">
+<h2>Daikon Integration<a class="headerlink" href="#daikon-integration" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">daikon</span></code> subpackage provides integration with the Daikon invariant detector:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">efmc.verifytools.daikon.inv_grammar</span><span class="w"> </span><span class="kn">import</span> <span class="n">InvGrammar</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">efmc.verifytools.daikon.inv_ast</span><span class="w"> </span><span class="kn">import</span> <span class="n">Invariant</span>
+
+<span class="c1"># Create invariant grammar</span>
+<span class="n">grammar</span> <span class="o">=</span> <span class="n">InvGrammar</span><span class="p">()</span>
+
+<span class="c1"># Detect invariants from traces</span>
+<span class="n">invariants</span> <span class="o">=</span> <span class="n">grammar</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span><span class="n">traces</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="cpachecker-integration">
+<h2>CPAchecker Integration<a class="headerlink" href="#cpachecker-integration" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">cpachecker</span></code> subpackage provides integration with CPAchecker:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">efmc.verifytools.cpachecker</span><span class="w"> </span><span class="kn">import</span> <span class="n">run_cpachecker</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">run_cpachecker</span><span class="p">(</span>
+    <span class="n">program</span><span class="o">=</span><span class="s2">&quot;program.c&quot;</span><span class="p">,</span>
+    <span class="n">spec</span><span class="o">=</span><span class="s2">&quot;safety.prp&quot;</span><span class="p">,</span>
+    <span class="n">timeout</span><span class="o">=</span><span class="mi">300</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="ice-based-invariant-generation">
+<h2>ICE-based Invariant Generation<a class="headerlink" href="#ice-based-invariant-generation" title="Link to this heading"></a></h2>
+<p>The ICE (Counterexample-Driven, Consistency, Efficiency) learning strategy:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">efmc.verifytools.tools.run_ice</span><span class="w"> </span><span class="kn">import</span> <span class="n">ICEGenerator</span>
+
+<span class="n">generator</span> <span class="o">=</span> <span class="n">ICEGenerator</span><span class="p">()</span>
+<span class="n">invariants</span> <span class="o">=</span> <span class="n">generator</span><span class="o">.</span><span class="n">learn</span><span class="p">(</span>
+    <span class="n">transition_system</span><span class="p">,</span>
+    <span class="n">max_samples</span><span class="o">=</span><span class="mi">1000</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="api-reference">
+<h2>API Reference<a class="headerlink" href="#api-reference" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

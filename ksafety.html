@@ -1,0 +1,244 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>K-Safety Verification &mdash; ARIA Documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            ARIA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">K-Safety Verification</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#architecture">Architecture</a></li>
+<li><a class="reference internal" href="#available-provers">Available Provers</a></li>
+<li><a class="reference internal" href="#usage">Usage</a></li>
+<li><a class="reference internal" href="#hyperltl-example">HyperLTL Example</a></li>
+<li><a class="reference internal" href="#verification-methods">Verification Methods</a></li>
+<li><a class="reference internal" href="#properties">Properties</a><ul>
+<li><a class="reference internal" href="#non-interference">Non-Interference</a></li>
+<li><a class="reference internal" href="#determinism">Determinism</a></li>
+<li><a class="reference internal" href="#symmetry">Symmetry</a></li>
+<li><a class="reference internal" href="#differential-privacy">Differential Privacy</a></li>
+<li><a class="reference internal" href="#program-equivalence">Program Equivalence</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#related-work">Related Work</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ARIA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">K-Safety Verification</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/ksafety.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="k-safety-verification">
+<h1>K-Safety Verification<a class="headerlink" href="#k-safety-verification" title="Link to this heading"></a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>K-safety verification is a technique for verifying relational properties that relate multiple execution traces. Unlike traditional safety properties that hold for a single execution, k-safety properties express relationships between k different executions of a program.</p>
+<p>The k-safety engine in EFMC supports verification of various hyperproperties including:</p>
+<ul class="simple">
+<li><p><strong>Non-Interference</strong>: Ensures that low-security outputs do not depend on high-security inputs</p></li>
+<li><p><strong>Determinism</strong>: Ensures that identical inputs always produce identical outputs</p></li>
+<li><p><strong>Symmetry</strong>: Verifies that outputs are permuted according to input permutations</p></li>
+<li><p><strong>Differential Privacy</strong>: Ensures bounded change in outputs under bounded change in inputs</p></li>
+<li><p><strong>Program Equivalence</strong>: Verifies that two program versions are functionally equivalent</p></li>
+<li><p><strong>Refinement</strong>: Verifies that one program refines another</p></li>
+<li><p><strong>HyperLTL Properties</strong>: Supports temporal hyperproperties using a bounded HyperLTL logic</p></li>
+</ul>
+</section>
+<section id="architecture">
+<h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading"></a></h2>
+<p>The k-safety engine is built on a base prover that:</p>
+<ol class="arabic simple">
+<li><p>Creates k copies of the transition system (one for each trace)</p></li>
+<li><p>Encodes the relational property as a hyperproperty</p></li>
+<li><p>Uses bounded model checking or k-induction to verify the property</p></li>
+</ol>
+</section>
+<section id="available-provers">
+<h2>Available Provers<a class="headerlink" href="#available-provers" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>BaseKSafetyProver</strong>: Base class for k-safety verification</p></li>
+<li><p><strong>NonInterferenceProver</strong>: Verifies non-interference properties</p></li>
+<li><p><strong>DeterminismProver</strong>: Verifies determinism properties</p></li>
+<li><p><strong>SymmetryProver</strong>: Verifies symmetry properties</p></li>
+<li><p><strong>DifferentialPrivacyProver</strong>: Verifies differential privacy properties</p></li>
+<li><p><strong>EquivalenceProver</strong>: Verifies program equivalence</p></li>
+<li><p><strong>RefinementProver</strong>: Verifies program refinement</p></li>
+<li><p><strong>HyperLTLProver</strong>: Verifies HyperLTL temporal properties</p></li>
+</ul>
+</section>
+<section id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
+<p>The k-safety engine is primarily used programmatically through the Python API:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">efmc.engines.ksafety</span><span class="w"> </span><span class="kn">import</span> <span class="n">NonInterferenceProver</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">efmc.sts</span><span class="w"> </span><span class="kn">import</span> <span class="n">TransitionSystem</span>
+
+<span class="c1"># Create transition system</span>
+<span class="n">sts</span> <span class="o">=</span> <span class="n">TransitionSystem</span><span class="p">()</span>
+<span class="c1"># ... initialize sts ...</span>
+
+<span class="c1"># Create prover</span>
+<span class="n">prover</span> <span class="o">=</span> <span class="n">NonInterferenceProver</span><span class="p">(</span><span class="n">sts</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;bounded_model_checking&#39;</span><span class="p">,</span> <span class="n">max_bound</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+<span class="c1"># Set high and low security variables</span>
+<span class="n">prover</span><span class="o">.</span><span class="n">set_high_variables</span><span class="p">([</span><span class="n">high_var</span><span class="p">])</span>
+<span class="n">prover</span><span class="o">.</span><span class="n">set_low_variables</span><span class="p">([</span><span class="n">low_var</span><span class="p">])</span>
+
+<span class="c1"># Verify</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">prover</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="hyperltl-example">
+<h2>HyperLTL Example<a class="headerlink" href="#hyperltl-example" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">efmc.engines.ksafety</span><span class="w"> </span><span class="kn">import</span> <span class="n">HyperLTLProver</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">efmc.engines.ksafety.hyperltl</span><span class="w"> </span><span class="kn">import</span> <span class="n">Var</span><span class="p">,</span> <span class="n">Atom</span><span class="p">,</span> <span class="n">G</span><span class="p">,</span> <span class="n">Implies</span>
+
+<span class="c1"># Define HyperLTL formula: G(high[0] == high[1] → G(low[0] == low[1]))</span>
+<span class="n">phi</span> <span class="o">=</span> <span class="n">Implies</span><span class="p">(</span>
+    <span class="n">G</span><span class="p">(</span><span class="n">Atom</span><span class="p">(</span><span class="s1">&#39;==&#39;</span><span class="p">,</span> <span class="n">Var</span><span class="p">(</span><span class="s1">&#39;high&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">Var</span><span class="p">(</span><span class="s1">&#39;high&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">))),</span>
+    <span class="n">G</span><span class="p">(</span><span class="n">Atom</span><span class="p">(</span><span class="s1">&#39;==&#39;</span><span class="p">,</span> <span class="n">Var</span><span class="p">(</span><span class="s1">&#39;low&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">Var</span><span class="p">(</span><span class="s1">&#39;low&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))</span>
+<span class="p">)</span>
+
+<span class="n">prover</span> <span class="o">=</span> <span class="n">HyperLTLProver</span><span class="p">(</span><span class="n">sts</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;bounded_model_checking&#39;</span><span class="p">,</span> <span class="n">max_bound</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">prover</span><span class="o">.</span><span class="n">set_formula</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">prover</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="verification-methods">
+<h2>Verification Methods<a class="headerlink" href="#verification-methods" title="Link to this heading"></a></h2>
+<p><strong>Bounded Model Checking (BMC)</strong>
+- Unrolls transitions up to a bound B
+- Checks property at step B
+- Can find violations but cannot prove properties in general</p>
+<p><strong>K-Induction</strong>
+- Base case: Property holds for initial states
+- Inductive step: If property holds for steps &lt; k, it holds at step k
+- Can prove properties for all executions</p>
+</section>
+<section id="properties">
+<h2>Properties<a class="headerlink" href="#properties" title="Link to this heading"></a></h2>
+<section id="non-interference">
+<h3>Non-Interference<a class="headerlink" href="#non-interference" title="Link to this heading"></a></h3>
+<p>Ensures that low-security outputs do not depend on high-security inputs:</p>
+<p>∀t₁, t₂. (high₁ = high₂) → (low₁ = low₂)</p>
+</section>
+<section id="determinism">
+<h3>Determinism<a class="headerlink" href="#determinism" title="Link to this heading"></a></h3>
+<p>Ensures that identical inputs always produce identical outputs:</p>
+<p>∀t₁, t₂. (inputs₁ = inputs₂) → (outputs₁ = outputs₂)</p>
+</section>
+<section id="symmetry">
+<h3>Symmetry<a class="headerlink" href="#symmetry" title="Link to this heading"></a></h3>
+<p>Verifies that outputs are permuted according to input permutations:</p>
+<p>∀t₁, t₂. perm_in(inputs₁) = inputs₂ → perm_out(outputs₁) = outputs₂</p>
+</section>
+<section id="differential-privacy">
+<h3>Differential Privacy<a class="headerlink" href="#differential-privacy" title="Link to this heading"></a></h3>
+<p>Ensures bounded change in outputs under bounded change in inputs:</p>
+<p>∀t₁, t₂. <a href="#id1"><span class="problematic" id="id2">|inputs₁ - inputs₂|</span></a> ≤ δ → <a href="#id3"><span class="problematic" id="id4">|outputs₁ - outputs₂|</span></a> ≤ ε</p>
+</section>
+<section id="program-equivalence">
+<h3>Program Equivalence<a class="headerlink" href="#program-equivalence" title="Link to this heading"></a></h3>
+<p>Verifies functional equivalence between two program versions:</p>
+<p>∀t₁, t₂. (inputs₁ = inputs₂) → (outputs₁ = outputs₂)</p>
+</section>
+</section>
+<section id="related-work">
+<h2>Related Work<a class="headerlink" href="#related-work" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Clarkson, M.R. and Schneider, F.B. “Hyperproperties.” Journal of Computer Security, 2010.</p></li>
+<li><p>Clarkson, M.R., Finkbeiner, B., Koleini, M., et al. “Temporal logics for hyperproperties.” POST 2014.</p></li>
+<li><p>Terauchi, T. and Aiken, A. “Secure information flow as a safety problem.” SAS 2005.</p></li>
+<li><p>Hsu, T.-C., Sánchez, C., and Bonakdarpour, B. “Bounded model checking for hyperproperties.” TACAS 2021.</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
