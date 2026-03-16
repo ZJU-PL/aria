@@ -93,8 +93,8 @@ Basic Usage
 
 .. code-block:: python
 
-    from efmc.sts import TransitionSystem
-    from efmc.engines.ef.termination_prover import TerminationProver
+    from aria.efmc.sts import TransitionSystem
+    from aria.efmc.engines.ef.termination_prover import TerminationProver
 
     # Create your transition system
     sts = TransitionSystem(...)
@@ -118,7 +118,7 @@ Convenience Function
 
 .. code-block:: python
 
-    from efmc.engines.ef.termination_prover import prove_termination_with_ranking_functions
+    from aria.efmc.engines.ef.termination_prover import prove_termination_with_ranking_functions
 
     # Try multiple templates automatically
     success, ranking_func, template_used = prove_termination_with_ranking_functions(

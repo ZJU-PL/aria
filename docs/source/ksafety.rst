@@ -44,8 +44,8 @@ The k-safety engine is primarily used programmatically through the Python API:
 
 .. code-block:: python
 
-   from efmc.engines.ksafety import NonInterferenceProver
-   from efmc.sts import TransitionSystem
+   from aria.efmc.engines.ksafety import NonInterferenceProver
+   from aria.efmc.sts import TransitionSystem
    
    # Create transition system
    sts = TransitionSystem()
@@ -66,8 +66,8 @@ HyperLTL Example
 
 .. code-block:: python
 
-   from efmc.engines.ksafety import HyperLTLProver
-   from efmc.engines.ksafety.hyperltl import Var, Atom, G, Implies
+   from aria.efmc.engines.ksafety import HyperLTLProver
+   from aria.efmc.engines.ksafety.hyperltl import Var, Atom, G, Implies
    
    # Define HyperLTL formula: G(high[0] == high[1] → G(low[0] == low[1]))
    phi = Implies(

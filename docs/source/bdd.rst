@@ -37,8 +37,8 @@ The BDD prover can be used as follows:
 
 .. code-block:: python
 
-    from efmc.engines.bdd import BDDProver
-    from efmc.sts import TransitionSystem
+    from aria.efmc.engines.bdd import BDDProver
+    from aria.efmc.sts import TransitionSystem
     
     # Create transition system
     sts = TransitionSystem(...)

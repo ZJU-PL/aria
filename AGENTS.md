@@ -1,123 +1,166 @@
 # AGENTS.md - Developer Guidelines for ARIA
 
-This file provides guidance for AI agents working in this repository.
+This repository is a broad automated reasoning monorepo, not a single
+uniform library. It mixes maintained library code, CLI entrypoints, research
+prototypes, benchmark corpora, solver wrappers, and experiment scripts.
 
-## Project Overview
+Use this file for repository-wide guidance. Before editing inside a subsystem,
+also check the nearest local `README.md` and any deeper `AGENTS.md`.
 
-ARIA is a library for automated reasoning including SMT solving, theorem proving, and symbolic computation. It supports Python 3.8+.
+## Repo Shape
+
+Top-level areas you are likely to touch:
+
+- `aria/bool`: SAT, MaxSAT, QBF, CNF simplification, NNF, knowledge compilation
+- `aria/smt`: SMT-related reasoning utilities
+- `aria/counting`: model counting across Boolean and SMT fragments
+- `aria/optimization`: OMT / MaxSMT code
+- `aria/quant`: quantified reasoning and EFSMT experiments
+- `aria/efmc`: verification and invariant-generation stack
+- `aria/symabs`, `aria/monabs`: symbolic abstraction and program analysis
+- `aria/srk`, `aria/itp`, `aria/fol`: symbolic reasoning / theorem-proving style code
+- `aria/llmtools`, `aria/ml`: LLM integrations and ML-related experiments
+- `aria/cli`: user-facing CLI tools installed via `pyproject.toml`
+- `scripts/`: evaluation, SMT-COMP, solver, and one-off research scripts
+- `benchmarks/`: benchmark inputs; do not "clean up" or reformat casually
+
+Several subpackages have their own `README.md`. Read the local one before
+making nontrivial changes so you understand whether you are in production code,
+port code, or a research artifact.
+
+## Environment and Tooling
+
+Primary project configuration lives in `pyproject.toml`.
+
+- Python support in packaging: 3.8+
+- Mypy is configured with `python_version = 3.9`
+- Formatting uses Black with line length 88 and isort with `profile = "black"`
+- Pytest configuration is in `pyproject.toml`
+- Pylint uses `.pylintrc`
+
+Typical setup:
+
+```bash
+uv venv && source .venv/bin/activate
+uv pip install -e .
+```
+
+Alternative local setup script:
+
+```bash
+bash setup_local_env.sh
+```
+
+Notes:
+
+- `README.md` documents a `.venv` workflow, while `setup_local_env.sh` creates
+  `venv/`. Do not assume both are present.
+- Some tests and scripts depend on optional external solvers or binaries.
+  Treat missing-environment failures differently from logic regressions.
 
 ## Build, Lint, and Test Commands
 
-### Running Tests
+General commands:
 
 ```bash
-# Run all tests
 pytest
-
-# Run a specific test file
-pytest aria/tests/test_bool_engines.py
-
-# Run a specific test class
-pytest aria/tests/test_bool_engines.py::TestBoolEngines
-
-# Run a specific test method
-pytest aria/tests/test_bool_engines.py::TestBoolEngines::test_models_sampling_and_reducing
-
-# Run tests with coverage
 pytest --cov=aria
-
-# Run tests excluding slow tests
 pytest -m "not slow"
 
-# Run a single test using Python
-python -m pytest aria/tests/test_bool_engines.py::TestBoolEngines::test_models_sampling_and_reducing -v
-```
-
-### Linting & Type Checking
-
-```bash
-# Run pylint
+mypy aria/
 pylint aria/
 
-# Run mypy (python_version = 3.9)
-mypy aria/
+black aria/
+isort aria/
 ```
 
-### Code Formatting
+Prefer targeted tests for the subsystem you changed:
 
 ```bash
-# Format with black (line-length = 88) and sort imports with isort
-black aria/ && isort aria/
+pytest aria/tests/test_bool_engines.py
+pytest aria/efmc/tests/test_cli_efmc.py
+pytest aria/quant/efbv/tests/test_efbv_parallel.py
+pytest aria/unification/tests
 ```
 
-## Code Style Guidelines
+For CLI-facing changes, prefer running the specific module entrypoint:
 
-### General
-
-- Maximum line length: **88 characters** (Black default)
-- Use type hints (required - `disallow_untyped_defs = true` in mypy)
-
-### Formatting & Imports
-
-- Use **Black** for formatting and **isort** for imports
-- Group imports: standard library → third-party → local
-
-```python
-import os
-from typing import List, Optional, Tuple
-from pysat.solvers import Solver
-from aria.bool.maxsat import AnytimeMaxSAT
+```bash
+python -m aria.cli.fmldoc --help
+python -m aria.cli.mc --help
+python -m aria.cli.pyomt --help
+python -m aria.cli.efsmt --help
+python -m aria.cli.maxsat --help
+python -m aria.cli.unsat_core --help
+python -m aria.cli.allsmt --help
+python -m aria.cli.smt_server --help
+python -m aria.efmc.cli.efmc --help
 ```
 
-### Type Hints
+## Coding Conventions
 
-- Use `Optional[X]` instead of `X | None` (Python 3.9 compatibility)
-- Use `List`, `Dict`, `Tuple` from typing (not builtins)
+- Keep line length within 88 characters.
+- Add type hints to new or modified code.
+- Because mypy targets Python 3.9, prefer `Optional[T]`, `List[T]`, `Dict[K, V]`,
+  and `Tuple[...]` over Python 3.10+ syntax such as `T | None` or `list[T]`
+  unless the surrounding file already consistently uses newer syntax and the
+  change is intentionally local.
+- Group imports as standard library, third-party, then local imports.
+- Use `CamelCase` for classes and `snake_case` for functions and methods.
+- Preserve existing naming in ported or math-heavy code when a cleanup would
+  reduce correspondence with papers or upstream implementations.
 
-```python
-# Good
-def solve(self, timeout: int = 300) -> Tuple[bool, Optional[List[int]], int]:
-    ...
+## Tests
 
-# Avoid
-def solve(self, timeout = 300):
-    ...
-```
+Test conventions are mixed across the repo.
 
-### Naming Conventions
+- Some tests use `from aria.tests import TestCase, main`
+- Some use `from aria.efmc.tests import TestCase, main`
+- Many subsystems use plain `unittest`
+- Some newer tests use `pytest` features such as parametrization and markers
 
-- Classes: `CamelCase` (e.g., `AnytimeMaxSAT`)
-- Functions/methods: `snake_case` (e.g., `solve_maxsat`)
-- Private methods: prefix with `_` (e.g., `_compute_cost`)
+Do not rewrite tests to a different framework unless there is a clear reason.
+Follow the style already used in the directory you are editing.
 
-### Docstrings
+When adding tests:
 
-Use Google-style or NumPy-style. Keep brief and concise.
+- Put them in the nearest existing test directory for that subsystem
+- Prefer focused regression tests over broad end-to-end suites
+- Mark environment-sensitive tests carefully if they require optional solvers,
+  network access, or heavyweight external tools
 
-```python
-def solve(self, timeout: int = 300) -> Tuple[bool, Optional[List[int]], int]:
-    """Solve MaxSAT problem using core-guided approach.
+## Working in Research Code
 
-    Args:
-        timeout: Maximum time in seconds.
+Many areas in this repository are research implementations or ports. Expect:
 
-    Returns:
-        Tuple of (success, model, cost).
-    """
-```
+- uneven abstraction quality
+- duplicated concepts across subsystems
+- solver-specific code paths
+- partially implemented features
+- comments referring to papers, experiments, or upstream artifacts
 
-### Test Code
+In these areas:
 
-Use the custom `TestCase` from `aria.tests`:
+- preserve behavior over stylistic cleanup
+- avoid "simplifying" algorithms unless you understand the proof/search impact
+- keep paper terminology and solver terminology aligned with existing code
+- document assumptions when changing heuristics, encodings, or search loops
 
-```python
-from aria.tests import TestCase, main
+## Benchmarks, Scripts, and Generated Inputs
 
-class TestBoolEngines(TestCase):
-    def test_something(self):
-        ...
+- Do not mass-reformat files under `benchmarks/`
+- Do not change benchmark semantics to satisfy a test
+- Keep scripts runnable from the repo root unless the script already assumes
+  another working directory
+- When changing experiment scripts, preserve command-line behavior unless the task explicitly calls for an interface change
 
-if __name__ == "__main__":
-    main()
-```
+## Subsystem Guidance
 
+Additional local instructions live in:
+
+- `aria/efmc/AGENTS.md`
+- `aria/quant/AGENTS.md`
+- `aria/llmtools/AGENTS.md`
+- `scripts/AGENTS.md`
+
+Read the closest applicable file before making significant edits there.

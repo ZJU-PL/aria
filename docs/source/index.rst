@@ -31,6 +31,7 @@ Aria is a comprehensive toolkit for automated reasoning and constraint solving. 
 * **Context-Free Language Reachability** (``aria/cfl``) - CFL solving algorithms
 * **Unification** (``aria/unification``) - Term unification algorithms
 * **Translator** (``aria/translator``) - Translate between different formats
+* **EFMC Verification** (``aria/efmc``) - Program verification with invariant generation, termination analysis, and more
 
 We welcome any feedback, issues, or suggestions for improvement. Please feel free to open an issue in our repository.
 
@@ -106,3 +107,5 @@ Quick Start
      unification
      unsat_core
      utils
+     verification
+     verifytools

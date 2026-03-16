@@ -30,7 +30,7 @@ Abstract base class for LLM tool inputs.
 
 .. code-block:: python
 
-   from efmc.llmtools.llm_tool import LLMToolInput
+   from aria.efmc.llmtools.llm_tool import LLMToolInput
 
    class MyToolInput(LLMToolInput):
        def __init__(self, program: str, property: str):
@@ -47,7 +47,7 @@ Abstract base class for LLM tool outputs.
 
 .. code-block:: python
 
-   from efmc.llmtools.llm_tool import LLMToolOutput
+   from aria.efmc.llmtools.llm_tool import LLMToolOutput
 
    class MyToolOutput(LLMToolOutput):
        def __init__(self, candidates: List[str]):
@@ -60,7 +60,7 @@ Abstract base class for LLM-based tools.
 
 .. code-block:: python
 
-   from efmc.llmtools.llm_tool import LLMTool
+   from aria.efmc.llmtools.llm_tool import LLMTool
 
    class MyLLMTool(LLMTool):
        def _get_prompt(self, tool_input: MyToolInput) -> str:
@@ -78,7 +78,7 @@ The ``llm_utils`` module provides the core LLM interface:
 
 .. code-block:: python
 
-   from efmc.llmtools.llm_utils import LLM
+   from aria.efmc.llmtools.llm_utils import LLM
 
    # Initialize LLM
    llm = LLM(
@@ -103,7 +103,7 @@ Support for locally hosted models via various backends:
 
 .. code-block:: python
 
-   from efmc.llmtools.llm_local import LocalLLM
+   from aria.efmc.llmtools.llm_local import LocalLLM
 
    # LM Studio
    local_llm = LocalLLM(
@@ -130,7 +130,7 @@ Support for remote API providers:
 
 .. code-block:: python
 
-   from efmc.llmtools.llm_opencode import OpenCodeLLM
+   from aria.efmc.llmtools.llm_opencode import OpenCodeLLM
 
    remote_llm = OpenCodeLLM(
        model="deepseek-v3",
@@ -144,7 +144,7 @@ The ``logger`` module provides structured logging for LLM interactions:
 
 .. code-block:: python
 
-   from efmc.llmtools.logger import Logger
+   from aria.efmc.llmtools.logger import Logger
 
    logger = Logger(
        log_file="llm.log",
@@ -163,7 +163,7 @@ The LLM4Inv engine uses these utilities to generate candidate invariants:
 
 .. code-block:: python
 
-   from efmc.engines.llm4inv import LLM4InvProver
+   from aria.efmc.engines.llm4inv import LLM4InvProver
 
    prover = LLM4InvProver(
        transition_system=sts,
@@ -192,27 +192,27 @@ LLM behavior can be configured via command-line arguments:
 API Reference
 -------------
 
-.. automodule:: efmc.llmtools.llm_tool
+.. automodule:: aria.efmc.llmtools.llm_tool
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: efmc.llmtools.llm_utils
+.. automodule:: aria.efmc.llmtools.llm_utils
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: efmc.llmtools.llm_local
+.. automodule:: aria.efmc.llmtools.llm_local
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: efmc.llmtools.llm_opencode
+.. automodule:: aria.efmc.llmtools.llm_opencode
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: efmc.llmtools.logger
+.. automodule:: aria.efmc.llmtools.logger
    :members:
    :undoc-members:
    :show-inheritance:

@@ -21,7 +21,7 @@ Basic Usage
 
 .. code-block:: python
 
-   from efmc.frontends.c2efmc import c_to_efmc
+   from aria.efmc.frontends.c2efmc import c_to_efmc
 
    # Convert a C file to a transition system
    ts = c_to_efmc("program.c")
@@ -37,7 +37,7 @@ Advanced Usage
 
 .. code-block:: python
 
-   from efmc.frontends.c2efmc import CToEFMCConverter
+   from aria.efmc.frontends.c2efmc import CToEFMCConverter
 
    # Create converter instance
    converter = CToEFMCConverter()
