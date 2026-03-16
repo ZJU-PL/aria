@@ -35,12 +35,12 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description="Process KLEE SMT queries")
     parser.add_argument(
         "--source-dir",
-        default="data/klee/raw",
+        default="benchmarks/data/klee/raw",
         help="Directory containing KLEE raw data",
     )
     parser.add_argument(
         "--output-dir",
-        default="data/klee/single_test",
+        default="benchmarks/data/klee/single_test",
         help="Directory to store separated queries",
     )
     parser.add_argument(

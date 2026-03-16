@@ -239,7 +239,7 @@ def Psan_pc_skl(var_num, independence_func, enable_solver=True):
 @logme
 def run_dpkt_pc(benchmark):
     dag_path = f"./benchmarks/{benchmark}_graph.txt"
-    data_path = f"data/{benchmark}-10k.csv"
+    data_path = f"benchmarks/data/{benchmark}-10k.csv"
     dag = read_dag(dag_path)
     dpkt = DPKendalTau(read_table(data_path), dag=dag)
     est, TOTAL_CI = Psan_pc_skl(dag.get_num_nodes(), dpkt.kendaltau_ci, True)
@@ -263,7 +263,7 @@ def run_dpkt_pc_repeat(benchmark):
 @logme
 def run_chisq_pc(benchmark):
     dag_path = f"./benchmarks/{benchmark}_graph.txt"
-    data_path = f"data/{benchmark}-10k.csv"
+    data_path = f"benchmarks/data/{benchmark}-10k.csv"
     dag = read_dag(dag_path)
     chisq = Chisq(read_table(data_path), dag=dag)
     # est, TOTAL_CI = pc_skl(dag.get_num_nodes(), chisq.chisq_ci, True)

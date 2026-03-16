@@ -32,8 +32,8 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--npy-path", "-n", type=str, default="data/insurance.npy")
-    parser.add_argument("--csv-path", "-c", type=str, default="data/insurance-10k.csv")
+    parser.add_argument("--npy-path", "-n", type=str, default="benchmarks/data/insurance.npy")
+    parser.add_argument("--csv-path", "-c", type=str, default="benchmarks/data/insurance-10k.csv")
 
     args = parser.parse_args()
     convert_npy_to_csv(args.npy_path, args.csv_path)

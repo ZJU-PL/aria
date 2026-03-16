@@ -1,7 +1,8 @@
-# Data Directory
+# Benchmarks Directory
 
-This directory contains benchmark files and test cases for the EFMC project.
+This directory contains benchmark files and test cases for the ARIA project.
 The benchmark files are primarily in SMT2 and SyGuS(Inv) format.
+
 
 
 ## Boogie
@@ -11,7 +12,7 @@ Contains bit-vector related benchmark files organized in subdirectories:
 - `multi-phase/` - Multi-phase verification benchmarks
   - `sygus/` - SyGuS format benchmarks
   - `chc/` - Constrained Horn Clause benchmarks
-- `LoopInvGen/` - Loop invariant generation benchmarks  
+- `LoopInvGen/` - Loop invariant generation benchmarks
 - `CAV19/` - Benchmarks from CAV 2019 conference
 
 ## C
@@ -28,7 +29,7 @@ Related work
 
 
 - FP/pine-benchmarks: SAS 20: Counterexample- and Simulation-Guided
-Floating-Point Loop Invariant Synthesis. 
+Floating-Point Loop Invariant Synthesis.
 https://github.com/izycheva/pine
 - (TBD) Invariant Generation for Floating-Point Programs via Constraint Solving
 Xuran Cai, Liqian Chen, Hongfei Fu. https://arxiv.org/pdf/2507.15017v1
