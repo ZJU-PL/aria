@@ -199,14 +199,19 @@ class SMTLIBSolver:
     def check_sat_assuming(self, assumptions: List[str]):
         """
         :param assumptions: a list of assumption literal
-        FIXME: implement and test; figure out what should "assumptions" look like
+        Use push/pop so arbitrary Boolean expressions can be asserted temporarily.
         """
         logger.debug("Start checking")
         start = time.time()
-        all_expressions_str = " ".join(assumptions)
-        self._smtlib.send(f"(check-sat-assuming ({all_expressions_str}))")
-        status = self._smtlib.recv()  # is this correct?
-        assert status is not None
+        self.push()
+        try:
+            for assumption in assumptions:
+                self._smtlib.send(f"(assert {assumption})")
+            self._smtlib.send("(check-sat)")
+            status = self._smtlib.recv()
+            assert status is not None
+        finally:
+            self.pop()
 
         logger.debug("Check took %s seconds (%s)", time.time() - start, status)
 
