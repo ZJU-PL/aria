@@ -1,0 +1,49 @@
+{
+    "basic_engines": [
+      {
+        "engine": "kind",
+        "lang": "chc"
+      },
+      {
+        "engine": "kind",
+        "aux_inv": true,
+        "lang": "chc"
+      },
+      {
+        "engine": "pdr",
+        "lang": "chc"
+      }
+    ],
+    "ef_templates": [
+      {
+        "engine": "ef",
+        "template": "bv_interval",
+        "lang": "chc"
+      },
+      {
+        "engine": "ef",
+        "template": "bv_octagon",
+        "lang": "chc"
+      },
+      {
+        "engine": "ef",
+        "template": "polyhedra",
+        "lang": "chc"
+      }
+    ],
+    "advanced_configs": [
+      {
+        "engine": "ef",
+        "template": "bv_interval",
+        "aux_inv": false,
+        "lang": "chc",
+        "additional_opts": ["--prop-strengthen"]
+      }
+    ],
+    "external_solvers": [
+      {
+        "engine": "external",
+        "external_solver": "bin_solvers/bin/eldarica"
+      }
+    ]
+  }

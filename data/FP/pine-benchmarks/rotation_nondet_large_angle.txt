@@ -1,0 +1,6 @@
+x := x * (1 - 0.5 * th*th) - y * (th - th*th*th/6.0)
+y := x * (th - th*th*th/6.0) + y * (1 - 0.5 * th*th)
+
+x \in [-1, 1]
+y \in [-1, 1]
+th \in [-0.5, 0.5]

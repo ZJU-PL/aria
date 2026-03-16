@@ -1,0 +1,10 @@
+(set-logic HORN)
+(declare-fun inv ((_ FloatingPoint 8 24) (_ FloatingPoint 8 24)) Bool)
+(assert (forall ((x (_ FloatingPoint 8 24)) (y (_ FloatingPoint 8 24))) 
+       (=> (and (fp.geq x ((_ to_fp 8 24) RNE 0.0)) (fp.geq y ((_ to_fp 8 24) RNE 0.0))) (inv x y))))
+(assert (forall ((x (_ FloatingPoint 8 24)) (y (_ FloatingPoint 8 24)) (x! (_ FloatingPoint 8 24)) (y! (_ FloatingPoint 8 24))) 
+       (=> (and (inv x y) (ite (fp.lt (fp.add RNE x y) ((_ to_fp 8 24) RNE 10.0)) (and (fp.eq x! (fp.add RNE x ((_ to_fp 8 24) RNE 0.5))) (fp.eq y! (fp.add RNE y ((_ to_fp 8 24) RNE 0.3)))) (and (fp.eq x! x) (fp.eq y! y)))) (inv x! y!))))
+(assert (forall ((x (_ FloatingPoint 8 24)) (y (_ FloatingPoint 8 24))) 
+       (=> (inv x y) (fp.leq (fp.add RNE x y) ((_ to_fp 8 24) RNE 10.0)))))
+
+(check-sat) 

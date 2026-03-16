@@ -1,0 +1,21 @@
+(set-logic HORN)
+(declare-fun inv ((_ BitVec 64) (_ BitVec 64)) Bool)
+(assert (forall ((x (_ BitVec 64)) (z (_ BitVec 64)))
+  (=> (and (= x #x0000000000000000) (= z #x0000000000000000)) (inv x z))))
+(assert (forall ((x (_ BitVec 64))
+         (z (_ BitVec 64))
+         (x! (_ BitVec 64))
+         (z! (_ BitVec 64)))
+  (let ((a!1 (= x!
+                (ite (bvult (bvmul x #x0000000000000005) z)
+                     (bvadd x #x0000000000000001)
+                     (bvudiv x #x000000000000000a))))
+        (a!2 (= z!
+                (ite (bvult (bvmul x #x0000000000000005) z)
+                     z
+                     (bvadd #x0000000000000001 z)))))
+    (=> (and (inv x z) a!1 a!2) (inv x! z!)))))
+(assert (forall ((x (_ BitVec 64)) (z (_ BitVec 64)))
+  (let ((a!1 (not (and (not (bvule z #x0000000000000032)) (bvule z x)))))
+    (=> (inv x z) a!1))))
+(check-sat)
