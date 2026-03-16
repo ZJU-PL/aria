@@ -2,6 +2,7 @@ from aria.smt.pcdclt import solve as pcdclt_solve
 from aria.smt.pcdclt import config as pcdclt_config
 import sys
 import os
+import signal
 import logging
 import logging.config
 
@@ -60,6 +61,8 @@ if __name__ == "__main__":
     }
 
     logging.config.dictConfig(LOGGING_CONFIG)
+
+    signal.signal(signal.SIGTERM, lambda _signum, _frame: (_ for _ in ()).throw(SystemExit(124)))
 
     input_file = sys.argv[1]
 

@@ -2,6 +2,7 @@
 
 import logging
 import time
+from dataclasses import dataclass
 from multiprocessing import Process, Queue, cpu_count
 from typing import List
 
@@ -19,6 +20,39 @@ from aria.smt.pcdclt.config import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class BlockingClauseMetrics:
+    generated_total: int = 0
+    added_total: int = 0
+    theory_unsat_checks_total: int = 0
+    theory_sat_checks_total: int = 0
+    theory_unknown_or_error_total: int = 0
+    completed_rounds_total: int = 0
+    wall_time_seconds: float = 0.0
+
+
+def new_blocking_clause_metrics() -> BlockingClauseMetrics:
+    return BlockingClauseMetrics()
+
+
+def record_theory_result(
+    metrics: BlockingClauseMetrics, theory_result, bool_model: List[int]
+) -> List[int] | None:
+    if theory_result == SolverResult.UNSAT or theory_result == SolverResult.UNSAT.name:
+        metrics.generated_total += 1
+        metrics.theory_unsat_checks_total += 1
+        return [-literal for literal in bool_model]
+    if theory_result == SolverResult.SAT or theory_result == SolverResult.SAT.name:
+        metrics.theory_sat_checks_total += 1
+        return None
+    metrics.theory_unknown_or_error_total += 1
+    return None
+
+
+def record_added_clauses(metrics: BlockingClauseMetrics, clauses: List[List[int]]) -> None:
+    metrics.added_total += len(clauses)
 
 
 def _sanitize_incremental_smt2(smt2_string: str) -> str:
@@ -135,6 +169,9 @@ def solve(smt2_string: str, logic: str = "ALL") -> SolverResult:
     Returns:
         SolverResult.SAT, SolverResult.UNSAT, or SolverResult.UNKNOWN
     """
+    metrics = new_blocking_clause_metrics()
+    solve_start = time.monotonic()
+
     # Step 1: Preprocess and build Boolean abstraction
     abstraction = FormulaAbstraction()
     preprocess_result = abstraction.preprocess(smt2_string)
@@ -255,17 +292,22 @@ def solve(smt2_string: str, logic: str = "ALL") -> SolverResult:
 
                 if isinstance(core_result, str) and core_result.startswith("ERROR:"):
                     logger.error("Theory solver error: %s", core_result)
+                    record_theory_result(metrics, core_result, bool_models[task_id])
                     saw_unknown = True
                     continue
 
                 if core_result == SolverResult.SAT.name:
+                    record_theory_result(metrics, core_result, bool_models[task_id])
                     # Found theory-consistent model - SAT!
                     logger.debug("Found theory-consistent model")
                     result = SolverResult.SAT
                     break
 
-                if core_result == SolverResult.UNSAT.name:
-                    blocking_clauses.append([-literal for literal in bool_models[task_id]])
+                clause = record_theory_result(
+                    metrics, core_result, bool_models[task_id]
+                )
+                if clause is not None:
+                    blocking_clauses.append(clause)
                 else:
                     saw_unknown = True
 
@@ -294,14 +336,30 @@ def solve(smt2_string: str, logic: str = "ALL") -> SolverResult:
 
             logger.debug("Adding %d blocking clauses", len(blocking_clauses))
 
+            record_added_clauses(metrics, blocking_clauses)
             for clause in blocking_clauses:
                 bool_solver.add_clause(clause)
+            metrics.completed_rounds_total += 1
 
     except (OSError, RuntimeError, ValueError) as e:
         logger.error("Error in CDCL(T) main loop: %s", e)
         result = SolverResult.UNKNOWN
 
     finally:
+        metrics.wall_time_seconds = time.monotonic() - solve_start
+        logger.info(
+            "pcdclt_metrics generated_total=%d added_total=%d theory_unsat_checks_total=%d theory_sat_checks_total=%d theory_unknown_or_error_total=%d completed_rounds_total=%d wall_time_seconds=%.3f sampling_strategy=%s simplify_clauses=%s worker_count=%d",
+            metrics.generated_total,
+            metrics.added_total,
+            metrics.theory_unsat_checks_total,
+            metrics.theory_sat_checks_total,
+            metrics.theory_unknown_or_error_total,
+            metrics.completed_rounds_total,
+            metrics.wall_time_seconds,
+            BOOL_MODEL_SAMPLING_STRATEGY,
+            SIMPLIFY_CLAUSES,
+            num_workers,
+        )
         # Shutdown workers gracefully
         logger.debug("Shutting down %d theory workers", num_workers)
 
