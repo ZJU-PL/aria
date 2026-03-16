@@ -4,11 +4,12 @@ import argparse
 import logging
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Optional, cast
 
 import z3
 
 from aria.counting.qfbv_counting import BVModelCounter
+from aria.utils.z3_expr_utils import get_variables
 from aria.allsmt.bool_enumeration import count_models as count_bool_models
 from aria.sampling.general_sampler import count_solutions
 
@@ -40,14 +41,39 @@ def count_from_file(
     else:
         format_type = "smtlib2"  # default
 
+    auto_formula: Optional[z3.BoolRef] = None
+    if theory == "auto" and format_type == "smtlib2":
+        try:
+            auto_formula = cast(z3.BoolRef, z3.And(*z3.parse_smt2_file(filename)))
+            variables = get_variables(auto_formula)
+            has_bv = any(z3.is_bv(v) for v in variables)
+            has_real = any(z3.is_real(v) for v in variables)
+            has_int = any(z3.is_int(v) for v in variables)
+
+            if has_bv:
+                theory = "bv"
+            elif has_real:
+                theory = "generic"
+            elif has_int:
+                from aria.counting.arith.arith_counting_latte import (
+                    ArithModelCounter,
+                )  # pylint: disable=import-outside-toplevel
+
+                analysis = ArithModelCounter().analyze(auto_formula)
+                if analysis.status == "exact":
+                    theory = "arith"
+                else:
+                    theory = "generic"
+            else:
+                theory = "bool"
+        except Exception:
+            theory = "bool"
+
     if theory == "auto":
-        # Try to infer from content
         if "BitVec" in content or "(_ bv" in content:
             theory = "bv"
-        elif "Int" in content or "Real" in content:
-            theory = "arith"
         else:
-            theory = "bool"  # default
+            theory = "bool"
 
     logging.info("Detected theory: %s, format: %s", theory, format_type)
 
@@ -81,7 +107,7 @@ def count_from_file(
             )
             solver = z3.Solver()
             solver.from_string(smt_body)
-            formula = z3.And(solver.assertions())
+            formula = cast(z3.BoolRef, z3.And(*solver.assertions()))
             count = count_bool_models(
                 formula, method=method if method != "auto" else "solver"
             )
@@ -102,46 +128,35 @@ def count_from_file(
         return count
 
     elif theory == "arith":
-        # Arithmetic model counting
-        try:
-            from aria.counting.arith.arith_counting_latte import (
-                count_lia_models,
-            )  # pylint: disable=import-outside-toplevel
+        from aria.counting.arith.arith_counting_latte import (
+            ArithModelCounter,
+        )  # pylint: disable=import-outside-toplevel
 
-            formula = z3.And(z3.parse_smt2_file(filename))
-            count = count_lia_models(formula)
-            return count
-        except NotImplementedError:
-            logging.warning("LattE-based arithmetic counting not implemented")
-            logging.info("Falling back to enumeration-based counting")
-            # Fallback to enumeration using AllSMT
-            try:
-                formula = z3.And(z3.parse_smt2_file(filename))
-                from aria.allsmt import (
-                    create_allsmt_solver,
-                )  # pylint: disable=import-outside-toplevel
-                from aria.utils.z3_expr_utils import (
-                    get_variables,
-                )  # pylint: disable=import-outside-toplevel
+        formula = auto_formula
+        if formula is None:
+            formula = cast(z3.BoolRef, z3.And(*z3.parse_smt2_file(filename)))
 
-                # Extract variables from formula
-                variables = get_variables(formula)
-                # Limit vars for performance
-                vars_to_use = variables[:20] if len(variables) > 20 else variables
-                # Use AllSMT solver to enumerate models
-                solver = create_allsmt_solver()
-                models = solver.solve(
-                    formula, vars_to_use, model_limit=1000
-                )  # pylint: disable=no-member
-                return len(models)
-            except Exception as e:
-                logging.error("Enumeration-based counting failed: %s", e)
-                raise ValueError(
-                    "Arithmetic model counting is not fully supported yet"
-                ) from e
-        except Exception as e:
-            logging.warning("LattE-based counting failed: %s", e)
-            raise
+        arith_method = method
+        if method in ("auto", "solver"):
+            arith_method = "auto"
+        elif method == "enumeration":
+            arith_method = "enumeration"
+        elif method == "latte":
+            arith_method = "latte"
+        else:
+            raise ValueError(f"Unsupported method for arithmetic theory: {method}")
+
+        counter = ArithModelCounter()
+        result = counter.count_models(
+            formula=formula,
+            method=arith_method,
+        )
+        if result.status != "exact" or result.count is None:
+            raise ValueError(
+                "Arithmetic model counting failed: "
+                f"{result.status}: {result.reason}"
+            )
+        return result.count
 
     else:
         # Generic SMT-LIB2 counting

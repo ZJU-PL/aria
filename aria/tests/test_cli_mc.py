@@ -29,6 +29,30 @@ SMT2_BV_SAMPLE = """(set-logic QF_BV)
 (check-sat)
 """
 
+SMT2_ARITH_BOUNDED_SAMPLE = """(set-logic QF_LIA)
+(declare-const x Int)
+(declare-const y Int)
+(assert (>= x 0))
+(assert (>= y 0))
+(assert (<= x 2))
+(assert (<= y 2))
+(assert (= (+ x y) 2))
+(check-sat)
+"""
+
+SMT2_ARITH_UNBOUNDED_SAMPLE = """(set-logic QF_LIA)
+(declare-const x Int)
+(assert (>= x 0))
+(check-sat)
+"""
+
+SMT2_REAL_ARITH_SAMPLE = """(set-logic QF_LRA)
+(declare-const x Real)
+(assert (>= x 0.0))
+(assert (<= x 1.0))
+(check-sat)
+"""
+
 
 def _write_file(tmp_path, content, suffix):
     path = tmp_path / f"sample.{suffix}"
@@ -70,6 +94,36 @@ class TestCountFromFile:
             assert isinstance(count, int)
         except Exception:
             pytest.skip("BV counting not fully supported in test environment")
+
+    def test_arith_bounded_counting(self, tmp_path):
+        in_file = _write_file(tmp_path, SMT2_ARITH_BOUNDED_SAMPLE, "smt2")
+        count = count_from_file(str(in_file), theory="arith", method="auto")
+        assert count == 3
+
+    def test_arith_unbounded_rejected(self, tmp_path):
+        in_file = _write_file(tmp_path, SMT2_ARITH_UNBOUNDED_SAMPLE, "smt2")
+        with pytest.raises(ValueError, match="unbounded"):
+            count_from_file(str(in_file), theory="arith", method="auto")
+
+    def test_arith_solver_method_alias(self, tmp_path):
+        in_file = _write_file(tmp_path, SMT2_ARITH_BOUNDED_SAMPLE, "smt2")
+        count = count_from_file(str(in_file), theory="arith", method="solver")
+        assert count == 3
+
+    def test_auto_bounded_lia_uses_arith_counter(self, tmp_path):
+        in_file = _write_file(tmp_path, SMT2_ARITH_BOUNDED_SAMPLE, "smt2")
+        count = count_from_file(str(in_file), theory="auto", method="auto")
+        assert count == 3
+
+    def test_auto_unbounded_lia_falls_back_generic(self, tmp_path):
+        in_file = _write_file(tmp_path, SMT2_ARITH_UNBOUNDED_SAMPLE, "smt2")
+        count = count_from_file(str(in_file), theory="auto", method="auto")
+        assert isinstance(count, int)
+
+    def test_auto_real_arith_falls_back_generic(self, tmp_path):
+        in_file = _write_file(tmp_path, SMT2_REAL_ARITH_SAMPLE, "smt2")
+        count = count_from_file(str(in_file), theory="auto", method="auto")
+        assert isinstance(count, int)
 
     def test_file_not_found(self):
         with pytest.raises((IOError, OSError)):
