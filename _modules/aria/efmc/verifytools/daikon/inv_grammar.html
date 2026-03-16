@@ -1,0 +1,328 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>aria.efmc.verifytools.daikon.inv_grammar &mdash; ARIA Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../../index.html" class="icon icon-home">
+            ARIA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">ARIA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">aria.efmc.verifytools.daikon.inv_grammar</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for aria.efmc.verifytools.daikon.inv_grammar</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Grammar parser for Daikon invariants.&quot;&quot;&quot;</span>
+
+<span class="c1"># pylint: disable=no-self-argument, invalid-name, too-many-instance-attributes, too-many-statements, abstract-method</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyparsing</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Keyword</span> <span class="k">as</span> <span class="n">K</span><span class="p">,</span>
+    <span class="n">Literal</span> <span class="k">as</span> <span class="n">L</span><span class="p">,</span>
+    <span class="n">OneOrMore</span><span class="p">,</span>
+    <span class="n">ParserElement</span><span class="p">,</span>
+    <span class="n">Regex</span> <span class="k">as</span> <span class="n">R</span><span class="p">,</span>
+    <span class="n">StringEnd</span><span class="p">,</span>
+    <span class="n">Suppress</span> <span class="k">as</span> <span class="n">S</span><span class="p">,</span>
+    <span class="n">Word</span> <span class="k">as</span> <span class="n">W</span><span class="p">,</span>
+    <span class="n">delimitedList</span><span class="p">,</span>
+    <span class="n">infixNotation</span><span class="p">,</span>
+    <span class="n">nums</span><span class="p">,</span>
+    <span class="n">opAssoc</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.verifytools.common.parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">InfixExprParser</span>
+
+<span class="n">ParserElement</span><span class="o">.</span><span class="n">enablePackrat</span><span class="p">()</span>
+<span class="n">csl</span> <span class="o">=</span> <span class="n">delimitedList</span>
+
+
+<div class="viewcode-block" id="DaikonInvParser">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.daikon.inv_grammar.DaikonInvParser">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DaikonInvParser</span><span class="p">(</span><span class="n">InfixExprParser</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parser for Daikon invariant expressions.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="DaikonInvParser.onAtom">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.daikon.inv_grammar.DaikonInvParser.onAtom">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">onAtom</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">prod</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handle atom production - to be overridden by subclasses.&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Should be implemented by AstBuilder&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DaikonInvParser.onUnaryOp">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.daikon.inv_grammar.DaikonInvParser.onUnaryOp">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">onUnaryOp</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">prod</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handle unary operator production - to be overridden by subclasses.&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Should be implemented by AstBuilder&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DaikonInvParser.onLABinOp">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.daikon.inv_grammar.DaikonInvParser.onLABinOp">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">onLABinOp</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">prod</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handle left-associative binary operator production - to be overridden by subclasses.&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Should be implemented by AstBuilder&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DaikonInvParser.onRABinOp">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.daikon.inv_grammar.DaikonInvParser.onRABinOp">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">onRABinOp</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">prod</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handle right-associative binary operator production - to be overridden by subclasses.&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Should be implemented by AstBuilder&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DaikonInvParser.onNABinOp">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.daikon.inv_grammar.DaikonInvParser.onNABinOp">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">onNABinOp</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">prod</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handle non-associative binary operator production - to be overridden by subclasses.&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Should be implemented by AstBuilder&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DaikonInvParser.onTernaryOp">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.daikon.inv_grammar.DaikonInvParser.onTernaryOp">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">onTernaryOp</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">prod</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handle ternary operator production - to be overridden by subclasses.&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Should be implemented by AstBuilder&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DaikonInvParser.onVariaryOp">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.daikon.inv_grammar.DaikonInvParser.onVariaryOp">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">onVariaryOp</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">prod</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handle variary operator production - to be overridden by subclasses.&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Should be implemented by AstBuilder&quot;</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">LT</span> <span class="o">=</span> <span class="n">L</span><span class="p">(</span><span class="s2">&quot;&lt;&quot;</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">GT</span> <span class="o">=</span> <span class="n">L</span><span class="p">(</span><span class="s2">&quot;&gt;&quot;</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">EQ</span> <span class="o">=</span> <span class="n">L</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">LPARN</span> <span class="o">=</span> <span class="n">S</span><span class="p">(</span><span class="s2">&quot;(&quot;</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">RPARN</span> <span class="o">=</span> <span class="n">S</span><span class="p">(</span><span class="s2">&quot;)&quot;</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">LBRAC</span> <span class="o">=</span> <span class="n">S</span><span class="p">(</span><span class="s2">&quot;{&quot;</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">RBRAC</span> <span class="o">=</span> <span class="n">S</span><span class="p">(</span><span class="s2">&quot;}&quot;</span><span class="p">)</span>
+
+        <span class="n">s</span><span class="o">.</span><span class="n">EquivOp</span> <span class="o">=</span> <span class="n">L</span><span class="p">(</span><span class="s2">&quot;&lt;==&gt;&quot;</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">ImplOp</span> <span class="o">=</span> <span class="n">L</span><span class="p">(</span><span class="s2">&quot;==&gt;&quot;</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">OrOp</span> <span class="o">=</span> <span class="n">L</span><span class="p">(</span><span class="s2">&quot;||&quot;</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">AndOp</span> <span class="o">=</span> <span class="n">L</span><span class="p">(</span><span class="s2">&quot;&amp;&amp;&quot;</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">RelOp</span> <span class="o">=</span> <span class="n">L</span><span class="p">(</span><span class="s2">&quot;!=&quot;</span><span class="p">)</span> <span class="o">|</span> <span class="n">L</span><span class="p">(</span><span class="s2">&quot;&lt;=&quot;</span><span class="p">)</span> <span class="o">|</span> <span class="n">L</span><span class="p">(</span><span class="s2">&quot;&gt;=&quot;</span><span class="p">)</span> <span class="o">|</span> <span class="n">L</span><span class="p">(</span><span class="s2">&quot;&lt;:&quot;</span><span class="p">)</span> <span class="o">|</span> <span class="n">L</span><span class="p">(</span><span class="s2">&quot;==&quot;</span><span class="p">)</span> <span class="o">|</span> <span class="n">L</span><span class="p">(</span><span class="s2">&quot;&lt;&quot;</span><span class="p">)</span> <span class="o">|</span> <span class="n">L</span><span class="p">(</span><span class="s2">&quot;&gt;&quot;</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">AddOp</span> <span class="o">=</span> <span class="n">L</span><span class="p">(</span><span class="s2">&quot;+&quot;</span><span class="p">)</span> <span class="o">|</span> <span class="n">L</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">MulOp</span> <span class="o">=</span> <span class="n">L</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">)</span> <span class="o">|</span> <span class="n">L</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span> <span class="o">|</span> <span class="n">L</span><span class="p">(</span><span class="s2">&quot;%&quot;</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">BWAnd</span> <span class="o">=</span> <span class="n">L</span><span class="p">(</span><span class="s2">&quot;&amp;&quot;</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">PowOp</span> <span class="o">=</span> <span class="n">L</span><span class="p">(</span><span class="s2">&quot;**&quot;</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">UnOp</span> <span class="o">=</span> <span class="n">L</span><span class="p">(</span><span class="s2">&quot;!&quot;</span><span class="p">)</span> <span class="o">|</span> <span class="n">L</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)</span>
+
+        <span class="n">s</span><span class="o">.</span><span class="n">FALSE</span> <span class="o">=</span> <span class="n">K</span><span class="p">(</span><span class="s2">&quot;false&quot;</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">FALSE</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="k">lambda</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">onAtom</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">FALSE</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">))</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">TRUE</span> <span class="o">=</span> <span class="n">K</span><span class="p">(</span><span class="s2">&quot;true&quot;</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">TRUE</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="k">lambda</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">onAtom</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">TRUE</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">))</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">Id</span> <span class="o">=</span> <span class="n">R</span><span class="p">(</span><span class="s2">&quot;[a-zA-Z_][a-zA-Z0-9_#]*&quot;</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">Id</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="k">lambda</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">onAtom</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">Id</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">))</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">Number</span> <span class="o">=</span> <span class="n">W</span><span class="p">(</span><span class="n">nums</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">Number</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="k">lambda</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">onAtom</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">Number</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">))</span>
+
+        <span class="n">s</span><span class="o">.</span><span class="n">Atom</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">FALSE</span> <span class="o">|</span> <span class="n">s</span><span class="o">.</span><span class="n">TRUE</span> <span class="o">|</span> <span class="n">s</span><span class="o">.</span><span class="n">Number</span> <span class="o">|</span> <span class="n">s</span><span class="o">.</span><span class="n">Id</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">AndOrOp</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">AndOp</span> <span class="o">|</span> <span class="n">s</span><span class="o">.</span><span class="n">OrOp</span>
+
+        <span class="n">s</span><span class="o">.</span><span class="n">ArithExpr</span> <span class="o">=</span> <span class="n">infixNotation</span><span class="p">(</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">Atom</span><span class="p">,</span>
+            <span class="p">[</span>
+                <span class="p">(</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">PowOp</span><span class="p">,</span>
+                    <span class="mi">2</span><span class="p">,</span>
+                    <span class="n">opAssoc</span><span class="o">.</span><span class="n">RIGHT</span><span class="p">,</span>
+                    <span class="k">lambda</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">onRABinOp</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">PowOp</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                <span class="p">),</span>
+                <span class="p">(</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">UnOp</span><span class="p">,</span>
+                    <span class="mi">1</span><span class="p">,</span>
+                    <span class="n">opAssoc</span><span class="o">.</span><span class="n">RIGHT</span><span class="p">,</span>
+                    <span class="k">lambda</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">onUnaryOp</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">UnOp</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                <span class="p">),</span>
+                <span class="p">(</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">MulOp</span><span class="p">,</span>
+                    <span class="mi">2</span><span class="p">,</span>
+                    <span class="n">opAssoc</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span>
+                    <span class="k">lambda</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">onLABinOp</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">MulOp</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                <span class="p">),</span>
+                <span class="p">(</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">AddOp</span><span class="p">,</span>
+                    <span class="mi">2</span><span class="p">,</span>
+                    <span class="n">opAssoc</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span>
+                    <span class="k">lambda</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">onLABinOp</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">AddOp</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                <span class="p">),</span>
+            <span class="p">],</span>
+        <span class="p">)</span>
+
+        <span class="n">s</span><span class="o">.</span><span class="n">RelExpr</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">ArithExpr</span> <span class="o">+</span> <span class="n">s</span><span class="o">.</span><span class="n">RelOp</span> <span class="o">+</span> <span class="n">s</span><span class="o">.</span><span class="n">ArithExpr</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">RelExpr</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">onNABinOp</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">RelOp</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">s</span><span class="o">.</span><span class="n">BoolExpr</span> <span class="o">=</span> <span class="n">infixNotation</span><span class="p">(</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">RelExpr</span><span class="p">,</span>
+            <span class="p">[</span>
+                <span class="p">(</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">AndOrOp</span><span class="p">,</span>
+                    <span class="mi">2</span><span class="p">,</span>
+                    <span class="n">opAssoc</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span>
+                    <span class="k">lambda</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">onLABinOp</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">AndOrOp</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                <span class="p">),</span>
+                <span class="p">(</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">ImplOp</span><span class="p">,</span>
+                    <span class="mi">2</span><span class="p">,</span>
+                    <span class="n">opAssoc</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span>
+                    <span class="k">lambda</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">onLABinOp</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">ImplOp</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                <span class="p">),</span>
+                <span class="p">(</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">EquivOp</span><span class="p">,</span>
+                    <span class="mi">2</span><span class="p">,</span>
+                    <span class="n">opAssoc</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span>
+                    <span class="k">lambda</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">onLABinOp</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">EquivOp</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                <span class="p">),</span>
+            <span class="p">],</span>
+        <span class="p">)</span>
+
+        <span class="n">s</span><span class="o">.</span><span class="n">Expr</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">BoolExpr</span> <span class="o">|</span> <span class="n">s</span><span class="o">.</span><span class="n">RelExpr</span> <span class="o">|</span> <span class="n">s</span><span class="o">.</span><span class="n">ArithExpr</span>
+
+        <span class="n">s</span><span class="o">.</span><span class="n">IsPow2</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">Id</span> <span class="o">+</span> <span class="n">S</span><span class="p">(</span><span class="s2">&quot;is a power of 2&quot;</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">IsPow2</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">onUnaryOp</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">IsPow2</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">IsOneOf</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">Id</span> <span class="o">+</span> <span class="n">S</span><span class="p">(</span><span class="s2">&quot;one of&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">S</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">LBRAC</span><span class="p">)</span> <span class="o">+</span> <span class="n">csl</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">Expr</span><span class="p">)</span> <span class="o">+</span> <span class="n">S</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">RBRAC</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">IsOneOf</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">onNABinOp</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">IsOneOf</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="p">[</span><span class="n">toks</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">toks</span><span class="p">[</span><span class="mi">1</span><span class="p">:]])</span>
+        <span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">IsInRange</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">Number</span> <span class="o">+</span> <span class="n">S</span><span class="p">(</span><span class="n">L</span><span class="p">(</span><span class="s2">&quot;&lt;=&quot;</span><span class="p">))</span> <span class="o">+</span> <span class="n">s</span><span class="o">.</span><span class="n">Id</span> <span class="o">+</span> <span class="n">S</span><span class="p">(</span><span class="n">L</span><span class="p">(</span><span class="s2">&quot;&lt;=&quot;</span><span class="p">))</span> <span class="o">+</span> <span class="n">s</span><span class="o">.</span><span class="n">Number</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">IsInRange</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">onNABinOp</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">IsInRange</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">IsBoolean</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">Id</span> <span class="o">+</span> <span class="n">S</span><span class="p">(</span><span class="n">L</span><span class="p">(</span><span class="s2">&quot;is boolean&quot;</span><span class="p">))</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">IsBoolean</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">onUnaryOp</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">IsBoolean</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">s</span><span class="o">.</span><span class="n">IsEven</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">Id</span> <span class="o">+</span> <span class="n">S</span><span class="p">(</span><span class="n">L</span><span class="p">(</span><span class="s2">&quot;is even&quot;</span><span class="p">))</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">IsEven</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">onUnaryOp</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">IsEven</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">s</span><span class="o">.</span><span class="n">IsConstMod</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">Id</span> <span class="o">+</span> <span class="n">S</span><span class="p">(</span><span class="n">L</span><span class="p">(</span><span class="s2">&quot;==&quot;</span><span class="p">))</span> <span class="o">+</span> <span class="n">s</span><span class="o">.</span><span class="n">Number</span> <span class="o">+</span> <span class="n">S</span><span class="p">(</span><span class="n">L</span><span class="p">(</span><span class="s2">&quot;(mod&quot;</span><span class="p">))</span> <span class="o">+</span> <span class="n">s</span><span class="o">.</span><span class="n">Number</span> <span class="o">+</span> <span class="n">S</span><span class="p">(</span><span class="n">L</span><span class="p">(</span><span class="s2">&quot;)&quot;</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">IsConstMod</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">onTernaryOp</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">IsConstMod</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">val_freq_pair</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">ArithExpr</span> <span class="o">+</span> <span class="n">S</span><span class="p">(</span><span class="n">L</span><span class="p">(</span><span class="s2">&quot;[&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">s</span><span class="o">.</span><span class="n">Number</span> <span class="o">+</span> <span class="n">L</span><span class="p">(</span><span class="s2">&quot;]&quot;</span><span class="p">))</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">HasValues</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">Id</span> <span class="o">+</span> <span class="n">S</span><span class="p">(</span><span class="n">L</span><span class="p">(</span><span class="s2">&quot;has values:&quot;</span><span class="p">))</span> <span class="o">+</span> <span class="n">OneOrMore</span><span class="p">(</span><span class="n">val_freq_pair</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">HasValues</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">onVariaryOp</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">HasValues</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">s</span><span class="o">.</span><span class="n">JustInv</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">IsPow2</span>
+            <span class="o">|</span> <span class="n">s</span><span class="o">.</span><span class="n">IsOneOf</span>
+            <span class="o">|</span> <span class="n">s</span><span class="o">.</span><span class="n">IsInRange</span>
+            <span class="o">|</span> <span class="n">s</span><span class="o">.</span><span class="n">IsBoolean</span>
+            <span class="o">|</span> <span class="n">s</span><span class="o">.</span><span class="n">IsEven</span>
+            <span class="o">|</span> <span class="n">s</span><span class="o">.</span><span class="n">IsConstMod</span>
+            <span class="o">|</span> <span class="n">s</span><span class="o">.</span><span class="n">HasValues</span>
+            <span class="o">|</span> <span class="n">s</span><span class="o">.</span><span class="n">Expr</span>
+        <span class="p">)</span>
+
+        <span class="n">s</span><span class="o">.</span><span class="n">WarnInv</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">S</span><span class="p">(</span><span class="n">R</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;warning: too few samples for [a-zA-Z\._]* invariant:&quot;</span><span class="p">))</span> <span class="o">+</span> <span class="n">s</span><span class="o">.</span><span class="n">JustInv</span>
+            <span class="o">|</span> <span class="n">s</span><span class="o">.</span><span class="n">JustInv</span>
+        <span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">OneLine</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">WarnInv</span> <span class="o">+</span> <span class="n">StringEnd</span><span class="p">()</span>
+
+<div class="viewcode-block" id="DaikonInvParser.parse">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.daikon.inv_grammar.DaikonInvParser.parse">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">parse</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">st</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse a Daikon invariant string.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">OneLine</span><span class="o">.</span><span class="n">parseString</span><span class="p">(</span><span class="n">st</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

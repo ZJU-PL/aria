@@ -182,8 +182,8 @@
 <h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
 <section id="basic-usage">
 <h3>Basic Usage<a class="headerlink" href="#basic-usage" title="Link to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">efmc.sts</span><span class="w"> </span><span class="kn">import</span> <span class="n">TransitionSystem</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">efmc.engines.ef.termination_prover</span><span class="w"> </span><span class="kn">import</span> <span class="n">TerminationProver</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.sts</span><span class="w"> </span><span class="kn">import</span> <span class="n">TransitionSystem</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.engines.ef.termination_prover</span><span class="w"> </span><span class="kn">import</span> <span class="n">TerminationProver</span>
 
 <span class="c1"># Create your transition system</span>
 <span class="n">sts</span> <span class="o">=</span> <span class="n">TransitionSystem</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
@@ -206,7 +206,7 @@
 </section>
 <section id="convenience-function">
 <h3>Convenience Function<a class="headerlink" href="#convenience-function" title="Link to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">efmc.engines.ef.termination_prover</span><span class="w"> </span><span class="kn">import</span> <span class="n">prove_termination_with_ranking_functions</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.engines.ef.termination_prover</span><span class="w"> </span><span class="kn">import</span> <span class="n">prove_termination_with_ranking_functions</span>
 
 <span class="c1"># Try multiple templates automatically</span>
 <span class="n">success</span><span class="p">,</span> <span class="n">ranking_func</span><span class="p">,</span> <span class="n">template_used</span> <span class="o">=</span> <span class="n">prove_termination_with_ranking_functions</span><span class="p">(</span>

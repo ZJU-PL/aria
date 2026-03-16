@@ -1,0 +1,625 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>aria.efmc.verifytools.boogie.ast &mdash; ARIA Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../../index.html" class="icon icon-home">
+            ARIA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">ARIA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">aria.efmc.verifytools.boogie.ast</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for aria.efmc.verifytools.boogie.ast</h1><div class="highlight"><pre>
+<span></span>
+<span class="c1">#pylint: disable=no-self-argument,multiple-statements</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">reduce</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.verifytools.boogie.grammar</span><span class="w"> </span><span class="kn">import</span> <span class="n">BoogieParser</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyparsing</span><span class="w"> </span><span class="kn">import</span> <span class="n">ParseResults</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.verifytools.common.ast</span><span class="w"> </span><span class="kn">import</span> <span class="n">AstNode</span><span class="p">,</span> <span class="n">replace</span><span class="p">,</span> <span class="n">reduce_nodes</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_strip</span><span class="p">(</span><span class="n">arg</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">ParseResults</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">arg</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">arg</span>
+
+<div class="viewcode-block" id="AstProgram">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstProgram">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AstProgram</span><span class="p">(</span><span class="n">AstNode</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">decls</span><span class="p">):</span> <span class="n">AstNode</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">decls</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">decls</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="AstImplementation">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstImplementation">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AstImplementation</span><span class="p">(</span><span class="n">AstNode</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">signature</span><span class="p">,</span> <span class="n">body</span><span class="p">):</span>
+        <span class="n">AstNode</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">signature</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;implementation &quot;</span> <span class="o">+</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">signature</span><span class="p">)</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">body</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AstBinding">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstBinding">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AstBinding</span><span class="p">(</span><span class="n">AstNode</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">typ</span><span class="p">):</span>  <span class="n">AstNode</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">typ</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="k">return</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">names</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot; : &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">typ</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AstLabel">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstLabel">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AstLabel</span><span class="p">(</span><span class="n">AstNode</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">stmt</span><span class="p">):</span>  <span class="n">AstNode</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">stmt</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">label</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; : &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">stmt</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AstAssignment">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstAssignment">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AstAssignment</span><span class="p">(</span><span class="n">AstNode</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">lhs</span><span class="p">,</span> <span class="n">rhs</span><span class="p">):</span>  <span class="n">AstNode</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">lhs</span><span class="p">,</span> <span class="n">rhs</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">lhs</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; := &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">rhs</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span></div>
+
+
+<div class="viewcode-block" id="AstIntType">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstIntType">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AstIntType</span><span class="p">(</span><span class="n">AstNode</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>  <span class="n">AstNode</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="k">return</span> <span class="s2">&quot;int&quot;</span></div>
+
+
+<div class="viewcode-block" id="AstBody">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstBody">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AstBody</span><span class="p">(</span><span class="n">AstNode</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">bindings</span><span class="p">,</span> <span class="n">stmts</span><span class="p">):</span>   <span class="n">AstNode</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">bindings</span><span class="p">,</span> <span class="n">stmts</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;{</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;var &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">bindings</span><span class="p">])</span> <span class="o">+</span>\
+                <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span>\
+                <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">stmts</span><span class="p">])</span> <span class="o">+</span> \
+                <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">}&quot;</span></div>
+
+
+<div class="viewcode-block" id="AstStmt">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstStmt">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AstStmt</span><span class="p">(</span><span class="n">AstNode</span><span class="p">):</span> <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="AstOneExprStmt">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstOneExprStmt">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AstOneExprStmt</span><span class="p">(</span><span class="n">AstStmt</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>  <span class="n">AstStmt</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">expr</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AstAssert">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstAssert">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AstAssert</span><span class="p">(</span><span class="n">AstOneExprStmt</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="k">return</span> <span class="s2">&quot;assert (&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">expr</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;);&quot;</span><span class="p">;</span></div>
+
+
+<div class="viewcode-block" id="AstAssume">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstAssume">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AstAssume</span><span class="p">(</span><span class="n">AstOneExprStmt</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="k">return</span> <span class="s2">&quot;assume (&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">expr</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;);&quot;</span><span class="p">;</span></div>
+
+
+<div class="viewcode-block" id="AstHavoc">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstHavoc">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AstHavoc</span><span class="p">(</span><span class="n">AstStmt</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">ids</span><span class="p">):</span>  <span class="n">AstStmt</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">ids</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="k">return</span> <span class="s2">&quot;havoc &quot;</span> <span class="o">+</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">ids</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span></div>
+
+
+<span class="c1"># Returns is for now without argument</span>
+<div class="viewcode-block" id="AstReturn">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstReturn">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AstReturn</span><span class="p">(</span><span class="n">AstStmt</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>  <span class="n">AstStmt</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="k">return</span> <span class="s2">&quot;return ;&quot;</span></div>
+
+
+<div class="viewcode-block" id="AstGoto">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstGoto">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AstGoto</span><span class="p">(</span><span class="n">AstStmt</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>  <span class="n">AstStmt</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="k">return</span> <span class="s2">&quot;goto &quot;</span> <span class="o">+</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">labels</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span></div>
+
+
+<div class="viewcode-block" id="AstWhile">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstWhile">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AstWhile</span><span class="p">(</span><span class="n">AstStmt</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">condition</span><span class="p">,</span> <span class="n">invariants</span><span class="p">,</span> <span class="n">body</span><span class="p">):</span>  
+        <span class="n">AstStmt</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">condition</span><span class="p">,</span> <span class="n">invariants</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> 
+        <span class="n">inv_str</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;  invariant </span><span class="si">{</span><span class="n">inv</span><span class="si">}</span><span class="s2">;&quot;</span> <span class="k">for</span> <span class="n">inv</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">invariants</span><span class="p">])</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">invariants</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;while (</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">condition</span><span class="si">}</span><span class="s2">)</span><span class="se">\n</span><span class="si">{</span><span class="n">inv_str</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">body</span><span class="si">}</span><span class="s2">&quot;</span></div>
+
+
+<div class="viewcode-block" id="AstBlock">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstBlock">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AstBlock</span><span class="p">(</span><span class="n">AstStmt</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">stmts</span><span class="p">):</span>  <span class="n">AstStmt</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">stmts</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> 
+        <span class="k">return</span> <span class="s2">&quot;{</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">stmt</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">stmt</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">stmts</span><span class="p">])</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">}&quot;</span></div>
+
+
+<div class="viewcode-block" id="AstUnExpr">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstUnExpr">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AstUnExpr</span><span class="p">(</span><span class="n">AstNode</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>  <span class="n">AstNode</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">expr</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">op</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">expr</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AstFalse">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstFalse">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AstFalse</span><span class="p">(</span><span class="n">AstNode</span><span class="p">):</span> 
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>  <span class="n">AstNode</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="k">return</span> <span class="s2">&quot;false&quot;</span></div>
+
+
+<div class="viewcode-block" id="AstTrue">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstTrue">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AstTrue</span><span class="p">(</span><span class="n">AstNode</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>  <span class="n">AstNode</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="k">return</span> <span class="s2">&quot;true&quot;</span></div>
+
+
+<div class="viewcode-block" id="AstNumber">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstNumber">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AstNumber</span><span class="p">(</span><span class="n">AstNode</span><span class="p">):</span> 
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">num</span><span class="p">):</span>   <span class="n">AstNode</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">num</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">num</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AstId">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstId">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AstId</span><span class="p">(</span><span class="n">AstNode</span><span class="p">):</span> 
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>  <span class="n">AstNode</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AstBinExpr">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstBinExpr">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AstBinExpr</span><span class="p">(</span><span class="n">AstNode</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">lhs</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">rhs</span><span class="p">):</span>  <span class="n">AstNode</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">lhs</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">rhs</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;(&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">lhs</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">op</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">rhs</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span></div>
+
+
+<div class="viewcode-block" id="AstFuncExpr">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstFuncExpr">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AstFuncExpr</span><span class="p">(</span><span class="n">AstNode</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">funcName</span><span class="p">,</span> <span class="o">*</span><span class="n">ops</span><span class="p">):</span>  <span class="n">AstNode</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">funcName</span><span class="p">,</span> <span class="o">*</span><span class="n">ops</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">funcName</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;(&quot;</span> <span class="o">+</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">ops</span><span class="p">))</span> <span class="o">+</span>  <span class="s2">&quot;)&quot;</span></div>
+
+
+<div class="viewcode-block" id="AstBuilder">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstBuilder">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AstBuilder</span><span class="p">(</span><span class="n">BoogieParser</span><span class="p">):</span>
+<div class="viewcode-block" id="AstBuilder.onAtom">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstBuilder.onAtom">[docs]</a>
+  <span class="k">def</span><span class="w"> </span><span class="nf">onAtom</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">prod</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">prod</span> <span class="o">==</span> <span class="n">s</span><span class="o">.</span><span class="n">TRUE</span><span class="p">:</span>
+      <span class="k">return</span> <span class="p">[</span> <span class="n">AstTrue</span><span class="p">()</span> <span class="p">]</span>
+    <span class="k">elif</span> <span class="n">prod</span> <span class="o">==</span> <span class="n">s</span><span class="o">.</span><span class="n">FALSE</span><span class="p">:</span>
+      <span class="k">return</span> <span class="p">[</span> <span class="n">AstFalse</span><span class="p">()</span> <span class="p">]</span>
+    <span class="k">elif</span> <span class="n">prod</span> <span class="o">==</span> <span class="n">s</span><span class="o">.</span><span class="n">Number</span><span class="p">:</span>
+      <span class="k">return</span> <span class="p">[</span> <span class="n">AstNumber</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">toks</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span> <span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="k">return</span> <span class="p">[</span> <span class="n">AstId</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">toks</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span> <span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="AstBuilder.onUnaryOp">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstBuilder.onUnaryOp">[docs]</a>
+  <span class="k">def</span><span class="w"> </span><span class="nf">onUnaryOp</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">prod</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">[</span> <span class="n">AstUnExpr</span><span class="p">(</span><span class="o">*</span><span class="n">toks</span><span class="p">)</span> <span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="AstBuilder.onLABinOp">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstBuilder.onLABinOp">[docs]</a>
+  <span class="k">def</span><span class="w"> </span><span class="nf">onLABinOp</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">prod</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">):</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">):</span>
+      <span class="k">return</span> <span class="p">[</span> <span class="n">AstBinExpr</span><span class="p">(</span><span class="o">*</span><span class="n">toks</span><span class="p">)</span> <span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="k">assert</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">);</span>
+      <span class="n">base</span> <span class="o">=</span> <span class="n">AstBinExpr</span><span class="p">(</span><span class="o">*</span><span class="n">toks</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span>
+      <span class="n">rest</span> <span class="o">=</span> <span class="p">[</span> <span class="p">[</span><span class="n">toks</span><span class="p">[</span><span class="mi">3</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">k</span><span class="p">],</span> <span class="n">toks</span><span class="p">[</span><span class="mi">3</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">]]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span><span class="o">-</span><span class="mi">3</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="p">]</span>
+      <span class="k">return</span> <span class="p">[</span> <span class="n">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">acc</span><span class="p">,</span><span class="n">el</span><span class="p">:</span>  <span class="n">AstBinExpr</span><span class="p">(</span><span class="n">acc</span><span class="p">,</span> <span class="n">el</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">el</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> \
+                      <span class="n">rest</span><span class="p">,</span> <span class="n">base</span><span class="p">)</span>
+             <span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="AstBuilder.onRABinOp">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstBuilder.onRABinOp">[docs]</a>
+  <span class="k">def</span><span class="w"> </span><span class="nf">onRABinOp</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">prod</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">):</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">):</span>
+      <span class="k">return</span> <span class="p">[</span> <span class="n">AstBinExpr</span><span class="p">(</span><span class="o">*</span><span class="n">toks</span><span class="p">)</span> <span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="k">assert</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">);</span>
+      <span class="n">toks</span> <span class="o">=</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span>
+      <span class="n">base</span> <span class="o">=</span> <span class="n">AstBinExpr</span><span class="p">(</span><span class="o">*</span><span class="n">toks</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span>
+      <span class="k">return</span> <span class="p">[</span> <span class="n">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">acc</span><span class="p">,</span><span class="n">el</span><span class="p">:</span>  <span class="n">AstBinExpr</span><span class="p">(</span><span class="n">acc</span><span class="p">,</span> <span class="n">el</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">el</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> \
+                      <span class="n">toks</span><span class="p">[</span><span class="mi">3</span><span class="p">:],</span> <span class="n">base</span><span class="p">)</span>
+             <span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="AstBuilder.onNABinOp">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstBuilder.onNABinOp">[docs]</a>
+  <span class="k">def</span><span class="w"> </span><span class="nf">onNABinOp</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">prod</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">);</span>
+    <span class="k">return</span> <span class="p">[</span> <span class="n">AstBinExpr</span><span class="p">(</span><span class="o">*</span><span class="n">toks</span><span class="p">)</span> <span class="p">]</span></div>
+
+
+  <span class="c1"># Statements</span>
+<div class="viewcode-block" id="AstBuilder.onAssert">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstBuilder.onAssert">[docs]</a>
+  <span class="k">def</span><span class="w"> </span><span class="nf">onAssert</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">prod</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span> <span class="n">AstAssert</span><span class="p">(</span><span class="n">toks</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="p">]</span></div>
+
+<div class="viewcode-block" id="AstBuilder.onAssume">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstBuilder.onAssume">[docs]</a>
+  <span class="k">def</span><span class="w"> </span><span class="nf">onAssume</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">prod</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span> <span class="n">AstAssume</span><span class="p">(</span><span class="n">toks</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="p">]</span></div>
+
+<div class="viewcode-block" id="AstBuilder.onReturn">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstBuilder.onReturn">[docs]</a>
+  <span class="k">def</span><span class="w"> </span><span class="nf">onReturn</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">prod</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span> <span class="n">AstReturn</span><span class="p">()</span> <span class="p">]</span></div>
+
+<div class="viewcode-block" id="AstBuilder.onGoto">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstBuilder.onGoto">[docs]</a>
+  <span class="k">def</span><span class="w"> </span><span class="nf">onGoto</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">prod</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">):</span>
+    <span class="k">assert</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span> <span class="n">AstGoto</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="p">]</span></div>
+
+<div class="viewcode-block" id="AstBuilder.onAssignment">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstBuilder.onAssignment">[docs]</a>
+  <span class="k">def</span><span class="w"> </span><span class="nf">onAssignment</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">prod</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span> <span class="n">AstAssignment</span><span class="p">(</span><span class="n">toks</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">toks</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="p">]</span></div>
+
+<div class="viewcode-block" id="AstBuilder.onHavoc">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstBuilder.onHavoc">[docs]</a>
+  <span class="k">def</span><span class="w"> </span><span class="nf">onHavoc</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">prod</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span> <span class="n">AstHavoc</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="p">]</span></div>
+
+<div class="viewcode-block" id="AstBuilder.onWhile">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstBuilder.onWhile">[docs]</a>
+  <span class="k">def</span><span class="w"> </span><span class="nf">onWhile</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">prod</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">):</span>
+    <span class="c1"># The grammar is: WHILE + LPARN + WildcardExpr + RPARN + ZoM(LoopInv) + BlockStmt</span>
+    <span class="c1"># But the parser includes the WHILE keyword in tokens, so:</span>
+    <span class="c1"># toks = [&quot;while&quot;, condition, [invariants...], body]</span>
+    
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="c1"># Skip the &quot;while&quot; keyword (toks[0])</span>
+        <span class="n">condition</span> <span class="o">=</span> <span class="n">toks</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># The condition expression</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="n">toks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>      <span class="c1"># Last token is the body</span>
+        <span class="n">invariants</span> <span class="o">=</span> <span class="n">toks</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span> <span class="k">else</span> <span class="p">[]</span>  <span class="c1"># Everything in between</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">condition</span> <span class="o">=</span> <span class="n">AstTrue</span><span class="p">()</span>
+        <span class="n">invariants</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="n">AstBlock</span><span class="p">([])</span>
+    
+    <span class="k">return</span> <span class="p">[</span> <span class="n">AstWhile</span><span class="p">(</span><span class="n">condition</span><span class="p">,</span> <span class="n">invariants</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span> <span class="p">]</span></div>
+
+<div class="viewcode-block" id="AstBuilder.onBlock">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstBuilder.onBlock">[docs]</a>
+  <span class="k">def</span><span class="w"> </span><span class="nf">onBlock</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">prod</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">[</span> <span class="n">AstBlock</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="p">]</span></div>
+
+<div class="viewcode-block" id="AstBuilder.onProgram">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstBuilder.onProgram">[docs]</a>
+  <span class="k">def</span><span class="w"> </span><span class="nf">onProgram</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">prod</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">):</span> 
+    <span class="k">return</span> <span class="p">[</span> <span class="n">AstProgram</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="p">]</span></div>
+
+<div class="viewcode-block" id="AstBuilder.onLocalVarDecl">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstBuilder.onLocalVarDecl">[docs]</a>
+  <span class="k">def</span><span class="w"> </span><span class="nf">onLocalVarDecl</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">prod</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">):</span> 
+    <span class="k">return</span> <span class="p">[</span> <span class="n">AstBinding</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">toks</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="n">toks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="p">]</span></div>
+
+<div class="viewcode-block" id="AstBuilder.onType">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstBuilder.onType">[docs]</a>
+  <span class="k">def</span><span class="w"> </span><span class="nf">onType</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">prod</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">):</span>
+    <span class="c1"># Currently only handle ints</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">toks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">s</span><span class="o">.</span><span class="n">INT</span><span class="p">;</span>
+    <span class="k">return</span> <span class="p">[</span> <span class="n">AstIntType</span><span class="p">()</span> <span class="p">];</span></div>
+
+<div class="viewcode-block" id="AstBuilder.onBody">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstBuilder.onBody">[docs]</a>
+  <span class="k">def</span><span class="w"> </span><span class="nf">onBody</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">prod</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">;</span>
+    <span class="k">return</span> <span class="p">[</span> <span class="n">AstBody</span><span class="p">(</span><span class="n">toks</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">toks</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="p">]</span></div>
+
+<div class="viewcode-block" id="AstBuilder.onImplementationDecl">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstBuilder.onImplementationDecl">[docs]</a>
+  <span class="k">def</span><span class="w"> </span><span class="nf">onImplementationDecl</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">prod</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">):</span>
+    <span class="n">attrs</span> <span class="o">=</span> <span class="n">toks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">assert</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">attrs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">toks</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">sig</span> <span class="o">=</span> <span class="n">toks</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="c1"># For now ignore anything other than the argument list</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">sig</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">sig</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">sig</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="n">signature</span> <span class="o">=</span> <span class="kc">None</span><span class="p">;</span> <span class="c1">#sig[1]</span>
+    <span class="n">body</span> <span class="o">=</span> <span class="n">toks</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">[</span> <span class="n">AstImplementation</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">signature</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span> <span class="p">]</span></div>
+
+<div class="viewcode-block" id="AstBuilder.onLabeledStatement">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.AstBuilder.onLabeledStatement">[docs]</a>
+  <span class="k">def</span><span class="w"> </span><span class="nf">onLabeledStatement</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">prod</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">toks</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">AstLabel</span><span class="p">(</span><span class="o">*</span><span class="n">toks</span><span class="p">);</span></div>
+</div>
+
+
+<span class="n">astBuilder</span> <span class="o">=</span> <span class="n">AstBuilder</span><span class="p">();</span>
+
+<div class="viewcode-block" id="parseExprAst">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.parseExprAst">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parseExprAst</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+  <span class="k">try</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">astBuilder</span><span class="o">.</span><span class="n">parseExpr</span><span class="p">(</span><span class="n">s</span><span class="p">);</span>
+  <span class="k">except</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed parsing&quot;</span><span class="p">);</span>
+    <span class="k">raise</span><span class="p">;</span></div>
+
+
+<div class="viewcode-block" id="parseAst">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.parseAst">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parseAst</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+  <span class="k">try</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">astBuilder</span><span class="o">.</span><span class="n">parseProgram</span><span class="p">(</span><span class="n">s</span><span class="p">);</span>
+  <span class="k">except</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed parsing&quot;</span><span class="p">);</span>
+    <span class="k">raise</span><span class="p">;</span></div>
+
+
+<div class="viewcode-block" id="expr_read">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.expr_read">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">expr_read</span><span class="p">(</span><span class="n">ast</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="n">AstId</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">set</span><span class="p">([</span><span class="n">ast</span><span class="o">.</span><span class="n">name</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="n">AstNumber</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="n">AstUnExpr</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">expr_read</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">expr</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="n">AstBinExpr</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">expr_read</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">lhs</span><span class="p">)</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">expr_read</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">rhs</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="n">AstTrue</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="n">AstFalse</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Unknown expression type &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ast</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="stmt_read">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.stmt_read">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">stmt_read</span><span class="p">(</span><span class="n">ast</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="n">AstLabel</span><span class="p">):</span>
+        <span class="n">ast</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">stmt</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="n">AstAssume</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="n">AstAssert</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">expr_read</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">expr</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="n">AstAssignment</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">expr_read</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">rhs</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="n">AstHavoc</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="n">AstWhile</span><span class="p">):</span>
+        <span class="c1"># Read variables from condition and body</span>
+        <span class="n">vars_read</span> <span class="o">=</span> <span class="n">expr_read</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">condition</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">body</span><span class="p">,</span> <span class="n">AstBlock</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">stmt</span> <span class="ow">in</span> <span class="n">ast</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">stmts</span><span class="p">:</span>
+                <span class="n">vars_read</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">stmt_read</span><span class="p">(</span><span class="n">stmt</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">vars_read</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">stmt_read</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">body</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">vars_read</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="n">AstBlock</span><span class="p">):</span>
+        <span class="n">vars_read</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">stmt</span> <span class="ow">in</span> <span class="n">ast</span><span class="o">.</span><span class="n">stmts</span><span class="p">:</span>
+            <span class="n">vars_read</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">stmt_read</span><span class="p">(</span><span class="n">stmt</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">vars_read</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Unknown statement: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ast</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="stmt_changed">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.stmt_changed">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">stmt_changed</span><span class="p">(</span><span class="n">ast</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="n">AstLabel</span><span class="p">):</span>
+        <span class="n">ast</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">stmt</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="n">AstAssignment</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">expr_read</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">lhs</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="n">AstHavoc</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span>  <span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">ids</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="n">AstAssume</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="n">AstAssert</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">set</span><span class="p">([])</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="n">AstWhile</span><span class="p">):</span>
+        <span class="c1"># Variables changed in the while body</span>
+        <span class="n">vars_changed</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">body</span><span class="p">,</span> <span class="n">AstBlock</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">stmt</span> <span class="ow">in</span> <span class="n">ast</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">stmts</span><span class="p">:</span>
+                <span class="n">vars_changed</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">stmt_changed</span><span class="p">(</span><span class="n">stmt</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">vars_changed</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">stmt_changed</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">body</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">vars_changed</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="n">AstBlock</span><span class="p">):</span>
+        <span class="n">vars_changed</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">stmt</span> <span class="ow">in</span> <span class="n">ast</span><span class="o">.</span><span class="n">stmts</span><span class="p">:</span>
+            <span class="n">vars_changed</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">stmt_changed</span><span class="p">(</span><span class="n">stmt</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">vars_changed</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Unknown statement: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ast</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="ast_group_bin">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.ast_group_bin">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ast_group_bin</span><span class="p">(</span><span class="n">exprs</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">default</span><span class="p">):</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">exprs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+      <span class="k">return</span> <span class="n">default</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">exprs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+      <span class="k">return</span> <span class="n">exprs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">:</span>   <span class="n">AstBinExpr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="n">exprs</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">exprs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="ast_and">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.ast_and">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ast_and</span><span class="p">(</span><span class="n">exprs</span><span class="p">):</span> <span class="k">return</span> <span class="n">ast_group_bin</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">exprs</span><span class="p">),</span> <span class="s2">&quot;&amp;&amp;&quot;</span><span class="p">,</span> <span class="n">AstTrue</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="ast_or">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.ast_or">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ast_or</span><span class="p">(</span><span class="n">exprs</span><span class="p">):</span> <span class="k">return</span> <span class="n">ast_group_bin</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">exprs</span><span class="p">),</span> <span class="s2">&quot;||&quot;</span><span class="p">,</span> <span class="n">AstFalse</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="normalize">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.normalize">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">normalize</span><span class="p">(</span><span class="n">ast</span><span class="p">):</span>
+  <span class="c1"># There are 2 ways to encode &quot;-1&quot; - as an AstUnExpr or an AstNumber. We pick</span>
+  <span class="c1"># the AstUnExpr to be the canonical one for compatibility with the grammar</span>
+  <span class="c1"># TODO: What happens when we parse -0?</span>
+  <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="n">AstNumber</span><span class="p">)</span> <span class="ow">and</span> <span class="n">ast</span><span class="o">.</span><span class="n">num</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">AstUnExpr</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">AstNumber</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">num</span><span class="p">)))</span>
+  <span class="c1"># There are 2 ways to encode implication - as a ==&gt; b or (!a) || b. The later</span>
+  <span class="c1"># usually comes from the frontend, since JS lacks an explicit ==&gt; operator.</span>
+  <span class="c1"># We pick a ==&gt; b to be canonical</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="n">AstBinExpr</span><span class="p">)</span> <span class="ow">and</span> <span class="n">ast</span><span class="o">.</span><span class="n">op</span> <span class="o">==</span> <span class="s2">&quot;||&quot;</span> <span class="ow">and</span> \
+      <span class="nb">isinstance</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">lhs</span><span class="p">,</span> <span class="n">AstUnExpr</span><span class="p">)</span> <span class="ow">and</span> <span class="n">ast</span><span class="o">.</span><span class="n">lhs</span><span class="o">.</span><span class="n">op</span> <span class="o">==</span> <span class="s2">&quot;!&quot;</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">AstBinExpr</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">lhs</span><span class="o">.</span><span class="n">expr</span><span class="p">,</span> <span class="s2">&quot;==&gt;&quot;</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">rhs</span><span class="p">)</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="n">AstNode</span><span class="p">)):</span>
+    <span class="k">return</span> <span class="n">ast</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="o">*</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">normalize</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">_children</span><span class="p">)))</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">ast</span><span class="p">;</span></div>
+
+
+<div class="viewcode-block" id="ast_constants">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.ast_constants">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ast_constants</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">cb</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">children</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">AstNumber</span><span class="p">):</span>
+      <span class="k">return</span> <span class="nb">set</span><span class="p">([</span><span class="n">node</span><span class="o">.</span><span class="n">num</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="k">return</span> <span class="n">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">children</span><span class="p">,</span> <span class="nb">set</span><span class="p">())</span>
+  <span class="k">return</span> <span class="n">reduce_nodes</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">cb</span><span class="p">);</span></div>
+
+
+
+<div class="viewcode-block" id="ast_boolean_exprs">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.ast_boolean_exprs">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ast_boolean_exprs</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">cb</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">children</span><span class="p">):</span>
+    <span class="n">relOps</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;&lt;&quot;</span><span class="p">,</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;=&quot;</span><span class="p">,</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span> <span class="s2">&quot;==&quot;</span><span class="p">,</span>  <span class="s2">&quot;!=&quot;</span> <span class="p">]</span>
+    <span class="n">boolOps</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;||&quot;</span><span class="p">,</span> <span class="s2">&quot;&amp;&amp;&quot;</span><span class="p">,</span> <span class="s2">&quot;==&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;==&gt;&quot;</span> <span class="p">]</span>
+    <span class="n">isBoolean</span> <span class="o">=</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">AstUnExpr</span><span class="p">)</span> <span class="ow">and</span> <span class="n">node</span><span class="o">.</span><span class="n">op</span> <span class="o">==</span> <span class="s2">&quot;!&quot;</span><span class="p">)</span> <span class="ow">or</span> \
+                <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">AstBinExpr</span><span class="p">)</span> <span class="ow">and</span> <span class="n">node</span><span class="o">.</span><span class="n">op</span> <span class="ow">in</span> <span class="p">(</span><span class="n">relOps</span> <span class="o">+</span> <span class="n">boolOps</span><span class="p">))</span>
+    <span class="n">boolSubexp</span> <span class="o">=</span> <span class="n">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">children</span><span class="p">,</span> <span class="nb">set</span><span class="p">([]))</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">isBoolean</span><span class="p">):</span>
+      <span class="n">boolSubexp</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">boolSubexp</span>
+
+  <span class="k">return</span> <span class="n">reduce_nodes</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">cb</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ast_primitive_boolean_exprs">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.boogie.ast.ast_primitive_boolean_exprs">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ast_primitive_boolean_exprs</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+  <span class="k">def</span><span class="w"> </span><span class="nf">cb</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">children</span><span class="p">):</span>
+    <span class="n">relOps</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;&lt;&quot;</span><span class="p">,</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;=&quot;</span><span class="p">,</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span> <span class="s2">&quot;==&quot;</span><span class="p">,</span>  <span class="s2">&quot;!=&quot;</span> <span class="p">]</span>
+    <span class="n">isBoolean</span> <span class="o">=</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">AstBinExpr</span><span class="p">)</span> <span class="ow">and</span> <span class="n">node</span><span class="o">.</span><span class="n">op</span> <span class="ow">in</span> <span class="n">relOps</span><span class="p">)</span>
+    <span class="n">boolSubexp</span> <span class="o">=</span> <span class="n">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">children</span><span class="p">,</span> <span class="nb">set</span><span class="p">([]))</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">isBoolean</span><span class="p">):</span>
+      <span class="n">boolSubexp</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">boolSubexp</span>
+
+  <span class="k">return</span> <span class="n">reduce_nodes</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">cb</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

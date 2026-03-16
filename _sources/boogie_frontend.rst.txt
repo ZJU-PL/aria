@@ -21,7 +21,7 @@ Basic Usage
 
 .. code-block:: python
 
-   from efmc.frontends.boogie2efmc import boogie_to_efmc
+   from aria.efmc.frontends.boogie2efmc import boogie_to_efmc
 
    # Convert a Boogie file to a transition system
    ts = boogie_to_efmc("program.bpl")
@@ -37,7 +37,7 @@ Advanced Usage
 
 .. code-block:: python
 
-   from efmc.frontends.boogie2efmc import BoogieToEFMCConverter
+   from aria.efmc.frontends.boogie2efmc import BoogieToEFMCConverter
 
    # Create converter instance
    converter = BoogieToEFMCConverter()

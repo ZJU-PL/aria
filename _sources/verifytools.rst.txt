@@ -51,9 +51,9 @@ The ``common`` subpackage provides shared utilities:
 
 .. code-block:: python
 
-   from efmc.verifytools.common.ast import Expr, Stmt
-   from efmc.verifytools.common.parser import parse_formula
-   from efmc.verifytools.common.util import simplify
+   from aria.efmc.verifytools.common.ast import Expr, Stmt
+   from aria.efmc.verifytools.common.parser import parse_formula
+   from aria.efmc.verifytools.common.util import simplify
 
 Common AST
 ~~~~~~~~~~
@@ -62,7 +62,7 @@ Base classes for abstract syntax trees:
 
 .. code-block:: python
 
-   from efmc.verifytools.common.ast import (
+   from aria.efmc.verifytools.common.ast import (
        Expr,      # Base expression class
        Stmt,      # Base statement class
        Var,       # Variable reference
@@ -82,7 +82,7 @@ Utility functions for parsing formulas:
 
 .. code-block:: python
 
-   from efmc.verifytools.common.parser import parse_formula
+   from aria.efmc.verifytools.common.parser import parse_formula
 
    # Parse from string
    formula = parse_formula("x + y > 0")
@@ -97,8 +97,8 @@ AST and Interpretation
 
 .. code-block:: python
 
-   from efmc.verifytools.boogie.ast import BoogieProgram, Procedure
-   from efmc.verifytools.boogie.interp import BoogieInterpreter
+   from aria.efmc.verifytools.boogie.ast import BoogieProgram, Procedure
+   from aria.efmc.verifytools.boogie.interp import BoogieInterpreter
 
    # Parse Boogie program
    program = BoogieProgram.from_file("program.bpl")
@@ -112,7 +112,7 @@ Basic Block Analysis
 
 .. code-block:: python
 
-   from efmc.verifytools.boogie.bb import BasicBlockAnalyzer
+   from aria.efmc.verifytools.boogie.bb import BasicBlockAnalyzer
 
    analyzer = BasicBlockAnalyzer(program)
    blocks = analyzer.get_basic_blocks("procedure_name")
@@ -122,7 +122,7 @@ Static Single Assignment (SSA)
 
 .. code-block:: python
 
-   from efmc.verifytools.boogie.ssa import to_ssa
+   from aria.efmc.verifytools.boogie.ssa import to_ssa
 
    ssa_program = to_ssa(program)
 
@@ -131,7 +131,7 @@ Predicate Transformers
 
 .. code-block:: python
 
-   from efmc.verifytools.boogie.predicate_transformers import (
+   from aria.efmc.verifytools.boogie.predicate_transformers import (
        wp,  # Weakest precondition
        sp,  # Strongest postcondition
    )
@@ -144,7 +144,7 @@ Z3 Integration
 
 .. code-block:: python
 
-   from efmc.verifytools.boogie.z3_embed import BoogieToZ3
+   from aria.efmc.verifytools.boogie.z3_embed import BoogieToZ3
 
    converter = BoogieToZ3()
    z3_expr = converter.convert(boogie_expr)
@@ -159,7 +159,7 @@ Verification Condition Checking
 
 .. code-block:: python
 
-   from efmc.verifytools.tools.vc_check import check_vc
+   from aria.efmc.verifytools.tools.vc_check import check_vc
 
    result = check_vc(vc_formula, solver="z3")
 
@@ -168,7 +168,7 @@ Try-and-Verify Strategy
 
 .. code-block:: python
 
-   from efmc.verifytools.tools.tryAndVerify import TryAndVerify
+   from aria.efmc.verifytools.tools.tryAndVerify import TryAndVerify
 
    strategy = TryAndVerify(max_iterations=100)
    result = strategy.verify(transition_system)
@@ -178,7 +178,7 @@ Desugaring
 
 .. code-block:: python
 
-   from efmc.verifytools.tools.desugar import desugar_program
+   from aria.efmc.verifytools.tools.desugar import desugar_program
 
    simplified = desugar_program(program)
 
@@ -187,7 +187,7 @@ Format Conversions
 
 .. code-block:: python
 
-   from efmc.verifytools.tools.conversions import (
+   from aria.efmc.verifytools.tools.conversions import (
        chc_to_smtlib,
        smtlib_to_chc,
    )
@@ -199,8 +199,8 @@ The ``daikon`` subpackage provides integration with the Daikon invariant detecto
 
 .. code-block:: python
 
-   from efmc.verifytools.daikon.inv_grammar import InvGrammar
-   from efmc.verifytools.daikon.inv_ast import Invariant
+   from aria.efmc.verifytools.daikon.inv_grammar import InvGrammar
+   from aria.efmc.verifytools.daikon.inv_ast import Invariant
 
    # Create invariant grammar
    grammar = InvGrammar()
@@ -215,7 +215,7 @@ The ``cpachecker`` subpackage provides integration with CPAchecker:
 
 .. code-block:: python
 
-   from efmc.verifytools.cpachecker import run_cpachecker
+   from aria.efmc.verifytools.cpachecker import run_cpachecker
 
    result = run_cpachecker(
        program="program.c",
@@ -230,7 +230,7 @@ The ICE (Counterexample-Driven, Consistency, Efficiency) learning strategy:
 
 .. code-block:: python
 
-   from efmc.verifytools.tools.run_ice import ICEGenerator
+   from aria.efmc.verifytools.tools.run_ice import ICEGenerator
 
    generator = ICEGenerator()
    invariants = generator.learn(
@@ -241,42 +241,42 @@ The ICE (Counterexample-Driven, Consistency, Efficiency) learning strategy:
 API Reference
 -------------
 
-.. automodule:: efmc.verifytools.common.ast
+.. automodule:: aria.efmc.verifytools.common.ast
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: efmc.verifytools.common.parser
+.. automodule:: aria.efmc.verifytools.common.parser
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: efmc.verifytools.common.util
+.. automodule:: aria.efmc.verifytools.common.util
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: efmc.verifytools.boogie.ast
+.. automodule:: aria.efmc.verifytools.boogie.ast
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: efmc.verifytools.boogie.interp
+.. automodule:: aria.efmc.verifytools.boogie.interp
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: efmc.verifytools.tools.vc_check
+.. automodule:: aria.efmc.verifytools.tools.vc_check
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: efmc.verifytools.daikon.inv_ast
+.. automodule:: aria.efmc.verifytools.daikon.inv_ast
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: efmc.verifytools.daikon.inv_grammar
+.. automodule:: aria.efmc.verifytools.daikon.inv_grammar
    :members:
    :undoc-members:
    :show-inheritance:

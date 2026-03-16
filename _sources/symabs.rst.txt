@@ -71,8 +71,8 @@ Programmatic Usage
 
 .. code-block:: python
 
-   from efmc.engines.symabs import SymbolicAbstractionProver
-   from efmc.sts import TransitionSystem
+   from aria.efmc.engines.symabs import SymbolicAbstractionProver
+   from aria.efmc.sts import TransitionSystem
    
    # Create transition system
    sts = TransitionSystem(...)

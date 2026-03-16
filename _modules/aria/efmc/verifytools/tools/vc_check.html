@@ -1,0 +1,398 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>aria.efmc.verifytools.tools.vc_check &mdash; ARIA Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../../index.html" class="icon icon-home">
+            ARIA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">ARIA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">aria.efmc.verifytools.tools.vc_check</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for aria.efmc.verifytools.tools.vc_check</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.verifytools.boogie.ast</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ast_and</span><span class="p">,</span>
+    <span class="n">replace</span><span class="p">,</span>
+    <span class="n">AstBinExpr</span><span class="p">,</span>
+    <span class="n">AstTrue</span><span class="p">,</span>
+    <span class="n">AstNumber</span><span class="p">,</span>
+    <span class="n">AstId</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.verifytools.common.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">nonempty</span><span class="p">,</span> <span class="n">powerset</span><span class="p">,</span> <span class="n">flattenSet</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.verifytools.boogie.z3_embed</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">expr_to_z3</span><span class="p">,</span>
+    <span class="n">AllIntTypeEnv</span><span class="p">,</span>
+    <span class="n">Unknown</span><span class="p">,</span>
+    <span class="n">And</span><span class="p">,</span>
+    <span class="n">tautology</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.verifytools.boogie.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">propagate_sp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.verifytools.boogie.bb</span><span class="w"> </span><span class="kn">import</span> <span class="n">bbEntry</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.verifytools.boogie.inv_networks</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">checkInvNetwork</span><span class="p">,</span>
+    <span class="n">filterCandidateInvariants</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="conservative_tautology">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.tools.vc_check.conservative_tautology">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">conservative_tautology</span><span class="p">(</span><span class="n">q</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">tautology</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">Unknown</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_from_dict</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">missing</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span> <span class="o">==</span> <span class="nb">tuple</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">_from_dict</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="n">vals</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">_from_dict</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="n">vals</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[(</span><span class="n">vals</span><span class="p">[</span><span class="n">vs</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="k">if</span> <span class="n">vs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">in</span> <span class="n">vals</span> <span class="k">else</span> <span class="n">missing</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">vs</span><span class="p">))]</span>
+
+
+<div class="viewcode-block" id="traceConstantVars">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.tools.vc_check.traceConstantVars">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">traceConstantVars</span><span class="p">(</span><span class="n">lvl</span><span class="p">):</span>
+    <span class="n">vs</span> <span class="o">=</span> <span class="n">lvl</span><span class="p">[</span><span class="s2">&quot;variables&quot;</span><span class="p">]</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">lvl</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">cInds</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">list</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="nb">set</span><span class="p">([</span><span class="n">table</span><span class="p">[</span><span class="n">row</span><span class="p">][</span><span class="n">col</span><span class="p">]</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">table</span><span class="p">))])</span>
+                <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vs</span><span class="p">))</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="p">[(</span><span class="n">vs</span><span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">cInds</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="substitutions">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.tools.vc_check.substitutions">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">substitutions</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">replMs</span><span class="p">):</span>
+    <span class="n">family</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">expr</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">replM</span> <span class="ow">in</span> <span class="n">replMs</span><span class="p">:</span>
+        <span class="n">family</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">replace</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">replM</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">family</span></div>
+
+
+
+<div class="viewcode-block" id="generalizeConstTraceVars">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.tools.vc_check.generalizeConstTraceVars">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">generalizeConstTraceVars</span><span class="p">(</span><span class="n">lvl</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Given an expression and a set of pairs (Var, Num) where Var is always</span>
+<span class="sd">    equal to Num in the traces presented to the user, add all variations</span>
+<span class="sd">    of expr with Num substituded for Var and vice-versa. Note we don&#39;t do</span>
+<span class="sd">    combinations of multiple substitutions where that is possible.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">varNums</span> <span class="o">=</span> <span class="n">traceConstantVars</span><span class="p">(</span><span class="n">lvl</span><span class="p">)</span>
+    <span class="n">replMs</span> <span class="o">=</span> <span class="p">[{</span><span class="n">AstId</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span> <span class="n">AstNumber</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">varNums</span><span class="p">}]</span> <span class="o">+</span> <span class="p">[</span>
+        <span class="p">{</span><span class="n">AstNumber</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">])):</span> <span class="n">AstId</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">varNums</span><span class="p">}</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">replMs</span></div>
+
+
+
+<div class="viewcode-block" id="tryAndVerify">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.tools.vc_check.tryAndVerify">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">tryAndVerify</span><span class="p">(</span>
+    <span class="n">bbs</span><span class="p">,</span> <span class="n">loop</span><span class="p">,</span> <span class="n">splitterPreds</span><span class="p">,</span> <span class="n">partialInvs</span><span class="p">,</span> <span class="n">userInvs</span><span class="p">,</span> <span class="n">otherInvs</span><span class="p">,</span> <span class="n">replMaps</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+    <span class="n">userInvs</span> <span class="o">=</span> <span class="n">flattenSet</span><span class="p">([</span><span class="n">substitutions</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">replMaps</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">userInvs</span><span class="p">])</span>
+    <span class="n">invs</span> <span class="o">=</span> <span class="n">userInvs</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">otherInvs</span><span class="p">)</span>
+    <span class="n">invs</span> <span class="o">=</span> <span class="n">invs</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">partialInvs</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">splitterPreds</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">partialInvs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="p">(</span><span class="n">ovrefitted</span><span class="p">,</span> <span class="n">nonind</span><span class="p">,</span> <span class="n">sound</span><span class="p">,</span> <span class="n">violations</span><span class="p">)</span> <span class="o">=</span> <span class="n">tryAndVerify_impl</span><span class="p">(</span>
+            <span class="n">bbs</span><span class="p">,</span> <span class="n">loop</span><span class="p">,</span> <span class="nb">set</span><span class="p">(),</span> <span class="n">invs</span><span class="p">,</span> <span class="n">timeout</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">((</span><span class="n">ovrefitted</span><span class="p">,</span> <span class="p">[]),</span> <span class="p">(</span><span class="n">nonind</span><span class="p">,</span> <span class="p">[]),</span> <span class="n">sound</span><span class="p">,</span> <span class="n">violations</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">tryAndVerifyWithSplitterPreds</span><span class="p">(</span>
+            <span class="n">bbs</span><span class="p">,</span> <span class="n">loop</span><span class="p">,</span> <span class="nb">set</span><span class="p">(),</span> <span class="n">invs</span><span class="p">,</span> <span class="n">splitterPreds</span><span class="p">,</span> <span class="n">partialInvs</span><span class="p">,</span> <span class="n">timeout</span>
+        <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="tryAndVerifyLvl">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.tools.vc_check.tryAndVerifyLvl">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">tryAndVerifyLvl</span><span class="p">(</span>
+    <span class="n">lvl</span><span class="p">,</span>
+    <span class="n">userInvs</span><span class="p">,</span>
+    <span class="n">otherInvs</span><span class="p">,</span>
+    <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">useSplitters</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">addSPs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">generalizeUserInvs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Try and verify a given Lvl.</span>
+
+<span class="sd">    lvl - level to verify</span>
+<span class="sd">    userInvs - invariant candidate from the user</span>
+<span class="sd">    otherInvs - invariant candidates from other sources (e.g. previous</span>
+<span class="sd">                users).</span>
+<span class="sd">                Note: We will keep userInvs and otherInvs separate in the</span>
+<span class="sd">                results.</span>
+<span class="sd">    timeout - if specified, the z3 timeout for each query</span>
+<span class="sd">    useSplitters - if the level supports splitter predicates, whether to</span>
+<span class="sd">                   use them or not.</span>
+<span class="sd">    addSPs - if true, try to propagte SP through the loop and add the</span>
+<span class="sd">             results as invariants. For example if before the loop we</span>
+<span class="sd">             have &quot;assert n&gt;0;&quot; and n is not modified in the loop, we</span>
+<span class="sd">             can determine that&quot;n&gt;0&quot; holds through the loop and add</span>
+<span class="sd">             that to our cnadidate invariants.</span>
+<span class="sd">    generalizeUserInvs - if true, for any invariant I involving a</span>
+<span class="sd">             constant C, where one of the variables V shown to the user</span>
+<span class="sd">             was always equal to C in the traces, try substituting C with V.</span>
+<span class="sd">             For example if in the level always n=4, and the user</span>
+<span class="sd">             entered i&lt;=4, the generalizaition would also try i&lt;=n.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bbs</span> <span class="o">=</span> <span class="n">lvl</span><span class="p">[</span><span class="s2">&quot;program&quot;</span><span class="p">]</span>
+    <span class="n">loop</span> <span class="o">=</span> <span class="n">lvl</span><span class="p">[</span><span class="s2">&quot;loop&quot;</span><span class="p">]</span>
+    <span class="n">partialInvs</span> <span class="o">=</span> <span class="p">[</span><span class="n">lvl</span><span class="p">[</span><span class="s2">&quot;partialInv&quot;</span><span class="p">]]</span> <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;partialInv&quot;</span> <span class="ow">in</span> <span class="n">lvl</span><span class="p">)</span> <span class="ow">and</span> <span class="n">useSplitters</span> <span class="k">else</span> <span class="p">[]</span>
+    <span class="n">splitterPreds</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">lvl</span><span class="p">[</span><span class="s2">&quot;splitterPreds&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;splitterPreds&quot;</span> <span class="ow">in</span> <span class="n">lvl</span><span class="p">)</span> <span class="ow">and</span> <span class="n">useSplitters</span> <span class="k">else</span> <span class="p">[]</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">generalizeUserInvs</span><span class="p">:</span>
+        <span class="n">replMaps</span> <span class="o">=</span> <span class="n">generalizeConstTraceVars</span><span class="p">(</span><span class="n">lvl</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">replMaps</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Push any SPs that are syntactically unmodified</span>
+    <span class="k">if</span> <span class="n">addSPs</span><span class="p">:</span>
+        <span class="n">loop_header</span> <span class="o">=</span> <span class="n">loop</span><span class="o">.</span><span class="n">loop_paths</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">sps</span> <span class="o">=</span> <span class="n">propagate_sp</span><span class="p">(</span><span class="n">bbs</span><span class="p">)[</span><span class="n">loop_header</span><span class="p">]</span>
+        <span class="n">otherInvs</span> <span class="o">=</span> <span class="n">otherInvs</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">sps</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">tryAndVerify</span><span class="p">(</span>
+        <span class="n">bbs</span><span class="p">,</span> <span class="n">loop</span><span class="p">,</span> <span class="n">splitterPreds</span><span class="p">,</span> <span class="n">partialInvs</span><span class="p">,</span> <span class="n">userInvs</span><span class="p">,</span> <span class="n">otherInvs</span><span class="p">,</span> <span class="n">replMaps</span><span class="p">,</span> <span class="n">timeout</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="tryAndVerify_impl">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.tools.vc_check.tryAndVerify_impl">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">tryAndVerify_impl</span><span class="p">(</span><span class="n">bbs</span><span class="p">,</span> <span class="n">loop</span><span class="p">,</span> <span class="n">old_sound_invs</span><span class="p">,</span> <span class="n">invs</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wrapper around checkInvNetwork for the case of a function</span>
+<span class="sd">    with a single loop and no pre- post- conditions.</span>
+<span class="sd">    Returns a tuple (overfitted, nonind, sound, violations) where</span>
+<span class="sd">      overfitted, nonind are each a list of tuples (inv, Violation)</span>
+<span class="sd">      sound is a set of sound invariants</span>
+<span class="sd">      violations is a (potentially empty) list of safety Violations</span>
+<span class="sd">        for the sound invariants.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">old_sound_invs</span><span class="p">,</span> <span class="nb">set</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">invs</span><span class="p">,</span> <span class="nb">set</span><span class="p">)</span>
+    <span class="n">loopHdr</span> <span class="o">=</span> <span class="n">loop</span><span class="o">.</span><span class="n">loop_paths</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">cps</span> <span class="o">=</span> <span class="p">{</span><span class="n">loopHdr</span><span class="p">:</span> <span class="nb">set</span><span class="p">(</span><span class="n">old_sound_invs</span><span class="p">)</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">invs</span><span class="p">))}</span>
+
+    <span class="p">(</span><span class="n">overfitted</span><span class="p">,</span> <span class="n">nonind</span><span class="p">,</span> <span class="n">sound</span><span class="p">,</span> <span class="n">violations</span><span class="p">)</span> <span class="o">=</span> <span class="n">filterCandidateInvariants</span><span class="p">(</span>
+        <span class="n">bbs</span><span class="p">,</span> <span class="n">AstTrue</span><span class="p">(),</span> <span class="n">AstTrue</span><span class="p">(),</span> <span class="n">cps</span><span class="p">,</span> <span class="n">timeout</span>
+    <span class="p">)</span>
+
+    <span class="n">overfitted</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">overfitted</span><span class="p">[</span><span class="n">loopHdr</span><span class="p">])</span>
+    <span class="n">nonind_invs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nonind</span><span class="p">[</span><span class="n">loopHdr</span><span class="p">])</span>
+    <span class="n">sound</span> <span class="o">=</span> <span class="n">sound</span><span class="p">[</span><span class="n">loopHdr</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">overfitted</span><span class="p">,</span> <span class="n">nonind_invs</span><span class="p">,</span> <span class="n">sound</span><span class="p">,</span> <span class="n">violations</span></div>
+
+
+
+<div class="viewcode-block" id="tryAndVerifyWithSplitterPreds">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.tools.vc_check.tryAndVerifyWithSplitterPreds">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">tryAndVerifyWithSplitterPreds</span><span class="p">(</span>
+    <span class="n">bbs</span><span class="p">,</span> <span class="n">loop</span><span class="p">,</span> <span class="n">old_sound_invs</span><span class="p">,</span> <span class="n">boogie_invs</span><span class="p">,</span> <span class="n">splitterPreds</span><span class="p">,</span> <span class="n">partialInvs</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wrapper around tryAndVerify_impl that adds implication with</span>
+<span class="sd">    the splitter predicates to all candidate invariants. Returns</span>
+<span class="sd">      ((p1_overfit, p2_overfit), (p1_nonindg, p2_nonind), sound, violations)</span>
+
+<span class="sd">    Where</span>
+
+<span class="sd">      p1_overfit, p2_ovefit are lists of pairs of overfittted invariants</span>
+<span class="sd">                and their respective counterexamples from passes 1 and 2</span>
+<span class="sd">      p1_nonind, p2_ovefit are lists of pairs of noninductive invariants</span>
+<span class="sd">                and their respective counterexamples from passes 1 and 2</span>
+<span class="sd">      sound is a set of sound invariants</span>
+<span class="sd">      violations is a list of any safety violations permitted by the sound</span>
+<span class="sd">      invariants</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">old_sound_invs</span><span class="p">,</span> <span class="nb">set</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">boogie_invs</span><span class="p">,</span> <span class="nb">set</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">partialInvs</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">splitterPreds</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+
+    <span class="n">initial_sound</span> <span class="o">=</span> <span class="n">old_sound_invs</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">partialInvs</span><span class="p">)</span>
+
+    <span class="c1"># First lets find the invariants that are sound without implication</span>
+    <span class="n">p1_overfitted</span><span class="p">,</span> <span class="n">p1_nonind</span><span class="p">,</span> <span class="n">p1_sound</span><span class="p">,</span> <span class="n">violations</span> <span class="o">=</span> <span class="n">tryAndVerify_impl</span><span class="p">(</span>
+        <span class="n">bbs</span><span class="p">,</span> <span class="n">loop</span><span class="p">,</span> <span class="n">initial_sound</span><span class="p">,</span> <span class="n">boogie_invs</span><span class="p">,</span> <span class="n">timeout</span>
+    <span class="p">)</span>
+    <span class="n">p1_sound</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">x</span>
+            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">p1_sound</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">conservative_tautology</span><span class="p">(</span><span class="n">expr_to_z3</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">AllIntTypeEnv</span><span class="p">()))</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Next lets add implication  to all unsound invariants from first pass</span>
+    <span class="c1"># Also add manually specified partialInvs</span>
+    <span class="n">unsound</span> <span class="o">=</span> <span class="p">[</span><span class="n">inv_ctr_pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">inv_ctr_pair</span> <span class="ow">in</span> <span class="n">p1_overfitted</span> <span class="o">+</span> <span class="n">p1_nonind</span><span class="p">]</span>
+    <span class="n">candidate_precedents</span> <span class="o">=</span> <span class="p">[</span><span class="n">ast_and</span><span class="p">(</span><span class="n">pSet</span><span class="p">)</span> <span class="k">for</span> <span class="n">pSet</span> <span class="ow">in</span> <span class="n">nonempty</span><span class="p">(</span><span class="n">powerset</span><span class="p">(</span><span class="n">splitterPreds</span><span class="p">))]</span>
+    <span class="n">p2_invs</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">AstBinExpr</span><span class="p">(</span><span class="n">precc</span><span class="p">,</span> <span class="s2">&quot;==&gt;&quot;</span><span class="p">,</span> <span class="n">inv</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">precc</span> <span class="ow">in</span> <span class="n">candidate_precedents</span>
+        <span class="k">for</span> <span class="n">inv</span> <span class="ow">in</span> <span class="n">unsound</span>
+    <span class="p">]</span> <span class="o">+</span> <span class="n">partialInvs</span>
+
+    <span class="n">p2_invs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">x</span>
+            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">p2_invs</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">conservative_tautology</span><span class="p">(</span><span class="n">expr_to_z3</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">AllIntTypeEnv</span><span class="p">()))</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="c1"># And look for any new sound invariants</span>
+    <span class="n">p2_overfitted</span><span class="p">,</span> <span class="n">p2_nonind</span><span class="p">,</span> <span class="n">p2_sound</span><span class="p">,</span> <span class="n">violations</span> <span class="o">=</span> <span class="n">tryAndVerify_impl</span><span class="p">(</span>
+        <span class="n">bbs</span><span class="p">,</span> <span class="n">loop</span><span class="p">,</span> <span class="n">p1_sound</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">partialInvs</span><span class="p">)),</span> <span class="n">p2_invs</span><span class="p">,</span> <span class="n">timeout</span>
+    <span class="p">)</span>
+    <span class="n">sound</span> <span class="o">=</span> <span class="n">p1_sound</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">p2_sound</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">((</span><span class="n">p1_overfitted</span><span class="p">,</span> <span class="n">p2_overfitted</span><span class="p">),</span> <span class="p">(</span><span class="n">p1_nonind</span><span class="p">,</span> <span class="n">p2_nonind</span><span class="p">),</span> <span class="n">sound</span><span class="p">,</span> <span class="n">violations</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="loopInvOverfittedCtrex">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.tools.vc_check.loopInvOverfittedCtrex">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">loopInvOverfittedCtrex</span><span class="p">(</span><span class="n">loop</span><span class="p">,</span> <span class="n">invs</span><span class="p">,</span> <span class="n">bbs</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Given a candidate loop invariant inv find &#39;overfittedness&#39;</span>
+<span class="sd">    counterexamples.  I.e. find counterexamples to &quot;precondition ==&gt; inv&quot;.</span>
+<span class="sd">    Returns a potentially empty set of environments (dicts) that the invariant</span>
+<span class="sd">    should satisfy.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">loopHdr</span> <span class="o">=</span> <span class="n">loop</span><span class="o">.</span><span class="n">loop_paths</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">cps</span> <span class="o">=</span> <span class="p">{</span><span class="n">loopHdr</span><span class="p">:</span> <span class="nb">set</span><span class="p">(</span><span class="n">invs</span><span class="p">)}</span>
+    <span class="n">violations</span> <span class="o">=</span> <span class="n">checkInvNetwork</span><span class="p">(</span><span class="n">bbs</span><span class="p">,</span> <span class="n">AstTrue</span><span class="p">(),</span> <span class="n">AstTrue</span><span class="p">(),</span> <span class="n">cps</span><span class="p">,</span> <span class="n">timeout</span><span class="p">)</span>
+    <span class="n">entryBB</span> <span class="o">=</span> <span class="n">bbEntry</span><span class="p">(</span><span class="n">bbs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="n">x</span><span class="o">.</span><span class="n">endEnv</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">violations</span>
+        <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">isInductive</span><span class="p">()</span>  <span class="c1"># Implication fail</span>
+        <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">startBB</span><span class="p">()</span> <span class="o">==</span> <span class="n">entryBB</span>  <span class="c1"># From entry</span>
+        <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">endBB</span><span class="p">()</span> <span class="o">==</span> <span class="n">loopHdr</span>
+    <span class="p">]</span>  <span class="c1"># To loop inv</span></div>
+
+
+
+<div class="viewcode-block" id="loopInvSafetyCtrex">
+<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.tools.vc_check.loopInvSafetyCtrex">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">loopInvSafetyCtrex</span><span class="p">(</span><span class="n">loop</span><span class="p">,</span> <span class="n">invs</span><span class="p">,</span> <span class="n">bbs</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Given a candidate loop invariant inv find &#39;safety&#39;</span>
+<span class="sd">    counterexamples.  I.e. find counterexamples to &quot;inv ==&gt; post&quot; or &quot;inv ==&gt;</span>
+<span class="sd">    assert&quot;.  Returns a potentially empty set of environments (dicts) that</span>
+<span class="sd">    the invariant should satisfy.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">loopHdr</span> <span class="o">=</span> <span class="n">loop</span><span class="o">.</span><span class="n">loop_paths</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">cps</span> <span class="o">=</span> <span class="p">{</span><span class="n">loopHdr</span><span class="p">:</span> <span class="nb">set</span><span class="p">(</span><span class="n">invs</span><span class="p">)}</span>
+    <span class="n">violations</span> <span class="o">=</span> <span class="n">checkInvNetwork</span><span class="p">(</span><span class="n">bbs</span><span class="p">,</span> <span class="n">AstTrue</span><span class="p">(),</span> <span class="n">AstTrue</span><span class="p">(),</span> <span class="n">cps</span><span class="p">,</span> <span class="n">timeout</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="n">x</span><span class="o">.</span><span class="n">endEnv</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">violations</span>
+        <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">isSafety</span><span class="p">()</span> <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">startBB</span><span class="p">()</span> <span class="o">==</span> <span class="n">loopHdr</span>  <span class="c1"># Safety fail</span>
+    <span class="p">]</span>  <span class="c1"># From Inv</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

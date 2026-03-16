@@ -56,8 +56,8 @@ The QI prover can be used as follows:
 
 .. code-block:: python
 
-    from efmc.engines.qi import QuantifierInstantiationProver
-    from efmc.sts import TransitionSystem
+    from aria.efmc.engines.qi import QuantifierInstantiationProver
+    from aria.efmc.sts import TransitionSystem
     
     # Create transition system
     sts = TransitionSystem(...)

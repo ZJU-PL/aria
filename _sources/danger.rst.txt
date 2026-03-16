@@ -59,8 +59,8 @@ The danger invariant prover is primarily used programmatically:
 
 .. code-block:: python
 
-   from efmc.engines.danger import DangerInvariantProver
-   from efmc.sts import TransitionSystem
+   from aria.efmc.engines.danger import DangerInvariantProver
+   from aria.efmc.sts import TransitionSystem
    import z3
    
    # Create transition system

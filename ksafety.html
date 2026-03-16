@@ -127,8 +127,8 @@
 <section id="usage">
 <h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
 <p>The k-safety engine is primarily used programmatically through the Python API:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">efmc.engines.ksafety</span><span class="w"> </span><span class="kn">import</span> <span class="n">NonInterferenceProver</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">efmc.sts</span><span class="w"> </span><span class="kn">import</span> <span class="n">TransitionSystem</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.engines.ksafety</span><span class="w"> </span><span class="kn">import</span> <span class="n">NonInterferenceProver</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.sts</span><span class="w"> </span><span class="kn">import</span> <span class="n">TransitionSystem</span>
 
 <span class="c1"># Create transition system</span>
 <span class="n">sts</span> <span class="o">=</span> <span class="n">TransitionSystem</span><span class="p">()</span>
@@ -148,8 +148,8 @@
 </section>
 <section id="hyperltl-example">
 <h2>HyperLTL Example<a class="headerlink" href="#hyperltl-example" title="Link to this heading"></a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">efmc.engines.ksafety</span><span class="w"> </span><span class="kn">import</span> <span class="n">HyperLTLProver</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">efmc.engines.ksafety.hyperltl</span><span class="w"> </span><span class="kn">import</span> <span class="n">Var</span><span class="p">,</span> <span class="n">Atom</span><span class="p">,</span> <span class="n">G</span><span class="p">,</span> <span class="n">Implies</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.engines.ksafety</span><span class="w"> </span><span class="kn">import</span> <span class="n">HyperLTLProver</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.engines.ksafety.hyperltl</span><span class="w"> </span><span class="kn">import</span> <span class="n">Var</span><span class="p">,</span> <span class="n">Atom</span><span class="p">,</span> <span class="n">G</span><span class="p">,</span> <span class="n">Implies</span>
 
 <span class="c1"># Define HyperLTL formula: G(high[0] == high[1] → G(low[0] == low[1]))</span>
 <span class="n">phi</span> <span class="o">=</span> <span class="n">Implies</span><span class="p">(</span>
