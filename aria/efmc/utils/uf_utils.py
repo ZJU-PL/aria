@@ -205,7 +205,12 @@ def purify(formula: z3.ExprRef) -> z3.ExprRef:
             purified_expr = expr
             if z3.is_app(expr):
                 args = [purify_term(expr.arg(i)) for i in range(expr.num_args())]
-                purified_expr = expr.decl()(*args)
+                if z3.is_and(expr):
+                    purified_expr = z3.And(args)
+                elif z3.is_or(expr):
+                    purified_expr = z3.Or(args)
+                else:
+                    purified_expr = expr.decl()(*args)
             equalities.append(fresh_var == purified_expr)
             processed[expr] = fresh_var
             return fresh_var

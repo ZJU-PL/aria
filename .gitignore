@@ -6,6 +6,8 @@
 # Build artifacts and temporary files
 .arla_logs
 smt_query_logs
+lextab.py
+yacctab.py
 fully_existentially_constraints.txt
 .env
 .hypothesis
