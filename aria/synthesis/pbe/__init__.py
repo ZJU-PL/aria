@@ -5,6 +5,7 @@ from .expressions import Theory, ValueType
 from .pbe_solver import PBESolver, SynthesisResult
 from .smt_pbe_solver import SMTPBESolver
 from .smt_verifier import SMTVerifier
+from .task import PBETask, VariableSignature
 from .vsa import VSAlgebra, VersionSpace
 
 __all__ = [
@@ -14,8 +15,10 @@ __all__ = [
     "SMTPBESolver",
     "SMTVerifier",
     "SynthesisResult",
+    "PBETask",
     "Theory",
     "ValueType",
+    "VariableSignature",
     "VSAlgebra",
     "VersionSpace",
 ]

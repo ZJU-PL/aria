@@ -206,6 +206,16 @@ def demonstrate_usage():
         "  This would require extending the expression generator for string manipulation"
     )
 
+    ambiguous_examples = [
+        {"x": 1, "output": 1},
+        {"x": 2, "output": 2},
+    ]
+    refined = solver.synthesize_with_oracle(
+        ambiguous_examples,
+        lambda assignment: abs(assignment["x"]),
+    )
+    print(f"Oracle-guided refinement: {refined}")
+
 
 if __name__ == "__main__":
     test_lia_examples()

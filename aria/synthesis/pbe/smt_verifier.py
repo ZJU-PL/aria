@@ -6,6 +6,7 @@ import z3
 
 from .expression_to_smt import SMTConverter
 from .expressions import Expression, Theory, ValueType
+from .task import PBETask, VariableSignature
 
 
 class SMTVerifier:
@@ -34,7 +35,10 @@ class SMTVerifier:
                     solver.add(
                         variable
                         == self._python_value_to_smt(
-                            value, expr, context, variable
+                            value,
+                            expr,
+                            context,
+                            variable,
                         )
                     )
 
@@ -54,16 +58,32 @@ class SMTVerifier:
         expressions: List[Expression],
         examples: List[Dict[str, Any]],
         var_types: Optional[Dict[str, int]] = None,
+        task: Optional[PBETask] = None,
     ) -> Optional[Dict[str, Any]]:
         """Find an unlabeled input on which the expressions disagree."""
         if not expressions:
             return None
 
+        theory = expressions[0].theory
+        if task is None:
+            try:
+                task = PBETask.from_examples(
+                    examples,
+                    theory_hint=theory,
+                )
+            except ValueError:
+                task = None
+
+        resolved_var_types = dict(var_types or {})
+        if task is not None:
+            resolved_var_types.update(task.variable_bitwidths)
+
         try:
             context = z3.Context()
             converter = SMTConverter(context)
             smt_expressions = [
-                converter.convert_expression(expr, var_types) for expr in expressions
+                converter.convert_expression(expr, resolved_var_types)
+                for expr in expressions
             ]
             variables = converter.get_variables()
             solver = z3.Solver(ctx=context)
@@ -76,7 +96,8 @@ class SMTVerifier:
                 return None
             solver.add(z3.Or(differences))
 
-            for example in examples:
+            excluded_examples = task.as_examples() if task is not None else examples
+            for example in excluded_examples:
                 equalities = []
                 for name, value in example.items():
                     if name == "output" or name not in variables:
@@ -84,18 +105,18 @@ class SMTVerifier:
                     equalities.append(
                         variables[name]
                         == self._python_value_to_smt(
-                            value, expressions[0], context, variables[name]
+                            value,
+                            expressions[0],
+                            context,
+                            variables[name],
                         )
                     )
                 if equalities:
                     solver.add(z3.Not(z3.And(equalities)))
 
-            for variable in variables.values():
-                solver.add(
-                    *self._domain_constraints(
-                        variable, expressions[0].theory, context
-                    )
-                )
+            for name, variable in variables.items():
+                signature = task.input_signature(name) if task is not None else None
+                solver.add(*self._domain_constraints(variable, signature, theory, context))
 
             if solver.check() != z3.sat:
                 return None
@@ -164,8 +185,15 @@ class SMTVerifier:
         return z3.IntVal(int(value), context)
 
     def _domain_constraints(
-        self, symbol: z3.ExprRef, theory: Theory, context: z3.Context
+        self,
+        symbol: z3.ExprRef,
+        signature: Optional[VariableSignature],
+        theory: Theory,
+        context: z3.Context,
     ) -> List[z3.ExprRef]:
+        if signature is not None and signature.value_type == ValueType.BOOL:
+            return []
+
         if z3.is_int(symbol):
             return [
                 symbol >= z3.IntVal(-64, context),

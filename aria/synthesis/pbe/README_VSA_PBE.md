@@ -12,16 +12,17 @@ The implementation consists of two main components:
 ## Architecture
 
 ```
-aria/synthesis/
-├── vsa/                          # Version Space Algebra
-│   ├── __init__.py              # Module exports
-│   ├── expressions.py           # Expression types (LIA, BV, String)
-│   └── vsa.py                   # Core VSA implementation
-└── pbe/                         # Programming by Example solver
-    ├── __init__.py              # Module exports
-    ├── expression_generators.py # Expression generation for theories
-    ├── pbe_solver.py            # Main PBE solver
-    └── examples.py              # Usage examples and tests
+aria/synthesis/pbe/
+├── __init__.py                  # Module exports
+├── task.py                      # Typed task inference and validation
+├── grammar.py                   # Internal typed grammar and productions
+├── expressions.py               # Expression types (LIA, BV, String)
+├── expression_generators.py     # Grammar-driven typed expression generation
+├── vsa.py                       # Core VSA implementation
+├── pbe_solver.py                # Main PBE solver
+├── smt_verifier.py              # SMT-backed verification
+├── smt_pbe_solver.py            # SMT-enhanced synthesis
+└── examples.py                  # Standalone demonstrations
 ```
 
 ## Version Space Algebra (VSA)
@@ -72,31 +73,42 @@ expr = length(s)       # len(s)
 ### Usage Example
 
 ```python
-from aria.synthesis.pbe import PBESolver
+from aria.synthesis.pbe import PBESolver, PBETask
 
-# Create solver with configuration
-solver = PBESolver(max_expression_depth=3, timeout=30.0)
-
-# Define examples
 examples = [
-    {"x": 1, "y": 2, "output": 3},
-    {"x": 3, "y": 4, "output": 7},
-    {"x": 5, "y": 1, "output": 6},
+    {"s": "abcd", "i": 1, "output": "b"},
+    {"s": "wxyz", "i": 2, "output": "y"},
+    {"s": "hello", "i": 4, "output": "o"},
 ]
 
-# Synthesize program
-result = solver.synthesize(examples)
+task = PBETask.from_examples(examples)
+solver = PBESolver(max_expression_depth=2, timeout=30.0)
+result = solver.synthesize(task.as_examples())
 
 if result.success and result.expression:
     print(f"Found program: {result.expression}")
-    # Verify the solution
+    print(f"Task schema: {task.statistics()}")
     print(f"Verification: {solver.verify(result.expression, examples)}")
+
+ambiguous_examples = [
+    {"x": 1, "output": 1},
+    {"x": 2, "output": 2},
+]
+refined = solver.synthesize_with_oracle(
+    ambiguous_examples,
+    lambda assignment: abs(assignment["x"]),
+)
+print(f"Refined program: {refined.expression}")
 ```
 
 ### Key Features
 
 - **Multi-theory Support**: LIA, BV, and String theories
+- **Typed Task Modeling**: theory, input sorts, and output sort are inferred once
+- **Internal Typed Grammar**: the DSL is represented explicitly instead of hardcoded loops
+- **Mixed Inputs**: e.g. string tasks with integer indices or LIA tasks with boolean guards
 - **Counterexample Generation**: Automatically finds distinguishing examples
+- **Oracle-Guided CEGIS**: ambiguity can be resolved by labeling distinguishing inputs
 - **Timeout and Depth Control**: Configurable search parameters
 - **Version Space Management**: Efficient representation of program spaces
 

@@ -46,12 +46,11 @@ class SMTPBESolver(PBESolver):
                 False,
                 message="Best-ranked candidate failed SMT verification",
                 statistics=result.statistics,
+                task=result.task,
             )
 
         if result.version_space and len(result.version_space) > 1:
-            smt_counterexample = self.smt_verifier.find_counterexample(
-                list(result.version_space.expressions), examples
-            )
+            smt_counterexample = self._find_refinement_counterexample(result)
             if smt_counterexample is not None:
                 result.distinguishing_inputs = [smt_counterexample] + [
                     item
@@ -96,3 +95,22 @@ class SMTPBESolver(PBESolver):
         """Disable SMT integration."""
         self.use_smt = False
         self.smt_verifier = None
+
+    def _find_refinement_counterexample(
+        self, result: SynthesisResult
+    ) -> Optional[Dict[str, Any]]:
+        if (
+            self.use_smt
+            and self.smt_verifier is not None
+            and result.version_space is not None
+            and result.task is not None
+        ):
+            smt_counterexample = self.smt_verifier.find_counterexample(
+                list(result.version_space.expressions),
+                result.task.as_examples(),
+                task=result.task,
+            )
+            if smt_counterexample is not None:
+                return smt_counterexample
+
+        return super()._find_refinement_counterexample(result)

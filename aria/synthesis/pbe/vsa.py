@@ -6,6 +6,7 @@ import threading
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
 from .expressions import Expression, Theory, ValueType
+from .task import default_candidate_values
 
 
 class VersionSpace:
@@ -150,11 +151,17 @@ class VSAlgebra:
         expression_generator: Optional[Callable[[], List[Expression]]] = None,
         enable_caching: bool = True,
         max_workers: int = 4,
+        input_types: Optional[Dict[str, ValueType]] = None,
+        observed_examples: Optional[List[Dict[str, Any]]] = None,
+        bitwidth: int = 32,
     ):
         self.theory = theory
         self.expression_generator = expression_generator
         self.enable_caching = enable_caching
         self.max_workers = max_workers
+        self.input_types = input_types or {}
+        self.observed_examples = observed_examples or []
+        self.bitwidth = bitwidth
         self.cache = ExpressionCache() if enable_caching else None
         self.evaluation_stats = {
             "cache_hits": 0,
@@ -356,7 +363,6 @@ class VSAlgebra:
         if not variables:
             return [{}]
 
-        values = self._candidate_values()
         assignments: List[Dict[str, Any]] = []
         var_list = sorted(variables)
 
@@ -366,6 +372,7 @@ class VSAlgebra:
                 return
 
             name = var_list[index]
+            values = self._candidate_values_for_variable(name)
             for value in values:
                 current[name] = value
                 visit(current, index + 1)
@@ -374,32 +381,89 @@ class VSAlgebra:
         visit({}, 0)
         return assignments
 
-    def _candidate_values(self) -> List[Any]:
-        if self.theory == Theory.STRING:
-            return ["", "a", "b", "ab", "abc"]
-        if self.theory == Theory.BV:
-            return [0, 1, 2, 3, 15, 255]
-        return [-2, -1, 0, 1, 2, 3, 5, 10]
+    def _candidate_values_for_variable(self, variable_name: str) -> List[Any]:
+        value_type = self.input_types.get(variable_name)
+        observed = self._observed_values(variable_name)
+
+        if value_type is None:
+            fallback_type = ValueType.INT
+            if self.theory == Theory.STRING:
+                fallback_type = ValueType.STRING
+            elif self.theory == Theory.BV:
+                fallback_type = ValueType.BV
+            defaults = default_candidate_values(
+                fallback_type,
+                self.theory,
+                bitwidth=self.bitwidth,
+            )
+            return self._merge_candidate_values(observed, defaults)
+
+        defaults = default_candidate_values(
+            value_type,
+            self.theory,
+            bitwidth=self.bitwidth if value_type == ValueType.BV else None,
+        )
+        return self._merge_candidate_values(observed, defaults)
+
+    def _observed_values(self, variable_name: str) -> List[Any]:
+        values: List[Any] = []
+        seen: Set[Any] = set()
+        for example in self.observed_examples:
+            if variable_name not in example:
+                continue
+            value = example[variable_name]
+            if value in seen:
+                continue
+            seen.add(value)
+            values.append(value)
+        return values
+
+    def _merge_candidate_values(
+        self, observed: List[Any], defaults: List[Any]
+    ) -> List[Any]:
+        merged: List[Any] = []
+        seen: Set[Any] = set()
+        for value in observed + defaults:
+            if value in seen:
+                continue
+            seen.add(value)
+            merged.append(value)
+        return merged
 
     def minimize(self, vs: VersionSpace) -> VersionSpace:
-        """Remove structurally dominated observational duplicates."""
+        """Remove structurally dominated semantic duplicates."""
         if vs.is_empty():
             return vs
 
-        examples: List[Dict[str, Any]] = []
-        if self.expression_generator is not None:
-            examples = []
+        variables: Set[str] = set()
+        for expr in vs.expressions:
+            variables.update(expr.get_variables())
 
-        ranked = sorted(vs.expressions, key=lambda expr: (expr.structural_cost(), str(expr)))
+        probe_examples = self._generate_assignments(variables)
+        ranked = sorted(
+            vs.expressions,
+            key=lambda expr: (expr.structural_cost(), str(expr)),
+        )
         unique: Set[Expression] = set()
-        seen: Set[str] = set()
+        seen_signatures: Set[Tuple[Any, ...]] = set()
         for expr in ranked:
-            key = str(expr)
-            if key in seen:
+            signature = self._semantic_signature(expr, probe_examples)
+            if signature in seen_signatures:
                 continue
-            seen.add(key)
+            seen_signatures.add(signature)
             unique.add(expr)
         return VersionSpace(unique)
+
+    def _semantic_signature(
+        self, expr: Expression, examples: List[Dict[str, Any]]
+    ) -> Tuple[Any, ...]:
+        signature: List[Any] = []
+        for example in examples:
+            try:
+                signature.append(expr.evaluate(example))
+            except (KeyError, TypeError, ValueError, ZeroDivisionError):
+                signature.append(("error", str(expr)))
+        return tuple(signature)
 
     def sample(self, vs: VersionSpace, n: int = 1) -> List[Expression]:
         """Sample expressions from a version space."""
