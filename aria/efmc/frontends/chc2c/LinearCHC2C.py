@@ -16,7 +16,7 @@ import textwrap
 
 import z3
 
-from src.BaseCHC2C import BaseCHC2C, sanitize_identifier
+from .BaseCHC2C import BaseCHC2C, sanitize_identifier
 
 
 class RecursiveException(Exception):

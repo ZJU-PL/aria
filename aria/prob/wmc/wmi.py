@@ -1,541 +1,391 @@
 """
-Weighted Model Integration (WMI)
-
-Implementation of Weighted Model Integration for continuous domains.
-WMI extends WMC from discrete to continuous probability spaces using
-density functions instead of discrete weights.
-
-This module provides WMI computation over LRA/LIA formulas using:
-- Monte Carlo integration with sampling-based estimation
-- Region-based integration for bounded regions
-- Support for various density function types
-
-Example:
-    import z3
-    from aria.prob import wmi_integrate, WMIOptions, UniformDensity
-
-    x, y = z3.Reals('x y')
-    formula = z3.And(x + y > 0, x < 1, y < 1, x > 0, y > 0)
-
-    # Uniform density over the unit square
-    density = UniformDensity({'x': (0, 1), 'y': (0, 1)})
-
-    options = WMIOptions(method="sampling", num_samples=10000)
-    result = wmi_integrate(formula, density, options)
+Weighted model integration with explicit exact and Monte Carlo backends.
 """
 
 from __future__ import annotations
 
 import math
-import warnings
+import random
 from dataclasses import dataclass
 from enum import Enum
-from typing import Protocol, Any, Tuple, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import z3
 
-from aria.sampling import (
-    sample_models_from_formula,
-    Logic,
-    SamplingOptions,
-    SamplingMethod,
+from aria.counting.arith.arith_counting_latte import count_lia_models
+from aria.prob._helpers import (
+    assignment_satisfies,
+    evaluate_term,
+    finite_support,
 )
-from aria.utils.z3_expr_utils import get_variables
+from aria.prob.density import (
+    BetaDensity,
+    Density,
+    ExponentialDensity,
+    GaussianDensity,
+    ProductDensity,
+    UniformDensity,
+    product_density,
+)
+from aria.prob.results import InferenceResult
+from aria.utils.z3_expr_utils import get_variables, z3_value_to_python
 
 
 class WMIMethod(str, Enum):
-    """Available WMI integration methods."""
+    """Available WMI backends."""
 
-    SAMPLING = "sampling"  # Monte Carlo integration using sampling
-    REGION = "region"  # Region-based integration for bounded regions
-
-
-class Density(Protocol):
-    """Protocol for density functions used in WMI."""
-
-    def __call__(self, assignment: dict[str, Any]) -> float:
-        """
-        Evaluate the density function at the given variable assignment.
-
-        Args:
-            assignment: Dictionary mapping variable names to values
-
-        Returns:
-            Density value (must be non-negative)
-        """
-        raise NotImplementedError
-
-    def support(self) -> Optional[dict[str, Tuple[float, float]]]:
-        """
-        Return the support (bounds) of the density function if known.
-
-        Returns:
-            Dictionary mapping variable names to (min, max) bounds, or None if unbounded
-        """
-        return None
+    AUTO = "auto"
+    BOUNDED_SUPPORT_MONTE_CARLO = "bounded_support_monte_carlo"
+    IMPORTANCE_SAMPLING = "importance_sampling"
+    EXACT_DISCRETE = "exact_discrete"
+    SAMPLING = "sampling"
+    REGION = "region"
 
 
 @dataclass
 class WMIOptions:
-    """Options for WMI computation."""
+    """Options for WMI and probability queries over arithmetic formulas."""
 
-    method: WMIMethod = WMIMethod.SAMPLING
+    method: WMIMethod = WMIMethod.AUTO
     num_samples: int = 10000
     timeout: Optional[float] = None
     random_seed: Optional[int] = None
-    confidence_level: float = 0.95  # For statistical error bounds
+    confidence_level: float = 0.95
+    proposal: Optional[Density] = None
 
 
-class UniformDensity:
-    """Uniform density over a rectangular region."""
-
-    def __init__(self, bounds: dict[str, Tuple[float, float]]):
-        """
-        Initialize uniform density.
-
-        Args:
-            bounds: Dictionary mapping variable names to (min, max) bounds
-        """
-        self.bounds = bounds
-        self._volume = 1.0
-        for min_val, max_val in bounds.values():
-            self._volume *= max_val - min_val
-
-    def __call__(self, assignment: dict[str, Any]) -> float:
-        """Evaluate uniform density."""
-        # Check if assignment is within bounds
-        for var, value in assignment.items():
-            if var in self.bounds:
-                min_val, max_val = self.bounds[var]
-                if min_val > value or value > max_val:
-                    return 0.0
-        return 1.0 / self._volume if self._volume > 0 else 0.0
-
-    def support(self) -> dict[str, Tuple[float, float]]:
-        """Return the support of the uniform density."""
-        return self.bounds.copy()
+def _coerce_method(method: Any) -> WMIMethod:
+    if isinstance(method, WMIMethod):
+        return method
+    return WMIMethod(str(method))
 
 
-class GaussianDensity:
-    """Multivariate Gaussian density."""
-
-    def __init__(
-        self, means: dict[str, float], covariances: dict[str, dict[str, float]]
-    ):
-        """
-        Initialize Gaussian density.
-
-        Args:
-            means: Dictionary mapping variable names to mean values
-            covariances: Covariance matrix as nested dictionary
-        """
-        self.means = means
-        self.covariances = covariances
-        self.variables = list(means.keys())
-
-        # For simplicity, handle only diagonal covariance matrices for now
-        self._is_diagonal = all(
-            var in covariances.get(var, {}) for var in self.variables
-        ) and all(
-            i == j
-            for i in self.variables
-            for j in self.variables
-            if i in covariances.get(j, {})
-        )
-
-        if self._is_diagonal:
-            self._precisions = {}
-            for var in self.variables:
-                var_cov = covariances.get(var, {}).get(var, 1.0)
-                self._precisions[var] = 1.0 / var_cov if var_cov > 0 else 1.0
-
-            # Compute normalization constant for diagonal case
-            self._normalization = 1.0
-            for var in self.variables:
-                var_cov = covariances.get(var, {}).get(var, 1.0)
-                self._normalization *= 1.0 / math.sqrt(2 * math.pi * var_cov)
-        else:
-            # For general case, we'd need to compute the determinant and inverse
-            # For now, fall back to a simple implementation
-            self._normalization = 1.0
-
-    def __call__(self, assignment: dict[str, Any]) -> float:
-        """Evaluate Gaussian density."""
-        if self._is_diagonal:
-            # Diagonal case - product of independent Gaussians
-            density = self._normalization
-            for var in self.variables:
-                if var in assignment:
-                    mean = self.means.get(var, 0.0)
-                    precision = self._precisions.get(var, 1.0)
-                    diff = assignment[var] - mean
-                    density *= math.exp(-0.5 * precision * diff * diff)
-            return density
-        # General multivariate case - simplified implementation
-        # In practice, this would require matrix operations
-        density = self._normalization
-        for var in self.variables:
-            if var in assignment:
-                mean = self.means.get(var, 0.0)
-                # Use identity covariance as fallback
-                diff = assignment[var] - mean
-                density *= math.exp(-0.5 * diff * diff)
-        return density
-
-    def support(self) -> None:
-        """Gaussian density has unbounded support."""
-        return None
+def _z_score(confidence_level: float) -> float:
+    if confidence_level >= 0.99:
+        return 2.576
+    if confidence_level >= 0.95:
+        return 1.960
+    if confidence_level >= 0.90:
+        return 1.645
+    return 1.0
 
 
-class ExponentialDensity:
-    """Exponential density function."""
-
-    def __init__(self, rates: dict[str, float]):
-        """
-        Initialize exponential density.
-
-        Args:
-            rates: Dictionary mapping variable names to rate parameters (λ > 0)
-        """
-        self.rates = rates
-        self.variables = list(rates.keys())
-
-        # Validate rates
-        for var, rate in rates.items():
-            if rate <= 0:
-                raise ValueError(
-                    f"Exponential rate for variable '{var}' must be positive, "
-                    f"got {rate}"
-                )
-
-    def __call__(self, assignment: dict[str, Any]) -> float:
-        """Evaluate exponential density."""
-        density = 1.0
-        for var in self.variables:
-            if var in assignment:
-                rate = self.rates[var]
-                value = assignment[var]
-                if value < 0:
-                    return 0.0  # Exponential distribution has support [0, ∞)
-                density *= rate * math.exp(-rate * value)
-        return density
-
-    def support(self) -> dict[str, Tuple[float, float]]:
-        """Return the support of the exponential density."""
-        return {var: (0.0, float("inf")) for var in self.variables}
-
-
-class BetaDensity:
-    """Beta density function."""
-
-    def __init__(self, alphas: dict[str, float], betas: dict[str, float]):
-        """
-        Initialize beta density.
-
-        Args:
-            alphas: Dictionary mapping variable names to alpha parameters (α > 0)
-            betas: Dictionary mapping variable names to beta parameters (β > 0)
-        """
-        self.alphas = alphas
-        self.betas = betas
-        self.variables = list(alphas.keys())
-
-        # Validate parameters
-        for var in self.variables:
-            if alphas[var] <= 0 or betas[var] <= 0:
-                raise ValueError(
-                    f"Beta parameters for variable '{var}' must be positive"
-                )
-
-        # Precompute normalization constants
-        self._normalizations = {}
-        for var in self.variables:
-            alpha = alphas[var]
-            beta = betas[var]
-            # Beta function B(α,β) = Γ(α)Γ(β)/Γ(α+β)
-            gamma_alpha = math.gamma(alpha)
-            gamma_beta = math.gamma(beta)
-            gamma_sum = math.gamma(alpha + beta)
-            self._normalizations[var] = (gamma_alpha * gamma_beta) / gamma_sum
-
-    def __call__(self, assignment: dict[str, Any]) -> float:
-        """Evaluate beta density."""
-        density = 1.0
-        for var in self.variables:
-            if var in assignment:
-                value = assignment[var]
-                if value < 0 or value > 1:
-                    return 0.0  # Beta distribution has support [0, 1]
-
-                alpha = self.alphas[var]
-                beta = self.betas[var]
-                normalization = self._normalizations[var]
-
-                value_pow = math.pow(value, alpha - 1)
-                complement_pow = math.pow(1 - value, beta - 1)
-                density *= value_pow * complement_pow / normalization
-        return density
-
-    def support(self) -> dict[str, Tuple[float, float]]:
-        """Return the support of the beta density."""
-        return {var: (0.0, 1.0) for var in self.variables}
-
-
-def _wmi_by_sampling(
-    formula: z3.ExprRef, density: Density, options: WMIOptions
-) -> float:
-    """
-    Compute WMI using Monte Carlo integration with sampling.
-
-    This method samples points from the solution space and evaluates
-    the density function at each point, then averages the results.
-    """
-    try:
-        # Create sampling options
-        method = (
-            SamplingMethod.ENUMERATION
-            if options.num_samples < 1000
-            else SamplingMethod.DIKIN_WALK
-        )
-        sampling_options = SamplingOptions(
-            method=method,
-            num_samples=min(options.num_samples, 10000),  # Cap for efficiency
-            timeout=options.timeout,
-            random_seed=options.random_seed,
-        )
-
-        # Sample models from the formula
-        sampling_result = sample_models_from_formula(
-            formula, Logic.QF_LRA, sampling_options
-        )
-
-        if not sampling_result.samples:
-            return 0.0
-
-        # Evaluate density at each sample and compute average
-        total_density = 0.0
-        valid_samples = 0
-        error_count = 0
-
-        for sample in sampling_result.samples:
-            try:
-                density_value = density(sample)
-                is_valid = (
-                    density_value >= 0
-                    and not math.isinf(density_value)
-                    and not math.isnan(density_value)
-                )
-                if is_valid:
-                    # Valid density values only
-                    total_density += density_value
-                    valid_samples += 1
-                else:
-                    error_count += 1
-            except (ValueError, TypeError, AttributeError):
-                # Skip samples where density evaluation fails
-                error_count += 1
-                continue
-
-        if valid_samples == 0:
-            if error_count > 0:
-                num_samples = len(sampling_result.samples)
-                raise ValueError(
-                    f"All {num_samples} samples failed density evaluation. "
-                    "Check that the density function is compatible with "
-                    "the formula variables."
-                )
-            return 0.0
-
-        # Return Monte Carlo estimate
-        result = total_density / valid_samples
-
-        # Warn if many samples failed
-        if error_count > 0.1 * len(sampling_result.samples):
-            num_samples = len(sampling_result.samples)
-            warnings.warn(
-                f"High density evaluation failure rate: "
-                f"{error_count}/{num_samples} samples failed. "
-                "Consider adjusting the density function or formula constraints."
-            )
-
-        return result
-
-    except ImportError as e:
-        raise ImportError(f"WMI sampling requires aria.sampling module: {e}") from e
-    except Exception as e:
-        if "sampling" in str(e).lower():
-            raise ValueError(
-                f"Sampling failed for WMI computation: {e}. "
-                "Consider using region-based integration for bounded regions."
-            ) from e
-        raise ValueError(f"WMI computation failed: {e}") from e
-
-
-def _wmi_by_region(formula: z3.ExprRef, density: Density, options: WMIOptions) -> float:
-    """
-    Compute WMI using region-based integration.
-
-    For now, this method uses enhanced sampling within bounded regions.
-    """
-    # For bounded regions, use sampling with more samples for better accuracy
-    enhanced_options = WMIOptions(
-        method=WMIMethod.SAMPLING,
-        num_samples=min(options.num_samples * 2, 2000),
-        timeout=options.timeout,
-        random_seed=options.random_seed,
-        confidence_level=options.confidence_level,
-    )
-
-    return _wmi_by_sampling(formula, density, enhanced_options)
-
-
-def _validate_wmi_inputs(formula: z3.ExprRef, density: Density) -> None:
-    """Validate WMI inputs."""
-    if not z3.is_expr(formula):
-        raise ValueError("Formula must be a Z3 expression")
-
-    # Check that formula involves appropriate theories
-    formula_vars = get_variables(formula)
-    supported_sort_kinds = (z3.Z3_REAL_SORT, z3.Z3_INT_SORT)
-
-    unsupported_vars = []
-    for var in formula_vars:
-        var_sort_kind = var.sort().kind()
-        if var_sort_kind not in supported_sort_kinds:
-            unsupported_vars.append(str(var))
-
-    if unsupported_vars:
+def _supported_formula_variables(formula: z3.ExprRef) -> List[z3.ExprRef]:
+    variables = sorted(get_variables(formula), key=str)
+    unsupported = []
+    for var in variables:
+        if var.sort() not in (z3.IntSort(), z3.RealSort()):
+            unsupported.append(str(var))
+    if unsupported:
         raise ValueError(
-            f"Formula contains unsupported variable types: {unsupported_vars}. "
-            "WMI currently supports only real and integer variables."
+            "WMI currently supports only Int/Real variables, got {}".format(
+                unsupported
+            )
         )
+    return variables
 
-    # Check that density is callable
+
+def _validate_density(density: Density) -> None:
     if not callable(density):
         raise ValueError("Density must be callable")
 
-    # Check that density support (if provided) is valid
-    try:
-        density_support = density.support()
-        if density_support is not None:
-            for var_name, bounds in density_support.items():
-                if not isinstance(bounds, tuple) or len(bounds) != 2:
-                    raise ValueError(
-                        f"Density support for variable '{var_name}' "
-                        "must be a tuple (min, max)"
+    bounds = density.support()
+    if bounds is None:
+        return
+
+    for var_name, bound in bounds.items():
+        if not isinstance(bound, tuple) or len(bound) != 2:
+            raise ValueError(
+                "Density support for '{}' must be a (min, max) tuple".format(var_name)
+            )
+        min_val, max_val = bound
+        if not isinstance(min_val, (int, float)) or not isinstance(max_val, (int, float)):
+            raise ValueError(
+                "Density support for '{}' must be numeric".format(var_name)
+            )
+        if math.isnan(min_val) or math.isnan(max_val):
+            raise ValueError(
+                "Density support for '{}' cannot contain NaN".format(var_name)
+            )
+
+
+def _support_formula(variables: List[z3.ExprRef], bounds: Dict[str, Tuple[float, float]]) -> z3.BoolRef:
+    constraints = []
+    for var in variables:
+        var_name = str(var)
+        if var_name not in bounds:
+            raise ValueError(
+                "Density support is missing bounds for variable '{}'".format(var_name)
+            )
+        min_val, max_val = bounds[var_name]
+        if var.sort() == z3.IntSort():
+            if not float(min_val).is_integer() or not float(max_val).is_integer():
+                raise ValueError(
+                    "Exact discrete integration requires integer bounds for '{}'".format(
+                        var_name
                     )
-                min_val, max_val = bounds
-                if not isinstance(min_val, (int, float)) or not isinstance(
-                    max_val, (int, float)
-                ):
-                    raise ValueError(
-                        f"Density support bounds for variable '{var_name}' "
-                        "must be numeric"
-                    )
-                if min_val >= max_val:
-                    raise ValueError(
-                        f"Density support for variable '{var_name}' "
-                        "must have min < max"
-                    )
-    except AttributeError:
-        # Density doesn't implement support() method, that's OK
-        pass
-    except Exception as e:
-        raise ValueError(f"Error validating density support: {e}") from e
+                )
+            constraints.append(var >= int(min_val))
+            constraints.append(var <= int(max_val))
+        else:
+            constraints.append(var >= z3.RealVal(str(min_val)))
+            constraints.append(var <= z3.RealVal(str(max_val)))
+    return z3.And(*constraints) if constraints else z3.BoolVal(True)
+
+
+def _uniform_support_measure(
+    variables: List[z3.ExprRef], bounds: Dict[str, Tuple[float, float]]
+) -> float:
+    measure = 1.0
+    for var in variables:
+        min_val, max_val = bounds[str(var)]
+        if var.sort() == z3.IntSort():
+            measure *= int(max_val) - int(min_val) + 1
+        else:
+            measure *= float(max_val) - float(min_val)
+    return measure
+
+
+def _uniform_sample_from_support(
+    variables: List[z3.ExprRef],
+    bounds: Dict[str, Tuple[float, float]],
+    rng: random.Random,
+) -> Dict[str, Any]:
+    assignment = {}
+    for var in variables:
+        min_val, max_val = bounds[str(var)]
+        if var.sort() == z3.IntSort():
+            assignment[str(var)] = rng.randint(int(min_val), int(max_val))
+        else:
+            assignment[str(var)] = rng.uniform(float(min_val), float(max_val))
+    return assignment
+
+
+def _running_error_bound(
+    sample_count: int, sample_sum: float, sample_sum_squares: float, scale: float, z_score: float
+) -> Optional[float]:
+    if sample_count <= 1:
+        return None
+    mean = sample_sum / float(sample_count)
+    variance = max(sample_sum_squares / float(sample_count) - mean * mean, 0.0)
+    std = math.sqrt(variance)
+    return scale * z_score * std / math.sqrt(float(sample_count))
+
+
+def _exact_discrete_mass(
+    formula: z3.ExprRef, density: UniformDensity, variables: List[z3.ExprRef]
+) -> InferenceResult:
+    if not density.discrete:
+        raise ValueError("Exact discrete integration requires UniformDensity(discrete=True)")
+
+    if any(var.sort() != z3.IntSort() for var in variables):
+        raise ValueError("Exact discrete integration currently supports Int variables only")
+
+    bounds = density.support()
+    support_formula = _support_formula(variables, bounds)
+    numerator = count_lia_models(z3.And(formula, support_formula))
+    denominator = count_lia_models(support_formula)
+    if denominator == 0:
+        raise ValueError("Discrete uniform support is empty")
+
+    return InferenceResult(
+        value=float(numerator) / float(denominator),
+        exact=True,
+        backend="wmi-exact-discrete-uniform",
+        stats={
+            "numerator_count": numerator,
+            "denominator_count": denominator,
+            "num_variables": len(variables),
+        },
+        error_bound=0.0,
+    )
+
+
+def _bounded_support_monte_carlo(
+    formula: z3.ExprRef, density: Density, options: WMIOptions, variables: List[z3.ExprRef]
+) -> InferenceResult:
+    bounds = density.support()
+    if bounds is None or not finite_support(bounds):
+        raise ValueError(
+            "Bounded-support Monte Carlo requires a finite rectangular support"
+        )
+
+    measure = _uniform_support_measure(variables, bounds)
+    rng = random.Random(options.random_seed)
+    sample_sum = 0.0
+    sample_sum_squares = 0.0
+    satisfied = 0
+
+    for _ in range(options.num_samples):
+        assignment = _uniform_sample_from_support(variables, bounds, rng)
+        contribution = 0.0
+        if assignment_satisfies(formula, assignment):
+            contribution = float(density(assignment))
+            satisfied += 1
+        sample_sum += contribution
+        sample_sum_squares += contribution * contribution
+
+    estimate = measure * sample_sum / float(options.num_samples)
+    error_bound = _running_error_bound(
+        options.num_samples,
+        sample_sum,
+        sample_sum_squares,
+        measure,
+        _z_score(options.confidence_level),
+    )
+    return InferenceResult(
+        value=estimate,
+        exact=False,
+        backend="wmi-bounded-support-monte-carlo",
+        stats={
+            "sample_count": options.num_samples,
+            "satisfied_samples": satisfied,
+            "support_measure": measure,
+        },
+        error_bound=error_bound,
+    )
+
+
+def _importance_sampling(
+    formula: z3.ExprRef, density: Density, options: WMIOptions, variables: List[z3.ExprRef]
+) -> InferenceResult:
+    proposal = options.proposal or density
+    rng = random.Random(options.random_seed)
+    sample_sum = 0.0
+    sample_sum_squares = 0.0
+    satisfied = 0
+
+    for _ in range(options.num_samples):
+        assignment = proposal.sample_assignment(rng)
+        missing = [str(var) for var in variables if str(var) not in assignment]
+        if missing:
+            raise ValueError(
+                "Proposal density did not assign all formula variables: {}".format(
+                    missing
+                )
+            )
+
+        proposal_value = float(proposal(assignment))
+        density_value = float(density(assignment))
+        if proposal_value <= 0.0:
+            if density_value > 0.0:
+                raise ValueError(
+                    "Proposal density assigned zero mass to a positive-density sample"
+                )
+            contribution = 0.0
+        else:
+            weight = density_value / proposal_value
+            if assignment_satisfies(formula, assignment):
+                contribution = weight
+                satisfied += 1
+            else:
+                contribution = 0.0
+
+        sample_sum += contribution
+        sample_sum_squares += contribution * contribution
+
+    estimate = sample_sum / float(options.num_samples)
+    error_bound = _running_error_bound(
+        options.num_samples,
+        sample_sum,
+        sample_sum_squares,
+        1.0,
+        _z_score(options.confidence_level),
+    )
+    return InferenceResult(
+        value=estimate,
+        exact=False,
+        backend="wmi-importance-sampling",
+        stats={
+            "sample_count": options.num_samples,
+            "satisfied_samples": satisfied,
+            "proposal": proposal.__class__.__name__,
+        },
+        error_bound=error_bound,
+    )
+
+
+def _effective_method(density: Density, options: WMIOptions, variables: List[z3.ExprRef]) -> WMIMethod:
+    method = _coerce_method(options.method)
+    if method == WMIMethod.SAMPLING:
+        method = WMIMethod.AUTO
+    if method == WMIMethod.REGION:
+        return WMIMethod.BOUNDED_SUPPORT_MONTE_CARLO
+    if method != WMIMethod.AUTO:
+        return method
+
+    if isinstance(density, UniformDensity) and density.discrete:
+        return WMIMethod.EXACT_DISCRETE
+
+    bounds = density.support()
+    if bounds is not None and finite_support(bounds):
+        return WMIMethod.BOUNDED_SUPPORT_MONTE_CARLO
+    return WMIMethod.IMPORTANCE_SAMPLING
+
+
+def _validate_wmi_inputs(formula: z3.ExprRef, density: Density) -> List[z3.ExprRef]:
+    if not z3.is_expr(formula):
+        raise ValueError("Formula must be a Z3 expression")
+    variables = _supported_formula_variables(formula)
+    _validate_density(density)
+    return variables
 
 
 def wmi_integrate(
-    formula: z3.ExprRef, density: Density, options: WMIOptions | None = None
-) -> float:
+    formula: z3.ExprRef, density: Density, options: Optional[WMIOptions] = None
+) -> InferenceResult:
     """
-    Compute Weighted Model Integration of a formula with respect to a density function.
-
-    Args:
-        formula: Z3 formula over real/integer variables (typically LRA/LIA)
-        density: Density function to integrate over the satisfying assignments
-        options: WMI computation options
-
-    Returns:
-        WMI result (integral of density over satisfying assignments)
-
-    Raises:
-        ValueError: If inputs are invalid
-        NotImplementedError: If the requested method is not available
+    Compute the probability mass of a formula under a normalized density.
     """
+
     opts = options or WMIOptions()
+    variables = _validate_wmi_inputs(formula, density)
+    method = _effective_method(density, opts, variables)
 
-    # Validate inputs
-    _validate_wmi_inputs(formula, density)
+    if method == WMIMethod.EXACT_DISCRETE:
+        if not isinstance(density, UniformDensity):
+            raise ValueError("Exact discrete integration currently supports UniformDensity only")
+        return _exact_discrete_mass(formula, density, variables)
+    if method == WMIMethod.BOUNDED_SUPPORT_MONTE_CARLO:
+        return _bounded_support_monte_carlo(formula, density, opts, variables)
+    if method == WMIMethod.IMPORTANCE_SAMPLING:
+        return _importance_sampling(formula, density, opts, variables)
+    raise ValueError("Unsupported WMI method: {}".format(method))
 
-    # Choose integration method
-    if opts.method == WMIMethod.SAMPLING:
-        return _wmi_by_sampling(formula, density, opts)
-    if opts.method == WMIMethod.REGION:
-        return _wmi_by_region(formula, density, opts)
-    raise ValueError(f"Unsupported WMI method: {opts.method}")
 
-
-# Convenience functions for common densities
-def uniform_density(bounds: dict[str, Tuple[float, float]]) -> UniformDensity:
-    """Create a uniform density over the given bounds."""
-    return UniformDensity(bounds)
+def uniform_density(
+    bounds: Dict[str, Tuple[float, float]], discrete: bool = False
+) -> UniformDensity:
+    return UniformDensity(bounds, discrete=discrete)
 
 
 def gaussian_density(
-    means: dict[str, float], covariances: dict[str, dict[str, float]]
+    means: Dict[str, float], covariances: Dict[str, Dict[str, float]]
 ) -> GaussianDensity:
-    """Create a Gaussian density with given means and covariances."""
     return GaussianDensity(means, covariances)
 
 
-def exponential_density(rates: dict[str, float]) -> ExponentialDensity:
-    """Create an exponential density with given rates."""
+def exponential_density(rates: Dict[str, float]) -> ExponentialDensity:
     return ExponentialDensity(rates)
 
 
-def beta_density(alphas: dict[str, float], betas: dict[str, float]) -> BetaDensity:
-    """Create a beta density with given alpha and beta parameters."""
+def beta_density(alphas: Dict[str, float], betas: Dict[str, float]) -> BetaDensity:
     return BetaDensity(alphas, betas)
 
 
-def product_density(densities: list[Density]) -> Density:
-    """Create a product density from multiple independent densities."""
-
-    class ProductDensity:
-        """Product of multiple independent density functions."""
-
-        def __init__(self, densities):
-            """Initialize product density with list of densities."""
-            self.densities = densities
-
-        def __call__(self, assignment: dict[str, Any]) -> float:
-            """Evaluate product density at assignment."""
-            result = 1.0
-            for density in self.densities:
-                result *= density(assignment)
-            return result
-
-        def support(self) -> Optional[dict[str, Tuple[float, float]]]:
-            """Return combined support of all densities."""
-            # Combine supports - intersection of all supports
-            combined_support = {}
-            for density in self.densities:
-                density_support = density.support()
-                if density_support is None:
-                    return None  # If any density is unbounded, result is unbounded
-
-                for var, bounds in density_support.items():
-                    if var in combined_support:
-                        # Take intersection
-                        old_min, old_max = combined_support[var]
-                        new_min, new_max = bounds
-                        combined_support[var] = (
-                            max(old_min, new_min),
-                            min(old_max, new_max),
-                        )
-                    else:
-                        combined_support[var] = bounds
-
-            return combined_support
-
-    return ProductDensity(densities)
+__all__ = [
+    "Density",
+    "UniformDensity",
+    "GaussianDensity",
+    "ExponentialDensity",
+    "BetaDensity",
+    "ProductDensity",
+    "product_density",
+    "WMIMethod",
+    "WMIOptions",
+    "wmi_integrate",
+    "uniform_density",
+    "gaussian_density",
+    "exponential_density",
+    "beta_density",
+]

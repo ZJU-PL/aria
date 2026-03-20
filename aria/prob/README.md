@@ -1,52 +1,122 @@
-# Prob Modelabilistic Reasoning
+# Probabilistic Reasoning
 
-Weighted Counting (WMC) and Weighted Model Integration (WMI).
+`aria.prob` now exposes a small but usable probabilistic inference layer:
 
-## Components
+- exact weighted model counting for Boolean CNF formulas
+- explicit arithmetic probability-mass estimation backends
+- high-level probability / conditional-probability / expectation queries
 
-- `wmc/`: Main probabilistic reasoning module
-
-## Weighted Model Counting
-
-Compute weighted sum of satisfying assignments for propositional formulas.
-
-Features:
-- DNNF-based exact evaluation
-- SAT-based enumeration backend
-- Support for weighted CNF formulas
-
-## Weighted Model Integration
-
-Extend WMC to continuous domains with density functions.
-
-Features:
-- Monte Carlo integration
-- Region-based integration
-- Support for common distributions:
-  - Uniform
-  - Gaussian
-  - Exponential
-  - Beta
-
-## Usage
+## Public API
 
 ```python
-# Weighted Model Counting
-from pysat.formula import CNF
-from aria.prob.wmc import wmc_count, WMCBackend, WMCOptions
-
-cnf = CNF(from_clauses=[[1, 2], [-1, 3]])
-weights = {1: 0.6, -1: 0.4, 2: 0.7, -2: 0.3, 3: 0.5, -3: 0.5}
-result = wmc_count(cnf, weights, WMCOptions(backend=WMCBackend.DNNF))
-
-# Weighted Model Integration
-import z3
-from aria.prob.wmc import wmi_integrate, WMIOptions, UniformDensity
-
-x, y = z3.Reals('x y')
-formula = z3.And(x + y > 0, x < 1, y < 1, x > 0, y > 0)
-density = UniformDensity({'x': (0, 1), 'y': (0, 1)})
-result = wmi_integrate(formula, density, WMIOptions(num_samples=10000))
+from aria.prob import (
+    WMCOptions,
+    WMIOptions,
+    WMIMethod,
+    UniformDensity,
+    compile_wmc,
+    conditional_probability,
+    expectation,
+    probability,
+    wmc_count,
+    wmi_integrate,
+)
 ```
 
-See `wmc/__init__.py` for detailed API.
+## Boolean WMC
+
+Use `wmc_count()` for a one-shot exact weighted count:
+
+```python
+from pysat.formula import CNF
+from aria.prob import wmc_count
+
+cnf = CNF(from_clauses=[[1, 2]])
+weights = {1: 0.2, -1: 0.8, 2: 0.3, -2: 0.7}
+count = wmc_count(cnf, weights)
+```
+
+Use `compile_wmc()` for repeated evidence queries:
+
+```python
+compiled = compile_wmc(cnf, weights)
+px_given_model = compiled.probability(query=[1])
+py_given_not_x = compiled.probability(query=[2], evidence=[-1])
+```
+
+`probability(cnf, weights, evidence=...)` is also available for one-shot CNF queries.
+For the high-level CNF query API, complementary literal weights must sum to `1.0`.
+
+## Arithmetic Probability Queries
+
+`wmi_integrate()` returns an `InferenceResult`, which behaves like a float but
+also exposes:
+
+- `value`
+- `exact`
+- `backend`
+- `stats`
+- `error_bound`
+
+Example with bounded-support Monte Carlo:
+
+```python
+import z3
+from aria.prob import UniformDensity, WMIOptions, WMIMethod, wmi_integrate
+
+x, y = z3.Reals("x y")
+triangle = z3.And(x >= 0, y >= 0, x <= 1, y <= 1, x + y <= 1)
+density = UniformDensity({"x": (0, 1), "y": (0, 1)})
+
+result = wmi_integrate(
+    triangle,
+    density,
+    WMIOptions(
+        method=WMIMethod.BOUNDED_SUPPORT_MONTE_CARLO,
+        num_samples=10000,
+        random_seed=7,
+    ),
+)
+```
+
+High-level probability and expectation helpers:
+
+```python
+mass = probability(triangle, density)
+cond = conditional_probability(triangle, x <= 0.5, density)
+ex = expectation(x, triangle, density)
+```
+
+## Exact Discrete Hook
+
+For bounded integer formulas, `UniformDensity(..., discrete=True)` enables an
+exact discrete-uniform path:
+
+```python
+x = z3.Int("x")
+density = UniformDensity({"x": (0, 2)}, discrete=True)
+mass = wmi_integrate(x < 2, density)
+```
+
+This path currently supports:
+
+- Int variables only
+- uniform discrete density over finite integer boxes
+- formulas accepted by the arithmetic counting utilities
+
+## Supported / Unsupported
+
+Supported in this iteration:
+
+- exact Boolean CNF WMC
+- repeated literal evidence queries on compiled Boolean models
+- bounded-support Monte Carlo for finite rectangular supports
+- importance sampling when the density or proposal can generate samples
+- exact discrete uniform probability mass for bounded integer formulas
+
+Explicitly unsupported or rejected:
+
+- silent fallback from correlated Gaussian covariance to diagonal
+- exact unbounded continuous integration
+- nonlinear exact WMI
+- ambiguous high-level CNF probabilities with non-normalized complementary weights

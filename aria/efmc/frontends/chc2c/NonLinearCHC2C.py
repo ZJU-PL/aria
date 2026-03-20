@@ -16,7 +16,7 @@ import textwrap
 
 import z3
 
-from src.BaseCHC2C import BaseCHC2C, sanitize_identifier
+from .BaseCHC2C import BaseCHC2C, sanitize_identifier
 
 
 # This works for all CHCs, linear, nonlinear, recursive, etc.
@@ -165,4 +165,3 @@ class NonLinearCHC2C(BaseCHC2C):
         func_body += "  return 0;\n"
         func_body += "}\n\n"
         return func_body
-        

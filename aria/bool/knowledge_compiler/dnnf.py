@@ -320,6 +320,10 @@ class DNNF_Compiler:
                 leaves.append(self.cache_lit[literal])
         return self.compose(node_type="A", list_tree=leaves)
 
+    def create_boolean_node(self, value: bool) -> DNF_Node:
+        """Create a Boolean constant leaf."""
+        return DNF_Node(node_type="L", literal=value)
+
     def clause2ddnnf(self, dtree: "Node") -> Optional[DNF_Node]:
         """
         Convert a clause to DNNF.
@@ -405,6 +409,13 @@ class DNNF_Compiler:
         if dtree == -1:
             return None
         term_node = self.create_term_node(unit_assignment)
+        if len(dtree.clauses) == 0:
+            if term_node is not None:
+                return term_node
+            return self.create_boolean_node(True)
+        if dtree.is_leaf():
+            clause_node = self.clause2ddnnf(dtree)
+            return self.compose(node_type="A", list_tree=[term_node, clause_node])
         sep = dtree.separators
         if sep is None or len(sep) == 0:
             left_node = self.cnf2aux(dtree.left_child)
@@ -466,8 +477,10 @@ class DNNF_Compiler:
             Conditioned DNNF node
         """
         if dnnf.explore_id is None:
-            assert not isinstance(dnnf.literal, bool)
             if dnnf.type == "L":
+                if isinstance(dnnf.literal, bool):
+                    dnnf.explore_id = 1
+                    return dnnf
                 if dnnf.literal in instanciation:
                     dnnf.literal = True
                 elif -dnnf.literal in instanciation:

@@ -3,10 +3,13 @@
 For testing the knowledge compilation engine
 """
 
+from pysat.formula import CNF
+
 from aria.tests import TestCase, main
 from aria.bool.knowledge_compiler.dimacs_parser import parse_cnf_string
 from aria.bool.knowledge_compiler.dnnf import DNNF_Compiler
 from aria.bool.knowledge_compiler.dtree import Dtree_Compiler
+from aria.prob import WMCOptions, compile_wmc, wmc_count
 
 cnf_foo2 = """
 p cnf 4 4\n
@@ -69,6 +72,44 @@ class TestDNNF(TestCase):
             print(x)
 
         assert True
+
+    def test_single_clause_root_compiles(self):
+        clausal_form = [[1, 2]]
+        dtree = Dtree_Compiler(clausal_form.copy()).el2dt([1, 2])
+        self.assertTrue(dtree.is_leaf())
+
+        dnnf = DNNF_Compiler(dtree).compile()
+        self.assertIsNotNone(dnnf)
+        self.assertEqual(dnnf.type, "O")
+
+    def test_unit_clause_root_compiles(self):
+        clausal_form = [[1]]
+        dtree = Dtree_Compiler(clausal_form.copy()).el2dt([1])
+        self.assertTrue(dtree.is_leaf())
+
+        dnnf = DNNF_Compiler(dtree).compile()
+        self.assertIsNotNone(dnnf)
+        self.assertEqual(dnnf.type, "L")
+        self.assertEqual(dnnf.literal, 1)
+
+    def test_unit_propagation_to_true_leaf(self):
+        clausal_form = [[1], [2]]
+        dtree = Dtree_Compiler(clausal_form.copy()).el2dt([1, 2])
+        dnnf_compiler = DNNF_Compiler(dtree)
+
+        dnnf = dnnf_compiler.compile()
+        self.assertIsNotNone(dnnf)
+        self.assertTrue(dnnf_compiler.is_sat(dnnf))
+        models = dnnf_compiler.enumerate_models(dnnf)
+        self.assertEqual(models, [[1, 2]])
+
+    def test_compile_wmc_uses_exact_backend_on_leaf_cases(self):
+        cnf = CNF(from_clauses=[[1]])
+        weights = {1: 0.4, -1: 0.6}
+
+        compiled = compile_wmc(cnf, weights, WMCOptions(strict_complements=True))
+        self.assertEqual(compiled.backend, "wmc-dnnf")
+        self.assertEqual(wmc_count(cnf, weights), 0.4)
 
 
 if __name__ == "__main__":
