@@ -4,10 +4,10 @@ Probabilistic reasoning utilities.
 This package provides:
 - exact weighted model counting over Boolean CNF formulas
 - explicit Monte Carlo / exact backends for arithmetic probability mass queries
-- high-level helpers for probabilities, conditionals, and expectations
+- high-level helpers for probabilities, conditionals, expectations, and variance
 """
 
-from .density import (
+from .core import (
     Density,
     UniformDensity,
     GaussianDensity,
@@ -16,14 +16,16 @@ from .density import (
     ProductDensity,
     product_density,
 )
-from .query import probability, conditional_probability, expectation
-from .results import InferenceResult
-from .wmc import (
+from .api import probability, conditional_probability, expectation, variance
+from .core import InferenceResult
+from .boolean import (
     WMCBackend,
     WMCOptions,
     CompiledWMC,
     compile_wmc,
     wmc_count,
+)
+from .arithmetic import (
     WMIMethod,
     WMIOptions,
     wmi_integrate,
@@ -53,6 +55,7 @@ __all__ = [
     "probability",
     "conditional_probability",
     "expectation",
+    "variance",
     "uniform_density",
     "gaussian_density",
     "exponential_density",

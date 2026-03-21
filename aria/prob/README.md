@@ -4,7 +4,17 @@
 
 - exact weighted model counting for Boolean CNF formulas
 - explicit arithmetic probability-mass estimation backends
-- high-level probability / conditional-probability / expectation queries
+- high-level probability / conditional-probability / expectation / variance queries
+
+Internally, the package is now split into:
+
+- `aria.prob.core` for shared densities, result types, and helper utilities
+- `aria.prob.boolean` for Boolean WMC
+- `aria.prob.arithmetic` for arithmetic WMI
+- `aria.prob.api` for high-level query helpers
+
+The legacy module paths under `aria.prob` and `aria.prob.wmc` are preserved as
+compatibility wrappers.
 
 ## Public API
 
@@ -18,6 +28,7 @@ from aria.prob import (
     conditional_probability,
     expectation,
     probability,
+    variance,
     wmc_count,
     wmi_integrate,
 )
@@ -79,12 +90,13 @@ result = wmi_integrate(
 )
 ```
 
-High-level probability and expectation helpers:
+High-level probability, expectation, and variance helpers:
 
 ```python
 mass = probability(triangle, density)
 cond = conditional_probability(triangle, x <= 0.5, density)
 ex = expectation(x, triangle, density)
+var = variance(x, triangle, density)
 ```
 
 ## Exact Discrete Hook
