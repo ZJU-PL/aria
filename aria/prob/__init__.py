@@ -4,7 +4,7 @@ Probabilistic reasoning utilities.
 This package provides:
 - exact weighted model counting over Boolean CNF formulas
 - explicit Monte Carlo / exact backends for arithmetic probability mass queries
-- high-level helpers for probabilities, conditionals, expectations, and variance
+- high-level helpers for probabilities, conditionals, moments, and variance
 """
 
 from .core import (
@@ -16,7 +16,14 @@ from .core import (
     ProductDensity,
     product_density,
 )
-from .api import probability, conditional_probability, expectation, variance
+from .api import (
+    probability,
+    conditional_probability,
+    moment,
+    expectation,
+    covariance,
+    variance,
+)
 from .core import InferenceResult
 from .boolean import (
     WMCBackend,
@@ -54,7 +61,9 @@ __all__ = [
     "wmi_integrate",
     "probability",
     "conditional_probability",
+    "moment",
     "expectation",
+    "covariance",
     "variance",
     "uniform_density",
     "gaussian_density",

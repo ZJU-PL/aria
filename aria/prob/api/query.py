@@ -18,7 +18,7 @@ from aria.prob.arithmetic.query import (
 )
 from aria.prob.boolean.base import LiteralWeights, WMCBackend, WMCOptions
 from aria.prob.boolean.wmc import CompiledWMC, compile_wmc, wmc_count
-from aria.prob.arithmetic.moments import expectation, variance
+from aria.prob.arithmetic.moments import moment, expectation, covariance, variance
 from aria.prob.arithmetic.wmi import WMIOptions
 
 

@@ -19,9 +19,8 @@ from aria.prob.core.density import (
 )
 from aria.prob.core.results import InferenceResult
 from ._config import WMIMethod, WMIOptions
-from ._exact_backend import _exact_discrete_mass
+from ._dispatch import WMI_BACKENDS
 from ._selection import _effective_method, _validate_wmi_inputs
-from ._sampling_backends import _bounded_support_monte_carlo, _importance_sampling
 from .factories import (
     beta_density as _beta_density_factory,
     exponential_density as _exponential_density_factory,
@@ -41,15 +40,10 @@ def wmi_integrate(
     variables = _validate_wmi_inputs(formula, density)
     method = _effective_method(density, opts, variables)
 
-    if method == WMIMethod.EXACT_DISCRETE:
-        if not isinstance(density, UniformDensity):
-            raise ValueError("Exact discrete integration currently supports UniformDensity only")
-        return _exact_discrete_mass(formula, density, variables)
-    if method == WMIMethod.BOUNDED_SUPPORT_MONTE_CARLO:
-        return _bounded_support_monte_carlo(formula, density, opts, variables)
-    if method == WMIMethod.IMPORTANCE_SAMPLING:
-        return _importance_sampling(formula, density, opts, variables)
-    raise ValueError("Unsupported WMI method: {}".format(method))
+    backend = WMI_BACKENDS.get(method)
+    if backend is None:
+        raise ValueError("Unsupported WMI method: {}".format(method))
+    return backend(formula, density, opts, variables)
 
 
 def uniform_density(bounds, discrete=False):

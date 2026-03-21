@@ -12,7 +12,7 @@ from .wmi import (
     beta_density,
 )
 from .query import probability, conditional_probability
-from .moments import expectation, variance
+from .moments import moment, expectation, covariance, variance
 
 __all__ = [
     "WMIMethod",
@@ -20,7 +20,9 @@ __all__ = [
     "wmi_integrate",
     "probability",
     "conditional_probability",
+    "moment",
     "expectation",
+    "covariance",
     "variance",
     "uniform_density",
     "gaussian_density",

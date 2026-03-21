@@ -16,7 +16,9 @@ from aria.prob import (
     WMIOptions,
     compile_wmc,
     conditional_probability,
+    covariance,
     expectation,
+    moment,
     probability,
     variance,
     wmc_count,
@@ -26,8 +28,10 @@ from aria.prob import (
 
 def test_public_imports_and_result_formatting():
     from aria.prob.arithmetic import conditional_probability as arithmetic_conditional_probability
+    from aria.prob.arithmetic import covariance as arithmetic_covariance
     from aria.prob.arithmetic import probability as arithmetic_probability
     from aria.prob.arithmetic import expectation as arithmetic_expectation
+    from aria.prob.arithmetic import moment as arithmetic_moment
     from aria.prob.arithmetic import variance as arithmetic_variance
 
     result = InferenceResult(value=0.25, exact=True, backend="test")
@@ -40,9 +44,13 @@ def test_public_imports_and_result_formatting():
     assert BetaDensity
     assert CompiledWMC
     assert variance
+    assert moment
+    assert covariance
     assert arithmetic_probability
     assert arithmetic_conditional_probability
     assert arithmetic_expectation
+    assert arithmetic_moment
+    assert arithmetic_covariance
     assert arithmetic_variance
 
 
@@ -88,6 +96,8 @@ def test_top_level_cnf_probability_is_strict_about_complements():
 
 
 def test_exact_discrete_uniform_wmi_and_expectation():
+    from aria.prob.arithmetic import covariance as arithmetic_covariance
+    from aria.prob.arithmetic import moment as arithmetic_moment
     from aria.prob.arithmetic import probability as arithmetic_probability
 
     x = z3.Int("x")
@@ -101,12 +111,26 @@ def test_exact_discrete_uniform_wmi_and_expectation():
     exp = expectation(x, z3.And(x >= 0, x <= 2), density)
     assert exp.exact
     assert float(exp) == pytest.approx(1.0, rel=1e-9)
+    assert float(exp) == pytest.approx(
+        float(moment(x, 1, z3.And(x >= 0, x <= 2), density)), rel=1e-9
+    )
 
     var = variance(x, z3.And(x >= 0, x <= 2), density)
     assert var.exact
     assert float(var) == pytest.approx(2.0 / 3.0, rel=1e-9)
     assert var.stats["first_moment"] == pytest.approx(1.0, rel=1e-9)
     assert var.stats["second_moment"] == pytest.approx(5.0 / 3.0, rel=1e-9)
+    assert float(arithmetic_moment(x, 2, z3.And(x >= 0, x <= 2), density)) == pytest.approx(
+        5.0 / 3.0, rel=1e-9
+    )
+    assert float(moment(x, 2, z3.And(x >= 0, x <= 2), density)) == pytest.approx(
+        5.0 / 3.0, rel=1e-9
+    )
+    cov = covariance(x, x, z3.And(x >= 0, x <= 2), density)
+    arithmetic_cov = arithmetic_covariance(x, x, z3.And(x >= 0, x <= 2), density)
+    assert float(cov) == pytest.approx(2.0 / 3.0, rel=1e-9)
+    assert float(cov) == pytest.approx(float(arithmetic_cov), rel=1e-9)
+    assert float(var) == pytest.approx(float(cov), rel=1e-9)
 
     top_level_prob = probability(x < 2, density)
     arithmetic_prob = arithmetic_probability(x < 2, density)
@@ -118,7 +142,9 @@ def test_exact_discrete_uniform_wmi_and_expectation():
 
 def test_bounded_support_probability_and_expectation():
     from aria.prob.arithmetic import conditional_probability as arithmetic_conditional_probability
+    from aria.prob.arithmetic import covariance as arithmetic_covariance
     from aria.prob.arithmetic import probability as arithmetic_probability
+    from aria.prob.arithmetic import moment as arithmetic_moment
 
     x, y = z3.Reals("x y")
     triangle = z3.And(x >= 0, y >= 0, x <= 1, y <= 1, x + y <= 1)
@@ -148,6 +174,14 @@ def test_bounded_support_probability_and_expectation():
 
     exp = expectation(x, triangle, density, options)
     assert float(exp) == pytest.approx(1.0 / 3.0, abs=0.07)
+    assert float(exp) == pytest.approx(
+        float(moment(x, 1, triangle, density, options)), abs=1e-9
+    )
+    mixed = arithmetic_moment(x, 2, triangle, density, options)
+    cov = covariance(x, x, triangle, density, options)
+    arithmetic_cov = arithmetic_covariance(x, x, triangle, density, options)
+    assert float(mixed) == pytest.approx(1.0 / 6.0, abs=0.05)
+    assert float(cov) == pytest.approx(float(arithmetic_cov), abs=1e-9)
 
 
 def test_arithmetic_probability_handles_unnormalized_density():
@@ -196,6 +230,10 @@ def test_bounded_support_variance():
     assert var.backend == "wmi-bounded-support-monte-carlo"
     assert float(var) == pytest.approx(1.0 / 12.0, abs=0.03)
     assert var.error_bound is None
+    assert float(var) == pytest.approx(
+        float(covariance(x, x, z3.And(x >= 0, x <= 1), density, options)),
+        abs=1e-9,
+    )
 
 
 def test_variance_raises_on_empty_conditioning_event():
@@ -209,6 +247,18 @@ def test_variance_raises_on_empty_conditioning_event():
 
     with pytest.raises(ValueError, match="zero probability"):
         arithmetic_conditional_probability(x < 2, x > 3, density)
+
+
+def test_moment_rejects_invalid_order():
+    x = z3.Real("x")
+    density = UniformDensity({"x": (0, 1)})
+
+    with pytest.raises(ValueError, match="positive integer"):
+        moment(x, 0, z3.And(x >= 0, x <= 1), density)
+    with pytest.raises(ValueError, match="positive integer"):
+        moment(x, -1, z3.And(x >= 0, x <= 1), density)
+    with pytest.raises(ValueError, match="positive integer"):
+        moment(x, 1.5, z3.And(x >= 0, x <= 1), density)
 
 
 def test_legacy_method_aliases_still_work():

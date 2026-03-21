@@ -4,7 +4,9 @@ import z3
 from aria.prob.core.density import GaussianDensity, UniformDensity
 
 from ._config import WMIMethod, WMIOptions
-from ._exact_backend import _exact_discrete_mass
+from ._dispatch import WMI_BACKENDS
+from ._exact_backend import _exact_discrete_expectation, _exact_discrete_mass, _exact_discrete_solver
+from .moments import covariance, moment
 from ._sampling_backends import _bounded_support_monte_carlo, _importance_sampling
 from ._sampling_utils import (
     _running_error_bound,
@@ -40,6 +42,11 @@ def test_effective_method_selection():
         )
         == WMIMethod.BOUNDED_SUPPORT_MONTE_CARLO
     )
+    assert set(WMI_BACKENDS.keys()) == {
+        WMIMethod.EXACT_DISCRETE,
+        WMIMethod.BOUNDED_SUPPORT_MONTE_CARLO,
+        WMIMethod.IMPORTANCE_SAMPLING,
+    }
     assert (
         _effective_method(
             GaussianDensity({"x": 0.0}, {"x": {"x": 1.0}}),
@@ -80,6 +87,13 @@ def test_exact_discrete_backend():
     assert result.exact
     assert result.backend == "wmi-exact-discrete-uniform"
     assert float(result) == pytest.approx(2.0 / 3.0, rel=1e-9)
+
+    solver = _exact_discrete_solver(x < 2, density, [x])
+    assert solver.check() == z3.sat
+
+    expectation = _exact_discrete_expectation(x, z3.And(x >= 0, x <= 2), density, [x])
+    assert expectation.exact
+    assert float(expectation) == pytest.approx(1.0, rel=1e-9)
 
 
 def test_bounded_support_backend():
@@ -134,3 +148,30 @@ def test_factories_construct_expected_density_types():
     )
     assert exponential_density({"x": 1.0})
     assert beta_density({"x": 2.0}, {"x": 3.0})
+
+
+def test_moment_and_covariance_helpers():
+    x = z3.Int("x")
+    density = UniformDensity({"x": (0, 2)}, discrete=True)
+    support = z3.And(x >= 0, x <= 2)
+
+    first = moment(x, 1, support, density)
+    second = moment(x, 2, support, density)
+    cov = covariance(x, x, support, density)
+
+    assert float(first) == pytest.approx(1.0, rel=1e-9)
+    assert float(second) == pytest.approx(5.0 / 3.0, rel=1e-9)
+    assert float(cov) == pytest.approx(2.0 / 3.0, rel=1e-9)
+
+
+def test_moment_rejects_invalid_orders():
+    x = z3.Real("x")
+    density = UniformDensity({"x": (0, 1)})
+    support = z3.And(x >= 0, x <= 1)
+
+    with pytest.raises(ValueError, match="positive integer"):
+        moment(x, 0, support, density)
+    with pytest.raises(ValueError, match="positive integer"):
+        moment(x, -1, support, density)
+    with pytest.raises(ValueError, match="positive integer"):
+        moment(x, 1.5, support, density)
