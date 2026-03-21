@@ -1,7 +1,12 @@
 import pytest
 import z3
 
-from aria.prob.core.density import GaussianDensity, UniformDensity
+from aria.prob.core.density import (
+    Density,
+    DiscreteFactorizedDensity,
+    GaussianDensity,
+    UniformDensity,
+)
 
 from ._config import WMIMethod, WMIOptions
 from ._dispatch import WMI_BACKENDS
@@ -13,13 +18,27 @@ from ._sampling_utils import (
     _uniform_sample_from_support,
     _uniform_support_measure,
 )
-from ._selection import _effective_method, _validate_wmi_inputs
+from ._selection import _coerce_method, _effective_method, _validate_wmi_inputs, _validate_wmi_options
 from .factories import (
     beta_density,
+    discrete_density,
     exponential_density,
     gaussian_density,
     uniform_density,
 )
+
+
+class ZeroMassProposal(Density):
+    def support(self):
+        return {"x": (0.0, 1.0)}
+
+    def sample_assignment(self, rng):
+        if rng.random() < 0.5:
+            return {"x": 0.0}
+        return {"x": 1.0}
+
+    def __call__(self, assignment):
+        return 0.0 if float(assignment["x"]) == 0.0 else 1.0
 
 
 def test_effective_method_selection():
@@ -71,6 +90,16 @@ def test_effective_method_selection():
         )
         == WMIMethod.BOUNDED_SUPPORT_MONTE_CARLO
     )
+    assert (
+        _effective_method(
+            discrete_density({"y": {0: 0.4, 1: 0.6}}),
+            WMIOptions(),
+            [y],
+        )
+        == WMIMethod.EXACT_DISCRETE
+    )
+    assert _coerce_method("sampling") == WMIMethod.AUTO
+    assert _coerce_method("region") == WMIMethod.BOUNDED_SUPPORT_MONTE_CARLO
 
 
 def test_validate_wmi_inputs_rejects_unsupported_sorts():
@@ -94,6 +123,11 @@ def test_exact_discrete_backend():
     expectation = _exact_discrete_expectation(x, z3.And(x >= 0, x <= 2), density, [x])
     assert expectation.exact
     assert float(expectation) == pytest.approx(1.0, rel=1e-9)
+
+    factorized = discrete_density({"x": {0: 0.1, 1: 0.3, 2: 0.6}})
+    factorized_mass = _exact_discrete_mass(x < 2, factorized, [x])
+    assert factorized_mass.backend == "wmi-exact-discrete"
+    assert float(factorized_mass) == pytest.approx(0.4, rel=1e-9)
 
 
 def test_bounded_support_backend():
@@ -146,6 +180,9 @@ def test_factories_construct_expected_density_types():
         gaussian_density({"x": 0.0}, {"x": {"x": 1.0}}),
         GaussianDensity,
     )
+    assert isinstance(
+        discrete_density({"x": {0: 0.5, 1: 0.5}}), DiscreteFactorizedDensity
+    )
     assert exponential_density({"x": 1.0})
     assert beta_density({"x": 2.0}, {"x": 3.0})
 
@@ -162,6 +199,102 @@ def test_moment_and_covariance_helpers():
     assert float(first) == pytest.approx(1.0, rel=1e-9)
     assert float(second) == pytest.approx(5.0 / 3.0, rel=1e-9)
     assert float(cov) == pytest.approx(2.0 / 3.0, rel=1e-9)
+    assert cov.error_bound == pytest.approx(0.0, rel=1e-9)
+
+    real_x, real_y = z3.Reals("real_x real_y")
+    real_density = UniformDensity({"real_x": (0, 1), "real_y": (0, 1)})
+    formula = z3.And(real_x >= 0, real_x <= 1, real_y >= 0, real_y <= 1)
+    sampled_cov = covariance(
+        real_x,
+        real_y,
+        formula,
+        real_density,
+        WMIOptions(num_samples=3000, random_seed=4),
+    )
+    assert sampled_cov.stats["sample_count"] == 3000
+    assert "effective_conditioning_weight" in sampled_cov.stats
+    assert "conditioning_mass_confidence_half_width" in sampled_cov.stats
+    assert "per_draw_weighted_moment_sums" in sampled_cov.stats
+    assert sampled_cov.error_bound is not None
+    assert sampled_cov.stats["conditioning_mass_estimate"] == pytest.approx(
+        sampled_cov.stats["effective_conditioning_weight"], rel=1e-9
+    )
+
+
+def test_sampling_stats_handle_term_variables_and_formula_true():
+    x = z3.Real("x")
+    density = UniformDensity({"x": (0, 1)})
+
+    result = moment(
+        x,
+        1,
+        z3.BoolVal(True),
+        density,
+        WMIOptions(num_samples=4000, random_seed=11),
+    )
+
+    assert float(result) == pytest.approx(0.5, abs=0.05)
+    assert result.stats["sample_count"] == 4000
+    assert result.stats["satisfied_samples"] == 4000
+    assert result.stats["conditioning_mass_estimate"] == pytest.approx(1.0, abs=0.05)
+
+
+def test_importance_sampling_stats_report_effective_sample_size_and_zero_mass_samples():
+    x = z3.Real("x")
+    density = UniformDensity({"x": (0, 1)})
+    proposal = ZeroMassProposal()
+
+    result = moment(
+        x,
+        1,
+        x > z3.RealVal("0.5"),
+        density,
+        WMIOptions(
+            method=WMIMethod.IMPORTANCE_SAMPLING,
+            num_samples=4000,
+            random_seed=3,
+            proposal=proposal,
+        ),
+    )
+
+    assert float(result) == pytest.approx(1.0, abs=0.05)
+    assert result.stats["proposal_name"] == "ZeroMassProposal"
+    assert result.stats["approx_effective_sample_size"] is not None
+    assert result.stats["conditioning_mass_estimate"] > 0.0
+    assert result.stats["conditioning_mass_confidence_half_width"] is not None
+
+
+def test_moment_with_small_conditioning_mass_is_still_defined():
+    x = z3.Real("x")
+    density = UniformDensity({"x": (0, 1)})
+    result = moment(
+        x,
+        1,
+        x <= z3.RealVal("0.01"),
+        density,
+        WMIOptions(num_samples=12000, random_seed=17),
+    )
+
+    assert float(result) == pytest.approx(0.005, abs=0.01)
+    assert 0.0 < result.stats["conditioning_mass_estimate"] < 0.05
+
+
+def test_wmi_option_validation():
+    x = z3.Real("x")
+    with pytest.raises(ValueError, match="num_samples"):
+        _validate_wmi_options(WMIOptions(num_samples=0), UniformDensity({"x": (0, 1)}), [x])
+    with pytest.raises(ValueError, match="confidence_level"):
+        _validate_wmi_options(
+            WMIOptions(confidence_level=1.0),
+            UniformDensity({"x": (0, 1)}),
+            [x],
+        )
+    with pytest.raises(ValueError, match="discrete integer-valued density"):
+        _validate_wmi_options(
+            WMIOptions(method=WMIMethod.EXACT_DISCRETE),
+            UniformDensity({"x": (0, 1)}),
+            [x],
+        )
 
 
 def test_moment_rejects_invalid_orders():

@@ -10,6 +10,7 @@ from .wmi import (
     gaussian_density,
     exponential_density,
     beta_density,
+    discrete_density,
 )
 from .query import probability, conditional_probability
 from .moments import moment, expectation, covariance, variance
@@ -28,4 +29,5 @@ __all__ = [
     "gaussian_density",
     "exponential_density",
     "beta_density",
+    "discrete_density",
 ]

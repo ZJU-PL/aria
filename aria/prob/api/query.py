@@ -48,10 +48,12 @@ def probability(
     """
 
     if isinstance(model, CompiledWMC):
-        if isinstance(formula, CNF) or isinstance(evidence, CNF):
-            raise ValueError(
-                "CompiledWMC probability queries expect literals, not CNF formulas"
-            )
+        if isinstance(formula, CNF):
+            if evidence is not None and not isinstance(evidence, CNF):
+                raise ValueError("CompiledWMC CNF queries require CNF evidence")
+            return model.probability_cnf(formula, evidence_cnf=evidence)
+        if isinstance(evidence, CNF):
+            raise ValueError("CompiledWMC literal queries do not accept CNF evidence")
         return model.probability(
             query=_literal_sequence(formula),
             evidence=_literal_sequence(evidence),

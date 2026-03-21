@@ -8,6 +8,7 @@ from .density import (
     GaussianDensity,
     ExponentialDensity,
     BetaDensity,
+    DiscreteFactorizedDensity,
     ProductDensity,
     product_density,
 )
@@ -20,6 +21,7 @@ __all__ = [
     "GaussianDensity",
     "ExponentialDensity",
     "BetaDensity",
+    "DiscreteFactorizedDensity",
     "ProductDensity",
     "product_density",
 ]

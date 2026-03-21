@@ -10,7 +10,11 @@ from typing import Any, Dict, List, Tuple
 import z3
 
 from aria.prob.core._helpers import finite_support
-from aria.prob.core.density import Density, UniformDensity
+from aria.prob.core.density import (
+    Density,
+    DiscreteFactorizedDensity,
+    UniformDensity,
+)
 from aria.utils.z3_expr_utils import get_variables
 
 from ._config import WMIMethod, WMIOptions
@@ -19,7 +23,43 @@ from ._config import WMIMethod, WMIOptions
 def _coerce_method(method: Any) -> WMIMethod:
     if isinstance(method, WMIMethod):
         return method
-    return WMIMethod(str(method))
+    legacy = {
+        "sampling": WMIMethod.AUTO,
+        "region": WMIMethod.BOUNDED_SUPPORT_MONTE_CARLO,
+    }
+    coerced = str(method)
+    if coerced in legacy:
+        return legacy[coerced]
+    return WMIMethod(coerced)
+
+
+def _validate_wmi_options(
+    options: WMIOptions, density: Density, variables: List[z3.ExprRef]
+) -> None:
+    if options.num_samples <= 0:
+        raise ValueError("WMI num_samples must be positive")
+    if options.confidence_level <= 0.0 or options.confidence_level >= 1.0:
+        raise ValueError("WMI confidence_level must lie strictly between 0 and 1")
+
+    method = _coerce_method(options.method)
+    if method != WMIMethod.EXACT_DISCRETE:
+        return
+
+    if isinstance(density, UniformDensity) and density.discrete:
+        if any(var.sort() != z3.IntSort() for var in variables):
+            raise ValueError(
+                "Exact discrete integration currently supports Int variables only"
+            )
+        return
+    if isinstance(density, DiscreteFactorizedDensity):
+        if any(var.sort() != z3.IntSort() for var in variables):
+            raise ValueError(
+                "Exact discrete integration currently supports Int variables only"
+            )
+        return
+    raise ValueError(
+        "Exact discrete integration requires a discrete integer-valued density"
+    )
 
 
 def _supported_formula_variables(formula: z3.ExprRef) -> List[z3.ExprRef]:
@@ -66,16 +106,15 @@ def _validate_density(density: Density) -> None:
 def _effective_method(
     density: Density, options: WMIOptions, variables: List[z3.ExprRef]
 ) -> WMIMethod:
-    del variables
     method = _coerce_method(options.method)
-    if method == WMIMethod.SAMPLING:
-        method = WMIMethod.AUTO
-    if method == WMIMethod.REGION:
-        return WMIMethod.BOUNDED_SUPPORT_MONTE_CARLO
     if method != WMIMethod.AUTO:
         return method
 
     if isinstance(density, UniformDensity) and density.discrete:
+        return WMIMethod.EXACT_DISCRETE
+    if isinstance(density, DiscreteFactorizedDensity):
+        if any(var.sort() != z3.IntSort() for var in variables):
+            return WMIMethod.IMPORTANCE_SAMPLING
         return WMIMethod.EXACT_DISCRETE
 
     bounds = density.support()
@@ -92,4 +131,9 @@ def _validate_wmi_inputs(formula: z3.ExprRef, density: Density) -> List[z3.ExprR
     return variables
 
 
-__all__ = ["_effective_method", "_validate_wmi_inputs"]
+__all__ = [
+    "_coerce_method",
+    "_effective_method",
+    "_validate_wmi_inputs",
+    "_validate_wmi_options",
+]

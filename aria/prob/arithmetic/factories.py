@@ -8,6 +8,7 @@ from typing import Dict, Tuple
 
 from aria.prob.core.density import (
     BetaDensity,
+    DiscreteFactorizedDensity,
     ExponentialDensity,
     GaussianDensity,
     UniformDensity,
@@ -34,9 +35,16 @@ def beta_density(alphas: Dict[str, float], betas: Dict[str, float]) -> BetaDensi
     return BetaDensity(alphas, betas)
 
 
+def discrete_density(
+    pmfs: Dict[str, Dict[int, float]]
+) -> DiscreteFactorizedDensity:
+    return DiscreteFactorizedDensity(pmfs)
+
+
 __all__ = [
     "uniform_density",
     "gaussian_density",
     "exponential_density",
     "beta_density",
+    "discrete_density",
 ]

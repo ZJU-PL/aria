@@ -4,8 +4,8 @@ Weighted model counting over propositional CNF formulas.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Dict, Iterable, List, Optional, Sequence
+from dataclasses import dataclass, field
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 from pysat.formula import CNF
 from pysat.solvers import Solver
@@ -14,7 +14,7 @@ from aria.bool.knowledge_compiler.dtree import Dtree_Compiler
 from aria.bool.knowledge_compiler.dnnf import DNF_Node, DNNF_Compiler
 from aria.prob.core.results import InferenceResult
 
-from ..core._helpers import normalize_literal_sequence
+from ..core._helpers import merge_cnfs, normalize_literal_sequence
 from .base import LiteralWeights, WMCBackend, WMCOptions
 
 
@@ -184,6 +184,9 @@ class CompiledWMC:
     variables: List[int]
     tautology: bool = False
     backend: str = "wmc-dnnf"
+    _cnf_cache: Dict[Tuple[int, Tuple[Tuple[int, ...], ...]], "CompiledWMC"] = field(
+        default_factory=dict, repr=False
+    )
 
     def _validate_literals(self, literals: Sequence[int]) -> None:
         known_variables = set(self.variables)
@@ -201,6 +204,39 @@ class CompiledWMC:
         if self.root is None:
             return 1.0 if self.tautology else 0.0
         return _wmc_on_dnnf(self.root, self.weights, normalized)
+
+    def _validate_cnf(self, cnf: CNF) -> None:
+        known_variables = set(self.variables)
+        unknown = sorted(
+            {
+                abs(lit)
+                for clause in cnf.clauses
+                for lit in clause
+                if abs(lit) not in known_variables
+            }
+        )
+        if unknown:
+            raise ValueError(
+                "CNF query/evidence mentions variables not present in the compiled CNF: {}".format(
+                    unknown
+                )
+            )
+
+    def _cnf_cache_key(self, cnf: CNF) -> Tuple[int, Tuple[Tuple[int, ...], ...]]:
+        return (
+            cnf.nv,
+            tuple(tuple(int(lit) for lit in clause) for clause in cnf.clauses),
+        )
+
+    def _compile_cached_cnf(self, cnf: CNF) -> Tuple["CompiledWMC", bool]:
+        self._validate_cnf(cnf)
+        key = self._cnf_cache_key(cnf)
+        cached = self._cnf_cache.get(key)
+        if cached is not None:
+            return cached, True
+        compiled = compile_wmc(cnf, self.weights, WMCOptions(backend=WMCBackend.DNNF))
+        self._cnf_cache[key] = compiled
+        return compiled, False
 
     def infer(self, evidence: Optional[Sequence[int]] = None) -> InferenceResult:
         return InferenceResult(
@@ -240,6 +276,44 @@ class CompiledWMC:
                 "evidence_literals": list(normalized_evidence),
                 "num_variables": len(self.variables),
             },
+        )
+
+    def probability_cnf(
+        self, query_cnf: CNF, evidence_cnf: Optional[CNF] = None
+    ) -> InferenceResult:
+        self._validate_cnf(query_cnf)
+        merged = merge_cnfs(query_cnf, evidence_cnf)
+        numerator_compiled, numerator_cache_hit = self._compile_cached_cnf(merged)
+        numerator = numerator_compiled.count()
+
+        denominator_cache_hit = False
+        if evidence_cnf is None or len(evidence_cnf.clauses) == 0:
+            denominator = 1.0
+        else:
+            evidence_compiled, denominator_cache_hit = self._compile_cached_cnf(
+                evidence_cnf
+            )
+            denominator = evidence_compiled.count()
+        if denominator == 0.0:
+            raise ValueError("Evidence CNF has zero probability under the weights")
+
+        return InferenceResult(
+            value=numerator / denominator,
+            exact=True,
+            backend=self.backend,
+            stats={
+                "numerator": numerator,
+                "denominator": denominator,
+                "query_num_clauses": len(query_cnf.clauses),
+                "evidence_num_clauses": 0
+                if evidence_cnf is None
+                else len(evidence_cnf.clauses),
+                "numerator_cache_hit": numerator_cache_hit,
+                "denominator_cache_hit": denominator_cache_hit,
+                "cache_entry_count": len(self._cnf_cache),
+                "cnf_cache_entries": len(self._cnf_cache),
+            },
+            error_bound=0.0,
         )
 
 

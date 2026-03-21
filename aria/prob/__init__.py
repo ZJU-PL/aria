@@ -13,6 +13,7 @@ from .core import (
     GaussianDensity,
     ExponentialDensity,
     BetaDensity,
+    DiscreteFactorizedDensity,
     ProductDensity,
     product_density,
 )
@@ -40,6 +41,7 @@ from .arithmetic import (
     gaussian_density,
     exponential_density,
     beta_density,
+    discrete_density,
 )
 
 __all__ = [
@@ -49,6 +51,7 @@ __all__ = [
     "GaussianDensity",
     "ExponentialDensity",
     "BetaDensity",
+    "DiscreteFactorizedDensity",
     "ProductDensity",
     "product_density",
     "WMCBackend",
@@ -69,4 +72,5 @@ __all__ = [
     "gaussian_density",
     "exponential_density",
     "beta_density",
+    "discrete_density",
 ]

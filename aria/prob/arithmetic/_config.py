@@ -18,8 +18,6 @@ class WMIMethod(str, Enum):
     BOUNDED_SUPPORT_MONTE_CARLO = "bounded_support_monte_carlo"
     IMPORTANCE_SAMPLING = "importance_sampling"
     EXACT_DISCRETE = "exact_discrete"
-    SAMPLING = "sampling"
-    REGION = "region"
 
 
 @dataclass

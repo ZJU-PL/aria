@@ -23,9 +23,11 @@ from aria.prob import (
     WMCOptions,
     WMIOptions,
     WMIMethod,
+    DiscreteFactorizedDensity,
     UniformDensity,
     compile_wmc,
     conditional_probability,
+    discrete_density,
     expectation,
     probability,
     variance,
@@ -55,6 +57,14 @@ px_given_model = compiled.probability(query=[1])
 py_given_not_x = compiled.probability(query=[2], evidence=[-1])
 ```
 
+Compiled objects also support repeated CNF conditional queries:
+
+```python
+query_cnf = CNF(from_clauses=[[2]])
+evidence_cnf = CNF(from_clauses=[[1]])
+result = compiled.probability_cnf(query_cnf, evidence_cnf)
+```
+
 `probability(cnf, weights, evidence=...)` is also available for one-shot CNF queries.
 For the high-level CNF query API, complementary literal weights must sum to `1.0`.
 
@@ -68,6 +78,14 @@ also exposes:
 - `backend`
 - `stats`
 - `error_bound`
+
+For sampling-based moment queries, `stats` now includes:
+
+- `conditioning_mass_estimate` / `conditioning_probability_estimate`
+- `conditioning_mass_confidence_half_width`
+- `moment_confidence_half_widths`
+- per-draw weighted accumulator summaries for debugging
+- `approx_effective_sample_size` for importance sampling
 
 Example with bounded-support Monte Carlo:
 
@@ -99,6 +117,13 @@ ex = expectation(x, triangle, density)
 var = variance(x, triangle, density)
 ```
 
+For `moment()`, `expectation()`, `covariance()`, and `variance()`, the returned
+`error_bound` is an approximate normal-interval half-width for the reported
+moment estimate. It is a diagnostic, not a rigorous finite-sample guarantee.
+Likewise, `effective_conditioning_weight` refers to the estimated probability
+mass of the conditioning event for sampling-based queries, and to the exact
+conditioning probability for exact discrete queries.
+
 ## Exact Discrete Hook
 
 For bounded integer formulas, `UniformDensity(..., discrete=True)` enables an
@@ -116,15 +141,32 @@ This path currently supports:
 - uniform discrete density over finite integer boxes
 - formulas accepted by the arithmetic counting utilities
 
+For non-uniform but factorized integer priors, use
+`DiscreteFactorizedDensity` or `discrete_density(...)`:
+
+```python
+x = z3.Int("x")
+density = discrete_density({"x": {0: 0.1, 1: 0.3, 2: 0.6}})
+mass = wmi_integrate(x >= 1, density)
+```
+
 ## Supported / Unsupported
 
 Supported in this iteration:
 
 - exact Boolean CNF WMC
 - repeated literal evidence queries on compiled Boolean models
+- repeated CNF evidence/query reuse on compiled Boolean models
 - bounded-support Monte Carlo for finite rectangular supports
 - importance sampling when the density or proposal can generate samples
-- exact discrete uniform probability mass for bounded integer formulas
+- exact discrete uniform and factorized finite probability mass for bounded integer formulas
+
+Documented arithmetic backends:
+
+- `auto`
+- `bounded_support_monte_carlo`
+- `importance_sampling`
+- `exact_discrete`
 
 Explicitly unsupported or rejected:
 

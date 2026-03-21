@@ -34,6 +34,9 @@ class Density(ABC):
             "{} does not support direct sampling".format(self.__class__.__name__)
         )
 
+    def discrete_support(self) -> Optional[Dict[str, List[int]]]:
+        return None
+
 
 class UniformDensity(Density):
     """Uniform density over a rectangular box or finite integer grid."""
@@ -293,8 +296,104 @@ class ProductDensity(Density):
                     "ProductDensity sampling requires disjoint variable sets; got {}".format(
                         sorted(overlap)
                     )
-                )
+                    )
             sample.update(part)
+        return sample
+
+
+class DiscreteFactorizedDensity(Density):
+    """Product of finite discrete PMFs over integer-valued variables."""
+
+    def __init__(
+        self, pmfs: Dict[str, Dict[int, float]], tolerance: float = 1e-9
+    ) -> None:
+        self.pmfs = {}
+        self._support = {}
+        self._choices = {}
+        self._cumulative = {}
+
+        if not pmfs:
+            raise ValueError("DiscreteFactorizedDensity requires at least one variable")
+
+        for var_name, masses in pmfs.items():
+            if not masses:
+                raise ValueError(
+                    "DiscreteFactorizedDensity requires non-empty support for '{}'".format(
+                        var_name
+                    )
+                )
+
+            normalized = {}
+            total = 0.0
+            for value, mass in masses.items():
+                if isinstance(value, bool) or int(value) != value:
+                    raise ValueError(
+                        "DiscreteFactorizedDensity requires integer support for '{}'".format(
+                            var_name
+                        )
+                    )
+                probability = float(mass)
+                if probability < 0.0:
+                    raise ValueError(
+                        "DiscreteFactorizedDensity mass for '{}' must be non-negative".format(
+                            var_name
+                        )
+                    )
+                normalized[int(value)] = probability
+                total += probability
+
+            if abs(total - 1.0) > tolerance:
+                raise ValueError(
+                    "DiscreteFactorizedDensity masses for '{}' must sum to 1.0, got {}".format(
+                        var_name, total
+                    )
+                )
+
+            values = sorted(normalized.keys())
+            cumulative = []
+            running = 0.0
+            for value in values:
+                running += normalized[value]
+                cumulative.append(running)
+
+            self.pmfs[var_name] = normalized
+            self._support[var_name] = values
+            self._choices[var_name] = values
+            self._cumulative[var_name] = cumulative
+
+    def __call__(self, assignment: Dict[str, Any]) -> float:
+        probability = 1.0
+        for var_name, masses in self.pmfs.items():
+            if var_name not in assignment:
+                continue
+            value = assignment[var_name]
+            if isinstance(value, bool) or int(value) != value:
+                return 0.0
+            probability *= masses.get(int(value), 0.0)
+        return probability
+
+    def support(self) -> Bounds:
+        return {
+            var_name: (float(values[0]), float(values[-1]))
+            for var_name, values in self._support.items()
+        }
+
+    def discrete_support(self) -> Dict[str, List[int]]:
+        return {var_name: list(values) for var_name, values in self._support.items()}
+
+    def factorizes(self) -> bool:
+        return True
+
+    def sample_assignment(self, rng: random.Random) -> Dict[str, Any]:
+        sample = {}
+        for var_name, values in self._choices.items():
+            threshold = rng.random()
+            for index, bound in enumerate(self._cumulative[var_name]):
+                if threshold <= bound:
+                    sample[var_name] = values[index]
+                    break
+            else:
+                sample[var_name] = values[-1]
         return sample
 
 

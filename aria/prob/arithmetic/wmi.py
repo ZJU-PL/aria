@@ -11,6 +11,7 @@ import z3
 from aria.prob.core.density import (
     BetaDensity,
     Density,
+    DiscreteFactorizedDensity,
     ExponentialDensity,
     GaussianDensity,
     ProductDensity,
@@ -20,9 +21,10 @@ from aria.prob.core.density import (
 from aria.prob.core.results import InferenceResult
 from ._config import WMIMethod, WMIOptions
 from ._dispatch import WMI_BACKENDS
-from ._selection import _effective_method, _validate_wmi_inputs
+from ._selection import _effective_method, _validate_wmi_inputs, _validate_wmi_options
 from .factories import (
     beta_density as _beta_density_factory,
+    discrete_density as _discrete_density_factory,
     exponential_density as _exponential_density_factory,
     gaussian_density as _gaussian_density_factory,
     uniform_density as _uniform_density_factory,
@@ -38,6 +40,7 @@ def wmi_integrate(
 
     opts = options or WMIOptions()
     variables = _validate_wmi_inputs(formula, density)
+    _validate_wmi_options(opts, density, variables)
     method = _effective_method(density, opts, variables)
 
     backend = WMI_BACKENDS.get(method)
@@ -62,12 +65,17 @@ def beta_density(alphas, betas):
     return _beta_density_factory(alphas, betas)
 
 
+def discrete_density(pmfs):
+    return _discrete_density_factory(pmfs)
+
+
 __all__ = [
     "Density",
     "UniformDensity",
     "GaussianDensity",
     "ExponentialDensity",
     "BetaDensity",
+    "DiscreteFactorizedDensity",
     "ProductDensity",
     "product_density",
     "WMIMethod",
@@ -77,4 +85,5 @@ __all__ = [
     "gaussian_density",
     "exponential_density",
     "beta_density",
+    "discrete_density",
 ]
