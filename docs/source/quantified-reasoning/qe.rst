@@ -3,6 +3,9 @@ Quantifier Elimination (QE)
 
 The Quantifier Elimination (QE) module uses quantifier elimination techniques to compute the strongest inductive invariant for a given transition system. This approach iteratively applies quantifier elimination to compute the least fixpoint of the strongest post-condition.
 
+Within this documentation structure, QE is grouped under quantified reasoning
+because the elimination machinery is reusable beyond verification.
+
 ======================
 Overview
 ======================

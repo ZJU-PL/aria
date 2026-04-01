@@ -7,6 +7,7 @@ We provide two differnet implementations
 
 import z3
 from aria.utils.z3_expr_utils import get_variables
+from typing import Tuple
 
 # Being explicit about Types
 Symbol = str
@@ -16,7 +17,7 @@ List = list
 Expr = (Atom, List)
 
 
-def input_to_list(string: str) -> [str]:
+def input_to_list(string: str) -> List[str]:
     """
     Parse a .sl file into a list of S-Expressions.
     """
@@ -46,7 +47,7 @@ def parse(program: str) -> Expr:
     return read_from_tokens(tokenize(program))
 
 
-def read_from_tokens(tokens: List) -> Expr:
+def read_from_tokens(tokens: List[str]) -> Expr:
     """Read an expression from a sequence of tokens."""
     if len(tokens) == 0:
         raise SyntaxError("unexpected EOF")
@@ -108,7 +109,7 @@ class EFSMTParser:
             res = f.read()
             return self.parse_smt2_string(res)
 
-    def to_sexpr_misc(self, lines: [str]):
+    def to_sexpr_misc(self, lines: List[str]):
         """
         Convert a list representation to S-expression format.
         E.g.,
@@ -125,7 +126,7 @@ class EFSMTParser:
         res.append(")")
         return res
 
-    def to_sexpr_string(self, lines: [str]):
+    def to_sexpr_string(self, lines: List[str]):
         """Convert a list representation to S-expression string."""
         return " ".join(self.to_sexpr_misc(lines))
 

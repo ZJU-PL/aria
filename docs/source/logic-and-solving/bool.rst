@@ -3,6 +3,10 @@ Boolean Reasoning
 
 The ``aria.bool`` module is a comprehensive toolkit for Boolean reasoning, providing algorithms and tools for SAT solving, MaxSAT optimization, quantified Boolean formulas (QBF), CNF simplification, knowledge compilation, and related logical reasoning tasks.
 
+This page describes the package structure and major APIs. Related solver
+workflows such as optimization, backbone computation, UNSAT cores, and
+knowledge compilation are grouped alongside it in :doc:`index`.
+
 The module contains approximately 8,600+ lines of Python code across 9 main submodules.
 
 .. contents:: Table of Contents

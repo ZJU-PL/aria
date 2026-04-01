@@ -696,11 +696,11 @@ Next Steps
 
 Now that you've completed this tutorial, explore these topics:
 
-- :doc:`smt` - Detailed SMT solving documentation
-- :doc:`srk` - Symbolic reasoning kernel capabilities
-- :doc:`quantifiers` - Quantifier handling and elimination
-- :doc:`optimization` - MaxSAT and optimization solving
-- :doc:`counting` - Model counting techniques
-- :doc:`applications` - Real-world application examples
+- :doc:`../logic-and-solving/smt` - Detailed SMT solving documentation
+- :doc:`../logic-and-solving/srk` - Symbolic reason kernel capabilities
+- :doc:`../quantified-reasoning/quantifiers` - Quantifier handling and elimination
+- :doc:`../logic-and-solving/optimization` - MaxSAT and optimization solving
+- :doc:`../counting-probability/counting` - Model counting techniques
+- :doc:`../cli-tools/applications` - Real-world application examples
 
 For more examples, see the ``examples/`` directory in the repository.

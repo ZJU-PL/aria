@@ -3,6 +3,9 @@ Quantifier Instantiation (QI)
 
 The Quantifier Instantiation (QI) module provides verification capabilities using SMT solvers with quantifier support. It supports multiple strategies including Model-Based Quantifier Instantiation (MBQI) and E-matching, and can work with various SMT solvers.
 
+Within this documentation structure, QI is grouped under quantified reasoning
+because MBQI and E-matching are general quantified-solving techniques.
+
 ======================
 Overview
 ======================

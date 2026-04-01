@@ -6,6 +6,9 @@ that overapproximates a given formula in first-order logic. It serves as a bridg
 concrete program analysis and efficient abstract reasoning, enabling scalable verification
 and analysis of complex systems.
 
+This page now subsumes the older `symabs` page and combines package-level
+background with the verification-oriented `efmc --engine symabs` workflow.
+
 The key idea is to transform a concrete logical formula into an abstract representation
 that captures the essential behavior while being more amenable to automated analysis.
 This abstraction preserves important properties (like satisfiability) while discarding
@@ -29,6 +32,51 @@ around several key approaches:
 
 Each approach offers different trade-offs between precision, scalability, and applicability
 to different problem domains.
+
+
+========================================
+EFMC Symbolic Abstraction Prover
+========================================
+
+The EFMC symbolic abstraction prover uses symbolic abstraction as a verification
+engine that computes a fixpoint in a chosen abstract domain.
+
+At a high level it:
+
+1. Starts with the initial condition as the current invariant
+2. Computes the strongest consequence of the current invariant conjoined with
+   the transition relation in the selected abstract domain
+3. Joins that result with the previous invariant
+4. Repeats until a fixpoint is reached
+5. Checks that the resulting invariant implies the safety property
+
+Supported EFMC domains include:
+
+- ``interval`` for numeric and bit-vector interval abstraction
+- ``bits`` for full bit-level tracking
+- ``known_bits`` for lighter-weight bit-pattern reasoning
+
+Command-line usage:
+
+.. code-block:: bash
+
+   efmc --engine symabs --symabs-domain interval --lang chc --file program.smt2
+   efmc --engine symabs --symabs-domain known_bits --lang chc --file program.smt2
+
+Programmatic usage:
+
+.. code-block:: python
+
+   from aria.efmc.engines.symabs import SymbolicAbstractionProver
+   from aria.efmc.sts import TransitionSystem
+
+   sts = TransitionSystem(...)
+   prover = SymbolicAbstractionProver(sts)
+   prover.domain = "interval"
+   result = prover.solve()
+
+   if result.is_safe:
+       print(result.invariant)
 
 
 ===============
