@@ -229,7 +229,8 @@ def test_bounded_support_variance():
     assert not var.exact
     assert var.backend == "wmi-bounded-support-monte-carlo"
     assert float(var) == pytest.approx(1.0 / 12.0, abs=0.03)
-    assert var.error_bound is None
+    assert var.error_bound is not None
+    assert var.error_bound > 0.0
     assert float(var) == pytest.approx(
         float(covariance(x, x, z3.And(x >= 0, x <= 1), density, options)),
         abs=1e-9,

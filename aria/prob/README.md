@@ -6,15 +6,12 @@
 - explicit arithmetic probability-mass estimation backends
 - high-level probability / conditional-probability / expectation / variance queries
 
-Internally, the package is now split into:
+Internally, the package is split into:
 
 - `aria.prob.core` for shared densities, result types, and helper utilities
 - `aria.prob.boolean` for Boolean WMC
 - `aria.prob.arithmetic` for arithmetic WMI
 - `aria.prob.api` for high-level query helpers
-
-The legacy module paths under `aria.prob` and `aria.prob.wmc` are preserved as
-compatibility wrappers.
 
 ## Public API
 

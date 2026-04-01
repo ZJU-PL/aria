@@ -2,18 +2,17 @@
 Arithmetic weighted-model-integration APIs.
 """
 
-from .wmi import (
-    WMIMethod,
-    WMIOptions,
-    wmi_integrate,
-    uniform_density,
-    gaussian_density,
-    exponential_density,
+from ._config import WMIMethod, WMIOptions
+from .factories import (
     beta_density,
     discrete_density,
+    exponential_density,
+    gaussian_density,
+    uniform_density,
 )
-from .query import probability, conditional_probability
-from .moments import moment, expectation, covariance, variance
+from .moments import covariance, expectation, moment, variance
+from .query import conditional_probability, probability
+from .wmi import wmi_integrate
 
 __all__ = [
     "WMIMethod",

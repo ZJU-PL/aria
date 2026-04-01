@@ -19,15 +19,20 @@ from aria.prob.core.density import (
     product_density,
 )
 from aria.prob.core.results import InferenceResult
+
 from ._config import WMIMethod, WMIOptions
 from ._dispatch import WMI_BACKENDS
-from ._selection import _effective_method, _validate_wmi_inputs, _validate_wmi_options
+from ._selection import (
+    _effective_method,
+    _validate_wmi_inputs,
+    _validate_wmi_options,
+)
 from .factories import (
-    beta_density as _beta_density_factory,
-    discrete_density as _discrete_density_factory,
-    exponential_density as _exponential_density_factory,
-    gaussian_density as _gaussian_density_factory,
-    uniform_density as _uniform_density_factory,
+    beta_density,
+    discrete_density,
+    exponential_density,
+    gaussian_density,
+    uniform_density,
 )
 
 
@@ -47,26 +52,6 @@ def wmi_integrate(
     if backend is None:
         raise ValueError("Unsupported WMI method: {}".format(method))
     return backend(formula, density, opts, variables)
-
-
-def uniform_density(bounds, discrete=False):
-    return _uniform_density_factory(bounds, discrete=discrete)
-
-
-def gaussian_density(means, covariances):
-    return _gaussian_density_factory(means, covariances)
-
-
-def exponential_density(rates):
-    return _exponential_density_factory(rates)
-
-
-def beta_density(alphas, betas):
-    return _beta_density_factory(alphas, betas)
-
-
-def discrete_density(pmfs):
-    return _discrete_density_factory(pmfs)
 
 
 __all__ = [

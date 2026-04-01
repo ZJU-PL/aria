@@ -3,6 +3,8 @@
 .trae
 .cursor
 .opencode
+.sisyphus
+.kilocode
 # Build artifacts and temporary files
 .arla_logs
 smt_query_logs

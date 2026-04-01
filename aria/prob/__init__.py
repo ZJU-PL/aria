@@ -7,7 +7,20 @@ This package provides:
 - high-level helpers for probabilities, conditionals, moments, and variance
 """
 
-from .core import (
+from .api.query import conditional_probability, probability
+from .arithmetic._config import WMIMethod, WMIOptions
+from .arithmetic.factories import (
+    beta_density,
+    discrete_density,
+    exponential_density,
+    gaussian_density,
+    uniform_density,
+)
+from .arithmetic.moments import covariance, expectation, moment, variance
+from .arithmetic.wmi import wmi_integrate
+from .boolean.base import WMCBackend, WMCOptions
+from .boolean.wmc import CompiledWMC, compile_wmc, wmc_count
+from .core.density import (
     Density,
     UniformDensity,
     GaussianDensity,
@@ -17,32 +30,7 @@ from .core import (
     ProductDensity,
     product_density,
 )
-from .api import (
-    probability,
-    conditional_probability,
-    moment,
-    expectation,
-    covariance,
-    variance,
-)
-from .core import InferenceResult
-from .boolean import (
-    WMCBackend,
-    WMCOptions,
-    CompiledWMC,
-    compile_wmc,
-    wmc_count,
-)
-from .arithmetic import (
-    WMIMethod,
-    WMIOptions,
-    wmi_integrate,
-    uniform_density,
-    gaussian_density,
-    exponential_density,
-    beta_density,
-    discrete_density,
-)
+from .core.results import InferenceResult
 
 __all__ = [
     "InferenceResult",

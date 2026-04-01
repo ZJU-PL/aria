@@ -2,22 +2,23 @@
 Low-level weighted model counting / integration interfaces.
 """
 
-from .base import WMCBackend, WMCOptions
-from .wmc import CompiledWMC, compile_wmc, wmc_count
-from .wmi import (
-    WMIMethod,
-    WMIOptions,
-    wmi_integrate,
+from ..arithmetic._config import WMIMethod, WMIOptions
+from ..arithmetic.factories import (
+    beta_density,
+    exponential_density,
+    gaussian_density,
+    uniform_density,
+)
+from ..arithmetic.wmi import wmi_integrate
+from ..boolean.base import WMCBackend, WMCOptions
+from ..boolean.wmc import CompiledWMC, compile_wmc, wmc_count
+from ..core.density import (
     Density,
     UniformDensity,
     GaussianDensity,
     ExponentialDensity,
     BetaDensity,
     ProductDensity,
-    uniform_density,
-    gaussian_density,
-    exponential_density,
-    beta_density,
     product_density,
 )
 
