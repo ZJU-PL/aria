@@ -1,0 +1,351 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>C Frontend for EFMC &mdash; ARIA Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Constrained Horn Clauses (CHC) Tools" href="chctools.html" />
+    <link rel="prev" title="Boogie Frontend for EFMC" href="boogie_frontend.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ARIA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../logic-and-solving/index.html">Logic and Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inference/index.html">Proofs and Explanations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quantified-reasoning/index.html">Quantified Reasoning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../automata-languages/index.html">Automata and Languages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../verification/index.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../abstraction/index.html">Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../counting-probability/index.html">Counting, Sampling, and Probability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../synthesis/index.html">Program Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../llm-ml/index.html">LLM and ML</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">CLI and Tools</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="cli.html">CLI Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html">Translator Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#components">Components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#command-line-interface-aria-cli-fmldoc-py">Command-Line Interface (<code class="docutils literal notranslate"><span class="pre">aria/cli/fmldoc.py</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#examples">Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#applications">Applications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#references">References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="applications.html">Applications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boogie_frontend.html">Boogie Frontend for EFMC</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">C Frontend for EFMC</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#usage">Usage</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#basic-usage">Basic Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#advanced-usage">Advanced Usage</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#supported-c-features">Supported C Features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#limitations">Limitations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example-c-programs">Example C Programs</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#simple-counter">Simple Counter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#fibonacci-computation">Fibonacci Computation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#verification-workflow">Verification Workflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#generated-transition-system">Generated Transition System</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#integration-with-efmc-engines">Integration with EFMC Engines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chc-format-generation">CHC Format Generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#command-line-usage">Command-Line Usage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#future-enhancements">Future Enhancements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#error-handling">Error Handling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#testing">Testing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chctools.html">Constrained Horn Clauses (CHC) Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verifytools.html">Verification Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../global_params.html">Global Parameters</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ARIA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">CLI and Tools</a></li>
+      <li class="breadcrumb-item active">C Frontend for EFMC</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/cli-tools/c_frontend.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="c-frontend-for-efmc">
+<h1>C Frontend for EFMC<a class="headerlink" href="#c-frontend-for-efmc" title="Link to this heading"></a></h1>
+<p>This document describes the C frontend for EFMC, which allows you to convert C programs (specifically loops) to EFMC transition systems for verification.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>The EFMC C frontend enables you to:</p>
+<ol class="arabic simple">
+<li><p>Parse C programs and extract loops</p></li>
+<li><p>Convert loops to EFMC transition systems</p></li>
+<li><p>Verify the converted programs using EFMC’s verification engines</p></li>
+<li><p>Generate CHC (Constrained Horn Clause) format for external solvers</p></li>
+</ol>
+</section>
+<section id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
+<section id="basic-usage">
+<h3>Basic Usage<a class="headerlink" href="#basic-usage" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.frontends.c2efmc</span><span class="w"> </span><span class="kn">import</span> <span class="n">c_to_efmc</span>
+
+<span class="c1"># Convert a C file to a transition system</span>
+<span class="n">ts</span> <span class="o">=</span> <span class="n">c_to_efmc</span><span class="p">(</span><span class="s2">&quot;program.c&quot;</span><span class="p">)</span>
+
+<span class="c1"># The transition system can now be used with EFMC engines</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Variables: </span><span class="si">{</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">ts</span><span class="o">.</span><span class="n">variables</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Initial condition: </span><span class="si">{</span><span class="n">ts</span><span class="o">.</span><span class="n">init</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Transition relation: </span><span class="si">{</span><span class="n">ts</span><span class="o">.</span><span class="n">trans</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Post condition: </span><span class="si">{</span><span class="n">ts</span><span class="o">.</span><span class="n">post</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="advanced-usage">
+<h3>Advanced Usage<a class="headerlink" href="#advanced-usage" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.frontends.c2efmc</span><span class="w"> </span><span class="kn">import</span> <span class="n">CToEFMCConverter</span>
+
+<span class="c1"># Create converter instance</span>
+<span class="n">converter</span> <span class="o">=</span> <span class="n">CToEFMCConverter</span><span class="p">()</span>
+
+<span class="c1"># Parse C file</span>
+<span class="n">ast</span> <span class="o">=</span> <span class="n">converter</span><span class="o">.</span><span class="n">parse_c_file</span><span class="p">(</span><span class="s2">&quot;program.c&quot;</span><span class="p">)</span>
+
+<span class="c1"># Convert to transition system (defaults to main function)</span>
+<span class="n">ts</span> <span class="o">=</span> <span class="n">converter</span><span class="o">.</span><span class="n">convert_file_to_transition_system</span><span class="p">(</span><span class="s2">&quot;program.c&quot;</span><span class="p">)</span>
+
+<span class="c1"># Or specify a different function</span>
+<span class="n">ts</span> <span class="o">=</span> <span class="n">converter</span><span class="o">.</span><span class="n">convert_file_to_transition_system</span><span class="p">(</span><span class="s2">&quot;program.c&quot;</span><span class="p">,</span> <span class="n">function</span><span class="o">=</span><span class="s2">&quot;my_function&quot;</span><span class="p">)</span>
+
+<span class="c1"># Generate CHC format for external verification</span>
+<span class="n">chc_str</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">to_chc_str</span><span class="p">()</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;program.smt2&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chc_str</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="supported-c-features">
+<h2>Supported C Features<a class="headerlink" href="#supported-c-features" title="Link to this heading"></a></h2>
+<p>The C frontend currently focuses on loop-centric verification:</p>
+<ul class="simple">
+<li><p><strong>Integer Variables</strong>: Support for integer arithmetic operations</p></li>
+<li><p><strong>Loops</strong>: While loops, for loops</p></li>
+<li><p><strong>Assignments</strong>: Variable assignments</p></li>
+<li><p><strong>Conditions</strong>: Boolean conditions for loops and branches</p></li>
+<li><p><strong>Arithmetic Operations</strong>: Addition, subtraction, multiplication, division, modulo</p></li>
+<li><p><strong>Comparison Operations</strong>: Equality, inequality, less than, greater than, etc.</p></li>
+</ul>
+</section>
+<section id="limitations">
+<h2>Limitations<a class="headerlink" href="#limitations" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Single Loop</strong>: Currently focuses on programs with a single loop</p></li>
+<li><p><strong>Integer Variables</strong>: Primarily supports integer arithmetic</p></li>
+<li><p><strong>Simple Control Flow</strong>: Works best with structured loops</p></li>
+<li><p><strong>Function Selection</strong>: Defaults to the <code class="docutils literal notranslate"><span class="pre">main</span></code> function</p></li>
+</ul>
+</section>
+<section id="example-c-programs">
+<h2>Example C Programs<a class="headerlink" href="#example-c-programs" title="Link to this heading"></a></h2>
+<section id="simple-counter">
+<h3>Simple Counter<a class="headerlink" href="#simple-counter" title="Link to this heading"></a></h3>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span>
+<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="fibonacci-computation">
+<h3>Fibonacci Computation<a class="headerlink" href="#fibonacci-computation" title="Link to this heading"></a></h3>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">n</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">temp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">b</span><span class="p">;</span>
+<span class="w">        </span><span class="n">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">b</span><span class="p">;</span>
+<span class="w">        </span><span class="n">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">temp</span><span class="p">;</span>
+<span class="w">        </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">a</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">b</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="verification-workflow">
+<h2>Verification Workflow<a class="headerlink" href="#verification-workflow" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><strong>Parse C Program</strong>: The frontend parses the C file using <code class="docutils literal notranslate"><span class="pre">pycparser</span></code> and builds an AST</p></li>
+<li><p><strong>Extract Function</strong>: Selects the target function (default: <code class="docutils literal notranslate"><span class="pre">main</span></code>)</p></li>
+<li><p><strong>Detect Loop</strong>: Identifies loops in the function</p></li>
+<li><p><strong>Extract Variables</strong>: Collects all variables used in the loop</p></li>
+<li><p><strong>Build Transition System</strong>: Creates initial conditions, transition relations, and post conditions</p></li>
+<li><p><strong>Verify</strong>: Uses EFMC engines or external solvers to verify the safety properties</p></li>
+</ol>
+</section>
+<section id="generated-transition-system">
+<h2>Generated Transition System<a class="headerlink" href="#generated-transition-system" title="Link to this heading"></a></h2>
+<p>The converter creates a transition system with:</p>
+<ul class="simple">
+<li><p><strong>Variables</strong>: Current state variables (e.g., <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>)</p></li>
+<li><p><strong>Prime Variables</strong>: Next state variables (e.g., <code class="docutils literal notranslate"><span class="pre">x!</span></code>, <code class="docutils literal notranslate"><span class="pre">y!</span></code>)</p></li>
+<li><p><strong>Initial Condition</strong>: Entry condition for the loop</p></li>
+<li><p><strong>Transition Relation</strong>: How variables change in one loop iteration</p></li>
+<li><p><strong>Post Condition</strong>: Safety properties to verify (from assertions)</p></li>
+</ul>
+</section>
+<section id="integration-with-efmc-engines">
+<h2>Integration with EFMC Engines<a class="headerlink" href="#integration-with-efmc-engines" title="Link to this heading"></a></h2>
+<p>The generated transition systems can be used with various EFMC verification engines:</p>
+<ul class="simple">
+<li><p><strong>Template-based (EF)</strong>: Constraint-based invariant generation</p></li>
+<li><p><strong>PDR/IC3</strong>: Property-directed reachability analysis</p></li>
+<li><p><strong>K-induction</strong>: Inductive verification</p></li>
+<li><p><strong>Houdini</strong>: Iterative invariant inference</p></li>
+</ul>
+</section>
+<section id="chc-format-generation">
+<h2>CHC Format Generation<a class="headerlink" href="#chc-format-generation" title="Link to this heading"></a></h2>
+<p>The frontend can generate CHC (Constrained Horn Clause) format compatible with SMT solvers:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ts</span> <span class="o">=</span> <span class="n">c_to_efmc</span><span class="p">(</span><span class="s2">&quot;program.c&quot;</span><span class="p">)</span>
+<span class="n">chc_str</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">to_chc_str</span><span class="p">()</span>
+
+<span class="c1"># Save for external verification</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;program.smt2&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chc_str</span><span class="p">)</span>
+
+<span class="c1"># Verify with Z3</span>
+<span class="c1"># z3 program.smt2</span>
+</pre></div>
+</div>
+</section>
+<section id="command-line-usage">
+<h2>Command-Line Usage<a class="headerlink" href="#command-line-usage" title="Link to this heading"></a></h2>
+<p>You can use the C frontend directly from the command line:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>efmc<span class="w"> </span>--file<span class="w"> </span>program.c<span class="w"> </span>--lang<span class="w"> </span>c<span class="w"> </span>--engine<span class="w"> </span>ef<span class="w"> </span>--template<span class="w"> </span>interval
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">--lang</span> <span class="pre">c</span></code> option tells EFMC to use the C frontend. If not specified, EFMC will auto-detect the language based on the file extension.</p>
+</section>
+<section id="future-enhancements">
+<h2>Future Enhancements<a class="headerlink" href="#future-enhancements" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Support for nested loops</p></li>
+<li><p>Array and pointer support</p></li>
+<li><p>Support for more C language features</p></li>
+<li><p>Multiple function verification</p></li>
+<li><p>Support for floating-point arithmetic</p></li>
+</ul>
+</section>
+<section id="error-handling">
+<h2>Error Handling<a class="headerlink" href="#error-handling" title="Link to this heading"></a></h2>
+<p>The frontend includes robust error handling:</p>
+<ul class="simple">
+<li><p>Graceful parsing failures with detailed error messages</p></li>
+<li><p>Warning messages for unsupported features</p></li>
+<li><p>Comprehensive logging for debugging</p></li>
+</ul>
+</section>
+<section id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Link to this heading"></a></h2>
+<p>Test files are provided to validate the implementation:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">test_c2efmc.py</span></code>: Basic functionality tests</p></li>
+</ul>
+<p>Run tests with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>efmc/tests/test_c2efmc.py
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="boogie_frontend.html" class="btn btn-neutral float-left" title="Boogie Frontend for EFMC" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="chctools.html" class="btn btn-neutral float-right" title="Constrained Horn Clauses (CHC) Tools" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

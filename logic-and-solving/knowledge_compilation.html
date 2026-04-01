@@ -1,0 +1,297 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Knowledge Compilation &mdash; ARIA Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Parallel SMT CDCL(T) Solving" href="parallel_cdclt.html" />
+    <link rel="prev" title="Optimization Modulo Theory" href="optimization.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ARIA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Logic and Solving</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="bool.html">Boolean Reasoning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smt.html">SMT Solving</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ff.html">SMT Solving for Finite Field</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ff.html#theory-reference-finite-fields">Theory Reference: Finite Fields</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ff.html#references">References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fol.html">First-Order Logic (FOL)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="srk.html">SRK Symbolic Reasoning Kit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unification.html">Unification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unification.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unification.html#components">Components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unification.html#applications">Applications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unification.html#references">References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="allsmt.html">AllSMT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="backbone.html">Backbone Computation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unsat_core.html">UNSAT Core Extraction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Knowledge Compilation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#introduction-to-knowledge-compilation">Introduction to Knowledge Compilation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#key-concepts">Key Concepts</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#target-languages">Target Languages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#obdd">OBDD</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dnnf">DNNF</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#sdd">SDD</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#compilation-techniques">Compilation Techniques</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#bottom-up-compilation">Bottom-up Compilation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#top-down-compilation">Top-down Compilation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#applications">Applications</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#automated-planning">Automated Planning</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#configuration">Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#probabilistic-inference">Probabilistic Inference</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="parallel_cdclt.html">Parallel SMT CDCL(T) Solving</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../inference/index.html">Proofs and Explanations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quantified-reasoning/index.html">Quantified Reasoning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../automata-languages/index.html">Automata and Languages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../verification/index.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../abstraction/index.html">Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../counting-probability/index.html">Counting, Sampling, and Probability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../synthesis/index.html">Program Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../llm-ml/index.html">LLM and ML</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cli-tools/index.html">CLI and Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../global_params.html">Global Parameters</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ARIA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Logic and Solving</a></li>
+      <li class="breadcrumb-item active">Knowledge Compilation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/logic-and-solving/knowledge_compilation.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="knowledge-compilation">
+<h1>Knowledge Compilation<a class="headerlink" href="#knowledge-compilation" title="Link to this heading"></a></h1>
+<section id="introduction-to-knowledge-compilation">
+<h2>Introduction to Knowledge Compilation<a class="headerlink" href="#introduction-to-knowledge-compilation" title="Link to this heading"></a></h2>
+<p>Knowledge compilation is a technique in artificial intelligence
+that aims to preprocess a knowledge base or a set of constraints
+into a more efficient and compact representation that can be used for
+faster reasoning. The idea is to transform the
+original representation of the knowledge base into a form
+that is easier to manipulate and reason about, , often involving techniques like decision diagrams.
+The compiled representation enables more efficient query answering or problem-solving than the original form.</p>
+<section id="key-concepts">
+<h3>Key Concepts<a class="headerlink" href="#key-concepts" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p><strong>Compilation Target Languages</strong>:
+- Different target languages offer different tradeoffs
+- Each supports different types of queries efficiently
+- Expressiveness vs tractability tradeoff</p></li>
+<li><p><strong>Compilation Process</strong>:
+- Input knowledge base transformation
+- Structure optimization
+- Query preparation</p></li>
+<li><p><strong>Query Types</strong>:
+- Model counting
+- Consistency checking
+- Clause entailment
+- Model enumeration</p></li>
+</ol>
+</section>
+</section>
+<section id="target-languages">
+<h2>Target Languages<a class="headerlink" href="#target-languages" title="Link to this heading"></a></h2>
+<section id="obdd">
+<h3>OBDD<a class="headerlink" href="#obdd" title="Link to this heading"></a></h3>
+<p>OBDD stands for Ordered Binary Decision Diagram. It’s a compact data structure
+used in computer science and artificial intelligence to represent Boolean functions.
+An OBDD is a directed acyclic graph where each node represents a Boolean variable
+with two outgoing edges labeled 0 and 1, indicating the variable being false or true,
+respectively. The nodes are ordered according to a fixed variable ordering, ensuring
+that equivalent OBDDs are identical.</p>
+</section>
+<section id="dnnf">
+<h3>DNNF<a class="headerlink" href="#dnnf" title="Link to this heading"></a></h3>
+<p>Decomposable Negation Normal Form (DNNF) is a representation of propositional
+formulas that allows for tractable query answering while maintaining significant
+expressive power.</p>
+</section>
+<section id="sdd">
+<h3>SDD<a class="headerlink" href="#sdd" title="Link to this heading"></a></h3>
+<p>Sentential Decision Diagrams (SDD) are a relatively new target language that
+combines the benefits of OBDDs and DNNFs.</p>
+</section>
+</section>
+<section id="compilation-techniques">
+<h2>Compilation Techniques<a class="headerlink" href="#compilation-techniques" title="Link to this heading"></a></h2>
+<section id="bottom-up-compilation">
+<h3>Bottom-up Compilation<a class="headerlink" href="#bottom-up-compilation" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p><strong>Process</strong>:
+- Variable ordering selection
+- Subformula compilation
+- Composition of results</p></li>
+<li><p><strong>Optimizations</strong>:
+- Caching
+- Dynamic reordering
+- Structure sharing</p></li>
+</ol>
+</section>
+<section id="top-down-compilation">
+<h3>Top-down Compilation<a class="headerlink" href="#top-down-compilation" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p><strong>Approach</strong>:
+- Recursive decomposition
+- Shannon expansion
+- Component analysis</p></li>
+<li><p><strong>Techniques</strong>:
+- Dynamic decomposition choice
+- Early termination
+- Constraint propagation</p></li>
+</ol>
+</section>
+</section>
+<section id="applications">
+<h2>Applications<a class="headerlink" href="#applications" title="Link to this heading"></a></h2>
+<section id="automated-planning">
+<h3>Automated Planning<a class="headerlink" href="#automated-planning" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p><strong>Usage</strong>:
+- Plan representation
+- Goal regression
+- Action compilation</p></li>
+<li><p><strong>Benefits</strong>:
+- Fast plan validation
+- Efficient plan modification
+- Reusable components</p></li>
+</ol>
+</section>
+<section id="configuration">
+<h3>Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p><strong>Problems</strong>:
+- Product configuration
+- Resource allocation
+- Constraint satisfaction</p></li>
+<li><p><strong>Advantages</strong>:
+- Interactive configuration
+- Explanation generation
+- Consistency maintenance</p></li>
+</ol>
+</section>
+<section id="probabilistic-inference">
+<h3>Probabilistic Inference<a class="headerlink" href="#probabilistic-inference" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p><strong>Applications</strong>:
+- Bayesian networks
+- Markov networks
+- Probabilistic programs</p></li>
+<li><p><strong>Operations</strong>:
+- Weighted model counting
+- Marginal computation
+- MAP inference</p></li>
+</ol>
+<ul class="simple">
+<li><p>Darwiche, A., &amp; Marquis, P. (2002). “A Knowledge Compilation Map.”
+Journal of Artificial Intelligence Research, 17, 229-264.</p></li>
+<li><p>Darwiche, A. (2011). “SDD: A New Canonical Representation of
+Propositional Knowledge Bases.” IJCAI Proceedings-International
+Joint Conference on Artificial Intelligence.</p></li>
+<li><p>Muise, C., McIlraith, S. A., Beck, J. C., &amp; Hsu, E. I. (2016).
+“DSHARP: Fast d-DNNF Compilation with sharpSAT.”
+Canadian Conference on Artificial Intelligence.</p></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="optimization.html" class="btn btn-neutral float-left" title="Optimization Modulo Theory" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="parallel_cdclt.html" class="btn btn-neutral float-right" title="Parallel SMT CDCL(T) Solving" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

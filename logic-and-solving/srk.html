@@ -1,0 +1,236 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SRK Symbolic Reasoning Kit &mdash; ARIA Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Unification" href="unification.html" />
+    <link rel="prev" title="Utilities" href="utils.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ARIA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Logic and Solving</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="bool.html">Boolean Reasoning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smt.html">SMT Solving</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ff.html">SMT Solving for Finite Field</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ff.html#theory-reference-finite-fields">Theory Reference: Finite Fields</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ff.html#references">References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fol.html">First-Order Logic (FOL)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">Utilities</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">SRK Symbolic Reasoning Kit</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subsystems">Subsystems</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#getting-started">Getting Started</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#working-with-smt-lib">Working with SMT-LIB</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#further-reading">Further Reading</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="unification.html">Unification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unification.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unification.html#components">Components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unification.html#applications">Applications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unification.html#references">References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="allsmt.html">AllSMT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="backbone.html">Backbone Computation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unsat_core.html">UNSAT Core Extraction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="knowledge_compilation.html">Knowledge Compilation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parallel_cdclt.html">Parallel SMT CDCL(T) Solving</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../inference/index.html">Proofs and Explanations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quantified-reasoning/index.html">Quantified Reasoning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../automata-languages/index.html">Automata and Languages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../verification/index.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../abstraction/index.html">Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../counting-probability/index.html">Counting, Sampling, and Probability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../synthesis/index.html">Program Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../llm-ml/index.html">LLM and ML</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cli-tools/index.html">CLI and Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../global_params.html">Global Parameters</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ARIA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Logic and Solving</a></li>
+      <li class="breadcrumb-item active">SRK Symbolic Reasoning Kit</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/logic-and-solving/srk.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="srk-symbolic-reasoning-kit">
+<h1>SRK Symbolic Reasoning Kit<a class="headerlink" href="#srk-symbolic-reasoning-kit" title="Link to this heading"></a></h1>
+<p>The package <code class="docutils literal notranslate"><span class="pre">aria.srk</span></code> is aria’s Symbolic Reasoning Kit: a Python port of the
+SRK framework for symbolic manipulation, verification, and automated reasoning.
+It bundles expression syntax, algebraic domains, SMT backends, and termination
+analyses under a single interface that interoperates with the rest of aria.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Build typed symbolic expressions and formulas with <code class="docutils literal notranslate"><span class="pre">Context</span></code> and helpers</p></li>
+<li><p>Integrate with SMT solvers through the generic <code class="docutils literal notranslate"><span class="pre">SMTSolver</span></code> API and the
+<code class="docutils literal notranslate"><span class="pre">Z3Solver</span></code> implementation</p></li>
+<li><p>Manipulate polynomials, polyhedra, and abstract domains for program analysis</p></li>
+<li><p>Encode transition systems, ranking functions, and fixpoint computations</p></li>
+<li><p>Parse, simplify, and export problems via SMT-LIB utilities</p></li>
+</ul>
+</section>
+<section id="subsystems">
+<h2>Subsystems<a class="headerlink" href="#subsystems" title="Link to this heading"></a></h2>
+<dl class="simple">
+<dt><strong>Syntax and Rewriting</strong> <code class="docutils literal notranslate"><span class="pre">syntax</span></code>, <code class="docutils literal notranslate"><span class="pre">srkSimplify</span></code>, <code class="docutils literal notranslate"><span class="pre">srkAst</span></code></dt><dd><p>Core classes for terms, formulas, and types. Provides builders such as
+<code class="docutils literal notranslate"><span class="pre">mk_symbol</span></code>, <code class="docutils literal notranslate"><span class="pre">mk_add</span></code>, <code class="docutils literal notranslate"><span class="pre">mk_eq</span></code> plus normalisation utilities like
+<code class="docutils literal notranslate"><span class="pre">simplify_expression</span></code> and CNF/NNF converters.</p>
+</dd>
+<dt><strong>SMT Integration</strong> <code class="docutils literal notranslate"><span class="pre">smt</span></code>, <code class="docutils literal notranslate"><span class="pre">srkZ3</span></code>, <code class="docutils literal notranslate"><span class="pre">srkSmtlib2</span></code></dt><dd><p>Translate SRK expressions to solver terms, manage solver scopes, and parse
+SMT-LIB 2 benchmarks. Includes helpers for models, unsat cores, and Z3
+interoperability.</p>
+</dd>
+</dl>
+<p><strong>Abstract Interpretation and Algebra</strong> <code class="docutils literal notranslate"><span class="pre">abstract</span></code>, <code class="docutils literal notranslate"><span class="pre">interval</span></code>, <code class="docutils literal notranslate"><span class="pre">polyhedron</span></code>,
+<code class="docutils literal notranslate"><span class="pre">linear</span></code>, <code class="docutils literal notranslate"><span class="pre">polynomial</span></code>, <code class="docutils literal notranslate"><span class="pre">wedge</span></code></p>
+<blockquote>
+<div><p>Implement numerical domains (intervals, affine relations, polyhedra),
+rational arithmetic (<code class="docutils literal notranslate"><span class="pre">qQ</span></code>/<code class="docutils literal notranslate"><span class="pre">zZ</span></code>), exponential polynomials, and operations
+needed for invariant generation and completeness proofs.</p>
+</div></blockquote>
+<p><strong>Transition Systems and Termination</strong> <code class="docutils literal notranslate"><span class="pre">transition</span></code>, <code class="docutils literal notranslate"><span class="pre">transitionFormula</span></code>,
+<code class="docutils literal notranslate"><span class="pre">transitionSystem</span></code>, <code class="docutils literal notranslate"><span class="pre">termination</span></code>, <code class="docutils literal notranslate"><span class="pre">loop</span></code></p>
+<blockquote>
+<div><p>Model program control-flow, compose transitions, and search for ranking
+functions with LLRF/DTA/exp-based strategies.</p>
+</div></blockquote>
+<p><strong>Utilities and Infrastructure</strong> <code class="docutils literal notranslate"><span class="pre">cache</span></code>, <code class="docutils literal notranslate"><span class="pre">memo</span></code>, <code class="docutils literal notranslate"><span class="pre">log</span></code>, <code class="docutils literal notranslate"><span class="pre">sparseMap</span></code>,
+<code class="docutils literal notranslate"><span class="pre">srkUtil</span></code></p>
+<blockquote>
+<div><p>Support modules for performance profiling, memoisation, data structures, and
+combinatorial helpers used throughout the kit.</p>
+</div></blockquote>
+</section>
+<section id="getting-started">
+<h2>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.srk</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Context</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span>
+    <span class="n">mk_symbol</span><span class="p">,</span> <span class="n">mk_const</span><span class="p">,</span> <span class="n">mk_add</span><span class="p">,</span> <span class="n">mk_eq</span><span class="p">,</span>
+    <span class="n">simplify_expression</span><span class="p">,</span> <span class="n">Z3Solver</span><span class="p">,</span> <span class="n">SMTResult</span>
+<span class="p">)</span>
+
+<span class="n">ctx</span> <span class="o">=</span> <span class="n">Context</span><span class="p">()</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">mk_symbol</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">Type</span><span class="o">.</span><span class="n">INT</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">mk_symbol</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">Type</span><span class="o">.</span><span class="n">INT</span><span class="p">)</span>
+
+<span class="n">formula</span> <span class="o">=</span> <span class="n">mk_eq</span><span class="p">(</span><span class="n">mk_add</span><span class="p">(</span><span class="n">mk_const</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">mk_const</span><span class="p">(</span><span class="n">y</span><span class="p">)),</span> <span class="n">mk_const</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+<span class="n">simplified</span> <span class="o">=</span> <span class="n">simplify_expression</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
+
+<span class="n">solver</span> <span class="o">=</span> <span class="n">Z3Solver</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+<span class="n">solver</span><span class="o">.</span><span class="n">add</span><span class="p">([</span><span class="n">simplified</span><span class="p">])</span>
+
+<span class="k">if</span> <span class="n">solver</span><span class="o">.</span><span class="n">check</span><span class="p">()</span> <span class="o">==</span> <span class="n">SMTResult</span><span class="o">.</span><span class="n">SAT</span><span class="p">:</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">get_model</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Satisfiable:&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Unsatisfiable or unknown&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="working-with-smt-lib">
+<h2>Working with SMT-LIB<a class="headerlink" href="#working-with-smt-lib" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">srkParse</span></code> and <code class="docutils literal notranslate"><span class="pre">srkSmtlib2Defs</span></code> translate SMT-LIB 2 problems into SRK
+expressions, while <code class="docutils literal notranslate"><span class="pre">srkSimplify</span></code> can normalise the resulting formulas before
+they are handed to <code class="docutils literal notranslate"><span class="pre">Z3Solver</span></code> or exported back to SMT-LIB. The combination
+allows rapid experimentation with new reasoning algorithms while reusing SRK’s
+infrastructure for parsing, simplification, and solver interaction.</p>
+</section>
+<section id="further-reading">
+<h2>Further Reading<a class="headerlink" href="#further-reading" title="Link to this heading"></a></h2>
+<p>Explore the module docstrings and the extensive regression suite in
+<code class="docutils literal notranslate"><span class="pre">aria/srk/tests</span></code> for concrete usage patterns covering algebraic manipulation,
+quantifier handling, and program analysis workflows.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="utils.html" class="btn btn-neutral float-left" title="Utilities" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="unification.html" class="btn btn-neutral float-right" title="Unification" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

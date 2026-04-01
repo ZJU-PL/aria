@@ -39,8 +39,22 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <!-- Local TOC -->
-              <div class="local-toc"></div>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../getting-started/index.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../logic-and-solving/index.html">Logic and Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../inference/index.html">Proofs and Explanations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../quantified-reasoning/index.html">Quantified Reasoning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../automata-languages/index.html">Automata and Languages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../verification/index.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../abstraction/index.html">Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../counting-probability/index.html">Counting, Sampling, and Probability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../synthesis/index.html">Program Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../llm-ml/index.html">LLM and ML</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../cli-tools/index.html">CLI and Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../global_params.html">Global Parameters</a></li>
+</ul>
+
         </div>
       </div>
     </nav>
@@ -71,7 +85,7 @@
 
 <span class="c1"># pylint: disable=no-self-argument</span>
 <div class="viewcode-block" id="AstNode">
-<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.common.ast.AstNode">[docs]</a>
+<a class="viewcode-back" href="../../../../../cli-tools/verifytools.html#aria.efmc.verifytools.common.ast.AstNode">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">AstNode</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for AST nodes with structural equality and hashing.&quot;&quot;&quot;</span>
 
@@ -128,7 +142,7 @@
 
 
 <div class="viewcode-block" id="replace">
-<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.common.ast.replace">[docs]</a>
+<a class="viewcode-back" href="../../../../../cli-tools/verifytools.html#aria.efmc.verifytools.common.ast.replace">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">replace</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="n">m</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Replace AST nodes according to mapping m.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="n">AstNode</span><span class="p">):</span>
@@ -142,7 +156,7 @@
 
 
 <div class="viewcode-block" id="reduce_nodes">
-<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.common.ast.reduce_nodes">[docs]</a>
+<a class="viewcode-back" href="../../../../../cli-tools/verifytools.html#aria.efmc.verifytools.common.ast.reduce_nodes">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">reduce_nodes</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">cb</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Reduce nodes using callback function cb.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">cb</span><span class="p">(</span>

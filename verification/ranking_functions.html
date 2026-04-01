@@ -1,0 +1,363 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ranking Function Templates for Termination Verification &mdash; ARIA Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Danger Invariants" href="danger.html" />
+    <link rel="prev" title="K-Safety Verification" href="ksafety.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ARIA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../logic-and-solving/index.html">Logic and Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inference/index.html">Proofs and Explanations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quantified-reasoning/index.html">Quantified Reasoning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../automata-languages/index.html">Automata and Languages</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Verification</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="bdd.html">BDD-based Symbolic Model Checking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verification.html">Program Verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="houdini.html">Houdini</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kinduction.html">K-induction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ksafety.html">K-Safety Verification</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Ranking Function Templates for Termination Verification</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#implemented-templates">Implemented Templates</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#linear-ranking-functions-bitveclinearrankingtemplate">1. Linear Ranking Functions (<code class="docutils literal notranslate"><span class="pre">BitVecLinearRankingTemplate</span></code>)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#lexicographic-ranking-functions-bitveclexicographicrankingtemplate">2. Lexicographic Ranking Functions (<code class="docutils literal notranslate"><span class="pre">BitVecLexicographicRankingTemplate</span></code>)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#conditional-ranking-functions-bitvecconditionalrankingtemplate">3. Conditional Ranking Functions (<code class="docutils literal notranslate"><span class="pre">BitVecConditionalRankingTemplate</span></code>)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#usage">Usage</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#basic-usage">Basic Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#convenience-function">Convenience Function</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#template-specific-options">Template-Specific Options</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#implementation-details">Implementation Details</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#verification-condition-generation">Verification Condition Generation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#template-constraints">Template Constraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bit-vector-considerations">Bit-Vector Considerations</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#limitations-and-future-work">Limitations and Future Work</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#current-limitations">Current Limitations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#future-enhancements">Future Enhancements</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="danger.html">Danger Invariants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ltl.html">Linear Teamporal Logic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="symautomata.html">Symbolic Finite Automata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="llm4inv.html">LLM4Inv: LLM-Guided Invariant Synthesis</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../abstraction/index.html">Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../counting-probability/index.html">Counting, Sampling, and Probability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../synthesis/index.html">Program Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../llm-ml/index.html">LLM and ML</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cli-tools/index.html">CLI and Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../global_params.html">Global Parameters</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ARIA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Verification</a></li>
+      <li class="breadcrumb-item active">Ranking Function Templates for Termination Verification</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/verification/ranking_functions.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="ranking-function-templates-for-termination-verification">
+<h1>Ranking Function Templates for Termination Verification<a class="headerlink" href="#ranking-function-templates-for-termination-verification" title="Link to this heading"></a></h1>
+<p>This document describes the ranking function templates implemented for verifying termination of bit-vector programs in EFMC.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>Ranking functions are a fundamental technique for proving program termination. A ranking function is a function R that maps program states to a well-ordered domain (typically natural numbers) such that:</p>
+<ol class="arabic simple">
+<li><p><strong>Non-negativity</strong>: R(x) ≥ 0 for all reachable states x</p></li>
+<li><p><strong>Decrease</strong>: For any transition from state x to state x’, if the loop guard holds, then R(x) &gt; R(x’)</p></li>
+<li><p><strong>Well-foundedness</strong>: The range of R is bounded below</p></li>
+</ol>
+<p>For bit-vector programs, the well-foundedness property is automatically satisfied due to the finite domain of bit-vectors.</p>
+</section>
+<section id="implemented-templates">
+<h2>Implemented Templates<a class="headerlink" href="#implemented-templates" title="Link to this heading"></a></h2>
+<section id="linear-ranking-functions-bitveclinearrankingtemplate">
+<h3>1. Linear Ranking Functions (<code class="docutils literal notranslate"><span class="pre">BitVecLinearRankingTemplate</span></code>)<a class="headerlink" href="#linear-ranking-functions-bitveclinearrankingtemplate" title="Link to this heading"></a></h3>
+<p>Linear ranking functions have the form:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>R(x₁, x₂, ..., xₙ) = a₁*x₁ + a₂*x₂ + ... + aₙ*xₙ + c
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">aᵢ</span></code> and <code class="docutils literal notranslate"><span class="pre">c</span></code> are coefficients to be synthesized.</p>
+<p><strong>Use case</strong>: Simple loops with linear decreases, such as countdown loops.</p>
+<p><strong>Example</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">while</span> <span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Ranking function: <code class="docutils literal notranslate"><span class="pre">R(x)</span> <span class="pre">=</span> <span class="pre">x</span></code></p>
+</section>
+<section id="lexicographic-ranking-functions-bitveclexicographicrankingtemplate">
+<h3>2. Lexicographic Ranking Functions (<code class="docutils literal notranslate"><span class="pre">BitVecLexicographicRankingTemplate</span></code>)<a class="headerlink" href="#lexicographic-ranking-functions-bitveclexicographicrankingtemplate" title="Link to this heading"></a></h3>
+<p>Lexicographic ranking functions use tuples ordered lexicographically:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>R(x) = (R₁(x), R₂(x), ..., Rₖ(x))
+</pre></div>
+</div>
+<p>where each <code class="docutils literal notranslate"><span class="pre">Rᵢ</span></code> is a linear function. The tuple <code class="docutils literal notranslate"><span class="pre">(a₁,</span> <span class="pre">a₂,</span> <span class="pre">...,</span> <span class="pre">aₖ)</span></code> is greater than <code class="docutils literal notranslate"><span class="pre">(b₁,</span> <span class="pre">b₂,</span> <span class="pre">...,</span> <span class="pre">bₖ)</span></code> if there exists an index <code class="docutils literal notranslate"><span class="pre">i</span></code> such that:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">aⱼ</span> <span class="pre">=</span> <span class="pre">bⱼ</span></code> for all <code class="docutils literal notranslate"><span class="pre">j</span> <span class="pre">&lt;</span> <span class="pre">i</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aᵢ</span> <span class="pre">&gt;</span> <span class="pre">bᵢ</span></code></p></li>
+</ul>
+<p><strong>Use case</strong>: Nested loops or loops with multiple phases.</p>
+<p><strong>Example</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">while</span> <span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">x</span><span class="p">;</span>
+    <span class="k">while</span> <span class="p">(</span><span class="n">y</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Ranking function: <code class="docutils literal notranslate"><span class="pre">R(x,</span> <span class="pre">y)</span> <span class="pre">=</span> <span class="pre">(x,</span> <span class="pre">y)</span></code></p>
+</section>
+<section id="conditional-ranking-functions-bitvecconditionalrankingtemplate">
+<h3>3. Conditional Ranking Functions (<code class="docutils literal notranslate"><span class="pre">BitVecConditionalRankingTemplate</span></code>)<a class="headerlink" href="#conditional-ranking-functions-bitvecconditionalrankingtemplate" title="Link to this heading"></a></h3>
+<p>Conditional ranking functions use if-then-else expressions:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>R(x) = if C₁(x) then R₁(x) else if C₂(x) then R₂(x) else ... else Rₙ(x)
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">Cᵢ</span></code> are conditions and <code class="docutils literal notranslate"><span class="pre">Rᵢ</span></code> are linear ranking functions.</p>
+<p><strong>Use case</strong>: Loops with different behaviors based on conditions.</p>
+<p><strong>Example</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">while</span> <span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">x</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">/</span> <span class="mi">2</span><span class="p">;</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Ranking function: <code class="docutils literal notranslate"><span class="pre">R(x)</span> <span class="pre">=</span> <span class="pre">if</span> <span class="pre">(x</span> <span class="pre">%</span> <span class="pre">2</span> <span class="pre">==</span> <span class="pre">0)</span> <span class="pre">then</span> <span class="pre">2*x</span> <span class="pre">else</span> <span class="pre">x</span></code></p>
+</section>
+</section>
+<section id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
+<section id="basic-usage">
+<h3>Basic Usage<a class="headerlink" href="#basic-usage" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.sts</span><span class="w"> </span><span class="kn">import</span> <span class="n">TransitionSystem</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.engines.ef.termination_prover</span><span class="w"> </span><span class="kn">import</span> <span class="n">TerminationProver</span>
+
+<span class="c1"># Create your transition system</span>
+<span class="n">sts</span> <span class="o">=</span> <span class="n">TransitionSystem</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+
+<span class="c1"># Create termination prover</span>
+<span class="n">prover</span> <span class="o">=</span> <span class="n">TerminationProver</span><span class="p">(</span><span class="n">sts</span><span class="p">)</span>
+
+<span class="c1"># Set ranking template</span>
+<span class="n">prover</span><span class="o">.</span><span class="n">set_ranking_template</span><span class="p">(</span><span class="s2">&quot;bv_linear_ranking&quot;</span><span class="p">)</span>
+
+<span class="c1"># Prove termination</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">prover</span><span class="o">.</span><span class="n">prove_termination</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">result</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Termination proven!&quot;</span><span class="p">)</span>
+    <span class="n">ranking_func</span> <span class="o">=</span> <span class="n">prover</span><span class="o">.</span><span class="n">get_ranking_function</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Ranking function: </span><span class="si">{</span><span class="n">ranking_func</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="convenience-function">
+<h3>Convenience Function<a class="headerlink" href="#convenience-function" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.engines.ef.termination_prover</span><span class="w"> </span><span class="kn">import</span> <span class="n">prove_termination_with_ranking_functions</span>
+
+<span class="c1"># Try multiple templates automatically</span>
+<span class="n">success</span><span class="p">,</span> <span class="n">ranking_func</span><span class="p">,</span> <span class="n">template_used</span> <span class="o">=</span> <span class="n">prove_termination_with_ranking_functions</span><span class="p">(</span>
+    <span class="n">sts</span><span class="p">,</span>
+    <span class="n">template_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;bv_linear_ranking&quot;</span><span class="p">,</span> <span class="s2">&quot;bv_lexicographic_ranking&quot;</span><span class="p">],</span>
+    <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span>
+<span class="p">)</span>
+
+<span class="k">if</span> <span class="n">success</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Termination proven using </span><span class="si">{</span><span class="n">template_used</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Ranking function: </span><span class="si">{</span><span class="n">ranking_func</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="template-specific-options">
+<h3>Template-Specific Options<a class="headerlink" href="#template-specific-options" title="Link to this heading"></a></h3>
+<section id="linear-ranking-functions">
+<h4>Linear Ranking Functions<a class="headerlink" href="#linear-ranking-functions" title="Link to this heading"></a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">prover</span><span class="o">.</span><span class="n">set_ranking_template</span><span class="p">(</span><span class="s2">&quot;bv_linear_ranking&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="lexicographic-ranking-functions">
+<h4>Lexicographic Ranking Functions<a class="headerlink" href="#lexicographic-ranking-functions" title="Link to this heading"></a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">prover</span><span class="o">.</span><span class="n">set_ranking_template</span><span class="p">(</span><span class="s2">&quot;bv_lexicographic_ranking&quot;</span><span class="p">,</span> <span class="n">num_components</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="conditional-ranking-functions">
+<h4>Conditional Ranking Functions<a class="headerlink" href="#conditional-ranking-functions" title="Link to this heading"></a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">prover</span><span class="o">.</span><span class="n">set_ranking_template</span><span class="p">(</span><span class="s2">&quot;bv_conditional_ranking&quot;</span><span class="p">,</span> <span class="n">num_branches</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<section id="implementation-details">
+<h2>Implementation Details<a class="headerlink" href="#implementation-details" title="Link to this heading"></a></h2>
+<section id="verification-condition-generation">
+<h3>Verification Condition Generation<a class="headerlink" href="#verification-condition-generation" title="Link to this heading"></a></h3>
+<p>The termination prover generates verification conditions that ensure:</p>
+<ol class="arabic simple">
+<li><p><strong>Non-negativity</strong>: <code class="docutils literal notranslate"><span class="pre">guard(x)</span> <span class="pre">⇒</span> <span class="pre">R(x)</span> <span class="pre">≥</span> <span class="pre">0</span></code></p></li>
+<li><p><strong>Decrease</strong>: <code class="docutils literal notranslate"><span class="pre">guard(x)</span> <span class="pre">∧</span> <span class="pre">trans(x,</span> <span class="pre">x')</span> <span class="pre">⇒</span> <span class="pre">R(x)</span> <span class="pre">&gt;</span> <span class="pre">R(x')</span></code></p></li>
+<li><p><strong>Initial state</strong>: <code class="docutils literal notranslate"><span class="pre">init(x)</span> <span class="pre">⇒</span> <span class="pre">R(x)</span> <span class="pre">≥</span> <span class="pre">0</span></code> (if applicable)</p></li>
+</ol>
+</section>
+<section id="template-constraints">
+<h3>Template Constraints<a class="headerlink" href="#template-constraints" title="Link to this heading"></a></h3>
+<p>Each template adds specific constraints:</p>
+<ul class="simple">
+<li><p><strong>Linear</strong>: Coefficients are bit-vector variables</p></li>
+<li><p><strong>Lexicographic</strong>: Multiple sets of coefficients with lexicographic ordering constraints</p></li>
+<li><p><strong>Conditional</strong>: Boolean condition variables and multiple coefficient sets</p></li>
+</ul>
+</section>
+<section id="bit-vector-considerations">
+<h3>Bit-Vector Considerations<a class="headerlink" href="#bit-vector-considerations" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Signedness</strong>: Templates handle both signed and unsigned bit-vectors</p></li>
+<li><p><strong>Bit-width compatibility</strong>: Automatic extension/truncation when needed</p></li>
+<li><p><strong>Overflow</strong>: Bit-vector arithmetic naturally handles overflow</p></li>
+</ul>
+</section>
+</section>
+<section id="limitations-and-future-work">
+<h2>Limitations and Future Work<a class="headerlink" href="#limitations-and-future-work" title="Link to this heading"></a></h2>
+<section id="current-limitations">
+<h3>Current Limitations<a class="headerlink" href="#current-limitations" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p><strong>Template expressiveness</strong>: Limited to linear combinations of variables</p></li>
+<li><p><strong>Condition synthesis</strong>: Conditional templates use simple boolean flags</p></li>
+<li><p><strong>Nested loops</strong>: Limited support for complex nested structures</p></li>
+</ol>
+</section>
+<section id="future-enhancements">
+<h3>Future Enhancements<a class="headerlink" href="#future-enhancements" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p><strong>Non-linear ranking functions</strong>: Polynomial and other non-linear forms</p></li>
+<li><p><strong>Automatic condition synthesis</strong>: Learn conditions from program structure</p></li>
+<li><p><strong>Multi-phase ranking functions</strong>: Support for programs with distinct phases</p></li>
+<li><p><strong>Ranking function composition</strong>: Combine multiple ranking functions</p></li>
+</ol>
+</section>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h2>
+<p>See <code class="docutils literal notranslate"><span class="pre">examples/termination_example.py</span></code> for complete working examples demonstrating all three template types.</p>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p>Bradley, A. R., Manna, Z., &amp; Sipma, H. B. (2005). Termination of polynomial programs. In VMCAI.</p></li>
+<li><p>Cook, B., Podelski, A., &amp; Rybalchenko, A. (2006). Termination proofs for systems code. In PLDI.</p></li>
+<li><p>Cousot, P. (2005). Proving program invariance and termination by parametric abstraction, Lagrangian relaxation and semidefinite programming. In VMCAI.</p></li>
+<li><p>Heizmann, M., Hoenicke, J., &amp; Podelski, A. (2013). Software model checking for people who love automata. In CAV.</p></li>
+</ol>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="ksafety.html" class="btn btn-neutral float-left" title="K-Safety Verification" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="danger.html" class="btn btn-neutral float-right" title="Danger Invariants" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

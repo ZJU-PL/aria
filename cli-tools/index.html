@@ -1,0 +1,241 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLI and Tools &mdash; ARIA Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="CLI Tools" href="cli.html" />
+    <link rel="prev" title="LLM Tools" href="../llm-ml/llmtools.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ARIA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../logic-and-solving/index.html">Logic and Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inference/index.html">Proofs and Explanations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quantified-reasoning/index.html">Quantified Reasoning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../automata-languages/index.html">Automata and Languages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../verification/index.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../abstraction/index.html">Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../counting-probability/index.html">Counting, Sampling, and Probability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../synthesis/index.html">Program Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../llm-ml/index.html">LLM and ML</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">CLI and Tools</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cli.html">CLI Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html">Translator Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#components">Components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#command-line-interface-aria-cli-fmldoc-py">Command-Line Interface (<code class="docutils literal notranslate"><span class="pre">aria/cli/fmldoc.py</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#examples">Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#applications">Applications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#references">References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="applications.html">Applications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boogie_frontend.html">Boogie Frontend for EFMC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c_frontend.html">C Frontend for EFMC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chctools.html">Constrained Horn Clauses (CHC) Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verifytools.html">Verification Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../global_params.html">Global Parameters</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ARIA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">CLI and Tools</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/cli-tools/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="cli-and-tools">
+<h1>CLI and Tools<a class="headerlink" href="#cli-and-tools" title="Link to this heading"></a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">CLI Tools</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#directory-structure">Directory Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#cli-tools-overview">CLI Tools Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#testing">Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#code-statistics">Code Statistics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#main-api-entry-points">Main API Entry Points</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#key-features">Key Features</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="translator.html">Translator Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="translator.html#introduction">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#key-features">Key Features</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="translator.html#components">Components</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#dimacs-to-smt-lib2-aria-translator-dimacs2smt-py">DIMACS to SMT-LIB2 (<code class="docutils literal notranslate"><span class="pre">aria/translator/dimacs2smt.py</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#qdimacs-to-smt-lib2-aria-translator-qbf2smt-py">QDIMACS to SMT-LIB2 (<code class="docutils literal notranslate"><span class="pre">aria/translator/qbf2smt.py</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#cnf-to-smt-lib2-aria-translator-cnf2smt-py">CNF to SMT-LIB2 (<code class="docutils literal notranslate"><span class="pre">aria/translator/cnf2smt.py</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#cnf-to-linear-programming-aria-translator-cnf2lp-py">CNF to Linear Programming (<code class="docutils literal notranslate"><span class="pre">aria/translator/cnf2lp.py</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#smt-lib2-to-c-aria-translator-smt2c-py">SMT-LIB2 to C (<code class="docutils literal notranslate"><span class="pre">aria/translator/smt2c.py</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#smt-lib2-to-sympy-aria-translator-smt2sympy-py">SMT-LIB2 to SymPy (<code class="docutils literal notranslate"><span class="pre">aria/translator/smt2sympy.py</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#sygus-to-smt-lib2-aria-translator-sygus2smt-py">SyGuS to SMT-LIB2 (<code class="docutils literal notranslate"><span class="pre">aria/translator/sygus2smt.py</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#weighted-cnf-to-z3-aria-translator-wcnf2z3-py">Weighted CNF to Z3 (<code class="docutils literal notranslate"><span class="pre">aria/translator/wcnf2z3.py</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#flatzinc-to-omt-aria-translator-fzn2omt">FlatZinc to OMT (<code class="docutils literal notranslate"><span class="pre">aria/translator/fzn2omt/</span></code>)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="translator.html#command-line-interface-aria-cli-fmldoc-py">Command-Line Interface (<code class="docutils literal notranslate"><span class="pre">aria/cli/fmldoc.py</span></code>)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="translator.html#examples">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#converting-dimacs-to-smt-lib2">Converting DIMACS to SMT-LIB2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#converting-qdimacs-to-smt-lib2">Converting QDIMACS to SMT-LIB2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#using-cnf-to-z3-conversion">Using CNF to Z3 conversion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#weighted-maxsat-with-z3">Weighted MaxSAT with Z3</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="translator.html#applications">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="translator.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="applications.html">Applications</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="applications.html#testing">Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="applications.html#verification">Verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="applications.html#synthesis">Synthesis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="applications.html#optimization">Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="applications.html#learning-ai">Learning &amp; AI</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="boogie_frontend.html">Boogie Frontend for EFMC</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="boogie_frontend.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boogie_frontend.html#usage">Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boogie_frontend.html#supported-boogie-features">Supported Boogie Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boogie_frontend.html#example-boogie-programs">Example Boogie Programs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boogie_frontend.html#verification-workflow">Verification Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boogie_frontend.html#generated-transition-system">Generated Transition System</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boogie_frontend.html#integration-with-efmc-engines">Integration with EFMC Engines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boogie_frontend.html#chc-format-generation">CHC Format Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boogie_frontend.html#limitations">Limitations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boogie_frontend.html#future-enhancements">Future Enhancements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boogie_frontend.html#error-handling">Error Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boogie_frontend.html#testing">Testing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="c_frontend.html">C Frontend for EFMC</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="c_frontend.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c_frontend.html#usage">Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c_frontend.html#supported-c-features">Supported C Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c_frontend.html#limitations">Limitations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c_frontend.html#example-c-programs">Example C Programs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c_frontend.html#verification-workflow">Verification Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c_frontend.html#generated-transition-system">Generated Transition System</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c_frontend.html#integration-with-efmc-engines">Integration with EFMC Engines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c_frontend.html#chc-format-generation">CHC Format Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c_frontend.html#command-line-usage">Command-Line Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c_frontend.html#future-enhancements">Future Enhancements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c_frontend.html#error-handling">Error Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c_frontend.html#testing">Testing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="chctools.html">Constrained Horn Clauses (CHC) Tools</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="chctools.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chctools.html#core-components">Core Components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chctools.html#chc-parser">CHC Parser</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chctools.html#horn-database">Horn Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chctools.html#chc-solver">CHC Solver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chctools.html#model-validation">Model Validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chctools.html#pretty-printer">Pretty Printer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chctools.html#advanced-features">Advanced Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chctools.html#integration-examples">Integration Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chctools.html#command-line-tools">Command-Line Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chctools.html#related-work-and-references">Related Work and References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="verifytools.html">Verification Tools</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="verifytools.html#architecture">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verifytools.html#common-utilities">Common Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verifytools.html#boogie-frontend-tools">Boogie Frontend Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verifytools.html#verification-condition-generation">Verification Condition Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verifytools.html#daikon-integration">Daikon Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verifytools.html#cpachecker-integration">CPAchecker Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verifytools.html#ice-based-invariant-generation">ICE-based Invariant Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verifytools.html#module-aria.efmc.verifytools.common.ast">API Reference</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../llm-ml/llmtools.html" class="btn btn-neutral float-left" title="LLM Tools" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="cli.html" class="btn btn-neutral float-right" title="CLI Tools" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,1218 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verification Tools &mdash; ARIA Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Global Parameters" href="../global_params.html" />
+    <link rel="prev" title="Constrained Horn Clauses (CHC) Tools" href="chctools.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ARIA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../logic-and-solving/index.html">Logic and Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inference/index.html">Proofs and Explanations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quantified-reasoning/index.html">Quantified Reasoning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../automata-languages/index.html">Automata and Languages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../verification/index.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../abstraction/index.html">Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../counting-probability/index.html">Counting, Sampling, and Probability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../synthesis/index.html">Program Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../llm-ml/index.html">LLM and ML</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">CLI and Tools</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="cli.html">CLI Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html">Translator Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#components">Components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#command-line-interface-aria-cli-fmldoc-py">Command-Line Interface (<code class="docutils literal notranslate"><span class="pre">aria/cli/fmldoc.py</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#examples">Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#applications">Applications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#references">References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="applications.html">Applications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boogie_frontend.html">Boogie Frontend for EFMC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c_frontend.html">C Frontend for EFMC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chctools.html">Constrained Horn Clauses (CHC) Tools</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Verification Tools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#architecture">Architecture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#common-utilities">Common Utilities</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#common-ast">Common AST</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#common-parser">Common Parser</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#boogie-frontend-tools">Boogie Frontend Tools</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ast-and-interpretation">AST and Interpretation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#basic-block-analysis">Basic Block Analysis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#static-single-assignment-ssa">Static Single Assignment (SSA)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#predicate-transformers">Predicate Transformers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#z3-integration">Z3 Integration</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#verification-condition-generation">Verification Condition Generation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#verification-condition-checking">Verification Condition Checking</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#try-and-verify-strategy">Try-and-Verify Strategy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#desugaring">Desugaring</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#format-conversions">Format Conversions</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#daikon-integration">Daikon Integration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cpachecker-integration">CPAchecker Integration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ice-based-invariant-generation">ICE-based Invariant Generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-aria.efmc.verifytools.common.ast">API Reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.common.ast.AstNode"><code class="docutils literal notranslate"><span class="pre">AstNode</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.common.ast.reduce_nodes"><code class="docutils literal notranslate"><span class="pre">reduce_nodes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.common.ast.replace"><code class="docutils literal notranslate"><span class="pre">replace()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.common.parser.InfixExprParser"><code class="docutils literal notranslate"><span class="pre">InfixExprParser</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.common.parser.Parser"><code class="docutils literal notranslate"><span class="pre">Parser</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.common.util.average"><code class="docutils literal notranslate"><span class="pre">average()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.common.util.error"><code class="docutils literal notranslate"><span class="pre">error()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.common.util.fatal"><code class="docutils literal notranslate"><span class="pre">fatal()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.common.util.flattenList"><code class="docutils literal notranslate"><span class="pre">flattenList()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.common.util.flattenSet"><code class="docutils literal notranslate"><span class="pre">flattenSet()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.common.util.nodups"><code class="docutils literal notranslate"><span class="pre">nodups()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.common.util.nonempty"><code class="docutils literal notranslate"><span class="pre">nonempty()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.common.util.powerset"><code class="docutils literal notranslate"><span class="pre">powerset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.common.util.pp_exc"><code class="docutils literal notranslate"><span class="pre">pp_exc()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.common.util.randomToken"><code class="docutils literal notranslate"><span class="pre">randomToken()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.common.util.split"><code class="docutils literal notranslate"><span class="pre">split()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.common.util.unique"><code class="docutils literal notranslate"><span class="pre">unique()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.AstAssert"><code class="docutils literal notranslate"><span class="pre">AstAssert</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.AstAssignment"><code class="docutils literal notranslate"><span class="pre">AstAssignment</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.AstAssume"><code class="docutils literal notranslate"><span class="pre">AstAssume</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.AstBinExpr"><code class="docutils literal notranslate"><span class="pre">AstBinExpr</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.AstBinding"><code class="docutils literal notranslate"><span class="pre">AstBinding</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.AstBlock"><code class="docutils literal notranslate"><span class="pre">AstBlock</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.AstBody"><code class="docutils literal notranslate"><span class="pre">AstBody</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.AstBuilder"><code class="docutils literal notranslate"><span class="pre">AstBuilder</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.AstFalse"><code class="docutils literal notranslate"><span class="pre">AstFalse</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.AstFuncExpr"><code class="docutils literal notranslate"><span class="pre">AstFuncExpr</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.AstGoto"><code class="docutils literal notranslate"><span class="pre">AstGoto</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.AstHavoc"><code class="docutils literal notranslate"><span class="pre">AstHavoc</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.AstId"><code class="docutils literal notranslate"><span class="pre">AstId</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.AstImplementation"><code class="docutils literal notranslate"><span class="pre">AstImplementation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.AstIntType"><code class="docutils literal notranslate"><span class="pre">AstIntType</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.AstLabel"><code class="docutils literal notranslate"><span class="pre">AstLabel</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.AstNumber"><code class="docutils literal notranslate"><span class="pre">AstNumber</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.AstOneExprStmt"><code class="docutils literal notranslate"><span class="pre">AstOneExprStmt</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.AstProgram"><code class="docutils literal notranslate"><span class="pre">AstProgram</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.AstReturn"><code class="docutils literal notranslate"><span class="pre">AstReturn</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.AstStmt"><code class="docutils literal notranslate"><span class="pre">AstStmt</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.AstTrue"><code class="docutils literal notranslate"><span class="pre">AstTrue</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.AstUnExpr"><code class="docutils literal notranslate"><span class="pre">AstUnExpr</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.AstWhile"><code class="docutils literal notranslate"><span class="pre">AstWhile</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.ast_and"><code class="docutils literal notranslate"><span class="pre">ast_and()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.ast_boolean_exprs"><code class="docutils literal notranslate"><span class="pre">ast_boolean_exprs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.ast_constants"><code class="docutils literal notranslate"><span class="pre">ast_constants()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.ast_group_bin"><code class="docutils literal notranslate"><span class="pre">ast_group_bin()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.ast_or"><code class="docutils literal notranslate"><span class="pre">ast_or()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.ast_primitive_boolean_exprs"><code class="docutils literal notranslate"><span class="pre">ast_primitive_boolean_exprs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.expr_read"><code class="docutils literal notranslate"><span class="pre">expr_read()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.normalize"><code class="docutils literal notranslate"><span class="pre">normalize()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.parseAst"><code class="docutils literal notranslate"><span class="pre">parseAst()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.parseExprAst"><code class="docutils literal notranslate"><span class="pre">parseExprAst()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.stmt_changed"><code class="docutils literal notranslate"><span class="pre">stmt_changed()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.stmt_read"><code class="docutils literal notranslate"><span class="pre">stmt_read()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.tools.vc_check.conservative_tautology"><code class="docutils literal notranslate"><span class="pre">conservative_tautology()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.tools.vc_check.generalizeConstTraceVars"><code class="docutils literal notranslate"><span class="pre">generalizeConstTraceVars()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.tools.vc_check.loopInvOverfittedCtrex"><code class="docutils literal notranslate"><span class="pre">loopInvOverfittedCtrex()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.tools.vc_check.loopInvSafetyCtrex"><code class="docutils literal notranslate"><span class="pre">loopInvSafetyCtrex()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.tools.vc_check.substitutions"><code class="docutils literal notranslate"><span class="pre">substitutions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.tools.vc_check.traceConstantVars"><code class="docutils literal notranslate"><span class="pre">traceConstantVars()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.tools.vc_check.tryAndVerify"><code class="docutils literal notranslate"><span class="pre">tryAndVerify()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.tools.vc_check.tryAndVerifyLvl"><code class="docutils literal notranslate"><span class="pre">tryAndVerifyLvl()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.tools.vc_check.tryAndVerifyWithSplitterPreds"><code class="docutils literal notranslate"><span class="pre">tryAndVerifyWithSplitterPreds()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.tools.vc_check.tryAndVerify_impl"><code class="docutils literal notranslate"><span class="pre">tryAndVerify_impl()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.daikon.inv_ast.AstBinExpr"><code class="docutils literal notranslate"><span class="pre">AstBinExpr</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.daikon.inv_ast.AstBuilder"><code class="docutils literal notranslate"><span class="pre">AstBuilder</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.daikon.inv_ast.AstFalse"><code class="docutils literal notranslate"><span class="pre">AstFalse</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.daikon.inv_ast.AstHasValues"><code class="docutils literal notranslate"><span class="pre">AstHasValues</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.daikon.inv_ast.AstId"><code class="docutils literal notranslate"><span class="pre">AstId</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.daikon.inv_ast.AstInRange"><code class="docutils literal notranslate"><span class="pre">AstInRange</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.daikon.inv_ast.AstIsBoolean"><code class="docutils literal notranslate"><span class="pre">AstIsBoolean</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.daikon.inv_ast.AstIsConstMod"><code class="docutils literal notranslate"><span class="pre">AstIsConstMod</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.daikon.inv_ast.AstIsEven"><code class="docutils literal notranslate"><span class="pre">AstIsEven</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.daikon.inv_ast.AstIsOneOf"><code class="docutils literal notranslate"><span class="pre">AstIsOneOf</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.daikon.inv_ast.AstIsPow2"><code class="docutils literal notranslate"><span class="pre">AstIsPow2</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.daikon.inv_ast.AstNumber"><code class="docutils literal notranslate"><span class="pre">AstNumber</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.daikon.inv_ast.AstTrue"><code class="docutils literal notranslate"><span class="pre">AstTrue</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.daikon.inv_ast.AstUnExpr"><code class="docutils literal notranslate"><span class="pre">AstUnExpr</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.daikon.inv_ast.parse_expr_ast"><code class="docutils literal notranslate"><span class="pre">parse_expr_ast()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.daikon.inv_grammar.DaikonInvParser"><code class="docutils literal notranslate"><span class="pre">DaikonInvParser</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../global_params.html">Global Parameters</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ARIA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">CLI and Tools</a></li>
+      <li class="breadcrumb-item active">Verification Tools</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/cli-tools/verifytools.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="verification-tools">
+<span id="verifytools"></span><h1>Verification Tools<a class="headerlink" href="#verification-tools" title="Link to this heading"></a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">verifytools</span></code> module provides supporting infrastructure for verification, including intermediate representations, verification condition generation, and integration with external tools.</p>
+<section id="architecture">
+<h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>efmc/verifytools/
+├── common/               # Common utilities and AST
+│   ├── ast.py           # Abstract syntax tree definitions
+│   ├── parser.py        # Common parser utilities
+│   └── util.py          # Utility functions
+├── boogie/              # Boogie-specific tooling
+│   ├── ast.py           # Boogie AST
+│   ├── bb.py            # Basic block analysis
+│   ├── eval.py          # Expression evaluation
+│   ├── grammar.py       # Boogie grammar
+│   ├── interp.py        # Interpreter
+│   ├── paths.py         # Path analysis
+│   ├── predicate_transformers.py  # Predicate transformers
+│   ├── ssa.py           # Static single assignment
+│   ├── analysis.py      # Static analysis
+│   ├── inv_networks.py  # Invariant networks
+│   └── z3_embed.py      # Z3 embedding
+├── tools/               # Verification tools
+│   ├── vc_check.py      # Verification condition checking
+│   ├── desugar.py       # Desugaring utilities
+│   ├── tryAndVerify.py  # Try-and-verify strategy
+│   ├── conversions.py   # Format conversions
+│   ├── boogie_loops.py  # Loop extraction
+│   ├── levels.py        # Level management
+│   ├── run_ice.py       # ICE-based generation
+│   ├── run_invgen.py    # Invariant generation runner
+│   └── run_daikon.py    # Daikon integration
+├── daikon/              # Daikon invariant detector
+│   ├── inv_ast.py       # Invariant AST
+│   └── inv_grammar.py   # Invariant grammar
+├── cpachecker/          # CPAchecker integration
+│   └── dummy.h          # Stub header
+└── invgen/              # Invariant generation utilities
+</pre></div>
+</div>
+</section>
+<section id="common-utilities">
+<h2>Common Utilities<a class="headerlink" href="#common-utilities" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">common</span></code> subpackage provides shared utilities:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.verifytools.common.ast</span><span class="w"> </span><span class="kn">import</span> <span class="n">Expr</span><span class="p">,</span> <span class="n">Stmt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.verifytools.common.parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_formula</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.verifytools.common.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">simplify</span>
+</pre></div>
+</div>
+<section id="common-ast">
+<h3>Common AST<a class="headerlink" href="#common-ast" title="Link to this heading"></a></h3>
+<p>Base classes for abstract syntax trees:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.verifytools.common.ast</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Expr</span><span class="p">,</span>      <span class="c1"># Base expression class</span>
+    <span class="n">Stmt</span><span class="p">,</span>      <span class="c1"># Base statement class</span>
+    <span class="n">Var</span><span class="p">,</span>       <span class="c1"># Variable reference</span>
+    <span class="n">Const</span><span class="p">,</span>     <span class="c1"># Constant</span>
+    <span class="n">BinOp</span><span class="p">,</span>     <span class="c1"># Binary operation</span>
+    <span class="n">UnOp</span><span class="p">,</span>      <span class="c1"># Unary operation</span>
+<span class="p">)</span>
+
+<span class="c1"># Create expressions</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">Var</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">expr</span> <span class="o">=</span> <span class="n">BinOp</span><span class="p">(</span><span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">Const</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+<section id="common-parser">
+<h3>Common Parser<a class="headerlink" href="#common-parser" title="Link to this heading"></a></h3>
+<p>Utility functions for parsing formulas:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.verifytools.common.parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_formula</span>
+
+<span class="c1"># Parse from string</span>
+<span class="n">formula</span> <span class="o">=</span> <span class="n">parse_formula</span><span class="p">(</span><span class="s2">&quot;x + y &gt; 0&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="boogie-frontend-tools">
+<h2>Boogie Frontend Tools<a class="headerlink" href="#boogie-frontend-tools" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">boogie</span></code> subpackage provides tools for working with Boogie programs:</p>
+<section id="ast-and-interpretation">
+<h3>AST and Interpretation<a class="headerlink" href="#ast-and-interpretation" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.verifytools.boogie.ast</span><span class="w"> </span><span class="kn">import</span> <span class="n">BoogieProgram</span><span class="p">,</span> <span class="n">Procedure</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.verifytools.boogie.interp</span><span class="w"> </span><span class="kn">import</span> <span class="n">BoogieInterpreter</span>
+
+<span class="c1"># Parse Boogie program</span>
+<span class="n">program</span> <span class="o">=</span> <span class="n">BoogieProgram</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s2">&quot;program.bpl&quot;</span><span class="p">)</span>
+
+<span class="c1"># Run interpreter</span>
+<span class="n">interp</span> <span class="o">=</span> <span class="n">BoogieInterpreter</span><span class="p">(</span><span class="n">program</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">interp</span><span class="o">.</span><span class="n">run_procedure</span><span class="p">(</span><span class="s2">&quot;main&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="basic-block-analysis">
+<h3>Basic Block Analysis<a class="headerlink" href="#basic-block-analysis" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.verifytools.boogie.bb</span><span class="w"> </span><span class="kn">import</span> <span class="n">BasicBlockAnalyzer</span>
+
+<span class="n">analyzer</span> <span class="o">=</span> <span class="n">BasicBlockAnalyzer</span><span class="p">(</span><span class="n">program</span><span class="p">)</span>
+<span class="n">blocks</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="n">get_basic_blocks</span><span class="p">(</span><span class="s2">&quot;procedure_name&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="static-single-assignment-ssa">
+<h3>Static Single Assignment (SSA)<a class="headerlink" href="#static-single-assignment-ssa" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.verifytools.boogie.ssa</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_ssa</span>
+
+<span class="n">ssa_program</span> <span class="o">=</span> <span class="n">to_ssa</span><span class="p">(</span><span class="n">program</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="predicate-transformers">
+<h3>Predicate Transformers<a class="headerlink" href="#predicate-transformers" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.verifytools.boogie.predicate_transformers</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">wp</span><span class="p">,</span>  <span class="c1"># Weakest precondition</span>
+    <span class="n">sp</span><span class="p">,</span>  <span class="c1"># Strongest postcondition</span>
+<span class="p">)</span>
+
+<span class="c1"># Compute weakest precondition</span>
+<span class="n">wp_expr</span> <span class="o">=</span> <span class="n">wp</span><span class="p">(</span><span class="n">statement</span><span class="p">,</span> <span class="n">postcondition</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="z3-integration">
+<h3>Z3 Integration<a class="headerlink" href="#z3-integration" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.verifytools.boogie.z3_embed</span><span class="w"> </span><span class="kn">import</span> <span class="n">BoogieToZ3</span>
+
+<span class="n">converter</span> <span class="o">=</span> <span class="n">BoogieToZ3</span><span class="p">()</span>
+<span class="n">z3_expr</span> <span class="o">=</span> <span class="n">converter</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">boogie_expr</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="verification-condition-generation">
+<h2>Verification Condition Generation<a class="headerlink" href="#verification-condition-generation" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">tools</span></code> subpackage provides verification condition generation:</p>
+<section id="verification-condition-checking">
+<h3>Verification Condition Checking<a class="headerlink" href="#verification-condition-checking" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.verifytools.tools.vc_check</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_vc</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">check_vc</span><span class="p">(</span><span class="n">vc_formula</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="s2">&quot;z3&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="try-and-verify-strategy">
+<h3>Try-and-Verify Strategy<a class="headerlink" href="#try-and-verify-strategy" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.verifytools.tools.tryAndVerify</span><span class="w"> </span><span class="kn">import</span> <span class="n">TryAndVerify</span>
+
+<span class="n">strategy</span> <span class="o">=</span> <span class="n">TryAndVerify</span><span class="p">(</span><span class="n">max_iterations</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">verify</span><span class="p">(</span><span class="n">transition_system</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="desugaring">
+<h3>Desugaring<a class="headerlink" href="#desugaring" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.verifytools.tools.desugar</span><span class="w"> </span><span class="kn">import</span> <span class="n">desugar_program</span>
+
+<span class="n">simplified</span> <span class="o">=</span> <span class="n">desugar_program</span><span class="p">(</span><span class="n">program</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="format-conversions">
+<h3>Format Conversions<a class="headerlink" href="#format-conversions" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.verifytools.tools.conversions</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">chc_to_smtlib</span><span class="p">,</span>
+    <span class="n">smtlib_to_chc</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="daikon-integration">
+<h2>Daikon Integration<a class="headerlink" href="#daikon-integration" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">daikon</span></code> subpackage provides integration with the Daikon invariant detector:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.verifytools.daikon.inv_grammar</span><span class="w"> </span><span class="kn">import</span> <span class="n">InvGrammar</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.verifytools.daikon.inv_ast</span><span class="w"> </span><span class="kn">import</span> <span class="n">Invariant</span>
+
+<span class="c1"># Create invariant grammar</span>
+<span class="n">grammar</span> <span class="o">=</span> <span class="n">InvGrammar</span><span class="p">()</span>
+
+<span class="c1"># Detect invariants from traces</span>
+<span class="n">invariants</span> <span class="o">=</span> <span class="n">grammar</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span><span class="n">traces</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="cpachecker-integration">
+<h2>CPAchecker Integration<a class="headerlink" href="#cpachecker-integration" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">cpachecker</span></code> subpackage provides integration with CPAchecker:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.verifytools.cpachecker</span><span class="w"> </span><span class="kn">import</span> <span class="n">run_cpachecker</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">run_cpachecker</span><span class="p">(</span>
+    <span class="n">program</span><span class="o">=</span><span class="s2">&quot;program.c&quot;</span><span class="p">,</span>
+    <span class="n">spec</span><span class="o">=</span><span class="s2">&quot;safety.prp&quot;</span><span class="p">,</span>
+    <span class="n">timeout</span><span class="o">=</span><span class="mi">300</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="ice-based-invariant-generation">
+<h2>ICE-based Invariant Generation<a class="headerlink" href="#ice-based-invariant-generation" title="Link to this heading"></a></h2>
+<p>The ICE (Counterexample-Driven, Consistency, Efficiency) learning strategy:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.verifytools.tools.run_ice</span><span class="w"> </span><span class="kn">import</span> <span class="n">ICEGenerator</span>
+
+<span class="n">generator</span> <span class="o">=</span> <span class="n">ICEGenerator</span><span class="p">()</span>
+<span class="n">invariants</span> <span class="o">=</span> <span class="n">generator</span><span class="o">.</span><span class="n">learn</span><span class="p">(</span>
+    <span class="n">transition_system</span><span class="p">,</span>
+    <span class="n">max_samples</span><span class="o">=</span><span class="mi">1000</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="module-aria.efmc.verifytools.common.ast">
+<span id="api-reference"></span><h2>API Reference<a class="headerlink" href="#module-aria.efmc.verifytools.common.ast" title="Link to this heading"></a></h2>
+<p>AST node base class and utility functions.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.common.ast.AstNode">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.common.ast.</span></span><span class="sig-name descname"><span class="pre">AstNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/common/ast.html#AstNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.common.ast.AstNode" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base class for AST nodes with structural equality and hashing.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.common.ast.reduce_nodes">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.common.ast.</span></span><span class="sig-name descname"><span class="pre">reduce_nodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cb</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/common/ast.html#reduce_nodes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.common.ast.reduce_nodes" title="Link to this definition"></a></dt>
+<dd><p>Reduce nodes using callback function cb.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.common.ast.replace">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.common.ast.</span></span><span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ast</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/common/ast.html#replace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.common.ast.replace" title="Link to this definition"></a></dt>
+<dd><p>Replace AST nodes according to mapping m.</p>
+</dd></dl>
+
+<p id="module-aria.efmc.verifytools.common.parser">Parser base classes for expression parsing.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.common.parser.InfixExprParser">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.common.parser.</span></span><span class="sig-name descname"><span class="pre">InfixExprParser</span></span><a class="reference internal" href="../_modules/aria/efmc/verifytools/common/parser.html#InfixExprParser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.common.parser.InfixExprParser" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.common.parser.Parser" title="aria.efmc.verifytools.common.parser.Parser"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parser</span></code></a></p>
+<p>Parser for infix expressions.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.common.parser.InfixExprParser.onAtom">
+<span class="sig-name descname"><span class="pre">onAtom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/common/parser.html#InfixExprParser.onAtom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.common.parser.InfixExprParser.onAtom" title="Link to this definition"></a></dt>
+<dd><p>Handle atom production.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.common.parser.InfixExprParser.onLABinOp">
+<span class="sig-name descname"><span class="pre">onLABinOp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/common/parser.html#InfixExprParser.onLABinOp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.common.parser.InfixExprParser.onLABinOp" title="Link to this definition"></a></dt>
+<dd><p>Handle left-associative binary operator production.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.common.parser.InfixExprParser.onNABinOp">
+<span class="sig-name descname"><span class="pre">onNABinOp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/common/parser.html#InfixExprParser.onNABinOp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.common.parser.InfixExprParser.onNABinOp" title="Link to this definition"></a></dt>
+<dd><p>Handle non-associative binary operator production.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.common.parser.InfixExprParser.onRABinOp">
+<span class="sig-name descname"><span class="pre">onRABinOp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/common/parser.html#InfixExprParser.onRABinOp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.common.parser.InfixExprParser.onRABinOp" title="Link to this definition"></a></dt>
+<dd><p>Handle right-associative binary operator production.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.common.parser.InfixExprParser.onUnaryOp">
+<span class="sig-name descname"><span class="pre">onUnaryOp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/common/parser.html#InfixExprParser.onUnaryOp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.common.parser.InfixExprParser.onUnaryOp" title="Link to this definition"></a></dt>
+<dd><p>Handle unary operator production.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.common.parser.Parser">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.common.parser.</span></span><span class="sig-name descname"><span class="pre">Parser</span></span><a class="reference internal" href="../_modules/aria/efmc/verifytools/common/parser.html#Parser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.common.parser.Parser" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base parser class.</p>
+</dd></dl>
+
+<p id="module-aria.efmc.verifytools.common.util">Common utility functions.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.common.util.average">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.common.util.</span></span><span class="sig-name descname"><span class="pre">average</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vals</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/common/util.html#average"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.common.util.average" title="Link to this definition"></a></dt>
+<dd><p>Calculate the average of a list of values.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.common.util.error">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.common.util.</span></span><span class="sig-name descname"><span class="pre">error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/common/util.html#error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.common.util.error" title="Link to this definition"></a></dt>
+<dd><p>Print error message to stderr.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.common.util.fatal">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.common.util.</span></span><span class="sig-name descname"><span class="pre">fatal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/common/util.html#fatal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.common.util.fatal" title="Link to this definition"></a></dt>
+<dd><p>Print error message and exit with error code.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.common.util.flattenList">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.common.util.</span></span><span class="sig-name descname"><span class="pre">flattenList</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/common/util.html#flattenList"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.common.util.flattenList" title="Link to this definition"></a></dt>
+<dd><p>Flatten a list of lists into a single list.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.common.util.flattenSet">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.common.util.</span></span><span class="sig-name descname"><span class="pre">flattenSet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/common/util.html#flattenSet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.common.util.flattenSet" title="Link to this definition"></a></dt>
+<dd><p>Flatten a set of sets into a single set.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.common.util.nodups">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.common.util.</span></span><span class="sig-name descname"><span class="pre">nodups</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/common/util.html#nodups"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.common.util.nodups" title="Link to this definition"></a></dt>
+<dd><p>Remove duplicates from a sequence.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.common.util.nonempty">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.common.util.</span></span><span class="sig-name descname"><span class="pre">nonempty</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lst</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/common/util.html#nonempty"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.common.util.nonempty" title="Link to this definition"></a></dt>
+<dd><p>Filter out the empty elements of a list (where empty is len(x) == 0).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.common.util.powerset">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.common.util.</span></span><span class="sig-name descname"><span class="pre">powerset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/common/util.html#powerset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.common.util.powerset" title="Link to this definition"></a></dt>
+<dd><p>Return the powerset of a set s.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.common.util.pp_exc">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.common.util.</span></span><span class="sig-name descname"><span class="pre">pp_exc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/common/util.html#pp_exc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.common.util.pp_exc" title="Link to this definition"></a></dt>
+<dd><p>Wrap a function to catch, pretty print the exception and re-raise it.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.common.util.randomToken">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.common.util.</span></span><span class="sig-name descname"><span class="pre">randomToken</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">l</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/common/util.html#randomToken"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.common.util.randomToken" title="Link to this definition"></a></dt>
+<dd><p>Generate a random alphanumeric token of length l.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.common.util.split">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.common.util.</span></span><span class="sig-name descname"><span class="pre">split</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pred</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">itr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/common/util.html#split"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.common.util.split" title="Link to this definition"></a></dt>
+<dd><p>Split a list based on a predicate function.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.common.util.unique">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.common.util.</span></span><span class="sig-name descname"><span class="pre">unique</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iterable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/common/util.html#unique"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.common.util.unique" title="Link to this definition"></a></dt>
+<dd><p>Assert that iterable has one element and return it.</p>
+</dd></dl>
+
+<dl class="py class" id="module-aria.efmc.verifytools.boogie.ast">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstAssert">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">AstAssert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstAssert"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstAssert" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.AstOneExprStmt" title="aria.efmc.verifytools.boogie.ast.AstOneExprStmt"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstOneExprStmt</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstAssignment">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">AstAssignment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lhs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rhs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstAssignment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstAssignment" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.common.ast.AstNode" title="aria.efmc.verifytools.common.ast.AstNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstNode</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstAssume">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">AstAssume</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstAssume"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstAssume" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.AstOneExprStmt" title="aria.efmc.verifytools.boogie.ast.AstOneExprStmt"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstOneExprStmt</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstBinExpr">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">AstBinExpr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lhs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">op</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rhs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstBinExpr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstBinExpr" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.common.ast.AstNode" title="aria.efmc.verifytools.common.ast.AstNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstNode</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstBinding">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">AstBinding</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">typ</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstBinding"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstBinding" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.common.ast.AstNode" title="aria.efmc.verifytools.common.ast.AstNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstNode</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstBlock">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">AstBlock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stmts</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstBlock"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstBlock" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.AstStmt" title="aria.efmc.verifytools.boogie.ast.AstStmt"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstStmt</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstBody">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">AstBody</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bindings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stmts</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstBody"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstBody" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.common.ast.AstNode" title="aria.efmc.verifytools.common.ast.AstNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstNode</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstBuilder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">AstBuilder</span></span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstBuilder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstBuilder" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BoogieParser</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstBuilder.onAssert">
+<span class="sig-name descname"><span class="pre">onAssert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstBuilder.onAssert"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstBuilder.onAssert" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstBuilder.onAssignment">
+<span class="sig-name descname"><span class="pre">onAssignment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstBuilder.onAssignment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstBuilder.onAssignment" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstBuilder.onAssume">
+<span class="sig-name descname"><span class="pre">onAssume</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstBuilder.onAssume"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstBuilder.onAssume" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstBuilder.onAtom">
+<span class="sig-name descname"><span class="pre">onAtom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstBuilder.onAtom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstBuilder.onAtom" title="Link to this definition"></a></dt>
+<dd><p>Handle atom production.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstBuilder.onBlock">
+<span class="sig-name descname"><span class="pre">onBlock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstBuilder.onBlock"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstBuilder.onBlock" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstBuilder.onBody">
+<span class="sig-name descname"><span class="pre">onBody</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstBuilder.onBody"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstBuilder.onBody" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstBuilder.onGoto">
+<span class="sig-name descname"><span class="pre">onGoto</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstBuilder.onGoto"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstBuilder.onGoto" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstBuilder.onHavoc">
+<span class="sig-name descname"><span class="pre">onHavoc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstBuilder.onHavoc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstBuilder.onHavoc" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstBuilder.onImplementationDecl">
+<span class="sig-name descname"><span class="pre">onImplementationDecl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstBuilder.onImplementationDecl"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstBuilder.onImplementationDecl" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstBuilder.onLABinOp">
+<span class="sig-name descname"><span class="pre">onLABinOp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstBuilder.onLABinOp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstBuilder.onLABinOp" title="Link to this definition"></a></dt>
+<dd><p>Handle left-associative binary operator production.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstBuilder.onLabeledStatement">
+<span class="sig-name descname"><span class="pre">onLabeledStatement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstBuilder.onLabeledStatement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstBuilder.onLabeledStatement" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstBuilder.onLocalVarDecl">
+<span class="sig-name descname"><span class="pre">onLocalVarDecl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstBuilder.onLocalVarDecl"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstBuilder.onLocalVarDecl" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstBuilder.onNABinOp">
+<span class="sig-name descname"><span class="pre">onNABinOp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstBuilder.onNABinOp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstBuilder.onNABinOp" title="Link to this definition"></a></dt>
+<dd><p>Handle non-associative binary operator production.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstBuilder.onProgram">
+<span class="sig-name descname"><span class="pre">onProgram</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstBuilder.onProgram"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstBuilder.onProgram" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstBuilder.onRABinOp">
+<span class="sig-name descname"><span class="pre">onRABinOp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstBuilder.onRABinOp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstBuilder.onRABinOp" title="Link to this definition"></a></dt>
+<dd><p>Handle right-associative binary operator production.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstBuilder.onReturn">
+<span class="sig-name descname"><span class="pre">onReturn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstBuilder.onReturn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstBuilder.onReturn" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstBuilder.onType">
+<span class="sig-name descname"><span class="pre">onType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstBuilder.onType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstBuilder.onType" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstBuilder.onUnaryOp">
+<span class="sig-name descname"><span class="pre">onUnaryOp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstBuilder.onUnaryOp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstBuilder.onUnaryOp" title="Link to this definition"></a></dt>
+<dd><p>Handle unary operator production.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstBuilder.onWhile">
+<span class="sig-name descname"><span class="pre">onWhile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstBuilder.onWhile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstBuilder.onWhile" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstFalse">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">AstFalse</span></span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstFalse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstFalse" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.common.ast.AstNode" title="aria.efmc.verifytools.common.ast.AstNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstNode</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstFuncExpr">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">AstFuncExpr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">funcName</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">ops</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstFuncExpr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstFuncExpr" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.common.ast.AstNode" title="aria.efmc.verifytools.common.ast.AstNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstNode</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstGoto">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">AstGoto</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">labels</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstGoto"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstGoto" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.AstStmt" title="aria.efmc.verifytools.boogie.ast.AstStmt"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstStmt</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstHavoc">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">AstHavoc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ids</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstHavoc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstHavoc" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.AstStmt" title="aria.efmc.verifytools.boogie.ast.AstStmt"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstStmt</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstId">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">AstId</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstId"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstId" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.common.ast.AstNode" title="aria.efmc.verifytools.common.ast.AstNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstNode</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstImplementation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">AstImplementation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signature</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstImplementation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstImplementation" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.common.ast.AstNode" title="aria.efmc.verifytools.common.ast.AstNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstNode</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstIntType">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">AstIntType</span></span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstIntType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstIntType" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.common.ast.AstNode" title="aria.efmc.verifytools.common.ast.AstNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstNode</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstLabel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">AstLabel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stmt</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstLabel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstLabel" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.common.ast.AstNode" title="aria.efmc.verifytools.common.ast.AstNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstNode</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstNumber">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">AstNumber</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstNumber"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstNumber" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.common.ast.AstNode" title="aria.efmc.verifytools.common.ast.AstNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstNode</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstOneExprStmt">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">AstOneExprStmt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstOneExprStmt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstOneExprStmt" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.AstStmt" title="aria.efmc.verifytools.boogie.ast.AstStmt"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstStmt</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstProgram">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">AstProgram</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">decls</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstProgram"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstProgram" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.common.ast.AstNode" title="aria.efmc.verifytools.common.ast.AstNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstNode</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstReturn">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">AstReturn</span></span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstReturn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstReturn" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.AstStmt" title="aria.efmc.verifytools.boogie.ast.AstStmt"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstStmt</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstStmt">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">AstStmt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstStmt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstStmt" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.common.ast.AstNode" title="aria.efmc.verifytools.common.ast.AstNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstNode</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstTrue">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">AstTrue</span></span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstTrue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstTrue" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.common.ast.AstNode" title="aria.efmc.verifytools.common.ast.AstNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstNode</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstUnExpr">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">AstUnExpr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">op</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstUnExpr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstUnExpr" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.common.ast.AstNode" title="aria.efmc.verifytools.common.ast.AstNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstNode</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.AstWhile">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">AstWhile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">condition</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">invariants</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#AstWhile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.AstWhile" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.AstStmt" title="aria.efmc.verifytools.boogie.ast.AstStmt"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstStmt</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.ast_and">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">ast_and</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exprs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#ast_and"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.ast_and" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.ast_boolean_exprs">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">ast_boolean_exprs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#ast_boolean_exprs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.ast_boolean_exprs" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.ast_constants">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">ast_constants</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#ast_constants"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.ast_constants" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.ast_group_bin">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">ast_group_bin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exprs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">op</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#ast_group_bin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.ast_group_bin" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.ast_or">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">ast_or</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exprs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#ast_or"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.ast_or" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.ast_primitive_boolean_exprs">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">ast_primitive_boolean_exprs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#ast_primitive_boolean_exprs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.ast_primitive_boolean_exprs" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.expr_read">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">expr_read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ast</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#expr_read"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.expr_read" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.normalize">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">normalize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ast</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#normalize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.normalize" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.parseAst">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">parseAst</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#parseAst"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.parseAst" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.parseExprAst">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">parseExprAst</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#parseExprAst"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.parseExprAst" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.stmt_changed">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">stmt_changed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ast</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#stmt_changed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.stmt_changed" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.boogie.ast.stmt_read">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">stmt_read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ast</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#stmt_read"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.stmt_read" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function" id="module-aria.efmc.verifytools.tools.vc_check">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.tools.vc_check.conservative_tautology">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.tools.vc_check.</span></span><span class="sig-name descname"><span class="pre">conservative_tautology</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/tools/vc_check.html#conservative_tautology"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.tools.vc_check.conservative_tautology" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.tools.vc_check.generalizeConstTraceVars">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.tools.vc_check.</span></span><span class="sig-name descname"><span class="pre">generalizeConstTraceVars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lvl</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/tools/vc_check.html#generalizeConstTraceVars"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.tools.vc_check.generalizeConstTraceVars" title="Link to this definition"></a></dt>
+<dd><p>Given an expression and a set of pairs (Var, Num) where Var is always
+equal to Num in the traces presented to the user, add all variations
+of expr with Num substituded for Var and vice-versa. Note we don’t do
+combinations of multiple substitutions where that is possible.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.tools.vc_check.loopInvOverfittedCtrex">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.tools.vc_check.</span></span><span class="sig-name descname"><span class="pre">loopInvOverfittedCtrex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loop</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">invs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/tools/vc_check.html#loopInvOverfittedCtrex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.tools.vc_check.loopInvOverfittedCtrex" title="Link to this definition"></a></dt>
+<dd><p>Given a candidate loop invariant inv find ‘overfittedness’
+counterexamples.  I.e. find counterexamples to “precondition ==&gt; inv”.
+Returns a potentially empty set of environments (dicts) that the invariant
+should satisfy.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.tools.vc_check.loopInvSafetyCtrex">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.tools.vc_check.</span></span><span class="sig-name descname"><span class="pre">loopInvSafetyCtrex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loop</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">invs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/tools/vc_check.html#loopInvSafetyCtrex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.tools.vc_check.loopInvSafetyCtrex" title="Link to this definition"></a></dt>
+<dd><p>Given a candidate loop invariant inv find ‘safety’
+counterexamples.  I.e. find counterexamples to “inv ==&gt; post” or “inv ==&gt;
+assert”.  Returns a potentially empty set of environments (dicts) that
+the invariant should satisfy.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.tools.vc_check.substitutions">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.tools.vc_check.</span></span><span class="sig-name descname"><span class="pre">substitutions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replMs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/tools/vc_check.html#substitutions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.tools.vc_check.substitutions" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.tools.vc_check.traceConstantVars">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.tools.vc_check.</span></span><span class="sig-name descname"><span class="pre">traceConstantVars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lvl</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/tools/vc_check.html#traceConstantVars"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.tools.vc_check.traceConstantVars" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.tools.vc_check.tryAndVerify">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.tools.vc_check.</span></span><span class="sig-name descname"><span class="pre">tryAndVerify</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bbs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loop</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">splitterPreds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partialInvs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">userInvs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">otherInvs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replMaps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/tools/vc_check.html#tryAndVerify"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.tools.vc_check.tryAndVerify" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.tools.vc_check.tryAndVerifyLvl">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.tools.vc_check.</span></span><span class="sig-name descname"><span class="pre">tryAndVerifyLvl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lvl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">userInvs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">otherInvs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">useSplitters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">addSPs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generalizeUserInvs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/tools/vc_check.html#tryAndVerifyLvl"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.tools.vc_check.tryAndVerifyLvl" title="Link to this definition"></a></dt>
+<dd><p>Try and verify a given Lvl.</p>
+<p>lvl - level to verify
+userInvs - invariant candidate from the user
+otherInvs - invariant candidates from other sources (e.g. previous</p>
+<blockquote>
+<div><p>users).
+Note: We will keep userInvs and otherInvs separate in the
+results.</p>
+</div></blockquote>
+<p>timeout - if specified, the z3 timeout for each query
+useSplitters - if the level supports splitter predicates, whether to</p>
+<blockquote>
+<div><p>use them or not.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>addSPs - if true, try to propagte SP through the loop and add the</dt><dd><p>results as invariants. For example if before the loop we
+have “assert n&gt;0;” and n is not modified in the loop, we
+can determine that”n&gt;0” holds through the loop and add
+that to our cnadidate invariants.</p>
+</dd>
+<dt>generalizeUserInvs - if true, for any invariant I involving a</dt><dd><p>constant C, where one of the variables V shown to the user
+was always equal to C in the traces, try substituting C with V.
+For example if in the level always n=4, and the user
+entered i&lt;=4, the generalizaition would also try i&lt;=n.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.tools.vc_check.tryAndVerifyWithSplitterPreds">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.tools.vc_check.</span></span><span class="sig-name descname"><span class="pre">tryAndVerifyWithSplitterPreds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bbs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loop</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_sound_invs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boogie_invs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">splitterPreds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partialInvs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/tools/vc_check.html#tryAndVerifyWithSplitterPreds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.tools.vc_check.tryAndVerifyWithSplitterPreds" title="Link to this definition"></a></dt>
+<dd><p>Wrapper around tryAndVerify_impl that adds implication with
+the splitter predicates to all candidate invariants. Returns</p>
+<blockquote>
+<div><p>((p1_overfit, p2_overfit), (p1_nonindg, p2_nonind), sound, violations)</p>
+</div></blockquote>
+<p>Where</p>
+<blockquote>
+<div><dl class="simple">
+<dt>p1_overfit, p2_ovefit are lists of pairs of overfittted invariants</dt><dd><p>and their respective counterexamples from passes 1 and 2</p>
+</dd>
+<dt>p1_nonind, p2_ovefit are lists of pairs of noninductive invariants</dt><dd><p>and their respective counterexamples from passes 1 and 2</p>
+</dd>
+</dl>
+<p>sound is a set of sound invariants
+violations is a list of any safety violations permitted by the sound
+invariants</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.tools.vc_check.tryAndVerify_impl">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.tools.vc_check.</span></span><span class="sig-name descname"><span class="pre">tryAndVerify_impl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bbs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loop</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_sound_invs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">invs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/tools/vc_check.html#tryAndVerify_impl"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.tools.vc_check.tryAndVerify_impl" title="Link to this definition"></a></dt>
+<dd><p>Wrapper around checkInvNetwork for the case of a function
+with a single loop and no pre- post- conditions.
+Returns a tuple (overfitted, nonind, sound, violations) where</p>
+<blockquote>
+<div><p>overfitted, nonind are each a list of tuples (inv, Violation)
+sound is a set of sound invariants
+violations is a (potentially empty) list of safety Violations</p>
+<blockquote>
+<div><p>for the sound invariants.</p>
+</div></blockquote>
+</div></blockquote>
+</dd></dl>
+
+<p id="module-aria.efmc.verifytools.daikon.inv_ast">AST classes for Daikon invariants.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.daikon.inv_ast.AstBinExpr">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.daikon.inv_ast.</span></span><span class="sig-name descname"><span class="pre">AstBinExpr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lhs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">op</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rhs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/daikon/inv_ast.html#AstBinExpr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.daikon.inv_ast.AstBinExpr" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.common.ast.AstNode" title="aria.efmc.verifytools.common.ast.AstNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstNode</span></code></a></p>
+<p>AST node for binary expressions.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.daikon.inv_ast.AstBuilder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.daikon.inv_ast.</span></span><span class="sig-name descname"><span class="pre">AstBuilder</span></span><a class="reference internal" href="../_modules/aria/efmc/verifytools/daikon/inv_ast.html#AstBuilder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.daikon.inv_ast.AstBuilder" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.daikon.inv_grammar.DaikonInvParser" title="aria.efmc.verifytools.daikon.inv_grammar.DaikonInvParser"><code class="xref py py-class docutils literal notranslate"><span class="pre">DaikonInvParser</span></code></a></p>
+<p>AST builder for Daikon invariants.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.daikon.inv_ast.AstBuilder.onAtom">
+<span class="sig-name descname"><span class="pre">onAtom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/daikon/inv_ast.html#AstBuilder.onAtom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.daikon.inv_ast.AstBuilder.onAtom" title="Link to this definition"></a></dt>
+<dd><p>Handle atom production.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.daikon.inv_ast.AstBuilder.onLABinOp">
+<span class="sig-name descname"><span class="pre">onLABinOp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/daikon/inv_ast.html#AstBuilder.onLABinOp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.daikon.inv_ast.AstBuilder.onLABinOp" title="Link to this definition"></a></dt>
+<dd><p>Handle left-associative binary operator production.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.daikon.inv_ast.AstBuilder.onNABinOp">
+<span class="sig-name descname"><span class="pre">onNABinOp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/daikon/inv_ast.html#AstBuilder.onNABinOp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.daikon.inv_ast.AstBuilder.onNABinOp" title="Link to this definition"></a></dt>
+<dd><p>Handle non-associative binary operator production.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.daikon.inv_ast.AstBuilder.onRABinOp">
+<span class="sig-name descname"><span class="pre">onRABinOp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/daikon/inv_ast.html#AstBuilder.onRABinOp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.daikon.inv_ast.AstBuilder.onRABinOp" title="Link to this definition"></a></dt>
+<dd><p>Handle right-associative binary operator production.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.daikon.inv_ast.AstBuilder.onTernaryOp">
+<span class="sig-name descname"><span class="pre">onTernaryOp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/daikon/inv_ast.html#AstBuilder.onTernaryOp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.daikon.inv_ast.AstBuilder.onTernaryOp" title="Link to this definition"></a></dt>
+<dd><p>Handle ternary operator production.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.daikon.inv_ast.AstBuilder.onUnaryOp">
+<span class="sig-name descname"><span class="pre">onUnaryOp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/daikon/inv_ast.html#AstBuilder.onUnaryOp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.daikon.inv_ast.AstBuilder.onUnaryOp" title="Link to this definition"></a></dt>
+<dd><p>Handle unary operator production.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.daikon.inv_ast.AstBuilder.onVariaryOp">
+<span class="sig-name descname"><span class="pre">onVariaryOp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/daikon/inv_ast.html#AstBuilder.onVariaryOp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.daikon.inv_ast.AstBuilder.onVariaryOp" title="Link to this definition"></a></dt>
+<dd><p>Handle variary operator production.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.daikon.inv_ast.AstFalse">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.daikon.inv_ast.</span></span><span class="sig-name descname"><span class="pre">AstFalse</span></span><a class="reference internal" href="../_modules/aria/efmc/verifytools/daikon/inv_ast.html#AstFalse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.daikon.inv_ast.AstFalse" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.common.ast.AstNode" title="aria.efmc.verifytools.common.ast.AstNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstNode</span></code></a></p>
+<p>AST node for false literal.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.daikon.inv_ast.AstHasValues">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.daikon.inv_ast.</span></span><span class="sig-name descname"><span class="pre">AstHasValues</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/daikon/inv_ast.html#AstHasValues"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.daikon.inv_ast.AstHasValues" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.common.ast.AstNode" title="aria.efmc.verifytools.common.ast.AstNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstNode</span></code></a></p>
+<p>AST node for has-values check.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.daikon.inv_ast.AstId">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.daikon.inv_ast.</span></span><span class="sig-name descname"><span class="pre">AstId</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/daikon/inv_ast.html#AstId"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.daikon.inv_ast.AstId" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.common.ast.AstNode" title="aria.efmc.verifytools.common.ast.AstNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstNode</span></code></a></p>
+<p>AST node for identifier.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.daikon.inv_ast.AstInRange">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.daikon.inv_ast.</span></span><span class="sig-name descname"><span class="pre">AstInRange</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lower</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/daikon/inv_ast.html#AstInRange"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.daikon.inv_ast.AstInRange" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.common.ast.AstNode" title="aria.efmc.verifytools.common.ast.AstNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstNode</span></code></a></p>
+<p>AST node for range check.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.daikon.inv_ast.AstIsBoolean">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.daikon.inv_ast.</span></span><span class="sig-name descname"><span class="pre">AstIsBoolean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/daikon/inv_ast.html#AstIsBoolean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.daikon.inv_ast.AstIsBoolean" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.common.ast.AstNode" title="aria.efmc.verifytools.common.ast.AstNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstNode</span></code></a></p>
+<p>AST node for boolean check.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.daikon.inv_ast.AstIsConstMod">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.daikon.inv_ast.</span></span><span class="sig-name descname"><span class="pre">AstIsConstMod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remainder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modulo</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/daikon/inv_ast.html#AstIsConstMod"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.daikon.inv_ast.AstIsConstMod" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.common.ast.AstNode" title="aria.efmc.verifytools.common.ast.AstNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstNode</span></code></a></p>
+<p>AST node for constant modulo check.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.daikon.inv_ast.AstIsEven">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.daikon.inv_ast.</span></span><span class="sig-name descname"><span class="pre">AstIsEven</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/daikon/inv_ast.html#AstIsEven"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.daikon.inv_ast.AstIsEven" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.common.ast.AstNode" title="aria.efmc.verifytools.common.ast.AstNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstNode</span></code></a></p>
+<p>AST node for even check.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.daikon.inv_ast.AstIsOneOf">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.daikon.inv_ast.</span></span><span class="sig-name descname"><span class="pre">AstIsOneOf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/daikon/inv_ast.html#AstIsOneOf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.daikon.inv_ast.AstIsOneOf" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.common.ast.AstNode" title="aria.efmc.verifytools.common.ast.AstNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstNode</span></code></a></p>
+<p>AST node for one-of check.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.daikon.inv_ast.AstIsPow2">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.daikon.inv_ast.</span></span><span class="sig-name descname"><span class="pre">AstIsPow2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/daikon/inv_ast.html#AstIsPow2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.daikon.inv_ast.AstIsPow2" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.common.ast.AstNode" title="aria.efmc.verifytools.common.ast.AstNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstNode</span></code></a></p>
+<p>AST node for power-of-2 check.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.daikon.inv_ast.AstNumber">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.daikon.inv_ast.</span></span><span class="sig-name descname"><span class="pre">AstNumber</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/daikon/inv_ast.html#AstNumber"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.daikon.inv_ast.AstNumber" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.common.ast.AstNode" title="aria.efmc.verifytools.common.ast.AstNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstNode</span></code></a></p>
+<p>AST node for number literal.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.daikon.inv_ast.AstTrue">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.daikon.inv_ast.</span></span><span class="sig-name descname"><span class="pre">AstTrue</span></span><a class="reference internal" href="../_modules/aria/efmc/verifytools/daikon/inv_ast.html#AstTrue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.daikon.inv_ast.AstTrue" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.common.ast.AstNode" title="aria.efmc.verifytools.common.ast.AstNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstNode</span></code></a></p>
+<p>AST node for true literal.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.daikon.inv_ast.AstUnExpr">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.daikon.inv_ast.</span></span><span class="sig-name descname"><span class="pre">AstUnExpr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">op</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/daikon/inv_ast.html#AstUnExpr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.daikon.inv_ast.AstUnExpr" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.common.ast.AstNode" title="aria.efmc.verifytools.common.ast.AstNode"><code class="xref py py-class docutils literal notranslate"><span class="pre">AstNode</span></code></a></p>
+<p>AST node for unary expressions.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.daikon.inv_ast.parse_expr_ast">
+<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.daikon.inv_ast.</span></span><span class="sig-name descname"><span class="pre">parse_expr_ast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/daikon/inv_ast.html#parse_expr_ast"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.daikon.inv_ast.parse_expr_ast" title="Link to this definition"></a></dt>
+<dd><p>Parse a Daikon invariant expression string into an AST.</p>
+</dd></dl>
+
+<p id="module-aria.efmc.verifytools.daikon.inv_grammar">Grammar parser for Daikon invariants.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.daikon.inv_grammar.DaikonInvParser">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.daikon.inv_grammar.</span></span><span class="sig-name descname"><span class="pre">DaikonInvParser</span></span><a class="reference internal" href="../_modules/aria/efmc/verifytools/daikon/inv_grammar.html#DaikonInvParser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.daikon.inv_grammar.DaikonInvParser" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.efmc.verifytools.common.parser.InfixExprParser" title="aria.efmc.verifytools.common.parser.InfixExprParser"><code class="xref py py-class docutils literal notranslate"><span class="pre">InfixExprParser</span></code></a></p>
+<p>Parser for Daikon invariant expressions.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.daikon.inv_grammar.DaikonInvParser.onAtom">
+<span class="sig-name descname"><span class="pre">onAtom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/daikon/inv_grammar.html#DaikonInvParser.onAtom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.daikon.inv_grammar.DaikonInvParser.onAtom" title="Link to this definition"></a></dt>
+<dd><p>Handle atom production - to be overridden by subclasses.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.daikon.inv_grammar.DaikonInvParser.onLABinOp">
+<span class="sig-name descname"><span class="pre">onLABinOp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/daikon/inv_grammar.html#DaikonInvParser.onLABinOp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.daikon.inv_grammar.DaikonInvParser.onLABinOp" title="Link to this definition"></a></dt>
+<dd><p>Handle left-associative binary operator production - to be overridden by subclasses.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.daikon.inv_grammar.DaikonInvParser.onNABinOp">
+<span class="sig-name descname"><span class="pre">onNABinOp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/daikon/inv_grammar.html#DaikonInvParser.onNABinOp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.daikon.inv_grammar.DaikonInvParser.onNABinOp" title="Link to this definition"></a></dt>
+<dd><p>Handle non-associative binary operator production - to be overridden by subclasses.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.daikon.inv_grammar.DaikonInvParser.onRABinOp">
+<span class="sig-name descname"><span class="pre">onRABinOp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/daikon/inv_grammar.html#DaikonInvParser.onRABinOp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.daikon.inv_grammar.DaikonInvParser.onRABinOp" title="Link to this definition"></a></dt>
+<dd><p>Handle right-associative binary operator production - to be overridden by subclasses.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.daikon.inv_grammar.DaikonInvParser.onTernaryOp">
+<span class="sig-name descname"><span class="pre">onTernaryOp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/daikon/inv_grammar.html#DaikonInvParser.onTernaryOp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.daikon.inv_grammar.DaikonInvParser.onTernaryOp" title="Link to this definition"></a></dt>
+<dd><p>Handle ternary operator production - to be overridden by subclasses.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.daikon.inv_grammar.DaikonInvParser.onUnaryOp">
+<span class="sig-name descname"><span class="pre">onUnaryOp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/daikon/inv_grammar.html#DaikonInvParser.onUnaryOp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.daikon.inv_grammar.DaikonInvParser.onUnaryOp" title="Link to this definition"></a></dt>
+<dd><p>Handle unary operator production - to be overridden by subclasses.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.daikon.inv_grammar.DaikonInvParser.onVariaryOp">
+<span class="sig-name descname"><span class="pre">onVariaryOp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">st</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toks</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/daikon/inv_grammar.html#DaikonInvParser.onVariaryOp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.daikon.inv_grammar.DaikonInvParser.onVariaryOp" title="Link to this definition"></a></dt>
+<dd><p>Handle variary operator production - to be overridden by subclasses.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.verifytools.daikon.inv_grammar.DaikonInvParser.parse">
+<span class="sig-name descname"><span class="pre">parse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">st</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/daikon/inv_grammar.html#DaikonInvParser.parse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.daikon.inv_grammar.DaikonInvParser.parse" title="Link to this definition"></a></dt>
+<dd><p>Parse a Daikon invariant string.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="chctools.html" class="btn btn-neutral float-left" title="Constrained Horn Clauses (CHC) Tools" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../global_params.html" class="btn btn-neutral float-right" title="Global Parameters" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

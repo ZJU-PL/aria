@@ -39,8 +39,22 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <!-- Local TOC -->
-              <div class="local-toc"></div>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting-started/index.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../logic-and-solving/index.html">Logic and Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../inference/index.html">Proofs and Explanations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quantified-reasoning/index.html">Quantified Reasoning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../automata-languages/index.html">Automata and Languages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../verification/index.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../abstraction/index.html">Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../counting-probability/index.html">Counting, Sampling, and Probability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../synthesis/index.html">Program Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../llm-ml/index.html">LLM and ML</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../cli-tools/index.html">CLI and Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../global_params.html">Global Parameters</a></li>
+</ul>
+
         </div>
       </div>
     </nav>
@@ -82,7 +96,7 @@
 
 
 <div class="viewcode-block" id="tropical_weight">
-<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pythondfa.tropical_weight">[docs]</a>
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.pythondfa.tropical_weight">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">tropical_weight</span><span class="p">(</span><span class="n">param</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the emulated fst TropicalWeight</span>
@@ -102,7 +116,7 @@
 
 
 <div class="viewcode-block" id="DFAState">
-<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pythondfa.DFAState">[docs]</a>
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.pythondfa.DFAState">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DFAState</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The DFA statess&quot;&quot;&quot;</span>
 
@@ -127,7 +141,7 @@
 
 
 <div class="viewcode-block" id="DFAArc">
-<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pythondfa.DFAArc">[docs]</a>
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.pythondfa.DFAArc">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DFAArc</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The DFA transition&quot;&quot;&quot;</span>
 
@@ -146,7 +160,7 @@
 
 
 <div class="viewcode-block" id="Syms">
-<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pythondfa.Syms">[docs]</a>
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.pythondfa.Syms">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Syms</span><span class="p">:</span>  <span class="c1"># pylint: disable=invalid-name</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The DFA accepted symbols&quot;&quot;&quot;</span>
 
@@ -178,7 +192,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">reversesymbols</span><span class="p">[</span><span class="n">char</span><span class="p">]</span> <span class="o">=</span> <span class="n">num</span>
 
 <div class="viewcode-block" id="Syms.find">
-<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pythondfa.Syms.find">[docs]</a>
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.pythondfa.Syms.find">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">find</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Finds a symbol based on its identifier</span>
@@ -191,7 +205,7 @@
 
 
 <div class="viewcode-block" id="Syms.items">
-<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pythondfa.Syms.items">[docs]</a>
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.pythondfa.Syms.items">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">items</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns all stored symbols</span>
 <span class="sd">        Args:</span>
@@ -205,7 +219,7 @@
 
 
 <div class="viewcode-block" id="PythonDFA">
-<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA">[docs]</a>
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">PythonDFA</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A DFA implementation that uses the</span>
 <span class="sd">    same interface with python symautomata&quot;&quot;&quot;</span>
@@ -258,7 +272,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">state</span><span class="p">]</span> <span class="o">=</span> <span class="n">newstate</span>
 
 <div class="viewcode-block" id="PythonDFA.define">
-<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.define">[docs]</a>
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.define">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">define</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;If DFA is empty, create a sink state&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -268,7 +282,7 @@
 
 
 <div class="viewcode-block" id="PythonDFA.add_state">
-<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.add_state">[docs]</a>
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.add_state">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Adds a new state&quot;&quot;&quot;</span>
         <span class="n">sid</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">)</span>
@@ -277,7 +291,7 @@
 
 
 <div class="viewcode-block" id="PythonDFA.add_arc">
-<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.add_arc">[docs]</a>
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.add_arc">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add_arc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">char</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Adds a new Arc</span>
 <span class="sd">        Args:</span>
@@ -305,7 +319,7 @@
 
 
 <div class="viewcode-block" id="PythonDFA.fixminimized">
-<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.fixminimized">[docs]</a>
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.fixminimized">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">fixminimized</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alphabet</span><span class="p">):</span>  <span class="c1"># pylint: disable=unused-argument</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        After pyfst minimization,</span>
@@ -360,7 +374,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">add_arc</span><span class="p">(</span><span class="n">endstate</span><span class="p">,</span> <span class="n">endstate</span><span class="p">,</span> <span class="n">char</span><span class="p">)</span>
 
 <div class="viewcode-block" id="PythonDFA.consume_input">
-<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.consume_input">[docs]</a>
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.consume_input">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">consume_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inp</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return True/False if the machine accepts/reject the input.</span>
@@ -389,7 +403,7 @@
 
 
 <div class="viewcode-block" id="PythonDFA.trace_partial_input">
-<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.trace_partial_input">[docs]</a>
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.trace_partial_input">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">trace_partial_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inp</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a list of (state, char) traversed by the inp</span>
@@ -415,7 +429,7 @@
 
 
 <div class="viewcode-block" id="PythonDFA.empty">
-<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.empty">[docs]</a>
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.empty">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">empty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return True if the DFA accepts the empty language.</span>
@@ -425,7 +439,7 @@
 
 
 <div class="viewcode-block" id="PythonDFA.complement">
-<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.complement">[docs]</a>
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.complement">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">complement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alphabet</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the complement of DFA</span>
@@ -443,7 +457,7 @@
 
 
 <div class="viewcode-block" id="PythonDFA.init_from_acceptor">
-<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.init_from_acceptor">[docs]</a>
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.init_from_acceptor">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">init_from_acceptor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">acceptor</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Adds a sink state</span>
@@ -459,7 +473,7 @@
 
 
 <div class="viewcode-block" id="PythonDFA.save">
-<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.save">[docs]</a>
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.save">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">txt_fst_file_name</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Save the machine in the openFST format in the file denoted by</span>
@@ -483,7 +497,7 @@
 
 
 <div class="viewcode-block" id="PythonDFA.load">
-<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.load">[docs]</a>
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.load">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">txt_fst_file_name</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Save the transducer in the text file format of OpenFST.</span>
@@ -511,14 +525,14 @@
 
 
 <div class="viewcode-block" id="PythonDFA.minimize">
-<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.minimize">[docs]</a>
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.minimize">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">minimize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Minimizes the DFA using Hopcroft algorithm&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hopcroft</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="PythonDFA.intersect">
-<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.intersect">[docs]</a>
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.intersect">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">intersect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructs an unminimized DFA recognizing</span>
 <span class="sd">        the intersection of the languages of two given DFAs.</span>
@@ -547,7 +561,7 @@
         <span class="k">return</span> <span class="bp">self</span>
 
 <div class="viewcode-block" id="PythonDFA.symmetric_difference">
-<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.symmetric_difference">[docs]</a>
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.symmetric_difference">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">symmetric_difference</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructs an unminimized DFA recognizing</span>
 <span class="sd">        the symmetric difference of the languages of two given DFAs.</span>
@@ -563,7 +577,7 @@
 
 
 <div class="viewcode-block" id="PythonDFA.union">
-<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.union">[docs]</a>
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.union">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">union</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructs an unminimized DFA recognizing the union of the languages of two given DFAs.</span>
 <span class="sd">        Args:</span>
@@ -606,7 +620,7 @@
         <span class="k">return</span> <span class="n">closure</span>
 
 <div class="viewcode-block" id="PythonDFA.determinize">
-<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.determinize">[docs]</a>
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.determinize">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">determinize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Transforms a Non Deterministic DFA into a Deterministic</span>
@@ -689,7 +703,7 @@
 
 
 <div class="viewcode-block" id="PythonDFA.invert">
-<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.invert">[docs]</a>
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.invert">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">invert</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Inverts the DFA final states&quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">:</span>
@@ -700,7 +714,7 @@
 
 
 <div class="viewcode-block" id="PythonDFA.difference">
-<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.difference">[docs]</a>
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.difference">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">difference</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Performs the Diff operation between two atomata</span>
 <span class="sd">        Args:</span>
@@ -726,7 +740,7 @@
         <span class="k">return</span> <span class="bp">self</span>
 
 <div class="viewcode-block" id="PythonDFA.hopcroft">
-<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.hopcroft">[docs]</a>
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.hopcroft">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">hopcroft</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Performs the Hopcroft minimization algorithm</span>
@@ -987,7 +1001,7 @@
 
 
 <div class="viewcode-block" id="PythonDFA.cross_product">
-<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.cross_product">[docs]</a>
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.pythondfa.PythonDFA.cross_product">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">cross_product</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dfa_2</span><span class="p">,</span> <span class="n">accept_method</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;A generalized cross-product constructor over two DFAs.</span>
 <span class="sd">        The third argument is a binary boolean function f; a state (q1, q2) in the final</span>

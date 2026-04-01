@@ -69,43 +69,29 @@ Quick Start
   result = smt_solve(formula)
   print(f"Formula is {'satisfiable' if result else 'unsatisfiable'}")
 
+Documentation Map
+-----------------
+
+- ``getting-started``: tutorials, quick reference, and topic overviews
+- ``logic-and-solving``: core logic APIs, solver stacks, SRK, and reusable reasoning infrastructure
+- ``proofs and explanations``: abduction, interpolation, and interactive theorem proving
+- ``quantified-reasoning``: quantified solving, quantifier elimination, and instantiation techniques
+- ``abstraction`` / ``verification``: program-analysis engines and verification workflows
+- ``counting-probability``: model counting, sampling, and probabilistic reasoning
+
 .. toctree::
     :maxdepth: 2
     :caption: Contents:
 
-     tutorial
-     quickref
-     topics
-     applications
-     abduction
-     allsmt
-     automata
-     backbone
-     bool
-     cfl
-     cflobdd
-     chctools
-     cli
-     counting
-     ff
-     fol
-     global_params
-     itp
-     monabs
-     optimization
-     pcdclt
-     polyhorn
-     prob
-     quantifiers
-     sampling
-     smt
-     srk
-     symbolic_abstraction
-     symautomata
-     synthesis
-     translator
-     unification
-     unsat_core
-     utils
-     verification
-     verifytools
+    getting-started/index
+    logic-and-solving/index
+    inference/index
+    quantified-reasoning/index
+    automata-languages/index
+    verification/index
+    abstraction/index
+    counting-probability/index
+    synthesis/index
+    llm-ml/index
+    cli-tools/index
+    global_params

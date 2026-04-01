@@ -1,0 +1,439 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Constrained Horn Clauses (CHC) Tools &mdash; ARIA Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Verification Tools" href="verifytools.html" />
+    <link rel="prev" title="C Frontend for EFMC" href="c_frontend.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ARIA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../logic-and-solving/index.html">Logic and Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inference/index.html">Proofs and Explanations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quantified-reasoning/index.html">Quantified Reasoning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../automata-languages/index.html">Automata and Languages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../verification/index.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../abstraction/index.html">Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../counting-probability/index.html">Counting, Sampling, and Probability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../synthesis/index.html">Program Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../llm-ml/index.html">LLM and ML</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">CLI and Tools</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="cli.html">CLI Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html">Translator Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#components">Components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#command-line-interface-aria-cli-fmldoc-py">Command-Line Interface (<code class="docutils literal notranslate"><span class="pre">aria/cli/fmldoc.py</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#examples">Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#applications">Applications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#references">References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="applications.html">Applications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boogie_frontend.html">Boogie Frontend for EFMC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c_frontend.html">C Frontend for EFMC</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Constrained Horn Clauses (CHC) Tools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#core-components">Core Components</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chc-parser">CHC Parser</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#horn-database">Horn Database</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chc-solver">CHC Solver</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#model-validation">Model Validation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pretty-printer">Pretty Printer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#advanced-features">Advanced Features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#integration-examples">Integration Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#command-line-tools">Command-Line Tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-work-and-references">Related Work and References</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="verifytools.html">Verification Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../global_params.html">Global Parameters</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ARIA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">CLI and Tools</a></li>
+      <li class="breadcrumb-item active">Constrained Horn Clauses (CHC) Tools</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/cli-tools/chctools.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="constrained-horn-clauses-chc-tools">
+<h1>Constrained Horn Clauses (CHC) Tools<a class="headerlink" href="#constrained-horn-clauses-chc-tools" title="Link to this heading"></a></h1>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h2>
+<p>Constrained Horn Clauses (CHCs) are a fragment of first-order logic that has become increasingly important in program verification and automated reasoning. The <code class="docutils literal notranslate"><span class="pre">aria/quant/chctools</span></code> module provides a comprehensive toolkit for working with CHCs, including parsing, solving, model validation, and pretty-printing.</p>
+<p>A Constrained Horn Clause has the form:</p>
+<div class="math notranslate nohighlight">
+\[\forall \vec{x}. (\phi(\vec{x}) \land P_1(\vec{t_1}) \land \ldots \land P_k(\vec{t_k})) \Rightarrow P(\vec{t})\]</div>
+<p>where:
+- <span class="math notranslate nohighlight">\(\phi(\vec{x})\)</span> is a constraint over variables <span class="math notranslate nohighlight">\(\vec{x}\)</span>
+- <span class="math notranslate nohighlight">\(P_1, \ldots, P_k, P\)</span> are uninterpreted predicates
+- <span class="math notranslate nohighlight">\(\vec{t_1}, \ldots, \vec{t_k}, \vec{t}\)</span> are terms</p>
+<p>CHCs are particularly useful for program verification because they can naturally encode:
+- <strong>Invariants</strong>: Properties that hold at program points
+- <strong>Pre/Post-conditions</strong>: Function specifications
+- <strong>Transition relations</strong>: Program state changes
+- <strong>Safety properties</strong>: “Bad” states are unreachable</p>
+</section>
+<section id="core-components">
+<h2>Core Components<a class="headerlink" href="#core-components" title="Link to this heading"></a></h2>
+<p>The CHC tools module consists of several key components:</p>
+<ol class="arabic simple">
+<li><p><strong>Parser</strong> (<code class="docutils literal notranslate"><span class="pre">parser.py</span></code>): Parses CHC problems from SMT-LIB format</p></li>
+<li><p><strong>Horn Database</strong> (<code class="docutils literal notranslate"><span class="pre">horndb.py</span></code>): Manages collections of Horn clauses and queries</p></li>
+<li><p><strong>Solver</strong> (<code class="docutils literal notranslate"><span class="pre">chcsolve.py</span></code>): Solves CHC problems using various backends</p></li>
+<li><p><strong>Model Validator</strong> (<code class="docutils literal notranslate"><span class="pre">chcmodel.py</span></code>): Validates models against CHC constraints</p></li>
+<li><p><strong>Pretty Printer</strong> (<code class="docutils literal notranslate"><span class="pre">chcpp.py</span></code>): Formats and outputs CHC problems</p></li>
+<li><p><strong>Core Utilities</strong> (<code class="docutils literal notranslate"><span class="pre">core.py</span></code>): Common command-line interface utilities</p></li>
+</ol>
+</section>
+<section id="chc-parser">
+<h2>CHC Parser<a class="headerlink" href="#chc-parser" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">ChcRulesSmtLibParser</span></code> class extends the standard SMT-LIB parser to handle CHC-specific constructs:</p>
+<p><strong>Supported Commands:</strong>
+- <code class="docutils literal notranslate"><span class="pre">declare-rel</span></code>: Declares uninterpreted predicates
+- <code class="docutils literal notranslate"><span class="pre">declare-var</span></code>: Declares variables
+- <code class="docutils literal notranslate"><span class="pre">rule</span></code>: Defines Horn clauses
+- <code class="docutils literal notranslate"><span class="pre">query</span></code>: Specifies queries to be solved</p>
+<p><strong>Example CHC Problem:</strong></p>
+<div class="highlight-smt notranslate"><div class="highlight"><pre><span></span>(set-logic HORN)
+(declare-rel P (Int))
+(declare-rel Q (Int Int))
+(declare-var x Int)
+(declare-var y Int)
+
+; Fact: P(0) is true
+(rule (P 0))
+
+; Rule: P(x) ∧ x ≥ 0 → P(x+1)
+(rule (=&gt; (and (P x) (&gt;= x 0)) (P (+ x 1))))
+
+; Rule: P(x) ∧ P(y) → Q(x, y)
+(rule (=&gt; (and (P x) (P y)) (Q x y)))
+
+; Query: Is Q(5, 10) reachable?
+(query (Q 5 10))
+</pre></div>
+</div>
+<p><strong>Example Usage:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.quant.chctools.parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">ChcRulesSmtLibParser</span>
+
+<span class="n">parser</span> <span class="o">=</span> <span class="n">ChcRulesSmtLibParser</span><span class="p">()</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;problem.smt2&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">rules</span><span class="p">,</span> <span class="n">queries</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">get_chc</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="horn-database">
+<h2>Horn Database<a class="headerlink" href="#horn-database" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">HornClauseDb</span></code> class manages collections of Horn clauses and provides various operations:</p>
+<p><strong>Key Classes:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">HornRule</span></code>: Represents individual Horn clauses</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">HornRelation</span></code>: Represents uninterpreted predicates</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">HornClauseDb</span></code>: Container for rules and queries</p></li>
+</ul>
+<p><strong>Rule Properties:</strong>
+- <strong>Fact</strong>: A rule with no uninterpreted predicates in the body
+- <strong>Linear</strong>: A rule with at most one uninterpreted predicate in the body
+- <strong>Query</strong>: A rule with <code class="docutils literal notranslate"><span class="pre">false</span></code> as the head</p>
+<p><strong>Example Usage:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.quant.chctools.horndb</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_horn_db_from_file</span>
+
+<span class="c1"># Load CHC problem from file</span>
+<span class="n">db</span> <span class="o">=</span> <span class="n">load_horn_db_from_file</span><span class="p">(</span><span class="s1">&#39;problem.smt2&#39;</span><span class="p">)</span>
+
+<span class="c1"># Access rules and queries</span>
+<span class="k">for</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">get_rules</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Rule: </span><span class="si">{</span><span class="n">rule</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Is fact: </span><span class="si">{</span><span class="n">rule</span><span class="o">.</span><span class="n">is_fact</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Is linear: </span><span class="si">{</span><span class="n">rule</span><span class="o">.</span><span class="n">is_linear</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">query</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">get_queries</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Query: </span><span class="si">{</span><span class="n">query</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="chc-solver">
+<h2>CHC Solver<a class="headerlink" href="#chc-solver" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">ChcSolveCmd</span></code> class provides a command-line interface for solving CHC problems with various options:</p>
+<p><strong>Solver Backends:</strong>
+- <code class="docutils literal notranslate"><span class="pre">fp</span></code>: Uses Z3’s Fixedpoint engine directly
+- <code class="docutils literal notranslate"><span class="pre">cli</span></code>: Generates command-line calls to Z3
+- <code class="docutils literal notranslate"><span class="pre">smt</span></code>: Converts to SMT format</p>
+<p><strong>Key Options:</strong>
+- <code class="docutils literal notranslate"><span class="pre">--pp</span></code>: Enable preprocessing (slicing, inlining)
+- <code class="docutils literal notranslate"><span class="pre">--st</span></code>: Print solving statistics
+- <code class="docutils literal notranslate"><span class="pre">--fresh</span></code>: Use fresh Z3 context
+- <code class="docutils literal notranslate"><span class="pre">--spctr</span> <span class="pre">FILE</span></code>: Generate Spacer trace file
+- <code class="docutils literal notranslate"><span class="pre">-y</span> <span class="pre">FILE</span></code>: Load configuration from YAML file</p>
+<p><strong>Example Usage:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Solve CHC problem with preprocessing</span>
+python<span class="w"> </span>-m<span class="w"> </span>aria.quant.chctools.chcsolve<span class="w"> </span>--pp<span class="w"> </span>--st<span class="w"> </span>problem.smt2
+
+<span class="c1"># Use custom Z3 options</span>
+python<span class="w"> </span>-m<span class="w"> </span>aria.quant.chctools.chcsolve<span class="w"> </span>problem.smt2<span class="w"> </span>spacer.mbqi<span class="o">=</span><span class="nb">false</span>
+</pre></div>
+</div>
+<p><strong>Programmatic Usage:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.quant.chctools.chcsolve</span><span class="w"> </span><span class="kn">import</span> <span class="n">chc_solve_with_fp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.quant.chctools.horndb</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_horn_db_from_file</span>
+
+<span class="n">db</span> <span class="o">=</span> <span class="n">load_horn_db_from_file</span><span class="p">(</span><span class="s1">&#39;problem.smt2&#39;</span><span class="p">)</span>
+<span class="n">opts</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;spacer.mbqi&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">chc_solve_with_fp</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">opts</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>  <span class="c1"># sat, unsat, or unknown</span>
+</pre></div>
+</div>
+</section>
+<section id="model-validation">
+<h2>Model Validation<a class="headerlink" href="#model-validation" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">ModelValidator</span></code> class verifies that a given model satisfies all Horn clauses:</p>
+<p><strong>Features:</strong>
+- Validates models against all rules and queries
+- Provides detailed error reporting for invalid models
+- Supports models in SMT-LIB <code class="docutils literal notranslate"><span class="pre">define-fun</span></code> format</p>
+<p><strong>Example Usage:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.quant.chctools.chcmodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModelValidator</span><span class="p">,</span> <span class="n">load_model_from_file</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.quant.chctools.horndb</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_horn_db_from_file</span>
+
+<span class="c1"># Load problem and model</span>
+<span class="n">db</span> <span class="o">=</span> <span class="n">load_horn_db_from_file</span><span class="p">(</span><span class="s1">&#39;problem.smt2&#39;</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">load_model_from_file</span><span class="p">(</span><span class="s1">&#39;model.smt2&#39;</span><span class="p">)</span>
+
+<span class="c1"># Validate model</span>
+<span class="n">validator</span> <span class="o">=</span> <span class="n">ModelValidator</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+<span class="n">is_valid</span> <span class="o">=</span> <span class="n">validator</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model is valid: </span><span class="si">{</span><span class="n">is_valid</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Command-line Usage:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>aria.quant.chctools.chcmodel<span class="w"> </span>-m<span class="w"> </span>model.smt2<span class="w"> </span>problem.smt2
+</pre></div>
+</div>
+</section>
+<section id="pretty-printer">
+<h2>Pretty Printer<a class="headerlink" href="#pretty-printer" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">ChcPpCmd</span></code> class formats CHC problems for output:</p>
+<p><strong>Output Formats:</strong>
+- <code class="docutils literal notranslate"><span class="pre">rules</span></code>: Standard CHC format with <code class="docutils literal notranslate"><span class="pre">rule</span></code> and <code class="docutils literal notranslate"><span class="pre">query</span></code> commands
+- <code class="docutils literal notranslate"><span class="pre">chc</span></code>: SMT-LIB format with assertions</p>
+<p><strong>Example Usage:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Pretty-print as CHC rules</span>
+python<span class="w"> </span>-m<span class="w"> </span>aria.quant.chctools.chcpp<span class="w"> </span>--format<span class="w"> </span>rules<span class="w"> </span>-o<span class="w"> </span>output.smt2<span class="w"> </span>input.smt2
+
+<span class="c1"># Convert to SMT format</span>
+python<span class="w"> </span>-m<span class="w"> </span>aria.quant.chctools.chcpp<span class="w"> </span>--format<span class="w"> </span>chc<span class="w"> </span>-o<span class="w"> </span>output.smt2<span class="w"> </span>input.smt2
+</pre></div>
+</div>
+<p><strong>Programmatic Usage:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.quant.chctools.chcpp</span><span class="w"> </span><span class="kn">import</span> <span class="n">pp_chc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.quant.chctools.horndb</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_horn_db_from_file</span>
+
+<span class="n">db</span> <span class="o">=</span> <span class="n">load_horn_db_from_file</span><span class="p">(</span><span class="s1">&#39;input.smt2&#39;</span><span class="p">)</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;output.smt2&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">pp_chc</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;rules&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="advanced-features">
+<h2>Advanced Features<a class="headerlink" href="#advanced-features" title="Link to this heading"></a></h2>
+<p><strong>Query Splitting:</strong>
+Complex queries can be automatically split into simpler forms:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">rule</span> <span class="o">=</span> <span class="n">HornRule</span><span class="p">(</span><span class="n">formula</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">rule</span><span class="o">.</span><span class="n">is_query</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">rule</span><span class="o">.</span><span class="n">is_simple_query</span><span class="p">():</span>
+    <span class="n">simple_query</span><span class="p">,</span> <span class="n">new_rule</span> <span class="o">=</span> <span class="n">rule</span><span class="o">.</span><span class="n">split_query</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>Solver Context Management:</strong>
+The <code class="docutils literal notranslate"><span class="pre">pushed_solver</span></code> utility provides safe solver state management:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.quant.chctools.solver_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">pushed_solver</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
+
+<span class="n">solver</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Solver</span><span class="p">()</span>
+<span class="n">solver</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">constraint1</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="n">pushed_solver</span><span class="p">(</span><span class="n">solver</span><span class="p">)</span> <span class="k">as</span> <span class="n">s</span><span class="p">:</span>
+    <span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">constraint2</span><span class="p">)</span>  <span class="c1"># Temporary constraint</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">check</span><span class="p">()</span>
+<span class="c1"># constraint2 is automatically removed</span>
+</pre></div>
+</div>
+<p><strong>Configuration Management:</strong>
+YAML configuration files can specify solver options:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">spacer_opts</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">spacer.mbqi</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">  </span><span class="nt">spacer.ground_pobs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">  </span><span class="nt">spacer.reach_dnf</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</pre></div>
+</div>
+</section>
+<section id="integration-examples">
+<h2>Integration Examples<a class="headerlink" href="#integration-examples" title="Link to this heading"></a></h2>
+<p><strong>Basic CHC Solving Workflow:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.quant.chctools.horndb</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_horn_db_from_file</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.quant.chctools.chcsolve</span><span class="w"> </span><span class="kn">import</span> <span class="n">chc_solve_with_fp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
+
+<span class="c1"># Load CHC problem</span>
+<span class="n">db</span> <span class="o">=</span> <span class="n">load_horn_db_from_file</span><span class="p">(</span><span class="s1">&#39;problem.smt2&#39;</span><span class="p">)</span>
+
+<span class="c1"># Configure solver options</span>
+<span class="n">opts</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;spacer.mbqi&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="s1">&#39;spacer.ground_pobs&#39;</span><span class="p">:</span> <span class="kc">False</span>
+<span class="p">}</span>
+
+<span class="c1"># Solve the problem</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">chc_solve_with_fp</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">opts</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">result</span> <span class="o">==</span> <span class="n">z3</span><span class="o">.</span><span class="n">sat</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Problem is satisfiable&quot;</span><span class="p">)</span>
+<span class="k">elif</span> <span class="n">result</span> <span class="o">==</span> <span class="n">z3</span><span class="o">.</span><span class="n">unsat</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Problem is unsatisfiable&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Result is unknown&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Model Extraction and Validation:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.quant.chctools.horndb</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_horn_db_from_file</span>
+
+<span class="c1"># Load and solve CHC problem</span>
+<span class="n">db</span> <span class="o">=</span> <span class="n">load_horn_db_from_file</span><span class="p">(</span><span class="s1">&#39;problem.smt2&#39;</span><span class="p">)</span>
+<span class="n">fp</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Fixedpoint</span><span class="p">(</span><span class="n">ctx</span><span class="o">=</span><span class="n">db</span><span class="o">.</span><span class="n">get_ctx</span><span class="p">())</span>
+<span class="n">db</span><span class="o">.</span><span class="n">mk_fixedpoint</span><span class="p">(</span><span class="n">fp</span><span class="o">=</span><span class="n">fp</span><span class="p">)</span>
+
+<span class="c1"># Solve and extract model if satisfiable</span>
+<span class="k">for</span> <span class="n">query</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">get_queries</span><span class="p">():</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">fp</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">mk_query</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">result</span> <span class="o">==</span> <span class="n">z3</span><span class="o">.</span><span class="n">sat</span><span class="p">:</span>
+        <span class="c1"># Extract and save model</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">fp</span><span class="o">.</span><span class="n">get_answer</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model: </span><span class="si">{</span><span class="n">model</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="command-line-tools">
+<h2>Command-Line Tools<a class="headerlink" href="#command-line-tools" title="Link to this heading"></a></h2>
+<p>The CHC tools can be used directly from the command line:</p>
+<p><strong>Solving CHC Problems:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Basic solving</span>
+python<span class="w"> </span>-m<span class="w"> </span>aria.quant.chctools.chcsolve<span class="w"> </span>problem.smt2
+
+<span class="c1"># With preprocessing and statistics</span>
+python<span class="w"> </span>-m<span class="w"> </span>aria.quant.chctools.chcsolve<span class="w"> </span>--pp<span class="w"> </span>--st<span class="w"> </span>problem.smt2
+
+<span class="c1"># Custom solver options</span>
+python<span class="w"> </span>-m<span class="w"> </span>aria.quant.chctools.chcsolve<span class="w"> </span>problem.smt2<span class="w"> </span>spacer.mbqi<span class="o">=</span><span class="nb">false</span><span class="w"> </span>spacer.reach_dnf<span class="o">=</span><span class="nb">true</span>
+</pre></div>
+</div>
+<p><strong>Model Validation:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>aria.quant.chctools.chcmodel<span class="w"> </span>-m<span class="w"> </span>model.smt2<span class="w"> </span>problem.smt2
+</pre></div>
+</div>
+<p><strong>Pretty Printing:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>aria.quant.chctools.chcpp<span class="w"> </span>-o<span class="w"> </span>formatted.smt2<span class="w"> </span>problem.smt2
+</pre></div>
+</div>
+</section>
+<section id="related-work-and-references">
+<h2>Related Work and References<a class="headerlink" href="#related-work-and-references" title="Link to this heading"></a></h2>
+<p>Constrained Horn Clauses have been extensively studied in the context of program verification:</p>
+<ul class="simple">
+<li><p><strong>Bjørner, N., Gurfinkel, A., McMillan, K., &amp; Rybalchenko, A.</strong> (2015). Horn clause solvers for program verification. In <em>Fields of Logic and Computation II</em> (pp. 24-51).</p></li>
+<li><p><strong>De Angelis, E., Fioravanti, F., Pettorossi, A., &amp; Proietti, M.</strong> (2014). Program verification via iterated specialization. <em>Science of Computer Programming</em>, 95, 149-175.</p></li>
+<li><p><strong>Grebenshchikov, S., Lopes, N. P., Popeea, C., &amp; Rybalchenko, A.</strong> (2012). Synthesizing software verifiers from proof rules. In <em>ACM SIGPLAN Conference on Programming Language Design and Implementation</em> (pp. 405-416).</p></li>
+<li><p><strong>Hoder, K., &amp; Bjørner, N.</strong> (2012). Generalized property directed reachability. In <em>International Conference on Theory and Applications of Satisfiability Testing</em> (pp. 157-171).</p></li>
+</ul>
+<p>The Z3 theorem prover’s Spacer engine is a state-of-the-art CHC solver that implements many advanced techniques for solving Horn clauses efficiently.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="c_frontend.html" class="btn btn-neutral float-left" title="C Frontend for EFMC" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="verifytools.html" class="btn btn-neutral float-right" title="Verification Tools" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

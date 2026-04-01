@@ -39,8 +39,22 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <!-- Local TOC -->
-              <div class="local-toc"></div>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting-started/index.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../logic-and-solving/index.html">Logic and Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../inference/index.html">Proofs and Explanations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quantified-reasoning/index.html">Quantified Reasoning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../automata-languages/index.html">Automata and Languages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../verification/index.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../abstraction/index.html">Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../counting-probability/index.html">Counting, Sampling, and Probability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../synthesis/index.html">Program Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../llm-ml/index.html">LLM and ML</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../cli-tools/index.html">CLI and Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../global_params.html">Global Parameters</a></li>
+</ul>
+
         </div>
       </div>
     </nav>
@@ -77,12 +91,12 @@
     <span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.pythonpda</span><span class="w"> </span><span class="kn">import</span> <span class="n">PythonPDA</span><span class="p">,</span> <span class="n">PDAState</span>
 
 <div class="viewcode-block" id="PDA">
-<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pda.PDA">[docs]</a>
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.pda.PDA">[docs]</a>
     <span class="k">class</span><span class="w"> </span><span class="nc">PDA</span><span class="p">(</span><span class="n">PythonPDA</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;This is the structure for a PDA&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="PDA.shortest_string">
-<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pda.PDA.shortest_string">[docs]</a>
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.pda.PDA.shortest_string">[docs]</a>
         <span class="k">def</span><span class="w"> </span><span class="nf">shortest_string</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Uses BFS in order to find the shortest string</span>
@@ -99,7 +113,7 @@
 
 
 <div class="viewcode-block" id="PDA.diff">
-<a class="viewcode-back" href="../../../../symautomata.html#aria.automata.symautomata.pda.PDA.diff">[docs]</a>
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.pda.PDA.diff">[docs]</a>
         <span class="k">def</span><span class="w"> </span><span class="nf">diff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mmb</span><span class="p">):</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Automata Diff operation</span>

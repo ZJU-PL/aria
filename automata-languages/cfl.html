@@ -1,0 +1,241 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Context-Free Language Reachability &mdash; ARIA Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="CFL OBDD (Context-Free Language Ordered Binary Decision Diagrams)" href="cflobdd.html" />
+    <link rel="prev" title="Automata" href="automata.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ARIA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../logic-and-solving/index.html">Logic and Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inference/index.html">Proofs and Explanations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quantified-reasoning/index.html">Quantified Reasoning</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Automata and Languages</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="automata.html">Automata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="automata.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="automata.html#components">Components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="automata.html#applications">Applications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="automata.html#references">References</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Context-Free Language Reachability</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#key-features">Key Features</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#components">Components</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#cfl-solvers-aria-cfl-cfl-solver-py">CFL Solvers (<code class="docutils literal notranslate"><span class="pre">aria/cfl/cfl_solver.py</span></code>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dynamic-transitive-closure-aria-cfl-cfl-dtc-py-aria-cfl-dtc-py">Dynamic Transitive Closure (<code class="docutils literal notranslate"><span class="pre">aria/cfl/cfl_dtc.py</span></code>, <code class="docutils literal notranslate"><span class="pre">aria/cfl/dtc.py</span></code>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grammar-support-aria-cfl-grammar-py">Grammar Support (<code class="docutils literal notranslate"><span class="pre">aria/cfl/grammar.py</span></code>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#matrix-based-algorithms-aria-cfl-matrix-py-aria-cfl-pag-matrix-py">Matrix-Based Algorithms (<code class="docutils literal notranslate"><span class="pre">aria/cfl/matrix.py</span></code>, <code class="docutils literal notranslate"><span class="pre">aria/cfl/pag_matrix.py</span></code>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#strong-component-reduction-aria-cfl-sc-solver-py">Strong Component Reduction (<code class="docutils literal notranslate"><span class="pre">aria/cfl/sc_solver.py</span></code>)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#applications">Applications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cflobdd.html">CFL OBDD (Context-Free Language Ordered Binary Decision Diagrams)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../verification/index.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../abstraction/index.html">Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../counting-probability/index.html">Counting, Sampling, and Probability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../synthesis/index.html">Program Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../llm-ml/index.html">LLM and ML</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cli-tools/index.html">CLI and Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../global_params.html">Global Parameters</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ARIA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Automata and Languages</a></li>
+      <li class="breadcrumb-item active">Context-Free Language Reachability</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/automata-languages/cfl.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="context-free-language-reachability">
+<h1>Context-Free Language Reachability<a class="headerlink" href="#context-free-language-reachability" title="Link to this heading"></a></h1>
+</section>
+<section id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h1>
+<p>The CFL module (<code class="docutils literal notranslate"><span class="pre">aria/cfl</span></code>) implements algorithms for context-free language (CFL) reachability analysis, a powerful framework for program analysis problems including points-to analysis, interprocedural dataflow analysis, and shape analysis.</p>
+<section id="key-features">
+<h2>Key Features<a class="headerlink" href="#key-features" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>CFL-Reachability Algorithms</strong>: Classical and quantum-inspired dynamic transitive closure</p></li>
+<li><p><strong>Dyck Language Support</strong>: Balanced-parenthesis reachability for call-return matching</p></li>
+<li><p><strong>Graph-Based Analysis</strong>: Efficient graph algorithms for program analysis</p></li>
+<li><p><strong>Matrix-Based Computation</strong>: Matrix formulations for parallel processing</p></li>
+<li><p><strong>Strong Component Reduction</strong>: Optimization via strongly connected components</p></li>
+</ul>
+</section>
+</section>
+<section id="components">
+<h1>Components<a class="headerlink" href="#components" title="Link to this heading"></a></h1>
+<section id="cfl-solvers-aria-cfl-cfl-solver-py">
+<h2>CFL Solvers (<code class="docutils literal notranslate"><span class="pre">aria/cfl/cfl_solver.py</span></code>)<a class="headerlink" href="#cfl-solvers-aria-cfl-cfl-solver-py" title="Link to this heading"></a></h2>
+<p>Core CFL-reachability solving:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.cfl</span><span class="w"> </span><span class="kn">import</span> <span class="n">CFLSolver</span>
+
+<span class="c1"># Create solver for CFL-reachability</span>
+<span class="n">solver</span> <span class="o">=</span> <span class="n">CFLSolver</span><span class="p">()</span>
+
+<span class="c1"># Define grammar and graph</span>
+<span class="n">grammar</span> <span class="o">=</span> <span class="n">load_grammar</span><span class="p">(</span><span class="s2">&quot;grammar.txt&quot;</span><span class="p">)</span>
+<span class="n">graph</span> <span class="o">=</span> <span class="n">load_graph</span><span class="p">(</span><span class="s2">&quot;program_graph.dot&quot;</span><span class="p">)</span>
+
+<span class="c1"># Compute reachability</span>
+<span class="n">reachable</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">grammar</span><span class="p">,</span> <span class="n">graph</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="dynamic-transitive-closure-aria-cfl-cfl-dtc-py-aria-cfl-dtc-py">
+<h2>Dynamic Transitive Closure (<code class="docutils literal notranslate"><span class="pre">aria/cfl/cfl_dtc.py</span></code>, <code class="docutils literal notranslate"><span class="pre">aria/cfl/dtc.py</span></code>)<a class="headerlink" href="#dynamic-transitive-closure-aria-cfl-cfl-dtc-py-aria-cfl-dtc-py" title="Link to this heading"></a></h2>
+<p>Dynamic transitive closure algorithms including quantum-inspired methods:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.cfl.cfl_dtc</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumDTC</span>
+
+<span class="c1"># Quantum-inspired dynamic transitive closure</span>
+<span class="n">dtc</span> <span class="o">=</span> <span class="n">QuantumDTC</span><span class="p">()</span>
+<span class="n">closure</span> <span class="o">=</span> <span class="n">dtc</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="grammar-support-aria-cfl-grammar-py">
+<h2>Grammar Support (<code class="docutils literal notranslate"><span class="pre">aria/cfl/grammar.py</span></code>)<a class="headerlink" href="#grammar-support-aria-cfl-grammar-py" title="Link to this heading"></a></h2>
+<p>Context-free grammar manipulation:</p>
+<ul class="simple">
+<li><p>Grammar parsing and validation</p></li>
+<li><p>Production rule management</p></li>
+<li><p>Dyck language generation</p></li>
+<li><p>Grammar normalization</p></li>
+</ul>
+</section>
+<section id="matrix-based-algorithms-aria-cfl-matrix-py-aria-cfl-pag-matrix-py">
+<h2>Matrix-Based Algorithms (<code class="docutils literal notranslate"><span class="pre">aria/cfl/matrix.py</span></code>, <code class="docutils literal notranslate"><span class="pre">aria/cfl/pag_matrix.py</span></code>)<a class="headerlink" href="#matrix-based-algorithms-aria-cfl-matrix-py-aria-cfl-pag-matrix-py" title="Link to this heading"></a></h2>
+<p>Matrix formulations for efficient CFL-reachability:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.cfl.pag_matrix</span><span class="w"> </span><span class="kn">import</span> <span class="n">PAGMatrix</span>
+
+<span class="c1"># Program assignment graph as matrix</span>
+<span class="n">pag</span> <span class="o">=</span> <span class="n">PAGMatrix</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">pag</span><span class="o">.</span><span class="n">cfl_reachability</span><span class="p">(</span><span class="n">grammar</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="strong-component-reduction-aria-cfl-sc-solver-py">
+<h2>Strong Component Reduction (<code class="docutils literal notranslate"><span class="pre">aria/cfl/sc_solver.py</span></code>)<a class="headerlink" href="#strong-component-reduction-aria-cfl-sc-solver-py" title="Link to this heading"></a></h2>
+<p>Optimization using strongly connected components:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.cfl.sc_solver</span><span class="w"> </span><span class="kn">import</span> <span class="n">SCReducer</span>
+
+<span class="c1"># Reduce problem via SCC decomposition</span>
+<span class="n">reducer</span> <span class="o">=</span> <span class="n">SCReducer</span><span class="p">()</span>
+<span class="n">reduced_result</span> <span class="o">=</span> <span class="n">reducer</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">grammar</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="applications">
+<h1>Applications<a class="headerlink" href="#applications" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p><strong>Points-To Analysis</strong>: Field-sensitive and context-sensitive pointer analysis</p></li>
+<li><p><strong>Call Graph Construction</strong>: Interprocedural control flow analysis</p></li>
+<li><p><strong>Alias Analysis</strong>: May-alias and must-alias analysis</p></li>
+<li><p><strong>Shape Analysis</strong>: Heap shape abstraction</p></li>
+<li><p><strong>Taint Analysis</strong>: Information flow tracking</p></li>
+<li><p><strong>Interprocedural Dataflow</strong>: Summary-based dataflow analysis</p></li>
+</ul>
+</section>
+<section id="references">
+<h1>References<a class="headerlink" href="#references" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p>Reps, T. (1998). <em>Program Analysis via Graph Reachability</em>. Information and Software Technology</p></li>
+<li><p>Yannakakis, M. (1990). <em>Graph-Theoretic Methods in Database Theory</em>. PODS 1990</p></li>
+<li><p>Zhang, Q., Su, Z. (2017). <em>Context-Sensitive Data-Dependence Analysis via Linear Conjunctive Language Reachability</em>. POPL 2017</p></li>
+<li><p>Liu, J., et al. (2024). <em>Dynamic Transitive Closure-Based Static Analysis through the Lens of Quantum Search</em>. TOSEM 2024</p></li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="automata.html" class="btn btn-neutral float-left" title="Automata" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="cflobdd.html" class="btn btn-neutral float-right" title="CFL OBDD (Context-Free Language Ordered Binary Decision Diagrams)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

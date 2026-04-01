@@ -1,0 +1,541 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LLM Tools &mdash; ARIA Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="CLI and Tools" href="../cli-tools/index.html" />
+    <link rel="prev" title="LLM and ML" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ARIA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../logic-and-solving/index.html">Logic and Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inference/index.html">Proofs and Explanations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quantified-reasoning/index.html">Quantified Reasoning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../automata-languages/index.html">Automata and Languages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../verification/index.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../abstraction/index.html">Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../counting-probability/index.html">Counting, Sampling, and Probability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../synthesis/index.html">Program Synthesis</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">LLM and ML</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">LLM Tools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#architecture">Architecture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#llmtool-base-classes">LLMTool Base Classes</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#llmtoolinput">LLMToolInput</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#llmtooloutput">LLMToolOutput</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#llmtool">LLMTool</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#llm-utilities">LLM Utilities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#llm-providers">LLM Providers</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#local-models">Local Models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#remote-models">Remote Models</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#logging">Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#usage-in-llm4inv">Usage in LLM4Inv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#configuration">Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-aria.efmc.llmtools.llm_tool">API Reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.llmtools.llm_tool.LLMTool"><code class="docutils literal notranslate"><span class="pre">LLMTool</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.llmtools.llm_tool.LLMToolInput"><code class="docutils literal notranslate"><span class="pre">LLMToolInput</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.llmtools.llm_tool.LLMToolOutput"><code class="docutils literal notranslate"><span class="pre">LLMToolOutput</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.llmtools.llm_utils.LLM"><code class="docutils literal notranslate"><span class="pre">LLM</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.llmtools.llm_local.LLMLocal"><code class="docutils literal notranslate"><span class="pre">LLMLocal</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.llmtools.llm_local.SimpleLogger"><code class="docutils literal notranslate"><span class="pre">SimpleLogger</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.llmtools.logger.Logger"><code class="docutils literal notranslate"><span class="pre">Logger</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../cli-tools/index.html">CLI and Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../global_params.html">Global Parameters</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ARIA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">LLM and ML</a></li>
+      <li class="breadcrumb-item active">LLM Tools</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/llm-ml/llmtools.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="llm-tools">
+<span id="llmtools"></span><h1>LLM Tools<a class="headerlink" href="#llm-tools" title="Link to this heading"></a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">llmtools</span></code> module provides utilities for integrating Large Language Models (LLMs) into the verification pipeline. This is primarily used by the LLM4Inv engine for generating candidate invariants.</p>
+<section id="architecture">
+<h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading"></a></h2>
+<p>The module follows an abstract base class pattern:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>efmc/llmtools/
+├── llm_tool.py      # Abstract base classes
+├── llm_utils.py     # LLM wrapper and utilities
+├── llm_local.py     # Local model support
+├── llm_opencode.py  # OpenCode API integration
+├── logger.py        # Logging utilities
+└── test_llm.py      # Test utilities
+</pre></div>
+</div>
+</section>
+<section id="llmtool-base-classes">
+<h2>LLMTool Base Classes<a class="headerlink" href="#llmtool-base-classes" title="Link to this heading"></a></h2>
+<section id="llmtoolinput">
+<h3>LLMToolInput<a class="headerlink" href="#llmtoolinput" title="Link to this heading"></a></h3>
+<p>Abstract base class for LLM tool inputs.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.llmtools.llm_tool</span><span class="w"> </span><span class="kn">import</span> <span class="n">LLMToolInput</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyToolInput</span><span class="p">(</span><span class="n">LLMToolInput</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">program</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">property</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">program</span> <span class="o">=</span> <span class="n">program</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">property</span> <span class="o">=</span> <span class="nb">property</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">program</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">property</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+<section id="llmtooloutput">
+<h3>LLMToolOutput<a class="headerlink" href="#llmtooloutput" title="Link to this heading"></a></h3>
+<p>Abstract base class for LLM tool outputs.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.llmtools.llm_tool</span><span class="w"> </span><span class="kn">import</span> <span class="n">LLMToolOutput</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyToolOutput</span><span class="p">(</span><span class="n">LLMToolOutput</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">candidates</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">candidates</span> <span class="o">=</span> <span class="n">candidates</span>
+</pre></div>
+</div>
+</section>
+<section id="llmtool">
+<h3>LLMTool<a class="headerlink" href="#llmtool" title="Link to this heading"></a></h3>
+<p>Abstract base class for LLM-based tools.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.llmtools.llm_tool</span><span class="w"> </span><span class="kn">import</span> <span class="n">LLMTool</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyLLMTool</span><span class="p">(</span><span class="n">LLMTool</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_prompt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tool_input</span><span class="p">:</span> <span class="n">MyToolInput</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="c1"># Generate prompt from input</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Generate invariants for:</span><span class="se">\n</span><span class="si">{</span><span class="n">tool_input</span><span class="o">.</span><span class="n">program</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_parse_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tool_input</span><span class="p">:</span> <span class="n">MyToolInput</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MyToolOutput</span><span class="p">:</span>
+        <span class="c1"># Parse LLM response</span>
+        <span class="k">return</span> <span class="n">MyToolOutput</span><span class="p">(</span><span class="n">candidates</span><span class="o">=</span><span class="n">response</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="llm-utilities">
+<h2>LLM Utilities<a class="headerlink" href="#llm-utilities" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">llm_utils</span></code> module provides the core LLM interface:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.llmtools.llm_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">LLM</span>
+
+<span class="c1"># Initialize LLM</span>
+<span class="n">llm</span> <span class="o">=</span> <span class="n">LLM</span><span class="p">(</span>
+    <span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;qwen/qwen3-coder-30b&quot;</span><span class="p">,</span>
+    <span class="n">logger</span><span class="o">=</span><span class="n">my_logger</span><span class="p">,</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="mf">0.1</span>
+<span class="p">)</span>
+
+<span class="c1"># Query the model</span>
+<span class="n">response</span><span class="p">,</span> <span class="n">input_tokens</span><span class="p">,</span> <span class="n">output_tokens</span> <span class="o">=</span> <span class="n">llm</span><span class="o">.</span><span class="n">infer</span><span class="p">(</span>
+    <span class="n">prompt</span><span class="o">=</span><span class="s2">&quot;Generate an invariant for x &gt;= 0&quot;</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="llm-providers">
+<h2>LLM Providers<a class="headerlink" href="#llm-providers" title="Link to this heading"></a></h2>
+<section id="local-models">
+<h3>Local Models<a class="headerlink" href="#local-models" title="Link to this heading"></a></h3>
+<p>Support for locally hosted models via various backends:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.llmtools.llm_local</span><span class="w"> </span><span class="kn">import</span> <span class="n">LocalLLM</span>
+
+<span class="c1"># LM Studio</span>
+<span class="n">local_llm</span> <span class="o">=</span> <span class="n">LocalLLM</span><span class="p">(</span>
+    <span class="n">provider</span><span class="o">=</span><span class="s2">&quot;lm-studio&quot;</span><span class="p">,</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;qwen/qwen3-coder-30b&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># vLLM</span>
+<span class="n">local_llm</span> <span class="o">=</span> <span class="n">LocalLLM</span><span class="p">(</span>
+    <span class="n">provider</span><span class="o">=</span><span class="s2">&quot;vllm&quot;</span><span class="p">,</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;meta-llama/Llama-2-7b-chat-hf&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># SGLang</span>
+<span class="n">local_llm</span> <span class="o">=</span> <span class="n">LocalLLM</span><span class="p">(</span>
+    <span class="n">provider</span><span class="o">=</span><span class="s2">&quot;sglang&quot;</span><span class="p">,</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;deepseek-ai/DeepSeek-V2&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="remote-models">
+<h3>Remote Models<a class="headerlink" href="#remote-models" title="Link to this heading"></a></h3>
+<p>Support for remote API providers:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.llmtools.llm_opencode</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenCodeLLM</span>
+
+<span class="n">remote_llm</span> <span class="o">=</span> <span class="n">OpenCodeLLM</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;deepseek-v3&quot;</span><span class="p">,</span>
+    <span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your-api-key&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="logging">
+<h2>Logging<a class="headerlink" href="#logging" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">logger</span></code> module provides structured logging for LLM interactions:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.llmtools.logger</span><span class="w"> </span><span class="kn">import</span> <span class="n">Logger</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">Logger</span><span class="p">(</span>
+    <span class="n">log_file</span><span class="o">=</span><span class="s2">&quot;llm.log&quot;</span><span class="p">,</span>
+    <span class="n">console_log</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">level</span><span class="o">=</span><span class="s2">&quot;INFO&quot;</span>
+<span class="p">)</span>
+
+<span class="n">logger</span><span class="o">.</span><span class="n">print_console</span><span class="p">(</span><span class="s2">&quot;Starting LLM inference...&quot;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">print_log</span><span class="p">(</span><span class="s2">&quot;Prompt:&quot;</span><span class="p">,</span> <span class="n">prompt</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">print_log</span><span class="p">(</span><span class="s2">&quot;Response:&quot;</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="usage-in-llm4inv">
+<h2>Usage in LLM4Inv<a class="headerlink" href="#usage-in-llm4inv" title="Link to this heading"></a></h2>
+<p>The LLM4Inv engine uses these utilities to generate candidate invariants:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.engines.llm4inv</span><span class="w"> </span><span class="kn">import</span> <span class="n">LLM4InvProver</span>
+
+<span class="n">prover</span> <span class="o">=</span> <span class="n">LLM4InvProver</span><span class="p">(</span>
+    <span class="n">transition_system</span><span class="o">=</span><span class="n">sts</span><span class="p">,</span>
+    <span class="n">max_candidates</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">provider</span><span class="o">=</span><span class="s2">&quot;local&quot;</span><span class="p">,</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;qwen/qwen3-coder-30b&quot;</span>
+<span class="p">)</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">prover</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h2>
+<p>LLM behavior can be configured via command-line arguments:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>efmc<span class="w"> </span>--file<span class="w"> </span>program.smt2<span class="w"> </span>--engine<span class="w"> </span>llm4inv<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--llm4inv-provider<span class="w"> </span><span class="nb">local</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--llm4inv-local-provider<span class="w"> </span>lm-studio<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--llm4inv-local-model<span class="w"> </span>qwen/qwen3-coder-30b<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--llm4inv-temperature<span class="w"> </span><span class="m">0</span>.1<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--llm4inv-max-candidates-per-iter<span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--llm4inv-max-iterations<span class="w"> </span><span class="m">10</span>
+</pre></div>
+</div>
+</section>
+<section id="module-aria.efmc.llmtools.llm_tool">
+<span id="api-reference"></span><h2>API Reference<a class="headerlink" href="#module-aria.efmc.llmtools.llm_tool" title="Link to this heading"></a></h2>
+<p>LLM Tool base classes for implementing LLM-based tools.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.llmtools.llm_tool.LLMTool">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.llmtools.llm_tool.</span></span><span class="sig-name descname"><span class="pre">LLMTool</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">language</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_query_num</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#aria.efmc.llmtools.logger.Logger" title="aria.efmc.llmtools.logger.Logger"><span class="pre">Logger</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/llmtools/llm_tool.html#LLMTool"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.llmtools.llm_tool.LLMTool" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>Abstract base class for LLM-based tools.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.llmtools.llm_tool.LLMTool.invoke">
+<span class="sig-name descname"><span class="pre">invoke</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tool_input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#aria.efmc.llmtools.llm_tool.LLMToolInput" title="aria.efmc.llmtools.llm_tool.LLMToolInput"><span class="pre">LLMToolInput</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#aria.efmc.llmtools.llm_tool.LLMToolOutput" title="aria.efmc.llmtools.llm_tool.LLMToolOutput"><span class="pre">LLMToolOutput</span></a></span></span><a class="reference internal" href="../_modules/aria/efmc/llmtools/llm_tool.html#LLMTool.invoke"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.llmtools.llm_tool.LLMTool.invoke" title="Link to this definition"></a></dt>
+<dd><p>Invoke the LLM tool with given input.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tool_input</strong> – Input to the LLM tool</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Output from the LLM tool</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.llmtools.llm_tool.LLMToolInput">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.llmtools.llm_tool.</span></span><span class="sig-name descname"><span class="pre">LLMToolInput</span></span><a class="reference internal" href="../_modules/aria/efmc/llmtools/llm_tool.html#LLMToolInput"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.llmtools.llm_tool.LLMToolInput" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>Abstract base class for LLM tool input.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.llmtools.llm_tool.LLMToolOutput">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.llmtools.llm_tool.</span></span><span class="sig-name descname"><span class="pre">LLMToolOutput</span></span><a class="reference internal" href="../_modules/aria/efmc/llmtools/llm_tool.html#LLMToolOutput"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.llmtools.llm_tool.LLMToolOutput" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>Abstract base class for LLM tool output.</p>
+</dd></dl>
+
+<p id="module-aria.efmc.llmtools.llm_utils">LLM utilities for online inference using various LLM providers.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.llmtools.llm_utils.LLM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.llmtools.llm_utils.</span></span><span class="sig-name descname"><span class="pre">LLM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">online_model_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#aria.efmc.llmtools.logger.Logger" title="aria.efmc.llmtools.logger.Logger"><span class="pre">Logger</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system_role</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'You</span> <span class="pre">are</span> <span class="pre">a</span> <span class="pre">experienced</span> <span class="pre">programmer</span> <span class="pre">and</span> <span class="pre">good</span> <span class="pre">at</span> <span class="pre">understanding</span> <span class="pre">programs</span> <span class="pre">written</span> <span class="pre">in</span> <span class="pre">mainstream</span> <span class="pre">programming</span> <span class="pre">languages.'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/llmtools/llm_utils.html#LLM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.llmtools.llm_utils.LLM" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>An online inference model using different LLMs:
+- DeepSeek: V3, R1 (uses OpenAI-compatible API)
+- GLM: Zhipu AI models</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.llmtools.llm_utils.LLM.infer">
+<span class="sig-name descname"><span class="pre">infer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_measure_cost</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/aria/efmc/llmtools/llm_utils.html#LLM.infer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.llmtools.llm_utils.LLM.infer" title="Link to this definition"></a></dt>
+<dd><p>Infer using the online model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>message</strong> – Input message</p></li>
+<li><p><strong>is_measure_cost</strong> – Whether to measure token cost</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple of (output, input_token_cost, output_token_cost)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.llmtools.llm_utils.LLM.infer_with_deepseek_model">
+<span class="sig-name descname"><span class="pre">infer_with_deepseek_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/llmtools/llm_utils.html#LLM.infer_with_deepseek_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.llmtools.llm_utils.LLM.infer_with_deepseek_model" title="Link to this definition"></a></dt>
+<dd><p>Infer using the DeepSeek model (V3, R1, etc.)
+DeepSeek uses OpenAI-compatible API format</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>message</strong> – Input message</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Model output or empty string on failure</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.llmtools.llm_utils.LLM.infer_with_glm_model">
+<span class="sig-name descname"><span class="pre">infer_with_glm_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/llmtools/llm_utils.html#LLM.infer_with_glm_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.llmtools.llm_utils.LLM.infer_with_glm_model" title="Link to this definition"></a></dt>
+<dd><p>Infer using the GLM model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>message</strong> – Input message</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Model output or empty string on failure</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.llmtools.llm_utils.LLM.run_with_timeout">
+<span class="sig-name descname"><span class="pre">run_with_timeout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout_seconds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/llmtools/llm_utils.html#LLM.run_with_timeout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.llmtools.llm_utils.LLM.run_with_timeout" title="Link to this definition"></a></dt>
+<dd><p>Run a function with timeout that works in multiple threads.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>func</strong> – Function to execute</p></li>
+<li><p><strong>timeout_seconds</strong> – Timeout in seconds</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Function result or empty string on timeout/error</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="simple" id="module-aria.efmc.llmtools.llm_local">
+<dt>Calling local LLMs</dt><dd><ul class="simple">
+<li><p>vLLM</p></li>
+<li><p>sglang</p></li>
+<li><p>LMStudio</p></li>
+<li><p>Tingly OpenAI proxy (set TINGLY_API_KEY)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.llmtools.llm_local.LLMLocal">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.llmtools.llm_local.</span></span><span class="sig-name descname"><span class="pre">LLMLocal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">offline_model_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#aria.efmc.llmtools.llm_local.SimpleLogger" title="aria.efmc.llmtools.llm_local.SimpleLogger"><span class="pre">SimpleLogger</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system_role</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'You</span> <span class="pre">are</span> <span class="pre">an</span> <span class="pre">experienced</span> <span class="pre">programmer</span> <span class="pre">and</span> <span class="pre">good</span> <span class="pre">at</span> <span class="pre">understanding</span> <span class="pre">programs</span> <span class="pre">written</span> <span class="pre">in</span> <span class="pre">mainstream</span> <span class="pre">programming</span> <span class="pre">languages.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_output_length</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">4096</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">measure_cost</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">provider</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'lm-studio'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">api_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_retries</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/llmtools/llm_local.html#LLMLocal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.llmtools.llm_local.LLMLocal" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Local LLM inference class for offline models.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.llmtools.llm_local.LLMLocal.infer">
+<span class="sig-name descname"><span class="pre">infer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_measure_cost</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/aria/efmc/llmtools/llm_local.html#LLMLocal.infer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.llmtools.llm_local.LLMLocal.infer" title="Link to this definition"></a></dt>
+<dd><p>Infer using the local model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>message</strong> – Input message</p></li>
+<li><p><strong>is_measure_cost</strong> – Whether to measure token cost</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple of (output, input_token_cost, output_token_cost)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.llmtools.llm_local.LLMLocal.infer_with_openai_compatible_model">
+<span class="sig-name descname"><span class="pre">infer_with_openai_compatible_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/llmtools/llm_local.html#LLMLocal.infer_with_openai_compatible_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.llmtools.llm_local.LLMLocal.infer_with_openai_compatible_model" title="Link to this definition"></a></dt>
+<dd><p>Infer using an OpenAI-compatible API endpoint.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>message</strong> – Input message</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Model output or empty string on failure</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.llmtools.llm_local.LLMLocal.run_with_timeout">
+<span class="sig-name descname"><span class="pre">run_with_timeout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout_seconds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/llmtools/llm_local.html#LLMLocal.run_with_timeout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.llmtools.llm_local.LLMLocal.run_with_timeout" title="Link to this definition"></a></dt>
+<dd><p>Run a function with timeout that works in multiple threads.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>func</strong> – Function to execute</p></li>
+<li><p><strong>timeout_seconds</strong> – Timeout in seconds</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Function result or empty string on timeout/error</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.llmtools.llm_local.SimpleLogger">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.llmtools.llm_local.</span></span><span class="sig-name descname"><span class="pre">SimpleLogger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/llmtools/llm_local.html#SimpleLogger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.llmtools.llm_local.SimpleLogger" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Simple logger interface for local LLM.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.llmtools.llm_local.SimpleLogger.print_console">
+<span class="sig-name descname"><span class="pre">print_console</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/aria/efmc/llmtools/llm_local.html#SimpleLogger.print_console"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.llmtools.llm_local.SimpleLogger.print_console" title="Link to this definition"></a></dt>
+<dd><p>Print console message.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.llmtools.llm_local.SimpleLogger.print_log">
+<span class="sig-name descname"><span class="pre">print_log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/aria/efmc/llmtools/llm_local.html#SimpleLogger.print_log"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.llmtools.llm_local.SimpleLogger.print_log" title="Link to this definition"></a></dt>
+<dd><p>Print log message.</p>
+</dd></dl>
+
+</dd></dl>
+
+<p id="module-aria.efmc.llmtools.logger">Logger module for EFMC LLM tools.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.efmc.llmtools.logger.Logger">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.efmc.llmtools.logger.</span></span><span class="sig-name descname"><span class="pre">Logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_file_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/llmtools/logger.html#Logger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.llmtools.logger.Logger" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.llmtools.logger.Logger.print_console">
+<span class="sig-name descname"><span class="pre">print_console</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/aria/efmc/llmtools/logger.html#Logger.print_console"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.llmtools.logger.Logger.print_console" title="Link to this definition"></a></dt>
+<dd><p>Output messages to both console and log file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>*args</strong> – Message parts to be logged, which are merged into a single string.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.efmc.llmtools.logger.Logger.print_log">
+<span class="sig-name descname"><span class="pre">print_log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/aria/efmc/llmtools/logger.html#Logger.print_log"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.llmtools.logger.Logger.print_log" title="Link to this definition"></a></dt>
+<dd><p>Output messages to log file only.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>*args</strong> – Message parts to be logged, which are merged into a single string.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="LLM and ML" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../cli-tools/index.html" class="btn btn-neutral float-right" title="CLI and Tools" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

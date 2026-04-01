@@ -1,0 +1,311 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SMT Solving for Finite Field &mdash; ARIA Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="First-Order Logic (FOL)" href="fol.html" />
+    <link rel="prev" title="SMT Solving" href="smt.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ARIA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Logic and Solving</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="bool.html">Boolean Reasoning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smt.html">SMT Solving</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">SMT Solving for Finite Field</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#theory-reference-finite-fields">Theory Reference: Finite Fields</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#implementation">Implementation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#usage-example">Usage Example</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fol.html">First-Order Logic (FOL)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="srk.html">SRK Symbolic Reasoning Kit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unification.html">Unification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unification.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unification.html#components">Components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unification.html#applications">Applications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unification.html#references">References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="allsmt.html">AllSMT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="backbone.html">Backbone Computation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unsat_core.html">UNSAT Core Extraction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="knowledge_compilation.html">Knowledge Compilation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parallel_cdclt.html">Parallel SMT CDCL(T) Solving</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../inference/index.html">Proofs and Explanations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quantified-reasoning/index.html">Quantified Reasoning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../automata-languages/index.html">Automata and Languages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../verification/index.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../abstraction/index.html">Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../counting-probability/index.html">Counting, Sampling, and Probability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../synthesis/index.html">Program Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../llm-ml/index.html">LLM and ML</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cli-tools/index.html">CLI and Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../global_params.html">Global Parameters</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ARIA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Logic and Solving</a></li>
+      <li class="breadcrumb-item active">SMT Solving for Finite Field</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/logic-and-solving/ff.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="smt-solving-for-finite-field">
+<h1>SMT Solving for Finite Field<a class="headerlink" href="#smt-solving-for-finite-field" title="Link to this heading"></a></h1>
+<section id="overview">
+<span id="ff-solving"></span><h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>Finite field arithmetic is fundamental to many cryptographic protocols.</p>
+</section>
+</section>
+<section id="theory-reference-finite-fields">
+<h1>Theory Reference: Finite Fields<a class="headerlink" href="#theory-reference-finite-fields" title="Link to this heading"></a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<dl class="simple">
+<dt>Currently, only finite fields of prime order p are supported.</dt><dd><p>Such a field is isomorphic to the integers modulo p.</p>
+</dd>
+</dl>
+</div>
+<p>We interpret field sorts as prime fields and field terms as integers modulo <span class="math notranslate nohighlight">\(p\)</span>. In the following, let:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">N</span></code> be an integer numeral and <span class="math notranslate nohighlight">\(N\)</span> be its integer</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">p</span></code> be a prime numeral and <span class="math notranslate nohighlight">\(p\)</span> be its prime</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">F</span></code> be an SMT field sort (of order <span class="math notranslate nohighlight">\(p\)</span>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> be SMT field terms (of the same sort <code class="docutils literal notranslate"><span class="pre">F</span></code>) with interpretations <span class="math notranslate nohighlight">\(x\)</span> and <span class="math notranslate nohighlight">\(y\)</span></p></li>
+</ul>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>SMT construct</p></th>
+<th class="head"><p>Semantics</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">(_</span> <span class="pre">FiniteField</span> <span class="pre">p)</span></code></p></td>
+<td><p>the field of order <span class="math notranslate nohighlight">\(p\)</span></p></td>
+<td><p>represented as the integers modulo <span class="math notranslate nohighlight">\(p\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">(as</span> <span class="pre">ffN</span> <span class="pre">F)</span></code></p></td>
+<td><p>the integer <span class="math notranslate nohighlight">\((N \bmod p)\)</span></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">(ff.add</span> <span class="pre">x</span> <span class="pre">y)</span></code></p></td>
+<td><p>the integer <span class="math notranslate nohighlight">\(((x + y) \bmod p)\)</span></p></td>
+<td><p>NB: <code class="docutils literal notranslate"><span class="pre">ff.add</span></code> is an n-ary operator</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">(ff.mul</span> <span class="pre">x</span> <span class="pre">y)</span></code></p></td>
+<td><p>the integer <span class="math notranslate nohighlight">\(((x \times y) \bmod p)\)</span></p></td>
+<td><p>NB: <code class="docutils literal notranslate"><span class="pre">ff.mul</span></code> is an n-ary operator</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">(=</span> <span class="pre">x</span> <span class="pre">y)</span></code></p></td>
+<td><p>the Boolean <span class="math notranslate nohighlight">\(x = y\)</span></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-smtlib notranslate"><div class="highlight"><pre><span></span>(set-logic QF_FF)
+(set-info :status unsat)
+(define-sort F () (_ FiniteField 3))
+(declare-const x F)
+(assert (= (ff.mul x x) (as ff-1 F)))
+(check-sat)
+; unsat
+</pre></div>
+</div>
+<div class="highlight-smtlib notranslate"><div class="highlight"><pre><span></span>(set-logic QF_FF)
+(set-info :status sat)
+(define-sort F () (_ FiniteField 3))
+(declare-const x F)
+(assert (= (ff.mul x x) (as ff0 F)))
+(check-sat)
+; sat: (= x (as ff0 F)) is the only model
+</pre></div>
+</div>
+<p>Experimental features (may be removed in the future):</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ff.bitsum</span></code>: n-ary operator for bitsums: <code class="docutils literal notranslate"><span class="pre">(ff.bitsum</span> <span class="pre">x0</span> <span class="pre">x1</span> <span class="pre">x2)</span></code> = <span class="math notranslate nohighlight">\(x_0 + 2x_1 + 4x_2\)</span></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ff.neg</span></code>: unary negation</p></li>
+</ul>
+<section id="implementation">
+<h2>Implementation<a class="headerlink" href="#implementation" title="Link to this heading"></a></h2>
+<p>Aria provides SMT solving over finite fields in the <code class="docutils literal notranslate"><span class="pre">aria/smt/ff</span></code> module with multiple encoding strategies:</p>
+<ul class="simple">
+<li><p><strong>Bit-vector encoding</strong> (<code class="docutils literal notranslate"><span class="pre">ff_bv_solver.py</span></code>): Encodes field elements as bit-vectors (width log₂(field_size)) with modular constraints</p></li>
+<li><p><strong>Integer encoding</strong> (<code class="docutils literal notranslate"><span class="pre">ff_int_solver.py</span></code>): Encodes field elements as integers in [0, field_size-1] with explicit modulo operations</p></li>
+<li><p><strong>Performance encoding</strong> (<code class="docutils literal notranslate"><span class="pre">ff_perf_solver.py</span></code>): Integer encoding with adaptive reduction scheduling, structured-prime modular kernels, and partition-driven CEGAR refinement</p></li>
+</ul>
+<p>The automatic solver (<code class="docutils literal notranslate"><span class="pre">FFAutoSolver</span></code>) can route large-prime instances to the
+performance backend and still fall back to the stable integer backend when a
+recovery run is required.</p>
+<p>The performance backend supports environment controls:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ARIA_FF_SCHEDULE</span></code> = <code class="docutils literal notranslate"><span class="pre">eager</span></code> | <code class="docutils literal notranslate"><span class="pre">balanced</span></code> | <code class="docutils literal notranslate"><span class="pre">lazy</span></code> | <code class="docutils literal notranslate"><span class="pre">strict-recovery</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ARIA_FF_KERNEL_MODE</span></code> = <code class="docutils literal notranslate"><span class="pre">auto</span></code> | <code class="docutils literal notranslate"><span class="pre">generic</span></code> | <code class="docutils literal notranslate"><span class="pre">structured</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ARIA_FF_MAX_NONLINEAR_EQS</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ARIA_FF_MAX_NONLINEAR_VARS</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ARIA_FF_MAX_NONLINEAR_MODULUS</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ARIA_FF_MAX_NONLINEAR_SEARCH_SPACE</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ARIA_FF_MAX_NONLINEAR_WORK_BUDGET</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ARIA_FF_ROOTSET_BUDGET</span></code></p></li>
+</ul>
+<p>Automatic backend selection can be configured through <code class="docutils literal notranslate"><span class="pre">FFAutoSolver</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">enable_perf_backend</span></code> (default <code class="docutils literal notranslate"><span class="pre">True</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">perf_policy</span></code> in <code class="docutils literal notranslate"><span class="pre">auto</span></code>, <code class="docutils literal notranslate"><span class="pre">always</span></code>, <code class="docutils literal notranslate"><span class="pre">never</span></code>, <code class="docutils literal notranslate"><span class="pre">large-prime</span></code></p></li>
+</ul>
+<p>Core components include formula parsing (<code class="docutils literal notranslate"><span class="pre">ff_parser.py</span></code>), sparse polynomial
+normalization/partitioning, and translation to bit-vector or integer
+arithmetic.</p>
+<p>The performance backend exposes two experiment-facing interfaces:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">stats()</span></code>: counters for reductions, cuts, learned lemmas, partition
+selection, and bounded local algebra</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">trace()</span></code>: a per-round JSON-friendly refinement trace</p></li>
+</ul>
+</section>
+<section id="usage-example">
+<h2>Usage Example<a class="headerlink" href="#usage-example" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.smt.ff</span><span class="w"> </span><span class="kn">import</span> <span class="n">FFAutoSolver</span><span class="p">,</span> <span class="n">FFPerfSolver</span><span class="p">,</span> <span class="n">parse_ff_file</span>
+
+<span class="n">formula</span> <span class="o">=</span> <span class="n">parse_ff_file</span><span class="p">(</span><span class="s2">&quot;benchmarks/smtlib2/ff/simple.smt2&quot;</span><span class="p">)</span>
+
+<span class="n">auto</span> <span class="o">=</span> <span class="n">FFAutoSolver</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">auto</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="n">formula</span><span class="p">),</span> <span class="n">auto</span><span class="o">.</span><span class="n">backend_name</span><span class="p">)</span>
+
+<span class="n">perf</span> <span class="o">=</span> <span class="n">FFPerfSolver</span><span class="p">(</span><span class="n">schedule</span><span class="o">=</span><span class="s2">&quot;balanced&quot;</span><span class="p">,</span> <span class="n">kernel_mode</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="n">recovery</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">perf</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="n">formula</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">perf</span><span class="o">.</span><span class="n">stats</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">perf</span><span class="o">.</span><span class="n">trace</span><span class="p">())</span>
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>scripts/run_ff_perf_bench.py<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--bench-dir<span class="w"> </span>benchmarks/smtlib2/ff<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--backends<span class="w"> </span>bv,bv2,int,auto,perf<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--timeouts<span class="w"> </span><span class="m">10</span>,30,60<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--repetitions<span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--out<span class="w"> </span>results/ff_perf_bench.json
+</pre></div>
+</div>
+</section>
+</section>
+<section id="references">
+<h1>References<a class="headerlink" href="#references" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Hader, T., Kaufmann, D., Irfan, A., Graham-Lengrand, S., &amp; Kovács, L. (2024).</dt><dd><p><a class="reference external" href="https://arxiv.org/pdf/2402.17927">MCSat-based Finite Field Reasoning in the Yices2 SMT Solver</a>.
+ArXiv:2402.17927.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Ozdemir, A., Pailoor, S., Bassa, A., Ferles, K., Barrett, C., &amp; Dillig, I. (2024).</dt><dd><p>Split Gröbner Bases for Satisfiability Modulo Finite Fields.
+In <em>Computer Aided Verification (CAV)</em>.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Ozdemir, A., Kremer, G., Tinelli, C., &amp; Barrett, C. (2023).</dt><dd><p>Satisfiability modulo finite fields.
+In <em>Computer Aided Verification (CAV)</em>.</p>
+</dd>
+</dl>
+</li>
+<li><p>Hader, T., Kaufmann, D., &amp; Kovács, L. (2023). SMT solving over finite field arithmetic. In <em>LPAR</em>.</p></li>
+<li><p>Hader, T. (2022). Non-linear SMT-reasoning over finite fields. Master’s thesis, TU Wien.</p></li>
+<li><p>Hader, T., &amp; Kovács, L. (2022). Non-linear SMT-reasoning over finite fields. In <em>SMT Workshop</em>.</p></li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="smt.html" class="btn btn-neutral float-left" title="SMT Solving" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="fol.html" class="btn btn-neutral float-right" title="First-Order Logic (FOL)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

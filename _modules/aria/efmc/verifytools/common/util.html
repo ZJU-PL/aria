@@ -39,8 +39,22 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <!-- Local TOC -->
-              <div class="local-toc"></div>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../getting-started/index.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../logic-and-solving/index.html">Logic and Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../inference/index.html">Proofs and Explanations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../quantified-reasoning/index.html">Quantified Reasoning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../automata-languages/index.html">Automata and Languages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../verification/index.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../abstraction/index.html">Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../counting-probability/index.html">Counting, Sampling, and Probability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../synthesis/index.html">Program Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../llm-ml/index.html">LLM and ML</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../cli-tools/index.html">CLI and Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../global_params.html">Global Parameters</a></li>
+</ul>
+
         </div>
       </div>
     </nav>
@@ -77,7 +91,7 @@
 
 
 <div class="viewcode-block" id="error">
-<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.common.util.error">[docs]</a>
+<a class="viewcode-back" href="../../../../../cli-tools/verifytools.html#aria.efmc.verifytools.common.util.error">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">error</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Print error message to stderr.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">and</span> <span class="s2">&quot;%&quot;</span> <span class="ow">in</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
@@ -92,7 +106,7 @@
 
 
 <div class="viewcode-block" id="fatal">
-<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.common.util.fatal">[docs]</a>
+<a class="viewcode-back" href="../../../../../cli-tools/verifytools.html#aria.efmc.verifytools.common.util.fatal">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">fatal</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Print error message and exit with error code.&quot;&quot;&quot;</span>
     <span class="n">error</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
@@ -101,7 +115,7 @@
 
 
 <div class="viewcode-block" id="unique">
-<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.common.util.unique">[docs]</a>
+<a class="viewcode-back" href="../../../../../cli-tools/verifytools.html#aria.efmc.verifytools.common.util.unique">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">unique</span><span class="p">(</span><span class="n">iterable</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Assert that iterable has one element and return it.&quot;&quot;&quot;</span>
     <span class="n">l</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">iterable</span><span class="p">)</span>
@@ -111,7 +125,7 @@
 
 
 <div class="viewcode-block" id="pp_exc">
-<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.common.util.pp_exc">[docs]</a>
+<a class="viewcode-back" href="../../../../../cli-tools/verifytools.html#aria.efmc.verifytools.common.util.pp_exc">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">pp_exc</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Wrap a function to catch, pretty print the exception and re-raise it.&quot;&quot;&quot;</span>
 
@@ -127,7 +141,7 @@
 
 
 <div class="viewcode-block" id="powerset">
-<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.common.util.powerset">[docs]</a>
+<a class="viewcode-back" href="../../../../../cli-tools/verifytools.html#aria.efmc.verifytools.common.util.powerset">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">powerset</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the powerset of a set s.&quot;&quot;&quot;</span>
     <span class="n">it</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="n">combinations</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
@@ -137,7 +151,7 @@
 
 
 <div class="viewcode-block" id="average">
-<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.common.util.average">[docs]</a>
+<a class="viewcode-back" href="../../../../../cli-tools/verifytools.html#aria.efmc.verifytools.common.util.average">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">average</span><span class="p">(</span><span class="n">vals</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the average of a list of values.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">))</span></div>
@@ -145,7 +159,7 @@
 
 
 <div class="viewcode-block" id="split">
-<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.common.util.split">[docs]</a>
+<a class="viewcode-back" href="../../../../../cli-tools/verifytools.html#aria.efmc.verifytools.common.util.split">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">split</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">itr</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Split a list based on a predicate function.&quot;&quot;&quot;</span>
     <span class="n">yes</span><span class="p">,</span> <span class="n">no</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
@@ -160,7 +174,7 @@
 
 
 <div class="viewcode-block" id="nonempty">
-<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.common.util.nonempty">[docs]</a>
+<a class="viewcode-back" href="../../../../../cli-tools/verifytools.html#aria.efmc.verifytools.common.util.nonempty">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">nonempty</span><span class="p">(</span><span class="n">lst</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Filter out the empty elements of a list (where empty is len(x) == 0).&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">lst</span><span class="p">)</span></div>
@@ -168,7 +182,7 @@
 
 
 <div class="viewcode-block" id="nodups">
-<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.common.util.nodups">[docs]</a>
+<a class="viewcode-back" href="../../../../../cli-tools/verifytools.html#aria.efmc.verifytools.common.util.nodups">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">nodups</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Remove duplicates from a sequence.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">s</span><span class="p">))</span></div>
@@ -176,7 +190,7 @@
 
 
 <div class="viewcode-block" id="flattenSet">
-<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.common.util.flattenSet">[docs]</a>
+<a class="viewcode-back" href="../../../../../cli-tools/verifytools.html#aria.efmc.verifytools.common.util.flattenSet">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">flattenSet</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Flatten a set of sets into a single set.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="nb">set</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">s</span><span class="p">,</span> <span class="nb">set</span><span class="p">([]))</span></div>
@@ -184,7 +198,7 @@
 
 
 <div class="viewcode-block" id="flattenList">
-<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.common.util.flattenList">[docs]</a>
+<a class="viewcode-back" href="../../../../../cli-tools/verifytools.html#aria.efmc.verifytools.common.util.flattenList">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">flattenList</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Flatten a list of lists into a single list.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="p">[])</span></div>
@@ -192,7 +206,7 @@
 
 
 <div class="viewcode-block" id="randomToken">
-<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.common.util.randomToken">[docs]</a>
+<a class="viewcode-back" href="../../../../../cli-tools/verifytools.html#aria.efmc.verifytools.common.util.randomToken">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">randomToken</span><span class="p">(</span><span class="n">l</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate a random alphanumeric token of length l.&quot;&quot;&quot;</span>
     <span class="n">alphanum</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>

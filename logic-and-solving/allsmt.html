@@ -1,0 +1,227 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AllSMT &mdash; ARIA Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Backbone Computation" href="backbone.html" />
+    <link rel="prev" title="Unification" href="unification.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ARIA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Logic and Solving</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="bool.html">Boolean Reasoning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smt.html">SMT Solving</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ff.html">SMT Solving for Finite Field</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ff.html#theory-reference-finite-fields">Theory Reference: Finite Fields</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ff.html#references">References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fol.html">First-Order Logic (FOL)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="srk.html">SRK Symbolic Reasoning Kit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unification.html">Unification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unification.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unification.html#components">Components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unification.html#applications">Applications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unification.html#references">References</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">AllSMT</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-work">Related Work</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#blocking-solvers">Blocking Solvers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#non-blocking-solvers">Non-blocking Solvers</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="backbone.html">Backbone Computation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unsat_core.html">UNSAT Core Extraction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="knowledge_compilation.html">Knowledge Compilation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parallel_cdclt.html">Parallel SMT CDCL(T) Solving</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../inference/index.html">Proofs and Explanations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quantified-reasoning/index.html">Quantified Reasoning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../automata-languages/index.html">Automata and Languages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../verification/index.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../abstraction/index.html">Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../counting-probability/index.html">Counting, Sampling, and Probability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../synthesis/index.html">Program Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../llm-ml/index.html">LLM and ML</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cli-tools/index.html">CLI and Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../global_params.html">Global Parameters</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ARIA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Logic and Solving</a></li>
+      <li class="breadcrumb-item active">AllSMT</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/logic-and-solving/allsmt.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="allsmt">
+<h1>AllSMT<a class="headerlink" href="#allsmt" title="Link to this heading"></a></h1>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h2>
+<p>AllSMT (All-Solutions Satisfiability Modulo Theories) extends AllSAT to SMT formulas,
+aiming to enumerate all satisfying assignments of an SMT formula. This problem is
+fundamental in various applications, including:</p>
+<ul class="simple">
+<li><p>Combinational iteration testing</p></li>
+<li><p>Quantitative program analysis</p></li>
+<li><p>Constrained test generation</p></li>
+<li><p>Program synthesis</p></li>
+<li><p>Formal verification</p></li>
+</ul>
+</section>
+<section id="related-work">
+<h2>Related Work<a class="headerlink" href="#related-work" title="Link to this heading"></a></h2>
+<p>The closely related AllSAT problem (finding all satisfying assignments for Boolean formulas)
+serves as a foundation for AllSMT. AllSAT is NP-hard and not fixed-parameter tractable
+unless P=NP.</p>
+<p>Current AllSAT approaches fall into two categories:</p>
+<section id="blocking-solvers">
+<h3>Blocking Solvers<a class="headerlink" href="#blocking-solvers" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Built on CDCL (Conflict-Driven Clause Learning)</p></li>
+<li><p>Uses non-chronological backtracking (NCB)</p></li>
+<li><p>Adds blocking clauses to prevent duplicate solutions</p></li>
+</ul>
+</section>
+<section id="non-blocking-solvers">
+<h3>Non-blocking Solvers<a class="headerlink" href="#non-blocking-solvers" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Avoids blocking clauses overhead</p></li>
+<li><p>Employs chronological backtracking (CB)</p></li>
+<li><p>Generally more memory-efficient</p></li>
+</ul>
+<section id="allsmt-in-aria">
+<h4>AllSMT in Aria<a class="headerlink" href="#allsmt-in-aria" title="Link to this heading"></a></h4>
+<p>[Content to be added]</p>
+</section>
+</section>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<div role="list" class="citation-list">
+<div class="citation" id="sat23" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>SAT23<span class="fn-bracket">]</span></span>
+<p>Masina, G., Spallita, G., Sebastiani, R. (2023).
+<em>On CNF Conversion for Disjoint SAT Enumeration</em>. SAT 2023.</p>
+</div>
+<div class="citation" id="tacas05" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>TACAS05<span class="fn-bracket">]</span></span>
+<p>Jin, H., Han, H., Somenzi, F. (2005).
+<em>Efficient Conflict Analysis for Finding All Satisfying Assignments of a Boolean Circuit</em>. TACAS 2005.</p>
+</div>
+<div class="citation" id="cav02" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>CAV02<span class="fn-bracket">]</span></span>
+<p>McMillan, K. L. (2002).
+<em>Applying SAT Methods in Unbounded Symbolic Model Checking</em>. CAV 2002.</p>
+</div>
+<div class="citation" id="fmcad04" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>FMCAD04<span class="fn-bracket">]</span></span>
+<p>Grumberg, O., Schuster, A., Yadgar, A. (2004).
+<em>Memory Efficient All-Solutions SAT Solver and Its Application for Reachability Analysis</em>. FMCAD 2004.</p>
+</div>
+<div class="citation" id="date04" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>DATE04<span class="fn-bracket">]</span></span>
+<p>Li, B., Hsiao, M. S., Sheng, S. (2004).
+<em>A Novel SAT All-Solutions Solver for Efficient Preimage Computation</em>. DATE 2004.</p>
+</div>
+<div class="citation" id="dpbs" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>DPBS<span class="fn-bracket">]</span></span>
+<p>Spallitta, G., Sebastiani, R., Biere, A.
+<em>Disjoint Projected Enumeration for SAT and SMT without Blocking Clauses</em>.
+<a class="reference external" href="https://github.com/giuspek/tabularAllSAT">GitHub Repository</a></p>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="unification.html" class="btn btn-neutral float-left" title="Unification" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="backbone.html" class="btn btn-neutral float-right" title="Backbone Computation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -39,8 +39,22 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <!-- Local TOC -->
-              <div class="local-toc"></div>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../getting-started/index.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../logic-and-solving/index.html">Logic and Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../inference/index.html">Proofs and Explanations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../quantified-reasoning/index.html">Quantified Reasoning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../automata-languages/index.html">Automata and Languages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../verification/index.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../abstraction/index.html">Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../counting-probability/index.html">Counting, Sampling, and Probability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../synthesis/index.html">Program Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../llm-ml/index.html">LLM and ML</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../cli-tools/index.html">CLI and Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../global_params.html">Global Parameters</a></li>
+</ul>
+
         </div>
       </div>
     </nav>
@@ -91,7 +105,7 @@
 
 
 <div class="viewcode-block" id="conservative_tautology">
-<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.tools.vc_check.conservative_tautology">[docs]</a>
+<a class="viewcode-back" href="../../../../../cli-tools/verifytools.html#aria.efmc.verifytools.tools.vc_check.conservative_tautology">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">conservative_tautology</span><span class="p">(</span><span class="n">q</span><span class="p">):</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">tautology</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
@@ -108,7 +122,7 @@
 
 
 <div class="viewcode-block" id="traceConstantVars">
-<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.tools.vc_check.traceConstantVars">[docs]</a>
+<a class="viewcode-back" href="../../../../../cli-tools/verifytools.html#aria.efmc.verifytools.tools.vc_check.traceConstantVars">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">traceConstantVars</span><span class="p">(</span><span class="n">lvl</span><span class="p">):</span>
     <span class="n">vs</span> <span class="o">=</span> <span class="n">lvl</span><span class="p">[</span><span class="s2">&quot;variables&quot;</span><span class="p">]</span>
     <span class="n">table</span> <span class="o">=</span> <span class="n">lvl</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
@@ -127,7 +141,7 @@
 
 
 <div class="viewcode-block" id="substitutions">
-<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.tools.vc_check.substitutions">[docs]</a>
+<a class="viewcode-back" href="../../../../../cli-tools/verifytools.html#aria.efmc.verifytools.tools.vc_check.substitutions">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">substitutions</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">replMs</span><span class="p">):</span>
     <span class="n">family</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">expr</span><span class="p">])</span>
     <span class="k">for</span> <span class="n">replM</span> <span class="ow">in</span> <span class="n">replMs</span><span class="p">:</span>
@@ -138,7 +152,7 @@
 
 
 <div class="viewcode-block" id="generalizeConstTraceVars">
-<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.tools.vc_check.generalizeConstTraceVars">[docs]</a>
+<a class="viewcode-back" href="../../../../../cli-tools/verifytools.html#aria.efmc.verifytools.tools.vc_check.generalizeConstTraceVars">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">generalizeConstTraceVars</span><span class="p">(</span><span class="n">lvl</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Given an expression and a set of pairs (Var, Num) where Var is always</span>
 <span class="sd">    equal to Num in the traces presented to the user, add all variations</span>
@@ -154,7 +168,7 @@
 
 
 <div class="viewcode-block" id="tryAndVerify">
-<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.tools.vc_check.tryAndVerify">[docs]</a>
+<a class="viewcode-back" href="../../../../../cli-tools/verifytools.html#aria.efmc.verifytools.tools.vc_check.tryAndVerify">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">tryAndVerify</span><span class="p">(</span>
     <span class="n">bbs</span><span class="p">,</span> <span class="n">loop</span><span class="p">,</span> <span class="n">splitterPreds</span><span class="p">,</span> <span class="n">partialInvs</span><span class="p">,</span> <span class="n">userInvs</span><span class="p">,</span> <span class="n">otherInvs</span><span class="p">,</span> <span class="n">replMaps</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">):</span>
@@ -176,7 +190,7 @@
 
 
 <div class="viewcode-block" id="tryAndVerifyLvl">
-<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.tools.vc_check.tryAndVerifyLvl">[docs]</a>
+<a class="viewcode-back" href="../../../../../cli-tools/verifytools.html#aria.efmc.verifytools.tools.vc_check.tryAndVerifyLvl">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">tryAndVerifyLvl</span><span class="p">(</span>
     <span class="n">lvl</span><span class="p">,</span>
     <span class="n">userInvs</span><span class="p">,</span>
@@ -232,7 +246,7 @@
 
 
 <div class="viewcode-block" id="tryAndVerify_impl">
-<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.tools.vc_check.tryAndVerify_impl">[docs]</a>
+<a class="viewcode-back" href="../../../../../cli-tools/verifytools.html#aria.efmc.verifytools.tools.vc_check.tryAndVerify_impl">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">tryAndVerify_impl</span><span class="p">(</span><span class="n">bbs</span><span class="p">,</span> <span class="n">loop</span><span class="p">,</span> <span class="n">old_sound_invs</span><span class="p">,</span> <span class="n">invs</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Wrapper around checkInvNetwork for the case of a function</span>
 <span class="sd">    with a single loop and no pre- post- conditions.</span>
@@ -260,7 +274,7 @@
 
 
 <div class="viewcode-block" id="tryAndVerifyWithSplitterPreds">
-<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.tools.vc_check.tryAndVerifyWithSplitterPreds">[docs]</a>
+<a class="viewcode-back" href="../../../../../cli-tools/verifytools.html#aria.efmc.verifytools.tools.vc_check.tryAndVerifyWithSplitterPreds">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">tryAndVerifyWithSplitterPreds</span><span class="p">(</span>
     <span class="n">bbs</span><span class="p">,</span> <span class="n">loop</span><span class="p">,</span> <span class="n">old_sound_invs</span><span class="p">,</span> <span class="n">boogie_invs</span><span class="p">,</span> <span class="n">splitterPreds</span><span class="p">,</span> <span class="n">partialInvs</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">):</span>
@@ -326,7 +340,7 @@
 
 
 <div class="viewcode-block" id="loopInvOverfittedCtrex">
-<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.tools.vc_check.loopInvOverfittedCtrex">[docs]</a>
+<a class="viewcode-back" href="../../../../../cli-tools/verifytools.html#aria.efmc.verifytools.tools.vc_check.loopInvOverfittedCtrex">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">loopInvOverfittedCtrex</span><span class="p">(</span><span class="n">loop</span><span class="p">,</span> <span class="n">invs</span><span class="p">,</span> <span class="n">bbs</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Given a candidate loop invariant inv find &#39;overfittedness&#39;</span>
 <span class="sd">    counterexamples.  I.e. find counterexamples to &quot;precondition ==&gt; inv&quot;.</span>
@@ -349,7 +363,7 @@
 
 
 <div class="viewcode-block" id="loopInvSafetyCtrex">
-<a class="viewcode-back" href="../../../../../verifytools.html#aria.efmc.verifytools.tools.vc_check.loopInvSafetyCtrex">[docs]</a>
+<a class="viewcode-back" href="../../../../../cli-tools/verifytools.html#aria.efmc.verifytools.tools.vc_check.loopInvSafetyCtrex">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">loopInvSafetyCtrex</span><span class="p">(</span><span class="n">loop</span><span class="p">,</span> <span class="n">invs</span><span class="p">,</span> <span class="n">bbs</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Given a candidate loop invariant inv find &#39;safety&#39;</span>
 <span class="sd">    counterexamples.  I.e. find counterexamples to &quot;inv ==&gt; post&quot; or &quot;inv ==&gt;</span>

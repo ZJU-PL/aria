@@ -16,9 +16,11 @@
       <script src="_static/documentation_options.js?v=01f34227"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Getting Started" href="getting-started/index.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -40,19 +42,22 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <!-- Local TOC -->
-              <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">Welcome to aria’s Documentation!</a><ul>
-<li><a class="reference internal" href="#introduction">Introduction</a></li>
-<li><a class="reference internal" href="#installing-and-using-aria">Installing and Using Aria</a><ul>
-<li><a class="reference internal" href="#install-aria-from-source">Install aria from source</a></li>
-<li><a class="reference internal" href="#quick-start">Quick Start</a></li>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="getting-started/index.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="logic-and-solving/index.html">Logic and Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inference/index.html">Proofs and Explanations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantified-reasoning/index.html">Quantified Reasoning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="automata-languages/index.html">Automata and Languages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="verification/index.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="abstraction/index.html">Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="counting-probability/index.html">Counting, Sampling, and Probability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synthesis/index.html">Program Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="llm-ml/index.html">LLM and ML</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli-tools/index.html">CLI and Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="global_params.html">Global Parameters</a></li>
 </ul>
-</li>
-</ul>
-</li>
-</ul>
-</div>
+
         </div>
       </div>
     </nav>
@@ -144,7 +149,149 @@
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Formula is </span><span class="si">{</span><span class="s1">&#39;satisfiable&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;unsatisfiable&#39;</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
+</section>
+<section id="documentation-map">
+<h3>Documentation Map<a class="headerlink" href="#documentation-map" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">getting-started</span></code>: tutorials, quick reference, and topic overviews</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">logic-and-solving</span></code>: core logic APIs, solver stacks, SRK, and reusable reasoning infrastructure</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">proofs</span> <span class="pre">and</span> <span class="pre">explanations</span></code>: abduction, interpolation, and interactive theorem proving</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">quantified-reasoning</span></code>: quantified solving, quantifier elimination, and instantiation techniques</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">abstraction</span></code> / <code class="docutils literal notranslate"><span class="pre">verification</span></code>: program-analysis engines and verification workflows</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">counting-probability</span></code>: model counting, sampling, and probabilistic reasoning</p></li>
+</ul>
 <div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="getting-started/index.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="getting-started/tutorial.html">Tutorial</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started/quickref.html">Quick Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started/topics.html">Research Topics and Thesis Projects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started/verification-tutorial.html">Playing wiht Program Verification with EFMC</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="logic-and-solving/index.html">Logic and Solving</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="logic-and-solving/bool.html">Boolean Reasoning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logic-and-solving/smt.html">SMT Solving</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logic-and-solving/ff.html">SMT Solving for Finite Field</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logic-and-solving/ff.html#theory-reference-finite-fields">Theory Reference: Finite Fields</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logic-and-solving/ff.html#references">References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logic-and-solving/fol.html">First-Order Logic (FOL)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logic-and-solving/utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logic-and-solving/srk.html">SRK Symbolic Reasoning Kit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logic-and-solving/unification.html">Unification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logic-and-solving/unification.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logic-and-solving/unification.html#components">Components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logic-and-solving/unification.html#applications">Applications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logic-and-solving/unification.html#references">References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logic-and-solving/allsmt.html">AllSMT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logic-and-solving/backbone.html">Backbone Computation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logic-and-solving/unsat_core.html">UNSAT Core Extraction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logic-and-solving/optimization.html">Optimization Modulo Theory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logic-and-solving/knowledge_compilation.html">Knowledge Compilation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logic-and-solving/parallel_cdclt.html">Parallel SMT CDCL(T) Solving</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="inference/index.html">Proofs and Explanations</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="inference/abduction.html">Abduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inference/interpolant.html">Interpolant Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inference/itp.html">Interactive Theorem Proving (ITP)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quantified-reasoning/index.html">Quantified Reasoning</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quantified-reasoning/quantifiers.html">Playing wth Quantifiers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quantified-reasoning/qe.html">Quantifier Elimination (QE)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quantified-reasoning/qi.html">Quantifier Instantiation (QI)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="automata-languages/index.html">Automata and Languages</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="automata-languages/automata.html">Automata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="automata-languages/automata.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="automata-languages/automata.html#components">Components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="automata-languages/automata.html#applications">Applications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="automata-languages/automata.html#references">References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="automata-languages/cfl.html">Context-Free Language Reachability</a></li>
+<li class="toctree-l2"><a class="reference internal" href="automata-languages/cfl.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="automata-languages/cfl.html#components">Components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="automata-languages/cfl.html#applications">Applications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="automata-languages/cfl.html#references">References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="automata-languages/cflobdd.html">CFL OBDD (Context-Free Language Ordered Binary Decision Diagrams)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="verification/index.html">Verification</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="verification/bdd.html">BDD-based Symbolic Model Checking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verification/verification.html">Program Verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verification/polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verification/houdini.html">Houdini</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verification/kinduction.html">K-induction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verification/ksafety.html">K-Safety Verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verification/ranking_functions.html">Ranking Function Templates for Termination Verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verification/danger.html">Danger Invariants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verification/ltl.html">Linear Teamporal Logic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verification/symautomata.html">Symbolic Finite Automata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verification/llm4inv.html">LLM4Inv: LLM-Guided Invariant Synthesis</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="abstraction/index.html">Abstraction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abstraction/symbolic_abstraction.html">Symbolic Abstraction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abstraction/predicate_abstraction.html">Predicate Abstraction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abstraction/predabs.html">Predicate Abstraction and CEGAR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abstraction/monabs.html">Monadic Predicate Abstraction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abstraction/absint.html">Abstraction Interpretation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abstraction/absint.html#widening">Widening</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abstraction/absint.html#making-abstraction-interpretation-complete">Making Abstraction Interpretation Complete</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="counting-probability/index.html">Counting, Sampling, and Probability</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="counting-probability/counting.html">Model Counting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="counting-probability/sampling.html">Model Sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="counting-probability/prob.html">Probabilistic Reasoning (aria/prob)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="synthesis/index.html">Program Synthesis</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="synthesis/synthesis.html">Program Synthesis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="synthesis/synthesis.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="synthesis/synthesis.html#components">Components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="synthesis/synthesis.html#applications">Applications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="synthesis/synthesis.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="llm-ml/index.html">LLM and ML</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="llm-ml/llmtools.html">LLM Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cli-tools/index.html">CLI and Tools</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cli-tools/cli.html">CLI Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli-tools/translator.html">Translator Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli-tools/translator.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli-tools/translator.html#components">Components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli-tools/translator.html#command-line-interface-aria-cli-fmldoc-py">Command-Line Interface (<code class="docutils literal notranslate"><span class="pre">aria/cli/fmldoc.py</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli-tools/translator.html#examples">Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli-tools/translator.html#applications">Applications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli-tools/translator.html#references">References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli-tools/applications.html">Applications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli-tools/boogie_frontend.html">Boogie Frontend for EFMC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli-tools/c_frontend.html">C Frontend for EFMC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli-tools/chctools.html">Constrained Horn Clauses (CHC) Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli-tools/verifytools.html">Verification Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="global_params.html">Global Parameters</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="global_params.html#directory-structure">Directory Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="global_params.html#module-overview">Module Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="global_params.html#key-components">Key Components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="global_params.html#usage-patterns-across-codebase">Usage Patterns Across Codebase</a></li>
+<li class="toctree-l2"><a class="reference internal" href="global_params.html#physical-directory-structure">Physical Directory Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="global_params.html#domains-using-global-parameters">Domains Using Global Parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="global_params.html#design-patterns">Design Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="global_params.html#documentation-quality">Documentation Quality</a></li>
+<li class="toctree-l2"><a class="reference internal" href="global_params.html#recommendations-for-enhancement">Recommendations for Enhancement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="global_params.html#integration-points">Integration Points</a></li>
+<li class="toctree-l2"><a class="reference internal" href="global_params.html#key-features">Key Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="global_params.html#size-statistics">Size Statistics</a></li>
+</ul>
+</li>
+</ul>
 </div>
 </section>
 </section>
@@ -153,7 +300,9 @@
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="getting-started/index.html" class="btn btn-neutral float-right" title="Getting Started" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 
