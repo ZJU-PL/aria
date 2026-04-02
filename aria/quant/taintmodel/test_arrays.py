@@ -35,3 +35,18 @@ def test_store_independence_on_parts():
     expr = Store(a, i, v)
     sic = infer_sic(expr, {i, v})
     _assert_equiv(sic, BoolVal(False))
+
+
+def test_select_const_array_inherits_value_sic():
+    i, v = Ints("i v")
+    expr = Select(K(IntSort(), v), i)
+    sic = infer_sic(expr, {i})
+    _assert_equiv(sic, BoolVal(True))
+
+
+def test_select_array_ite_of_const_arrays_is_index_independent():
+    c = Bool("c")
+    i, v, w = Ints("i v w")
+    expr = Select(If(c, K(IntSort(), v), K(IntSort(), w)), i)
+    sic = infer_sic(expr, {i})
+    _assert_equiv(sic, BoolVal(True))

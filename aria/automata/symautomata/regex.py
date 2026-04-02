@@ -9,8 +9,6 @@ from collections import OrderedDict
 from operator import attrgetter
 
 from aria.automata.symautomata.alphabet import createalphabet
-from aria.automata.symautomata.dfa import DFA
-from aria.automata.symautomata.flex2fst import Flexparser
 
 
 class Regex:
@@ -30,7 +28,11 @@ class Regex:
         if alphabet is None:
             alphabet = createalphabet()
         self.alphabet = alphabet
-        self.mma = DFA(self.alphabet)
+        try:
+            from aria.automata.symautomata.dfa import DFA as DFAClass
+        except ImportError:
+            from aria.automata.symautomata.pythondfa import PythonDFA as DFAClass
+        self.mma = DFAClass(self.alphabet)
         self.mma.init_from_acceptor(input_fst_a)
         # a is a matrix that holds all transitions
         # If there is a transition from state 0 to state 1 with the symbol x
@@ -232,13 +234,15 @@ class Regex:
     def checkIfBothAreNeeded(
         self, inputA, inputB
     ):  # based on the fact that ([^b]*|b([^i])*) is equal to  .*
-        try:
-            input1 = re.search(r"\(\[\^(.+?)\]\)\*", inputA).group(1)
-        except AttributeError:
+        input1_match = re.search(r"\(\[\^(.+?)\]\)\*", inputA)
+        if input1_match is not None:
+            input1 = input1_match.group(1)
+        else:
             input1 = inputA
-        try:
-            input2FirstChar = re.search(r"\((.+?)\)\*", inputB).group(1)[0]
-        except AttributeError:
+        input2_match = re.search(r"\((.+?)\)\*", inputB)
+        if input2_match is not None:
+            input2FirstChar = input2_match.group(1)[0]
+        else:
             input2FirstChar = inputB[0]
 
         if len(input1) == 1 and input1 == input2FirstChar:
@@ -249,6 +253,8 @@ class Regex:
     def replaceAlphabetMixed(self, input1, input2):
         found1 = 0
         found2 = 0
+        final1 = input1
+        final2 = input2
         if "|" not in input1:
             final1 = input1
             if len(input1) > 1:
@@ -291,7 +297,7 @@ class Regex:
 
     def getMaxInternalPath(self, inkeys):
         maxkey = 0
-        keys = inkeys
+        keys = list(inkeys)
         if "same" in keys:
             keys.remove("same")
         if "rest" in keys:
@@ -321,16 +327,16 @@ class Regex:
     def fixBrzozowskiBackwardLoopRemoval(self):
 
         # Remove targets that point to start
-        for i in self.A:
+        for i in list(self.A.keys()):
             if i != 0:
                 for target in self.A[i].keys():
                     if target == 0:
                         self.A[i].pop(target)
 
-        for i in self.A:
+        for i in list(self.A.keys()):
             poplist = []
             for target in self.A[i]:
-                if target < i:
+                if isinstance(target, int) and target < i:
                     exists, transfer_value, transfer_state = self.existsPath(
                         target, i, []
                     )
@@ -356,7 +362,7 @@ class Regex:
         found = 0
         start = 0
         # First Try to Optimize the Strings by doing the possible replacements of special cases to string. e.c change a loop with character e to (e)*
-        for state_a in self.A.keys():
+        for state_a in list(self.A.keys()):
             # Loopholes
             if state_a in self.A[state_a]:
                 same = ""
@@ -371,7 +377,7 @@ class Regex:
                 del self.A[state_a][state_a]
             # Final State
             if len(self.A[state_a].keys()) == 1 and "string" in self.A[state_a].keys():
-                for state_b in self.A:
+                for state_b in list(self.A.keys()):
                     if state_b != state_a and state_b in self.A:
                         if state_a in self.A[state_b]:
                             if (
@@ -429,7 +435,7 @@ class Regex:
                 and "same" in self.A[state_a].keys()
             ):
                 del self.A[state_a]
-                for state_b in self.A:
+                for state_b in list(self.A.keys()):
                     if state_b in self.A and state_a in self.A[state_b]:
                         del self.A[state_b][state_a]
                         found = 1
@@ -498,6 +504,7 @@ class Regex:
                 and "rest" in self.A[state_a]
                 and "same" in self.A[state_a]
             ):
+                add = ""
                 if self.A[state_a]["rest"] != "":
                     add = "(" + self.A[state_a]["rest"] + ")?"
                 self.A[state_a]["string"] = (
@@ -517,7 +524,7 @@ class Regex:
                 and len(self.A[state_a].keys()) == 0
             ):
                 del self.A[state_a]
-                for state_b in self.A:
+                for state_b in list(self.A.keys()):
                     if state_b in self.A and state_a in self.A[state_b]:
                         del self.A[state_b][state_a]
 
@@ -525,7 +532,7 @@ class Regex:
 
     def fixBrzozowskiAdvanced(self, found):
         start = 0
-        for state_a in self.A:
+        for state_a in list(self.A.keys()):
             maxkey = self.getMaxInternalPath(self.A[state_a].keys())
             if (
                 state_a != start
@@ -614,6 +621,8 @@ def main():
     else:
         targetfile = argv[1]
     print("Parsing ruleset: " + targetfile, end=" ")
+    from aria.automata.symautomata.flex2fst import Flexparser
+
     flex_a = Flexparser()
     mma = flex_a.yyparse(targetfile)
     print("OK")

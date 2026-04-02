@@ -1,138 +1,241 @@
-"""
-This module performs all basic SFA operations.
-It is an interface for sfa automata.
-TODO: This module is not fully implemented yet. Maybe we need to use Z3's Python API for this.
-"""
+from __future__ import annotations
 
-# !/usr/bin/python
-import random
-import string
-from typing import Iterable, Iterator, List, Optional
+from collections import deque
+from typing import Any, Callable, Deque, Dict, Iterable, Iterator, List, Optional, Sequence, Set, Tuple
 
-from aria.automata.symautomata.dfa import DFA
+import z3
 
 
 class Predicate:
-    """
-    The predicate statement
-    """
-
-    def __init__(self, initializer: object):
-        """
-        This __init__ method is not implemented
-        """
-        raise NotImplementedError("__init__ method not implemented")
-
-    def is_sat(self, symbol: str) -> bool:
-        """
-        This is_sat method is not implemented
-        """
+    def is_sat(self, symbol: Optional[object] = None) -> bool:
         raise NotImplementedError("is_sat method not implemented")
 
-    def refactor(self, symbol: str, value: bool) -> None:
-        """
-        This refactor method is not implemented
-        """
-        raise NotImplementedError("refactor method not implemented")
+    def conjunction(self, other: "Predicate") -> "Predicate":
+        raise NotImplementedError("conjunction method not implemented")
 
-    def get_witness(self) -> str:
-        """
-        This get_witness method is not implemented
-        """
+    def disjunction(self, other: "Predicate") -> "Predicate":
+        raise NotImplementedError("disjunction method not implemented")
+
+    def negate(self) -> "Predicate":
+        raise NotImplementedError("negate method not implemented")
+
+    def is_equivalent(self, other: "Predicate") -> bool:
+        raise NotImplementedError("is_equivalent method not implemented")
+
+    def get_witness(self) -> object:
         raise NotImplementedError("get_witness method not implemented")
 
-    def __iter__(self) -> Iterator[str]:
-        """
-        This __iter__ method is not implemented
-        """
-        raise NotImplementedError("__iter__ method not implemented")
+    def set_universe(self, universe: Iterable[object]) -> None:
+        del universe
+
+    def top(self) -> "Predicate":
+        return self.disjunction(self.negate())
+
+    def __and__(self, other: "Predicate") -> "Predicate":
+        return self.conjunction(other)
+
+    def __or__(self, other: "Predicate") -> "Predicate":
+        return self.disjunction(other)
+
+    def __invert__(self) -> "Predicate":
+        return self.negate()
+
+    def __iter__(self) -> Iterator[object]:
+        raise TypeError("Predicate is not enumerable")
 
 
 class SetPredicate(Predicate):
-    """
-    This class initializes and sets a predicate for the
-    current transition
-    """
+    def __init__(
+        self,
+        initializer: Iterable[object],
+        universe: Optional[Iterable[object]] = None,
+    ):
+        self.pset: Set[object] = set(initializer)
+        self.universe: Optional[Set[object]] = (
+            set(universe) if universe is not None else None
+        )
 
-    def __init__(self, initializer: Iterable[str]):
-        """
-        Initialization Function
-        Args:
-            initializer (list): A list of characters
-        Returns:
-            None
-        """
-        self.pset = set(initializer)
-
-    def is_sat(self, symbol: str) -> bool:
-        """
-        Args:
-            symbol:
-        Returns:
-            bool: The response can be true or false
-        """
+    def is_sat(self, symbol: Optional[object] = None) -> bool:
+        if symbol is None:
+            return bool(self.pset)
         return symbol in self.pset
 
-    def refactor(self, symbol: str, value: bool) -> None:
-        """
-        Args:
-            symbol:
-            value:
-        Returns:
-            None
-        """
-        if value:
-            self.pset.add(symbol)
-        else:
-            self.pset.remove(symbol)
+    def conjunction(self, other: Predicate) -> Predicate:
+        if not isinstance(other, SetPredicate):
+            raise TypeError("SetPredicate can only combine with SetPredicate")
+        universe = self._merged_universe(other)
+        return SetPredicate(self.pset & other.pset, universe)
 
-    def get_witness(self) -> str:
-        """
-        Args:
-            None
-        Returns:
-            str: A random sample
-        """
-        return random.sample(self.pset, 1)[0]
+    def disjunction(self, other: Predicate) -> Predicate:
+        if not isinstance(other, SetPredicate):
+            raise TypeError("SetPredicate can only combine with SetPredicate")
+        universe = self._merged_universe(other)
+        return SetPredicate(self.pset | other.pset, universe)
 
-    def __iter__(self) -> Iterator[str]:
-        """
-        Args:
-            None
-        Returns:
-            None
-        """
+    def negate(self) -> Predicate:
+        if self.universe is None:
+            raise ValueError("SetPredicate negation requires a universe")
+        return SetPredicate(self.universe - self.pset, self.universe)
+
+    def is_equivalent(self, other: Predicate) -> bool:
+        if not isinstance(other, SetPredicate):
+            return False
+        return self.pset == other.pset
+
+    def get_witness(self) -> object:
+        if not self.pset:
+            raise ValueError("Unsatisfiable predicate has no witness")
+        return next(iter(self.pset))
+
+    def set_universe(self, universe: Iterable[object]) -> None:
+        self.universe = set(universe)
+
+    def _merged_universe(self, other: "SetPredicate") -> Optional[Set[object]]:
+        if self.universe is None:
+            return other.universe
+        if other.universe is None:
+            return self.universe
+        return self.universe | other.universe
+
+    def __iter__(self) -> Iterator[object]:
         return iter(self.pset)
 
 
-class SFAState:
-    """The SFA state structure"""
+class Z3Predicate(Predicate):
+    def __init__(
+        self,
+        symbol: Any,
+        formula: Any,
+        universe: Optional[Any] = None,
+    ):
+        self.symbol = symbol
+        self.formula = z3.simplify(formula)
+        self.universe = z3.simplify(universe) if universe is not None else z3.BoolVal(True)
 
+    @classmethod
+    def bitvec(
+        cls,
+        width: int,
+        formula: Optional[Any] = None,
+        name: str = "sym",
+        universe: Optional[Any] = None,
+    ) -> "Z3Predicate":
+        symbol = z3.BitVec(name, width)
+        if formula is None:
+            formula = z3.BoolVal(True)
+        return cls(symbol, formula, universe)
+
+    def is_sat(self, symbol: Optional[object] = None) -> bool:
+        solver = z3.Solver()
+        solver.add(self._semantic_formula())
+        if symbol is not None:
+            solver.add(self.symbol == self._to_symbol_value(symbol))
+        return solver.check() == z3.sat
+
+    def conjunction(self, other: Predicate) -> Predicate:
+        aligned_formula, aligned_universe = self._aligned(other)
+        return Z3Predicate(
+            self.symbol,
+            z3.And(self.formula, aligned_formula),
+            z3.And(self.universe, aligned_universe),
+        )
+
+    def disjunction(self, other: Predicate) -> Predicate:
+        aligned_formula, aligned_universe = self._aligned(other)
+        return Z3Predicate(
+            self.symbol,
+            z3.Or(
+                z3.And(self.universe, self.formula),
+                z3.And(aligned_universe, aligned_formula),
+            ),
+            z3.Or(self.universe, aligned_universe),
+        )
+
+    def negate(self) -> Predicate:
+        return Z3Predicate(self.symbol, z3.Not(self.formula), self.universe)
+
+    def is_equivalent(self, other: Predicate) -> bool:
+        aligned_formula, aligned_universe = self._aligned(other)
+        solver = z3.Solver()
+        solver.add(
+            z3.Xor(
+                self._semantic_formula(),
+                z3.And(aligned_universe, aligned_formula),
+            )
+        )
+        return solver.check() == z3.unsat
+
+    def get_witness(self) -> object:
+        solver = z3.Solver()
+        solver.add(self._semantic_formula())
+        if solver.check() != z3.sat:
+            raise ValueError("Unsatisfiable predicate has no witness")
+        model = solver.model()
+        return self._from_model_value(model.eval(self.symbol, model_completion=True))
+
+    def top(self) -> Predicate:
+        return Z3Predicate(self.symbol, z3.BoolVal(True), self.universe)
+
+    def _aligned(self, other: Predicate) -> Tuple[Any, Any]:
+        if not isinstance(other, Z3Predicate):
+            raise TypeError("Z3Predicate can only combine with Z3Predicate")
+        if self.symbol.sort() != other.symbol.sort():
+            raise TypeError("Z3Predicate sorts must match")
+        substitution = [(other.symbol, self.symbol)]
+        return (
+            z3.simplify(z3.substitute(other.formula, *substitution)),
+            z3.simplify(z3.substitute(other.universe, *substitution)),
+        )
+
+    def _to_symbol_value(self, symbol: object) -> Any:
+        sort = self.symbol.sort()
+        if z3.is_bv_sort(sort):
+            bv_size = sort.size()
+            if isinstance(symbol, str):
+                if len(symbol) != 1:
+                    raise ValueError("Only single-character strings map to bit-vectors")
+                return z3.BitVecVal(ord(symbol), bv_size)
+            return z3.BitVecVal(self._coerce_int(symbol), bv_size)
+        if sort.kind() == z3.Z3_INT_SORT:
+            return z3.IntVal(self._coerce_int(symbol))
+        if sort.kind() == z3.Z3_BOOL_SORT:
+            return z3.BoolVal(bool(symbol))
+        raise TypeError("Unsupported Z3 sort for symbolic predicates")
+
+    def _from_model_value(self, value: Any) -> object:
+        if z3.is_bv_value(value):
+            return value.as_long()
+        if z3.is_int_value(value):
+            return value.as_long()
+        if z3.is_true(value):
+            return True
+        if z3.is_false(value):
+            return False
+        return value
+
+    def _coerce_int(self, symbol: object) -> int:
+        if isinstance(symbol, bool):
+            return int(symbol)
+        if isinstance(symbol, int):
+            return symbol
+        raise TypeError("Symbol must be an integer or single-character string")
+
+    def _semantic_formula(self) -> Any:
+        return z3.And(self.universe, self.formula)
+
+
+class SFAState:
     def __init__(self, sid: Optional[int] = None):
-        """
-        Args:
-            sid (int): The state identifier
-        Returns:
-            None
-        """
-        self.final: bool = False
-        self.initial: bool = False
-        self.state_id: Optional[int] = sid
-        self.arcs: List[SFAArc] = []  # type: ignore[name-defined]
+        self.final = False
+        self.initial = False
+        self.state_id = sid
+        self.arcs: List[SFAArc] = []
 
     def __iter__(self) -> Iterator["SFAArc"]:
-        """
-        Args:
-            None
-        Returns:
-            None
-        """
         return iter(self.arcs)
 
 
 class SFAArc:
-    """The SFA Arc structure"""
-
     def __init__(
         self,
         src_state_id: int,
@@ -140,225 +243,433 @@ class SFAArc:
         guard_p: Predicate,
         term: Optional[object] = None,
     ):
-        """
-        Initialization function for Arc's guardgen structure
-        Args:
-            src_state_id (int): The source state identifier
-            dst_state_id (int): The destination state identifier
-            guard_p: The input character
-            term: The input term
-        Returns:
-            None
-        """
-        self.src_state: int = src_state_id
-        self.dst_state: int = dst_state_id
-        self.guard: Predicate = guard_p
-        self.term: Optional[object] = None
+        self.src_state = src_state_id
+        self.dst_state = dst_state_id
+        self.guard = guard_p
+        self.term = term
 
 
 class SFA:
-    """
-    Symbolic Finite Automata (SFAs) are finite state symautomata
-    in which the alphabet is given by a Boolean algebra that may
-    have an infinite domain, and transitions are labeled with
-    first-order predicates over such algebra
-    """
-
-    def __init__(self, alphabet: Optional[List[str]] = None):
-        """
-        Initialization of the SFA oject
-        Args:
-            alphabet (list): The input alphabet
-        Returns:
-            None
-        """
+    def __init__(
+        self,
+        alphabet: Optional[Sequence[object]] = None,
+        predicate_factory: Optional[Callable[[], Predicate]] = None,
+    ):
         self.states: List[SFAState] = []
         self.arcs: List[SFAArc] = []
-        self.alphabet: Optional[List[str]] = alphabet
+        self.alphabet = list(alphabet) if alphabet is not None else None
+        self.predicate_factory = predicate_factory
 
-    def add_state(self) -> None:
-        """This function adds a new state"""
+    def __getitem__(self, index: int) -> SFAState:
+        return self.states[index]
+
+    def add_state(self, initial: bool = False, final: bool = False) -> int:
         sid = len(self.states)
-        self.states.append(SFAState(sid))
+        state = SFAState(sid)
+        if sid == 0 and not any(existing.initial for existing in self.states):
+            state.initial = True
+        if initial:
+            for existing in self.states:
+                existing.initial = False
+            state.initial = True
+        state.final = final
+        self.states.append(state)
+        return sid
 
-    def add_arc(self, src: int, dst: int, char: str) -> None:
-        """
-        This function adds a new arc in a SFA state
-        Args:
-            src (int): The source state identifier
-            dst (int): The destination state identifier
-            char (str): The transition symbol
-        Returns:
-            None
-        """
-        assert type(src) == type(int()) and type(dst) == type(
-            int()
-        ), "State type should be integer."
-        while src >= len(self.states) or dst >= len(self.states):
-            self.add_state()
-        self.states[src].arcs.append(SFAArc(src, dst, char))
+    @classmethod
+    def from_acceptor(
+        cls,
+        acceptor: object,
+        alphabet: Optional[Sequence[object]] = None,
+    ) -> "SFA":
+        derived_alphabet = alphabet
+        if derived_alphabet is None:
+            derived_alphabet = getattr(acceptor, "alphabet", None)
+        result = cls(derived_alphabet)
+        result.init_from_acceptor(acceptor)
+        return result
 
-    def random_string(self, size: int = 1) -> str:
-        """
-        This function generates a random string
-        Args:
-            size (int): The length of the random string
-        Returns:
-            str: A random string
-        """
-        return "".join(random.choice(self.alphabet or []) for _ in range(size))
+    def init_from_acceptor(self, acceptor: object) -> None:
+        acceptor_obj: Any = acceptor
+        derived_alphabet = getattr(acceptor, "alphabet", None)
+        if self.alphabet is None and derived_alphabet is not None:
+            self.alphabet = list(derived_alphabet)
+        self.states = []
+        self.arcs = []
 
-    def consume_input(self, inp: str) -> bool:
-        """
-        Return True/False if the machine accepts/reject the input.
-        Args:
-            inp (str): input string to be consumed
-        Retunrs:
-            bool: A true or false value depending on if the DFA
-                accepts the provided input
-        """
-        cur_state = self.states[0]
-        for character in inp:
-            found = False
-            for arc in cur_state.arcs:
-                if arc.guard.is_sat(character):
-                    cur_state = self.states[arc.dst_state]
-                    found = True
-                    break
+        for state in getattr(acceptor_obj, "states", []):
+            self.add_state(initial=bool(state.initial), final=bool(state.final))
 
-            if not found:
-                raise RuntimeError("SFA not complete")
+        if not self.states and hasattr(acceptor_obj, "states"):
+            return
 
-        return cur_state.final
-
-    def concretize(self) -> DFA:
-        """
-        Transforms the SFA into a DFA
-        Args:
-            None
-        Returns:
-            DFA: The generated DFA
-        """
-        dfa = DFA(self.alphabet)
-        for state in self.states:
+        for state in getattr(acceptor_obj, "states", []):
             for arc in state.arcs:
-                for char in arc.guard:
-                    dfa.add_arc(arc.src_state, arc.dst_state, char)
+                symbol = acceptor_obj.isyms.find(arc.ilabel)
+                self.add_arc(
+                    state.stateid,
+                    arc.nextstate,
+                    SetPredicate([symbol], self.alphabet),
+                )
 
-        for i in range(len(self.states)):
-            if self.states[i].final:
-                dfa[i].final = True
+    def set_final(self, state_id: int, final: bool = True) -> None:
+        self._ensure_state(state_id)
+        self.states[state_id].final = final
+
+    def add_arc(
+        self,
+        src: int,
+        dst: int,
+        guard: object,
+        term: Optional[object] = None,
+    ) -> None:
+        self._ensure_state(max(src, dst))
+        predicate = self._coerce_guard(guard)
+        arc = SFAArc(src, dst, predicate, term)
+        self.states[src].arcs.append(arc)
+        self.arcs.append(arc)
+
+    def consume_input(self, inp: Sequence[object]) -> bool:
+        current_states = set(self.initial_states())
+        for symbol in self._iter_input(inp):
+            next_states: Set[int] = set()
+            for state_id in current_states:
+                for arc in self.states[state_id].arcs:
+                    if arc.guard.is_sat(symbol):
+                        next_states.add(arc.dst_state)
+            if not next_states:
+                return False
+            current_states = next_states
+        return any(self.states[state_id].final for state_id in current_states)
+
+    def accepts(self, inp: Sequence[object]) -> bool:
+        return self.consume_input(inp)
+
+    def is_empty(self) -> bool:
+        return self.get_witness() is None
+
+    def get_witness(self) -> Optional[List[object]]:
+        if not self.states:
+            return None
+        queue: Deque[Tuple[int, List[object]]] = deque(
+            (state_id, []) for state_id in self.initial_states()
+        )
+        visited = set(self.initial_states())
+        while queue:
+            state_id, word = queue.popleft()
+            state = self.states[state_id]
+            if state.final:
+                return word
+            for arc in state.arcs:
+                if not arc.guard.is_sat():
+                    continue
+                if arc.dst_state in visited:
+                    continue
+                visited.add(arc.dst_state)
+                queue.append((arc.dst_state, word + [arc.guard.get_witness()]))
+        return None
+
+    def intersection(self, other: "SFA") -> "SFA":
+        return self._product(other, lambda left, right: left and right)
+
+    def union(self, other: "SFA") -> "SFA":
+        return self._product(other, lambda left, right: left or right, complete=True)
+
+    def difference(self, other: "SFA") -> "SFA":
+        return self._product(other, lambda left, right: left and not right, complete=True)
+
+    def symmetric_difference(self, other: "SFA") -> "SFA":
+        return self._product(other, lambda left, right: left != right, complete=True)
+
+    def complement(self) -> "SFA":
+        deterministic = self.determinize().complete()
+        result = deterministic.copy()
+        for state in result.states:
+            state.final = not state.final
+        return result
+
+    def is_equivalent(self, other: "SFA") -> bool:
+        return self.symmetric_difference(other).is_empty()
+
+    def determinize(self) -> "SFA":
+        if not self.states:
+            result = SFA(self.alphabet, self.predicate_factory)
+            result.add_state(initial=True, final=False)
+            return result
+        result = SFA(self.alphabet, self.predicate_factory)
+        initial_subset = frozenset(self.initial_states())
+        subset_to_state: Dict[frozenset[int], int] = {}
+        queue: Deque[frozenset[int]] = deque([initial_subset])
+
+        initial_state_id = result.add_state(initial=True)
+        result.states[initial_state_id].final = any(
+            self.states[state_id].final for state_id in initial_subset
+        )
+        subset_to_state[initial_subset] = initial_state_id
+
+        while queue:
+            current_subset = queue.popleft()
+            current_id = subset_to_state[current_subset]
+            outgoing = [
+                arc for state_id in current_subset for arc in self.states[state_id].arcs
+            ]
+            transitions = self._partition_transitions(outgoing)
+            for guard, destination_subset in transitions:
+                if destination_subset not in subset_to_state:
+                    subset_to_state[destination_subset] = result.add_state()
+                    result.states[subset_to_state[destination_subset]].final = any(
+                        self.states[state_id].final for state_id in destination_subset
+                    )
+                    queue.append(destination_subset)
+                result.add_arc(current_id, subset_to_state[destination_subset], guard)
+        return result
+
+    def complete(self) -> "SFA":
+        result = self.determinize().copy()
+        sink_state_id: Optional[int] = None
+        state_ids = list(range(len(result.states)))
+        template = result._predicate_template() if result.states else None
+        for state_id in state_ids:
+            state = result.states[state_id]
+            if not state.arcs:
+                if template is None:
+                    raise ValueError(
+                        "Completion requires a finite alphabet or predicate factory"
+                    )
+                if sink_state_id is None:
+                    sink_state_id = result.add_state(final=False)
+                result.add_arc(state_id, sink_state_id, template.top())
+                continue
+            covered = state.arcs[0].guard
+            for arc in state.arcs[1:]:
+                covered = covered.disjunction(arc.guard)
+            residual = covered.negate()
+            if residual.is_sat():
+                if sink_state_id is None:
+                    sink_state_id = result.add_state(final=False)
+                result.add_arc(state_id, sink_state_id, residual)
+
+        if sink_state_id is not None:
+            assert template is not None
+            result.add_arc(sink_state_id, sink_state_id, template.top())
+        return result
+
+    def concretize(self):
+        if self.alphabet is None:
+            raise ValueError("Concretization requires a finite alphabet")
+        from aria.automata.symautomata import dfa as dfa_module
+        from aria.automata.symautomata.pythondfa import PythonDFA
+
+        deterministic = self.determinize()
+        dfa_class = getattr(dfa_module, "DFA", PythonDFA)
+        dfa = dfa_class(list(self.alphabet))
+        while len(deterministic.states) > len(dfa.states):
+            dfa.add_state()
+        if deterministic.states:
+            dfa[0].initial = True
+        for state in deterministic.states:
+            dfa[state.state_id].final = state.final
+            for arc in state.arcs:
+                for symbol in self.alphabet:
+                    if arc.guard.is_sat(symbol):
+                        dfa.add_arc(arc.src_state, arc.dst_state, symbol)
+        if hasattr(dfa, "yy_accept"):
+            dfa.yy_accept = [1 if state.final else 0 for state in dfa.states]
         return dfa
 
+    def to_regex(self) -> Optional[str]:
+        from aria.automata.symautomata.regex import Regex
+
+        return Regex(self.concretize()).get_regex()
+
+    def copy(self) -> "SFA":
+        result = SFA(self.alphabet, self.predicate_factory)
+        for state in self.states:
+            result.add_state(initial=state.initial, final=state.final)
+        for arc in self.arcs:
+            result.add_arc(arc.src_state, arc.dst_state, arc.guard, arc.term)
+        return result
+
     def save(self, txt_fst_filename: str) -> None:
-        """
-        Save the machine in the openFST format in the file denoted by
-        txt_fst_filename.
-        Args:
-            txt_fst_filename (str): The name of the file
-        Returns:
-            None
-        """
-        dfa = self.concretize()
-        return dfa.save(txt_fst_filename)
+        if self.alphabet is None:
+            raise ValueError("Saving requires a finite alphabet")
+        deterministic = self.determinize()
+        with open(txt_fst_filename, "w", encoding="utf-8") as handle:
+            for state in deterministic.states:
+                for arc in state.arcs:
+                    for symbol in self.alphabet:
+                        if arc.guard.is_sat(symbol):
+                            handle.write(
+                                f"{arc.src_state}\t{arc.dst_state}\t{symbol}\t{symbol}\n"
+                            )
+                if state.final:
+                    handle.write(f"{state.state_id}\n")
 
     def load(self, txt_fst_filename: str) -> None:
-        """
-        Save the transducer in the text file format of OpenFST.
-        The format is specified as follows:
-            arc format: src dest ilabel olabel [weight]
-            final state format: state [weight]
-        lines may occur in any order except initial state must be first line
-        Args:
-            txt_fst_filename (string): The name of the file
-        Returns:
-            None
-        """
-        raise NotImplementedError("SFA load method not implemented")
+        if self.alphabet is None:
+            raise ValueError("Loading requires a finite alphabet")
+        self.states = []
+        self.arcs = []
+        initial_state_set = False
+        with open(txt_fst_filename, "r", encoding="utf-8") as handle:
+            for raw_line in handle:
+                line = raw_line.strip()
+                if not line:
+                    continue
+                parts = line.split()
+                if len(parts) == 1:
+                    self.set_final(int(parts[0]), True)
+                    continue
+                src = int(parts[0])
+                dst = int(parts[1])
+                symbol = self._load_symbol(parts[2])
+                self.add_arc(src, dst, SetPredicate([symbol], self.alphabet))
+                if not initial_state_set:
+                    self.states[src].initial = True
+                    initial_state_set = True
+
+    def initial_states(self) -> List[int]:
+        initial = [state.state_id for state in self.states if state.initial]
+        if initial:
+            return [state_id for state_id in initial if state_id is not None]
+        if self.states:
+            return [0]
+        return []
+
+    def _ensure_state(self, state_id: int) -> None:
+        while state_id >= len(self.states):
+            self.add_state()
+
+    def _coerce_guard(self, guard: object) -> Predicate:
+        if isinstance(guard, Predicate):
+            if isinstance(guard, SetPredicate) and guard.universe is None and self.alphabet:
+                guard.set_universe(self.alphabet)
+            return guard
+        if self.alphabet is not None:
+            return SetPredicate([guard], self.alphabet)
+        return SetPredicate([guard])
+
+    def _iter_input(self, inp: Sequence[object]) -> List[object]:
+        if isinstance(inp, str):
+            return list(inp)
+        return list(inp)
+
+    def _partition_transitions(
+        self, outgoing: List[SFAArc]
+    ) -> List[Tuple[Predicate, frozenset[int]]]:
+        if not outgoing:
+            return []
+        regions: List[Tuple[Predicate, frozenset[int]]] = [
+            (outgoing[0].guard.top(), frozenset())
+        ]
+        for arc in outgoing:
+            next_regions: List[Tuple[Predicate, frozenset[int]]] = []
+            for region_guard, destination_states in regions:
+                enabled = region_guard.conjunction(arc.guard)
+                if enabled.is_sat():
+                    next_regions.append(
+                        (enabled, destination_states | frozenset([arc.dst_state]))
+                    )
+                disabled = region_guard.conjunction(arc.guard.negate())
+                if disabled.is_sat():
+                    next_regions.append((disabled, destination_states))
+            regions = next_regions
+        grouped: Dict[frozenset[int], Predicate] = {}
+        for predicate, frozen_destination in regions:
+            if not frozen_destination:
+                continue
+            if frozen_destination in grouped:
+                grouped[frozen_destination] = grouped[frozen_destination].disjunction(
+                    predicate
+                )
+            else:
+                grouped[frozen_destination] = predicate
+        return [(guard, dst) for dst, guard in grouped.items()]
+
+    def _product(
+        self,
+        other: "SFA",
+        accept_method: Callable[[bool, bool], bool],
+        complete: bool = False,
+    ) -> "SFA":
+        left = self.determinize()
+        right = other.determinize()
+        if complete:
+            left = left.complete()
+            right = right.complete()
+
+        result = SFA(
+            self.alphabet if self.alphabet is not None else other.alphabet,
+            self.predicate_factory if self.predicate_factory is not None else other.predicate_factory,
+        )
+        initial_pair = (left.initial_states()[0], right.initial_states()[0])
+        pair_to_state: Dict[Tuple[int, int], int] = {}
+        queue: Deque[Tuple[int, int]] = deque([initial_pair])
+
+        initial_state_id = result.add_state(initial=True)
+        result.states[initial_state_id].final = accept_method(
+            left.states[initial_pair[0]].final,
+            right.states[initial_pair[1]].final,
+        )
+        pair_to_state[initial_pair] = initial_state_id
+
+        while queue:
+            current_pair = queue.popleft()
+            current_id = pair_to_state[current_pair]
+            grouped: Dict[Tuple[int, int], Predicate] = {}
+            for left_arc in left.states[current_pair[0]].arcs:
+                for right_arc in right.states[current_pair[1]].arcs:
+                    guard = left_arc.guard.conjunction(right_arc.guard)
+                    if not guard.is_sat():
+                        continue
+                    dst_pair = (left_arc.dst_state, right_arc.dst_state)
+                    if dst_pair in grouped:
+                        grouped[dst_pair] = grouped[dst_pair].disjunction(guard)
+                    else:
+                        grouped[dst_pair] = guard
+            for dst_pair, guard in grouped.items():
+                if dst_pair not in pair_to_state:
+                    pair_to_state[dst_pair] = result.add_state()
+                    result.states[pair_to_state[dst_pair]].final = accept_method(
+                        left.states[dst_pair[0]].final,
+                        right.states[dst_pair[1]].final,
+                    )
+                    queue.append(dst_pair)
+                result.add_arc(current_id, pair_to_state[dst_pair], guard)
+        return result
+
+    def _predicate_template(self) -> Predicate:
+        for state in self.states:
+            for arc in state.arcs:
+                return arc.guard
+        if self.predicate_factory is not None:
+            return self.predicate_factory()
+        if self.alphabet is not None:
+            return SetPredicate([], self.alphabet)
+        raise ValueError("Cannot infer predicate universe from an empty automaton")
+
+    def _load_symbol(self, token: str) -> object:
+        if self.alphabet is None:
+            return token
+        if token in self.alphabet:
+            return token
+        for caster in (int, float):
+            try:
+                candidate = caster(token)
+            except ValueError:
+                continue
+            if candidate in self.alphabet:
+                return candidate
+        return token
 
 
 def main() -> None:
-    """Main Function"""
-    alphabet = list(string.lowercase)  # + ["<", ">"]
-
-    # Create an SFA for the regular expression .*<t>.*
-    sfa = SFA(alphabet)
-
-    # sfa.add_arc(0,0,SetPredicate([ i for i in alphabet if i != "<" ]))
-    # sfa.add_arc(0,1,SetPredicate(list("<")))
-    #
-    # sfa.add_arc(1,2,SetPredicate(list("t")))
-    # sfa.add_arc(1,0,SetPredicate([ i for i in alphabet if i != "t" ]))
-    #
-    # sfa.add_arc(2,3,SetPredicate(list(">")))
-    # sfa.add_arc(2,0,SetPredicate([ i for i in alphabet if i != ">" ]))
-    #
-    # sfa.add_arc(3,3,SetPredicate(alphabet))
-    #
-    # sfa.states[3].final = True
-
-    sfa.add_arc(
-        0, 7, SetPredicate([i for i in alphabet if i != "d" and i != "input_string"])
-    )
-    sfa.add_arc(1, 7, SetPredicate([i for i in alphabet if i != "i"]))
-    sfa.add_arc(2, 7, SetPredicate([i for i in alphabet if i != "p"]))
-    sfa.add_arc(3, 7, SetPredicate([i for i in alphabet if i != "v"]))
-    sfa.add_arc(5, 7, SetPredicate(list(alphabet)))
-    sfa.add_arc(4, 7, SetPredicate([i for i in alphabet if i != "a"]))
-    sfa.add_arc(6, 7, SetPredicate([i for i in alphabet if i != "n"]))
-    sfa.add_arc(7, 7, SetPredicate(list(alphabet)))
-
-    sfa.add_arc(0, 1, SetPredicate(list("d")))
-    sfa.add_arc(1, 3, SetPredicate(list("i")))
-    sfa.add_arc(3, 5, SetPredicate(list("v")))
-
-    sfa.add_arc(0, 2, SetPredicate(list("input_string")))
-    sfa.add_arc(2, 4, SetPredicate(list("p")))
-    sfa.add_arc(4, 6, SetPredicate(list("a")))
-    sfa.add_arc(6, 5, SetPredicate(list("n")))
-
-    sfa.states[5].final = True
-
-    dfa = sfa.concretize()
-    # dfa.minimize()
-    dfa.save("concrete_re_sfa.dfa")
-
-    # Consume some input
-    input_string = "koukouroukou"
-    print(
-        "SFA-DFA result on {}: {} - {}".format(
-            input_string,
-            sfa.consume_input(input_string),
-            dfa.consume_input(input_string),
-        )
-    )
-
-    input_string = "divspan"
-    print(
-        "SFA-DFA result on {}: {} - {}".format(
-            input_string,
-            sfa.consume_input(input_string),
-            dfa.consume_input(input_string),
-        )
-    )
-
-    input_string = "div"
-    print(
-        "SFA-DFA result on {}: {} - {}".format(
-            input_string,
-            sfa.consume_input(input_string),
-            dfa.consume_input(input_string),
-        )
-    )
-
-    input_string = "span"
-    print(
-        "SFA-DFA result on {}: {} - {}".format(
-            input_string,
-            sfa.consume_input(input_string),
-            dfa.consume_input(input_string),
-        )
-    )
+    universe = [ord("a"), ord("b")]
+    symbol = z3.BitVec("sym", 8)
+    sfa = SFA(universe, lambda: Z3Predicate(symbol, z3.BoolVal(False)))
+    sfa.add_arc(0, 1, Z3Predicate(symbol, z3.ULT(symbol, z3.BitVecVal(98, 8))))
+    sfa.set_final(1, True)
+    print(sfa.accepts([ord("a")]))
 
 
 if __name__ == "__main__":

@@ -85,7 +85,7 @@ Documentation Map
 
     getting-started/index
     logic-and-solving/index
-    inference/index
+    proofs-and-explanations/index
     quantified-reasoning/index
     automata-languages/index
     verification/index

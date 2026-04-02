@@ -41,7 +41,34 @@ Basic finite automata operations:
 Symbolic Automata (``aria/automata/symautomata``)
 ---------------------------------------------------
 
-Symbolic finite automata framework supporting predicates over infinite alphabets. This module is adapted from the `symautomata <https://github.com/spencerwuwu/symautomata>`_ project.
+Symbolic finite automata framework supporting predicate-guarded transitions. This module is adapted from the `symautomata <https://github.com/spencerwuwu/symautomata>`_ project.
+
+The current symbolic API is centered on ``aria.automata.symautomata.SFA`` and the
+guard types ``Predicate``, ``SetPredicate``, and ``Z3Predicate``.
+
+``SetPredicate`` is the finite-alphabet implementation. ``Z3Predicate`` is the
+solver-backed implementation for symbolic domains.
+
+``SFA`` also bridges to the older concrete DFA workflows:
+
+.. code-block:: python
+
+   from aria.automata.symautomata import SFA
+   from aria.automata.symautomata.dfa import DFA
+
+   dfa = DFA(["a", "b"])
+   dfa.add_arc(0, 1, "a")
+   dfa[1].final = True
+
+   sfa = SFA.from_acceptor(dfa)
+   regex = sfa.to_regex()
+
+Important semantic limits:
+
+* ``SFA.concretize()``, ``SFA.save()``, and ``SFA.load()`` require a finite alphabet.
+* ``SFA.complete()`` and ``SFA.complement()`` require either a finite alphabet or a
+  ``predicate_factory`` that can produce a predicate over the intended symbolic universe.
+* Finite save/load workflows serialize concrete symbols, not symbolic formulas.
 
 Automata Learning (``aria/automata/fa_learning.py``)
 ------------------------------------------------------
