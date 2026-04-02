@@ -72,10 +72,19 @@ def test_equality_unsat_can_be_confirmed_with_wic_verification():
     assert model is None
 
 
-def test_paper_wic_counterexample_returns_unknown(solver):
+def test_paper_wic_counterexample_is_recovered_by_refinement(solver):
     x = Int("x")
     formula = ForAll([x], Or(x < 0, x >= 0))
     res, model = solver.solve(formula)
+    assert res == "sat"
+    assert model is not None
+    assert len(model.decls()) == 0
+
+
+def test_paper_wic_counterexample_still_returns_unknown_without_refinement():
+    x = Int("x")
+    formula = ForAll([x], Or(x < 0, x >= 0))
+    res, model = QuantSolver(refine_sic=False).solve(formula)
     assert res == "unknown"
     assert model is None
 

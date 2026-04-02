@@ -4,8 +4,10 @@ Algorithm 2  (inferSIC) plus § 6 R-absorbing theory plug-ins.
 """
 from __future__ import annotations
 from functools import lru_cache
-from typing import Dict, Sequence, Set, Tuple
+from typing import Dict, List, Optional, Sequence, Set, Tuple
 from z3 import *  # type: ignore
+
+from aria.utils.z3_expr_utils import get_atoms
 
 
 # ----------------------------------------------------------------- utilities
@@ -19,6 +21,16 @@ def _any(*xs: BoolRef) -> BoolRef:
     if not xs:
         return BoolVal(False)
     return Or(*xs)
+
+
+def _has_quantifier(expr: ExprRef) -> bool:
+    stack = [expr]
+    while stack:
+        node = stack.pop()
+        if is_quantifier(node):
+            return True
+        stack.extend(node.children())
+    return False
 
 
 # ---------------------------------------------------------------- theory SIC
@@ -367,10 +379,15 @@ def infer_sic_and_wic(
     targets: Set[ExprRef],
     do_simplify: bool = True,
     verify_wic: bool = False,
+    candidate_guards: Optional[Set[ExprRef]] = None,
 ) -> Tuple[BoolRef, bool]:
     """
     Compute a **quantifier-free** SIC and whether it is a WIC for *root*
     wrt *targets* (fresh consts).
+
+    When ``candidate_guards`` is provided, the traversal also records
+    target-free Boolean guards that can later be used by the refinement loop in
+    ``QuantSolver``.
     """
 
     shadow_cache: Dict[ExprRef, Tuple[ExprRef, bool]] = {}
@@ -382,6 +399,36 @@ def infer_sic_and_wic(
 
     def _contains_target(e: ExprRef) -> bool:
         return any(_is_target_symbol(s) for s in _collect_uninterp_consts(e))
+
+    def record_guard(guard: ExprRef) -> None:
+        """
+        Export target-free Boolean structure from the taint pass.
+
+        We keep both the whole guard and its atomic predicates so that the
+        solver can choose between coarse regions and smaller feature literals
+        during refinement.
+        """
+        if candidate_guards is None:
+            return
+        if _has_quantifier(guard):
+            return
+
+        simplified = simplify(guard)
+        if _contains_target(simplified):
+            return
+
+        candidate_guards.add(simplified)
+        if is_true(simplified) or is_false(simplified) or not is_bool(simplified):
+            return
+
+        try:
+            for atom in get_atoms(simplified):
+                atom = simplify(atom)
+                if _has_quantifier(atom) or _contains_target(atom):
+                    continue
+                candidate_guards.add(atom)
+        except Exception:
+            return
 
     # Collect relevant indices for arrays (select/store occurrences)
     rel_indices: Dict[ExprRef, Set[ExprRef]] = {}
@@ -465,6 +512,7 @@ def infer_sic_and_wic(
                 return value_sic, value_wic
             idx_sic, idx_wic = go(idx)
             arr_shadow, arr_wic = get_array_shadow(arr)
+            # The shadow array stores per-index independence conditions.
             sic = And(idx_sic, Select(arr_shadow, idx))
             return sic, idx_wic and arr_wic
 
@@ -523,6 +571,9 @@ def infer_sic_and_wic(
                     e.decl().kind(), flat_children, sub_sic, e.decl().name()
                 )
                 combined = Or(psi, _all(*sub_sic))
+                if not is_false(psi):
+                    record_guard(psi)
+                record_guard(combined)
                 is_wic = psi_wic and all(sub_wic)
                 return combined, is_wic
 
@@ -532,10 +583,19 @@ def infer_sic_and_wic(
         sub_wic = [p[1] for p in sub]
         psi, psi_wic = theory_sic(e, sub_sic)
         combined = Or(psi, _all(*sub_sic))
+        if not is_false(psi):
+            record_guard(psi)
+        record_guard(combined)
         is_wic = psi_wic and all(sub_wic)
         return combined, is_wic
 
     def get_array_shadow(arr: ExprRef) -> Tuple[ExprRef, bool]:
+        """
+        Build an array of Boolean taint summaries for ``arr``.
+
+        ``Select(shadow(arr), i)`` means "reading ``arr[i]`` is independent of
+        the target symbols under the current path conditions".
+        """
         if arr in shadow_cache:
             return shadow_cache[arr]
 
@@ -573,11 +633,15 @@ def infer_sic_and_wic(
             else_shadow, else_wic = get_array_shadow(else_arr)
             sh = If(cond, then_shadow, else_shadow)
             shadow_cache[arr] = (sh, cond_wic and then_wic and else_wic)
+            # A branch guard can itself be the reason the array read becomes
+            # independent, so preserve that obligation separately.
             if not is_true(cond_sic):
                 shadow_constraints.append(cond_sic)
             return shadow_cache[arr]
 
-        # Fallback shadow: conservative taint False everywhere
+        # Fallback shadow: assume dependence everywhere. This is conservative
+        # and ensures we never synthesize a spurious SIC from an unsupported
+        # array construct.
         sh = K(arr.domain(), BoolVal(False))
         shadow_cache[arr] = (sh, False)
         return shadow_cache[arr]
@@ -587,12 +651,39 @@ def infer_sic_and_wic(
         res = And(res, *shadow_constraints)
     if do_simplify:
         res = simplify(res)
+    record_guard(res)
     if _contains_target(res):
         res = BoolVal(False)
         is_wic = False
     if verify_wic:
         is_wic = _prove_wic(root, res, set(targets_list))
     return res, is_wic
+
+
+def infer_sic_candidates(
+    root: ExprRef,
+    targets: Set[ExprRef],
+    do_simplify: bool = True,
+    verify_wic: bool = False,
+) -> Tuple[BoolRef, bool, List[BoolRef]]:
+    """
+    Return the inferred SIC together with target-free guard candidates that were
+    observed during taint propagation.
+
+    The returned list is sorted deterministically so the refinement loop can be
+    replayed and tested without depending on hash iteration order.
+    """
+    candidate_guards: Set[ExprRef] = set()
+    sic, is_wic = infer_sic_and_wic(
+        root,
+        targets,
+        do_simplify=do_simplify,
+        verify_wic=verify_wic,
+        candidate_guards=candidate_guards,
+    )
+
+    ordered = sorted(candidate_guards, key=lambda expr: expr.sexpr())
+    return sic, is_wic, [expr for expr in ordered if is_bool(expr)]
 
 
 def infer_sic(root: ExprRef, targets: Set[ExprRef], do_simplify: bool = True) -> BoolRef:
