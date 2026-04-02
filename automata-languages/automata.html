@@ -46,7 +46,7 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../logic-and-solving/index.html">Logic and Solving</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../inference/index.html">Proofs and Explanations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../proofs-and-explanations/index.html">Proofs and Explanations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../quantified-reasoning/index.html">Quantified Reasoning</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Automata and Languages</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Automata</a></li>
@@ -143,7 +143,30 @@
 </section>
 <section id="symbolic-automata-aria-automata-symautomata">
 <h2>Symbolic Automata (<code class="docutils literal notranslate"><span class="pre">aria/automata/symautomata</span></code>)<a class="headerlink" href="#symbolic-automata-aria-automata-symautomata" title="Link to this heading"></a></h2>
-<p>Symbolic finite automata framework supporting predicates over infinite alphabets. This module is adapted from the <a class="reference external" href="https://github.com/spencerwuwu/symautomata">symautomata</a> project.</p>
+<p>Symbolic finite automata framework supporting predicate-guarded transitions. This module is adapted from the <a class="reference external" href="https://github.com/spencerwuwu/symautomata">symautomata</a> project.</p>
+<p>The current symbolic API is centered on <code class="docutils literal notranslate"><span class="pre">aria.automata.symautomata.SFA</span></code> and the
+guard types <code class="docutils literal notranslate"><span class="pre">Predicate</span></code>, <code class="docutils literal notranslate"><span class="pre">SetPredicate</span></code>, and <code class="docutils literal notranslate"><span class="pre">Z3Predicate</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">SetPredicate</span></code> is the finite-alphabet implementation. <code class="docutils literal notranslate"><span class="pre">Z3Predicate</span></code> is the
+solver-backed implementation for symbolic domains.</p>
+<p><code class="docutils literal notranslate"><span class="pre">SFA</span></code> also bridges to the older concrete DFA workflows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata</span><span class="w"> </span><span class="kn">import</span> <span class="n">SFA</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.dfa</span><span class="w"> </span><span class="kn">import</span> <span class="n">DFA</span>
+
+<span class="n">dfa</span> <span class="o">=</span> <span class="n">DFA</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">])</span>
+<span class="n">dfa</span><span class="o">.</span><span class="n">add_arc</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span>
+<span class="n">dfa</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">final</span> <span class="o">=</span> <span class="kc">True</span>
+
+<span class="n">sfa</span> <span class="o">=</span> <span class="n">SFA</span><span class="o">.</span><span class="n">from_acceptor</span><span class="p">(</span><span class="n">dfa</span><span class="p">)</span>
+<span class="n">regex</span> <span class="o">=</span> <span class="n">sfa</span><span class="o">.</span><span class="n">to_regex</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Important semantic limits:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">SFA.concretize()</span></code>, <code class="docutils literal notranslate"><span class="pre">SFA.save()</span></code>, and <code class="docutils literal notranslate"><span class="pre">SFA.load()</span></code> require a finite alphabet.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SFA.complete()</span></code> and <code class="docutils literal notranslate"><span class="pre">SFA.complement()</span></code> require either a finite alphabet or a
+<code class="docutils literal notranslate"><span class="pre">predicate_factory</span></code> that can produce a predicate over the intended symbolic universe.</p></li>
+<li><p>Finite save/load workflows serialize concrete symbols, not symbolic formulas.</p></li>
+</ul>
 </section>
 <section id="automata-learning-aria-automata-fa-learning-py">
 <h2>Automata Learning (<code class="docutils literal notranslate"><span class="pre">aria/automata/fa_learning.py</span></code>)<a class="headerlink" href="#automata-learning-aria-automata-fa-learning-py" title="Link to this heading"></a></h2>

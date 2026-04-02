@@ -75,14 +75,30 @@ Symbolic Finite Automata extend traditional DFAs by using predicates on transiti
 
 * **Predicates**: Abstract conditions that determine transition validity
 * **SetPredicate**: Concrete implementation using character sets
+* **Z3Predicate**: Solver-backed implementation for symbolic domains
 * **SFA States and Arcs**: Extended state and transition structures
+
+**Operational Semantics:**
+
+* ``SFA.accepts(...)`` tracks a set of current states, so acceptance behaves like an NFA with guarded transitions.
+* ``SFA.determinize()`` partitions satisfiable guard regions and is used internally by ``complete()``, ``complement()``, and ``concretize()``.
+* ``SetPredicate.negate()`` requires a finite universe.
+* ``SFA.complete()`` and ``SFA.complement()`` require either a finite alphabet or a ``predicate_factory`` that can create a predicate over the intended symbolic universe.
+* ``SFA.save()`` and ``SFA.load()`` are finite-alphabet workflows; they do not serialize symbolic formulas.
+
+**Concrete Workflow Bridges:**
+
+* ``SFA.from_acceptor(dfa)`` lifts a concrete DFA-style acceptor into an SFA with singleton ``SetPredicate`` guards.
+* ``SFA.to_regex()`` reuses the existing DFA-to-regex workflow by concretizing first and then delegating to ``DFA.to_regex()``.
 
 **Example Usage:**
 
 .. code-block:: python
 
-   from aria.automata.symautomata.sfa import SFA, SetPredicate
+   from aria.automata.symautomata import SFA, SetPredicate, Z3Predicate
+   from aria.automata.symautomata.dfa import DFA
    import string
+   import z3
    
    # Create SFA for pattern matching
    sfa = SFA(list(string.ascii_lowercase))
@@ -97,8 +113,21 @@ Symbolic Finite Automata extend traditional DFAs by using predicates on transiti
    sfa.add_arc(0, 1, x_only)
    sfa.states[1].final = True
    
-   # Convert to concrete DFA
-   dfa = sfa.concretize()
+    # Convert to concrete DFA
+    dfa = sfa.concretize()
+
+   # Lift an existing DFA into SFA and reuse regex conversion
+   concrete = DFA(["a", "b"])
+   concrete.add_arc(0, 1, "a")
+   concrete[1].final = True
+   lifted = SFA.from_acceptor(concrete)
+   regex = lifted.to_regex()
+
+   # Use solver-backed predicates
+   sym = z3.BitVec("sym", 8)
+   symbolic = SFA([0, 1, 2, 3], predicate_factory=lambda: Z3Predicate(sym, z3.BoolVal(False), z3.ULT(sym, z3.BitVecVal(4, 8))))
+   symbolic.add_arc(0, 1, Z3Predicate(sym, z3.ULT(sym, z3.BitVecVal(2, 8)), z3.ULT(sym, z3.BitVecVal(4, 8))))
+   symbolic[1].final = True
 
 PDA (Pushdown Automata)
 ~~~~~~~~~~~~~~~~~~~~~~

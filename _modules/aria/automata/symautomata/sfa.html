@@ -1,0 +1,947 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>aria.automata.symautomata.sfa &mdash; ARIA Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            ARIA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting-started/index.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../logic-and-solving/index.html">Logic and Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../proofs-and-explanations/index.html">Proofs and Explanations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quantified-reasoning/index.html">Quantified Reasoning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../automata-languages/index.html">Automata and Languages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../verification/index.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../abstraction/index.html">Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../counting-probability/index.html">Counting, Sampling, and Probability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../synthesis/index.html">Program Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../llm-ml/index.html">LLM and ML</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../cli-tools/index.html">CLI and Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../global_params.html">Global Parameters</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">ARIA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">aria.automata.symautomata.sfa</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for aria.automata.symautomata.sfa</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">deque</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Deque</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
+
+
+<div class="viewcode-block" id="Predicate">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.Predicate">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Predicate</span><span class="p">:</span>
+<div class="viewcode-block" id="Predicate.is_sat">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.Predicate.is_sat">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_sat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symbol</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;is_sat method not implemented&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Predicate.conjunction">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.Predicate.conjunction">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">conjunction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Predicate&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Predicate&quot;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;conjunction method not implemented&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Predicate.disjunction">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.Predicate.disjunction">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">disjunction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Predicate&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Predicate&quot;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;disjunction method not implemented&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Predicate.negate">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.Predicate.negate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">negate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Predicate&quot;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;negate method not implemented&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Predicate.is_equivalent">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.Predicate.is_equivalent">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_equivalent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Predicate&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;is_equivalent method not implemented&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Predicate.get_witness">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.Predicate.get_witness">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_witness</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;get_witness method not implemented&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Predicate.set_universe">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.Predicate.set_universe">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_universe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">universe</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">object</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">del</span> <span class="n">universe</span></div>
+
+
+<div class="viewcode-block" id="Predicate.top">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.Predicate.top">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">top</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Predicate&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">disjunction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">negate</span><span class="p">())</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__and__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Predicate&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Predicate&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conjunction</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__or__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Predicate&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Predicate&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">disjunction</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__invert__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Predicate&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">negate</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">object</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Predicate is not enumerable&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="SetPredicate">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SetPredicate">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SetPredicate</span><span class="p">(</span><span class="n">Predicate</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">initializer</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">object</span><span class="p">],</span>
+        <span class="n">universe</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">object</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pset</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">initializer</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">universe</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">object</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">set</span><span class="p">(</span><span class="n">universe</span><span class="p">)</span> <span class="k">if</span> <span class="n">universe</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="SetPredicate.is_sat">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SetPredicate.is_sat">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_sat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symbol</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">symbol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pset</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pset</span></div>
+
+
+<div class="viewcode-block" id="SetPredicate.conjunction">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SetPredicate.conjunction">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">conjunction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Predicate</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Predicate</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">SetPredicate</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;SetPredicate can only combine with SetPredicate&quot;</span><span class="p">)</span>
+        <span class="n">universe</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_merged_universe</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">SetPredicate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pset</span> <span class="o">&amp;</span> <span class="n">other</span><span class="o">.</span><span class="n">pset</span><span class="p">,</span> <span class="n">universe</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SetPredicate.disjunction">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SetPredicate.disjunction">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">disjunction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Predicate</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Predicate</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">SetPredicate</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;SetPredicate can only combine with SetPredicate&quot;</span><span class="p">)</span>
+        <span class="n">universe</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_merged_universe</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">SetPredicate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pset</span> <span class="o">|</span> <span class="n">other</span><span class="o">.</span><span class="n">pset</span><span class="p">,</span> <span class="n">universe</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SetPredicate.negate">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SetPredicate.negate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">negate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Predicate</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">universe</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;SetPredicate negation requires a universe&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">SetPredicate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">universe</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">pset</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">universe</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SetPredicate.is_equivalent">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SetPredicate.is_equivalent">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_equivalent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Predicate</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">SetPredicate</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pset</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">pset</span></div>
+
+
+<div class="viewcode-block" id="SetPredicate.get_witness">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SetPredicate.get_witness">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_witness</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">pset</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsatisfiable predicate has no witness&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pset</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="SetPredicate.set_universe">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SetPredicate.set_universe">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_universe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">universe</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">object</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">universe</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">universe</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_merged_universe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;SetPredicate&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">object</span><span class="p">]]:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">universe</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">other</span><span class="o">.</span><span class="n">universe</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">universe</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">universe</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">universe</span> <span class="o">|</span> <span class="n">other</span><span class="o">.</span><span class="n">universe</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">object</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pset</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Z3Predicate">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.Z3Predicate">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Z3Predicate</span><span class="p">(</span><span class="n">Predicate</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">symbol</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="n">formula</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="n">universe</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="n">symbol</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">formula</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">simplify</span><span class="p">(</span><span class="n">formula</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">universe</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">simplify</span><span class="p">(</span><span class="n">universe</span><span class="p">)</span> <span class="k">if</span> <span class="n">universe</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">z3</span><span class="o">.</span><span class="n">BoolVal</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Z3Predicate.bitvec">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.Z3Predicate.bitvec">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">bitvec</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">formula</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;sym&quot;</span><span class="p">,</span>
+        <span class="n">universe</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Z3Predicate&quot;</span><span class="p">:</span>
+        <span class="n">symbol</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">BitVec</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">formula</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">formula</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">BoolVal</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">formula</span><span class="p">,</span> <span class="n">universe</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Z3Predicate.is_sat">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.Z3Predicate.is_sat">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_sat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symbol</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="n">solver</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Solver</span><span class="p">()</span>
+        <span class="n">solver</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_semantic_formula</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">symbol</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">solver</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symbol</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_symbol_value</span><span class="p">(</span><span class="n">symbol</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">solver</span><span class="o">.</span><span class="n">check</span><span class="p">()</span> <span class="o">==</span> <span class="n">z3</span><span class="o">.</span><span class="n">sat</span></div>
+
+
+<div class="viewcode-block" id="Z3Predicate.conjunction">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.Z3Predicate.conjunction">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">conjunction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Predicate</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Predicate</span><span class="p">:</span>
+        <span class="n">aligned_formula</span><span class="p">,</span> <span class="n">aligned_universe</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aligned</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Z3Predicate</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span>
+            <span class="n">z3</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">formula</span><span class="p">,</span> <span class="n">aligned_formula</span><span class="p">),</span>
+            <span class="n">z3</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">universe</span><span class="p">,</span> <span class="n">aligned_universe</span><span class="p">),</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Z3Predicate.disjunction">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.Z3Predicate.disjunction">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">disjunction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Predicate</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Predicate</span><span class="p">:</span>
+        <span class="n">aligned_formula</span><span class="p">,</span> <span class="n">aligned_universe</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aligned</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Z3Predicate</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span>
+            <span class="n">z3</span><span class="o">.</span><span class="n">Or</span><span class="p">(</span>
+                <span class="n">z3</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">universe</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">formula</span><span class="p">),</span>
+                <span class="n">z3</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="n">aligned_universe</span><span class="p">,</span> <span class="n">aligned_formula</span><span class="p">),</span>
+            <span class="p">),</span>
+            <span class="n">z3</span><span class="o">.</span><span class="n">Or</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">universe</span><span class="p">,</span> <span class="n">aligned_universe</span><span class="p">),</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Z3Predicate.negate">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.Z3Predicate.negate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">negate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Predicate</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Z3Predicate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span> <span class="n">z3</span><span class="o">.</span><span class="n">Not</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">formula</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">universe</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Z3Predicate.is_equivalent">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.Z3Predicate.is_equivalent">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_equivalent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Predicate</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="n">aligned_formula</span><span class="p">,</span> <span class="n">aligned_universe</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aligned</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="n">solver</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Solver</span><span class="p">()</span>
+        <span class="n">solver</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="n">z3</span><span class="o">.</span><span class="n">Xor</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_semantic_formula</span><span class="p">(),</span>
+                <span class="n">z3</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="n">aligned_universe</span><span class="p">,</span> <span class="n">aligned_formula</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">solver</span><span class="o">.</span><span class="n">check</span><span class="p">()</span> <span class="o">==</span> <span class="n">z3</span><span class="o">.</span><span class="n">unsat</span></div>
+
+
+<div class="viewcode-block" id="Z3Predicate.get_witness">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.Z3Predicate.get_witness">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_witness</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+        <span class="n">solver</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Solver</span><span class="p">()</span>
+        <span class="n">solver</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_semantic_formula</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">solver</span><span class="o">.</span><span class="n">check</span><span class="p">()</span> <span class="o">!=</span> <span class="n">z3</span><span class="o">.</span><span class="n">sat</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsatisfiable predicate has no witness&quot;</span><span class="p">)</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_from_model_value</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span> <span class="n">model_completion</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Z3Predicate.top">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.Z3Predicate.top">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">top</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Predicate</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Z3Predicate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span> <span class="n">z3</span><span class="o">.</span><span class="n">BoolVal</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">universe</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_aligned</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Predicate</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Z3Predicate</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Z3Predicate can only combine with Z3Predicate&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">symbol</span><span class="o">.</span><span class="n">sort</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Z3Predicate sorts must match&quot;</span><span class="p">)</span>
+        <span class="n">substitution</span> <span class="o">=</span> <span class="p">[(</span><span class="n">other</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">z3</span><span class="o">.</span><span class="n">simplify</span><span class="p">(</span><span class="n">z3</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">formula</span><span class="p">,</span> <span class="o">*</span><span class="n">substitution</span><span class="p">)),</span>
+            <span class="n">z3</span><span class="o">.</span><span class="n">simplify</span><span class="p">(</span><span class="n">z3</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">universe</span><span class="p">,</span> <span class="o">*</span><span class="n">substitution</span><span class="p">)),</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_to_symbol_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symbol</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="n">sort</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">z3</span><span class="o">.</span><span class="n">is_bv_sort</span><span class="p">(</span><span class="n">sort</span><span class="p">):</span>
+            <span class="n">bv_size</span> <span class="o">=</span> <span class="n">sort</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">symbol</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Only single-character strings map to bit-vectors&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">z3</span><span class="o">.</span><span class="n">BitVecVal</span><span class="p">(</span><span class="nb">ord</span><span class="p">(</span><span class="n">symbol</span><span class="p">),</span> <span class="n">bv_size</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">z3</span><span class="o">.</span><span class="n">BitVecVal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coerce_int</span><span class="p">(</span><span class="n">symbol</span><span class="p">),</span> <span class="n">bv_size</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sort</span><span class="o">.</span><span class="n">kind</span><span class="p">()</span> <span class="o">==</span> <span class="n">z3</span><span class="o">.</span><span class="n">Z3_INT_SORT</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">z3</span><span class="o">.</span><span class="n">IntVal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coerce_int</span><span class="p">(</span><span class="n">symbol</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">sort</span><span class="o">.</span><span class="n">kind</span><span class="p">()</span> <span class="o">==</span> <span class="n">z3</span><span class="o">.</span><span class="n">Z3_BOOL_SORT</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">z3</span><span class="o">.</span><span class="n">BoolVal</span><span class="p">(</span><span class="nb">bool</span><span class="p">(</span><span class="n">symbol</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Unsupported Z3 sort for symbolic predicates&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_from_model_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">z3</span><span class="o">.</span><span class="n">is_bv_value</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">value</span><span class="o">.</span><span class="n">as_long</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">z3</span><span class="o">.</span><span class="n">is_int_value</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">value</span><span class="o">.</span><span class="n">as_long</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">z3</span><span class="o">.</span><span class="n">is_true</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">z3</span><span class="o">.</span><span class="n">is_false</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="n">value</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_coerce_int</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symbol</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">symbol</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">symbol</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Symbol must be an integer or single-character string&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_semantic_formula</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">z3</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">universe</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">formula</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="SFAState">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SFAState">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SFAState</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sid</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">final</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initial</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_id</span> <span class="o">=</span> <span class="n">sid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">arcs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">SFAArc</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="s2">&quot;SFAArc&quot;</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arcs</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="SFAArc">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SFAArc">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SFAArc</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">src_state_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">dst_state_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">guard_p</span><span class="p">:</span> <span class="n">Predicate</span><span class="p">,</span>
+        <span class="n">term</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">src_state</span> <span class="o">=</span> <span class="n">src_state_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dst_state</span> <span class="o">=</span> <span class="n">dst_state_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">guard</span> <span class="o">=</span> <span class="n">guard_p</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">term</span> <span class="o">=</span> <span class="n">term</span></div>
+
+
+
+<div class="viewcode-block" id="SFA">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SFA">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SFA</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">alphabet</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">object</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">predicate_factory</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[],</span> <span class="n">Predicate</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">SFAState</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">arcs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">SFAArc</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">alphabet</span><span class="p">)</span> <span class="k">if</span> <span class="n">alphabet</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">predicate_factory</span> <span class="o">=</span> <span class="n">predicate_factory</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SFAState</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+<div class="viewcode-block" id="SFA.add_state">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SFA.add_state">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">final</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">sid</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">)</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">SFAState</span><span class="p">(</span><span class="n">sid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sid</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">existing</span><span class="o">.</span><span class="n">initial</span> <span class="k">for</span> <span class="n">existing</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">):</span>
+            <span class="n">state</span><span class="o">.</span><span class="n">initial</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">initial</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">existing</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">:</span>
+                <span class="n">existing</span><span class="o">.</span><span class="n">initial</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">state</span><span class="o">.</span><span class="n">initial</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">state</span><span class="o">.</span><span class="n">final</span> <span class="o">=</span> <span class="n">final</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sid</span></div>
+
+
+<div class="viewcode-block" id="SFA.from_acceptor">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SFA.from_acceptor">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_acceptor</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">acceptor</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span>
+        <span class="n">alphabet</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">object</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SFA&quot;</span><span class="p">:</span>
+        <span class="n">derived_alphabet</span> <span class="o">=</span> <span class="n">alphabet</span>
+        <span class="k">if</span> <span class="n">derived_alphabet</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">derived_alphabet</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">acceptor</span><span class="p">,</span> <span class="s2">&quot;alphabet&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">derived_alphabet</span><span class="p">)</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">init_from_acceptor</span><span class="p">(</span><span class="n">acceptor</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="SFA.init_from_acceptor">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SFA.init_from_acceptor">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">init_from_acceptor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">acceptor</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">acceptor_obj</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">acceptor</span>
+        <span class="n">derived_alphabet</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">acceptor</span><span class="p">,</span> <span class="s2">&quot;alphabet&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">derived_alphabet</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">derived_alphabet</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">states</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">arcs</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">acceptor_obj</span><span class="p">,</span> <span class="s2">&quot;states&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="n">initial</span><span class="o">=</span><span class="nb">bool</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">initial</span><span class="p">),</span> <span class="n">final</span><span class="o">=</span><span class="nb">bool</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">final</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">acceptor_obj</span><span class="p">,</span> <span class="s2">&quot;states&quot;</span><span class="p">):</span>
+            <span class="k">return</span>
+
+        <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">acceptor_obj</span><span class="p">,</span> <span class="s2">&quot;states&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="k">for</span> <span class="n">arc</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">arcs</span><span class="p">:</span>
+                <span class="n">symbol</span> <span class="o">=</span> <span class="n">acceptor_obj</span><span class="o">.</span><span class="n">isyms</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">arc</span><span class="o">.</span><span class="n">ilabel</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_arc</span><span class="p">(</span>
+                    <span class="n">state</span><span class="o">.</span><span class="n">stateid</span><span class="p">,</span>
+                    <span class="n">arc</span><span class="o">.</span><span class="n">nextstate</span><span class="p">,</span>
+                    <span class="n">SetPredicate</span><span class="p">([</span><span class="n">symbol</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">),</span>
+                <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SFA.set_final">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SFA.set_final">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_final</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">final</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_state</span><span class="p">(</span><span class="n">state_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">state_id</span><span class="p">]</span><span class="o">.</span><span class="n">final</span> <span class="o">=</span> <span class="n">final</span></div>
+
+
+<div class="viewcode-block" id="SFA.add_arc">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SFA.add_arc">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_arc</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">src</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">dst</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">guard</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span>
+        <span class="n">term</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_state</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">))</span>
+        <span class="n">predicate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coerce_guard</span><span class="p">(</span><span class="n">guard</span><span class="p">)</span>
+        <span class="n">arc</span> <span class="o">=</span> <span class="n">SFAArc</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">predicate</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">src</span><span class="p">]</span><span class="o">.</span><span class="n">arcs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">arc</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">arcs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">arc</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SFA.consume_input">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SFA.consume_input">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">consume_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inp</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">object</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="n">current_states</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_states</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iter_input</span><span class="p">(</span><span class="n">inp</span><span class="p">):</span>
+            <span class="n">next_states</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">state_id</span> <span class="ow">in</span> <span class="n">current_states</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">arc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">state_id</span><span class="p">]</span><span class="o">.</span><span class="n">arcs</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">arc</span><span class="o">.</span><span class="n">guard</span><span class="o">.</span><span class="n">is_sat</span><span class="p">(</span><span class="n">symbol</span><span class="p">):</span>
+                        <span class="n">next_states</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">arc</span><span class="o">.</span><span class="n">dst_state</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">next_states</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="n">current_states</span> <span class="o">=</span> <span class="n">next_states</span>
+        <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">state_id</span><span class="p">]</span><span class="o">.</span><span class="n">final</span> <span class="k">for</span> <span class="n">state_id</span> <span class="ow">in</span> <span class="n">current_states</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SFA.accepts">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SFA.accepts">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">accepts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inp</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">object</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">consume_input</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SFA.is_empty">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SFA.is_empty">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_empty</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_witness</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="SFA.get_witness">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SFA.get_witness">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_witness</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">object</span><span class="p">]]:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">queue</span><span class="p">:</span> <span class="n">Deque</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">object</span><span class="p">]]]</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">state_id</span><span class="p">,</span> <span class="p">[])</span> <span class="k">for</span> <span class="n">state_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_states</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="n">visited</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_states</span><span class="p">())</span>
+        <span class="k">while</span> <span class="n">queue</span><span class="p">:</span>
+            <span class="n">state_id</span><span class="p">,</span> <span class="n">word</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">popleft</span><span class="p">()</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">state_id</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">final</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">word</span>
+            <span class="k">for</span> <span class="n">arc</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">arcs</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">arc</span><span class="o">.</span><span class="n">guard</span><span class="o">.</span><span class="n">is_sat</span><span class="p">():</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">arc</span><span class="o">.</span><span class="n">dst_state</span> <span class="ow">in</span> <span class="n">visited</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">visited</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">arc</span><span class="o">.</span><span class="n">dst_state</span><span class="p">)</span>
+                <span class="n">queue</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">arc</span><span class="o">.</span><span class="n">dst_state</span><span class="p">,</span> <span class="n">word</span> <span class="o">+</span> <span class="p">[</span><span class="n">arc</span><span class="o">.</span><span class="n">guard</span><span class="o">.</span><span class="n">get_witness</span><span class="p">()]))</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="SFA.intersection">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SFA.intersection">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">intersection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;SFA&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SFA&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_product</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">:</span> <span class="n">left</span> <span class="ow">and</span> <span class="n">right</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SFA.union">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SFA.union">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">union</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;SFA&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SFA&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_product</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">:</span> <span class="n">left</span> <span class="ow">or</span> <span class="n">right</span><span class="p">,</span> <span class="n">complete</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SFA.difference">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SFA.difference">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">difference</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;SFA&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SFA&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_product</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">:</span> <span class="n">left</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">right</span><span class="p">,</span> <span class="n">complete</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SFA.symmetric_difference">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SFA.symmetric_difference">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">symmetric_difference</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;SFA&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SFA&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_product</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">:</span> <span class="n">left</span> <span class="o">!=</span> <span class="n">right</span><span class="p">,</span> <span class="n">complete</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SFA.complement">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SFA.complement">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">complement</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SFA&quot;</span><span class="p">:</span>
+        <span class="n">deterministic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">determinize</span><span class="p">()</span><span class="o">.</span><span class="n">complete</span><span class="p">()</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">deterministic</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">states</span><span class="p">:</span>
+            <span class="n">state</span><span class="o">.</span><span class="n">final</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">state</span><span class="o">.</span><span class="n">final</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="SFA.is_equivalent">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SFA.is_equivalent">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_equivalent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;SFA&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">symmetric_difference</span><span class="p">(</span><span class="n">other</span><span class="p">)</span><span class="o">.</span><span class="n">is_empty</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="SFA.determinize">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SFA.determinize">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">determinize</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SFA&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">SFA</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">predicate_factory</span><span class="p">)</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="n">initial</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">final</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">result</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">SFA</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">predicate_factory</span><span class="p">)</span>
+        <span class="n">initial_subset</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_states</span><span class="p">())</span>
+        <span class="n">subset_to_state</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">queue</span><span class="p">:</span> <span class="n">Deque</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="n">deque</span><span class="p">([</span><span class="n">initial_subset</span><span class="p">])</span>
+
+        <span class="n">initial_state_id</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="n">initial</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">initial_state_id</span><span class="p">]</span><span class="o">.</span><span class="n">final</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">state_id</span><span class="p">]</span><span class="o">.</span><span class="n">final</span> <span class="k">for</span> <span class="n">state_id</span> <span class="ow">in</span> <span class="n">initial_subset</span>
+        <span class="p">)</span>
+        <span class="n">subset_to_state</span><span class="p">[</span><span class="n">initial_subset</span><span class="p">]</span> <span class="o">=</span> <span class="n">initial_state_id</span>
+
+        <span class="k">while</span> <span class="n">queue</span><span class="p">:</span>
+            <span class="n">current_subset</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">popleft</span><span class="p">()</span>
+            <span class="n">current_id</span> <span class="o">=</span> <span class="n">subset_to_state</span><span class="p">[</span><span class="n">current_subset</span><span class="p">]</span>
+            <span class="n">outgoing</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">arc</span> <span class="k">for</span> <span class="n">state_id</span> <span class="ow">in</span> <span class="n">current_subset</span> <span class="k">for</span> <span class="n">arc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">state_id</span><span class="p">]</span><span class="o">.</span><span class="n">arcs</span>
+            <span class="p">]</span>
+            <span class="n">transitions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_partition_transitions</span><span class="p">(</span><span class="n">outgoing</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">guard</span><span class="p">,</span> <span class="n">destination_subset</span> <span class="ow">in</span> <span class="n">transitions</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">destination_subset</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">subset_to_state</span><span class="p">:</span>
+                    <span class="n">subset_to_state</span><span class="p">[</span><span class="n">destination_subset</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">add_state</span><span class="p">()</span>
+                    <span class="n">result</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">subset_to_state</span><span class="p">[</span><span class="n">destination_subset</span><span class="p">]]</span><span class="o">.</span><span class="n">final</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">state_id</span><span class="p">]</span><span class="o">.</span><span class="n">final</span> <span class="k">for</span> <span class="n">state_id</span> <span class="ow">in</span> <span class="n">destination_subset</span>
+                    <span class="p">)</span>
+                    <span class="n">queue</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">destination_subset</span><span class="p">)</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">add_arc</span><span class="p">(</span><span class="n">current_id</span><span class="p">,</span> <span class="n">subset_to_state</span><span class="p">[</span><span class="n">destination_subset</span><span class="p">],</span> <span class="n">guard</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="SFA.complete">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SFA.complete">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">complete</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SFA&quot;</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">determinize</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">sink_state_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">state_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">states</span><span class="p">)))</span>
+        <span class="n">template</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">_predicate_template</span><span class="p">()</span> <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">states</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">state_id</span> <span class="ow">in</span> <span class="n">state_ids</span><span class="p">:</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">state_id</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">state</span><span class="o">.</span><span class="n">arcs</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">template</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s2">&quot;Completion requires a finite alphabet or predicate factory&quot;</span>
+                    <span class="p">)</span>
+                <span class="k">if</span> <span class="n">sink_state_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">sink_state_id</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="n">final</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">add_arc</span><span class="p">(</span><span class="n">state_id</span><span class="p">,</span> <span class="n">sink_state_id</span><span class="p">,</span> <span class="n">template</span><span class="o">.</span><span class="n">top</span><span class="p">())</span>
+                <span class="k">continue</span>
+            <span class="n">covered</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">arcs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">guard</span>
+            <span class="k">for</span> <span class="n">arc</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">arcs</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+                <span class="n">covered</span> <span class="o">=</span> <span class="n">covered</span><span class="o">.</span><span class="n">disjunction</span><span class="p">(</span><span class="n">arc</span><span class="o">.</span><span class="n">guard</span><span class="p">)</span>
+            <span class="n">residual</span> <span class="o">=</span> <span class="n">covered</span><span class="o">.</span><span class="n">negate</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">residual</span><span class="o">.</span><span class="n">is_sat</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">sink_state_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">sink_state_id</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="n">final</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">add_arc</span><span class="p">(</span><span class="n">state_id</span><span class="p">,</span> <span class="n">sink_state_id</span><span class="p">,</span> <span class="n">residual</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">sink_state_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">template</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">add_arc</span><span class="p">(</span><span class="n">sink_state_id</span><span class="p">,</span> <span class="n">sink_state_id</span><span class="p">,</span> <span class="n">template</span><span class="o">.</span><span class="n">top</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="SFA.concretize">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SFA.concretize">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">concretize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Concretization requires a finite alphabet&quot;</span><span class="p">)</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata</span><span class="w"> </span><span class="kn">import</span> <span class="n">dfa</span> <span class="k">as</span> <span class="n">dfa_module</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.pythondfa</span><span class="w"> </span><span class="kn">import</span> <span class="n">PythonDFA</span>
+
+        <span class="n">deterministic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">determinize</span><span class="p">()</span>
+        <span class="n">dfa_class</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">dfa_module</span><span class="p">,</span> <span class="s2">&quot;DFA&quot;</span><span class="p">,</span> <span class="n">PythonDFA</span><span class="p">)</span>
+        <span class="n">dfa</span> <span class="o">=</span> <span class="n">dfa_class</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">))</span>
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">deterministic</span><span class="o">.</span><span class="n">states</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">dfa</span><span class="o">.</span><span class="n">states</span><span class="p">):</span>
+            <span class="n">dfa</span><span class="o">.</span><span class="n">add_state</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">deterministic</span><span class="o">.</span><span class="n">states</span><span class="p">:</span>
+            <span class="n">dfa</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">initial</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">deterministic</span><span class="o">.</span><span class="n">states</span><span class="p">:</span>
+            <span class="n">dfa</span><span class="p">[</span><span class="n">state</span><span class="o">.</span><span class="n">state_id</span><span class="p">]</span><span class="o">.</span><span class="n">final</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">final</span>
+            <span class="k">for</span> <span class="n">arc</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">arcs</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">arc</span><span class="o">.</span><span class="n">guard</span><span class="o">.</span><span class="n">is_sat</span><span class="p">(</span><span class="n">symbol</span><span class="p">):</span>
+                        <span class="n">dfa</span><span class="o">.</span><span class="n">add_arc</span><span class="p">(</span><span class="n">arc</span><span class="o">.</span><span class="n">src_state</span><span class="p">,</span> <span class="n">arc</span><span class="o">.</span><span class="n">dst_state</span><span class="p">,</span> <span class="n">symbol</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">dfa</span><span class="p">,</span> <span class="s2">&quot;yy_accept&quot;</span><span class="p">):</span>
+            <span class="n">dfa</span><span class="o">.</span><span class="n">yy_accept</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span> <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">final</span> <span class="k">else</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">dfa</span><span class="o">.</span><span class="n">states</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">dfa</span></div>
+
+
+<div class="viewcode-block" id="SFA.to_regex">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SFA.to_regex">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_regex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.regex</span><span class="w"> </span><span class="kn">import</span> <span class="n">Regex</span>
+
+        <span class="k">return</span> <span class="n">Regex</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">concretize</span><span class="p">())</span><span class="o">.</span><span class="n">get_regex</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="SFA.copy">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SFA.copy">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SFA&quot;</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">SFA</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">predicate_factory</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="n">initial</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">initial</span><span class="p">,</span> <span class="n">final</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">final</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">arc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">arcs</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">add_arc</span><span class="p">(</span><span class="n">arc</span><span class="o">.</span><span class="n">src_state</span><span class="p">,</span> <span class="n">arc</span><span class="o">.</span><span class="n">dst_state</span><span class="p">,</span> <span class="n">arc</span><span class="o">.</span><span class="n">guard</span><span class="p">,</span> <span class="n">arc</span><span class="o">.</span><span class="n">term</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="SFA.save">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SFA.save">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">txt_fst_filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Saving requires a finite alphabet&quot;</span><span class="p">)</span>
+        <span class="n">deterministic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">determinize</span><span class="p">()</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">txt_fst_filename</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">handle</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">deterministic</span><span class="o">.</span><span class="n">states</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">arc</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">arcs</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">arc</span><span class="o">.</span><span class="n">guard</span><span class="o">.</span><span class="n">is_sat</span><span class="p">(</span><span class="n">symbol</span><span class="p">):</span>
+                            <span class="n">handle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+                                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">arc</span><span class="o">.</span><span class="n">src_state</span><span class="si">}</span><span class="se">\t</span><span class="si">{</span><span class="n">arc</span><span class="o">.</span><span class="n">dst_state</span><span class="si">}</span><span class="se">\t</span><span class="si">{</span><span class="n">symbol</span><span class="si">}</span><span class="se">\t</span><span class="si">{</span><span class="n">symbol</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+                            <span class="p">)</span>
+                <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">final</span><span class="p">:</span>
+                    <span class="n">handle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">state</span><span class="o">.</span><span class="n">state_id</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SFA.load">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SFA.load">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">txt_fst_filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Loading requires a finite alphabet&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">states</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">arcs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">initial_state_set</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">txt_fst_filename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">handle</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">raw_line</span> <span class="ow">in</span> <span class="n">handle</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">raw_line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">parts</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">set_final</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="kc">True</span><span class="p">)</span>
+                    <span class="k">continue</span>
+                <span class="n">src</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">dst</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">symbol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_symbol</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_arc</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">SetPredicate</span><span class="p">([</span><span class="n">symbol</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">))</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">initial_state_set</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">src</span><span class="p">]</span><span class="o">.</span><span class="n">initial</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">initial_state_set</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="SFA.initial_states">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SFA.initial_states">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">initial_states</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+        <span class="n">initial</span> <span class="o">=</span> <span class="p">[</span><span class="n">state</span><span class="o">.</span><span class="n">state_id</span> <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span> <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">initial</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">initial</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">state_id</span> <span class="k">for</span> <span class="n">state_id</span> <span class="ow">in</span> <span class="n">initial</span> <span class="k">if</span> <span class="n">state_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">[]</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_ensure_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">while</span> <span class="n">state_id</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_state</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_coerce_guard</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">guard</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Predicate</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">guard</span><span class="p">,</span> <span class="n">Predicate</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">guard</span><span class="p">,</span> <span class="n">SetPredicate</span><span class="p">)</span> <span class="ow">and</span> <span class="n">guard</span><span class="o">.</span><span class="n">universe</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">:</span>
+                <span class="n">guard</span><span class="o">.</span><span class="n">set_universe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">guard</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">SetPredicate</span><span class="p">([</span><span class="n">guard</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">SetPredicate</span><span class="p">([</span><span class="n">guard</span><span class="p">])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_iter_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inp</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">object</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">object</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_partition_transitions</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">outgoing</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">SFAArc</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Predicate</span><span class="p">,</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">int</span><span class="p">]]]:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">outgoing</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="n">regions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Predicate</span><span class="p">,</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">int</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">outgoing</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">guard</span><span class="o">.</span><span class="n">top</span><span class="p">(),</span> <span class="nb">frozenset</span><span class="p">())</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">arc</span> <span class="ow">in</span> <span class="n">outgoing</span><span class="p">:</span>
+            <span class="n">next_regions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Predicate</span><span class="p">,</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">int</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">region_guard</span><span class="p">,</span> <span class="n">destination_states</span> <span class="ow">in</span> <span class="n">regions</span><span class="p">:</span>
+                <span class="n">enabled</span> <span class="o">=</span> <span class="n">region_guard</span><span class="o">.</span><span class="n">conjunction</span><span class="p">(</span><span class="n">arc</span><span class="o">.</span><span class="n">guard</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">enabled</span><span class="o">.</span><span class="n">is_sat</span><span class="p">():</span>
+                    <span class="n">next_regions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="p">(</span><span class="n">enabled</span><span class="p">,</span> <span class="n">destination_states</span> <span class="o">|</span> <span class="nb">frozenset</span><span class="p">([</span><span class="n">arc</span><span class="o">.</span><span class="n">dst_state</span><span class="p">]))</span>
+                    <span class="p">)</span>
+                <span class="n">disabled</span> <span class="o">=</span> <span class="n">region_guard</span><span class="o">.</span><span class="n">conjunction</span><span class="p">(</span><span class="n">arc</span><span class="o">.</span><span class="n">guard</span><span class="o">.</span><span class="n">negate</span><span class="p">())</span>
+                <span class="k">if</span> <span class="n">disabled</span><span class="o">.</span><span class="n">is_sat</span><span class="p">():</span>
+                    <span class="n">next_regions</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">disabled</span><span class="p">,</span> <span class="n">destination_states</span><span class="p">))</span>
+            <span class="n">regions</span> <span class="o">=</span> <span class="n">next_regions</span>
+        <span class="n">grouped</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">Predicate</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">predicate</span><span class="p">,</span> <span class="n">frozen_destination</span> <span class="ow">in</span> <span class="n">regions</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">frozen_destination</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">frozen_destination</span> <span class="ow">in</span> <span class="n">grouped</span><span class="p">:</span>
+                <span class="n">grouped</span><span class="p">[</span><span class="n">frozen_destination</span><span class="p">]</span> <span class="o">=</span> <span class="n">grouped</span><span class="p">[</span><span class="n">frozen_destination</span><span class="p">]</span><span class="o">.</span><span class="n">disjunction</span><span class="p">(</span>
+                    <span class="n">predicate</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">grouped</span><span class="p">[</span><span class="n">frozen_destination</span><span class="p">]</span> <span class="o">=</span> <span class="n">predicate</span>
+        <span class="k">return</span> <span class="p">[(</span><span class="n">guard</span><span class="p">,</span> <span class="n">dst</span><span class="p">)</span> <span class="k">for</span> <span class="n">dst</span><span class="p">,</span> <span class="n">guard</span> <span class="ow">in</span> <span class="n">grouped</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_product</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;SFA&quot;</span><span class="p">,</span>
+        <span class="n">accept_method</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">],</span> <span class="nb">bool</span><span class="p">],</span>
+        <span class="n">complete</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SFA&quot;</span><span class="p">:</span>
+        <span class="n">left</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">determinize</span><span class="p">()</span>
+        <span class="n">right</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">determinize</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">complete</span><span class="p">:</span>
+            <span class="n">left</span> <span class="o">=</span> <span class="n">left</span><span class="o">.</span><span class="n">complete</span><span class="p">()</span>
+            <span class="n">right</span> <span class="o">=</span> <span class="n">right</span><span class="o">.</span><span class="n">complete</span><span class="p">()</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="n">SFA</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">other</span><span class="o">.</span><span class="n">alphabet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">predicate_factory</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">predicate_factory</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">other</span><span class="o">.</span><span class="n">predicate_factory</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">initial_pair</span> <span class="o">=</span> <span class="p">(</span><span class="n">left</span><span class="o">.</span><span class="n">initial_states</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span> <span class="n">right</span><span class="o">.</span><span class="n">initial_states</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">pair_to_state</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">queue</span><span class="p">:</span> <span class="n">Deque</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="n">deque</span><span class="p">([</span><span class="n">initial_pair</span><span class="p">])</span>
+
+        <span class="n">initial_state_id</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="n">initial</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">initial_state_id</span><span class="p">]</span><span class="o">.</span><span class="n">final</span> <span class="o">=</span> <span class="n">accept_method</span><span class="p">(</span>
+            <span class="n">left</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">initial_pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">final</span><span class="p">,</span>
+            <span class="n">right</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">initial_pair</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">final</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">pair_to_state</span><span class="p">[</span><span class="n">initial_pair</span><span class="p">]</span> <span class="o">=</span> <span class="n">initial_state_id</span>
+
+        <span class="k">while</span> <span class="n">queue</span><span class="p">:</span>
+            <span class="n">current_pair</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">popleft</span><span class="p">()</span>
+            <span class="n">current_id</span> <span class="o">=</span> <span class="n">pair_to_state</span><span class="p">[</span><span class="n">current_pair</span><span class="p">]</span>
+            <span class="n">grouped</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">Predicate</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">left_arc</span> <span class="ow">in</span> <span class="n">left</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">current_pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">arcs</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">right_arc</span> <span class="ow">in</span> <span class="n">right</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">current_pair</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">arcs</span><span class="p">:</span>
+                    <span class="n">guard</span> <span class="o">=</span> <span class="n">left_arc</span><span class="o">.</span><span class="n">guard</span><span class="o">.</span><span class="n">conjunction</span><span class="p">(</span><span class="n">right_arc</span><span class="o">.</span><span class="n">guard</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">guard</span><span class="o">.</span><span class="n">is_sat</span><span class="p">():</span>
+                        <span class="k">continue</span>
+                    <span class="n">dst_pair</span> <span class="o">=</span> <span class="p">(</span><span class="n">left_arc</span><span class="o">.</span><span class="n">dst_state</span><span class="p">,</span> <span class="n">right_arc</span><span class="o">.</span><span class="n">dst_state</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">dst_pair</span> <span class="ow">in</span> <span class="n">grouped</span><span class="p">:</span>
+                        <span class="n">grouped</span><span class="p">[</span><span class="n">dst_pair</span><span class="p">]</span> <span class="o">=</span> <span class="n">grouped</span><span class="p">[</span><span class="n">dst_pair</span><span class="p">]</span><span class="o">.</span><span class="n">disjunction</span><span class="p">(</span><span class="n">guard</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">grouped</span><span class="p">[</span><span class="n">dst_pair</span><span class="p">]</span> <span class="o">=</span> <span class="n">guard</span>
+            <span class="k">for</span> <span class="n">dst_pair</span><span class="p">,</span> <span class="n">guard</span> <span class="ow">in</span> <span class="n">grouped</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">dst_pair</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">pair_to_state</span><span class="p">:</span>
+                    <span class="n">pair_to_state</span><span class="p">[</span><span class="n">dst_pair</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">add_state</span><span class="p">()</span>
+                    <span class="n">result</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">pair_to_state</span><span class="p">[</span><span class="n">dst_pair</span><span class="p">]]</span><span class="o">.</span><span class="n">final</span> <span class="o">=</span> <span class="n">accept_method</span><span class="p">(</span>
+                        <span class="n">left</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">dst_pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">final</span><span class="p">,</span>
+                        <span class="n">right</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">dst_pair</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">final</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="n">queue</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dst_pair</span><span class="p">)</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">add_arc</span><span class="p">(</span><span class="n">current_id</span><span class="p">,</span> <span class="n">pair_to_state</span><span class="p">[</span><span class="n">dst_pair</span><span class="p">],</span> <span class="n">guard</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_predicate_template</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Predicate</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">arc</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">arcs</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">arc</span><span class="o">.</span><span class="n">guard</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">predicate_factory</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">predicate_factory</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">SetPredicate</span><span class="p">([],</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot infer predicate universe from an empty automaton&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load_symbol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">token</span>
+        <span class="k">if</span> <span class="n">token</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">token</span>
+        <span class="k">for</span> <span class="n">caster</span> <span class="ow">in</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">candidate</span> <span class="o">=</span> <span class="n">caster</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">candidate</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">candidate</span>
+        <span class="k">return</span> <span class="n">token</span></div>
+
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.main">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">universe</span> <span class="o">=</span> <span class="p">[</span><span class="nb">ord</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">),</span> <span class="nb">ord</span><span class="p">(</span><span class="s2">&quot;b&quot;</span><span class="p">)]</span>
+    <span class="n">symbol</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">BitVec</span><span class="p">(</span><span class="s2">&quot;sym&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+    <span class="n">sfa</span> <span class="o">=</span> <span class="n">SFA</span><span class="p">(</span><span class="n">universe</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">Z3Predicate</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">z3</span><span class="o">.</span><span class="n">BoolVal</span><span class="p">(</span><span class="kc">False</span><span class="p">)))</span>
+    <span class="n">sfa</span><span class="o">.</span><span class="n">add_arc</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">Z3Predicate</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">z3</span><span class="o">.</span><span class="n">ULT</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">z3</span><span class="o">.</span><span class="n">BitVecVal</span><span class="p">(</span><span class="mi">98</span><span class="p">,</span> <span class="mi">8</span><span class="p">))))</span>
+    <span class="n">sfa</span><span class="o">.</span><span class="n">set_final</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">sfa</span><span class="o">.</span><span class="n">accepts</span><span class="p">([</span><span class="nb">ord</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">)]))</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,798 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>aria.automata.symautomata.regex &mdash; ARIA Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            ARIA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting-started/index.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../logic-and-solving/index.html">Logic and Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../proofs-and-explanations/index.html">Proofs and Explanations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quantified-reasoning/index.html">Quantified Reasoning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../automata-languages/index.html">Automata and Languages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../verification/index.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../abstraction/index.html">Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../counting-probability/index.html">Counting, Sampling, and Probability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../synthesis/index.html">Program Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../llm-ml/index.html">LLM and ML</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../cli-tools/index.html">CLI and Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../global_params.html">Global Parameters</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">ARIA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">aria.automata.symautomata.regex</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for aria.automata.symautomata.regex</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module transforms a pyfst DFA to regular expressions</span>
+<span class="sd">using the Brzozowski Algebraic Method</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">operator</span><span class="w"> </span><span class="kn">import</span> <span class="n">attrgetter</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.alphabet</span><span class="w"> </span><span class="kn">import</span> <span class="n">createalphabet</span>
+
+
+<div class="viewcode-block" id="Regex">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.regex.Regex">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Regex</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class transforms a pyfst DFA to regular expressions</span>
+<span class="sd">    using the Brzozowski Algebraic Method</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_fst_a</span><span class="p">,</span> <span class="n">alphabet</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            input_fst_a (DFA): The DFA states</span>
+<span class="sd">            alphabet (list): the input alphabet</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">alphabet</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">alphabet</span> <span class="o">=</span> <span class="n">createalphabet</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span> <span class="o">=</span> <span class="n">alphabet</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.dfa</span><span class="w"> </span><span class="kn">import</span> <span class="n">DFA</span> <span class="k">as</span> <span class="n">DFAClass</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.pythondfa</span><span class="w"> </span><span class="kn">import</span> <span class="n">PythonDFA</span> <span class="k">as</span> <span class="n">DFAClass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mma</span> <span class="o">=</span> <span class="n">DFAClass</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mma</span><span class="o">.</span><span class="n">init_from_acceptor</span><span class="p">(</span><span class="n">input_fst_a</span><span class="p">)</span>
+        <span class="c1"># a is a matrix that holds all transitions</span>
+        <span class="c1"># If there is a transition from state 0 to state 1 with the symbol x</span>
+        <span class="c1"># then a[0][1]=x</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">A</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1"># B[n] holds the regular expression that describes how a final state</span>
+        <span class="c1"># can be reached from state n</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">B</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">empty</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_bfs_sort</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        maintain a map of states distance using BFS</span>
+<span class="sd">        Args:</span>
+<span class="sd">            start (fst state): The initial DFA state</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            list: An ordered list of DFA states</span>
+<span class="sd">                  using path distance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pathstates</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1"># maintain a queue of nodes to be visited. Both current and previous</span>
+        <span class="c1"># node must be included.</span>
+        <span class="n">queue</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># push the first path into the queue</span>
+        <span class="n">queue</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">start</span><span class="p">])</span>
+        <span class="n">pathstates</span><span class="p">[</span><span class="n">start</span><span class="o">.</span><span class="n">stateid</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="n">queue</span><span class="p">:</span>
+            <span class="c1"># get the first node from the queue</span>
+            <span class="n">leaf</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">node</span> <span class="o">=</span> <span class="n">leaf</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">pathlen</span> <span class="o">=</span> <span class="n">leaf</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="c1"># enumerate all adjacent nodes, construct a new path and push it</span>
+            <span class="c1"># into the queue</span>
+            <span class="k">for</span> <span class="n">arc</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">arcs</span><span class="p">:</span>
+                <span class="n">next_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mma</span><span class="p">[</span><span class="n">arc</span><span class="o">.</span><span class="n">nextstate</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">next_state</span><span class="o">.</span><span class="n">stateid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">pathstates</span><span class="p">:</span>
+                    <span class="n">queue</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">pathlen</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">next_state</span><span class="p">])</span>
+                    <span class="n">pathstates</span><span class="p">[</span><span class="n">next_state</span><span class="o">.</span><span class="n">stateid</span><span class="p">]</span> <span class="o">=</span> <span class="n">pathlen</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">orderedstatesdict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+            <span class="nb">sorted</span><span class="p">(</span><span class="n">pathstates</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mma</span><span class="o">.</span><span class="n">states</span><span class="p">:</span>
+            <span class="n">orderedstatesdict</span><span class="p">[</span><span class="n">state</span><span class="o">.</span><span class="n">stateid</span><span class="p">]</span> <span class="o">=</span> <span class="n">state</span>
+        <span class="n">orderedstates</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">orderedstatesdict</span><span class="o">.</span><span class="n">items</span><span class="p">())]</span>
+        <span class="k">return</span> <span class="n">orderedstates</span>
+
+<div class="viewcode-block" id="Regex.star">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.regex.Regex.star">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">star</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_string</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Kleene star operation</span>
+<span class="sd">        Args:</span>
+<span class="sd">            input_string (str): The string that the kleene star will be made</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: The applied Kleene star operation on the input string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">input_string</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span> <span class="ow">and</span> <span class="n">input_string</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;(&quot;</span> <span class="o">+</span> <span class="n">input_string</span> <span class="o">+</span> <span class="s2">&quot;)*&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_create_map</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize Brzozowski Algebraic Method&quot;&quot;&quot;</span>
+
+        <span class="c1"># at state i is represented by the regex self.B[i]</span>
+        <span class="k">for</span> <span class="n">state_a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mma</span><span class="o">.</span><span class="n">states</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="o">.</span><span class="n">stateid</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="c1"># Create a map state to state, with the transition symbols</span>
+            <span class="k">for</span> <span class="n">arc</span> <span class="ow">in</span> <span class="n">state_a</span><span class="o">.</span><span class="n">arcs</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">arc</span><span class="o">.</span><span class="n">nextstate</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="o">.</span><span class="n">stateid</span><span class="p">]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="o">.</span><span class="n">stateid</span><span class="p">][</span><span class="n">arc</span><span class="o">.</span><span class="n">nextstate</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">mma</span><span class="o">.</span><span class="n">isyms</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">arc</span><span class="o">.</span><span class="n">ilabel</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="o">.</span><span class="n">stateid</span><span class="p">][</span><span class="n">arc</span><span class="o">.</span><span class="n">nextstate</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">mma</span><span class="o">.</span><span class="n">isyms</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">arc</span><span class="o">.</span><span class="n">ilabel</span><span class="p">)</span>
+                    <span class="p">]</span>
+            <span class="k">if</span> <span class="n">state_a</span><span class="o">.</span><span class="n">final</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="o">.</span><span class="n">stateid</span><span class="p">][</span><span class="s2">&quot;string&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">]</span>
+
+    <span class="c1"># In both self.B and Self.A there are empty spots that we will fill in _brzozowski_algebraic_method_solve</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_fix_pattern</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">state_a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mma</span><span class="o">.</span><span class="n">states</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">target</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="o">.</span><span class="n">stateid</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="o">.</span><span class="n">stateid</span><span class="p">][</span><span class="n">target</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="o">.</span><span class="n">stateid</span><span class="p">][</span><span class="n">target</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+                <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="o">.</span><span class="n">stateid</span><span class="p">][</span><span class="n">target</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="o">.</span><span class="n">stateid</span><span class="p">][</span><span class="n">target</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="o">.</span><span class="n">stateid</span><span class="p">][</span><span class="n">target</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="o">.</span><span class="n">stateid</span><span class="p">][</span><span class="n">target</span><span class="p">])</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="o">.</span><span class="n">stateid</span><span class="p">][</span><span class="n">target</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span>
+                <span class="k">elif</span> <span class="p">(</span>
+                    <span class="nb">len</span><span class="p">([</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="o">.</span><span class="n">stateid</span><span class="p">][</span><span class="n">target</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span>
+                    <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="o">.</span><span class="n">stateid</span><span class="p">][</span><span class="n">target</span><span class="p">])</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+                <span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="o">.</span><span class="n">stateid</span><span class="p">][</span><span class="n">target</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="s2">&quot;[^&quot;</span>
+                        <span class="o">+</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                            <span class="nb">filter</span><span class="p">(</span>
+                                <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="o">.</span><span class="n">stateid</span><span class="p">][</span><span class="n">target</span><span class="p">],</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">,</span>
+                            <span class="p">)</span>
+                        <span class="p">)</span>
+                        <span class="o">+</span> <span class="s2">&quot;]&quot;</span>
+                    <span class="p">)</span>
+                <span class="k">elif</span> <span class="p">(</span>
+                    <span class="nb">len</span><span class="p">([</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="o">.</span><span class="n">stateid</span><span class="p">][</span><span class="n">target</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span>
+                    <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="o">.</span><span class="n">stateid</span><span class="p">][</span><span class="n">target</span><span class="p">])</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+                <span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="o">.</span><span class="n">stateid</span><span class="p">][</span><span class="n">target</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="s2">&quot;[&quot;</span> <span class="o">+</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="o">.</span><span class="n">stateid</span><span class="p">][</span><span class="n">target</span><span class="p">])</span> <span class="o">+</span> <span class="s2">&quot;]&quot;</span>
+                    <span class="p">)</span>
+                <span class="k">elif</span> <span class="p">(</span>
+                    <span class="nb">len</span><span class="p">([</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="o">.</span><span class="n">stateid</span><span class="p">][</span><span class="n">target</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span>
+                <span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="o">.</span><span class="n">stateid</span><span class="p">][</span><span class="n">target</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="s2">&quot;(&quot;</span> <span class="o">+</span> <span class="s2">&quot;|&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="o">.</span><span class="n">stateid</span><span class="p">][</span><span class="n">target</span><span class="p">])</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span>
+                    <span class="p">)</span>
+
+<div class="viewcode-block" id="Regex.partitionAlphabet">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.regex.Regex.partitionAlphabet">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">partitionAlphabet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alphabetLen</span><span class="p">,</span> <span class="n">parsedInput</span><span class="p">):</span>
+        <span class="n">intoInput</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">notInInput</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">parsedInput</span><span class="p">:</span>
+                <span class="n">intoInput</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">notInInput</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">intoInput</span><span class="p">)</span> <span class="o">==</span> <span class="n">alphabetLen</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;.&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">intoInput</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">notInInput</span><span class="p">):</span>
+            <span class="n">final</span> <span class="o">=</span> <span class="s2">&quot;[&quot;</span> <span class="o">+</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">intoInput</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;]&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">final</span> <span class="o">=</span> <span class="s2">&quot;[^&quot;</span> <span class="o">+</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">notInInput</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;]&quot;</span>
+        <span class="k">return</span> <span class="n">final</span></div>
+
+
+<div class="viewcode-block" id="Regex.replaceAlphabet">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.regex.Regex.replaceAlphabet">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">replaceAlphabet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s2">&quot;|&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">input</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">input</span>
+        <span class="n">alphabetLen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">)</span>
+        <span class="n">parsedInput</span> <span class="o">=</span> <span class="nb">input</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;|&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;|||&quot;</span> <span class="ow">in</span> <span class="nb">input</span><span class="p">:</span>
+            <span class="n">parsedInput</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;|&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">parsedInput</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">input</span>
+
+        <span class="n">final</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">partitionAlphabet</span><span class="p">(</span><span class="n">alphabetLen</span><span class="p">,</span> <span class="n">parsedInput</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">final</span></div>
+
+
+<div class="viewcode-block" id="Regex.cleaner">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.regex.Regex.cleaner">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cleaner</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">res</span><span class="p">):</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">replaceAlphabet</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+
+        <span class="k">if</span> <span class="s2">&quot;|&quot;</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\(.*\)&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">res</span><span class="p">):</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="s2">&quot;(&quot;</span> <span class="o">+</span> <span class="n">res</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span>
+        <span class="k">return</span> <span class="n">res</span></div>
+
+
+<div class="viewcode-block" id="Regex.cleanerS">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.regex.Regex.cleanerS">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cleanerS</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">res</span><span class="p">):</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">replaceAlphabet</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+
+        <span class="k">if</span> <span class="s2">&quot;|&quot;</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\([^)]*\)&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">res</span><span class="p">):</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="s2">&quot;(&quot;</span> <span class="o">+</span> <span class="n">res</span> <span class="o">+</span> <span class="s2">&quot;)*&quot;</span>
+        <span class="k">return</span> <span class="n">res</span></div>
+
+
+<div class="viewcode-block" id="Regex.findWhichSymbolsFromOtherStatesConnectToMe">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.regex.Regex.findWhichSymbolsFromOtherStatesConnectToMe">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">findWhichSymbolsFromOtherStatesConnectToMe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="n">array</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">n</span> <span class="o">!=</span> <span class="n">state</span> <span class="ow">and</span> <span class="n">state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">n</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="n">state</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">array</span><span class="p">:</span>
+                    <span class="n">array</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="n">state</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">array</span></div>
+
+
+<div class="viewcode-block" id="Regex.checkIfSameStateNotNeeded">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.regex.Regex.checkIfSameStateNotNeeded">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">checkIfSameStateNotNeeded</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">same</span><span class="p">):</span>
+        <span class="n">array</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">findWhichSymbolsFromOtherStatesConnectToMe</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">array</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">same</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state</span><span class="p">][</span><span class="s2">&quot;same&quot;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">3</span>
+                <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state</span><span class="p">][</span><span class="s2">&quot;same&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;(&quot;</span>
+                <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state</span><span class="p">][</span><span class="s2">&quot;same&quot;</span><span class="p">][</span>
+                    <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state</span><span class="p">][</span><span class="s2">&quot;same&quot;</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span> <span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state</span><span class="p">][</span><span class="s2">&quot;same&quot;</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="p">]</span>
+            <span class="p">):</span>
+                <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state</span><span class="p">][</span><span class="s2">&quot;same&quot;</span><span class="p">][</span><span class="mi">1</span> <span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state</span><span class="p">][</span><span class="s2">&quot;same&quot;</span><span class="p">])</span> <span class="o">-</span> <span class="mi">2</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">parts</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\((.+?)\)\*&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state</span><span class="p">][</span><span class="s2">&quot;same&quot;</span><span class="p">])</span>
+
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">parts</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">n</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">array</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                    <span class="k">return</span> <span class="n">same</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">same</span></div>
+
+
+<div class="viewcode-block" id="Regex.checkIfBothAreNeeded">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.regex.Regex.checkIfBothAreNeeded">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">checkIfBothAreNeeded</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">inputA</span><span class="p">,</span> <span class="n">inputB</span>
+    <span class="p">):</span>  <span class="c1"># based on the fact that ([^b]*|b([^i])*) is equal to  .*</span>
+        <span class="n">input1_match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\(\[\^(.+?)\]\)\*&quot;</span><span class="p">,</span> <span class="n">inputA</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">input1_match</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">input1</span> <span class="o">=</span> <span class="n">input1_match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">input1</span> <span class="o">=</span> <span class="n">inputA</span>
+        <span class="n">input2_match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\((.+?)\)\*&quot;</span><span class="p">,</span> <span class="n">inputB</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">input2_match</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">input2FirstChar</span> <span class="o">=</span> <span class="n">input2_match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">input2FirstChar</span> <span class="o">=</span> <span class="n">inputB</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">input1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">input1</span> <span class="o">==</span> <span class="n">input2FirstChar</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span></div>
+
+
+<div class="viewcode-block" id="Regex.replaceAlphabetMixed">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.regex.Regex.replaceAlphabetMixed">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">replaceAlphabetMixed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input1</span><span class="p">,</span> <span class="n">input2</span><span class="p">):</span>
+        <span class="n">found1</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">found2</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">final1</span> <span class="o">=</span> <span class="n">input1</span>
+        <span class="n">final2</span> <span class="o">=</span> <span class="n">input2</span>
+        <span class="k">if</span> <span class="s2">&quot;|&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">input1</span><span class="p">:</span>
+            <span class="n">final1</span> <span class="o">=</span> <span class="n">input1</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">input1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">found1</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">parsedInput</span> <span class="o">=</span> <span class="n">input1</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;|&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">parsedInput</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">final1</span> <span class="o">=</span> <span class="n">input1</span>
+                    <span class="n">found1</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">break</span>
+
+        <span class="k">if</span> <span class="s2">&quot;|&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">input2</span><span class="p">:</span>
+            <span class="n">final2</span> <span class="o">=</span> <span class="n">input2</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">input2</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">found2</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">parsedInput</span> <span class="o">=</span> <span class="n">input2</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;|&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">parsedInput</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">final2</span> <span class="o">=</span> <span class="n">input2</span>
+                    <span class="n">found2</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">break</span>
+
+        <span class="k">if</span> <span class="n">found1</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">found2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkIfBothAreNeeded</span><span class="p">(</span><span class="n">input1</span><span class="p">,</span> <span class="n">input2</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s2">&quot;(.)*&quot;</span>
+            <span class="n">final2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">replaceAlphabet</span><span class="p">(</span><span class="n">input2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">found1</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">found2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkIfBothAreNeeded</span><span class="p">(</span><span class="n">input1</span><span class="p">,</span> <span class="n">input2</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s2">&quot;(.)*&quot;</span>
+            <span class="n">final1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">replaceAlphabet</span><span class="p">(</span><span class="n">input1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">found1</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">found2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkIfBothAreNeeded</span><span class="p">(</span><span class="n">input1</span><span class="p">,</span> <span class="n">input2</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s2">&quot;(.)*&quot;</span>
+        <span class="k">if</span> <span class="n">found1</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">found2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">final1</span> <span class="o">=</span> <span class="n">input1</span>
+            <span class="n">final2</span> <span class="o">=</span> <span class="n">input2</span>
+        <span class="k">return</span> <span class="n">final1</span> <span class="o">+</span> <span class="s2">&quot;|&quot;</span> <span class="o">+</span> <span class="n">final2</span></div>
+
+
+<div class="viewcode-block" id="Regex.getMaxInternalPath">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.regex.Regex.getMaxInternalPath">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">getMaxInternalPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inkeys</span><span class="p">):</span>
+        <span class="n">maxkey</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">inkeys</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;same&quot;</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+            <span class="n">keys</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;same&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;rest&quot;</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+            <span class="n">keys</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;rest&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;string&quot;</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+            <span class="n">keys</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;string&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">maxkey</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">maxkey</span></div>
+
+
+<div class="viewcode-block" id="Regex.existsPath">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.regex.Regex.existsPath">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">existsPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial</span><span class="p">,</span> <span class="n">finalstate</span><span class="p">,</span> <span class="n">visited</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">finalstate</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">and</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">visited</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">initial</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">finalstate</span><span class="p">],</span> <span class="n">finalstate</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">visited</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                    <span class="n">res</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">transfer_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">existsPath</span><span class="p">(</span><span class="n">initial</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">visited</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">res</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="mi">1</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">finalstate</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">continue</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">continue</span>
+        <span class="k">return</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="Regex.fixBrzozowskiBackwardLoopRemoval">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.regex.Regex.fixBrzozowskiBackwardLoopRemoval">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fixBrzozowskiBackwardLoopRemoval</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># Remove targets that point to start</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">target</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">target</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="n">poplist</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">target</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="n">target</span> <span class="o">&lt;</span> <span class="n">i</span><span class="p">:</span>
+                    <span class="n">exists</span><span class="p">,</span> <span class="n">transfer_value</span><span class="p">,</span> <span class="n">transfer_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">existsPath</span><span class="p">(</span>
+                        <span class="n">target</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="p">[]</span>
+                    <span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">exists</span> <span class="ow">and</span> <span class="p">(</span>
+                        <span class="n">transfer_value</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">target</span><span class="p">]</span>
+                        <span class="ow">or</span> <span class="p">(</span>
+                            <span class="n">target</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">target</span><span class="p">]</span>
+                            <span class="ow">and</span> <span class="p">(</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">target</span><span class="p">][</span><span class="n">target</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">target</span><span class="p">]</span>
+                                <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span>
+                                    <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">target</span><span class="p">])</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">target</span><span class="p">][</span><span class="n">target</span><span class="p">])</span>
+                                <span class="p">)</span>
+                                <span class="o">==</span> <span class="mi">0</span>
+                            <span class="p">)</span>
+                        <span class="p">)</span>
+                    <span class="p">):</span>
+                        <span class="n">poplist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">poplist</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">k</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_Lexical</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># First Try to Optimize the Strings by doing the possible replacements of special cases to string. e.c change a loop with character e to (e)*</span>
+        <span class="k">for</span> <span class="n">state_a</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="c1"># Loopholes</span>
+            <span class="k">if</span> <span class="n">state_a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]:</span>
+                <span class="n">same</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+                <span class="k">if</span> <span class="s2">&quot;same&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]:</span>
+                    <span class="n">same</span> <span class="o">=</span> <span class="s2">&quot;|&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">][</span><span class="s2">&quot;same&quot;</span><span class="p">]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">][</span><span class="s2">&quot;same&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="s2">&quot;(&quot;</span>
+                        <span class="o">+</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">replaceAlphabet</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">][</span><span class="n">state_a</span><span class="p">]))</span>
+                        <span class="o">+</span> <span class="s2">&quot;)*&quot;</span>
+                        <span class="o">+</span> <span class="n">same</span>
+                    <span class="p">)</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">][</span><span class="n">state_a</span><span class="p">]</span>
+            <span class="c1"># Final State</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="s2">&quot;string&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">for</span> <span class="n">state_b</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+                    <span class="k">if</span> <span class="n">state_b</span> <span class="o">!=</span> <span class="n">state_a</span> <span class="ow">and</span> <span class="n">state_b</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">state_a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_b</span><span class="p">]:</span>
+                            <span class="k">if</span> <span class="p">(</span>
+                                <span class="s2">&quot;rest&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_b</span><span class="p">]</span>
+                                <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_b</span><span class="p">][</span><span class="s2">&quot;rest&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span>
+                                <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_b</span><span class="p">][</span><span class="s2">&quot;rest&quot;</span><span class="p">]</span>
+                                <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">cleaner</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">][</span><span class="s2">&quot;string&quot;</span><span class="p">])</span>
+                            <span class="p">):</span>
+
+                                <span class="k">if</span> <span class="s2">&quot;string&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_b</span><span class="p">]:</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_b</span><span class="p">][</span><span class="s2">&quot;string&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                                        <span class="s2">&quot;(&quot;</span>
+                                        <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_b</span><span class="p">][</span><span class="n">state_a</span><span class="p">]</span>
+                                        <span class="o">+</span> <span class="s2">&quot;)?&quot;</span>
+                                        <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_b</span><span class="p">][</span><span class="s2">&quot;rest&quot;</span><span class="p">]</span>
+                                    <span class="p">)</span>
+                                <span class="k">else</span><span class="p">:</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_b</span><span class="p">][</span><span class="s2">&quot;string&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                                        <span class="s2">&quot;(&quot;</span>
+                                        <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_b</span><span class="p">][</span><span class="s2">&quot;string&quot;</span><span class="p">]</span>
+                                        <span class="o">+</span> <span class="s2">&quot;|(&quot;</span>
+                                        <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_b</span><span class="p">][</span><span class="n">state_a</span><span class="p">]</span>
+                                        <span class="o">+</span> <span class="s2">&quot;)?&quot;</span>
+                                        <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_b</span><span class="p">][</span><span class="s2">&quot;rest&quot;</span><span class="p">]</span>
+                                        <span class="o">+</span> <span class="s2">&quot;)&quot;</span>
+                                    <span class="p">)</span>
+                                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_b</span><span class="p">][</span><span class="n">state_a</span><span class="p">]</span>
+                                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_b</span><span class="p">][</span><span class="s2">&quot;rest&quot;</span><span class="p">]</span>
+                                <span class="n">found</span> <span class="o">=</span> <span class="mi">1</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">newinput</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_b</span><span class="p">][</span><span class="n">state_a</span><span class="p">]</span>
+                                <span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">cleaner</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">][</span><span class="s2">&quot;string&quot;</span><span class="p">])</span>
+                                <span class="k">if</span> <span class="p">(</span>
+                                    <span class="s2">&quot;rest&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_b</span><span class="p">]</span>
+                                    <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_b</span><span class="p">][</span><span class="s2">&quot;rest&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span>
+                                <span class="p">):</span>
+                                    <span class="n">newinput</span> <span class="o">=</span> <span class="p">(</span>
+                                        <span class="s2">&quot;(&quot;</span>
+                                        <span class="o">+</span> <span class="n">newinput</span>
+                                        <span class="o">+</span> <span class="s2">&quot;|&quot;</span>
+                                        <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_b</span><span class="p">][</span><span class="s2">&quot;rest&quot;</span><span class="p">]</span>
+                                        <span class="o">+</span> <span class="s2">&quot;)&quot;</span>
+                                    <span class="p">)</span>
+
+                                <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_b</span><span class="p">][</span><span class="s2">&quot;rest&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">newinput</span>
+                                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_b</span><span class="p">][</span><span class="n">state_a</span><span class="p">]</span>
+                                <span class="n">found</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">state_a</span> <span class="o">!=</span> <span class="n">start</span><span class="p">:</span>
+                    <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">state_a</span> <span class="o">!=</span> <span class="n">start</span>
+                <span class="ow">and</span> <span class="n">state_a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span>
+                <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="mi">1</span>
+                <span class="ow">and</span> <span class="s2">&quot;same&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+            <span class="p">):</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">state_b</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+                    <span class="k">if</span> <span class="n">state_b</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span> <span class="ow">and</span> <span class="n">state_a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_b</span><span class="p">]:</span>
+                        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_b</span><span class="p">][</span><span class="n">state_a</span><span class="p">]</span>
+                        <span class="n">found</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="c1"># Clean Loophole</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">state_a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span>
+                <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="mi">1</span>
+                <span class="ow">and</span> <span class="s2">&quot;same&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+            <span class="p">):</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]</span>
+                <span class="n">found</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="c1"># Final State</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">state_a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span>
+                <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="mi">1</span>
+                <span class="ow">and</span> <span class="s2">&quot;rest&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]</span>
+            <span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">][</span><span class="s2">&quot;string&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">][</span><span class="s2">&quot;rest&quot;</span><span class="p">]</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">][</span><span class="s2">&quot;rest&quot;</span><span class="p">]</span>
+                <span class="n">found</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="c1"># Final State with alternative path</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">state_a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span>
+                <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="mi">2</span>
+                <span class="ow">and</span> <span class="s2">&quot;string&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]</span>
+                <span class="ow">and</span> <span class="s2">&quot;rest&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]</span>
+            <span class="p">):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">][</span><span class="s2">&quot;rest&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">][</span><span class="s2">&quot;string&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">cleaner</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">][</span><span class="s2">&quot;string&quot;</span><span class="p">])</span>
+                        <span class="o">+</span> <span class="s2">&quot;(&quot;</span>
+                        <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">replaceAlphabet</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">][</span><span class="s2">&quot;rest&quot;</span><span class="p">])</span>
+                        <span class="o">+</span> <span class="s2">&quot;)?&quot;</span>
+                    <span class="p">)</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">][</span><span class="s2">&quot;rest&quot;</span><span class="p">]</span>
+                <span class="n">found</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="c1"># State with alternative path and self loop</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">state_a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span>
+                <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="mi">2</span>
+                <span class="ow">and</span> <span class="s2">&quot;same&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]</span>
+                <span class="ow">and</span> <span class="s2">&quot;rest&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]</span>
+            <span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">][</span><span class="s2">&quot;rest&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkIfSameStateNotNeeded</span><span class="p">(</span>
+                    <span class="n">state_a</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cleanerS</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">][</span><span class="s2">&quot;same&quot;</span><span class="p">])</span>
+                <span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">cleaner</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">][</span><span class="s2">&quot;rest&quot;</span><span class="p">])</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">][</span><span class="s2">&quot;same&quot;</span><span class="p">]</span>
+                <span class="n">found</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="c1"># Final State with self loop</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">state_a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span>
+                <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="mi">2</span>
+                <span class="ow">and</span> <span class="s2">&quot;string&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]</span>
+                <span class="ow">and</span> <span class="s2">&quot;same&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]</span>
+            <span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">][</span><span class="s2">&quot;string&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkIfSameStateNotNeeded</span><span class="p">(</span>
+                    <span class="n">state_a</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cleanerS</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">][</span><span class="s2">&quot;same&quot;</span><span class="p">])</span>
+                <span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">cleaner</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">][</span><span class="s2">&quot;string&quot;</span><span class="p">])</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">][</span><span class="s2">&quot;same&quot;</span><span class="p">]</span>
+                <span class="n">found</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="c1"># Final State with alternative path and self loop</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">state_a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span>
+                <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="mi">3</span>
+                <span class="ow">and</span> <span class="s2">&quot;string&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]</span>
+                <span class="ow">and</span> <span class="s2">&quot;rest&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]</span>
+                <span class="ow">and</span> <span class="s2">&quot;same&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]</span>
+            <span class="p">):</span>
+                <span class="n">add</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">][</span><span class="s2">&quot;rest&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                    <span class="n">add</span> <span class="o">=</span> <span class="s2">&quot;(&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">][</span><span class="s2">&quot;rest&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;)?&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">][</span><span class="s2">&quot;string&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">checkIfSameStateNotNeeded</span><span class="p">(</span>
+                        <span class="n">state_a</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cleanerS</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">][</span><span class="s2">&quot;same&quot;</span><span class="p">])</span>
+                    <span class="p">)</span>
+                    <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">cleaner</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">][</span><span class="s2">&quot;string&quot;</span><span class="p">])</span>
+                    <span class="o">+</span> <span class="n">add</span>
+                <span class="p">)</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">][</span><span class="s2">&quot;rest&quot;</span><span class="p">]</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">][</span><span class="s2">&quot;same&quot;</span><span class="p">]</span>
+                <span class="n">found</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="c1"># No path State</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">state_a</span> <span class="o">!=</span> <span class="n">start</span>
+                <span class="ow">and</span> <span class="n">state_a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span>
+                <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span>
+            <span class="p">):</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">state_b</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+                    <span class="k">if</span> <span class="n">state_b</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span> <span class="ow">and</span> <span class="n">state_a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_b</span><span class="p">]:</span>
+                        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_b</span><span class="p">][</span><span class="n">state_a</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">found</span>
+
+<div class="viewcode-block" id="Regex.fixBrzozowskiAdvanced">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.regex.Regex.fixBrzozowskiAdvanced">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fixBrzozowskiAdvanced</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">found</span><span class="p">):</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">state_a</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="n">maxkey</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getMaxInternalPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">state_a</span> <span class="o">!=</span> <span class="n">start</span>
+                <span class="ow">and</span> <span class="n">state_a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span>
+                <span class="ow">and</span> <span class="n">maxkey</span> <span class="o">&lt;</span> <span class="n">state_a</span>
+                <span class="ow">and</span> <span class="p">(</span>
+                    <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="ow">or</span> <span class="p">(</span>
+                        <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="mi">1</span>
+                        <span class="ow">and</span> <span class="s2">&quot;same&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">):</span>
+                <span class="n">same</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+                <span class="k">if</span> <span class="s2">&quot;same&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]:</span>
+                    <span class="n">same</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkIfSameStateNotNeeded</span><span class="p">(</span>
+                        <span class="n">state_a</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cleanerS</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">][</span><span class="s2">&quot;same&quot;</span><span class="p">])</span>
+                    <span class="p">)</span>
+                <span class="c1"># del(self.A[i][&#39;same&#39;])</span>
+                <span class="k">for</span> <span class="n">state_b</span> <span class="ow">in</span> <span class="p">[</span>
+                    <span class="n">x</span><span class="o">.</span><span class="n">stateid</span>
+                    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bfs_sort</span><span class="p">(</span>
+                        <span class="nb">sorted</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">mma</span><span class="o">.</span><span class="n">states</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">attrgetter</span><span class="p">(</span><span class="s2">&quot;initial&quot;</span><span class="p">),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span>
+                        <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="p">)</span>
+                <span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">state_b</span> <span class="o">!=</span> <span class="n">state_a</span> <span class="ow">and</span> <span class="n">state_b</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">state_a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_b</span><span class="p">]:</span>
+                            <span class="n">temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cleaner</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_b</span><span class="p">][</span><span class="n">state_a</span><span class="p">])</span>
+                            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_b</span><span class="p">][</span><span class="n">state_a</span><span class="p">]</span>
+                            <span class="k">for</span> <span class="n">newTarget</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">]:</span>
+                                <span class="k">if</span> <span class="n">newTarget</span> <span class="o">!=</span> <span class="s2">&quot;same&quot;</span><span class="p">:</span>
+                                    <span class="n">transValue</span> <span class="o">=</span> <span class="n">same</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">cleaner</span><span class="p">(</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_a</span><span class="p">][</span><span class="n">newTarget</span><span class="p">]</span>
+                                    <span class="p">)</span>
+                                    <span class="n">found</span> <span class="o">=</span> <span class="mi">1</span>
+                                    <span class="n">add</span> <span class="o">=</span> <span class="n">temp</span> <span class="o">+</span> <span class="n">transValue</span>
+                                    <span class="k">if</span> <span class="n">newTarget</span> <span class="o">==</span> <span class="n">state_b</span><span class="p">:</span>
+                                        <span class="n">newTarget</span> <span class="o">=</span> <span class="s2">&quot;same&quot;</span>
+                                        <span class="n">add</span> <span class="o">=</span> <span class="s2">&quot;(&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">replaceAlphabet</span><span class="p">(</span><span class="n">add</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;)*&quot;</span>
+                                    <span class="k">if</span> <span class="p">(</span><span class="n">newTarget</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_b</span><span class="p">])</span> <span class="ow">or</span> <span class="p">(</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_b</span><span class="p">][</span><span class="n">newTarget</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span>
+                                    <span class="p">):</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_b</span><span class="p">][</span><span class="n">newTarget</span><span class="p">]</span> <span class="o">=</span> <span class="n">add</span>
+                                    <span class="k">else</span><span class="p">:</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_b</span><span class="p">][</span><span class="n">newTarget</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                                            <span class="bp">self</span><span class="o">.</span><span class="n">replaceAlphabetMixed</span><span class="p">(</span>
+                                                <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">state_b</span><span class="p">][</span><span class="n">newTarget</span><span class="p">],</span> <span class="n">add</span>
+                                            <span class="p">)</span>
+                                        <span class="p">)</span>
+                                    <span class="n">found</span> <span class="o">=</span> <span class="mi">1</span>
+
+                            <span class="k">if</span> <span class="n">found</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                                <span class="k">break</span>
+
+        <span class="k">return</span> <span class="n">found</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_solve</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_create_map</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fix_pattern</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fixBrzozowskiBackwardLoopRemoval</span><span class="p">()</span>  <span class="c1"># Remove backward paths because of kleene star</span>
+
+        <span class="k">while</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">found</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Lexical</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">found</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">found</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixBrzozowskiAdvanced</span><span class="p">(</span><span class="n">found</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">found</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="k">if</span> <span class="s2">&quot;string&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;string&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">splitlines</span><span class="p">())</span>
+
+<div class="viewcode-block" id="Regex.get_regex">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.regex.Regex.get_regex">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_regex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate regular expressions from DFA automaton&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solve</span><span class="p">()</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.regex.main">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Testing function for DFA brzozowski algebraic method Operation</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">argv</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">argv</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">targetfile</span> <span class="o">=</span> <span class="s2">&quot;target.y&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">targetfile</span> <span class="o">=</span> <span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Parsing ruleset: &quot;</span> <span class="o">+</span> <span class="n">targetfile</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.flex2fst</span><span class="w"> </span><span class="kn">import</span> <span class="n">Flexparser</span>
+
+    <span class="n">flex_a</span> <span class="o">=</span> <span class="n">Flexparser</span><span class="p">()</span>
+    <span class="n">mma</span> <span class="o">=</span> <span class="n">flex_a</span><span class="o">.</span><span class="n">yyparse</span><span class="p">(</span><span class="n">targetfile</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;OK&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Perform minimization on initial automaton:&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;OK&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Perform Brzozowski on minimal automaton:&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+    <span class="n">brzozowski_a</span> <span class="o">=</span> <span class="n">Regex</span><span class="p">(</span><span class="n">mma</span><span class="p">)</span>
+    <span class="n">mma_regex</span> <span class="o">=</span> <span class="n">brzozowski_a</span><span class="o">.</span><span class="n">get_regex</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">mma_regex</span><span class="p">)</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

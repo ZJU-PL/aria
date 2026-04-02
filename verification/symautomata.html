@@ -46,7 +46,7 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../logic-and-solving/index.html">Logic and Solving</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../inference/index.html">Proofs and Explanations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../proofs-and-explanations/index.html">Proofs and Explanations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../quantified-reasoning/index.html">Quantified Reasoning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../automata-languages/index.html">Automata and Languages</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Verification</a><ul class="current">
@@ -63,7 +63,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#core-components">Core Components</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#dfa-deterministic-finite-automata">DFA (Deterministic Finite Automata)</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#sfa-symbolic-finite-automata">SFA (Symbolic Finite Automata)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-aria.automata.symautomata.sfa">SFA (Symbolic Finite Automata)</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#pda-pushdown-automata">PDA (Pushdown Automata)</a></li>
 </ul>
 </li>
@@ -216,18 +216,305 @@
 </pre></div>
 </div>
 </section>
-<section id="sfa-symbolic-finite-automata">
-<h3>SFA (Symbolic Finite Automata)<a class="headerlink" href="#sfa-symbolic-finite-automata" title="Link to this heading"></a></h3>
+<section id="module-aria.automata.symautomata.sfa">
+<span id="sfa-symbolic-finite-automata"></span><h3>SFA (Symbolic Finite Automata)<a class="headerlink" href="#module-aria.automata.symautomata.sfa" title="Link to this heading"></a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.Predicate">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.automata.symautomata.sfa.</span></span><span class="sig-name descname"><span class="pre">Predicate</span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#Predicate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.Predicate" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.Predicate.conjunction">
+<span class="sig-name descname"><span class="pre">conjunction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#aria.automata.symautomata.sfa.Predicate" title="aria.automata.symautomata.sfa.Predicate"><span class="pre">Predicate</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#aria.automata.symautomata.sfa.Predicate" title="aria.automata.symautomata.sfa.Predicate"><span class="pre">Predicate</span></a></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#Predicate.conjunction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.Predicate.conjunction" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.Predicate.disjunction">
+<span class="sig-name descname"><span class="pre">disjunction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#aria.automata.symautomata.sfa.Predicate" title="aria.automata.symautomata.sfa.Predicate"><span class="pre">Predicate</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#aria.automata.symautomata.sfa.Predicate" title="aria.automata.symautomata.sfa.Predicate"><span class="pre">Predicate</span></a></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#Predicate.disjunction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.Predicate.disjunction" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.Predicate.get_witness">
+<span class="sig-name descname"><span class="pre">get_witness</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">object</span></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#Predicate.get_witness"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.Predicate.get_witness" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.Predicate.is_equivalent">
+<span class="sig-name descname"><span class="pre">is_equivalent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#aria.automata.symautomata.sfa.Predicate" title="aria.automata.symautomata.sfa.Predicate"><span class="pre">Predicate</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#Predicate.is_equivalent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.Predicate.is_equivalent" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.Predicate.is_sat">
+<span class="sig-name descname"><span class="pre">is_sat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symbol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#Predicate.is_sat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.Predicate.is_sat" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.Predicate.negate">
+<span class="sig-name descname"><span class="pre">negate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#aria.automata.symautomata.sfa.Predicate" title="aria.automata.symautomata.sfa.Predicate"><span class="pre">Predicate</span></a></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#Predicate.negate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.Predicate.negate" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.Predicate.set_universe">
+<span class="sig-name descname"><span class="pre">set_universe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">universe</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">object</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#Predicate.set_universe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.Predicate.set_universe" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.Predicate.top">
+<span class="sig-name descname"><span class="pre">top</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#aria.automata.symautomata.sfa.Predicate" title="aria.automata.symautomata.sfa.Predicate"><span class="pre">Predicate</span></a></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#Predicate.top"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.Predicate.top" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SFA">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.automata.symautomata.sfa.</span></span><span class="sig-name descname"><span class="pre">SFA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alphabet</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">object</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predicate_factory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#aria.automata.symautomata.sfa.Predicate" title="aria.automata.symautomata.sfa.Predicate"><span class="pre">Predicate</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SFA"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SFA" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SFA.accepts">
+<span class="sig-name descname"><span class="pre">accepts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">object</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SFA.accepts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SFA.accepts" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SFA.add_arc">
+<span class="sig-name descname"><span class="pre">add_arc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">guard</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">term</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SFA.add_arc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SFA.add_arc" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SFA.add_state">
+<span class="sig-name descname"><span class="pre">add_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SFA.add_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SFA.add_state" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SFA.complement">
+<span class="sig-name descname"><span class="pre">complement</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#aria.automata.symautomata.sfa.SFA" title="aria.automata.symautomata.sfa.SFA"><span class="pre">SFA</span></a></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SFA.complement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SFA.complement" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SFA.complete">
+<span class="sig-name descname"><span class="pre">complete</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#aria.automata.symautomata.sfa.SFA" title="aria.automata.symautomata.sfa.SFA"><span class="pre">SFA</span></a></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SFA.complete"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SFA.complete" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SFA.concretize">
+<span class="sig-name descname"><span class="pre">concretize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SFA.concretize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SFA.concretize" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SFA.consume_input">
+<span class="sig-name descname"><span class="pre">consume_input</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">object</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SFA.consume_input"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SFA.consume_input" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SFA.copy">
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#aria.automata.symautomata.sfa.SFA" title="aria.automata.symautomata.sfa.SFA"><span class="pre">SFA</span></a></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SFA.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SFA.copy" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SFA.determinize">
+<span class="sig-name descname"><span class="pre">determinize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#aria.automata.symautomata.sfa.SFA" title="aria.automata.symautomata.sfa.SFA"><span class="pre">SFA</span></a></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SFA.determinize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SFA.determinize" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SFA.difference">
+<span class="sig-name descname"><span class="pre">difference</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#aria.automata.symautomata.sfa.SFA" title="aria.automata.symautomata.sfa.SFA"><span class="pre">SFA</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#aria.automata.symautomata.sfa.SFA" title="aria.automata.symautomata.sfa.SFA"><span class="pre">SFA</span></a></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SFA.difference"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SFA.difference" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SFA.from_acceptor">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_acceptor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">acceptor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphabet</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">object</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#aria.automata.symautomata.sfa.SFA" title="aria.automata.symautomata.sfa.SFA"><span class="pre">SFA</span></a></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SFA.from_acceptor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SFA.from_acceptor" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SFA.get_witness">
+<span class="sig-name descname"><span class="pre">get_witness</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">object</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SFA.get_witness"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SFA.get_witness" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SFA.init_from_acceptor">
+<span class="sig-name descname"><span class="pre">init_from_acceptor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">acceptor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SFA.init_from_acceptor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SFA.init_from_acceptor" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SFA.initial_states">
+<span class="sig-name descname"><span class="pre">initial_states</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SFA.initial_states"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SFA.initial_states" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SFA.intersection">
+<span class="sig-name descname"><span class="pre">intersection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#aria.automata.symautomata.sfa.SFA" title="aria.automata.symautomata.sfa.SFA"><span class="pre">SFA</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#aria.automata.symautomata.sfa.SFA" title="aria.automata.symautomata.sfa.SFA"><span class="pre">SFA</span></a></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SFA.intersection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SFA.intersection" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SFA.is_empty">
+<span class="sig-name descname"><span class="pre">is_empty</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SFA.is_empty"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SFA.is_empty" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SFA.is_equivalent">
+<span class="sig-name descname"><span class="pre">is_equivalent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#aria.automata.symautomata.sfa.SFA" title="aria.automata.symautomata.sfa.SFA"><span class="pre">SFA</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SFA.is_equivalent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SFA.is_equivalent" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SFA.load">
+<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">txt_fst_filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SFA.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SFA.load" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SFA.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">txt_fst_filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SFA.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SFA.save" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SFA.set_final">
+<span class="sig-name descname"><span class="pre">set_final</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SFA.set_final"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SFA.set_final" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SFA.symmetric_difference">
+<span class="sig-name descname"><span class="pre">symmetric_difference</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#aria.automata.symautomata.sfa.SFA" title="aria.automata.symautomata.sfa.SFA"><span class="pre">SFA</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#aria.automata.symautomata.sfa.SFA" title="aria.automata.symautomata.sfa.SFA"><span class="pre">SFA</span></a></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SFA.symmetric_difference"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SFA.symmetric_difference" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SFA.to_regex">
+<span class="sig-name descname"><span class="pre">to_regex</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SFA.to_regex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SFA.to_regex" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SFA.union">
+<span class="sig-name descname"><span class="pre">union</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#aria.automata.symautomata.sfa.SFA" title="aria.automata.symautomata.sfa.SFA"><span class="pre">SFA</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#aria.automata.symautomata.sfa.SFA" title="aria.automata.symautomata.sfa.SFA"><span class="pre">SFA</span></a></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SFA.union"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SFA.union" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SFAArc">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.automata.symautomata.sfa.</span></span><span class="sig-name descname"><span class="pre">SFAArc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_state_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_state_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">guard_p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#aria.automata.symautomata.sfa.Predicate" title="aria.automata.symautomata.sfa.Predicate"><span class="pre">Predicate</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">term</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SFAArc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SFAArc" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SFAState">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.automata.symautomata.sfa.</span></span><span class="sig-name descname"><span class="pre">SFAState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SFAState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SFAState" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SetPredicate">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.automata.symautomata.sfa.</span></span><span class="sig-name descname"><span class="pre">SetPredicate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initializer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">object</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">universe</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">object</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SetPredicate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SetPredicate" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.automata.symautomata.sfa.Predicate" title="aria.automata.symautomata.sfa.Predicate"><code class="xref py py-class docutils literal notranslate"><span class="pre">Predicate</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SetPredicate.conjunction">
+<span class="sig-name descname"><span class="pre">conjunction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#aria.automata.symautomata.sfa.Predicate" title="aria.automata.symautomata.sfa.Predicate"><span class="pre">Predicate</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#aria.automata.symautomata.sfa.Predicate" title="aria.automata.symautomata.sfa.Predicate"><span class="pre">Predicate</span></a></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SetPredicate.conjunction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SetPredicate.conjunction" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SetPredicate.disjunction">
+<span class="sig-name descname"><span class="pre">disjunction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#aria.automata.symautomata.sfa.Predicate" title="aria.automata.symautomata.sfa.Predicate"><span class="pre">Predicate</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#aria.automata.symautomata.sfa.Predicate" title="aria.automata.symautomata.sfa.Predicate"><span class="pre">Predicate</span></a></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SetPredicate.disjunction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SetPredicate.disjunction" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SetPredicate.get_witness">
+<span class="sig-name descname"><span class="pre">get_witness</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">object</span></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SetPredicate.get_witness"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SetPredicate.get_witness" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SetPredicate.is_equivalent">
+<span class="sig-name descname"><span class="pre">is_equivalent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#aria.automata.symautomata.sfa.Predicate" title="aria.automata.symautomata.sfa.Predicate"><span class="pre">Predicate</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SetPredicate.is_equivalent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SetPredicate.is_equivalent" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SetPredicate.is_sat">
+<span class="sig-name descname"><span class="pre">is_sat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symbol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SetPredicate.is_sat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SetPredicate.is_sat" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SetPredicate.negate">
+<span class="sig-name descname"><span class="pre">negate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#aria.automata.symautomata.sfa.Predicate" title="aria.automata.symautomata.sfa.Predicate"><span class="pre">Predicate</span></a></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SetPredicate.negate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SetPredicate.negate" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.SetPredicate.set_universe">
+<span class="sig-name descname"><span class="pre">set_universe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">universe</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">object</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#SetPredicate.set_universe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.SetPredicate.set_universe" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.Z3Predicate">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.automata.symautomata.sfa.</span></span><span class="sig-name descname"><span class="pre">Z3Predicate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symbol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formula</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">universe</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#Z3Predicate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.Z3Predicate" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aria.automata.symautomata.sfa.Predicate" title="aria.automata.symautomata.sfa.Predicate"><code class="xref py py-class docutils literal notranslate"><span class="pre">Predicate</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.Z3Predicate.bitvec">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">bitvec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formula</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'sym'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">universe</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#aria.automata.symautomata.sfa.Z3Predicate" title="aria.automata.symautomata.sfa.Z3Predicate"><span class="pre">Z3Predicate</span></a></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#Z3Predicate.bitvec"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.Z3Predicate.bitvec" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.Z3Predicate.conjunction">
+<span class="sig-name descname"><span class="pre">conjunction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#aria.automata.symautomata.sfa.Predicate" title="aria.automata.symautomata.sfa.Predicate"><span class="pre">Predicate</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#aria.automata.symautomata.sfa.Predicate" title="aria.automata.symautomata.sfa.Predicate"><span class="pre">Predicate</span></a></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#Z3Predicate.conjunction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.Z3Predicate.conjunction" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.Z3Predicate.disjunction">
+<span class="sig-name descname"><span class="pre">disjunction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#aria.automata.symautomata.sfa.Predicate" title="aria.automata.symautomata.sfa.Predicate"><span class="pre">Predicate</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#aria.automata.symautomata.sfa.Predicate" title="aria.automata.symautomata.sfa.Predicate"><span class="pre">Predicate</span></a></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#Z3Predicate.disjunction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.Z3Predicate.disjunction" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.Z3Predicate.get_witness">
+<span class="sig-name descname"><span class="pre">get_witness</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">object</span></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#Z3Predicate.get_witness"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.Z3Predicate.get_witness" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.Z3Predicate.is_equivalent">
+<span class="sig-name descname"><span class="pre">is_equivalent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#aria.automata.symautomata.sfa.Predicate" title="aria.automata.symautomata.sfa.Predicate"><span class="pre">Predicate</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#Z3Predicate.is_equivalent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.Z3Predicate.is_equivalent" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.Z3Predicate.is_sat">
+<span class="sig-name descname"><span class="pre">is_sat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symbol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#Z3Predicate.is_sat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.Z3Predicate.is_sat" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.Z3Predicate.negate">
+<span class="sig-name descname"><span class="pre">negate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#aria.automata.symautomata.sfa.Predicate" title="aria.automata.symautomata.sfa.Predicate"><span class="pre">Predicate</span></a></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#Z3Predicate.negate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.Z3Predicate.negate" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.Z3Predicate.top">
+<span class="sig-name descname"><span class="pre">top</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#aria.automata.symautomata.sfa.Predicate" title="aria.automata.symautomata.sfa.Predicate"><span class="pre">Predicate</span></a></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#Z3Predicate.top"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.Z3Predicate.top" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.automata.symautomata.sfa.main">
+<span class="sig-prename descclassname"><span class="pre">aria.automata.symautomata.sfa.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/aria/automata/symautomata/sfa.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.sfa.main" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
 <p>Symbolic Finite Automata extend traditional DFAs by using predicates on transitions instead of individual symbols. This allows for more compact representations when dealing with large or infinite alphabets.</p>
 <p><strong>Key Components:</strong></p>
 <ul class="simple">
 <li><p><strong>Predicates</strong>: Abstract conditions that determine transition validity</p></li>
 <li><p><strong>SetPredicate</strong>: Concrete implementation using character sets</p></li>
+<li><p><strong>Z3Predicate</strong>: Solver-backed implementation for symbolic domains</p></li>
 <li><p><strong>SFA States and Arcs</strong>: Extended state and transition structures</p></li>
 </ul>
+<p><strong>Operational Semantics:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">SFA.accepts(...)</span></code> tracks a set of current states, so acceptance behaves like an NFA with guarded transitions.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SFA.determinize()</span></code> partitions satisfiable guard regions and is used internally by <code class="docutils literal notranslate"><span class="pre">complete()</span></code>, <code class="docutils literal notranslate"><span class="pre">complement()</span></code>, and <code class="docutils literal notranslate"><span class="pre">concretize()</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SetPredicate.negate()</span></code> requires a finite universe.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SFA.complete()</span></code> and <code class="docutils literal notranslate"><span class="pre">SFA.complement()</span></code> require either a finite alphabet or a <code class="docutils literal notranslate"><span class="pre">predicate_factory</span></code> that can create a predicate over the intended symbolic universe.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SFA.save()</span></code> and <code class="docutils literal notranslate"><span class="pre">SFA.load()</span></code> are finite-alphabet workflows; they do not serialize symbolic formulas.</p></li>
+</ul>
+<p><strong>Concrete Workflow Bridges:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">SFA.from_acceptor(dfa)</span></code> lifts a concrete DFA-style acceptor into an SFA with singleton <code class="docutils literal notranslate"><span class="pre">SetPredicate</span></code> guards.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SFA.to_regex()</span></code> reuses the existing DFA-to-regex workflow by concretizing first and then delegating to <code class="docutils literal notranslate"><span class="pre">DFA.to_regex()</span></code>.</p></li>
+</ul>
 <p><strong>Example Usage:</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.sfa</span><span class="w"> </span><span class="kn">import</span> <span class="n">SFA</span><span class="p">,</span> <span class="n">SetPredicate</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata</span><span class="w"> </span><span class="kn">import</span> <span class="n">SFA</span><span class="p">,</span> <span class="n">SetPredicate</span><span class="p">,</span> <span class="n">Z3Predicate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.dfa</span><span class="w"> </span><span class="kn">import</span> <span class="n">DFA</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">string</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
 
 <span class="c1"># Create SFA for pattern matching</span>
 <span class="n">sfa</span> <span class="o">=</span> <span class="n">SFA</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">ascii_lowercase</span><span class="p">))</span>
@@ -242,8 +529,21 @@
 <span class="n">sfa</span><span class="o">.</span><span class="n">add_arc</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">x_only</span><span class="p">)</span>
 <span class="n">sfa</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">final</span> <span class="o">=</span> <span class="kc">True</span>
 
-<span class="c1"># Convert to concrete DFA</span>
-<span class="n">dfa</span> <span class="o">=</span> <span class="n">sfa</span><span class="o">.</span><span class="n">concretize</span><span class="p">()</span>
+ <span class="c1"># Convert to concrete DFA</span>
+ <span class="n">dfa</span> <span class="o">=</span> <span class="n">sfa</span><span class="o">.</span><span class="n">concretize</span><span class="p">()</span>
+
+<span class="c1"># Lift an existing DFA into SFA and reuse regex conversion</span>
+<span class="n">concrete</span> <span class="o">=</span> <span class="n">DFA</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">])</span>
+<span class="n">concrete</span><span class="o">.</span><span class="n">add_arc</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span>
+<span class="n">concrete</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">final</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">lifted</span> <span class="o">=</span> <span class="n">SFA</span><span class="o">.</span><span class="n">from_acceptor</span><span class="p">(</span><span class="n">concrete</span><span class="p">)</span>
+<span class="n">regex</span> <span class="o">=</span> <span class="n">lifted</span><span class="o">.</span><span class="n">to_regex</span><span class="p">()</span>
+
+<span class="c1"># Use solver-backed predicates</span>
+<span class="n">sym</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">BitVec</span><span class="p">(</span><span class="s2">&quot;sym&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+<span class="n">symbolic</span> <span class="o">=</span> <span class="n">SFA</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">predicate_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">Z3Predicate</span><span class="p">(</span><span class="n">sym</span><span class="p">,</span> <span class="n">z3</span><span class="o">.</span><span class="n">BoolVal</span><span class="p">(</span><span class="kc">False</span><span class="p">),</span> <span class="n">z3</span><span class="o">.</span><span class="n">ULT</span><span class="p">(</span><span class="n">sym</span><span class="p">,</span> <span class="n">z3</span><span class="o">.</span><span class="n">BitVecVal</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">))))</span>
+<span class="n">symbolic</span><span class="o">.</span><span class="n">add_arc</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">Z3Predicate</span><span class="p">(</span><span class="n">sym</span><span class="p">,</span> <span class="n">z3</span><span class="o">.</span><span class="n">ULT</span><span class="p">(</span><span class="n">sym</span><span class="p">,</span> <span class="n">z3</span><span class="o">.</span><span class="n">BitVecVal</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">8</span><span class="p">)),</span> <span class="n">z3</span><span class="o">.</span><span class="n">ULT</span><span class="p">(</span><span class="n">sym</span><span class="p">,</span> <span class="n">z3</span><span class="o">.</span><span class="n">BitVecVal</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">))))</span>
+<span class="n">symbolic</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">final</span> <span class="o">=</span> <span class="kc">True</span>
 </pre></div>
 </div>
 </section>
@@ -314,6 +614,104 @@
 </section>
 <section id="regular-expression-processing">
 <h3>Regular Expression Processing<a class="headerlink" href="#regular-expression-processing" title="Link to this heading"></a></h3>
+<p id="module-aria.automata.symautomata.regex">This module transforms a pyfst DFA to regular expressions
+using the Brzozowski Algebraic Method</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="aria.automata.symautomata.regex.Regex">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aria.automata.symautomata.regex.</span></span><span class="sig-name descname"><span class="pre">Regex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_fst_a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphabet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/automata/symautomata/regex.html#Regex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.regex.Regex" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This class transforms a pyfst DFA to regular expressions
+using the Brzozowski Algebraic Method</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.regex.Regex.checkIfBothAreNeeded">
+<span class="sig-name descname"><span class="pre">checkIfBothAreNeeded</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputA</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputB</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/automata/symautomata/regex.html#Regex.checkIfBothAreNeeded"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.regex.Regex.checkIfBothAreNeeded" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.regex.Regex.checkIfSameStateNotNeeded">
+<span class="sig-name descname"><span class="pre">checkIfSameStateNotNeeded</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">same</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/automata/symautomata/regex.html#Regex.checkIfSameStateNotNeeded"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.regex.Regex.checkIfSameStateNotNeeded" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.regex.Regex.cleaner">
+<span class="sig-name descname"><span class="pre">cleaner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">res</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/automata/symautomata/regex.html#Regex.cleaner"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.regex.Regex.cleaner" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.regex.Regex.cleanerS">
+<span class="sig-name descname"><span class="pre">cleanerS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">res</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/automata/symautomata/regex.html#Regex.cleanerS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.regex.Regex.cleanerS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.regex.Regex.existsPath">
+<span class="sig-name descname"><span class="pre">existsPath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">finalstate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visited</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/automata/symautomata/regex.html#Regex.existsPath"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.regex.Regex.existsPath" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.regex.Regex.findWhichSymbolsFromOtherStatesConnectToMe">
+<span class="sig-name descname"><span class="pre">findWhichSymbolsFromOtherStatesConnectToMe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/automata/symautomata/regex.html#Regex.findWhichSymbolsFromOtherStatesConnectToMe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.regex.Regex.findWhichSymbolsFromOtherStatesConnectToMe" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.regex.Regex.fixBrzozowskiAdvanced">
+<span class="sig-name descname"><span class="pre">fixBrzozowskiAdvanced</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">found</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/automata/symautomata/regex.html#Regex.fixBrzozowskiAdvanced"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.regex.Regex.fixBrzozowskiAdvanced" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.regex.Regex.fixBrzozowskiBackwardLoopRemoval">
+<span class="sig-name descname"><span class="pre">fixBrzozowskiBackwardLoopRemoval</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/automata/symautomata/regex.html#Regex.fixBrzozowskiBackwardLoopRemoval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.regex.Regex.fixBrzozowskiBackwardLoopRemoval" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.regex.Regex.getMaxInternalPath">
+<span class="sig-name descname"><span class="pre">getMaxInternalPath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inkeys</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/automata/symautomata/regex.html#Regex.getMaxInternalPath"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.regex.Regex.getMaxInternalPath" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.regex.Regex.get_regex">
+<span class="sig-name descname"><span class="pre">get_regex</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/automata/symautomata/regex.html#Regex.get_regex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.regex.Regex.get_regex" title="Link to this definition"></a></dt>
+<dd><p>Generate regular expressions from DFA automaton</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.regex.Regex.partitionAlphabet">
+<span class="sig-name descname"><span class="pre">partitionAlphabet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alphabetLen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parsedInput</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/automata/symautomata/regex.html#Regex.partitionAlphabet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.regex.Regex.partitionAlphabet" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.regex.Regex.replaceAlphabet">
+<span class="sig-name descname"><span class="pre">replaceAlphabet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/automata/symautomata/regex.html#Regex.replaceAlphabet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.regex.Regex.replaceAlphabet" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.regex.Regex.replaceAlphabetMixed">
+<span class="sig-name descname"><span class="pre">replaceAlphabetMixed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/automata/symautomata/regex.html#Regex.replaceAlphabetMixed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.regex.Regex.replaceAlphabetMixed" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aria.automata.symautomata.regex.Regex.star">
+<span class="sig-name descname"><span class="pre">star</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_string</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/automata/symautomata/regex.html#Regex.star"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.regex.Regex.star" title="Link to this definition"></a></dt>
+<dd><p>Kleene star operation
+:param input_string: The string that the kleene star will be made
+:type input_string: str</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The applied Kleene star operation on the input string</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="aria.automata.symautomata.regex.main">
+<span class="sig-prename descclassname"><span class="pre">aria.automata.symautomata.regex.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/automata/symautomata/regex.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.automata.symautomata.regex.main" title="Link to this definition"></a></dt>
+<dd><p>Testing function for DFA brzozowski algebraic method Operation</p>
+</dd></dl>
+
 <p>The regex module implements the Brzozowski algebraic method for converting DFAs to regular expressions:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.symautomata.regex</span><span class="w"> </span><span class="kn">import</span> <span class="n">Regex</span>
 
