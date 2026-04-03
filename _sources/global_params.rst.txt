@@ -184,12 +184,18 @@ bin_solvers/          # Solver binaries
 
 benchmarks/          # Test and evaluation benchmarks
 ├── abduction/
-├── chc/
 ├── dimacs/
+├── efmc/
+│   ├── Boogie/
+│   ├── BV/
+│   ├── C/
+│   ├── chc/
+│   ├── INT/
+│   ├── KSafety/
+│   └── sygus-inv/
 ├── fzn/
 ├── qbf/
 ├── smtlib2/
-├── sygus-inv/
 └── sygus-pbe/
 ```
 
