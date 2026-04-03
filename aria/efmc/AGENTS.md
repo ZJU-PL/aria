@@ -8,8 +8,9 @@ families, and CLI entrypoints.
 
 Useful files for orientation:
 
-- `aria/efmc/cli/efmc.py`: main verification CLI
-- `aria/efmc/cli/efsmt.py`: EFSMT-oriented CLI entrypoint in this subsystem
+- `aria/cli/efmc_cli.py`: main verification CLI
+- `aria/cli/efmc_efsmt_cli.py`: EFSMT-oriented CLI entrypoint in this subsystem
+- `aria/cli/polyhorn_cli.py`: PolyHorn CLI entrypoint
 - `aria/efmc/frontends/`: parsers for CHC, SyGuS, Boogie, and C inputs
 - `aria/efmc/engines/`: proving engines such as EF, PDR, k-induction, abduction
 - `aria/efmc/tests/`: main regression suite
@@ -41,9 +42,9 @@ pytest aria/efmc/tests/test_boogie_converter.py
 For CLI changes, also run:
 
 ```bash
-python -m aria.efmc.cli.efmc --help
-python -m aria.efmc.cli.efsmt --help
-python -m aria.efmc.cli.polyhorn --help
+python -m aria.cli.efmc_cli --help
+python -m aria.cli.efmc_efsmt_cli --help
+python -m aria.cli.polyhorn_cli --help
 ```
 
 ## Common Risks

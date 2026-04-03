@@ -1,4 +1,4 @@
-"""Tests for aria.cli.pyomt - Optimization CLI."""
+"""Tests for aria.cli.pyomt_cli - Optimization CLI."""
 import sys
 from pathlib import Path
 from unittest.mock import patch
@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pytest
 import z3
 
-from aria.cli.pyomt import main, solve_omt_problem
+from aria.cli.pyomt_cli import main, solve_omt_problem
 
 
 # Sample OMT problems

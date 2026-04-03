@@ -1,11 +1,11 @@
-"""Tests for aria.cli.maxsat - MaxSAT CLI."""
+"""Tests for aria.cli.maxsat_cli - MaxSAT CLI."""
 import sys
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
-from aria.cli.maxsat import main, solve_maxsat_from_file
+from aria.cli.maxsat_cli import main, solve_maxsat_from_file
 
 
 WCNF_SAMPLE = """p wcnf 3 4 10

@@ -1,4 +1,4 @@
-"""Tests for aria.cli.efsmt - Exists-Forall SMT CLI."""
+"""Tests for aria.cli.efsmt_cli - Exists-Forall SMT CLI."""
 import sys
 from pathlib import Path
 from unittest.mock import patch
@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pytest
 import z3
 
-from aria.cli.efsmt import main, _infer_theory, _format_result
+from aria.cli.efsmt_cli import main, _infer_theory, _format_result
 
 
 # Sample EFSMT problems

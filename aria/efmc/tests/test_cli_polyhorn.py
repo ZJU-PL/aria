@@ -6,7 +6,7 @@ import pytest
 
 pytest.importorskip("numpy")
 
-import aria.efmc.cli.polyhorn as polyhorn_cli
+import aria.cli.polyhorn_cli as polyhorn_cli
 
 
 def test_create_config_from_args_applies_overrides(monkeypatch):

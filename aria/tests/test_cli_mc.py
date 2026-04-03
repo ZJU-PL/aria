@@ -1,4 +1,4 @@
-"""Tests for aria.cli.mc - Model Counting CLI."""
+"""Tests for aria.cli.mc_cli - Model Counting CLI."""
 import sys
 from argparse import Namespace
 from pathlib import Path
@@ -7,7 +7,7 @@ from unittest.mock import Mock, patch
 import pytest
 import z3
 
-from aria.cli.mc import count_from_file, main
+from aria.cli.mc_cli import count_from_file, main
 
 
 DIMACS_SAMPLE = """c Simple CNF

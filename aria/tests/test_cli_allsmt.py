@@ -1,11 +1,11 @@
-"""Tests for aria.cli.allsmt - AllSMT CLI."""
+"""Tests for aria.cli.allsmt_cli - AllSMT CLI."""
 import sys
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
-from aria.cli.allsmt import _formula_and_vars_from_smt2, enumerate_models, main
+from aria.cli.allsmt_cli import _formula_and_vars_from_smt2, enumerate_models, main
 
 
 SMT2_SAT_TWO_MODELS = """(set-logic QF_LIA)

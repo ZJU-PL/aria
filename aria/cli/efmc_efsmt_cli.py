@@ -1,6 +1,6 @@
 """Command-line interface for EFSMT (Exists-Forall SMT) solver
 
-python -m efmc.cli.efsmt --file query.smt2 --solver z3 --logic BV
+python -m aria.cli.efmc_efsmt_cli --file query.smt2 z3 --logic BV
 """
 
 import argparse

@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-import aria.efmc.cli.efsmt as efsmt_cli
+import aria.cli.efmc_efsmt_cli as efsmt_cli
 
 
 def test_parse_arguments_defaults(monkeypatch, tmp_path: Path):
@@ -92,4 +92,3 @@ def test_signal_handler_exits(monkeypatch):
     with pytest.raises(SystemExit) as excinfo:
         efsmt_cli.signal_handler(None, None)
     assert excinfo.value.code == 0
-

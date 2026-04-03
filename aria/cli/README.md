@@ -16,23 +16,26 @@ This package provides CLI tools for various automated reasoning tasks:
 | `unsat_core` | UNSAT core, MUS, and MSS computation from SMT-LIB2 |
 | `allsmt` | Enumerate all satisfying models of an SMT formula |
 | `smt_server` | Enhanced SMT server with advanced features |
+| `efmc` | Transition-system verification across CHC, SyGuS, Boogie, and C |
+| `efmc_efsmt` | EFMC-specific EFSMT frontend |
+| `polyhorn` | Polynomial Horn constraint solving |
 
-After `pip install -e .`, the same tools are available as `aria-fmldoc`, `aria-mc`, `aria-pyomt`, `aria-efsmt`, `aria-maxsat`, `aria-unsat-core`, `aria-allsmt`, and `aria-smt-server`.
+After `pip install -e .`, the same tools are available as `aria-fmldoc`, `aria-mc`, `aria-pyomt`, `aria-efsmt`, `aria-efmc-efsmt`, `aria-maxsat`, `aria-unsat-core`, `aria-allsmt`, `aria-smt-server`, `aria-efmc`, and `aria-polyhorn`.
 
 ## Quick Start
 
 ```bash
 # Format conversion
-python -m aria.cli.fmldoc translate -i input.cnf -o output.smt2
+python -m aria.cli.fmldoc_cli translate -i input.cnf -o output.smt2
 
 # Model counting
-python -m aria.cli.mc formula.smt2
+python -m aria.cli.mc_cli formula.smt2
 
 # Optimization
-python -m aria.cli.pyomt problem.smt2
+python -m aria.cli.pyomt_cli problem.smt2
 
 # Exists-Forall solving
-python -m aria.cli.efsmt problem.smt2
+python -m aria.cli.efsmt_cli problem.smt2
 
 # MaxSAT (WCNF)
 aria-maxsat formula.wcnf --solver rc2
@@ -44,7 +47,13 @@ aria-unsat-core formula.smt2
 aria-allsmt formula.smt2 --limit 100
 
 # SMT server
-python -m aria.cli.smt_server
+python -m aria.cli.smt_server_cli
+
+# EFMC verifier
+python -m aria.cli.efmc_cli --help
+
+# PolyHorn
+python -m aria.cli.polyhorn_cli --help
 ```
 
 ---
@@ -57,19 +66,19 @@ Translate, validate, and analyze supported logic constraint files.
 
 ```bash
 # Translate DIMACS to SMT-LIB2
-python -m aria.cli.fmldoc translate -i input.cnf -o output.smt2
+python -m aria.cli.fmldoc_cli translate -i input.cnf -o output.smt2
 
 # Validate a file
-python -m aria.cli.fmldoc validate -i input.smt2 -f smtlib2
+python -m aria.cli.fmldoc_cli validate -i input.smt2 -f smtlib2
 
 # Analyze file properties
-python -m aria.cli.fmldoc analyze -i input.cnf
+python -m aria.cli.fmldoc_cli analyze -i input.cnf
 
 # List supported formats
-python -m aria.cli.fmldoc formats
+python -m aria.cli.fmldoc_cli formats
 
 # Batch processing
-python -m aria.cli.fmldoc batch -i input_dir/ -o output_dir/
+python -m aria.cli.fmldoc_cli batch -i input_dir/ -o output_dir/
 ```
 
 ### Supported Formats
@@ -89,18 +98,18 @@ Count satisfying models for formulas.
 
 ```bash
 # Auto-detect theory
-python -m aria.cli.mc formula.smt2
+python -m aria.cli.mc_cli formula.smt2
 
 # Specify theory
-python -m aria.cli.mc formula.cnf --theory bool
-python -m aria.cli.mc formula.smt2 --theory bv
-python -m aria.cli.mc formula.smt2 --theory arith
+python -m aria.cli.mc_cli formula.cnf --theory bool
+python -m aria.cli.mc_cli formula.smt2 --theory bv
+python -m aria.cli.mc_cli formula.smt2 --theory arith
 
 # Set timeout
-python -m aria.cli.mc formula.smt2 --timeout 300
+python -m aria.cli.mc_cli formula.smt2 --timeout 300
 
 # Debug output
-python -m aria.cli.mc formula.smt2 --log-level DEBUG
+python -m aria.cli.mc_cli formula.smt2 --log-level DEBUG
 ```
 
 ### Options
@@ -122,17 +131,17 @@ Solve optimization modulo theories problems.
 
 ```bash
 # Default engine (qsmt)
-python -m aria.cli.pyomt problem.smt2
+python -m aria.cli.pyomt_cli problem.smt2
 
 # Specific engine
-python -m aria.cli.pyomt problem.smt2 --engine qsmt
-python -m aria.cli.pyomt problem.smt2 --engine iter
-python -m aria.cli.pyomt problem.smt2 --engine maxsat
-python -m aria.cli.pyomt problem.smt2 --engine z3py
+python -m aria.cli.pyomt_cli problem.smt2 --engine qsmt
+python -m aria.cli.pyomt_cli problem.smt2 --engine iter
+python -m aria.cli.pyomt_cli problem.smt2 --engine maxsat
+python -m aria.cli.pyomt_cli problem.smt2 --engine z3py
 
 # Specify theory
-python -m aria.cli.pyomt problem.smt2 --theory bv
-python -m aria.cli.pyomt problem.smt2 --theory arith
+python -m aria.cli.pyomt_cli problem.smt2 --theory bv
+python -m aria.cli.pyomt_cli problem.smt2 --theory arith
 ```
 
 ### Options
@@ -157,24 +166,24 @@ Solve Exists-Forall SMT problems.
 
 ```bash
 # Auto-detect theory and engine
-python -m aria.cli.efsmt problem.smt2
+python -m aria.cli.efsmt_cli problem.smt2
 
 # Specify parser
-python -m aria.cli.efsmt problem.smt2 --parser z3
-python -m aria.cli.efsmt problem.smt2 --parser sexpr
+python -m aria.cli.efsmt_cli problem.smt2 --parser z3
+python -m aria.cli.efsmt_cli problem.smt2 --parser sexpr
 
 # Specify theory
-python -m aria.cli.efsmt problem.smt2 --theory bool
-python -m aria.cli.efsmt problem.smt2 --theory bv
-python -m aria.cli.efsmt problem.smt2 --theory lira
+python -m aria.cli.efsmt_cli problem.smt2 --theory bool
+python -m aria.cli.efsmt_cli problem.smt2 --theory bv
+python -m aria.cli.efsmt_cli problem.smt2 --theory lira
 
 # Use specific engine
-python -m aria.cli.efsmt problem.smt2 --engine z3
-python -m aria.cli.efsmt problem.smt2 --engine cegar
-python -m aria.cli.efsmt problem.smt2 --engine efbv-par
+python -m aria.cli.efsmt_cli problem.smt2 --engine z3
+python -m aria.cli.efsmt_cli problem.smt2 --engine cegar
+python -m aria.cli.efsmt_cli problem.smt2 --engine efbv-par
 
 # Set limits
-python -m aria.cli.efsmt problem.smt2 --timeout 60 --max-loops 1000
+python -m aria.cli.efsmt_cli problem.smt2 --timeout 60 --max-loops 1000
 ```
 
 ### Options
@@ -213,7 +222,7 @@ Solve (weighted partial) MaxSAT problems from WCNF files.
 ```bash
 # Default engine (RC2)
 aria-maxsat formula.wcnf
-python -m aria.cli.maxsat formula.wcnf
+python -m aria.cli.maxsat_cli formula.wcnf
 
 # Choose engine
 aria-maxsat formula.wcnf --solver rc2
@@ -254,7 +263,7 @@ Compute one minimal unsatisfiable core or enumerate all MUSes from an SMT-LIB2 f
 ```bash
 # One UNSAT core (default: MARCO)
 aria-unsat-core formula.smt2
-python -m aria.cli.unsat_core formula.smt2
+python -m aria.cli.unsat_core_cli formula.smt2
 
 # Algorithm choice
 aria-unsat-core formula.smt2 --algorithm marco
@@ -299,7 +308,7 @@ Enumerate all satisfying models of an SMT-LIB2 formula (up to a limit).
 ```bash
 # Enumerate models (default limit 100)
 aria-allsmt formula.smt2
-python -m aria.cli.allsmt formula.smt2
+python -m aria.cli.allsmt_cli formula.smt2
 
 # Limit and backend
 aria-allsmt formula.smt2 --limit 50
@@ -343,13 +352,13 @@ Run an SMT server with advanced features via IPC.
 
 ```bash
 # Start with defaults
-python -m aria.cli.smt_server
+python -m aria.cli.smt_server_cli
 
 # Custom pipes
-python -m aria.cli.smt_server --input-pipe /tmp/my_input --output-pipe /tmp/my_output
+python -m aria.cli.smt_server_cli --input-pipe /tmp/my_input --output-pipe /tmp/my_output
 
 # Debug mode
-python -m aria.cli.smt_server --log-level DEBUG
+python -m aria.cli.smt_server_cli --log-level DEBUG
 ```
 
 ### Options
@@ -387,7 +396,7 @@ python -m aria.cli.smt_server --log-level DEBUG
 
 ```bash
 # Terminal 1: Start server
-python -m aria.cli.smt_server
+python -m aria.cli.smt_server_cli
 
 # Terminal 2: Send commands
 echo "declare-const x Bool" > /tmp/smt_input

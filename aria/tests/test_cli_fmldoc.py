@@ -1,6 +1,6 @@
 from argparse import Namespace
 
-from aria.cli.fmldoc import (
+from aria.cli.fmldoc_cli import (
     handle_analyze,
     handle_formats,
     handle_translate,

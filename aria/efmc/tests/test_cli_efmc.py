@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-import aria.efmc.cli.efmc as efmc_cli
+import aria.cli.efmc_cli as efmc_cli
 
 
 def test_parse_arguments_minimal(monkeypatch, tmp_path: Path):
@@ -118,4 +118,3 @@ def test_main_unsupported_extension_exits(monkeypatch, tmp_path: Path):
     with pytest.raises(SystemExit) as excinfo:
         efmc_cli.main()
     assert excinfo.value.code == 1
-

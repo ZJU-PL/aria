@@ -1,4 +1,4 @@
-"""Tests for aria.cli.unsat_core - UNSAT core CLI."""
+"""Tests for aria.cli.unsat_core_cli - UNSAT core CLI."""
 import sys
 from pathlib import Path
 from unittest.mock import patch
@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pytest
 import z3
 
-from aria.cli.unsat_core import (
+from aria.cli.unsat_core_cli import (
     _constraints_from_smt2,
     _format_cores,
     main,

@@ -25,7 +25,7 @@ def start_server():
     print("Starting SMT server...")
     try:
         server_process = subprocess.Popen(
-            [sys.executable, "-m", "aria.cli.smt_server"],
+            [sys.executable, "-m", "aria.cli.smt_server_cli"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
