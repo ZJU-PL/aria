@@ -5,5 +5,6 @@ Automata and Languages
    :maxdepth: 2
 
    automata
+   aalpy
    cfl
    cflobdd

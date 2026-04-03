@@ -12,6 +12,7 @@ Key Features
 * **Finite Automata**: DFA and NFA manipulation and conversion
 * **Symbolic Automata**: Symbolic finite automata with theory-based transitions
 * **Automata Learning**: Active learning algorithms for automata inference
+* **Vendored AALpy**: Upstream automata-learning toolkit under ARIA namespace
 * **String Constraint Solving**: Integration with SMT solvers for string theories
 
 Components
@@ -81,6 +82,25 @@ Active learning algorithms for inferring automata from examples:
 
    # Learn DFA from membership queries
    automaton = learn_automaton(examples, membership_oracle)
+
+Vendored AALpy (``aria/automata/aalpy``)
+-----------------------------------------
+
+ARIA also carries a vendored copy of the upstream `AALpy
+<https://github.com/DES-Lab/AALpy>`_ package as
+``aria.automata.aalpy``.
+
+Use this namespace when you want the broader active/passive learning toolkit,
+including reusable oracles, SUL wrappers, stochastic learners, and visibly
+pushdown automata support.
+
+.. code-block:: python
+
+   from aria.automata.aalpy.learning_algs import run_Lstar
+   from aria.automata.aalpy.oracles import RandomWalkEqOracle
+   from aria.automata.aalpy.SULs import AutomatonSUL
+
+See :doc:`aalpy` for the vendored package overview and API reference.
 
 Applications
 =====================

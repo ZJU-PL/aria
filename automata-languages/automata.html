@@ -19,7 +19,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Context-Free Language Reachability" href="cfl.html" />
+    <link rel="next" title="AALpy" href="aalpy.html" />
     <link rel="prev" title="Automata and Languages" href="index.html" /> 
 </head>
 
@@ -58,10 +58,12 @@
 <li class="toctree-l3"><a class="reference internal" href="#finite-automata-aria-automata-fa-py">Finite Automata (<code class="docutils literal notranslate"><span class="pre">aria/automata/fa.py</span></code>)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#symbolic-automata-aria-automata-symautomata">Symbolic Automata (<code class="docutils literal notranslate"><span class="pre">aria/automata/symautomata</span></code>)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#automata-learning-aria-automata-fa-learning-py">Automata Learning (<code class="docutils literal notranslate"><span class="pre">aria/automata/fa_learning.py</span></code>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#vendored-aalpy-aria-automata-aalpy">Vendored AALpy (<code class="docutils literal notranslate"><span class="pre">aria/automata/aalpy</span></code>)</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#applications">Applications</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aalpy.html">AALpy</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cfl.html">Context-Free Language Reachability</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cfl.html#introduction">Introduction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cfl.html#components">Components</a></li>
@@ -116,6 +118,7 @@
 <li><p><strong>Finite Automata</strong>: DFA and NFA manipulation and conversion</p></li>
 <li><p><strong>Symbolic Automata</strong>: Symbolic finite automata with theory-based transitions</p></li>
 <li><p><strong>Automata Learning</strong>: Active learning algorithms for automata inference</p></li>
+<li><p><strong>Vendored AALpy</strong>: Upstream automata-learning toolkit under ARIA namespace</p></li>
 <li><p><strong>String Constraint Solving</strong>: Integration with SMT solvers for string theories</p></li>
 </ul>
 </section>
@@ -178,6 +181,20 @@ solver-backed implementation for symbolic domains.</p>
 </pre></div>
 </div>
 </section>
+<section id="vendored-aalpy-aria-automata-aalpy">
+<h2>Vendored AALpy (<code class="docutils literal notranslate"><span class="pre">aria/automata/aalpy</span></code>)<a class="headerlink" href="#vendored-aalpy-aria-automata-aalpy" title="Link to this heading"></a></h2>
+<p>ARIA also carries a vendored copy of the upstream <a class="reference external" href="https://github.com/DES-Lab/AALpy">AALpy</a> package as
+<code class="docutils literal notranslate"><span class="pre">aria.automata.aalpy</span></code>.</p>
+<p>Use this namespace when you want the broader active/passive learning toolkit,
+including reusable oracles, SUL wrappers, stochastic learners, and visibly
+pushdown automata support.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.aalpy.learning_algs</span><span class="w"> </span><span class="kn">import</span> <span class="n">run_Lstar</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.aalpy.oracles</span><span class="w"> </span><span class="kn">import</span> <span class="n">RandomWalkEqOracle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.automata.aalpy.SULs</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutomatonSUL</span>
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="aalpy.html"><span class="doc">AALpy</span></a> for the vendored package overview and API reference.</p>
+</section>
 </section>
 <section id="applications">
 <h1>Applications<a class="headerlink" href="#applications" title="Link to this heading"></a></h1>
@@ -202,7 +219,7 @@ solver-backed implementation for symbolic domains.</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="index.html" class="btn btn-neutral float-left" title="Automata and Languages" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="cfl.html" class="btn btn-neutral float-right" title="Context-Free Language Reachability" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="aalpy.html" class="btn btn-neutral float-right" title="AALpy" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
