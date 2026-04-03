@@ -1,6 +1,9 @@
 """Command-line interface for EFSMT (Exists-Forall SMT) solver
 
 python -m aria.cli.efmc_efsmt_cli --file query.smt2 z3 --logic BV
+
+FIXME: efmc was merged from another repo. Currently, this file is somewhat redundant with
+efmc_cli.py (in aria).
 """
 
 import argparse

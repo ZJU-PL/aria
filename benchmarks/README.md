@@ -5,19 +5,20 @@ The benchmark files are primarily in SMT2 and SyGuS(Inv) format.
 
 
 
-## Boogie
+## efmc
 
-## BV/ (Bit-Vector Benchmarks)
-Contains bit-vector related benchmark files organized in subdirectories:
-- `multi-phase/` - Multi-phase verification benchmarks
-  - `sygus/` - SyGuS format benchmarks
-  - `chc/` - Constrained Horn Clause benchmarks
-- `LoopInvGen/` - Loop invariant generation benchmarks
-- `CAV19/` - Benchmarks from CAV 2019 conference
+Program-verification benchmarks used by `aria/efmc` are grouped under
+`efmc/`:
 
-## C
+- `efmc/Boogie/` - Boogie verification programs
+- `efmc/BV/` - Bit-vector verification benchmarks
+- `efmc/C/` - C verification programs
+- `efmc/chc/` - Constrained Horn Clause benchmarks
+- `efmc/INT/` - Integer verification benchmarks
+- `efmc/KSafety/` - Relational and k-safety benchmarks
+- `efmc/sygus-inv/` - SyGuS invariant-synthesis benchmarks
 
-C programs. For more details, please refer to `C/README.md`
+For more details on the C benchmarks, refer to `efmc/C/README.md`.
 
 ## Demo
 Contains demonstration Constraint Horn Clauses (CHC) files (in SMT-LIB2 format) showcasing basic examples:
@@ -33,11 +34,6 @@ Floating-Point Loop Invariant Synthesis.
 https://github.com/izycheva/pine
 - (TBD) Invariant Generation for Floating-Point Programs via Constraint Solving
 Xuran Cai, Liqian Chen, Hongfei Fu. https://arxiv.org/pdf/2507.15017v1
-
-## INT (Integer Benchmarks)
-Contains integer arithmetic benchmark files:
-- `multi-phase/` - Multi-phase verification benchmarks for integers
-- `sygus-inv/` - SyGuS invariant synthesis benchmarks
 
 ## Polyhorn
 

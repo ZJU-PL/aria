@@ -1,0 +1,9 @@
+# Example 6: Mutex problem
+# ∃x1∃x2∀y: (x1 ∨ x2) ∧ (¬x1 ∨ ¬x2) ∧ (x1 ∨ y) ∧ (x2 ∨ ¬y)
+p cnf 3 4
+e 1 2 0
+a 3 0
+1 2 0
+-1 -2 0
+1 3 0
+2 -3 0

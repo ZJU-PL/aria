@@ -15,7 +15,7 @@ class EFBVSolver(ABC):
     @abstractmethod
     def solve_efsmt_bv(
         self, existential_vars: List, universal_vars: List, phi: z3.ExprRef
-    ):
+    ) -> "EFBVResult":
         """Solve EFBV problem (abstract method)."""
 
 

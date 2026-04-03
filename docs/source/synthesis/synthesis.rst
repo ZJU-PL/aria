@@ -30,7 +30,7 @@ Syntax-Guided Synthesis for invariants and PBE:
    # Invariant synthesis
    inv_solver = SyGuSInvariantSolver()
    invariant = inv_solver.synthesize(
-       sygus_file="benchmarks/sygus-inv/array.sl"
+       sygus_file="benchmarks/efmc/sygus-inv/array.sl"
    )
 
    # Programming by example

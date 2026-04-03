@@ -1,0 +1,8 @@
+# Example 1: Simple True QBF
+# ∃x∀y: (x ∨ y) ∧ (x ∨ ¬y)
+# This is TRUE (x can be set to TRUE)
+p cnf 2 2
+e 1 0
+a 2 0
+1 2 0
+1 -2 0

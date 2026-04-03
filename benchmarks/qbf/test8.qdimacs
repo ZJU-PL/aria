@@ -1,0 +1,8 @@
+# Example 8: Equivalence checking
+# ∀x∀y∃z: (x ∨ ¬z) ∧ (y ∨ ¬z) ∧ (¬x ∨ ¬y ∨ z)
+p cnf 3 3
+a 1 2 0
+e 3 0
+1 -3 0
+2 -3 0
+-1 -2 3 0

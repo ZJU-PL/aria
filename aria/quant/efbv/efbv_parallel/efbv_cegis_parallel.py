@@ -18,7 +18,7 @@ more progress on its own, limiting the number of calls to the verifier
 
 import logging
 import time
-from typing import List
+from typing import List, cast
 
 import z3
 
@@ -104,7 +104,7 @@ def bv_efsmt_with_uniform_sampling(
                     logger.debug("  Success with UNSAT")
                     # using break is not fine
                     raise ExitsSolverSuccess()
-                esolver.fmls.append(sub_phi)
+                esolver.fmls.append(cast(z3.BoolRef, sub_phi))
 
     except ForAllSolverSuccess:
         logger.debug("Forall solver success - SAT")
@@ -136,13 +136,21 @@ class ParallelEFBVSolver(EFBVSolver):
         """
         super().__init__(**kwargs)
         self.mode = kwargs.get("mode", "canary")
+        self.maxloops = kwargs.get("maxloops", None)
+        self.num_samples = kwargs.get("num_samples", 5)
 
     def solve_efsmt_bv(
         self, existential_vars: List, universal_vars: List, phi: z3.ExprRef
     ):
         """Solve EFBV problem."""
         if self.mode == "canary":
-            return bv_efsmt_with_uniform_sampling(existential_vars, universal_vars, phi)
+            return bv_efsmt_with_uniform_sampling(
+                existential_vars,
+                universal_vars,
+                phi,
+                maxloops=self.maxloops,
+                num_samples=self.num_samples,
+            )
         raise NotImplementedError()
 
 

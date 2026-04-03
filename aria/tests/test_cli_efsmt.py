@@ -1,4 +1,5 @@
 """Tests for aria.cli.efsmt_cli - Exists-Forall SMT CLI."""
+
 import sys
 from pathlib import Path
 from unittest.mock import patch
@@ -167,6 +168,123 @@ class TestMainCLI:
             result = main()
         assert result in (0, 1)
 
+    def test_main_bv_parallel_exposes_sampling_options(self, tmp_path):
+        in_file = _write_file(tmp_path, EFSMT_BV_SAMPLE)
+        x = z3.BitVec("x", 8)
+        y = z3.BitVec("y", 8)
+        phi = z3.BoolVal(True)
+
+        with patch("aria.cli.efsmt_cli._parse_efsmt_file", return_value=([x], [y], phi)):
+            with patch("aria.cli.efsmt_cli.ParallelEFBVSolver") as solver_cls:
+                solver_cls.return_value.solve_efsmt_bv.return_value = "sat"
+                with patch.object(
+                    sys,
+                    "argv",
+                    [
+                        "efsmt",
+                        str(in_file),
+                        "--theory",
+                        "bv",
+                        "--engine",
+                        "efbv-par",
+                        "--max-loops",
+                        "12",
+                        "--efbv-num-samples",
+                        "7",
+                    ],
+                ):
+                    result = main()
+
+        assert result == 0
+        solver_cls.assert_called_once_with(mode="canary", maxloops=12, num_samples=7)
+
+    def test_main_bv_seq_exposes_pysmt_solver(self, tmp_path):
+        in_file = _write_file(tmp_path, EFSMT_BV_SAMPLE)
+        x = z3.BitVec("x", 8)
+        y = z3.BitVec("y", 8)
+        phi = z3.BoolVal(True)
+
+        with patch("aria.cli.efsmt_cli._parse_efsmt_file", return_value=([x], [y], phi)):
+            with patch("aria.cli.efsmt_cli.EFBVSequentialSolver") as solver_cls:
+                solver_cls.return_value.solve.return_value = "sat"
+                with patch.object(
+                    sys,
+                    "argv",
+                    [
+                        "efsmt",
+                        str(in_file),
+                        "--theory",
+                        "bv",
+                        "--engine",
+                        "efbv-seq",
+                        "--bv-solver",
+                        "cegis",
+                        "--bv-pysmt-solver",
+                        "cvc5",
+                    ],
+                ):
+                    result = main()
+
+        assert result == 0
+        solver_cls.assert_called_once_with("BV", solver="cegis", pysmt_solver="cvc5")
+
+    def test_main_lira_parallel_exposes_engine_options(self, tmp_path):
+        in_file = _write_file(tmp_path, EFSMT_LIRA_SAMPLE)
+        x = z3.Int("x")
+        y = z3.Int("y")
+        phi = z3.BoolVal(True)
+
+        with patch("aria.cli.efsmt_cli._parse_efsmt_file", return_value=([x], [y], phi)):
+            with patch("aria.cli.efsmt_cli.ParallelEFLIRASolver") as solver_cls:
+                solver_cls.return_value.solve_efsmt_lira.return_value = "sat"
+                with patch.object(
+                    sys,
+                    "argv",
+                    [
+                        "efsmt",
+                        str(in_file),
+                        "--theory",
+                        "lira",
+                        "--engine",
+                        "eflira-par",
+                        "--forall-solver",
+                        "cvc5",
+                        "--eflira-forall-mode",
+                        "parallel-process-ipc",
+                        "--eflira-num-workers",
+                        "8",
+                        "--eflira-num-samples",
+                        "6",
+                        "--eflira-sample-strategy",
+                        "lexicographic",
+                        "--eflira-sample-max-tries",
+                        "40",
+                        "--eflira-sample-seed-low",
+                        "3",
+                        "--eflira-sample-seed-high",
+                        "99",
+                        "--eflira-lex-order",
+                        "x,y",
+                        "--eflira-jitter-real-delta",
+                        "0.25",
+                    ],
+                ):
+                    result = main()
+
+        assert result == 0
+        kwargs = solver_cls.call_args.kwargs
+        assert kwargs["mode"] == "cegis"
+        assert kwargs["bin_solver_name"] == "cvc5"
+        assert kwargs["num_workers"] == 8
+        assert kwargs["num_samples"] == 6
+        assert kwargs["sample_max_tries"] == 40
+        assert kwargs["sample_seed_low"] == 3
+        assert kwargs["sample_seed_high"] == 99
+        assert kwargs["sample_config"] == {
+            "lex_order": ["x", "y"],
+            "jitter_real_delta": "0.25",
+        }
+
 
 class TestCLIArgumentValidation:
     """Tests for CLI argument validation."""
@@ -199,6 +317,21 @@ class TestCLIArgumentValidation:
         in_file = _write_file(tmp_path, EFSMT_BOOL_SAMPLE)
         with patch.object(
             sys, "argv", ["efsmt", str(in_file), "--log-level", "INVALID"]
+        ):
+            with pytest.raises(SystemExit):
+                main()
+
+    def test_invalid_eflira_forall_mode(self, tmp_path):
+        in_file = _write_file(tmp_path, EFSMT_LIRA_SAMPLE)
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "efsmt",
+                str(in_file),
+                "--eflira-forall-mode",
+                "invalid",
+            ],
         ):
             with pytest.raises(SystemExit):
                 main()

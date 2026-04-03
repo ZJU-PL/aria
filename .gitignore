@@ -20,7 +20,7 @@ htmlcov
 .benchmarks
 *egg-info
 *.prof
-*.qdimacs
+#*.qdimacs
 # *.dot  do not ignore dot files, as they are used as input for the CFL solver
 *.pdf
 tmp*
