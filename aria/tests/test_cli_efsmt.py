@@ -1,5 +1,7 @@
 """Tests for aria.cli.efsmt_cli - Exists-Forall SMT CLI."""
 
+import os
+import subprocess
 import sys
 from pathlib import Path
 from unittest.mock import patch
@@ -143,6 +145,29 @@ class TestMainCLI:
         ):
             result = main()
         assert result in (0, 1)
+
+    def test_help_does_not_emit_missing_solver_warnings(self):
+        env = os.environ.copy()
+        python_path = env.get("PYTHONPATH")
+        repo_root = str(Path(__file__).resolve().parents[2])
+        env["PYTHONPATH"] = (
+            repo_root if python_path is None else os.pathsep.join([repo_root, python_path])
+        )
+
+        result = subprocess.run(
+            [sys.executable, "-m", "aria.cli.efsmt_cli", "-h"],
+            capture_output=True,
+            text=True,
+            env=env,
+            check=False,
+        )
+
+        assert result.returncode == 0
+        assert "Could not locate" not in result.stderr
+        assert "Could not locate" not in result.stdout
+        assert "general options:" in result.stdout
+        assert "bit-vector options:" in result.stdout
+        assert "LIA/LRA options:" in result.stdout
 
     def test_main_auto_theory(self, tmp_path):
         in_file = _write_file(tmp_path, EFSMT_BOOL_SAMPLE)
