@@ -1,0 +1,86 @@
+import random
+
+from aria.automata.aalpy.base.Oracle import Oracle
+from aria.automata.aalpy.base.SUL import SUL
+
+
+class StatePrefixEqOracle(Oracle):
+    """
+    Equivalence oracle that achieves guided exploration by starting random walks from each state a walk_per_state
+    times. Starting the random walk ensures that all states are reached at least walk_per_state times and that their
+    surrounding is randomly explored. Note that each state serves as a root of random exploration of maximum length
+    rand_walk_len exactly walk_per_state times during learning. Therefore excessive testing of initial states is
+    avoided.
+    """
+    def __init__(self, alphabet: list, sul: SUL, walks_per_state=25, walk_len=12, max_tests=None, depth_first=True):
+        """
+        Args:
+
+            alphabet: input alphabet
+
+            sul: system under learning
+
+            walks_per_state:individual walks per state of the automaton over the whole learning process
+
+            walk_len:length of random walk
+
+            max_tests:number of maximum tests. If set to None, this parameter will be ignored.
+
+            depth_first:first explore the newest states
+        """
+
+        super().__init__(alphabet, sul)
+        self.walks_per_state = walks_per_state
+        self.steps_per_walk = walk_len
+        self.depth_first = depth_first
+        self.max_tests = max_tests
+
+        self.freq_dict = dict()
+
+    def find_cex(self, hypothesis):
+        states_to_cover = []
+        for state in hypothesis.states:
+            if state.prefix is None:
+                state.prefix = hypothesis.get_shortest_path(hypothesis.initial_state, state)
+            if state.prefix not in self.freq_dict.keys():
+                self.freq_dict[state.prefix] = 0
+
+            states_to_cover.extend([state] * (self.walks_per_state - self.freq_dict[state.prefix]))
+
+        if self.depth_first:
+            # reverse sort the states by length of their access sequences
+            # first do the random walk on the state with longest access sequence
+            states_to_cover.sort(key=lambda x: len(x.prefix), reverse=True)
+        else:
+            random.shuffle(states_to_cover)
+
+        for state in states_to_cover:
+            self.freq_dict[state.prefix] = self.freq_dict[state.prefix] + 1
+
+            self.reset_hyp_and_sul(hypothesis)
+
+            if self.max_tests and self.num_queries == self.max_tests:
+                return None
+
+            prefix = state.prefix
+            for p in prefix:
+                hypothesis.step(p)
+                self.sul.step(p)
+                self.num_steps += 1
+
+            suffix = ()
+            for _ in range(self.steps_per_walk):
+                suffix += (random.choice(self.alphabet),)
+
+                out_sul = self.sul.step(suffix[-1])
+                out_hyp = hypothesis.step(suffix[-1])
+                self.num_steps += 1
+
+                if out_sul != out_hyp:
+                    self.sul.post()
+                    return prefix + suffix
+
+            # cleanup after the test case
+            self.sul.post()
+
+        return None
