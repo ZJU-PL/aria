@@ -19,6 +19,10 @@ Comprehensive examples showcasing aria's core capabilities using Z3 expressions:
 
 ## Domain-Specific Applications
 
+### Datalog (`aria/datalog/examples/`)
+- **Vendored pyDatalog**: small examples for recursive rules, graph queries, and
+  Python-object-backed logic programming
+
 ### Formal Verification (`validation/`)
 - **Model Checking**: Bounded model checking for temporal properties
 - **Concurrency Debugging**: Verification of concurrent systems

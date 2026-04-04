@@ -1,0 +1,52 @@
+
+/* http://railroad.my28msec.com/rr/ui  */
+
+constant ::= [a-f] [0-9a-fA-F_]* | ["'] char ["']
+variable::= [A-F_] [0-9a-fA-F_]*
+simple_predicate ::= [a-fA-F_] [0-9a-fA-F_]*
+
+predicate ::= simple_predicate | simple_predicate '.' simple_predicate
+
+literal ::= predicate '(' (  expression (',' expression)*  )? ')'
+
+  
+function ::= predicate '[' expression (',' expression)*   ']'
+
+
+expression ::= (constant 
+  | variable 
+  | function
+  | [+-] expression
+  | '(' expression (',' expression)* ')'
+  | expression '[' expression (':' expression (':' expression)?)? ']'  
+  | '(' lambda-expression ')' 
+  | expression ([+*/-] | '//') expression
+  )
+
+body ::= ( literal  
+           |  '~' body
+           |  '(' body ')'
+           | '(' expression  ('<' | '<=' | '==' | '!=' | '>='  | '>' ) expression  ')'
+           | expression ('._in' | '._not_in') '(' expression ')'
+           ) 
+     ( '&' 
+         ( literal  
+           |  '~' body
+           |  '(' body ')'
+           | '(' expression  ('<' | '<=' | '==' | '!=' | '>='  | '>' ) expression  ')'
+           | expression ('._in' | '._not_in') '(' expression ')'
+           )  
+     )*
+
+head_function ::= predicate '[' (constant|variable)(',' (constant|variable))*   ']'
+
+head ::= literal 
+      | '(' head_function  '==' (variable | constant) ')'
+      | '(' head_function '==' ('len_' | 'sum_' | 'min_' | 'max_' | 'tuple_' | 'concat_' | 'rank_' | 'running_sum_' ) '(' arguments ')' ')'
+
+fact ::= ( predicate '(' (  constant (',' constant)*  )? ')' | predicate '[' constant (',' constant )*   ']' '==' constant )
+
+datalog_statement ::= ('+' | '-') fact
+  | '-'? head '<=' body
+  | '-' '(' head '<=' body ')'
+  | head_function '=' expression

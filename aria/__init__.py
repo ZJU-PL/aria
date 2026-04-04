@@ -60,9 +60,10 @@ __all__ = [
     "cfl",           # Context-free language operations
     "cflobdd",       # CFL-OBDD data structures
     "counting",      # Model counting
+    "datalog",       # Datalog and logic-programming components
     "fol",           # First-order logic
     "interpolant",   # Interpolant generation
-    "itp",           # Interpolation
+    "itp",           # Interactive theorem proving
     "monabs",        # Monotone abstractions
     "prob",          # Probability and probabilistic reasoning
     "sampling",      # Sampling operations

@@ -1,3 +1,4 @@
+.omx
 .codex
 .claude
 .trae
@@ -5,6 +6,7 @@
 .opencode
 .sisyphus
 .kilocode
+.kilo
 # Build artifacts and temporary files
 .arla_logs
 smt_query_logs

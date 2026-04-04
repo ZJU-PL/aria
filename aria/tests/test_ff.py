@@ -36,6 +36,9 @@ from aria.smt.ff.solvers.ff_perf_solver import FFPerfSolver
 from aria.smt.ff.solvers.ff_solver import FFAutoSolver
 from aria.tests import TestCase, main
 
+# Compute repository root (two levels up from this file)
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 
 def _parse_text(smt_text: str) -> ParsedFormula:
     with tempfile.NamedTemporaryFile("w", suffix=".smt2", delete=False) as handle:
@@ -572,7 +575,7 @@ class TestFiniteFieldSMT(TestCase):
                     "--out",
                     out_path,
                 ],
-                cwd="/Users/rainoftime/Work/logic/aria",
+                 cwd=REPO_ROOT,
                 check=False,
                 capture_output=True,
                 text=True,
