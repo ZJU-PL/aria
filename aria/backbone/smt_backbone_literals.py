@@ -10,7 +10,7 @@ from typing import List
 from z3 import Solver, Not, And, unsat, sat, ExprRef
 
 
-# from aria.utils.z3_expr_utils import get_atoms
+# from aria.utils.z3.expr import get_atoms
 
 
 def get_backbone_literals_by_sequence_checking(fml: ExprRef, literals: List[ExprRef]):

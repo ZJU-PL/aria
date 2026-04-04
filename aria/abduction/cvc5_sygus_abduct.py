@@ -29,7 +29,7 @@ from typing import Tuple
 
 import z3
 
-from aria.utils.z3_expr_utils import get_variables
+from aria.utils.z3.expr import get_variables
 
 
 def z3_to_smtlib2_abduction(formula: z3.ExprRef, target_var: str) -> str:

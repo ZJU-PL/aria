@@ -7,7 +7,7 @@ import z3
 from pysat.formula import CNF
 from pysat.solvers import Solver
 from aria.utils.types import SolverResult
-from aria.utils.z3_expr_utils import get_variables
+from aria.utils.z3.expr import get_variables
 
 qfbv_tactic = z3.AndThen(
     z3.With("simplify", flat_and_or=False),

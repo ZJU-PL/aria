@@ -12,7 +12,7 @@ import uuid
 
 import z3
 
-from aria.utils.smtlib_solver import SMTLIBSolver
+from aria.utils.solver.smtlib import SMTLIBSolver
 from aria.global_params.paths import global_config
 
 G_BIN_SOLVER_TIMEOUT = 100

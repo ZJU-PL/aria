@@ -6,7 +6,7 @@ import z3
 from pysmt.shortcuts import Symbol, Solver, qelim
 from pysmt.typing import INT, REAL, BVType, BOOL
 from pysmt.fnode import FNode
-from aria.utils.z3_expr_utils import get_expr_vars
+from aria.utils.z3.expr import get_expr_vars
 
 # BV1, BV8, BV16, BV32, BV64, BV128
 # NOTE: both pysmt and z3 have a class "Solver"

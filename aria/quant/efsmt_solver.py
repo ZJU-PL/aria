@@ -9,7 +9,7 @@ from typing import List
 import z3
 
 from aria.quant.efsmt_utils import solve_with_bin_smt
-from aria.utils.z3_expr_utils import get_variables
+from aria.utils.z3.expr import get_variables
 
 logger = logging.getLogger(__name__)
 

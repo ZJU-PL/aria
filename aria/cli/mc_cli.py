@@ -9,7 +9,7 @@ from typing import Optional, cast
 import z3
 
 from aria.counting.qfbv_counting import BVModelCounter
-from aria.utils.z3_expr_utils import get_variables
+from aria.utils.z3.expr import get_variables
 from aria.allsmt.bool_enumeration import count_models as count_bool_models
 from aria.sampling.general_sampler import count_solutions
 

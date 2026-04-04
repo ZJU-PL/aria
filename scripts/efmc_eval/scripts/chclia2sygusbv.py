@@ -8,7 +8,7 @@ import argparse
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))
-from efmc.frontends.chc_parser import CHCParser
+from aria.efmc.frontends.chc_parser import CHCParser
 from conversion_utils import (
     BitvectorConverter,
     FileProcessor,

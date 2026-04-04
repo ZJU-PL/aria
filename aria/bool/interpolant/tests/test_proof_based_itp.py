@@ -6,8 +6,8 @@ import z3
 from pysat.formula import CNF
 
 from aria.bool.interpolant.proof_based_itp import BooleanInterpolant
-from aria.utils.z3_expr_utils import get_variables
-from aria.utils.z3_solver_utils import is_entail, is_equiv, is_sat
+from aria.utils.z3.expr import get_variables
+from aria.utils.z3.solver import is_entail, is_equiv, is_sat
 
 
 class TestProofBasedInterpolant(unittest.TestCase):

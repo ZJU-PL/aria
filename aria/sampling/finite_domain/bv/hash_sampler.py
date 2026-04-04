@@ -18,7 +18,7 @@ from aria.sampling.base import (
     SamplingOptions,
     SamplingResult,
 )
-from aria.utils.z3_expr_utils import get_variables, is_bv_sort
+from aria.utils.z3.expr import get_variables, is_bv_sort
 
 
 def _get_uniform_samples_with_xor(

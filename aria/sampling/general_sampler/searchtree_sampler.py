@@ -18,7 +18,7 @@ from random import randint
 
 from z3 import Solver, sat, And, parse_smt2_file, Z3Exception
 
-from aria.utils.z3_expr_utils import get_variables
+from aria.utils.z3.expr import get_variables
 
 G_NUMBER_SMTCALL = 0
 

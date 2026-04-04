@@ -2,7 +2,7 @@
 
 from typing import List, Tuple
 import z3
-from aria.utils.z3_expr_utils import get_variables
+from aria.utils.z3.expr import get_variables
 
 from aria.counting.bool.dimacs_counting import (
     count_dimacs_solutions,

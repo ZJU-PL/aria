@@ -7,8 +7,8 @@ from typing import Tuple, List
 import z3
 
 from aria.efmc.sts import TransitionSystem
-from aria.utils.bv_utils import Signedness
-from aria.utils.z3_expr_utils import big_and
+from aria.utils.z3.bv import Signedness
+from aria.utils.z3.expr import big_and
 
 logger = logging.getLogger(__name__)
 

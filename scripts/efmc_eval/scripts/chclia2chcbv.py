@@ -9,8 +9,8 @@ from pathlib import Path
 import z3
 
 sys.path.append(str(Path(__file__).parent.parent))
-from efmc.frontends.chc_parser import CHCParser, ground_quantifier
-from efmc.utils.z3_expr_utils import get_variables
+from aria.efmc.frontends.chc_parser import CHCParser, ground_quantifier
+from aria.utils.z3.expr import get_variables
 from conversion_utils import (
     BitvectorConverter,
     FileProcessor,

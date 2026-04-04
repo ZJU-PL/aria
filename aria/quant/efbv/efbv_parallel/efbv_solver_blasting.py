@@ -17,7 +17,7 @@ import z3
 from pysat.formula import CNF
 from pysat.solvers import Solver
 
-from aria.utils.z3_expr_utils import get_variables
+from aria.utils.z3.expr import get_variables
 from aria.smt.bv import translate_smt2formula_to_cnf
 from aria.utils import SolverResult
 from aria.quant.efbv.efbv_parallel.exceptions import ForAllSolverSuccess

@@ -9,7 +9,7 @@ import z3
 from pysmt.shortcuts import And, BV, BVUGT, BVULE, BVULT, BVUGE, Solver
 
 from aria.optimization.pysmt_utils import z3_to_pysmt
-from aria.utils.z3_expr_utils import get_expr_vars
+from aria.utils.z3.expr import get_expr_vars
 
 logger = logging.getLogger(__name__)
 

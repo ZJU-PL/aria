@@ -6,8 +6,8 @@ from typing import Optional
 
 import z3
 
-from aria.utils.z3_solver_utils import is_sat, is_entail
-from aria.utils.z3_expr_utils import get_variables
+from aria.utils.z3.solver import is_sat, is_entail
+from aria.utils.z3.expr import get_variables
 
 
 def qe_abduce(pre_cond: z3.BoolRef, post_cond: z3.BoolRef) -> Optional[z3.ExprRef]:

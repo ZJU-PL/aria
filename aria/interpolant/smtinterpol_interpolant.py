@@ -7,7 +7,7 @@ import logging
 import os
 from typing import Optional, List
 import z3
-from aria.utils.smtlib_solver import SmtlibProc
+from aria.utils.solver.smtlib import SmtlibProc
 from aria.global_params import global_config
 
 logger = logging.getLogger(__name__)

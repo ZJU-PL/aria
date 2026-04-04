@@ -14,7 +14,7 @@ import logging
 import z3
 
 from aria.optimization.bin_solver import solve_with_bin_smt
-from aria.utils.z3_expr_utils import get_expr_vars
+from aria.utils.z3.expr import get_expr_vars
 
 logger = logging.getLogger(__name__)
 

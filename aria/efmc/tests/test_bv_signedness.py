@@ -1,7 +1,7 @@
 import pytest
 import z3
 from aria.efmc.tests import TestCase, main
-from aria.utils.bv_utils import get_signedness, Signedness
+from aria.utils.z3.bv import get_signedness, Signedness
 
 
 @pytest.fixture

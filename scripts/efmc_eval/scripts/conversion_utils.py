@@ -6,7 +6,7 @@ import os
 from typing import List
 from pathlib import Path
 import z3
-from efmc.frontends.mini_sygus_parser import parse_sexpression
+from aria.efmc.frontends.mini_sygus_parser import parse_sexpression
 
 
 class BitvectorConverter:

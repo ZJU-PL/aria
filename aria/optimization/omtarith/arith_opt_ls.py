@@ -8,7 +8,7 @@ import random
 import z3
 
 # Import utility function from the utils module
-from aria.utils.z3_expr_utils import get_expr_vars
+from aria.utils.z3.expr import get_expr_vars
 
 logger = logging.getLogger(__name__)
 

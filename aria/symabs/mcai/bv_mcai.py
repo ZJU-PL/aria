@@ -33,7 +33,7 @@ from z3 import parse_smt2_file, ExprRef, BitVecRef
 from aria.counting.qfbv_counting import BVModelCounter
 from aria.symabs.omt_symabs.bv_symbolic_abstraction import BVSymbolicAbstraction
 from aria.tests.formula_generator import FormulaGenerator
-from aria.utils.z3_expr_utils import get_variables
+from aria.utils.z3.expr import get_variables
 
 # Initialize module-level logger
 logger = logging.getLogger(__name__)

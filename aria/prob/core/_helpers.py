@@ -10,7 +10,7 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 import z3
 from pysat.formula import CNF
 
-from aria.utils.z3_expr_utils import get_variables, z3_value_to_python
+from aria.utils.z3.expr import get_variables, z3_value_to_python
 
 
 def clone_cnf(cnf: CNF) -> CNF:

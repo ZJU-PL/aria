@@ -1,9 +1,9 @@
 # k-safety Verification
 
 
-## Properties Implemented 
+## Properties Implemented
 
-### Non-Interference 
+### Non-Interference
 
 - Purpose: Ensures that low-security outputs do not depend on high-security inputs
 - ∀t1, t2. (high1 = high2) → (low1 = low2)
@@ -32,7 +32,7 @@ Additionally, the engine now supports:
 - API: `DifferentialPrivacyProver.verify_epsilon_sensitivity(input_vars, output_vars, adjacency_bounds, epsilon)`
 
 
-## Properties Not Implemented 
+## Properties Not Implemented
 
 
 ### Program Equivalence/Refinement
@@ -47,7 +47,7 @@ Additionally, the engine now supports:
 Note: Basic input-permutation symmetry is implemented. Other symmetry classes (parameter, geometric) are TBD.
 
 
-## Engine Enhancements 
+## Engine Enhancements
 
 - Time-unrolled BMC: BMC now unrolls transitions up to bound B and checks property at step B
 - k-induction: Added a proper inductive step (assume property holds for steps < k, prove at k)
@@ -60,8 +60,8 @@ Note: Basic input-permutation symmetry is implemented. Other symmetry classes (p
 - Example usage:
 
 ```python
-from efmc.engines.ksafety import HyperLTLProver
-from efmc.engines.ksafety.hyperltl import Var, Atom, G, Implies
+from aria.efmc.engines.ksafety import HyperLTLProver
+from aria.efmc.engines.ksafety.hyperltl import Var, Atom, G, Implies
 
 phi = Implies(
     G(Atom('==', Var('high',0), Var('high',1))),
@@ -72,14 +72,14 @@ prover.set_formula(phi)
 res = prover.solve()
 ```
 
-## More 
+## More
 
 - Differential Privacy: ∀t1, t2. |output1 - output2| ≤ ε
 - Statistical Independence: Output distributions are independent of certain inputs
 - ...?
 
 
-## Related Work 
+## Related Work
 
 [1] Clarkson, M.R. and Schneider, F.B. "Hyperproperties." Journal of Computer Security, 2010.
 

@@ -16,7 +16,7 @@ from typing import List, Dict
 import z3
 from z3 import BoolRef, Solver, unsat, ModelRef, ExprRef
 
-from aria.utils.z3_expr_utils import negate
+from aria.utils.z3.expr import negate
 
 
 def eval_predicates(m: ModelRef, predicates: List[BoolRef]) -> List[ExprRef]:

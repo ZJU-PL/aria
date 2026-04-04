@@ -6,7 +6,7 @@ We provide two differnet implementations
 """
 
 import z3
-from aria.utils.z3_expr_utils import get_variables
+from aria.utils.z3.expr import get_variables
 from typing import Tuple
 
 # Being explicit about Types

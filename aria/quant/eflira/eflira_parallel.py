@@ -18,8 +18,8 @@ from aria.quant.eflira.eflira_sampling_utils import (
     sample_models,
 )
 from aria.utils import SolverResult
-from aria.utils.smtlib_solver import SMTLIBSolver
 from aria.utils.exceptions import SMTSuccess, SMTUnknown
+from aria.utils.solver.smtlib import SMTLIBSolver
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +65,7 @@ class FSolverMode(Enum):
     PARALLEL_PROCESS_IPC = 2
 
 
-m_forall_solver_strategy = FSolverMode.PARALLEL_THREAD
+m_forall_solver_strategy = FSolverMode.SEQUENTIAL
 g_forall_bin_solver = "z3"
 g_forall_num_workers = 4
 
@@ -317,18 +317,12 @@ class ForAllSolver:
             solver.pop()
 
     def _parallel_check_thread(self, cnt_list: List[z3.BoolRef]) -> List[z3.ModelRef]:
-        self._ensure_worker_pool()
-        with concurrent.futures.ThreadPoolExecutor(
-            max_workers=self.num_workers
-        ) as executor:
-            futures = []
-            for idx, cnt in enumerate(cnt_list):
-                worker_idx = idx % self.num_workers
-                futures.append(
-                    executor.submit(self._check_in_worker, worker_idx, cnt)
-                )
-            models_in_other_ctx = [f.result() for f in futures]
-        return [m.translate(self.ctx) for m in models_in_other_ctx]
+        logger.warning(
+            "FSolverMode.PARALLEL_THREAD falls back to sequential mode because "
+            "Z3 model extraction from Python worker threads is not reliable on "
+            "this runtime"
+        )
+        return self._sequential_check(cnt_list)
 
     def _parallel_check_ipc(self, cnt_list: List[z3.BoolRef]) -> List[dict]:
         if not cnt_list:

@@ -5,7 +5,7 @@ import unittest
 from aria.tests import TestCase, main
 from aria.tests.formula_generator import FormulaGenerator
 from aria.tests.grammar_gene import generate_from_grammar_as_str
-from aria.utils.z3_solver_utils import to_dnf
+from aria.utils.z3.solver import to_dnf
 
 
 def is_sat(e):

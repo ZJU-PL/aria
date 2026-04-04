@@ -5,7 +5,7 @@ from enum import Enum
 import z3
 from z3 import BitVecVal, Concat, Extract
 
-from aria.utils.z3_expr_utils import get_variables
+from aria.utils.z3.expr import get_variables
 
 
 class Signedness(Enum):

@@ -11,7 +11,7 @@ from aria.smt.bv.mapped_blast import (
     dimacs_visitor,
     translate_smt2formula_to_cnf,
 )
-from aria.utils.z3_expr_utils import get_variables
+from aria.utils.z3.expr import get_variables
 
 
 class TestMappedBlast(unittest.TestCase):

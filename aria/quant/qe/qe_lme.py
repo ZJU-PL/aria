@@ -2,7 +2,7 @@
 
 import z3
 
-from aria.utils.z3_expr_utils import negate, get_atoms
+from aria.utils.z3.expr import negate, get_atoms
 
 
 def eval_predicates(m, preds):

@@ -8,7 +8,7 @@ from typing import List, Optional, Tuple
 import z3
 
 from aria.allsmt import create_allsmt_solver
-from aria.utils.z3_expr_utils import get_variables
+from aria.utils.z3.expr import get_variables
 
 
 def _formula_and_vars_from_smt2(

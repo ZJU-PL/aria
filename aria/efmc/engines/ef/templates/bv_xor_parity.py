@@ -1,7 +1,7 @@
 from typing import List, Optional
 
 from aria.efmc.engines.ef.templates.abstract_template import *
-from aria.utils.bv_utils import Signedness
+from aria.utils.z3.bv import Signedness
 from aria.efmc.sts import TransitionSystem
 from aria.efmc.utils import big_and
 

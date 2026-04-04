@@ -7,7 +7,7 @@ import sys
 import z3
 
 from aria.tests.formula_generator import FormulaGenerator
-from aria.utils.z3_expr_utils import get_variables
+from aria.utils.z3.expr import get_variables
 
 
 def gen_examples(tot: int, output_directory: str) -> None:

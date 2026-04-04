@@ -13,7 +13,7 @@ import z3
 from aria.prob.core._helpers import assignment_satisfies, evaluate_term
 from aria.prob.core.density import Density
 from aria.prob.core.results import InferenceResult
-from aria.utils.z3_expr_utils import get_variables
+from aria.utils.z3.expr import get_variables
 
 from ._config import WMIMethod, WMIOptions
 from ._exact_backend import _exact_discrete_expectation

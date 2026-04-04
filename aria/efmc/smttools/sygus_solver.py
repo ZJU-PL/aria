@@ -19,7 +19,7 @@ import tempfile
 from typing import List, Dict, Optional
 
 import z3
-from aria.utils.uf_utils import modify, replace_func_with_template
+from aria.utils.z3.uf import modify, replace_func_with_template
 from aria.efmc.efmc_config import config
 
 

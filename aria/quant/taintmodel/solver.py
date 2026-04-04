@@ -26,7 +26,7 @@ from z3 import (  # type: ignore
     unsat,
 )
 
-from aria.utils.z3_expr_utils import get_variables
+from aria.utils.z3.expr import get_variables
 
 from .taint import infer_sic_and_wic, infer_sic_candidates
 from .util import fresh_const, project_model

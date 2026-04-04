@@ -1,7 +1,7 @@
 """Template polyhedral domain over bit-vectors"""
 
 from aria.efmc.engines.ef.templates.abstract_template import *
-from aria.utils.bv_utils import Signedness
+from aria.utils.z3.bv import Signedness
 
 # from typing import List
 from aria.efmc.sts import TransitionSystem

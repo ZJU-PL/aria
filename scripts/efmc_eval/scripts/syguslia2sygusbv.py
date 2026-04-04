@@ -9,7 +9,7 @@ import argparse
 import z3
 
 sys.path.append(str(Path(__file__).parent.parent))
-from efmc.frontends.mini_sygus_parser import SyGusInVParser, parse_sexpression
+from aria.efmc.frontends.mini_sygus_parser import SyGusInVParser, parse_sexpression
 
 
 class SyGusLIAToSyGuSBVConverter:

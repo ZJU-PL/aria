@@ -4,7 +4,7 @@ from typing import Dict, List, Optional, Tuple
 
 import z3
 
-from aria.utils.z3_expr_utils import get_variables, z3_value_to_python
+from aria.utils.z3.expr import get_variables, z3_value_to_python
 
 
 @dataclass

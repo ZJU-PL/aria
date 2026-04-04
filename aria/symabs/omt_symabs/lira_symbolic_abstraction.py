@@ -7,7 +7,7 @@ from timeit import default_timer as symabs_timer
 
 import z3
 
-from aria.utils.z3_expr_utils import get_variables
+from aria.utils.z3.expr import get_variables
 from aria.symabs.omt_symabs.z3opt_util import optimize
 from aria.symabs.omt_symabs.omt_engines import OMTEngine, OMTEngineType
 

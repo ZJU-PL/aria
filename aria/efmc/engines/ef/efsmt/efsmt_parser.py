@@ -7,7 +7,7 @@ We assume that the formula is of the form
 
 from typing import Tuple, List
 import z3
-from aria.utils.z3_expr_utils import get_variables
+from aria.utils.z3.expr import get_variables
 
 
 class ParserError(Exception):

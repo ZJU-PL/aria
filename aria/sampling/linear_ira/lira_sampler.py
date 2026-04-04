@@ -16,7 +16,7 @@ from aria.sampling.base import (
     SamplingOptions,
     SamplingResult,
 )
-from aria.utils.z3_expr_utils import get_variables, is_int_sort, is_real_sort
+from aria.utils.z3.expr import get_variables, is_int_sort, is_real_sort
 
 
 class LIRASampler(Sampler):

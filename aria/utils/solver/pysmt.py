@@ -3,7 +3,7 @@ Call the solvers wrapped by pysmt
 """
 
 import logging
-from typing import Any
+from typing import Any, List
 import z3
 from pysmt.logics import QF_BV  # AUTO
 from pysmt.oracles import get_logic, QuantifierOracle
@@ -19,7 +19,7 @@ from pysmt.typing import INT, REAL, BVType, BOOL
 
 # BV1, BV8, BV16, BV32, BV64, BV128
 
-from aria.utils.z3_expr_utils import get_variables
+from aria.utils.z3.expr import get_variables
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,7 @@ def is_qfree(formula: Any) -> bool:
     return QuantifierOracle().is_qf(formula)  # type: ignore
 
 
-def to_pysmt_vars(z3vars: [z3.ExprRef]):
+def to_pysmt_vars(z3vars: List[z3.ExprRef]):
     res = []
     for v in z3vars:
         if z3.is_int(v):
@@ -106,7 +106,7 @@ class PySMTSolver(z3.Solver):
                 return z3.sat
             return z3.unsat
 
-    def all_smt(self, keys: [z3.ExprRef], bound=5):
+    def all_smt(self, keys: List[z3.ExprRef], bound=5):
         """Sample k models"""
         z3fml = z3.And(self.assertions())
         pysmt_var_keys, pysmt_fml = PySMTSolver.convert(z3fml)
@@ -138,7 +138,7 @@ class PySMTSolver(z3.Solver):
         )
         return Solver(name="z3").converter.convert(itp)
 
-    def sequence_interpolant(self, formulas: [z3.ExprRef]):
+    def sequence_interpolant(self, formulas: List[z3.ExprRef]):
         """Sequence interpolant"""
         pysmt_formulas = []
         for formula in formulas:
@@ -153,8 +153,8 @@ class PySMTSolver(z3.Solver):
 
     def efsmt(
         self,
-        evars: [z3.ExprRef],
-        uvars: [z3.ExprRef],
+        evars: List[z3.ExprRef],
+        uvars: List[z3.ExprRef],
         z3fml: z3.ExprRef,
         *,
         logic=QF_BV,

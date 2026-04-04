@@ -15,7 +15,7 @@ from aria.prob.core.density import (
     DiscreteFactorizedDensity,
     UniformDensity,
 )
-from aria.utils.z3_expr_utils import get_variables
+from aria.utils.z3.expr import get_variables
 
 from ._config import WMIMethod, WMIOptions
 

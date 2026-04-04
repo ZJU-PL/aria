@@ -18,9 +18,9 @@ The templates support various forms of ranking functions:
 import z3
 from typing import List, Dict, Tuple, Optional, Any
 from aria.efmc.engines.ef.templates.abstract_template import Template, TemplateType
-from aria.utils.bv_utils import Signedness
+from aria.utils.z3.bv import Signedness
 from aria.efmc.sts import TransitionSystem
-from aria.utils.z3_expr_utils import big_and, big_or
+from aria.utils.z3.expr import big_and, big_or
 
 
 class BitVecLinearRankingTemplate(Template):

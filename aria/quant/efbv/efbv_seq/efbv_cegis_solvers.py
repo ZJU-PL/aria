@@ -3,7 +3,7 @@
 from typing import List
 import logging
 import z3
-from aria.utils.pysmt_solver import PySMTSolver
+from aria.utils.solver.pysmt import PySMTSolver
 from pysmt.logics import QF_BV, QF_LIA, QF_LRA, AUTO
 
 logger = logging.getLogger(__name__)

@@ -9,8 +9,8 @@ from typing import List, Optional
 
 import z3
 
-from aria.utils.z3_expr_utils import get_variables
-from aria.utils.z3_solver_utils import is_entail
+from aria.utils.z3.expr import get_variables
+from aria.utils.z3.solver import is_entail
 from aria.symabs.omt_symabs.z3opt_util import box_optimize
 
 

@@ -16,7 +16,7 @@ from typing import List, Sequence
 
 import z3
 
-from .z3_expr_utils import get_atoms, big_and, eval_predicates
+from .expr import big_and, eval_predicates, get_atoms
 
 
 def is_valid(phi: z3.ExprRef) -> bool:

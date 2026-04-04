@@ -6,7 +6,7 @@ import time
 from typing import List, Optional
 from datetime import datetime
 
-from aria.utils.smtlib_solver import SMTLIBSolver
+from aria.utils.solver.smtlib import SMTLIBSolver
 from aria.utils import SolverResult
 from aria.smt.pcdclt.config import ENABLE_QUERY_LOGGING, QUERY_LOG_DIR
 

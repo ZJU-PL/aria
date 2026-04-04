@@ -3,14 +3,14 @@ from z3 import *
 from collections import defaultdict
 import argparse
 
-from efmc.utils.z3_expr_utils import get_variables
+from aria.utils.z3.expr import get_variables
 
 TEMPLATE_BV_COUNTING = """
 #include <stdio.h>
 int mod (int a, int b)
 {{
    if(b < 0) //you can check for b == 0 separately and do what you want
-     return mod(a, -b);   
+     return mod(a, -b);
    int ret = a % b;
    if(ret < 0)
      ret+=b;
@@ -30,7 +30,7 @@ TEMPLATE_BV_SAT = """
 int mod (int a, int b)
 {{
    if(b < 0) //you can check for b == 0 separately and do what you want
-     return mod(a, -b);   
+     return mod(a, -b);
    int ret = a % b;
    if(ret < 0)
      ret+=b;

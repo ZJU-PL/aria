@@ -7,7 +7,7 @@ from functools import lru_cache
 from typing import Dict, List, Optional, Sequence, Set, Tuple
 from z3 import *  # type: ignore
 
-from aria.utils.z3_expr_utils import get_atoms
+from aria.utils.z3.expr import get_atoms
 
 
 # ----------------------------------------------------------------- utilities

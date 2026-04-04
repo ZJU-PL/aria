@@ -12,7 +12,7 @@ import random
 import z3
 from z3 import parse_smt2_file, Z3Exception, Optimize, And
 
-from aria.utils.z3_expr_utils import get_variables
+from aria.utils.z3.expr import get_variables
 
 
 # from random import *

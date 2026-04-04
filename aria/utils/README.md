@@ -1,48 +1,62 @@
 # Utilities
 
-Common utilities used throughout the Aria project.
+`aria.utils` contains a mix of shared helpers, solver adapters, Z3-specific
+utilities, a few specialized top-level modules, and vendored code.
 
-## Components
+The package is organized around explicit sub-namespaces. New code should import
+from those namespaces directly.
 
-### S-Expressions
+## Preferred Import Paths
+
+### Shared Primitives
+- `types.py`: solver- and platform-related enums
+- `exceptions.py`: public exception types
 - `sexpr.py`: S-expression parser
-- `sexpr2.py`: Alternative S-expression utilities
 
-### SMT/Solver Utilities
-- `smtlib_solver.py`: SMT-LIB solver interface
-- `pysmt_solver.py`: PySMT solver wrapper
-- `z3_solver_utils.py`: Z3-specific utilities
-- `z3_cp_utils.py`: Z3 constraint programming utilities
-- `z3_expr_utils.py`: Z3 expression utilities
-- `z3_plus_smtlib_solver.py`: Extended SMT-LIB solver
-- `z3_ext_candidate.py`: Z3 extension candidate utilities
+### Solver Utilities
+- `solver/smtlib.py`: SMT-LIB process and portfolio helpers
+- `solver/pysmt.py`: PySMT-backed solver helpers
+- `solver/pysat.py`: PySAT-backed SAT helpers
+- `solver/z3plus.py`: external-solver helpers around Z3 workflows
 
-### Values and Types
-- `values.py`: Value manipulation utilities (BV, FP)
-- `types.py`: Type definitions
-- `logics.py`: Logic definitions
+### Z3 Utilities
+- `z3/expr.py`: Z3 expression inspection and manipulation helpers
+- `z3/solver.py`: SAT/validity/entailment and DNF helpers
+- `z3/opt.py`: Z3 optimization helpers
+- `z3/bv.py`: bit-vector helpers and signedness inference
+- `z3/uf.py`: uninterpreted-function helpers
+- `z3/values.py`: BV/FP value conversion helpers
+- `z3/cp.py`: constraint programming helpers (global constraints, variable domains)
+- `z3/ext.py`: experimental expression utilities (quantifier manipulation, DNF)
 
 ### Parallel Execution
-- `parallel/executor.py`: Lightweight parallel execution
-- `parallel/master_slave.py`: Master-slave pattern
-- `parallel/producer_consumer.py`: Producer-consumer pattern
-- `parallel/fork_join.py`: Fork-join pattern
-- `parallel/pipeline.py`: Pipeline pattern
-- `parallel/actor.py`: Actor model
-- `parallel/dataflow.py`: Dataflow graph
-- `parallel/stream.py`: Streaming primitives
+- `parallel/async_utils.py`: async bridge helpers
+- `parallel/executor.py`: lightweight parallel execution
+- `parallel/patterns.py`: curated parallel patterns API
+- `parallel/master_slave.py`: master-slave pattern
+- `parallel/producer_consumer.py`: producer-consumer pattern
+- `parallel/fork_join.py`: fork-join pattern
+- `parallel/pipeline.py`: pipeline pattern
+- `parallel/actor.py`: actor model
+- `parallel/dataflow.py`: dataflow graph
+- `parallel/stream.py`: streaming primitives
 
-### PADS Library (Graph Algorithms)
-- `pads/Graphs.py`: Graph utilities
-- `pads/DFS.py`: Depth-first search
-- `pads/BFS.py`: Breadth-first search
-- `pads/LexBFS.py`: Lexicographic BFS
-- `pads/BipartiteMatching.py`: Hopcroft-Karp
-- `pads/UnionFind.py`: Disjoint set
-- `pads/PartitionRefinement.py`: Partition refinement
-- `pads/StrongConnectivity.py`: SCC algorithms
-- `pads/MinimumSpanningTree.py`: Kruskal's algorithm
+## Top-Level Specialized Modules
 
-### Misc
-- `misc.py`: Miscellaneous utilities
-- `exceptions.py`: Exception classes
+These stay at the top level because they do not justify another package, but
+they should still be treated as specialized/provisional:
+
+- `misc.py`: catch-all helpers with weak ownership
+- `sexpr2.py`: alternative S-expression helpers
+
+## Vendored Code
+
+- `pads/`: vendored graph-algorithms code; preserve upstream-style structure
+- `ply/`: vendored parsing helpers used by SRK
+
+## Import Policy
+
+- Use `aria.utils.solver.*` for solver-facing helpers
+- Use `aria.utils.z3.*` for Z3-specific helpers
+- Use top-level modules directly for the few specialized helpers above
+- Avoid adding new unrelated helpers to top-level `aria.utils`

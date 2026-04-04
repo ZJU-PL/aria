@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, ca
 import z3
 
 from aria.quant.efsmt_parser import EFSMTParser, EFSMTZ3Parser
-from aria.utils.z3_expr_utils import get_variables, get_z3_logic
+from aria.utils.z3.expr import get_variables, get_z3_logic
 
 if TYPE_CHECKING:
     from aria.quant.efbv.efbv_parallel.efbv_cegis_parallel import ParallelEFBVSolver

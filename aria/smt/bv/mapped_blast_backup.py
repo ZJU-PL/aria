@@ -6,7 +6,7 @@ bit-vector variables and Boolean-variables
 from typing import List, Dict, Tuple
 
 import z3
-from aria.utils.z3_expr_utils import get_variables
+from aria.utils.z3.expr import get_variables
 
 
 # p cnf nvar nclauses

@@ -20,7 +20,7 @@ from aria.sampling.base import (
     SamplingOptions,
     SamplingResult,
 )
-from aria.utils.z3_expr_utils import get_variables, is_bool_sort
+from aria.utils.z3.expr import get_variables, is_bool_sort
 
 
 class BooleanSampler(Sampler):

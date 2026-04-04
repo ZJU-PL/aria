@@ -12,7 +12,7 @@ from aria.tests.formula_generator import FormulaGenerator
 from aria.quant.efbv.efbv_parallel.efbv_utils import EFBVResult
 
 # from aria.quant.efbv.efbv_to_bool import EFBVFormulaTranslator
-from aria.utils.z3_expr_utils import get_variables
+from aria.utils.z3.expr import get_variables
 
 
 def gen_small_bv_formula(logic: str):

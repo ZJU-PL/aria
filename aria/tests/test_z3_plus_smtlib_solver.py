@@ -1,7 +1,7 @@
 import logging
 import z3
 
-from aria.utils.z3_plus_smtlib_solver import Z3SolverPlus
+from aria.utils.solver.z3plus import Z3SolverPlus
 from aria.tests import TestCase, main
 
 

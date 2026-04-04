@@ -7,8 +7,8 @@ quantifier elimination.
 """
 
 import z3
-from aria.utils.z3_solver_utils import is_sat, is_entail
-from aria.utils.z3_expr_utils import get_variables
+from aria.utils.z3.solver import is_sat, is_entail
+from aria.utils.z3.expr import get_variables
 from aria.optimization.msa.mistral_msa import MSASolver
 
 

@@ -2,7 +2,7 @@
 
 from typing import Optional, List
 import z3
-from aria.utils.pysmt_solver import PySMTSolver
+from aria.utils.solver.pysmt import PySMTSolver
 
 
 class PySMTInterpolantSynthesizer:

@@ -18,7 +18,7 @@ from aria.efmc.engines.ef.templates.bv_interval import BitVecIntervalTemplate
 from aria.efmc.engines.ef.templates.bv_zone import BitVecZoneTemplate
 from aria.efmc.engines.ef.templates.bv_bitwise import KnownBitsTemplate
 from aria.efmc.sts import TransitionSystem
-from aria.utils.z3_expr_utils import big_and
+from aria.utils.z3.expr import big_and
 
 
 class ConjunctiveBitVecTemplate(Template):

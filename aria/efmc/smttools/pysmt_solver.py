@@ -31,7 +31,7 @@ from pysmt.typing import INT, REAL, BVType, BOOL
 
 # BV1, BV8, BV16, BV32, BV64, BV128
 
-from aria.utils.z3_expr_utils import get_variables
+from aria.utils.z3.expr import get_variables
 
 logger = logging.getLogger(__name__)
 

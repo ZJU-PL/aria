@@ -1,9 +1,6 @@
-# NOTE: many APIs in z3_expr_utils are not listed above
-
 from typing import Any, List
 
-from aria.utils.z3_solver_utils import is_sat, is_equiv, is_valid, is_entail
-from aria.utils.z3_expr_utils import (
+from aria.utils.z3.expr import (
     get_variables,
     get_atoms,
     to_smtlib2,
@@ -13,6 +10,7 @@ from aria.utils.z3_expr_utils import (
     ctx_simplify,
     eval_predicates,
 )
+from aria.utils.z3.solver import is_sat, is_equiv, is_valid, is_entail
 
 from .verification_utils import (
     VerificationResult,

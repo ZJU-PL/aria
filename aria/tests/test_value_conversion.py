@@ -5,7 +5,7 @@ import os
 
 # Add the parent directory to the path to allow importing from aria
 # sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-from aria.utils.values import (
+from aria.utils.z3.values import (
     RE_GET_EXPR_VALUE_ALL,
     convert_smtlib_models_to_python_value,
 )

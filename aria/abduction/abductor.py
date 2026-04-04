@@ -17,7 +17,7 @@ import z3
 
 from aria.abduction.dillig_abduct import dillig_abduce
 from aria.abduction.qe_abduct import qe_abduce
-from aria.utils.z3_solver_utils import is_sat, is_entail
+from aria.utils.z3.solver import is_sat, is_entail
 
 
 def check_abduct(

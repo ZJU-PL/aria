@@ -9,7 +9,7 @@ from typing import Optional, Tuple
 
 import z3
 
-from aria.utils.z3_solver_utils import is_entail
+from aria.utils.z3.solver import is_entail
 from aria.efmc.sts import TransitionSystem
 
 logger = logging.getLogger(__name__)

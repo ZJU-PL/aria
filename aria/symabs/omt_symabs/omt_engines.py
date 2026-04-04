@@ -9,7 +9,7 @@ from typing import List, Optional, Any
 
 import z3
 
-from aria.utils.z3_plus_smtlib_solver import Z3SolverPlus
+from aria.utils.solver.z3plus import Z3SolverPlus
 from aria.symabs.omt_symabs.z3opt_util import box_optimize, optimize
 
 

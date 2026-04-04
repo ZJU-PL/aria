@@ -4,7 +4,7 @@ import time
 import z3
 
 from aria.global_params import global_config
-from aria.utils.smtlib_solver import SMTLIBSolver
+from aria.utils.solver.smtlib import SMTLIBSolver
 
 
 def solve_with_bin_smt(y, phi: z3.ExprRef, logic: str, solver_name: str):

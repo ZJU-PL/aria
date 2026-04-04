@@ -13,7 +13,7 @@ from pysat.solvers import Solver
 
 from aria.bool.maxsat.maxsat_solver import MaxSATSolver
 from aria.smt.bv.mapped_blast import translate_smt2formula_to_cnf
-from aria.utils.z3_expr_utils import get_expr_vars
+from aria.utils.z3.expr import get_expr_vars
 
 logger = logging.getLogger(__name__)
 

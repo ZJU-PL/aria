@@ -6,7 +6,7 @@ from aria.efmc.engines.ef.ef_prover import EFProver
 from aria.efmc.sts import TransitionSystem
 from aria.efmc.engines.ef.templates.bv_affine import BitVecAffineTemplate
 from aria.efmc.engines.ef.templates.abstract_template import TemplateType
-from aria.utils.bv_utils import Signedness
+from aria.utils.z3.bv import Signedness
 
 
 class TestBitVecAffineTemplate(TestCase):

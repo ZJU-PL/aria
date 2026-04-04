@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional, Protocol, Tuple
 
 import z3
 
-from aria.utils.z3_solver_utils import is_entail, is_sat
+from aria.utils.z3.solver import is_entail, is_sat
 
 from .compiler import NLAbductionCompiler
 from .data_structures import (

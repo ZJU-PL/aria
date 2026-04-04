@@ -10,8 +10,8 @@ from pathlib import Path
 from enum import Enum
 
 sys.path.append(str(Path(__file__).parent.parent))
-from efmc.frontends.chc_parser import CHCParser
-from efmc.frontends.mini_sygus_parser import SyGusInVParser
+from aria.efmc.frontends.chc_parser import CHCParser
+from aria.efmc.frontends.mini_sygus_parser import SyGusInVParser
 from conversion_utils import (
     BitvectorConverter,
     FileProcessor,
@@ -109,8 +109,8 @@ class UnifiedConverter:
 
     def _chc_lia_to_chc_bv(self, content: str) -> str:
         """Convert CHC LIA to CHC BV (with variable renaming support)"""
-        from efmc.frontends.chc_parser import ground_quantifier
-        from efmc.utils.z3_expr_utils import get_variables
+        from aria.efmc.frontends.chc_parser import ground_quantifier
+        from aria.utils.z3.expr import get_variables
         import z3
 
         ss = CHCParser(content, to_real=False)

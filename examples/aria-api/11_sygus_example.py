@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import z3
 from aria.synthesis.cvc5.sygus_pbe import StringSyGuSPBE
-from aria.utils.z3_plus_smtlib_solver import Z3SolverPlus
+from aria.utils.solver.z3plus import Z3SolverPlus
 
 
 def string_syn():

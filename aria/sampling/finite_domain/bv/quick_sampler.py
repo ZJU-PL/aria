@@ -25,7 +25,7 @@ from aria.sampling.base import (
     SamplingOptions,
     SamplingResult,
 )
-from aria.utils.z3_expr_utils import get_variables, is_bv_sort
+from aria.utils.z3.expr import get_variables, is_bv_sort
 
 
 # https://stackoverflow.com/questions/39299015/sum-of-all-the-bits-in-a-bit-vector-of-z3

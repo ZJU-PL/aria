@@ -7,7 +7,7 @@ from pysmt.shortcuts import Solver, Interpolator
 from pysmt.shortcuts import Symbol
 from pysmt.typing import BOOL
 
-from aria.utils.z3_expr_utils import get_variables
+from aria.utils.z3.expr import get_variables
 
 
 def to_pysmt_fml(fml: z3.ExprRef):

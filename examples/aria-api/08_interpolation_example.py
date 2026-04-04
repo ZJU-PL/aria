@@ -2,7 +2,7 @@
 import z3
 from aria.bool.interpolant.core_based_itp import BooleanInterpolant
 from aria.bool.interpolant.pysmt_itp import pysmt_binary_itp
-from aria.utils.pysmt_solver import PySMTSolver
+from aria.utils.solver.pysmt import PySMTSolver
 
 
 def bool_itp():

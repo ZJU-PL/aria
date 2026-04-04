@@ -7,7 +7,7 @@ import time
 
 import z3
 
-from aria.utils.z3_expr_utils import get_variables
+from aria.utils.z3.expr import get_variables
 
 
 def check_candidate_model(formula, all_vars, candidate):

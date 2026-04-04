@@ -75,7 +75,7 @@ class Z3ToPySMTConverter:
         Returns:
             Tuple of (PySMT variables, PySMT formula)
         """
-        from aria.utils.z3_expr_utils import (
+        from aria.utils.z3.expr import (
             get_variables,
         )  # pylint: disable=import-outside-toplevel
 
