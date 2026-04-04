@@ -57,7 +57,7 @@ Provides common type definitions used throughout ARIA.
 .. code-block:: python
 
    from aria.utils.types import SolverResult
-   
+
    result = SolverResult.SAT
    if result == SolverResult.SAT:
        print("Satisfiable")
@@ -77,7 +77,7 @@ Custom exception hierarchy for ARIA-specific errors.
 .. code-block:: python
 
    from aria.utils.exceptions import AriaException
-   
+
    try:
        # Some aria operation
        pass
@@ -99,7 +99,7 @@ Parses S-expression format commonly used in SMT-LIB and related formats.
 .. code-block:: python
 
    from aria.utils import SExprParser
-   
+
    parser = SExprParser()
    parsed = parser.parse("(and x y z)")
    # Returns nested Python structure
@@ -132,11 +132,6 @@ Helpers for working with Z3 and SMT expressions:
 * Type checking and validation
 * Substitution and evaluation utilities
 
-**Related Modules:**
-
-* ``z3_expr_utils.py``: Z3-specific expression utilities
-* ``z3_solver_utils.py``: Z3 solver wrapper utilities
-* ``pysmt_solver.py``: PySMT solver interface
 
 ### 6. Value Conversion
 
@@ -250,11 +245,11 @@ Usage Examples
 .. code-block:: python
 
    from aria.utils.types import SolverResult
-   
+
    def solve_formula(formula):
        # ... solver logic ...
        return SolverResult.SAT
-   
+
    def check_result(result):
        if result == SolverResult.SAT:
            print("Formula is satisfiable")
@@ -269,7 +264,7 @@ Usage Examples
 .. code-block:: python
 
    from aria.utils.exceptions import AriaException
-   
+
    def some_aria_function():
        try:
            # Operation that might fail
@@ -284,11 +279,11 @@ Usage Examples
 .. code-block:: python
 
    from aria.utils import SExprParser
-   
+
    # Parse S-expression
    parser = SExprParser()
    parsed = parser.parse("(define-fun my-fun (x) (ite (is-sat x) true false))")
-   
+
    # Access parsed structure
    print(parsed)
 
