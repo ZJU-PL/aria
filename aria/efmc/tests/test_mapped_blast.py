@@ -3,15 +3,15 @@
 import pytest
 import unittest
 import z3
-from aria.efmc.smttools.mapped_blast import (
+from aria.smt.bv.mapped_blast import (
     is_literal,
     bitblast,
     to_dimacs,
     map_bitvector,
     dimacs_visitor,
-    collect_vars,
     translate_smt2formula_to_cnf,
 )
+from aria.utils.z3_expr_utils import get_variables
 
 
 class TestMappedBlast(unittest.TestCase):
@@ -38,13 +38,13 @@ class TestMappedBlast(unittest.TestCase):
         assert len(bv2bool["x"]) == 4
         assert all("x!" in str(var) for var in mapped_vars)
 
-    def test_collect_vars(self):
+    def test_get_variables(self):
         """Test variable collection."""
         x = z3.BitVec("x", 4)
         y = z3.BitVec("y", 4)
         formula = z3.And(x == y, x > 0)
 
-        vars_list = list(collect_vars(formula))
+        vars_list = list(get_variables(formula))
         assert len(vars_list) == 2
         assert any(str(v) == "x" for v in vars_list)
         assert any(str(v) == "y" for v in vars_list)
@@ -79,9 +79,9 @@ class TestMappedBlast(unittest.TestCase):
         cnf = [z3.Or(x, y), z3.Or(z3.Not(x), z3.Not(y))]
 
         table = {"x": 1, "y": 2}
-        header, clauses = to_dimacs(cnf, table, False)
+        header, clauses = to_dimacs(cnf, table)
 
-        assert len(header) == 2
+        assert len(header) == 1
         assert "p cnf" in header[0]
         assert len(clauses) == 2
 
@@ -95,24 +95,8 @@ class TestMappedBlast(unittest.TestCase):
 
         assert "x" in bv2bool
         assert "y" in bv2bool
-        assert len(header) == 2
+        assert len(header) == 1
         assert len(clauses) > 0
-
-    def test_proj_id_last(self):
-        """Test projection ID conversion."""
-        from aria.efmc.smttools.mapped_blast import proj_id_last
-
-        # Test positive projection (var <= n_proj_vars)
-        result = proj_id_last(3, 2, 5)
-        assert result == 1  # abs(3) - 2 + 5 = 6, but actual behavior is different
-
-        # Test negative projection
-        result = proj_id_last(-3, 2, 5)
-        assert result == -1  # Negative of above
-
-        # Test non-projected variable (var > n_proj_vars)
-        result = proj_id_last(4, 2, 5)
-        assert result == 2  # abs(4) - 2 = 2
 
 
 if __name__ == "__main__":

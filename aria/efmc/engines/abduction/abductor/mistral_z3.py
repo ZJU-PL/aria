@@ -7,7 +7,7 @@ from typing import FrozenSet
 import z3
 
 # from z3.z3util import get_vars
-from aria.efmc.utils.z3_expr_utils import get_variables
+from aria.utils.z3_expr_utils import get_variables
 
 
 class MSASolver:

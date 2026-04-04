@@ -15,7 +15,7 @@ from timeit import default_timer as symabs_timer
 
 import z3
 
-from aria.efmc.utils.z3_solver_utils import is_entail
+from aria.utils.z3_solver_utils import is_entail
 
 logger = logging.getLogger(__name__)
 

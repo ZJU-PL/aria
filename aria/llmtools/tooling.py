@@ -1,20 +1,19 @@
-"""LLM Tool base classes for implementing LLM-based tools."""
+"""Abstract base classes for LLM-backed tools."""
+
+from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Dict
-from aria.efmc.llmtools.logger import Logger
-from aria.efmc.llmtools.llm_utils import LLM
+from typing import Dict, Optional
+
+from aria.llmtools import LLM, Logger
 
 
 class LLMToolInput(ABC):
     """Abstract base class for LLM tool input."""
 
-    def __init__(self):
-        pass
-
     @abstractmethod
     def __hash__(self):
-        pass
+        raise NotImplementedError
 
     def __eq__(self, value):
         return self is value
@@ -22,9 +21,6 @@ class LLMToolInput(ABC):
 
 class LLMToolOutput(ABC):
     """Abstract base class for LLM tool output."""
-
-    def __init__(self):
-        pass
 
 
 class LLMTool(ABC):
@@ -38,39 +34,19 @@ class LLMTool(ABC):
         max_query_num: int,
         logger: Logger,
     ) -> None:
-        """
-        Initialize LLM Tool.
-
-        Args:
-            model_name: Name of the LLM model to use
-            temperature: Temperature for model inference
-            language: Programming language for the tool
-            max_query_num: Maximum number of queries per invocation
-            logger: Logger instance for logging
-        """
         self.language = language
         self.model_name = model_name
         self.temperature = temperature
         self.max_query_num = max_query_num
         self.logger = logger
-
         self.model = LLM(model_name, self.logger, temperature)
         self.cache: Dict[LLMToolInput, LLMToolOutput] = {}
-
         self.input_token_cost = 0
         self.output_token_cost = 0
         self.total_query_num = 0
 
-    def invoke(self, tool_input: LLMToolInput) -> LLMToolOutput:
-        """
-        Invoke the LLM tool with given input.
-
-        Args:
-            tool_input: Input to the LLM tool
-
-        Returns:
-            Output from the LLM tool
-        """
+    def invoke(self, tool_input: LLMToolInput) -> Optional[LLMToolOutput]:
+        """Invoke the tool with caching and bounded retries."""
         class_name = type(self).__name__
         self.logger.print_console(f"The LLM Tool {class_name} is invoked.")
         if tool_input in self.cache:
@@ -81,17 +57,14 @@ class LLMTool(ABC):
         self.logger.print_log("Prompt:", "\n", prompt)
 
         single_query_num = 0
-        output = None
+        output: Optional[LLMToolOutput] = None
         while single_query_num < self.max_query_num:
             single_query_num += 1
-            response, input_token_cost, output_token_cost = self.model.infer(
-                prompt, True
-            )
+            response, input_token_cost, output_token_cost = self.model.infer(prompt, True)
             self.logger.print_log("Response:", "\n", response)
             self.input_token_cost += input_token_cost
             self.output_token_cost += output_token_cost
             output = self._parse_response(response, tool_input)
-
             if output is not None:
                 break
 
@@ -102,12 +75,10 @@ class LLMTool(ABC):
 
     @abstractmethod
     def _get_prompt(self, tool_input: LLMToolInput) -> str:
-        """Generate prompt from input."""
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def _parse_response(
-        self, response: str, tool_input: LLMToolInput = None
-    ) -> LLMToolOutput:
-        """Parse response from LLM into output."""
-        pass
+        self, response: str, tool_input: Optional[LLMToolInput] = None
+    ) -> Optional[LLMToolOutput]:
+        raise NotImplementedError

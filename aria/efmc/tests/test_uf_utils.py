@@ -2,7 +2,7 @@
 
 import pytest
 import z3
-from aria.efmc.utils.uf_utils import (
+from aria.utils.uf_utils import (
     visitor,
     modify,
     replace_func_with_template,

@@ -507,6 +507,38 @@ class FormulaInfo:
     def logic_has_bv(self):
         return "BV" in self.get_logic()
 
+    def has_uninterpreted_symbols(self) -> bool:
+        """Check whether the formula contains uninterpreted functions/predicates."""
+        stack = [self.formula]
+        seen = set()
+
+        while stack:
+            expr = stack.pop()
+            if not z3.is_expr(expr):
+                continue
+
+            expr_id = z3.Z3_get_ast_id(expr.ctx.ref(), expr.as_ast())
+            if expr_id in seen:
+                continue
+            seen.add(expr_id)
+
+            if z3.is_quantifier(expr):
+                stack.append(expr.body())
+                continue
+
+            if not z3.is_app(expr):
+                continue
+
+            if (
+                expr.num_args() > 0
+                and expr.decl().kind() == z3.Z3_OP_UNINTERPRETED
+            ):
+                return True
+
+            stack.extend(expr.children())
+
+        return False
+
     def has_theory(self, theory_name):
         """Check if formula contains a specific theory.
 
@@ -638,10 +670,9 @@ class FormulaInfo:
             if has_strings:
                 theories.append("S")
 
-            # Check for uninterpreted functions
-            if self.apply_probe("has-uninterpreted-functions") or self.apply_probe(
-                "is-propositional"
-            ):
+            # Check for uninterpreted functions/predicates. Some Z3 builds do
+            # not expose a dedicated probe for this, so we inspect the AST.
+            if self.has_uninterpreted_symbols() or self.apply_probe("is-propositional"):
                 theories.append("UF")
 
             # Combine theories with the arithmetic type

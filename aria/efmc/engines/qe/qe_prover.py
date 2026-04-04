@@ -13,7 +13,7 @@ from typing import Optional
 import z3
 
 from aria.efmc.sts import TransitionSystem
-from aria.efmc.utils.z3_solver_utils import is_valid, fixpoint
+from aria.utils.z3_solver_utils import is_valid, fixpoint
 from aria.efmc.utils.verification_utils import VerificationResult
 
 logger = logging.getLogger(__name__)

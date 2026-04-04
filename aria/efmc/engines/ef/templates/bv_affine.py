@@ -7,7 +7,7 @@ It includes both conjunctive and disjunctive variants for invariant generation.
 
 from aria.efmc.engines.ef.templates.abstract_template import *
 from aria.efmc.sts import TransitionSystem
-from aria.efmc.utils.bv_utils import Signedness
+from aria.utils.bv_utils import Signedness
 from aria.efmc.utils import big_and, big_or
 from typing import List, Optional
 

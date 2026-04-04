@@ -1,9 +1,9 @@
 import logging
 from typing import Dict, Any, Optional, Tuple, Callable, List
 import z3
-from aria.efmc.llmtools.llm_utils import LLM
-from aria.efmc.llmtools.llm_local import LLMLocal
-from aria.efmc.llmtools.logger import Logger
+from aria.llmtools import LLM
+from aria.llmtools.core.logger import Logger
+from aria.llmtools.local_client import LLMLocal
 from aria.efmc.sts import TransitionSystem
 from aria.efmc.engines.llm4inv.bv.prompt_manager import extract_bit_width_from_sts
 
@@ -21,6 +21,8 @@ class LLMInterface:
         self.logger = Logger("llm4inv.log")
 
         if self.llm_provider == "local":
+            local_base_url: Optional[str] = kwargs.get("local_base_url")
+            local_api_key: Optional[str] = kwargs.get("local_api_key")
             self.llm = LLMLocal(
                 offline_model_name=kwargs.get("llm_model", "qwen/qwen3-coder-30b"),
                 logger=self.logger,
@@ -28,8 +30,8 @@ class LLMInterface:
                 max_output_length=kwargs.get("max_output_length", 4096),
                 measure_cost=kwargs.get("measure_cost", False),
                 provider=kwargs.get("local_provider", "lm-studio"),
-                base_url=kwargs.get("local_base_url"),
-                api_key=kwargs.get("local_api_key"),
+                base_url=local_base_url,
+                api_key=local_api_key,
                 max_retries=kwargs.get("local_max_retries", 3),
             )
         else:

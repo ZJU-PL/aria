@@ -20,7 +20,7 @@ import z3
 
 from aria.efmc.sts import TransitionSystem
 from aria.efmc.utils import negate, is_sat, is_valid
-from aria.efmc.utils.z3_solver_utils import fixpoint
+from aria.utils.z3_solver_utils import fixpoint
 from aria.efmc.utils.verification_utils import VerificationResult
 
 logger = logging.getLogger(__name__)

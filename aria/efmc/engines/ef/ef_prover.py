@@ -18,7 +18,7 @@ import z3
 from aria.efmc.sts import TransitionSystem
 from aria.efmc.engines.ef.templates import *
 from aria.efmc.engines.ef.efsmt.efsmt_solver import EFSMTSolver
-from aria.efmc.utils.z3_expr_utils import extract_all
+from aria.efmc.utils import extract_all
 from aria.efmc.utils.verification_utils import VerificationResult
 
 logger = logging.getLogger(__name__)

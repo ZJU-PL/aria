@@ -158,7 +158,7 @@ class Template(ABC):
             Signedness enum value or None if not applicable
         """
         try:
-            from aria.efmc.utils.bv_utils import Signedness
+            from aria.utils.bv_utils import Signedness
 
             if sts.signedness == "signed":
                 return Signedness.SIGNED

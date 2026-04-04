@@ -41,7 +41,7 @@ from aria.efmc.engines.ef.efsmt.efsmt_bin_solvers import (
 from aria.efmc.engines.ef.efsmt.efsmt_cegis_solvers import simple_cegis_efsmt
 from aria.efmc.engines.ef.efsmt.efsmt_cegis_fp_solver import simple_cegis_efsmt_fp
 from aria.efmc.engines.ef.efsmt.efbv_to_bool import EFBVFormulaTranslator
-from aria.efmc.utils.pysat_solver_utils import solve_with_sat_solver
+from aria.utils.pysat_solver_utils import solve_with_sat_solver
 
 logger = logging.getLogger(__name__)
 

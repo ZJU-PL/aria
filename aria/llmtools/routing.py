@@ -119,6 +119,14 @@ ROUTED_PROVIDERS: Sequence[Route] = (
             100,
         ),
     ),
+    Route(
+        matches=_contains("glm"),
+        provider=ProviderSpec(
+            "aria.llmtools.providers.online.glm",
+            "GLMProvider",
+            100,
+        ),
+    ),
 )
 
 PROVIDER_HINTS: Dict[str, ProviderSpec] = {

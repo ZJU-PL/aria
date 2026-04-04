@@ -18,7 +18,7 @@ import z3
 
 # Remove the direct import to break the circular dependency
 # from aria.efmc.sts import TransitionSystem
-from aria.efmc.utils.z3_solver_utils import is_entail
+from aria.utils.z3_solver_utils import is_entail
 
 logger = logging.getLogger(__name__)
 

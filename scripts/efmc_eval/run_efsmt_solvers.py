@@ -11,7 +11,7 @@ import subprocess
 import sys
 import time
 from typing import List, Dict
-from efmc.utils.eval_utils import kill_process_group
+from aria.efmc.utils.eval_utils import kill_process_group
 
 
 def setup_logging(log_level=logging.INFO):

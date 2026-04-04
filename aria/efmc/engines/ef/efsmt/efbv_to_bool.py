@@ -19,7 +19,7 @@ from typing import List
 
 import z3
 
-from aria.efmc.smttools.mapped_blast import translate_smt2formula_to_numeric_clauses
+from aria.smt.bv.mapped_blast import translate_smt2formula_to_numeric_clauses
 
 # from z3.z3util import get_vars
 

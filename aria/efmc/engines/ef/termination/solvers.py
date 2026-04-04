@@ -7,7 +7,7 @@ from typing import Optional
 import z3
 
 from aria.efmc.engines.ef.efsmt.efsmt_solver import EFSMTSolver
-from aria.efmc.utils.z3_expr_utils import extract_all
+from aria.efmc.utils import extract_all
 from .result_types import TerminationResult, NonTerminationResult
 
 logger = logging.getLogger(__name__)

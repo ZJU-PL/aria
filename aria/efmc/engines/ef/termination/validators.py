@@ -6,7 +6,7 @@ import logging
 import z3
 
 from aria.efmc.sts import TransitionSystem
-from aria.efmc.utils.bv_utils import Signedness
+from aria.utils.bv_utils import Signedness
 
 logger = logging.getLogger(__name__)
 

@@ -21,7 +21,7 @@ import z3
 from aria.efmc.engines.ef.templates.abstract_template import Template, TemplateType
 from aria.efmc.sts import TransitionSystem
 from aria.efmc.utils import big_and, big_or
-from aria.efmc.utils.bv_utils import Signedness
+from aria.utils.bv_utils import Signedness
 
 
 class DomainType(Enum):

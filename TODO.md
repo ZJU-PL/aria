@@ -8,6 +8,7 @@ There are many interesting research topics. You are welcome to contribute to the
 - Hybrid LLM-SMT constraint solving: See `aria/ml/llm/smto`
 - SMT solving for the theory of finite field: `aria/smt/ff`
 - Taint-based model finding for SMT: `aria/quant/taintmodel`
+- Solving Exists-Forall problems
 - ...
 
 ## Features

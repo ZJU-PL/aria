@@ -12,7 +12,7 @@ A few APIs that (typically) require SMT solving
 - **get_models**: return the first k models satisfiying f
 """
 
-from typing import List
+from typing import List, Sequence
 
 import z3
 
@@ -42,6 +42,13 @@ def is_sat(phi: z3.ExprRef) -> bool:
     s = z3.Solver()
     s.add(phi)
     return s.check() == z3.sat
+
+
+def is_unsat(phi: z3.ExprRef) -> bool:
+    """Decide unsatisfiability of phi"""
+    s = z3.Solver()
+    s.add(phi)
+    return s.check() == z3.unsat
 
 
 def is_equiv(a: z3.ExprRef, b: z3.ExprRef) -> bool:
@@ -104,7 +111,7 @@ def compact_check(precond: z3.BoolRef, cnt_list: List[z3.BoolRef]) -> List[int]:
     return res
 
 
-def prime_implicant(ps: List[z3.ExprRef], expr: z3.ExprRef):
+def prime_implicant(ps: Sequence[z3.BoolRef], expr: z3.ExprRef):
     """
     TODO: this function may have flaws (need to figure why the assertion below fails
     """
@@ -243,7 +250,12 @@ def get_models(f: z3.BoolRef, k: int):
             break
         models.append(m)
         # create new constraint to block the current model
-        block = z3.Not(z3.And([var() == m[var] for var in m]))
+        equalities = []
+        for decl in m.decls():
+            if decl.arity() == 0:
+                const = z3.Const(decl.name(), decl.range())
+                equalities.append(const == m[decl])
+        block = z3.Not(z3.And(equalities))
         s.add(block)
 
     if s.check() == z3.unknown:
@@ -251,6 +263,13 @@ def get_models(f: z3.BoolRef, k: int):
     if s.check() == z3.unsat and i == 0:
         return False
     return models
+
+
+def fixpoint(old_inv: z3.ExprRef, inv: z3.ExprRef) -> bool:
+    """Check whether two invariants are equivalent."""
+    return is_valid(z3.Implies(inv, old_inv)) and is_valid(
+        z3.Implies(old_inv, inv)
+    )
 
 
 if __name__ == "__main__":

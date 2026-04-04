@@ -7,20 +7,20 @@ import json
 from typing import List, Dict, Any, Optional, Tuple
 from dataclasses import dataclass
 
-from efmc.sts import TransitionSystem
-from efmc.utils.verification_utils import VerificationResult
-from efmc.tests.sts_generator import TransitionSystemGenerator
-from efmc.frontends import parse_chc, parse_sygus
+from aria.efmc.sts import TransitionSystem
+from aria.efmc.utils.verification_utils import VerificationResult
+from aria.efmc.tests.sts_generator import TransitionSystemGenerator
+from aria.efmc.frontends import parse_chc, parse_sygus
 
-from efmc.engines.pdr.pdr_prover import PDRProver
-from efmc.engines.kinduction.kind_prover import KInductionProver
-from efmc.engines.bdd.bdd_prover import BDDProver
-from efmc.engines.ef.ef_prover import EFProver
-from efmc.engines.qi.qi_prover import QuantifierInstantiationProver
-from efmc.engines.houdini.houdini_prover import HoudiniProver
-from efmc.engines.abduction.abduction_prover import AbductionProver
-from efmc.engines.predabs.predabs_prover import PredicateAbstractionProver
-from efmc.engines.symabs.symabs_prover import SymbolicAbstractionProver
+from aria.efmc.engines.pdr.pdr_prover import PDRProver
+from aria.efmc.engines.kinduction.kind_prover import KInductionProver
+from aria.efmc.engines.bdd.bdd_prover import BDDProver
+from aria.efmc.engines.ef.ef_prover import EFProver
+from aria.efmc.engines.qi.qi_prover import QuantifierInstantiationProver
+from aria.efmc.engines.houdini.houdini_prover import HoudiniProver
+from aria.efmc.engines.abduction.abduction_prover import AbductionProver
+from aria.efmc.engines.predabs.predabs_prover import PredicateAbstractionProver
+from aria.efmc.engines.symabs.symabs_prover import SymbolicAbstractionProver
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"

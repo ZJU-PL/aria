@@ -1,9 +1,9 @@
-"""
-Utilities for Z3 uninterpreted functions (UF).
-"""
+"""Utilities for Z3 uninterpreted functions."""
 
 from __future__ import print_function
-from typing import Callable, Optional, Dict
+
+from typing import Callable, Dict, Optional
+
 import z3
 
 
@@ -112,7 +112,7 @@ def instiatiate_func_with_axioms(
 
 
 def purify(formula: z3.ExprRef) -> z3.ExprRef:
-    """Purify formula: introduce fresh vars for mixed-theory terms (no quantifiers)."""
+    """Purify formula: introduce fresh vars for mixed-theory terms."""
 
     def contains_quantifier(expr, seen=None):
         if seen is None:
@@ -173,9 +173,9 @@ def purify(formula: z3.ExprRef) -> z3.ExprRef:
                 z3.Z3_OP_GE,
             ]:
                 if expr.num_args() == 2:
-                    l, r = expr.arg(0), expr.arg(1)
-                    if (is_arith(l) and is_uf_term(r)) or (
-                        is_uf_term(l) and is_arith(r)
+                    left, right = expr.arg(0), expr.arg(1)
+                    if (is_arith(left) and is_uf_term(right)) or (
+                        is_uf_term(left) and is_arith(right)
                     ):
                         return True
             if is_arith(expr):
@@ -224,86 +224,3 @@ def purify(formula: z3.ExprRef) -> z3.ExprRef:
 
     purified_formula = purify_term(formula)
     return z3.And(purified_formula, *equalities) if equalities else purified_formula
-
-
-def test_replace():  # pylint: disable=too-many-locals
-    """Test function for replace_func_with_template."""
-    x, y = z3.Ints("x y")
-    fml = x + x + y > 2
-    seen = {}
-    for exp in visitor(fml, seen):
-        if z3.is_const(exp) and exp.decl().kind() == z3.Z3_OP_UNINTERPRETED:
-            print("Variable", exp)
-        else:
-            print(exp)
-    s = z3.SolverFor("HORN")
-    inv = z3.Function("inv", z3.IntSort(), z3.IntSort(), z3.BoolSort())
-    i, ip, j, jp = z3.Ints("i ip j jp")
-    s.add(z3.ForAll([i, j], z3.Implies(i == 0, inv(i, j))))
-    s.add(
-        z3.ForAll(
-            [i, ip, j, jp],
-            z3.Implies(z3.And(inv(i, j), i < 10, ip == i + 1), inv(ip, jp)),
-        )
-    )
-    s.add(z3.ForAll([i, j], z3.Implies(z3.And(inv(i, j), i >= 10), i == 10)))
-    a0, a1, a2 = z3.Ints("a0 a1 a2")
-    b0, b1, b2 = z3.Ints("b0 b1 b2")
-    x = z3.Var(0, z3.IntSort())
-    y = z3.Var(1, z3.IntSort())
-    template = z3.And(a0 + a1 * x + a2 * y >= 0, b0 + b1 * x + b2 * y >= 0)
-    chc = z3.And(s.assertions())
-    print(replace_func_with_template(chc, inv, template))
-
-
-def test_instiatiate():
-    """Test function for instiatiate_func_with_axioms."""
-    x, y = z3.Ints("x y")
-    f = z3.Function("f", z3.IntSort(), z3.IntSort(), z3.BoolSort())
-    axiom = z3.ForAll([x, y], z3.Implies(f(x, y), x + y > 0))
-    a, b, c = z3.Ints("a b c")
-    formula = z3.And(
-        f(x, y),
-        f(y, x),
-        z3.Implies(f(a, b), f(b, c)),
-        z3.Or(f(x + 1, y - 1), f(x * 2, y / 2)),
-        z3.Not(f(0, 0)),
-    )
-    print(instiatiate_func_with_axioms(formula, f, axiom))
-
-
-def test_purify():
-    """Test function for purify."""
-    x, y, z = z3.Ints("x y z")
-    f = z3.Function("f", z3.IntSort(), z3.IntSort())
-    mixed_formula = z3.And(f(x + y) > z, f(x) + f(y) == 10, z > 0)
-    print("Original:", mixed_formula)
-    purified = purify(mixed_formula)
-    print("Purified:", purified)
-    s1, s2 = z3.Solver(), z3.Solver()
-    s1.add(mixed_formula)
-    s2.add(purified)
-    print("Original sat:", s1.check())
-    print("Purified sat:", s2.check())
-    if s1.check() == s2.check() == z3.sat:
-        print("Original model:", s1.model())
-        print("Purified model:", s2.model())
-    print("--- Quantifier test ---")
-    a, b = z3.Ints("a b")
-    g = z3.Function("g", z3.IntSort(), z3.IntSort(), z3.IntSort())
-    quantified_formula = z3.ForAll([a, b], z3.Implies(a > b, g(a + b, a - b) > g(a, b)))
-    print("Quantified:", quantified_formula)
-    try:
-        purified_quantified = purify(quantified_formula)
-        print("Purified quantified:", purified_quantified)
-    except ValueError as e:
-        print("Error:", e)
-        print("Quantified formulas are rejected.")
-
-
-if __name__ == "__main__":
-    test_replace()
-    print("-" * 40)
-    test_instiatiate()
-    print("-" * 40)
-    test_purify()

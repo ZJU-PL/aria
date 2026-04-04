@@ -9,9 +9,9 @@ from typing import List, Optional
 
 import z3
 
-from aria.efmc.utils.z3_expr_utils import get_variables
-from aria.efmc.utils.z3_solver_utils import is_entail
-from aria.efmc.utils.z3opt_utils import box_optimize
+from aria.utils.z3_expr_utils import get_variables
+from aria.utils.z3_solver_utils import is_entail
+from aria.utils.z3opt_utils import box_optimize
 
 
 # import argparse

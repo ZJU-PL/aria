@@ -31,7 +31,7 @@ from pysmt.typing import INT, REAL, BVType, BOOL
 
 # BV1, BV8, BV16, BV32, BV64, BV128
 
-from aria.efmc.utils.z3_expr_utils import get_variables
+from aria.utils.z3_expr_utils import get_variables
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 # NOTE: both pysmt and z3 have a class "Solver"
 
 
-def to_pysmt_vars(z3vars: [z3.ExprRef]):
+def to_pysmt_vars(z3vars: List[z3.ExprRef]):
     """
     Convert a list of Z3 variables to PySMT variables.
     Args:

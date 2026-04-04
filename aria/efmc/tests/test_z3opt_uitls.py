@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch, MagicMock, Mock
 import z3
 
-from aria.efmc.utils.z3opt_utils import box_optimize, pareto_optimize, maxsmt
+from aria.utils.z3opt_utils import box_optimize, pareto_optimize, maxsmt
 
 
 class TestBoxOptimize(unittest.TestCase):
