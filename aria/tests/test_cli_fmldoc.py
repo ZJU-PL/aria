@@ -32,6 +32,11 @@ QCIR_DIRECT_OUTPUT_SAMPLE = """#QCIR-G14
 output(1)
 """
 
+OPB_SAMPLE = """* #variable= 2 #constraint= 2
+1 x1 + 1 x2 >= 1 ;
+1 x1 + -1 x2 >= 0 ;
+"""
+
 WCNF_SAMPLE = """p wcnf 2 2 10
 10 1 0
 4 -1 2 0
@@ -39,6 +44,37 @@ WCNF_SAMPLE = """p wcnf 2 2 10
 
 WCNF_UNSAT_SAMPLE = """p wcnf 1 1 5
 5 0
+"""
+
+OPB_OBJECTIVE_SAMPLE = """* #variable= 2 #constraint= 1
+min: 1 x1 + 2 x2 ;
+1 x1 + 1 x2 >= 1 ;
+"""
+
+OPB_EXTENDED_SAMPLE = """* #variable= 3 #constraint= 4
+max:
+  x1 + 2 ~x2
+;
+x1 + ~x2 > 0 ;
+x1 + x2 < 2 ;
+x1 + x3 != 1 ;
+2 x1 - x2 >= 0 ;
+"""
+
+OPB_SOFT_SAMPLE = """* #variable= 2 #constraint= 3
+soft: 10 ;
+[10] 1 x1 >= 1 ;
+[4] 1 x2 >= 1 ;
+[3] 1 ~x1 + 1 ~x2 >= 1 ;
+"""
+
+OPB_PRODUCT_SAMPLE = """* #variable= 3 #constraint= 2
+min: 2 x1 x2 - x3 ;
+1 x1 x2 + 1 x3 >= 1 ;
+"""
+
+OPB_ESCAPED_NAME_SAMPLE = """* #variable= 2 #constraint= 1
+1 x[1] + 1 x-2 >= 1 ;
 """
 
 SMTLIB_BOOL_SAMPLE = """(set-logic QF_UF)
@@ -186,6 +222,124 @@ def test_translate_qcir_direct_output_to_smtlib2(tmp_path):
     assert "(declare-const q1 Bool)" in out_file.read_text(encoding="utf-8")
 
 
+def test_translate_opb_to_smtlib2(tmp_path):
+    in_file = _write_file(tmp_path, "sample.opb", OPB_SAMPLE)
+    out_file = tmp_path / "sample.smt2"
+    args = Namespace(
+        input_file=str(in_file),
+        output_file=str(out_file),
+        input_format="opb",
+        output_format="smtlib2",
+        auto_detect=False,
+    )
+
+    assert handle_translate(args) == 0
+    solver = z3.Solver()
+    solver.add(z3.parse_smt2_file(str(out_file)))
+    assert solver.check() == z3.sat
+
+
+def test_translate_opb_objective_to_smtlib2(tmp_path):
+    in_file = _write_file(tmp_path, "sample.opb", OPB_OBJECTIVE_SAMPLE)
+    out_file = tmp_path / "sample.smt2"
+    args = Namespace(
+        input_file=str(in_file),
+        output_file=str(out_file),
+        input_format="opb",
+        output_format="smtlib2",
+        auto_detect=False,
+    )
+
+    assert handle_translate(args) == 0
+    optimizer = z3.Optimize()
+    optimizer.from_file(str(out_file))
+    assert optimizer.check() == z3.sat
+    assert "(minimize" in out_file.read_text(encoding="utf-8")
+
+
+def test_translate_extended_opb_to_smtlib2(tmp_path):
+    in_file = _write_file(tmp_path, "sample.opb", OPB_EXTENDED_SAMPLE)
+    out_file = tmp_path / "sample.smt2"
+    args = Namespace(
+        input_file=str(in_file),
+        output_file=str(out_file),
+        input_format="opb",
+        output_format="smtlib2",
+        auto_detect=False,
+    )
+
+    assert handle_translate(args) == 0
+    optimizer = z3.Optimize()
+    optimizer.from_file(str(out_file))
+    assert optimizer.check() == z3.sat
+    content = out_file.read_text(encoding="utf-8")
+    assert "(maximize" in content
+    assert "(<= (+ |x1| |x2|) 1)" in content
+    assert "(not (= (+ |x1| |x3|) 1))" in content
+    assert "(>= (+ |x1| (- 1 |x2|)) 1)" in content
+
+
+def test_translate_soft_opb_to_smtlib2(tmp_path):
+    in_file = _write_file(tmp_path, "sample.opb", OPB_SOFT_SAMPLE)
+    out_file = tmp_path / "sample.smt2"
+    args = Namespace(
+        input_file=str(in_file),
+        output_file=str(out_file),
+        input_format="opb",
+        output_format="smtlib2",
+        auto_detect=False,
+    )
+
+    assert handle_translate(args) == 0
+    optimizer = z3.Optimize()
+    optimizer.from_file(str(out_file))
+    assert optimizer.check() == z3.sat
+    content = out_file.read_text(encoding="utf-8")
+    assert "(assert (>= |x1| 1))" in content
+    assert "(assert-soft (>= |x2| 1) :weight 4)" in content
+    assert ":weight 3" in content
+
+
+def test_translate_product_opb_to_smtlib2(tmp_path):
+    in_file = _write_file(tmp_path, "sample.opb", OPB_PRODUCT_SAMPLE)
+    out_file = tmp_path / "sample.smt2"
+    args = Namespace(
+        input_file=str(in_file),
+        output_file=str(out_file),
+        input_format="opb",
+        output_format="smtlib2",
+        auto_detect=False,
+    )
+
+    assert handle_translate(args) == 0
+    optimizer = z3.Optimize()
+    optimizer.from_file(str(out_file))
+    assert optimizer.check() == z3.sat
+    content = out_file.read_text(encoding="utf-8")
+    assert "(set-logic QF_NIA)" in content
+    assert "(* |x1| |x2|)" in content
+
+
+def test_translate_opb_with_nontrivial_names(tmp_path):
+    in_file = _write_file(tmp_path, "sample.opb", OPB_ESCAPED_NAME_SAMPLE)
+    out_file = tmp_path / "sample.smt2"
+    args = Namespace(
+        input_file=str(in_file),
+        output_file=str(out_file),
+        input_format="opb",
+        output_format="smtlib2",
+        auto_detect=False,
+    )
+
+    assert handle_translate(args) == 0
+    solver = z3.Solver()
+    solver.add(z3.parse_smt2_file(str(out_file)))
+    assert solver.check() == z3.sat
+    content = out_file.read_text(encoding="utf-8")
+    assert "|x[1]|" in content
+    assert "|x-2|" in content
+
+
 def test_translate_wcnf_to_smtlib2(tmp_path):
     in_file = _write_file(tmp_path, "sample.wcnf", WCNF_SAMPLE)
     out_file = tmp_path / "sample.smt2"
@@ -328,5 +482,6 @@ def test_formats_list(capsys):
     assert handle_formats(Namespace()) == 0
     captured = capsys.readouterr()
     assert "qcir -> smtlib2" in captured.out
+    assert "opb -> smtlib2" in captured.out
     assert "wcnf -> smtlib2" in captured.out
     assert "smtlib2 -> dimacs" in captured.out
