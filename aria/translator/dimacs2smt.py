@@ -4,7 +4,9 @@ Converting DIMACS (CNF format) to SMT2
 
 import sys
 import argparse
-from typing import Optional, TextIO
+from typing import List, Optional, TextIO
+
+from aria.translator.parsing import parse_dimacs_file
 
 
 def parse_header(line: str) -> int:
@@ -39,36 +41,7 @@ def declare_variables(num_vars: int, output: TextIO, prefix: str = "v_") -> None
         output.write(f"(declare-const {prefix}{i} Bool)\n")
 
 
-def parse_clause(line: str, output: TextIO, prefix: str = "v_") -> None:
-    """
-    Parse a single clause and write the corresponding
-    compound logic expression to the output.
-
-    Args:
-        line: DIMACS clause line (space-separated literals ending with 0)
-        output: Output file handle
-        prefix: Prefix to use for variable names
-    """
-    raw_tokens = line.split()
-    if not raw_tokens:
-        raise ValueError("Invalid clause format (empty line)")
-
-    literals = []
-    saw_terminator = False
-    for token in raw_tokens:
-        try:
-            lit = int(token)
-        except ValueError as exc:
-            raise ValueError(f"Invalid literal in clause: {line}") from exc
-
-        if lit == 0:
-            saw_terminator = True
-            break
-        literals.append(lit)
-
-    if not saw_terminator:
-        raise ValueError(f"Invalid clause format (must end with 0): {line}")
-
+def write_clause(literals: List[int], output: TextIO, prefix: str = "v_") -> None:
     if not literals:
         output.write("(assert false)\n")
         return
@@ -104,29 +77,7 @@ def convert_dimacs_to_smt2(
         output_path = f"{input_path}.smt2"
 
     try:
-        with open(input_path, "r", encoding="utf-8") as input_file:
-            # Skip comments and find header
-            header_line = None
-            for line in input_file:
-                line = line.strip()
-                if not line or line.startswith("c"):
-                    continue
-                if line.startswith("p"):
-                    header_line = line
-                    break
-
-            if header_line is None:
-                raise ValueError(f"No problem header found in {input_path}")
-
-            num_vars = parse_header(header_line)
-
-            # Read all clauses (skipping comments)
-            clauses = []
-            for line in input_file:
-                line = line.strip()
-                if not line or line.startswith("c"):
-                    continue
-                clauses.append(line)
+        num_vars, _, clauses = parse_dimacs_file(input_path)
 
         # Write SMT2 file
         with open(output_path, "w", encoding="utf-8") as output_file:
@@ -134,7 +85,7 @@ def convert_dimacs_to_smt2(
             declare_variables(num_vars, output_file, var_prefix)
 
             for clause in clauses:
-                parse_clause(clause, output_file, var_prefix)
+                write_clause(clause, output_file, var_prefix)
 
             output_file.write("(check-sat)\n")
             output_file.write("(get-model)\n")

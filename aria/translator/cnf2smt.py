@@ -2,10 +2,12 @@
 Module for converting CNF (DIMACS format) to Z3 expressions.
 """
 
-from typing import List, Tuple
+from typing import List, Tuple, cast
 
 import pytest
 import z3
+
+from aria.translator.parsing import parse_dimacs_content, parse_dimacs_file
 
 
 def parse_dimacs_string(dimacs_str: str) -> Tuple[int, int, List[List[int]]]:
@@ -15,27 +17,7 @@ def parse_dimacs_string(dimacs_str: str) -> Tuple[int, int, List[List[int]]]:
     :param dimacs_str: String containing DIMACS CNF format
     :return: Tuple of (num_variables, num_clauses, clauses)
     """
-    clauses = []
-    num_vars = 0
-    num_clauses = 0
-
-    for line in dimacs_str.splitlines():
-        line = line.strip()
-        if not line or line.startswith("c"):  # Skip empty lines and comments
-            continue
-
-        if line.startswith("p cnf"):
-            # Parse problem line
-            _, _, var_count, cls = line.split()
-            num_vars = int(var_count)
-            num_clauses = int(cls)
-            continue
-
-        # Parse clause line
-        clause = [int(x) for x in line.split()[:-1]]  # Ignore trailing 0
-        clauses.append(clause)
-
-    return num_vars, num_clauses, clauses
+    return parse_dimacs_content(dimacs_str)
 
 
 def parse_dimacs(filename: str) -> Tuple[int, int, List[List[int]]]:
@@ -45,28 +27,7 @@ def parse_dimacs(filename: str) -> Tuple[int, int, List[List[int]]]:
     :param filename: Path to the DIMACS CNF file
     :return: Tuple of (num_variables, num_clauses, clauses)
     """
-    clauses = []
-    num_vars = 0
-    num_clauses = 0
-
-    with open(filename, "r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith("c"):  # Skip empty lines and comments
-                continue
-
-            if line.startswith("p cnf"):
-                # Parse problem line
-                _, _, var_count, cls = line.split()
-                num_vars = int(var_count)
-                num_clauses = int(cls)
-                continue
-
-            # Parse clause line
-            clause = [int(x) for x in line.split()[:-1]]  # Ignore trailing 0
-            clauses.append(clause)
-
-    return num_vars, num_clauses, clauses
+    return parse_dimacs_file(filename)
 
 
 def dimacs_to_z3(filename: str) -> z3.BoolRef:
@@ -114,7 +75,7 @@ def int_clauses_to_z3(clauses: List[List[int]]) -> z3.BoolRef:
             b = z3.Not(b) if lit < 0 else b
             conds.append(b)
         z3_clauses.append(z3.Or(*conds))
-    return z3.And(*z3_clauses)
+    return cast(z3.BoolRef, z3.And(*z3_clauses))
 
 
 # Test cases

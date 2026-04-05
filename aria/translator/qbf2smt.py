@@ -3,9 +3,11 @@ Converting QDIMACS format to smtlib
 This one is a bit tricky, as it uses bit-vector variables to "compactly" encode several Booleans.
 """
 
-import sys
 import os
+import sys
 from typing import List, NoReturn
+
+from aria.translator.parsing import parse_qdimacs_file
 
 
 def error(msg: str) -> NoReturn:
@@ -42,101 +44,77 @@ def tointlist(lst: List[str]) -> List[int]:
         error(f"expected number list (got: {lst})")
 
 
+def _parse_clause_string(clause: str) -> List[int]:
+    clause_values = [int(token) for token in clause.split()]
+    if not clause_values or clause_values[-1] != 0:
+        raise ValueError(f"expected 0-terminated number list (got: {clause})")
+    return clause_values[:-1]
+
+
+def qdimacs_to_smt2_string(filename: str) -> str:
+    parsed = parse_qdimacs_file(filename)
+
+    if len(parsed.preamble) != 4 or parsed.preamble[0] != "p":
+        raise ValueError("unexpected problem description")
+    if parsed.preamble[1] != "cnf":
+        raise ValueError(f"unexpected problem format ('{parsed.preamble[1]}', not cnf?)")
+
+    varcount = int(parsed.preamble[2])
+    clausecount = int(parsed.preamble[3])
+
+    lines = [
+        f"; QBF variable count : {varcount}",
+        f"; QBF clause count   : {clausecount}",
+        "",
+        "(set-logic UFBV)",
+        "(assert",
+    ]
+
+    mapping = {}
+    for level, (qtype, variables) in enumerate(parsed.parsed_prefix, start=1):
+        quant = "forall" if qtype == "a" else "exists"
+        lines.append(f"  ({quant} ((vec{level} (_ BitVec {len(variables)})))")
+        for index, variable in enumerate(variables):
+            if variable in mapping:
+                raise ValueError(f"variable {variable} bound multiple times")
+            mapping[variable] = (level, index)
+
+    lines.append("    (and")
+    for clause in parsed.clauses:
+        if not clause.strip():
+            continue
+        clause_literals = _parse_clause_string(clause)
+        if not clause_literals:
+            lines.append("      false")
+            continue
+        parts = []
+        for literal in clause_literals:
+            variable = abs(literal)
+            level, index = mapping[variable]
+            bit_val = 1 if literal > 0 else 0
+            parts.append(f"(= ((_ extract {index} {index}) vec{level}) #b{bit_val})")
+        lines.append(f"      (or {' '.join(parts)})")
+
+    lines.append("    )")
+    lines.append(f"  {')' * len(parsed.parsed_prefix)}")
+    lines.append(")")
+    lines.append("")
+    lines.append("(check-sat)")
+    return "\n".join(lines) + "\n"
+
+
+def convert_qdimacs_to_smt2(filename: str, output_path: str) -> str:
+    output = qdimacs_to_smt2_string(filename)
+    with open(output_path, "w", encoding="utf-8") as output_file:
+        output_file.write(output)
+    return output_path
+
+
 def parse(filename):
     """
     Parses a QDIMACS file and outputs its equivalent in SMT-LIB2 format, using UFBV logic.
     """
-    with open(filename, encoding="utf-8") as f:
-        printed_comments = False
-        seendesc = False
-        overprefix = False
-        mapping = {}
-        level = 0
-
-        for line in f.readlines():
-            trimmed = line.strip()
-            if not trimmed:
-                continue
-            if trimmed.startswith("c"):
-                # Comment
-                printed_comments = True
-                print(f"; {trimmed[1:].strip()}")
-            elif trimmed.startswith("p"):
-                # Problem definition
-                if seendesc:
-                    error("multiple problem description lines")
-                else:
-                    seendesc = True
-
-                infoparts = spacesplit(trimmed[1:])
-
-                if not len(infoparts) == 3:
-                    error("unexpected problem description (not 3 parts?)")
-
-                probformat = infoparts[0]
-                probvcstr = infoparts[1]
-                probccstr = infoparts[2]
-
-                if not probformat == "cnf":
-                    error(f"unexpected problem format ('{probformat}', not cnf?)")
-
-                if not probvcstr.isdigit():
-                    error(f"variable count is not a number ({probvcstr})")
-                varcount = int(probvcstr)
-
-                if not probccstr.isdigit():
-                    error(f"clause count is not a number ({probccstr})")
-                clausecount = int(probccstr)
-
-                if printed_comments:
-                    print(";")
-
-                print(f"; QBF variable count : {varcount}")
-                print(f"; QBF clause count   : {clausecount}")
-                print("")
-                print("(set-logic UFBV)")
-                print("(assert")
-            elif trimmed.startswith("a") or trimmed.startswith("e"):
-                # Quantifier definition
-                if overprefix:
-                    error("unexpected quantifier declaration")
-                isuniversal = trimmed.startswith("a")
-                level = level + 1
-                parts = spacesplit(trimmed[1:])
-
-                vs = tointlist(parts)
-
-                for i, v in enumerate(vs):
-                    if v in mapping:
-                        error(f"variable {v} bound multiple times")
-                    mapping[v] = (level, i)
-
-                quant = "forall" if isuniversal else "exists"
-
-                print(f"  ({quant} ((vec{level} (_ BitVec {len(vs)})))")
-            else:
-                # Clause definition
-                if not overprefix:
-                    print("    (and")
-                overprefix = True
-
-                vs = tointlist(spacesplit(trimmed))
-
-                sys.stdout.write("      (or")
-
-                for v in vs:
-                    a = abs(v)
-                    (lvl, i) = mapping[a]
-                    bit_val = 1 if a == v else 0
-                    sys.stdout.write(f" (= ((_ extract {i} {i}) vec{lvl}) #b{bit_val})")
-
-                sys.stdout.write(f"){os.linesep}")
-
-    print("    )")
-    print(f"  {')' * level}")
-    print(")")
-    print("")
-    print("(check-sat)")
+    sys.stdout.write(qdimacs_to_smt2_string(filename))
     return 0
 
 
