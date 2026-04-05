@@ -9,13 +9,17 @@ Converters between various constraint/solver formats.
 | `dimacs2smt.py` | DIMACS CNF → SMT2 |
 | `cnf2smt.py` | CNF → SMT2 encoding |
 | `cnf2lp.py` | CNF → Linear Programming format |
+| `smt2dimacs.py` | SMT-LIB2 propositional fragment → DIMACS |
+| `opb2smt.py` | OPB / WBO-style pseudo-Boolean constraints → SMT-LIB2 |
 | `wcnf2z3.py` | Weighted CNF → Z3 optimization |
+| `wcnf2smt.py` | Weighted CNF / MaxSAT text → SMT-LIB2 with soft constraints |
 
 ## QBF (Quantified Boolean Formulas)
 
 | File | Description |
 |------|-------------|
 | `qbf2smt.py` | QBF → SMT2 encoding |
+| `qcir2smt.py` | QCIR → SMT-LIB2 |
 
 ## SMT-LIB
 
@@ -39,6 +43,13 @@ Converters between various constraint/solver formats.
 | `fzn2optimathsat.py` | FlatZinc → Optimathsat |
 | `smt2model2fzn.py` | SMT model → FlatZinc solution |
 
+## Shared Infrastructure
+
+| File | Description |
+|------|-------------|
+| `registry.py` | Translator capability registry used by the CLI |
+| `parsing.py` | Shared parsing adapters reused by translator modules |
+
 ## Usage
 
 ```python
@@ -47,3 +58,7 @@ from aria.translator import dimacs2smt
 # Convert DIMACS CNF to SMT2
 dimacs2smt.convert_file('input.cnf', 'output.smt2')
 ```
+
+The registry-backed CLI entrypoint is exposed through `aria.cli.fmldoc_cli` and
+currently covers DIMACS, QDIMACS, QCIR, OPB, WCNF, SyGuS, and selected
+SMT-LIB2 conversions.
