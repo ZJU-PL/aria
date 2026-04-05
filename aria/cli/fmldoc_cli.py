@@ -1,35 +1,18 @@
-"""CLI for logic constraint formats: translate, validate, and analyze.
-
-Supported formats (for validate/analyze): dimacs, smtlib2.
-Supported translations: dimacs -> smtlib2.
-"""
-
 import argparse
 import sys
 from pathlib import Path
 from typing import List, Optional, Sequence, Tuple
 
+from aria.translator.registry import (
+    detect_format,
+    get_output_extension,
+    get_supported_translation_formats,
+    get_supported_translations,
+    translate_file,
+)
+
 # Translation pairs (input_format, output_format) that are implemented.
-SUPPORTED_TRANSLATIONS: List[Tuple[str, str]] = [
-    ("dimacs", "smtlib2"),
-]
-
-
-def detect_format(filename: str) -> str:
-    """Auto-detect format from file extension"""
-    ext_map = {
-        ".cnf": "dimacs",
-        ".qdimacs": "qdimacs",
-        ".tplp": "tplp",
-        ".fzn": "fzn",
-        ".smt2": "smtlib2",
-        ".sy": "sygus",
-        ".lp": "lp",
-        ".dl": "datalog",
-    }
-
-    ext = Path(filename).suffix.lower()
-    return ext_map.get(ext)
+SUPPORTED_TRANSLATIONS: List[Tuple[str, str]] = get_supported_translations()
 
 
 def handle_translate(args) -> int:
@@ -46,20 +29,8 @@ def handle_translate(args) -> int:
     if not input_format or not output_format:
         raise ValueError("Input and output formats must be specified or auto-detected")
 
-    pair = (input_format.lower(), output_format.lower())
-    if pair == ("dimacs", "smtlib2"):
-        from aria.translator.dimacs2smt import (
-            convert_dimacs_to_smt2,
-        )  # pylint: disable=import-outside-toplevel
-
-        convert_dimacs_to_smt2(args.input_file, args.output_file)
-        return 0
-
-    supported = ", ".join(f"{i} -> {o}" for i, o in SUPPORTED_TRANSLATIONS)
-    raise ValueError(
-        f"No translator for {input_format} -> {output_format}. "
-        f"Supported: {supported}"
-    )
+    translate_file(input_format, output_format, args.input_file, args.output_file)
+    return 0
 
 
 def handle_validate(args) -> int:
@@ -156,6 +127,10 @@ def handle_analyze(args) -> int:
 def handle_formats(_args: argparse.Namespace) -> int:
     """Print supported formats and translation pairs."""
     print("Supported validation/analysis formats: dimacs, smtlib2")
+    print(
+        "Supported translation formats: "
+        + ", ".join(get_supported_translation_formats())
+    )
     print("Supported translations:")
     for i, o in SUPPORTED_TRANSLATIONS:
         print(f"  {i} -> {o}")
@@ -187,17 +162,7 @@ def handle_batch(args) -> int:
                     continue
 
                 # Construct output path
-                ext_map = {
-                    "dimacs": ".cnf",
-                    "qdimacs": ".qdimacs",
-                    "tplp": ".tplp",
-                    "fzn": ".fzn",
-                    "smtlib2": ".smt2",
-                    "sygus": ".sy",
-                    "lp": ".lp",
-                    "datalog": ".dl",
-                }
-                out_ext = ext_map.get(out_format, ".txt")
+                out_ext = get_output_extension(out_format)
                 output_file = output_dir / (input_file.stem + out_ext)
 
                 # Translate

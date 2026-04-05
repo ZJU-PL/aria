@@ -26,8 +26,12 @@ for required in (
     "cnf2smt",
     "cnf2lp",
     "qbf2smt",
+    "qcir2smt",
+    "opb2smt",
     "smt2c",
+    "smt2dimacs",
     "sygus2smt",
+    "wcnf2smt",
     "wcnf2z3",
     "fzn2omt",
 ):
