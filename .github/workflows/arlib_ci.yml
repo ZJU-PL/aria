@@ -91,7 +91,7 @@ jobs:
         cd ..
 
     - name: Run tests
-      run: bash unit_test.sh
+      run: bash unit_test.sh --continue
 
     #- name: Upload coverage to Codecov
     #  uses: codecov/codecov-action@v3

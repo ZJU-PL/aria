@@ -36,8 +36,9 @@ from aria.smt.ff.solvers.ff_perf_solver import FFPerfSolver
 from aria.smt.ff.solvers.ff_solver import FFAutoSolver
 from aria.tests import TestCase, main
 
-# Compute repository root (two levels up from this file)
-REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REPO_ROOT = os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
 
 
 def _parse_text(smt_text: str) -> ParsedFormula:
