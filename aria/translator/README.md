@@ -10,7 +10,7 @@ Converters between various constraint/solver formats.
 | `cnf2smt.py` | CNF → SMT2 encoding |
 | `cnf2lp.py` | CNF → Linear Programming format |
 | `smt2dimacs.py` | SMT-LIB2 propositional fragment → DIMACS |
-| `opb2smt.py` | OPB / WBO-style pseudo-Boolean constraints → SMT-LIB2 |
+| `opb2smt.py` | OPB / WBO-style pseudo-Boolean constraints, soft clauses, and products → SMT-LIB2 |
 | `wcnf2z3.py` | Weighted CNF → Z3 optimization |
 | `wcnf2smt.py` | Weighted CNF / MaxSAT text → SMT-LIB2 with soft constraints |
 
@@ -62,3 +62,7 @@ dimacs2smt.convert_file('input.cnf', 'output.smt2')
 The registry-backed CLI entrypoint is exposed through `aria.cli.fmldoc_cli` and
 currently covers DIMACS, QDIMACS, QCIR, OPB, WCNF, SyGuS, and selected
 SMT-LIB2 conversions.
+
+The OPB translator now handles weighted constraints (`[w] ... ;`), `soft:`
+headers, min/max objectives, richer comparators, and product terms by emitting
+either `QF_LIA` or `QF_NIA` SMT-LIB2 as needed.
