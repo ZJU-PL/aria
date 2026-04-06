@@ -56,7 +56,7 @@ def get_expr_vars(exp) -> List[z3.ExprRef]:
     TBD: check if this is correct and design a more efficient version.
     """
     try:
-        syms = set()
+        syms = {}
         stack = [exp]
 
         while stack:
@@ -66,11 +66,11 @@ def get_expr_vars(exp) -> List[z3.ExprRef]:
                 continue
             if z3.is_app(e):
                 if e.num_args() == 0 and e.decl().kind() == z3.Z3_OP_UNINTERPRETED:
-                    syms.add(e)
+                    syms[e.get_id()] = e
                 else:
                     stack.extend(e.children())
 
-        return list(syms)
+        return list(syms.values())
     except z3.Z3Exception as ex:
         print(ex)
         return False

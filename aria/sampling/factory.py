@@ -2,7 +2,7 @@
 Factory for creating samplers.
 """
 
-from typing import Dict, Set, Type, Optional
+from typing import Dict, Set, Type, Optional, List
 
 import z3
 
@@ -16,7 +16,7 @@ from aria.sampling.general_sampler.mcmc_sampler import MCMCSampler
 class SamplerFactory:
     """Factory for creating samplers."""
 
-    _samplers: Dict[Logic, list[Type[Sampler]]] = {}
+    _samplers: Dict[Logic, List[Type[Sampler]]] = {}
 
     @classmethod
     def register(cls, logic: Logic, sampler_class: Type[Sampler]) -> None:

@@ -166,6 +166,9 @@ class PBESolver:
                 )
 
             refinement_rounds += 1
+            if self._remaining_time(deadline) <= 0:
+                stop_reason = "Refinement stopped because the timeout budget expired"
+                break
             next_task = result.task.with_example(
                 {**distinguishing_input, "output": oracle_output}
             )
