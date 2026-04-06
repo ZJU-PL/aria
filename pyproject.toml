@@ -33,9 +33,9 @@ classifiers = [
 ]
 
 dependencies = [
-    "PySMT==0.9.0",
+    "PySMT==0.9.7.dev356",
     "z3-solver==4.12.0",
-    "python-sat==0.1.8.dev1",
+    "python-sat==1.9.dev1",
     "pyapproxmc==4.1.24",
     "six>=1.16.0",
     "psutil~=5.9.0",
