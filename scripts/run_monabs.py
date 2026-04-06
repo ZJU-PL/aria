@@ -11,10 +11,11 @@ from typing import List, Tuple
 
 import z3
 
-from aria.monabs.dis_check import disjunctive_check, disjunctive_check_incremental
-from aria.monabs.unary_check import unary_check, unary_check_cached
-from aria.monabs.unsat_check import unsat_check
+from aria.monabs.cores.dis_check import disjunctive_check, disjunctive_check_incremental
+from aria.monabs.cores.unary_check import unary_check, unary_check_cached
+from aria.monabs.cores.unsat_check import unsat_check
 from aria.tests.formula_generator import FormulaGenerator
+
 
 
 def check_identical(*lists):
