@@ -92,6 +92,7 @@ Documentation Map
     abstraction/index
     counting-probability/index
     synthesis/index
+    logic-programming/index
     llm-ml/index
     cli-tools/index
     global_params

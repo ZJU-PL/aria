@@ -8,5 +8,6 @@ elimination, and quantifier-instantiation-based solving.
    :maxdepth: 2
 
    quantifiers
+   efsmt
    qe
    qi

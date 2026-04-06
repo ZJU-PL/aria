@@ -1,0 +1,228 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Machine Learning Components &mdash; ARIA Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="CLI and Tools" href="../cli-tools/index.html" />
+    <link rel="prev" title="LLM Tools" href="llmtools.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ARIA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../logic-and-solving/index.html">Logic and Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../proofs-and-explanations/index.html">Proofs and Explanations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quantified-reasoning/index.html">Quantified Reasoning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../automata-languages/index.html">Automata and Languages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../verification/index.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../abstraction/index.html">Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../counting-probability/index.html">Counting, Sampling, and Probability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../synthesis/index.html">Program Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../logic-programming/index.html">Logic Programming</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">LLM and ML</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="llmtools.html">LLM Tools</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Machine Learning Components</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#llm-assisted-reasoning">LLM-Assisted Reasoning</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#portfolio-selection-and-feature-extraction">Portfolio Selection and Feature Extraction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tactic-optimization">Tactic Optimization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples-and-entry-points">Examples and Entry Points</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#status-notes">Status Notes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#further-reading">Further Reading</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../cli-tools/index.html">CLI and Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../global_params.html">Global Parameters</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ARIA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">LLM and ML</a></li>
+      <li class="breadcrumb-item active">Machine Learning Components</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/llm-ml/ml.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="machine-learning-components">
+<h1>Machine Learning Components<a class="headerlink" href="#machine-learning-components" title="Link to this heading"></a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">aria.ml</span></code> package collects machine-learning- and LLM-oriented research
+components for automated reasoning. It is best understood as a toolbox of
+subsystems rather than a single unified API.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>The main areas in <code class="docutils literal notranslate"><span class="pre">aria/ml</span></code> are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">llm/</span></code>: LLM-assisted reasoning utilities, including natural-language
+interfaces, abduction, trigger generation, and solver-aided workflows.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">smtgazer/</span></code>: machine-learning-based SMT solver portfolio selection.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">machfea/</span></code>: feature extraction for SMT instances.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tactic_opt/</span></code>: genetic-algorithm search for effective Z3 tactic sequences.</p></li>
+</ul>
+</section>
+<section id="llm-assisted-reasoning">
+<h2>LLM-Assisted Reasoning<a class="headerlink" href="#llm-assisted-reasoning" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">aria/ml/llm</span></code> contains several LLM-facing components:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">smt2nl.py</span></code> converts SMT-LIB assertions into natural language.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">abduction/</span></code> provides natural-language abduction workflows and result data
+structures.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ematching/</span></code> provides trigger generation and trigger-selection helpers for
+quantified SMT formulas, including a CLI-oriented entry point.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">smto/</span></code> contains solver-aided reasoning utilities for synthesizing or using
+specifications of closed-box functions.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">induction/</span></code> contains experimental LLM-guided induction workflows and
+benchmark-driving scripts.</p></li>
+</ul>
+<p>Representative imports include:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.ml.llm.abduction</span><span class="w"> </span><span class="kn">import</span> <span class="n">NLAbductor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.ml.llm.ematching</span><span class="w"> </span><span class="kn">import</span> <span class="n">LLMTriggerGenerator</span><span class="p">,</span> <span class="n">TriggerSelector</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.ml.llm.smto</span><span class="w"> </span><span class="kn">import</span> <span class="n">PS_SMTOSolver</span>
+</pre></div>
+</div>
+<p>There is also a simple command-line style module for SMT-to-natural-language
+conversion:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>aria.ml.llm.smt2nl<span class="w"> </span><span class="s2">&quot;(assert (and (&gt; x 5) (&lt;= y 10)))&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="portfolio-selection-and-feature-extraction">
+<h2>Portfolio Selection and Feature Extraction<a class="headerlink" href="#portfolio-selection-and-feature-extraction" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">aria/ml/smtgazer</span></code> and <code class="docutils literal notranslate"><span class="pre">aria/ml/machfea</span></code> support ML-guided solver
+selection for SMT workloads.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">smtgazer/</span></code> contains the main portfolio-training and evaluation scripts,
+including <code class="docutils literal notranslate"><span class="pre">SMTportfolio.py</span></code>, <code class="docutils literal notranslate"><span class="pre">batchportfolio.py</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">portfolio_smac3.py</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">machfea/</span></code> provides problem-feature extraction and batch inference helpers,
+including <code class="docutils literal notranslate"><span class="pre">get_feature.py</span></code> and <code class="docutils literal notranslate"><span class="pre">mach_run_inference.py</span></code>.</p></li>
+</ul>
+<p>These components are script-heavy and research-oriented, so they are most
+useful when you want to reproduce experiments or build a solver-scheduling
+pipeline over benchmark datasets.</p>
+</section>
+<section id="tactic-optimization">
+<h2>Tactic Optimization<a class="headerlink" href="#tactic-optimization" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">aria/ml/tactic_opt</span></code> searches for good Z3 tactic sequences using a genetic
+algorithm. The most visible package is <code class="docutils literal notranslate"><span class="pre">ga_tactics</span></code>, which exports the core
+objects for modeling, evaluating, and evolving tactic sequences.</p>
+<p>Representative imports include:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.ml.tactic_opt.ga_tactics</span><span class="w"> </span><span class="kn">import</span> <span class="n">GA</span><span class="p">,</span> <span class="n">TacticSeq</span>
+</pre></div>
+</div>
+</section>
+<section id="examples-and-entry-points">
+<h2>Examples and Entry Points<a class="headerlink" href="#examples-and-entry-points" title="Link to this heading"></a></h2>
+<p>Useful starting points include:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.ml.llm.abduction.NLAbductor</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.ml.llm.ematching.LLMTriggerGenerator</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.ml.llm.ematching.TriggerSelector</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.ml.llm.smto.PS_SMTOSolver</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.ml.tactic_opt.ga_tactics.GA</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">aria.ml.llm.smt2nl</span></code></p></li>
+</ul>
+</section>
+<section id="status-notes">
+<h2>Status Notes<a class="headerlink" href="#status-notes" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">aria.ml</span></code> mixes reusable library code with experiment-oriented scripts.
+Some subdirectories are better viewed as paper or benchmark artifacts than as
+stable end-user APIs, especially under <code class="docutils literal notranslate"><span class="pre">llm/induction</span></code> and the portfolio
+training workflows.</p>
+</section>
+<section id="further-reading">
+<h2>Further Reading<a class="headerlink" href="#further-reading" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">aria/ml/README.md</span></code> for the package-level overview</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria/ml/llm/induction/README.md</span></code> for the induction workflow</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria/ml/smtgazer/README.md</span></code> for portfolio experiments</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria/ml/tactic_opt/ga_tactics/README.md</span></code> for tactic optimization details</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="llmtools.html" class="btn btn-neutral float-left" title="LLM Tools" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../cli-tools/index.html" class="btn btn-neutral float-right" title="CLI and Tools" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
