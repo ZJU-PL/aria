@@ -6,7 +6,7 @@ from typing import Optional
 
 import z3
 
-from aria.counting.qfbv_counting import BVModelCounter
+from aria.counting.bv import BVModelCounter
 from aria.counting.bool.dimacs_counting import count_dimacs_solutions_parallel
 
 
@@ -63,8 +63,9 @@ def _count_smtlib2_solutions(formula_str: str, _timeout: Optional[int] = None) -
                     counter = BVModelCounter()
                     counter.init_from_fml(formula)
                     # Use sharpSAT for counting
-                    result, _ = counter.count_models_by_sharp_sat()
-                    return result
+                    result = counter.count_models(method="sharp_sat")
+                    if result.count is not None:
+                        return int(result.count)
                 except (ValueError, TypeError, AttributeError, RuntimeError):
                     # Fallback to basic enumeration
                     pass

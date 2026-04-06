@@ -25,6 +25,7 @@ class SolverConfig:
         self.exec_name = exec_name
         self.exec_path: Optional[str] = None
         self.is_available: bool = False
+        self.is_located: bool = False
 
     def __repr__(self) -> str:
         """Return a string representation of the solver configuration."""
@@ -68,9 +69,8 @@ class GlobalConfig(metaclass=SolverRegistry):
     }
 
     def __init__(self):
-        """Initialize the global configuration and locate all solvers."""
+        """Initialize the global configuration."""
         self._bin_solver_path = Path(__file__).parent.parent.parent / "bin_solvers"
-        self._locate_all_solvers()
 
     def _locate_solver(self, solver_config: SolverConfig) -> None:
         """Locate a solver executable and update its configuration.
@@ -85,15 +85,29 @@ class GlobalConfig(metaclass=SolverRegistry):
         if shutil.which(str(local_path)):
             solver_config.exec_path = str(local_path)
             solver_config.is_available = True
+            solver_config.is_located = True
             return
 
         system_path = shutil.which(solver_config.exec_name)
         if system_path:
             solver_config.exec_path = system_path
             solver_config.is_available = True
+            solver_config.is_located = True
             return
 
-        logger.warning("Could not locate %s solver executable", solver_config.name)
+        solver_config.exec_path = None
+        solver_config.is_available = False
+        solver_config.is_located = True
+
+    def _ensure_solver_located(self, solver_name: str) -> SolverConfig:
+        """Locate a solver lazily on first access."""
+
+        if solver_name not in self.SOLVERS:
+            raise ValueError(f"Unknown solver: {solver_name}")
+        solver_config = self.SOLVERS[solver_name]
+        if not solver_config.is_located:
+            self._locate_solver(solver_config)
+        return solver_config
 
     def _locate_all_solvers(self) -> None:
         """Locate all configured solvers."""
@@ -114,7 +128,10 @@ class GlobalConfig(metaclass=SolverRegistry):
             raise ValueError(f"Unknown solver: {solver_name}")
         if not Path(path).exists():
             raise ValueError(f"Path does not exist: {path}")
-        self._locate_solver(self.SOLVERS[solver_name])
+        solver_config = self.SOLVERS[solver_name]
+        solver_config.exec_path = path
+        solver_config.is_available = True
+        solver_config.is_located = True
 
     def get_solver_path(self, solver_name: str) -> Optional[str]:
         """Get the path to a solver executable.
@@ -128,9 +145,8 @@ class GlobalConfig(metaclass=SolverRegistry):
         Raises:
             ValueError: If the solver name is unknown.
         """
-        if solver_name not in self.SOLVERS:
-            raise ValueError(f"Unknown solver: {solver_name}")
-        return self.SOLVERS[solver_name].exec_path
+        solver_config = self._ensure_solver_located(solver_name)
+        return solver_config.exec_path
 
     def is_solver_available(self, solver_name: str) -> bool:
         """Check if a solver is available on the system.
@@ -144,9 +160,8 @@ class GlobalConfig(metaclass=SolverRegistry):
         Raises:
             ValueError: If the solver name is unknown.
         """
-        if solver_name not in self.SOLVERS:
-            raise ValueError(f"Unknown solver: {solver_name}")
-        return self.SOLVERS[solver_name].is_available
+        solver_config = self._ensure_solver_located(solver_name)
+        return solver_config.is_available
 
     def get_smt_solvers_config(self) -> Dict:
         """Get configuration dictionary for SMT solvers.

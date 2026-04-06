@@ -1,16 +1,20 @@
 """Counting interfaces for pySMT Boolean formulas."""
 
-from typing import Tuple, List
+from timeit import default_timer as counting_timer
+from typing import List, Optional, Sequence, Tuple
+
 from pysmt.shortcuts import Solver as PySMTSolver, Not, get_free_variables, Or
+from pysmt.shortcuts import TRUE, FALSE
 from pysmt.rewritings import cnf
 
-from aria.counting.bool.dimacs_counting import (
-    count_dimacs_solutions,
-    count_dimacs_solutions_parallel,
-)
+from aria.counting.bool.dimacs_counting import call_approxmc
+from aria.counting.core import CountResult, exact_count_result, unsupported_count_result
 
-
-def count_pysmt_models_by_enumeration(formula, max_models: int = None) -> int:
+def count_pysmt_models_by_enumeration(
+    formula,
+    max_models: Optional[int] = None,
+    variables: Optional[Sequence] = None,
+) -> int:
     """
     Count models for a pySMT Boolean formula using model enumeration.
 
@@ -24,7 +28,12 @@ def count_pysmt_models_by_enumeration(formula, max_models: int = None) -> int:
     solver = PySMTSolver()
     solver.add_assertion(formula)
     count = 0
-    variables = list(get_free_variables(formula))
+    vars_to_count = list(variables) if variables is not None else list(
+        get_free_variables(formula)
+    )
+
+    if len(vars_to_count) == 0:
+        return 1 if solver.solve() else 0
 
     while solver.solve():
         count += 1
@@ -34,7 +43,7 @@ def count_pysmt_models_by_enumeration(formula, max_models: int = None) -> int:
         model = solver.get_model()
         # Create blocking clause for all variables
         block = []
-        for var in variables:
+        for var in vars_to_count:
             val = model.get_value(var)
             if val.is_true():
                 block.append(Not(var))
@@ -57,6 +66,12 @@ def pysmt_to_dimacs(formula) -> Tuple[List[str], List[str]]:
     Returns:
         Tuple[List[str], List[str]]: Header and clauses in DIMACS format
     """
+    simplified = formula.simplify()
+    if simplified == TRUE():
+        return ["p cnf 0 0"], []
+    if simplified == FALSE():
+        return ["p cnf 0 1"], [""]
+
     # Convert to CNF
     cnf_formula = cnf(formula)
 
@@ -90,7 +105,12 @@ def pysmt_to_dimacs(formula) -> Tuple[List[str], List[str]]:
     return header, dimacs_clauses
 
 
-def count_pysmt_solutions(formula, parallel: bool = False) -> int:
+def count_pysmt_solutions(
+    formula,
+    parallel: bool = False,
+    variables: Optional[Sequence] = None,
+    method: str = "auto",
+) -> int:
     """
     Count solutions for a pySMT formula.
 
@@ -101,7 +121,119 @@ def count_pysmt_solutions(formula, parallel: bool = False) -> int:
     Returns:
         int: Number of solutions
     """
-    header, clauses = pysmt_to_dimacs(formula)
-    if parallel:
-        return count_dimacs_solutions_parallel(header, clauses)
-    return count_dimacs_solutions(header, clauses)
+    _ = parallel
+    result = count_pysmt_result(
+        formula, parallel=parallel, variables=variables, method=method
+    )
+    if result.count is None:
+        raise ValueError(f"pySMT model counting failed: {result.status}: {result.reason}")
+    return int(result.count)
+
+
+def count_pysmt_result(
+    formula,
+    parallel: bool = False,
+    variables: Optional[Sequence] = None,
+    method: str = "auto",
+) -> CountResult:
+    """Count satisfying assignments for a pySMT Boolean formula."""
+
+    time_start = counting_timer()
+    simplified = formula.simplify()
+    free_variables = list(get_free_variables(formula))
+    vars_to_count = list(variables) if variables is not None else free_variables
+    projection = [str(var) for var in vars_to_count]
+    num_variables = len(free_variables)
+
+    free_var_ids = {var for var in free_variables}
+    for var in vars_to_count:
+        if var not in free_var_ids:
+            return unsupported_count_result(
+                backend="pysmt-enumeration",
+                reason=f"projection variable not found in formula: {var}",
+                runtime_s=counting_timer() - time_start,
+                projection=projection,
+                num_variables=num_variables,
+            )
+
+    if simplified == TRUE():
+        return exact_count_result(
+            float(2 ** len(vars_to_count)),
+            backend="pysmt-enumeration",
+            runtime_s=counting_timer() - time_start,
+            projection=projection,
+            num_variables=num_variables,
+            simplification="tautology",
+        )
+
+    if simplified == FALSE():
+        return exact_count_result(
+            0.0,
+            backend="pysmt-enumeration",
+            runtime_s=counting_timer() - time_start,
+            projection=projection,
+            num_variables=num_variables,
+            simplification="contradiction",
+        )
+
+    if method in ("approx", "approxmc"):
+        if variables is not None and len(vars_to_count) != len(free_variables):
+            return unsupported_count_result(
+                backend="approxmc",
+                reason="approximate projected Boolean counting is not supported",
+                runtime_s=counting_timer() - time_start,
+                projection=projection,
+                num_variables=num_variables,
+            )
+        _, clauses = pysmt_to_dimacs(formula)
+        approx_count = call_approxmc(clauses)
+        if approx_count < 0:
+            return unsupported_count_result(
+                backend="approxmc",
+                reason="ApproxMC backend is unavailable or failed",
+                runtime_s=counting_timer() - time_start,
+                projection=projection,
+                num_variables=num_variables,
+            )
+        return CountResult(
+            status="approximate",
+            count=float(approx_count),
+            backend="approxmc",
+            exact=False,
+            runtime_s=counting_timer() - time_start,
+            projection=projection,
+            metadata={
+                "num_variables": num_variables,
+                "parallel_requested": parallel,
+            },
+        )
+
+    if method not in ("auto", "exact", "enumeration"):
+        return unsupported_count_result(
+            backend="pysmt-none",
+            reason=f"unknown Boolean counting method: {method}",
+            runtime_s=counting_timer() - time_start,
+            projection=projection,
+            num_variables=num_variables,
+        )
+
+    if method == "auto" and variables is None and num_variables > 16:
+        approx_result = count_pysmt_result(
+            formula,
+            parallel=parallel,
+            variables=variables,
+            method="approx",
+        )
+        if approx_result.status != "unsupported":
+            approx_result.metadata["selection"] = "auto"
+            return approx_result
+
+    count = count_pysmt_models_by_enumeration(formula, variables=vars_to_count)
+    return exact_count_result(
+        float(count),
+        backend="pysmt-enumeration",
+        runtime_s=counting_timer() - time_start,
+        projection=projection,
+        num_variables=num_variables,
+        parallel_requested=parallel,
+    )

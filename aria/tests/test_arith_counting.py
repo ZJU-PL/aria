@@ -28,6 +28,19 @@ class TestArithCounting:
         result = counter.count_models(formula=formula, variables=[x], method="auto")
         assert result.status == "exact"
         assert result.count == 3
+        assert result.exact is True
+        assert result.projection == ["x"]
+        assert result.metadata["logic"] == "QF_LIA"
+
+    def test_result_type_from_enumeration(self):
+        x = z3.Int("x")
+        formula = cast(z3.BoolRef, z3.And(x >= 0, x <= 1))
+        counter = ArithModelCounter()
+        result = counter.count_models(formula=formula, method="enumeration")
+        assert result.status == "exact"
+        assert result.count == 2
+        assert result.backend == "enumeration"
+        assert result.exact is True
 
     def test_unbounded_rejected(self):
         x = z3.Int("x")

@@ -1,18 +1,15 @@
 import shutil
 from dataclasses import dataclass
+from timeit import default_timer as counting_timer
 from typing import Dict, List, Optional, Tuple
 
 import z3
 
+from aria.counting.core import CountResult, exact_count_result, unsupported_count_result
 from aria.utils.z3.expr import get_variables, z3_value_to_python
 
 
-@dataclass
-class ArithCountResult:
-    status: str
-    count: Optional[int]
-    backend: str
-    reason: str
+ArithCountResult = CountResult
 
 
 @dataclass
@@ -215,6 +212,7 @@ class ArithModelCounter:
         formula: Optional[z3.ExprRef] = None,
         variables: Optional[List[z3.ExprRef]] = None,
     ) -> ArithCountResult:
+        time_start = counting_timer()
         raw_formula: Optional[object]
         if formula is not None:
             raw_formula = formula
@@ -222,41 +220,50 @@ class ArithModelCounter:
             raw_formula = self.formula
 
         if raw_formula is None or not isinstance(raw_formula, z3.ExprRef):
-            return ArithCountResult(
-                status="unsupported",
-                count=None,
+            return unsupported_count_result(
                 backend="enumeration",
                 reason="formula is not initialized",
+                runtime_s=counting_timer() - time_start,
             )
 
         fml = raw_formula
 
         analysis = self.analyze(fml, variables=variables)
         if analysis.status != "exact":
-            return ArithCountResult(
+            return CountResult(
                 status=analysis.status,
                 count=None,
                 backend="enumeration",
+                exact=False,
+                runtime_s=counting_timer() - time_start,
+                projection=[str(var) for var in analysis.int_variables],
                 reason=analysis.reason,
+                metadata={"logic": analysis.logic, "bounds": analysis.bounds},
             )
 
         solver = z3.Solver()
         solver.add(fml)
 
         if solver.check() == z3.unsat:
-            return ArithCountResult(
-                status="exact",
-                count=0,
+            return exact_count_result(
+                0.0,
                 backend="enumeration",
+                runtime_s=counting_timer() - time_start,
+                projection=[str(var) for var in analysis.int_variables],
+                logic=analysis.logic,
+                bounds=analysis.bounds,
                 reason="formula is unsatisfiable",
             )
 
         vars_to_count = analysis.int_variables
         if len(vars_to_count) == 0:
-            return ArithCountResult(
-                status="exact",
-                count=1,
+            return exact_count_result(
+                1.0,
                 backend="enumeration",
+                runtime_s=counting_timer() - time_start,
+                projection=[],
+                logic=analysis.logic,
+                bounds=analysis.bounds,
                 reason="no Int variables to count",
             )
 
@@ -270,11 +277,13 @@ class ArithModelCounter:
                 block.append(var != val)
             solver.add(z3.Or(block))
 
-        return ArithCountResult(
-            status="exact",
-            count=count,
+        return exact_count_result(
+            float(count),
             backend="enumeration",
-            reason="",
+            runtime_s=counting_timer() - time_start,
+            projection=[str(var) for var in vars_to_count],
+            logic=analysis.logic,
+            bounds=analysis.bounds,
         )
 
     def count_models_by_latte(
@@ -285,15 +294,11 @@ class ArithModelCounter:
         _ = formula
         _ = variables
         if not self.latte_path:
-            return ArithCountResult(
-                status="unsupported",
-                count=None,
+            return unsupported_count_result(
                 backend="latte",
                 reason="LattE executable not found",
             )
-        return ArithCountResult(
-            status="unsupported",
-            count=None,
+        return unsupported_count_result(
             backend="latte",
             reason="LattE backend is not implemented yet",
         )
@@ -310,9 +315,7 @@ class ArithModelCounter:
             return self.count_models_by_latte(formula, variables)
 
         if method != "auto":
-            return ArithCountResult(
-                status="unsupported",
-                count=None,
+            return unsupported_count_result(
                 backend="none",
                 reason=f"unknown arithmetic counting method: {method}",
             )
@@ -329,4 +332,4 @@ def count_lia_models(
     result = counter.count_models(formula=formula, variables=variables, method=method)
     if result.status != "exact" or result.count is None:
         raise ValueError(f"Arithmetic counting failed: {result.status}: {result.reason}")
-    return result.count
+    return int(result.count)

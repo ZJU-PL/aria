@@ -25,12 +25,13 @@ import sys
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union, cast
 
 import z3
 from z3 import parse_smt2_file, ExprRef, BitVecRef
 
-from aria.counting.qfbv_counting import BVModelCounter
+from aria.counting.bv import BVModelCounter
+from aria.counting.core import CountResult
 from aria.symabs.omt_symabs.bv_symbolic_abstraction import BVSymbolicAbstraction
 from aria.tests.formula_generator import FormulaGenerator
 from aria.utils.z3.expr import get_variables
@@ -69,26 +70,26 @@ class AbstractionResults:
         if other is None:
             return self
         return AbstractionResults(
-            self.interval_fp_rate + other.interval_fp_rate,
-            self.interval_time + other.interval_time,
-            self.zone_fp_rate + other.zone_fp_rate,
-            self.zone_time + other.zone_time,
-            self.octagon_fp_rate + other.octagon_fp_rate,
-            self.octagon_time + other.octagon_time,
-            self.bitwise_fp_rate + other.bitwise_fp_rate,
-            self.bitwise_time + other.bitwise_time,
+            interval_fp_rate=self.interval_fp_rate + other.interval_fp_rate,
+            interval_time=self.interval_time + other.interval_time,
+            zone_fp_rate=self.zone_fp_rate + other.zone_fp_rate,
+            zone_time=self.zone_time + other.zone_time,
+            octagon_fp_rate=self.octagon_fp_rate + other.octagon_fp_rate,
+            octagon_time=self.octagon_time + other.octagon_time,
+            bitwise_fp_rate=self.bitwise_fp_rate + other.bitwise_fp_rate,
+            bitwise_time=self.bitwise_time + other.bitwise_time,
         )
 
     def __truediv__(self, other: Union[int, float]) -> "AbstractionResults":
         return AbstractionResults(
-            self.interval_fp_rate / other,
-            self.interval_time / other,
-            self.zone_fp_rate / other,
-            self.zone_time / other,
-            self.octagon_fp_rate / other,
-            self.octagon_time / other,
-            self.bitwise_fp_rate / other,
-            self.bitwise_time / other,
+            interval_fp_rate=self.interval_fp_rate / other,
+            interval_time=self.interval_time / other,
+            zone_fp_rate=self.zone_fp_rate / other,
+            zone_time=self.zone_time / other,
+            octagon_fp_rate=self.octagon_fp_rate / other,
+            octagon_time=self.octagon_time / other,
+            bitwise_fp_rate=self.bitwise_fp_rate / other,
+            bitwise_time=self.bitwise_time / other,
         )
 
     def __str__(self) -> str:
@@ -117,21 +118,21 @@ class ModelCounter:
         solver.add(expression)
         return solver.check() == z3.sat
 
-    def count_models(self, formula: ExprRef) -> Tuple[int, float]:
-        """Count models using sharpSAT"""
+    def count_models(self, formula: ExprRef) -> CountResult:
+        """Count models using the structured BV counting API."""
         counter = BVModelCounter()
         counter.init_from_fml(formula)
-        return counter.count_models_by_sharp_sat()
+        return counter.count_models(method="sharp_sat")
 
 
 class AbstractionAnalyzer:
     """Analyzes different abstraction domains"""
 
     def __init__(self, formula: ExprRef, variables: List[BitVecRef]) -> None:
-        self.formula: ExprRef = z3.And(formula)
+        self.formula: ExprRef = formula
         self.variables: List[BitVecRef] = variables
         self.sa: BVSymbolicAbstraction = BVSymbolicAbstraction()
-        self.sa.init_from_fml(formula)
+        self.sa.init_from_fml(cast(z3.BoolRef, formula))
         self.sa.do_simplification()
         self.formula = self.sa.formula
 
@@ -142,13 +143,13 @@ class AbstractionAnalyzer:
         # Count models
         model_count = counter.count_models(self.formula)
         logger.info("SharpSAT model count: %s", model_count)
-        if model_count[0] == -1:
+        if model_count.count is None:
             logger.info("model count failed")
             sys.exit(1)
 
     def compute_false_positives(
         self, abs_formula: ExprRef
-    ) -> Tuple[bool, float, float]:
+    ) -> Tuple[bool, float, float, int, int]:
         """Compute false positive rate for an abstraction"""
         solver = z3.Solver()
         solver.add(abs_formula)
@@ -164,13 +165,17 @@ class AbstractionAnalyzer:
         # Count models for abstraction and false positives
         mc = BVModelCounter()
         mc.init_from_fml(abs_formula)
-        abs_count, abs_time = mc.count_models_by_sharp_sat()
+        abs_result = mc.count_models(method="sharp_sat")
 
         mc_fp = BVModelCounter()
         mc_fp.init_from_fml(z3.And(abs_formula, z3.Not(self.formula)))
-        fp_count, fp_time = mc_fp.count_models_by_sharp_sat()
-        if abs_count < 0 or fp_count < 0:
+        fp_result = mc_fp.count_models(method="sharp_sat")
+        if abs_result.count is None or fp_result.count is None:
             return True, -1.0, -1.0, 0, 0
+        abs_count = int(abs_result.count)
+        fp_count = int(fp_result.count)
+        abs_time = abs_result.runtime_s or 0.0
+        fp_time = fp_result.runtime_s or 0.0
         logger.info("fp_count=%s, abs_count=%s", fp_count, abs_count)
         return True, fp_count / abs_count, abs_time + fp_time, abs_count, fp_count
 
@@ -220,7 +225,7 @@ class AbstractionAnalyzer:
                 ("Bitwise", self.sa.bitwise_abs_as_fml),
             ]:
                 logger.info("%s:\n%s", domain, formula)
-                if formula == z3.BoolVal(False):
+                if z3.is_false(formula):
                     logger.warning("Skipping %s domain", domain)
                     continue
                 has_fp, fp_rate, time_fp, abs_count, fp_count = (
@@ -277,7 +282,8 @@ class AbstractionAnalyzer:
             ]:
                 mc = BVModelCounter()
                 mc.init_from_fml(z3.And(f1, f2))
-                count, _ = mc.count_models_by_sharp_sat()
+                count_result = mc.count_models(method="sharp_sat")
+                count = int(count_result.count) if count_result.count is not None else -1
                 if d2 == "Zone":
                     results.i_z_count = count
                 elif d2 == "Octagon":
@@ -317,10 +323,10 @@ def process_smt_file(file_path: str, args) -> Optional[AbstractionResults]:
     """Process a single SMT-LIB2 file"""
     try:
         # Parse SMT-LIB2 file
-        formula = z3.And(parse_smt2_file(file_path))
+        formula = cast(z3.ExprRef, z3.And(*parse_smt2_file(file_path)))
 
         # Extract variables from formula
-        variables = get_variables(formula)
+        variables = [var for var in get_variables(formula) if z3.is_bv(var)]
 
         if not variables:
             logger.warning("No bit-vector variables found in %s", file_path)
@@ -330,7 +336,7 @@ def process_smt_file(file_path: str, args) -> Optional[AbstractionResults]:
             logger.info("%s: Formula is unsatisfiable", file_path)
             return None
 
-        if not counter.is_sat(z3.Not(formula)):
+        if not counter.is_sat(cast(z3.ExprRef, z3.Not(formula))):
             logger.info("%s: Formula is always satisfiable", file_path)
             return None
 
@@ -339,7 +345,7 @@ def process_smt_file(file_path: str, args) -> Optional[AbstractionResults]:
         logger.info("%s: SharpSAT model count: %s", file_path, model_count)
 
         # Analyze abstractions
-        analyzer = AbstractionAnalyzer(formula, variables)
+        analyzer = AbstractionAnalyzer(formula, cast(List[BitVecRef], variables))
         results = analyzer.analyze_abstractions()
 
         if results:
@@ -364,7 +370,8 @@ def process_smt_file(file_path: str, args) -> Optional[AbstractionResults]:
                         f"{results.bitwise_time},{analyzer.sa.interval_abs_time},"
                         f"{analyzer.sa.zone_abs_time},"
                         f"{analyzer.sa.octagon_abs_time},"
-                        f"{analyzer.sa.bitwise_abs_time},{model_count[0]},"
+                        f"{analyzer.sa.bitwise_abs_time},"
+                        f"{int(model_count.count) if model_count.count is not None else -1},"
                         f"{results.i_z_count},{results.i_o_count},"
                         f"{results.i_b_count}\n"
                     )
@@ -496,7 +503,7 @@ def demo():
         x, y, z = z3.BitVecs("x y z", 8)
         variables = [x, y, z]
 
-        formula = FormulaGenerator(variables).generate_formula()
+        formula = cast(z3.ExprRef, FormulaGenerator(variables).generate_formula())
         sol = z3.Solver()
         sol.add(formula)
         logger.debug("Generated formula: %s", sol.sexpr())
@@ -504,7 +511,7 @@ def demo():
 
         while not counter.is_sat(formula):
             logger.info("Formula is unsatisfiable. Regenerating...")
-            formula = FormulaGenerator(variables).generate_formula()
+            formula = cast(z3.ExprRef, FormulaGenerator(variables).generate_formula())
             sol = z3.Solver()
             sol.add(formula)
             logger.debug("Generated formula: %s", sol.sexpr())
