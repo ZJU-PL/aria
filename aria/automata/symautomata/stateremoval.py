@@ -6,8 +6,11 @@ using the State Removal Method
 from sys import argv
 from operator import attrgetter
 from aria.automata.symautomata.alphabet import createalphabet
-from aria.automata.symautomata.dfa import DFA
-from aria.automata.symautomata.flex2fst import Flexparser
+
+try:
+    from aria.automata.symautomata.dfa import DFA as DFAClass
+except ImportError:
+    from aria.automata.symautomata.pythondfa import PythonDFA as DFAClass
 
 
 class StateRemoval:
@@ -23,9 +26,9 @@ class StateRemoval:
         """
         if alphabet is None:
             alphabet = createalphabet()
-        self.mma = DFA(self.alphabet)
-        self.mma.init_from_acceptor(input_fst_a)
         self.alphabet = alphabet
+        self.mma = DFAClass(self.alphabet)
+        self.mma.init_from_acceptor(input_fst_a)
 
         self.l_transitions = {}
         self.epsilon = ""
@@ -71,69 +74,29 @@ class StateRemoval:
     def _state_removal_remove(self, k):
         """
         State Removal Remove operation
-        l_transitions[i,i] += l_transitions[i,k] . star(l_transitions[k,k]) . l_transitions[k,i]
-        l_transitions[j,j] += l_transitions[j,k] . star(l_transitions[k,k]) . l_transitions[k,j]
         l_transitions[i,j] += l_transitions[i,k] . star(l_transitions[k,k]) . l_transitions[k,j]
-        l_transitions[j,i] += l_transitions[j,k] . star(l_transitions[k,k]) . l_transitions[k,i]
         Args:
             k (int): The node that will be removed
         Returns:
             None
         """
+        previous = dict(self.l_transitions)
+
         for state_i in self.mma.states:
             for state_j in self.mma.states:
-                if self.l_transitions[state_i.stateid, k] != self.empty:
-                    l_ik = self.l_transitions[state_i.stateid, k]
-                else:
-                    l_ik = ""
-                if self.l_transitions[state_j.stateid, k] != self.empty:
-                    l_jk = self.l_transitions[state_j.stateid, k]
-                else:
-                    l_jk = ""
-                if self.l_transitions[k, state_i.stateid] != self.empty:
-                    l_ki = self.l_transitions[k, state_i.stateid]
-                else:
-                    l_ki = ""
-                if self.l_transitions[k, state_j.stateid] != self.empty:
-                    l_kj = self.l_transitions[k, state_j.stateid]
-                else:
-                    l_kj = ""
+                l_ij = previous[state_i.stateid, state_j.stateid]
+                l_ik = previous[state_i.stateid, k]
+                l_kj = previous[k, state_j.stateid]
 
-                if self.l_transitions[state_i.stateid, state_i.stateid] != self.empty:
-                    self.l_transitions[state_i.stateid, state_i.stateid] += (
-                        l_ik + self.star(self.l_transitions[k, k]) + l_ki
-                    )
+                if l_ik == self.empty or l_kj == self.empty:
+                    via_k = self.empty
                 else:
-                    self.l_transitions[state_i.stateid, state_i.stateid] = (
-                        l_ik + self.star(self.l_transitions[k, k]) + l_ki
-                    )
+                    via_k = l_ik + self.star(previous[k, k]) + l_kj
 
-                if self.l_transitions[state_j.stateid, state_j.stateid] != self.empty:
-                    self.l_transitions[state_j.stateid, state_j.stateid] += (
-                        l_jk + self.star(self.l_transitions[k, k]) + l_kj
-                    )
-                else:
-                    self.l_transitions[state_j.stateid, state_j.stateid] = (
-                        l_jk + self.star(self.l_transitions[k, k]) + l_kj
-                    )
-
-                if self.l_transitions[state_i.stateid, state_j.stateid] != self.empty:
-                    self.l_transitions[state_i.stateid, state_j.stateid] += (
-                        l_ik + self.star(self.l_transitions[k, k]) + l_kj
-                    )
-                else:
-                    self.l_transitions[state_i.stateid, state_j.stateid] = (
-                        l_ik + self.star(self.l_transitions[k, k]) + l_kj
-                    )
-
-                if self.l_transitions[state_j.stateid, state_i.stateid] != self.empty:
-                    self.l_transitions[state_j.stateid, state_i.stateid] += (
-                        l_jk + self.star(self.l_transitions[k, k]) + l_ki
-                    )
-                else:
-                    self.l_transitions[state_j.stateid, state_i.stateid] = (
-                        l_jk + self.star(self.l_transitions[k, k]) + l_ki
-                    )
+                if l_ij == self.empty:
+                    self.l_transitions[state_i.stateid, state_j.stateid] = via_k
+                elif via_k != self.empty:
+                    self.l_transitions[state_i.stateid, state_j.stateid] += via_k
 
     def _state_removal_solve(self):
         """The State Removal Operation"""
@@ -147,18 +110,30 @@ class StateRemoval:
                 continue
             self._state_removal_remove(state_k.stateid)
 
-        print(self.l_transitions)
         return self.l_transitions
 
     def get_regex(self):
         """Regular Expression Generation"""
         self._state_removal_init()
         self._state_removal_solve()
-        return self.l_transitions[0]
+        initial = sorted(self.mma.states, key=attrgetter("initial"), reverse=True)[
+            0
+        ].stateid
+        final_states = [state.stateid for state in self.mma.states if state.final]
+        regexes = []
+        for final_state in final_states:
+            regex = self.l_transitions.get((initial, final_state), self.empty)
+            if regex != self.empty:
+                regexes.append(regex)
+        if not regexes:
+            return self.epsilon
+        return "|".join(regexes)
 
 
 def main():
     """Testing function for DFA _Brzozowski Operation"""
+    from aria.automata.symautomata.flex2fst import Flexparser
+
     if len(argv) < 2:
         targetfile = "target.y"
     else:
