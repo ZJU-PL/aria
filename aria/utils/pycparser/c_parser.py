@@ -20,9 +20,9 @@ class CParser(PLYParser):
         self,
         lex_optimize=True,
         lexer=CLexer,
-        lextab="pycparser.lextab",
+        lextab="aria.utils.pycparser.lextab",
         yacc_optimize=True,
-        yacctab="pycparser.yacctab",
+        yacctab="aria.utils.pycparser.yacctab",
         yacc_debug=False,
         taboutputdir="",
     ):

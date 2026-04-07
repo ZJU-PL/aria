@@ -1,6 +1,6 @@
 import unittest
 
-from aria.efmc.utils.BDD import BDDNode, OBDD
+from aria.utils.bdd import BDDNode, OBDD
 
 
 class TestOBDD(unittest.TestCase):

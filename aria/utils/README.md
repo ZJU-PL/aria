@@ -53,6 +53,11 @@ they should still be treated as specialized/provisional:
 
 - `pads/`: vendored graph-algorithms code; preserve upstream-style structure
 - `ply/`: vendored parsing helpers used by SRK
+- `pycparser/`: vendored C parser used by EFMC's C frontend
+
+## Specialized Packages
+
+- `bdd/`: binary decision diagram helpers
 
 ## Import Policy
 

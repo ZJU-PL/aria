@@ -12,7 +12,7 @@ from typing import Dict, List, Optional, Tuple
 
 import z3
 from aria.efmc.sts import TransitionSystem
-from aria.efmc.utils.pycparser import c_ast, parse_file
+from aria.utils.pycparser import c_ast, parse_file
 
 logger = logging.getLogger(__name__)
 
