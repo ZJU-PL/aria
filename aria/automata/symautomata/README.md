@@ -11,9 +11,23 @@ This framework is part of the [lightbulb-framework](https://github.com/lightbulb
 
 The symbolic finite automata entrypoint is `aria.automata.symautomata.SFA`.
 
+Use `SFA.symbolic(symbolic_symbol=..., symbolic_universe=..., ...)` to create a
+symbolic automaton without repeating the symbolic-domain arguments at each
+constructor call.
+
+Use `SFA.symbolic_bitvec(width, name=..., symbolic_universe=..., ...)` when the
+domain is a bit-vector sort and you want the builder to allocate the symbolic
+variable for you.
+
+Use `SFA.symbolic_int(name=..., symbolic_universe=..., ...)` and
+`SFA.symbolic_bool(name=..., symbolic_universe=..., ...)` for integer and
+Boolean symbolic domains.
+
 - `Predicate` is the abstract guard contract.
 - `SetPredicate` is the finite-alphabet guard implementation.
 - `Z3Predicate` is the solver-backed guard implementation for symbolic alphabets.
+- For symbolic automata, guards are plain formulas and the symbolic domain lives on
+  the `SFA` via `symbolic_symbol` and `symbolic_universe`.
 
 `SFA.accepts(...)` uses set-of-states semantics. Operations such as `complement()`,
 `difference()`, `union()`, `intersection()`, and `concretize()` determinize
@@ -28,6 +42,11 @@ internally when needed.
 `concretize()` and then delegating to `DFA.to_regex()`.
 
 ## Semantic Requirements
+
+- `Z3Predicate` formulas are interpreted under the automaton-wide symbolic
+  universe instead of carrying per-guard universes.
+- Symbolic Boolean operations between automata require the same symbolic sort and
+  equivalent symbolic universes.
 
 - `SetPredicate.negate()` requires a finite universe.
 - `SFA.complete()` and `SFA.complement()` require either a finite `alphabet` or a

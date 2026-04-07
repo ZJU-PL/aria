@@ -7,7 +7,11 @@ import z3
 
 
 class Predicate:
-    def is_sat(self, symbol: Optional[object] = None) -> bool:
+    def is_sat(
+        self,
+        symbol: Optional[object] = None,
+        universe: Optional[object] = None,
+    ) -> bool:
         raise NotImplementedError("is_sat method not implemented")
 
     def conjunction(self, other: "Predicate") -> "Predicate":
@@ -19,10 +23,14 @@ class Predicate:
     def negate(self) -> "Predicate":
         raise NotImplementedError("negate method not implemented")
 
-    def is_equivalent(self, other: "Predicate") -> bool:
+    def is_equivalent(
+        self,
+        other: "Predicate",
+        universe: Optional[object] = None,
+    ) -> bool:
         raise NotImplementedError("is_equivalent method not implemented")
 
-    def get_witness(self) -> object:
+    def get_witness(self, universe: Optional[object] = None) -> object:
         raise NotImplementedError("get_witness method not implemented")
 
     def set_universe(self, universe: Iterable[object]) -> None:
@@ -55,7 +63,12 @@ class SetPredicate(Predicate):
             set(universe) if universe is not None else None
         )
 
-    def is_sat(self, symbol: Optional[object] = None) -> bool:
+    def is_sat(
+        self,
+        symbol: Optional[object] = None,
+        universe: Optional[object] = None,
+    ) -> bool:
+        del universe
         if symbol is None:
             return bool(self.pset)
         return symbol in self.pset
@@ -77,12 +90,18 @@ class SetPredicate(Predicate):
             raise ValueError("SetPredicate negation requires a universe")
         return SetPredicate(self.universe - self.pset, self.universe)
 
-    def is_equivalent(self, other: Predicate) -> bool:
+    def is_equivalent(
+        self,
+        other: Predicate,
+        universe: Optional[object] = None,
+    ) -> bool:
+        del universe
         if not isinstance(other, SetPredicate):
             return False
         return self.pset == other.pset
 
-    def get_witness(self) -> object:
+    def get_witness(self, universe: Optional[object] = None) -> object:
+        del universe
         if not self.pset:
             raise ValueError("Unsatisfiable predicate has no witness")
         return next(iter(self.pset))
@@ -106,11 +125,9 @@ class Z3Predicate(Predicate):
         self,
         symbol: Any,
         formula: Any,
-        universe: Optional[Any] = None,
     ):
         self.symbol = symbol
         self.formula = z3.simplify(formula)
-        self.universe = z3.simplify(universe) if universe is not None else z3.BoolVal(True)
 
     @classmethod
     def bitvec(
@@ -118,74 +135,68 @@ class Z3Predicate(Predicate):
         width: int,
         formula: Optional[Any] = None,
         name: str = "sym",
-        universe: Optional[Any] = None,
     ) -> "Z3Predicate":
         symbol = z3.BitVec(name, width)
         if formula is None:
             formula = z3.BoolVal(True)
-        return cls(symbol, formula, universe)
+        return cls(symbol, formula)
 
-    def is_sat(self, symbol: Optional[object] = None) -> bool:
+    def is_sat(
+        self,
+        symbol: Optional[object] = None,
+        universe: Optional[object] = None,
+    ) -> bool:
         solver = z3.Solver()
-        solver.add(self._semantic_formula())
+        solver.add(self._semantic_formula(universe))
         if symbol is not None:
             solver.add(self.symbol == self._to_symbol_value(symbol))
         return solver.check() == z3.sat
 
     def conjunction(self, other: Predicate) -> Predicate:
-        aligned_formula, aligned_universe = self._aligned(other)
-        return Z3Predicate(
-            self.symbol,
-            z3.And(self.formula, aligned_formula),
-            z3.And(self.universe, aligned_universe),
-        )
+        aligned_formula = self._aligned_formula(other)
+        return Z3Predicate(self.symbol, z3.And(self.formula, aligned_formula))
 
     def disjunction(self, other: Predicate) -> Predicate:
-        aligned_formula, aligned_universe = self._aligned(other)
-        return Z3Predicate(
-            self.symbol,
-            z3.Or(
-                z3.And(self.universe, self.formula),
-                z3.And(aligned_universe, aligned_formula),
-            ),
-            z3.Or(self.universe, aligned_universe),
-        )
+        aligned_formula = self._aligned_formula(other)
+        return Z3Predicate(self.symbol, z3.Or(self.formula, aligned_formula))
 
     def negate(self) -> Predicate:
-        return Z3Predicate(self.symbol, z3.Not(self.formula), self.universe)
+        return Z3Predicate(self.symbol, z3.Not(self.formula))
 
-    def is_equivalent(self, other: Predicate) -> bool:
-        aligned_formula, aligned_universe = self._aligned(other)
+    def is_equivalent(
+        self,
+        other: Predicate,
+        universe: Optional[object] = None,
+    ) -> bool:
+        aligned_formula = self._aligned_formula(other)
         solver = z3.Solver()
+        active_universe = universe if universe is not None else z3.BoolVal(True)
         solver.add(
             z3.Xor(
-                self._semantic_formula(),
-                z3.And(aligned_universe, aligned_formula),
+                self._semantic_formula(active_universe),
+                z3.And(active_universe, aligned_formula),
             )
         )
         return solver.check() == z3.unsat
 
-    def get_witness(self) -> object:
+    def get_witness(self, universe: Optional[object] = None) -> object:
         solver = z3.Solver()
-        solver.add(self._semantic_formula())
+        solver.add(self._semantic_formula(universe))
         if solver.check() != z3.sat:
             raise ValueError("Unsatisfiable predicate has no witness")
         model = solver.model()
         return self._from_model_value(model.eval(self.symbol, model_completion=True))
 
     def top(self) -> Predicate:
-        return Z3Predicate(self.symbol, z3.BoolVal(True), self.universe)
+        return Z3Predicate(self.symbol, z3.BoolVal(True))
 
-    def _aligned(self, other: Predicate) -> Tuple[Any, Any]:
+    def _aligned_formula(self, other: Predicate) -> Any:
         if not isinstance(other, Z3Predicate):
             raise TypeError("Z3Predicate can only combine with Z3Predicate")
         if self.symbol.sort() != other.symbol.sort():
             raise TypeError("Z3Predicate sorts must match")
         substitution = [(other.symbol, self.symbol)]
-        return (
-            z3.simplify(z3.substitute(other.formula, *substitution)),
-            z3.simplify(z3.substitute(other.universe, *substitution)),
-        )
+        return z3.simplify(z3.substitute(other.formula, *substitution))
 
     def _to_symbol_value(self, symbol: object) -> Any:
         sort = self.symbol.sort()
@@ -220,8 +231,10 @@ class Z3Predicate(Predicate):
             return symbol
         raise TypeError("Symbol must be an integer or single-character string")
 
-    def _semantic_formula(self) -> Any:
-        return z3.And(self.universe, self.formula)
+    def _semantic_formula(self, universe: Optional[object] = None) -> Any:
+        if universe is None:
+            return self.formula
+        return z3.And(universe, self.formula)
 
 
 class SFAState:
@@ -254,11 +267,17 @@ class SFA:
         self,
         alphabet: Optional[Sequence[object]] = None,
         predicate_factory: Optional[Callable[[], Predicate]] = None,
+        symbolic_symbol: Optional[Any] = None,
+        symbolic_universe: Optional[Any] = None,
     ):
         self.states: List[SFAState] = []
         self.arcs: List[SFAArc] = []
         self.alphabet = list(alphabet) if alphabet is not None else None
         self.predicate_factory = predicate_factory
+        self.symbolic_symbol = symbolic_symbol
+        self.symbolic_universe = (
+            z3.simplify(symbolic_universe) if symbolic_universe is not None else None
+        )
 
     def __getitem__(self, index: int) -> SFAState:
         return self.states[index]
@@ -275,6 +294,76 @@ class SFA:
         state.final = final
         self.states.append(state)
         return sid
+
+    @classmethod
+    def symbolic(
+        cls,
+        symbolic_symbol: Any,
+        symbolic_universe: Any,
+        alphabet: Optional[Sequence[object]] = None,
+        predicate_factory: Optional[Callable[[], Predicate]] = None,
+    ) -> "SFA":
+        return cls(
+            alphabet=alphabet,
+            predicate_factory=predicate_factory,
+            symbolic_symbol=symbolic_symbol,
+            symbolic_universe=symbolic_universe,
+        )
+
+    @classmethod
+    def symbolic_bitvec(
+        cls,
+        width: int,
+        alphabet: Optional[Sequence[object]] = None,
+        predicate_factory: Optional[Callable[[], Predicate]] = None,
+        name: str = "sym",
+        symbolic_universe: Optional[Any] = None,
+    ) -> "SFA":
+        symbolic_symbol = z3.BitVec(name, width)
+        if symbolic_universe is None:
+            symbolic_universe = z3.BoolVal(True)
+        return cls.symbolic(
+            symbolic_symbol=symbolic_symbol,
+            symbolic_universe=symbolic_universe,
+            alphabet=alphabet,
+            predicate_factory=predicate_factory,
+        )
+
+    @classmethod
+    def symbolic_int(
+        cls,
+        alphabet: Optional[Sequence[object]] = None,
+        predicate_factory: Optional[Callable[[], Predicate]] = None,
+        name: str = "sym",
+        symbolic_universe: Optional[Any] = None,
+    ) -> "SFA":
+        symbolic_symbol = z3.Int(name)
+        if symbolic_universe is None:
+            symbolic_universe = z3.BoolVal(True)
+        return cls.symbolic(
+            symbolic_symbol=symbolic_symbol,
+            symbolic_universe=symbolic_universe,
+            alphabet=alphabet,
+            predicate_factory=predicate_factory,
+        )
+
+    @classmethod
+    def symbolic_bool(
+        cls,
+        alphabet: Optional[Sequence[object]] = None,
+        predicate_factory: Optional[Callable[[], Predicate]] = None,
+        name: str = "sym",
+        symbolic_universe: Optional[Any] = None,
+    ) -> "SFA":
+        symbolic_symbol = z3.Bool(name)
+        if symbolic_universe is None:
+            symbolic_universe = z3.BoolVal(True)
+        return cls.symbolic(
+            symbolic_symbol=symbolic_symbol,
+            symbolic_universe=symbolic_universe,
+            alphabet=alphabet,
+            predicate_factory=predicate_factory,
+        )
 
     @classmethod
     def from_acceptor(
@@ -335,7 +424,7 @@ class SFA:
             next_states: Set[int] = set()
             for state_id in current_states:
                 for arc in self.states[state_id].arcs:
-                    if arc.guard.is_sat(symbol):
+                    if self._guard_is_sat(arc.guard, symbol):
                         next_states.add(arc.dst_state)
             if not next_states:
                 return False
@@ -361,12 +450,17 @@ class SFA:
             if state.final:
                 return word
             for arc in state.arcs:
-                if not arc.guard.is_sat():
+                if not self._guard_is_sat(arc.guard):
                     continue
                 if arc.dst_state in visited:
                     continue
                 visited.add(arc.dst_state)
-                queue.append((arc.dst_state, word + [arc.guard.get_witness()]))
+                queue.append(
+                    (
+                        arc.dst_state,
+                        word + [self._guard_get_witness(arc.guard)],
+                    )
+                )
         return None
 
     def intersection(self, other: "SFA") -> "SFA":
@@ -393,10 +487,20 @@ class SFA:
 
     def determinize(self) -> "SFA":
         if not self.states:
-            result = SFA(self.alphabet, self.predicate_factory)
+            result = SFA(
+                self.alphabet,
+                self.predicate_factory,
+                self.symbolic_symbol,
+                self.symbolic_universe,
+            )
             result.add_state(initial=True, final=False)
             return result
-        result = SFA(self.alphabet, self.predicate_factory)
+        result = SFA(
+            self.alphabet,
+            self.predicate_factory,
+            self.symbolic_symbol,
+            self.symbolic_universe,
+        )
         initial_subset = frozenset(self.initial_states())
         subset_to_state: Dict[frozenset[int], int] = {}
         queue: Deque[frozenset[int]] = deque([initial_subset])
@@ -444,7 +548,7 @@ class SFA:
             for arc in state.arcs[1:]:
                 covered = covered.disjunction(arc.guard)
             residual = covered.negate()
-            if residual.is_sat():
+            if result._guard_is_sat(residual):
                 if sink_state_id is None:
                     sink_state_id = result.add_state(final=False)
                 result.add_arc(state_id, sink_state_id, residual)
@@ -471,8 +575,8 @@ class SFA:
             dfa[state.state_id].final = state.final
             for arc in state.arcs:
                 for symbol in self.alphabet:
-                    if arc.guard.is_sat(symbol):
-                        dfa.add_arc(arc.src_state, arc.dst_state, symbol)
+                        if self._guard_is_sat(arc.guard, symbol):
+                            dfa.add_arc(arc.src_state, arc.dst_state, symbol)
         if hasattr(dfa, "yy_accept"):
             dfa.yy_accept = [1 if state.final else 0 for state in dfa.states]
         return dfa
@@ -483,7 +587,12 @@ class SFA:
         return Regex(self.concretize()).get_regex()
 
     def copy(self) -> "SFA":
-        result = SFA(self.alphabet, self.predicate_factory)
+        result = SFA(
+            self.alphabet,
+            self.predicate_factory,
+            self.symbolic_symbol,
+            self.symbolic_universe,
+        )
         for state in self.states:
             result.add_state(initial=state.initial, final=state.final)
         for arc in self.arcs:
@@ -498,7 +607,7 @@ class SFA:
             for state in deterministic.states:
                 for arc in state.arcs:
                     for symbol in self.alphabet:
-                        if arc.guard.is_sat(symbol):
+                        if deterministic._guard_is_sat(arc.guard, symbol):
                             handle.write(
                                 f"{arc.src_state}\t{arc.dst_state}\t{symbol}\t{symbol}\n"
                             )
@@ -544,6 +653,9 @@ class SFA:
         if isinstance(guard, Predicate):
             if isinstance(guard, SetPredicate) and guard.universe is None and self.alphabet:
                 guard.set_universe(self.alphabet)
+            if isinstance(guard, Z3Predicate):
+                self._register_symbolic_guard(guard)
+                return self._align_guard_to_automaton(guard)
             return guard
         if self.alphabet is not None:
             return SetPredicate([guard], self.alphabet)
@@ -566,12 +678,12 @@ class SFA:
             next_regions: List[Tuple[Predicate, frozenset[int]]] = []
             for region_guard, destination_states in regions:
                 enabled = region_guard.conjunction(arc.guard)
-                if enabled.is_sat():
+                if self._guard_is_sat(enabled):
                     next_regions.append(
                         (enabled, destination_states | frozenset([arc.dst_state]))
                     )
                 disabled = region_guard.conjunction(arc.guard.negate())
-                if disabled.is_sat():
+                if self._guard_is_sat(disabled):
                     next_regions.append((disabled, destination_states))
             regions = next_regions
         grouped: Dict[frozenset[int], Predicate] = {}
@@ -594,13 +706,18 @@ class SFA:
     ) -> "SFA":
         left = self.determinize()
         right = other.determinize()
+        symbolic_symbol, symbolic_universe = left._merged_symbolic_context(right)
         if complete:
             left = left.complete()
             right = right.complete()
 
         result = SFA(
             self.alphabet if self.alphabet is not None else other.alphabet,
-            self.predicate_factory if self.predicate_factory is not None else other.predicate_factory,
+            self.predicate_factory
+            if self.predicate_factory is not None
+            else other.predicate_factory,
+            symbolic_symbol,
+            symbolic_universe,
         )
         initial_pair = (left.initial_states()[0], right.initial_states()[0])
         pair_to_state: Dict[Tuple[int, int], int] = {}
@@ -620,7 +737,7 @@ class SFA:
             for left_arc in left.states[current_pair[0]].arcs:
                 for right_arc in right.states[current_pair[1]].arcs:
                     guard = left_arc.guard.conjunction(right_arc.guard)
-                    if not guard.is_sat():
+                    if not result._guard_is_sat(guard):
                         continue
                     dst_pair = (left_arc.dst_state, right_arc.dst_state)
                     if dst_pair in grouped:
@@ -643,10 +760,79 @@ class SFA:
             for arc in state.arcs:
                 return arc.guard
         if self.predicate_factory is not None:
-            return self.predicate_factory()
+            predicate = self.predicate_factory()
+            if isinstance(predicate, Z3Predicate):
+                self._register_symbolic_guard(predicate)
+                return self._align_guard_to_automaton(predicate)
+            return predicate
         if self.alphabet is not None:
             return SetPredicate([], self.alphabet)
         raise ValueError("Cannot infer predicate universe from an empty automaton")
+
+    def _guard_is_sat(
+        self, guard: Predicate, symbol: Optional[object] = None
+    ) -> bool:
+        if isinstance(guard, Z3Predicate):
+            return guard.is_sat(symbol, self._guard_universe(guard))
+        return guard.is_sat(symbol)
+
+    def _guard_get_witness(self, guard: Predicate) -> object:
+        if isinstance(guard, Z3Predicate):
+            return guard.get_witness(self._guard_universe(guard))
+        return guard.get_witness()
+
+    def _guard_universe(self, guard: Z3Predicate) -> Optional[Any]:
+        if self.symbolic_universe is None:
+            return None
+        if self.symbolic_symbol is None or guard.symbol.eq(self.symbolic_symbol):
+            return self.symbolic_universe
+        return z3.simplify(
+            z3.substitute(self.symbolic_universe, (self.symbolic_symbol, guard.symbol))
+        )
+
+    def _register_symbolic_guard(self, guard: Z3Predicate) -> None:
+        if self.symbolic_symbol is None:
+            self.symbolic_symbol = guard.symbol
+
+    def _align_guard_to_automaton(self, guard: Z3Predicate) -> Z3Predicate:
+        if self.symbolic_symbol is None or guard.symbol.eq(self.symbolic_symbol):
+            return guard
+        if self.symbolic_symbol.sort() != guard.symbol.sort():
+            raise TypeError("Z3Predicate sorts must match the automaton symbol sort")
+        return Z3Predicate(
+            self.symbolic_symbol,
+            z3.substitute(guard.formula, (guard.symbol, self.symbolic_symbol)),
+        )
+
+    def _merged_symbolic_context(
+        self, other: "SFA"
+    ) -> Tuple[Optional[Any], Optional[Any]]:
+        left_symbol = self.symbolic_symbol
+        right_symbol = other.symbolic_symbol
+        left_universe = self.symbolic_universe
+        right_universe = other.symbolic_universe
+
+        if left_symbol is None and left_universe is not None:
+            raise ValueError("Symbolic universe requires a symbolic symbol")
+        if right_symbol is None and right_universe is not None:
+            raise ValueError("Symbolic universe requires a symbolic symbol")
+
+        if left_symbol is None:
+            return right_symbol, right_universe
+        if right_symbol is None:
+            return left_symbol, left_universe
+        if left_symbol.sort() != right_symbol.sort():
+            raise TypeError("Symbolic automata must use the same symbol sort")
+        if left_universe is None or right_universe is None:
+            return left_symbol, left_universe if left_universe is not None else right_universe
+
+        aligned_right_universe = z3.simplify(
+            z3.substitute(right_universe, (right_symbol, left_symbol))
+        )
+        probe = Z3Predicate(left_symbol, left_universe)
+        if not probe.is_equivalent(Z3Predicate(left_symbol, aligned_right_universe)):
+            raise ValueError("Symbolic automata must share the same universe")
+        return left_symbol, left_universe
 
     def _load_symbol(self, token: str) -> object:
         if self.alphabet is None:
@@ -664,9 +850,12 @@ class SFA:
 
 
 def main() -> None:
-    universe = [ord("a"), ord("b")]
     symbol = z3.BitVec("sym", 8)
-    sfa = SFA(universe, lambda: Z3Predicate(symbol, z3.BoolVal(False)))
+    sfa = SFA(
+        predicate_factory=lambda: Z3Predicate(symbol, z3.BoolVal(False)),
+        symbolic_symbol=symbol,
+        symbolic_universe=z3.ULE(symbol, z3.BitVecVal(255, 8)),
+    )
     sfa.add_arc(0, 1, Z3Predicate(symbol, z3.ULT(symbol, z3.BitVecVal(98, 8))))
     sfa.set_final(1, True)
     print(sfa.accepts([ord("a")]))
