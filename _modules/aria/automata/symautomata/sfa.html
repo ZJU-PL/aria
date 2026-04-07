@@ -94,7 +94,11 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">Predicate</span><span class="p">:</span>
 <div class="viewcode-block" id="Predicate.is_sat">
 <a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.Predicate.is_sat">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">is_sat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symbol</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_sat</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">symbol</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">universe</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;is_sat method not implemented&quot;</span><span class="p">)</span></div>
 
 
@@ -118,13 +122,17 @@
 
 <div class="viewcode-block" id="Predicate.is_equivalent">
 <a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.Predicate.is_equivalent">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">is_equivalent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Predicate&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_equivalent</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Predicate&quot;</span><span class="p">,</span>
+        <span class="n">universe</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;is_equivalent method not implemented&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Predicate.get_witness">
 <a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.Predicate.get_witness">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_witness</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_witness</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">universe</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;get_witness method not implemented&quot;</span><span class="p">)</span></div>
 
 
@@ -169,7 +177,12 @@
 
 <div class="viewcode-block" id="SetPredicate.is_sat">
 <a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SetPredicate.is_sat">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">is_sat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symbol</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_sat</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">symbol</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">universe</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">del</span> <span class="n">universe</span>
         <span class="k">if</span> <span class="n">symbol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pset</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pset</span></div>
@@ -203,7 +216,12 @@
 
 <div class="viewcode-block" id="SetPredicate.is_equivalent">
 <a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SetPredicate.is_equivalent">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">is_equivalent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Predicate</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_equivalent</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Predicate</span><span class="p">,</span>
+        <span class="n">universe</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">del</span> <span class="n">universe</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">SetPredicate</span><span class="p">):</span>
             <span class="k">return</span> <span class="kc">False</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pset</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">pset</span></div>
@@ -211,7 +229,8 @@
 
 <div class="viewcode-block" id="SetPredicate.get_witness">
 <a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SetPredicate.get_witness">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_witness</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_witness</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">universe</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+        <span class="k">del</span> <span class="n">universe</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">pset</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsatisfiable predicate has no witness&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pset</span><span class="p">))</span></div>
@@ -242,11 +261,9 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">symbol</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
         <span class="n">formula</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
-        <span class="n">universe</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="n">symbol</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">formula</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">simplify</span><span class="p">(</span><span class="n">formula</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">universe</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">simplify</span><span class="p">(</span><span class="n">universe</span><span class="p">)</span> <span class="k">if</span> <span class="n">universe</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">z3</span><span class="o">.</span><span class="n">BoolVal</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Z3Predicate.bitvec">
 <a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.Z3Predicate.bitvec">[docs]</a>
@@ -256,19 +273,22 @@
         <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">formula</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;sym&quot;</span><span class="p">,</span>
-        <span class="n">universe</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Z3Predicate&quot;</span><span class="p">:</span>
         <span class="n">symbol</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">BitVec</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">formula</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">formula</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">BoolVal</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">formula</span><span class="p">,</span> <span class="n">universe</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">formula</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Z3Predicate.is_sat">
 <a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.Z3Predicate.is_sat">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">is_sat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symbol</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_sat</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">symbol</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">universe</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="n">solver</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Solver</span><span class="p">()</span>
-        <span class="n">solver</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_semantic_formula</span><span class="p">())</span>
+        <span class="n">solver</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_semantic_formula</span><span class="p">(</span><span class="n">universe</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">symbol</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">solver</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symbol</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_symbol_value</span><span class="p">(</span><span class="n">symbol</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">solver</span><span class="o">.</span><span class="n">check</span><span class="p">()</span> <span class="o">==</span> <span class="n">z3</span><span class="o">.</span><span class="n">sat</span></div>
@@ -277,43 +297,37 @@
 <div class="viewcode-block" id="Z3Predicate.conjunction">
 <a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.Z3Predicate.conjunction">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">conjunction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Predicate</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Predicate</span><span class="p">:</span>
-        <span class="n">aligned_formula</span><span class="p">,</span> <span class="n">aligned_universe</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aligned</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Z3Predicate</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span>
-            <span class="n">z3</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">formula</span><span class="p">,</span> <span class="n">aligned_formula</span><span class="p">),</span>
-            <span class="n">z3</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">universe</span><span class="p">,</span> <span class="n">aligned_universe</span><span class="p">),</span>
-        <span class="p">)</span></div>
+        <span class="n">aligned_formula</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aligned_formula</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Z3Predicate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span> <span class="n">z3</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">formula</span><span class="p">,</span> <span class="n">aligned_formula</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="Z3Predicate.disjunction">
 <a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.Z3Predicate.disjunction">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">disjunction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Predicate</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Predicate</span><span class="p">:</span>
-        <span class="n">aligned_formula</span><span class="p">,</span> <span class="n">aligned_universe</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aligned</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Z3Predicate</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span>
-            <span class="n">z3</span><span class="o">.</span><span class="n">Or</span><span class="p">(</span>
-                <span class="n">z3</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">universe</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">formula</span><span class="p">),</span>
-                <span class="n">z3</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="n">aligned_universe</span><span class="p">,</span> <span class="n">aligned_formula</span><span class="p">),</span>
-            <span class="p">),</span>
-            <span class="n">z3</span><span class="o">.</span><span class="n">Or</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">universe</span><span class="p">,</span> <span class="n">aligned_universe</span><span class="p">),</span>
-        <span class="p">)</span></div>
+        <span class="n">aligned_formula</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aligned_formula</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Z3Predicate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span> <span class="n">z3</span><span class="o">.</span><span class="n">Or</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">formula</span><span class="p">,</span> <span class="n">aligned_formula</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="Z3Predicate.negate">
 <a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.Z3Predicate.negate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">negate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Predicate</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">Z3Predicate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span> <span class="n">z3</span><span class="o">.</span><span class="n">Not</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">formula</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">universe</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">Z3Predicate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span> <span class="n">z3</span><span class="o">.</span><span class="n">Not</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">formula</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="Z3Predicate.is_equivalent">
 <a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.Z3Predicate.is_equivalent">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">is_equivalent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Predicate</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="n">aligned_formula</span><span class="p">,</span> <span class="n">aligned_universe</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aligned</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_equivalent</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Predicate</span><span class="p">,</span>
+        <span class="n">universe</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="n">aligned_formula</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aligned_formula</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
         <span class="n">solver</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Solver</span><span class="p">()</span>
+        <span class="n">active_universe</span> <span class="o">=</span> <span class="n">universe</span> <span class="k">if</span> <span class="n">universe</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">z3</span><span class="o">.</span><span class="n">BoolVal</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">solver</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
             <span class="n">z3</span><span class="o">.</span><span class="n">Xor</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_semantic_formula</span><span class="p">(),</span>
-                <span class="n">z3</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="n">aligned_universe</span><span class="p">,</span> <span class="n">aligned_formula</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_semantic_formula</span><span class="p">(</span><span class="n">active_universe</span><span class="p">),</span>
+                <span class="n">z3</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="n">active_universe</span><span class="p">,</span> <span class="n">aligned_formula</span><span class="p">),</span>
             <span class="p">)</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">solver</span><span class="o">.</span><span class="n">check</span><span class="p">()</span> <span class="o">==</span> <span class="n">z3</span><span class="o">.</span><span class="n">unsat</span></div>
@@ -321,9 +335,9 @@
 
 <div class="viewcode-block" id="Z3Predicate.get_witness">
 <a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.Z3Predicate.get_witness">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_witness</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_witness</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">universe</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
         <span class="n">solver</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Solver</span><span class="p">()</span>
-        <span class="n">solver</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_semantic_formula</span><span class="p">())</span>
+        <span class="n">solver</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_semantic_formula</span><span class="p">(</span><span class="n">universe</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">solver</span><span class="o">.</span><span class="n">check</span><span class="p">()</span> <span class="o">!=</span> <span class="n">z3</span><span class="o">.</span><span class="n">sat</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsatisfiable predicate has no witness&quot;</span><span class="p">)</span>
         <span class="n">model</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
@@ -333,19 +347,16 @@
 <div class="viewcode-block" id="Z3Predicate.top">
 <a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.Z3Predicate.top">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">top</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Predicate</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">Z3Predicate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span> <span class="n">z3</span><span class="o">.</span><span class="n">BoolVal</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">universe</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">Z3Predicate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span> <span class="n">z3</span><span class="o">.</span><span class="n">BoolVal</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span></div>
 
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_aligned</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Predicate</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_aligned_formula</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Predicate</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Z3Predicate</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Z3Predicate can only combine with Z3Predicate&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">symbol</span><span class="o">.</span><span class="n">sort</span><span class="p">():</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Z3Predicate sorts must match&quot;</span><span class="p">)</span>
         <span class="n">substitution</span> <span class="o">=</span> <span class="p">[(</span><span class="n">other</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol</span><span class="p">)]</span>
-        <span class="k">return</span> <span class="p">(</span>
-            <span class="n">z3</span><span class="o">.</span><span class="n">simplify</span><span class="p">(</span><span class="n">z3</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">formula</span><span class="p">,</span> <span class="o">*</span><span class="n">substitution</span><span class="p">)),</span>
-            <span class="n">z3</span><span class="o">.</span><span class="n">simplify</span><span class="p">(</span><span class="n">z3</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">universe</span><span class="p">,</span> <span class="o">*</span><span class="n">substitution</span><span class="p">)),</span>
-        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">z3</span><span class="o">.</span><span class="n">simplify</span><span class="p">(</span><span class="n">z3</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">formula</span><span class="p">,</span> <span class="o">*</span><span class="n">substitution</span><span class="p">))</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_to_symbol_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symbol</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="n">sort</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
@@ -380,8 +391,10 @@
             <span class="k">return</span> <span class="n">symbol</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Symbol must be an integer or single-character string&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_semantic_formula</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">z3</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">universe</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">formula</span><span class="p">)</span></div>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_semantic_formula</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">universe</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">universe</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">formula</span>
+        <span class="k">return</span> <span class="n">z3</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="n">universe</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">formula</span><span class="p">)</span></div>
 
 
 
@@ -423,11 +436,17 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">alphabet</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">object</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">predicate_factory</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[],</span> <span class="n">Predicate</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">symbolic_symbol</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">symbolic_universe</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">SFAState</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">arcs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">SFAArc</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">alphabet</span><span class="p">)</span> <span class="k">if</span> <span class="n">alphabet</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">predicate_factory</span> <span class="o">=</span> <span class="n">predicate_factory</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">symbolic_symbol</span> <span class="o">=</span> <span class="n">symbolic_symbol</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">symbolic_universe</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">z3</span><span class="o">.</span><span class="n">simplify</span><span class="p">(</span><span class="n">symbolic_universe</span><span class="p">)</span> <span class="k">if</span> <span class="n">symbolic_universe</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SFAState</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
@@ -446,6 +465,88 @@
         <span class="n">state</span><span class="o">.</span><span class="n">final</span> <span class="o">=</span> <span class="n">final</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">sid</span></div>
+
+
+<div class="viewcode-block" id="SFA.symbolic">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SFA.symbolic">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">symbolic</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">symbolic_symbol</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="n">symbolic_universe</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="n">alphabet</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">object</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">predicate_factory</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[],</span> <span class="n">Predicate</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SFA&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">alphabet</span><span class="o">=</span><span class="n">alphabet</span><span class="p">,</span>
+            <span class="n">predicate_factory</span><span class="o">=</span><span class="n">predicate_factory</span><span class="p">,</span>
+            <span class="n">symbolic_symbol</span><span class="o">=</span><span class="n">symbolic_symbol</span><span class="p">,</span>
+            <span class="n">symbolic_universe</span><span class="o">=</span><span class="n">symbolic_universe</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SFA.symbolic_bitvec">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SFA.symbolic_bitvec">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">symbolic_bitvec</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">alphabet</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">object</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">predicate_factory</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[],</span> <span class="n">Predicate</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;sym&quot;</span><span class="p">,</span>
+        <span class="n">symbolic_universe</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SFA&quot;</span><span class="p">:</span>
+        <span class="n">symbolic_symbol</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">BitVec</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">symbolic_universe</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">symbolic_universe</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">BoolVal</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">symbolic</span><span class="p">(</span>
+            <span class="n">symbolic_symbol</span><span class="o">=</span><span class="n">symbolic_symbol</span><span class="p">,</span>
+            <span class="n">symbolic_universe</span><span class="o">=</span><span class="n">symbolic_universe</span><span class="p">,</span>
+            <span class="n">alphabet</span><span class="o">=</span><span class="n">alphabet</span><span class="p">,</span>
+            <span class="n">predicate_factory</span><span class="o">=</span><span class="n">predicate_factory</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SFA.symbolic_int">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SFA.symbolic_int">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">symbolic_int</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">alphabet</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">object</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">predicate_factory</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[],</span> <span class="n">Predicate</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;sym&quot;</span><span class="p">,</span>
+        <span class="n">symbolic_universe</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SFA&quot;</span><span class="p">:</span>
+        <span class="n">symbolic_symbol</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">symbolic_universe</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">symbolic_universe</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">BoolVal</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">symbolic</span><span class="p">(</span>
+            <span class="n">symbolic_symbol</span><span class="o">=</span><span class="n">symbolic_symbol</span><span class="p">,</span>
+            <span class="n">symbolic_universe</span><span class="o">=</span><span class="n">symbolic_universe</span><span class="p">,</span>
+            <span class="n">alphabet</span><span class="o">=</span><span class="n">alphabet</span><span class="p">,</span>
+            <span class="n">predicate_factory</span><span class="o">=</span><span class="n">predicate_factory</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SFA.symbolic_bool">
+<a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SFA.symbolic_bool">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">symbolic_bool</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">alphabet</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">object</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">predicate_factory</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[],</span> <span class="n">Predicate</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;sym&quot;</span><span class="p">,</span>
+        <span class="n">symbolic_universe</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SFA&quot;</span><span class="p">:</span>
+        <span class="n">symbolic_symbol</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">symbolic_universe</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">symbolic_universe</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">BoolVal</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">symbolic</span><span class="p">(</span>
+            <span class="n">symbolic_symbol</span><span class="o">=</span><span class="n">symbolic_symbol</span><span class="p">,</span>
+            <span class="n">symbolic_universe</span><span class="o">=</span><span class="n">symbolic_universe</span><span class="p">,</span>
+            <span class="n">alphabet</span><span class="o">=</span><span class="n">alphabet</span><span class="p">,</span>
+            <span class="n">predicate_factory</span><span class="o">=</span><span class="n">predicate_factory</span><span class="p">,</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="SFA.from_acceptor">
@@ -521,7 +622,7 @@
             <span class="n">next_states</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">state_id</span> <span class="ow">in</span> <span class="n">current_states</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">arc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">state_id</span><span class="p">]</span><span class="o">.</span><span class="n">arcs</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">arc</span><span class="o">.</span><span class="n">guard</span><span class="o">.</span><span class="n">is_sat</span><span class="p">(</span><span class="n">symbol</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_guard_is_sat</span><span class="p">(</span><span class="n">arc</span><span class="o">.</span><span class="n">guard</span><span class="p">,</span> <span class="n">symbol</span><span class="p">):</span>
                         <span class="n">next_states</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">arc</span><span class="o">.</span><span class="n">dst_state</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">next_states</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">False</span>
@@ -556,12 +657,17 @@
             <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">final</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">word</span>
             <span class="k">for</span> <span class="n">arc</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">arcs</span><span class="p">:</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">arc</span><span class="o">.</span><span class="n">guard</span><span class="o">.</span><span class="n">is_sat</span><span class="p">():</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_guard_is_sat</span><span class="p">(</span><span class="n">arc</span><span class="o">.</span><span class="n">guard</span><span class="p">):</span>
                     <span class="k">continue</span>
                 <span class="k">if</span> <span class="n">arc</span><span class="o">.</span><span class="n">dst_state</span> <span class="ow">in</span> <span class="n">visited</span><span class="p">:</span>
                     <span class="k">continue</span>
                 <span class="n">visited</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">arc</span><span class="o">.</span><span class="n">dst_state</span><span class="p">)</span>
-                <span class="n">queue</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">arc</span><span class="o">.</span><span class="n">dst_state</span><span class="p">,</span> <span class="n">word</span> <span class="o">+</span> <span class="p">[</span><span class="n">arc</span><span class="o">.</span><span class="n">guard</span><span class="o">.</span><span class="n">get_witness</span><span class="p">()]))</span>
+                <span class="n">queue</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="p">(</span>
+                        <span class="n">arc</span><span class="o">.</span><span class="n">dst_state</span><span class="p">,</span>
+                        <span class="n">word</span> <span class="o">+</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_guard_get_witness</span><span class="p">(</span><span class="n">arc</span><span class="o">.</span><span class="n">guard</span><span class="p">)],</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span></div>
 
 
@@ -609,10 +715,20 @@
 <a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SFA.determinize">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">determinize</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SFA&quot;</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">:</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="n">SFA</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">predicate_factory</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">SFA</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">predicate_factory</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">symbolic_symbol</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">symbolic_universe</span><span class="p">,</span>
+            <span class="p">)</span>
             <span class="n">result</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="n">initial</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">final</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">result</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="n">SFA</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">predicate_factory</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">SFA</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">predicate_factory</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">symbolic_symbol</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">symbolic_universe</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">initial_subset</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_states</span><span class="p">())</span>
         <span class="n">subset_to_state</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">queue</span><span class="p">:</span> <span class="n">Deque</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="n">deque</span><span class="p">([</span><span class="n">initial_subset</span><span class="p">])</span>
@@ -663,7 +779,7 @@
             <span class="k">for</span> <span class="n">arc</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">arcs</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
                 <span class="n">covered</span> <span class="o">=</span> <span class="n">covered</span><span class="o">.</span><span class="n">disjunction</span><span class="p">(</span><span class="n">arc</span><span class="o">.</span><span class="n">guard</span><span class="p">)</span>
             <span class="n">residual</span> <span class="o">=</span> <span class="n">covered</span><span class="o">.</span><span class="n">negate</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">residual</span><span class="o">.</span><span class="n">is_sat</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">_guard_is_sat</span><span class="p">(</span><span class="n">residual</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">sink_state_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">sink_state_id</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="n">final</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
                 <span class="n">result</span><span class="o">.</span><span class="n">add_arc</span><span class="p">(</span><span class="n">state_id</span><span class="p">,</span> <span class="n">sink_state_id</span><span class="p">,</span> <span class="n">residual</span><span class="p">)</span>
@@ -693,8 +809,8 @@
             <span class="n">dfa</span><span class="p">[</span><span class="n">state</span><span class="o">.</span><span class="n">state_id</span><span class="p">]</span><span class="o">.</span><span class="n">final</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">final</span>
             <span class="k">for</span> <span class="n">arc</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">arcs</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">arc</span><span class="o">.</span><span class="n">guard</span><span class="o">.</span><span class="n">is_sat</span><span class="p">(</span><span class="n">symbol</span><span class="p">):</span>
-                        <span class="n">dfa</span><span class="o">.</span><span class="n">add_arc</span><span class="p">(</span><span class="n">arc</span><span class="o">.</span><span class="n">src_state</span><span class="p">,</span> <span class="n">arc</span><span class="o">.</span><span class="n">dst_state</span><span class="p">,</span> <span class="n">symbol</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_guard_is_sat</span><span class="p">(</span><span class="n">arc</span><span class="o">.</span><span class="n">guard</span><span class="p">,</span> <span class="n">symbol</span><span class="p">):</span>
+                            <span class="n">dfa</span><span class="o">.</span><span class="n">add_arc</span><span class="p">(</span><span class="n">arc</span><span class="o">.</span><span class="n">src_state</span><span class="p">,</span> <span class="n">arc</span><span class="o">.</span><span class="n">dst_state</span><span class="p">,</span> <span class="n">symbol</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">dfa</span><span class="p">,</span> <span class="s2">&quot;yy_accept&quot;</span><span class="p">):</span>
             <span class="n">dfa</span><span class="o">.</span><span class="n">yy_accept</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span> <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">final</span> <span class="k">else</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">dfa</span><span class="o">.</span><span class="n">states</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">dfa</span></div>
@@ -711,7 +827,12 @@
 <div class="viewcode-block" id="SFA.copy">
 <a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.SFA.copy">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SFA&quot;</span><span class="p">:</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="n">SFA</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">predicate_factory</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">SFA</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">predicate_factory</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">symbolic_symbol</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">symbolic_universe</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">:</span>
             <span class="n">result</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="n">initial</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">initial</span><span class="p">,</span> <span class="n">final</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">final</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">arc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">arcs</span><span class="p">:</span>
@@ -729,7 +850,7 @@
             <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">deterministic</span><span class="o">.</span><span class="n">states</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">arc</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">arcs</span><span class="p">:</span>
                     <span class="k">for</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">:</span>
-                        <span class="k">if</span> <span class="n">arc</span><span class="o">.</span><span class="n">guard</span><span class="o">.</span><span class="n">is_sat</span><span class="p">(</span><span class="n">symbol</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="n">deterministic</span><span class="o">.</span><span class="n">_guard_is_sat</span><span class="p">(</span><span class="n">arc</span><span class="o">.</span><span class="n">guard</span><span class="p">,</span> <span class="n">symbol</span><span class="p">):</span>
                             <span class="n">handle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
                                 <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">arc</span><span class="o">.</span><span class="n">src_state</span><span class="si">}</span><span class="se">\t</span><span class="si">{</span><span class="n">arc</span><span class="o">.</span><span class="n">dst_state</span><span class="si">}</span><span class="se">\t</span><span class="si">{</span><span class="n">symbol</span><span class="si">}</span><span class="se">\t</span><span class="si">{</span><span class="n">symbol</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
                             <span class="p">)</span>
@@ -782,6 +903,9 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">guard</span><span class="p">,</span> <span class="n">Predicate</span><span class="p">):</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">guard</span><span class="p">,</span> <span class="n">SetPredicate</span><span class="p">)</span> <span class="ow">and</span> <span class="n">guard</span><span class="o">.</span><span class="n">universe</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">:</span>
                 <span class="n">guard</span><span class="o">.</span><span class="n">set_universe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">guard</span><span class="p">,</span> <span class="n">Z3Predicate</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_register_symbolic_guard</span><span class="p">(</span><span class="n">guard</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_align_guard_to_automaton</span><span class="p">(</span><span class="n">guard</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">guard</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">SetPredicate</span><span class="p">([</span><span class="n">guard</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">)</span>
@@ -804,12 +928,12 @@
             <span class="n">next_regions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Predicate</span><span class="p">,</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">int</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">region_guard</span><span class="p">,</span> <span class="n">destination_states</span> <span class="ow">in</span> <span class="n">regions</span><span class="p">:</span>
                 <span class="n">enabled</span> <span class="o">=</span> <span class="n">region_guard</span><span class="o">.</span><span class="n">conjunction</span><span class="p">(</span><span class="n">arc</span><span class="o">.</span><span class="n">guard</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">enabled</span><span class="o">.</span><span class="n">is_sat</span><span class="p">():</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_guard_is_sat</span><span class="p">(</span><span class="n">enabled</span><span class="p">):</span>
                     <span class="n">next_regions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                         <span class="p">(</span><span class="n">enabled</span><span class="p">,</span> <span class="n">destination_states</span> <span class="o">|</span> <span class="nb">frozenset</span><span class="p">([</span><span class="n">arc</span><span class="o">.</span><span class="n">dst_state</span><span class="p">]))</span>
                     <span class="p">)</span>
                 <span class="n">disabled</span> <span class="o">=</span> <span class="n">region_guard</span><span class="o">.</span><span class="n">conjunction</span><span class="p">(</span><span class="n">arc</span><span class="o">.</span><span class="n">guard</span><span class="o">.</span><span class="n">negate</span><span class="p">())</span>
-                <span class="k">if</span> <span class="n">disabled</span><span class="o">.</span><span class="n">is_sat</span><span class="p">():</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_guard_is_sat</span><span class="p">(</span><span class="n">disabled</span><span class="p">):</span>
                     <span class="n">next_regions</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">disabled</span><span class="p">,</span> <span class="n">destination_states</span><span class="p">))</span>
             <span class="n">regions</span> <span class="o">=</span> <span class="n">next_regions</span>
         <span class="n">grouped</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">Predicate</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
@@ -832,13 +956,18 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SFA&quot;</span><span class="p">:</span>
         <span class="n">left</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">determinize</span><span class="p">()</span>
         <span class="n">right</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">determinize</span><span class="p">()</span>
+        <span class="n">symbolic_symbol</span><span class="p">,</span> <span class="n">symbolic_universe</span> <span class="o">=</span> <span class="n">left</span><span class="o">.</span><span class="n">_merged_symbolic_context</span><span class="p">(</span><span class="n">right</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">complete</span><span class="p">:</span>
             <span class="n">left</span> <span class="o">=</span> <span class="n">left</span><span class="o">.</span><span class="n">complete</span><span class="p">()</span>
             <span class="n">right</span> <span class="o">=</span> <span class="n">right</span><span class="o">.</span><span class="n">complete</span><span class="p">()</span>
 
         <span class="n">result</span> <span class="o">=</span> <span class="n">SFA</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">other</span><span class="o">.</span><span class="n">alphabet</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">predicate_factory</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">predicate_factory</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">other</span><span class="o">.</span><span class="n">predicate_factory</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">predicate_factory</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">predicate_factory</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="n">other</span><span class="o">.</span><span class="n">predicate_factory</span><span class="p">,</span>
+            <span class="n">symbolic_symbol</span><span class="p">,</span>
+            <span class="n">symbolic_universe</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">initial_pair</span> <span class="o">=</span> <span class="p">(</span><span class="n">left</span><span class="o">.</span><span class="n">initial_states</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span> <span class="n">right</span><span class="o">.</span><span class="n">initial_states</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
         <span class="n">pair_to_state</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
@@ -858,7 +987,7 @@
             <span class="k">for</span> <span class="n">left_arc</span> <span class="ow">in</span> <span class="n">left</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">current_pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">arcs</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">right_arc</span> <span class="ow">in</span> <span class="n">right</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">current_pair</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">arcs</span><span class="p">:</span>
                     <span class="n">guard</span> <span class="o">=</span> <span class="n">left_arc</span><span class="o">.</span><span class="n">guard</span><span class="o">.</span><span class="n">conjunction</span><span class="p">(</span><span class="n">right_arc</span><span class="o">.</span><span class="n">guard</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="ow">not</span> <span class="n">guard</span><span class="o">.</span><span class="n">is_sat</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="o">.</span><span class="n">_guard_is_sat</span><span class="p">(</span><span class="n">guard</span><span class="p">):</span>
                         <span class="k">continue</span>
                     <span class="n">dst_pair</span> <span class="o">=</span> <span class="p">(</span><span class="n">left_arc</span><span class="o">.</span><span class="n">dst_state</span><span class="p">,</span> <span class="n">right_arc</span><span class="o">.</span><span class="n">dst_state</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">dst_pair</span> <span class="ow">in</span> <span class="n">grouped</span><span class="p">:</span>
@@ -881,10 +1010,79 @@
             <span class="k">for</span> <span class="n">arc</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">arcs</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">arc</span><span class="o">.</span><span class="n">guard</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">predicate_factory</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">predicate_factory</span><span class="p">()</span>
+            <span class="n">predicate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predicate_factory</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">predicate</span><span class="p">,</span> <span class="n">Z3Predicate</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_register_symbolic_guard</span><span class="p">(</span><span class="n">predicate</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_align_guard_to_automaton</span><span class="p">(</span><span class="n">predicate</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">predicate</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">SetPredicate</span><span class="p">([],</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">)</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot infer predicate universe from an empty automaton&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_guard_is_sat</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">guard</span><span class="p">:</span> <span class="n">Predicate</span><span class="p">,</span> <span class="n">symbol</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">guard</span><span class="p">,</span> <span class="n">Z3Predicate</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">guard</span><span class="o">.</span><span class="n">is_sat</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_guard_universe</span><span class="p">(</span><span class="n">guard</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">guard</span><span class="o">.</span><span class="n">is_sat</span><span class="p">(</span><span class="n">symbol</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_guard_get_witness</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">guard</span><span class="p">:</span> <span class="n">Predicate</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">guard</span><span class="p">,</span> <span class="n">Z3Predicate</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">guard</span><span class="o">.</span><span class="n">get_witness</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_guard_universe</span><span class="p">(</span><span class="n">guard</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">guard</span><span class="o">.</span><span class="n">get_witness</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_guard_universe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">guard</span><span class="p">:</span> <span class="n">Z3Predicate</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbolic_universe</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbolic_symbol</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">guard</span><span class="o">.</span><span class="n">symbol</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symbolic_symbol</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbolic_universe</span>
+        <span class="k">return</span> <span class="n">z3</span><span class="o">.</span><span class="n">simplify</span><span class="p">(</span>
+            <span class="n">z3</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symbolic_universe</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symbolic_symbol</span><span class="p">,</span> <span class="n">guard</span><span class="o">.</span><span class="n">symbol</span><span class="p">))</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_register_symbolic_guard</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">guard</span><span class="p">:</span> <span class="n">Z3Predicate</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbolic_symbol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">symbolic_symbol</span> <span class="o">=</span> <span class="n">guard</span><span class="o">.</span><span class="n">symbol</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_align_guard_to_automaton</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">guard</span><span class="p">:</span> <span class="n">Z3Predicate</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Z3Predicate</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbolic_symbol</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">guard</span><span class="o">.</span><span class="n">symbol</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symbolic_symbol</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">guard</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbolic_symbol</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span> <span class="o">!=</span> <span class="n">guard</span><span class="o">.</span><span class="n">symbol</span><span class="o">.</span><span class="n">sort</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Z3Predicate sorts must match the automaton symbol sort&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Z3Predicate</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">symbolic_symbol</span><span class="p">,</span>
+            <span class="n">z3</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="n">guard</span><span class="o">.</span><span class="n">formula</span><span class="p">,</span> <span class="p">(</span><span class="n">guard</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbolic_symbol</span><span class="p">)),</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_merged_symbolic_context</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;SFA&quot;</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]]:</span>
+        <span class="n">left_symbol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbolic_symbol</span>
+        <span class="n">right_symbol</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">symbolic_symbol</span>
+        <span class="n">left_universe</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbolic_universe</span>
+        <span class="n">right_universe</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">symbolic_universe</span>
+
+        <span class="k">if</span> <span class="n">left_symbol</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">left_universe</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Symbolic universe requires a symbolic symbol&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">right_symbol</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">right_universe</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Symbolic universe requires a symbolic symbol&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">left_symbol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">right_symbol</span><span class="p">,</span> <span class="n">right_universe</span>
+        <span class="k">if</span> <span class="n">right_symbol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">left_symbol</span><span class="p">,</span> <span class="n">left_universe</span>
+        <span class="k">if</span> <span class="n">left_symbol</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span> <span class="o">!=</span> <span class="n">right_symbol</span><span class="o">.</span><span class="n">sort</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Symbolic automata must use the same symbol sort&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">left_universe</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">right_universe</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">left_symbol</span><span class="p">,</span> <span class="n">left_universe</span> <span class="k">if</span> <span class="n">left_universe</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">right_universe</span>
+
+        <span class="n">aligned_right_universe</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">simplify</span><span class="p">(</span>
+            <span class="n">z3</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="n">right_universe</span><span class="p">,</span> <span class="p">(</span><span class="n">right_symbol</span><span class="p">,</span> <span class="n">left_symbol</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="n">probe</span> <span class="o">=</span> <span class="n">Z3Predicate</span><span class="p">(</span><span class="n">left_symbol</span><span class="p">,</span> <span class="n">left_universe</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">probe</span><span class="o">.</span><span class="n">is_equivalent</span><span class="p">(</span><span class="n">Z3Predicate</span><span class="p">(</span><span class="n">left_symbol</span><span class="p">,</span> <span class="n">aligned_right_universe</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Symbolic automata must share the same universe&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">left_symbol</span><span class="p">,</span> <span class="n">left_universe</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_load_symbol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -905,9 +1103,12 @@
 <div class="viewcode-block" id="main">
 <a class="viewcode-back" href="../../../../verification/symautomata.html#aria.automata.symautomata.sfa.main">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="n">universe</span> <span class="o">=</span> <span class="p">[</span><span class="nb">ord</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">),</span> <span class="nb">ord</span><span class="p">(</span><span class="s2">&quot;b&quot;</span><span class="p">)]</span>
     <span class="n">symbol</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">BitVec</span><span class="p">(</span><span class="s2">&quot;sym&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
-    <span class="n">sfa</span> <span class="o">=</span> <span class="n">SFA</span><span class="p">(</span><span class="n">universe</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">Z3Predicate</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">z3</span><span class="o">.</span><span class="n">BoolVal</span><span class="p">(</span><span class="kc">False</span><span class="p">)))</span>
+    <span class="n">sfa</span> <span class="o">=</span> <span class="n">SFA</span><span class="p">(</span>
+        <span class="n">predicate_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">Z3Predicate</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">z3</span><span class="o">.</span><span class="n">BoolVal</span><span class="p">(</span><span class="kc">False</span><span class="p">)),</span>
+        <span class="n">symbolic_symbol</span><span class="o">=</span><span class="n">symbol</span><span class="p">,</span>
+        <span class="n">symbolic_universe</span><span class="o">=</span><span class="n">z3</span><span class="o">.</span><span class="n">ULE</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">z3</span><span class="o">.</span><span class="n">BitVecVal</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">8</span><span class="p">)),</span>
+    <span class="p">)</span>
     <span class="n">sfa</span><span class="o">.</span><span class="n">add_arc</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">Z3Predicate</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">z3</span><span class="o">.</span><span class="n">ULT</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">z3</span><span class="o">.</span><span class="n">BitVecVal</span><span class="p">(</span><span class="mi">98</span><span class="p">,</span> <span class="mi">8</span><span class="p">))))</span>
     <span class="n">sfa</span><span class="o">.</span><span class="n">set_final</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">sfa</span><span class="o">.</span><span class="n">accepts</span><span class="p">([</span><span class="nb">ord</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">)]))</span></div>
