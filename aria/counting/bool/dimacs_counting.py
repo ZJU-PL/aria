@@ -1,5 +1,8 @@
 """
 Model counting for DIMACS files
+- sharpSAT:
+- approxMC:
+- enumeration
 """
 
 import copy

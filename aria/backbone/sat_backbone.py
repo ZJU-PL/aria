@@ -151,7 +151,8 @@ def compute_backbone_chunking(
     4. For each chunk:
        a. Flip the values of all variables in the chunk (from their values in M)
        b. Check if formula is still satisfiable with these flipped values
-       c. If not, there's at least one backbone literal in the chunk
+        c. If not, the chunk contains a set of literals that cannot all be
+           flipped together, so we test each literal individually
        d. For each variable in the chunk:
           i. Check if flipping just this variable makes formula unsatisfiable
           ii. If yes, it's a backbone literal
@@ -295,6 +296,10 @@ def compute_backbone_with_approximation(
     This algorithm computes a lower bound (definite backbone literals) and
     an upper bound (potential backbone literals) of the backbone.
 
+    The upper bound is obtained from literals that occur in every sampled full
+    model. The lower bound is obtained by verifying which of those literals are
+    genuine backbone literals.
+
     Args:
         cnf: The CNF formula
         solver_name: The SAT solver to use
@@ -314,14 +319,22 @@ def compute_backbone_with_approximation(
         # If formula is UNSAT, there are no backbone literals
         return [], [], 1
 
-    # Collect multiple models
-    models = []
-    num_models = min(10, 2 ** min(10, cnf.nv))  # Collect at most 10 models
-    models = solver.sample_models(num_models)
+    # Collect multiple full models. Reduced/partial models are not suitable for
+    # upper-bound reasoning because they may omit literals that are fixed in all
+    # satisfying assignments.
+    num_models = min(10, 2 ** min(10, cnf.nv))
+    previous_reduce_samples = solver.reduce_samples
+    solver.reduce_samples = False
+    try:
+        models = solver.sample_models(num_models)
+    finally:
+        solver.reduce_samples = previous_reduce_samples
 
-    num_solver_calls = 1  # Initial satisfiability check
+    # The initial satisfiability check yields the first model, and each sampled
+    # model requires an additional SAT call inside the enumerator.
+    num_solver_calls = 1 + len(models)
 
-    # Find common literals across all models (lower bound of backbone)
+    # Find literals common to all sampled models (upper bound of backbone).
     if not models:
         return [], [], num_solver_calls
 
@@ -329,38 +342,16 @@ def compute_backbone_with_approximation(
     for model in models[1:]:
         common_literals &= set(model)
 
-    # Verify each common literal to confirm it's a backbone literal
+    potential_backbone = sorted(common_literals, key=lambda lit: (abs(lit), lit < 0))
+
+    # Verify each candidate to obtain a definite lower bound.
     definite_backbone = []
-    for lit in common_literals:
+    for lit in potential_backbone:
         result = solver.check_sat_assuming([-lit])
         num_solver_calls += 1
 
         if result == SolverResult.UNSAT:
             definite_backbone.append(lit)
-
-    # Compute upper bound: literals that might be backbone literals
-    # (those not proven to not be in the backbone)
-    potential_backbone = list(definite_backbone)
-    variables = set(abs(lit) for clause in cnf.clauses for lit in clause)
-
-    for var in variables:
-        # Skip variables we've already determined are backbone literals
-        if var in [abs(lit) for lit in definite_backbone]:
-            continue
-
-        # Check positive literal
-        if var not in [abs(lit) for lit in potential_backbone]:
-            result = solver.check_sat_assuming([-var])
-            num_solver_calls += 1
-            if result == SolverResult.UNSAT:
-                potential_backbone.append(var)
-
-        # Check negative literal
-        if -var not in [abs(lit) for lit in potential_backbone]:
-            result = solver.check_sat_assuming([var])
-            num_solver_calls += 1
-            if result == SolverResult.UNSAT:
-                potential_backbone.append(-var)
 
     return definite_backbone, potential_backbone, num_solver_calls
 

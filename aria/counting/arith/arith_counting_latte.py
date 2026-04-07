@@ -1,3 +1,6 @@
+"""
+Counting via LattE is not implemented yet, but this module provides a structure for how it could be integrated in the future. The current implementation only supports counting by enumeration, which is exact but may not scale well for large formulas. The analyze method checks if the formula is a quantifier-free linear integer arithmetic (QF_LIA) formula and computes bounds for the integer variables, which can be useful for both enumeration and LattE-based counting.
+"""
 import shutil
 from dataclasses import dataclass
 from timeit import default_timer as counting_timer

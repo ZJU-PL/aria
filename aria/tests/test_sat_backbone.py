@@ -109,10 +109,12 @@ class TestSATBackbone(unittest.TestCase):
         definite, potential, calls = compute_backbone_with_approximation(self.cnf1)
         self.assertIn(3, definite)
         self.assertIn(3, potential)
+        self.assertTrue(set(definite).issubset(set(potential)))
 
         definite, potential, calls = compute_backbone_with_approximation(self.cnf2)
         self.assertIn(1, definite)
         self.assertIn(1, potential)
+        self.assertTrue(set(definite).issubset(set(potential)))
 
         definite, potential, calls = compute_backbone_with_approximation(self.unsat_cnf)
         self.assertEqual(definite, [])

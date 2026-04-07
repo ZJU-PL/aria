@@ -9,7 +9,7 @@ import signal
 import psutil
 import logging
 
-from aria.smt.pcdclt.cdclt_solver import ParallelCDCLTSolver
+from aria.smt.pcdclt.solver import ParallelCDCLTSolver
 from aria.utils import SolverResult
 
 G_ARGS = None
