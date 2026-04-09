@@ -9,7 +9,7 @@ import tempfile
 import z3
 
 from aria.tests import TestCase, main
-from aria.translator import cnf2smt, dimacs2smt, qbf2smt
+from aria.translator import cnf2smt, dimacs2smt, qbf2smt, qcir2smt
 
 
 class TestTranslatorRegressions(TestCase):
@@ -77,6 +77,26 @@ class TestTranslatorRegressions(TestCase):
             solver = z3.Solver()
             solver.add(z3.parse_smt2_file(smt_path))
             self.assertEqual(solver.check(), z3.unsat)
+
+    def test_qcir_translation_supports_free_and_xor_gates(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            qcir_path = os.path.join(temp_dir, "in.qcir")
+            smt_path = os.path.join(temp_dir, "out.smt2")
+            with open(qcir_path, "w", encoding="utf-8") as fd:
+                fd.write(
+                    "#QCIR-G14\n"
+                    "free(1)\n"
+                    "exists(2)\n"
+                    "output(4)\n"
+                    "3 = xor(1,2)\n"
+                    "4 = ite(1,3,-2)\n"
+                )
+
+            qcir2smt.convert_qcir_to_smt2(qcir_path, smt_path)
+
+            solver = z3.Solver()
+            solver.add(z3.parse_smt2_file(smt_path))
+            self.assertEqual(solver.check(), z3.sat)
 
     def test_cnf2smt_shared_parser_handles_blank_lines(self):
         dimacs_str = "p cnf 1 1\n\n1 0\n"

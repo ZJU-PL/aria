@@ -5,8 +5,10 @@ from typing import Dict, List, Optional, Sequence, Tuple
 
 import z3
 from pysat.solvers import Solver
-from z3 import And, Bool, BoolVal, Not, Or, is_true
+from z3 import And, Bool, BoolVal, If, Not, Or, Xor, is_true
 
+from .model import QCIRInstance, QDIMACSInstance
+from .qcir_parser import parse_qcir_string
 from .qdimacs_parser import parse_qdimacs_string
 
 
@@ -42,6 +44,46 @@ def _assign_literal(clauses: Sequence[Sequence[int]], literal: int) -> List[List
         reduced_clause = [term for term in clause if term != negated_literal]
         simplified.append(reduced_clause)
     return simplified
+
+
+def _qcir_ref_to_z3(
+    ref: int,
+    variables: Dict[int, z3.BoolRef],
+    gates: Dict[int, object],
+    cache: Dict[int, z3.BoolRef],
+) -> z3.BoolRef:
+    atom = abs(int(ref))
+    if atom in gates:
+        expr = _qcir_gate_to_z3(atom, variables, gates, cache)
+    else:
+        expr = variables[atom]
+    return Not(expr) if int(ref) < 0 else expr
+
+
+def _qcir_gate_to_z3(
+    gate_id: int,
+    variables: Dict[int, z3.BoolRef],
+    gates: Dict[int, object],
+    cache: Dict[int, z3.BoolRef],
+) -> z3.BoolRef:
+    if gate_id in cache:
+        return cache[gate_id]
+
+    gate = gates[gate_id]
+    operands = [_qcir_ref_to_z3(ref, variables, gates, cache) for ref in gate.inputs]
+    if gate.kind == "and":
+        expr = And(*operands) if operands else BoolVal(True)
+    elif gate.kind == "or":
+        expr = Or(*operands) if operands else BoolVal(False)
+    elif gate.kind == "xor":
+        expr = functools.reduce(Xor, operands[1:], operands[0]) if operands else BoolVal(False)
+    elif gate.kind == "ite":
+        expr = If(operands[0], operands[1], operands[2])
+    else:
+        raise ValueError(f"unsupported QCIR gate kind: {gate.kind}")
+
+    cache[gate_id] = expr
+    return expr
 
 
 def _active_prefix(
@@ -117,6 +159,12 @@ class QDIMACSParser:
         """Parse a QDIMACS format string and return a QBF object."""
 
         parsed = parse_qdimacs_string(qdimacs_str)
+        return self.parse_instance(parsed)
+
+    def parse_instance(self, parsed: QDIMACSInstance) -> "QBF":
+        """Build a QBF object from a normalized QDIMACS instance."""
+
+        parsed.validate()
         self.num_vars = parsed.num_vars
         self.num_clauses = parsed.num_clauses
 
@@ -143,6 +191,38 @@ class QDIMACSParser:
             prefix_blocks=parsed.parsed_prefix,
             matrix_clauses=parsed.clauses,
         )
+
+
+class QCIRFormulaParser:
+    """Parser for QCIR strings returning a Z3-based QBF."""
+
+    def __init__(self):
+        self.vars: Dict[int, Bool] = {}
+
+    def get_var(self, var_id: int) -> Bool:
+        abs_id = abs(int(var_id))
+        if abs_id not in self.vars:
+            self.vars[abs_id] = Bool(f"x_{abs_id}")
+        return self.vars[abs_id]
+
+    def parse_qcir(self, qcir_str: str) -> "QBF":
+        parsed = parse_qcir_string(qcir_str)
+        return self.parse_instance(parsed)
+
+    def parse_instance(self, parsed: QCIRInstance) -> "QBF":
+        parsed.validate()
+
+        q_list: List[Tuple[int, List[Bool]]] = []
+        for kind, variables in parsed.parsed_prefix:
+            if kind == "f":
+                continue
+            quant_type = 1 if kind == "a" else -1
+            q_list.append((quant_type, [self.get_var(variable) for variable in variables]))
+
+        variables = {variable: self.get_var(variable) for variable in parsed.leaf_variables()}
+        gates = parsed.gate_map()
+        prop_formula = _qcir_ref_to_z3(parsed.output_gate, variables, gates, {})
+        return QBF(prop_formula, q_list)
 
 
 class QBF:
@@ -266,6 +346,8 @@ class QBF:
             raise NotImplementedError(
                 "PySAT QBF solving requires a prenex CNF/QDIMACS representation."
             )
+        if any(kind not in {"a", "e"} for kind, _ in self._prefix_blocks):
+            raise ValueError("PySAT backend only accepts alternating existential/universal QDIMACS")
 
         is_true = _solve_qdimacs_recursively(
             self._prefix_blocks, self._matrix_clauses, solver_name

@@ -13,7 +13,37 @@ def _parse_qcir_int_list(payload: str) -> List[int]:
     return [int(token.strip()) for token in payload.split(",") if token.strip()]
 
 
-def parse_qcir_string(content: str) -> QCIRInstance:
+def _parse_qcir_gate_definition(line: str) -> QCIRGate:
+    compact = line.replace(" ", "")
+    gate_id_str, rhs = compact.split("=", maxsplit=1)
+    open_paren = rhs.find("(")
+    if open_paren < 0 or not rhs.endswith(")"):
+        raise ValueError(f"malformed QCIR gate expression: {line}")
+    kind = rhs[:open_paren]
+    payload = rhs[open_paren + 1 : -1]
+    return QCIRGate(kind, int(gate_id_str), _parse_qcir_int_list(payload))
+
+
+def _build_qcir_instance(
+    comments: Sequence[str],
+    prefix: Sequence[QuantifierBlock],
+    gates: Sequence[QCIRGate],
+    output_gate: int,
+    normalize: bool,
+) -> QCIRInstance:
+    instance = QCIRInstance(
+        prefix=[QuantifierBlock(block.kind, list(block.variables)) for block in prefix],
+        gates=[QCIRGate(gate.kind, gate.gate_id, list(gate.inputs)) for gate in gates],
+        output_gate=output_gate,
+        comments=list(comments),
+    )
+    if normalize:
+        instance = instance.normalized()
+    instance.validate()
+    return instance
+
+
+def parse_qcir_string(content: str, normalize: bool = True) -> QCIRInstance:
     """Parse a QCIR string into a typed instance."""
 
     comments: List[str] = []
@@ -29,45 +59,43 @@ def parse_qcir_string(content: str) -> QCIRInstance:
             comments.append(line)
             continue
         compact = line.replace(" ", "")
-        if compact.startswith("exists(") or compact.startswith("forall("):
-            is_exists = compact.startswith("exists(")
-            kind = "e" if is_exists else "a"
-            payload = compact[7:-1] if is_exists else compact[7:-1]
+        if (
+            compact.startswith("exists(")
+            or compact.startswith("forall(")
+            or compact.startswith("free(")
+        ):
+            if compact.startswith("exists("):
+                kind = "e"
+                payload = compact[len("exists(") : -1]
+            elif compact.startswith("forall("):
+                kind = "a"
+                payload = compact[len("forall(") : -1]
+            else:
+                kind = "f"
+                payload = compact[len("free(") : -1]
             prefix.append(QuantifierBlock(kind, _parse_qcir_int_list(payload)))
             continue
         if compact.startswith("output("):
             output_gate = int(compact[len("output(") : -1])
             continue
-        gate_id_str, rhs = compact.split("=", maxsplit=1)
-        if rhs.startswith("and("):
-            gates.append(QCIRGate("and", int(gate_id_str), _parse_qcir_int_list(rhs[4:-1])))
-        elif rhs.startswith("or("):
-            gates.append(QCIRGate("or", int(gate_id_str), _parse_qcir_int_list(rhs[3:-1])))
-        else:
-            raise ValueError(f"unsupported QCIR gate expression: {line}")
+        gates.append(_parse_qcir_gate_definition(line))
 
     if output_gate == 0:
         raise ValueError("QCIR file is missing an output(...) declaration")
 
-    merged_prefix: List[QuantifierBlock] = []
-    for block in prefix:
-        if merged_prefix and merged_prefix[-1].kind == block.kind:
-            merged_prefix[-1].variables.extend(block.variables)
-        else:
-            merged_prefix.append(QuantifierBlock(block.kind, list(block.variables)))
-
-    return QCIRInstance(
-        prefix=merged_prefix,
+    return _build_qcir_instance(
+        comments=comments,
+        prefix=prefix,
         gates=gates,
         output_gate=output_gate,
-        comments=comments,
+        normalize=normalize,
     )
 
 
-def parse_qcir_file(path: str) -> QCIRInstance:
+def parse_qcir_file(path: str, normalize: bool = True) -> QCIRInstance:
     """Parse a QCIR file."""
 
-    return parse_qcir_string(Path(path).read_text(encoding="utf-8"))
+    return parse_qcir_string(Path(path).read_text(encoding="utf-8"), normalize=normalize)
 
 
 class PaserQCIR:

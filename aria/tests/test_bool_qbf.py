@@ -4,6 +4,7 @@ import z3
 
 from aria.bool.analysis import quantifier_prefix_report
 from aria.bool.qbf import (
+    QCIRFormulaParser,
     QDIMACSParser,
     parse_qcir_string,
     parse_qdimacs_string,
@@ -55,6 +56,24 @@ def test_parse_qcir_string_preserves_gate_shape():
     assert parsed.output_gate == 4
     assert parsed.parsed_gates == [("and", "4", ["1", "2", "-3"])]
     assert quantifier_prefix_report(parsed)["alternations"] == 1
+
+
+def test_qcir_formula_parser_builds_sat_formula_from_gate_circuit():
+    parser = QCIRFormulaParser()
+    qbf = parser.parse_qcir(
+        """
+        #QCIR-G14
+        forall(1)
+        exists(2)
+        output(4)
+        3 = xor(1,2)
+        4 = or(3,-2)
+        """
+    )
+
+    assert qbf.quantifier_depth() == 2
+    assert qbf.quantifier_prefix_summary()["forall_vars"] == 1
+    assert qbf.solve() == z3.sat
 
 
 def test_legacy_qdimacs_file_parser_returns_compat_wrapper(tmp_path):

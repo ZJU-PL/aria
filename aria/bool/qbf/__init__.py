@@ -1,7 +1,7 @@
 """Quantified Boolean formula parsing and lightweight reasoning helpers."""
 
 from .model import QCIRGate, QCIRInstance, QDIMACSInstance, QuantifierBlock
-from .qbf_solver import QBF, QDIMACSParser
+from .qbf_solver import QBF, QCIRFormulaParser, QDIMACSParser
 from .qcir_parser import PaserQCIR, QCIRParser, parse_qcir_file, parse_qcir_string
 from .qdimacs_parser import (
     PaserQDIMACS,
@@ -13,6 +13,7 @@ from .qdimacs_parser import (
 __all__ = [
     "QBF",
     "QDIMACSParser",
+    "QCIRFormulaParser",
     "TypedQDIMACSParser",
     "QuantifierBlock",
     "QDIMACSInstance",

@@ -1,7 +1,7 @@
 """QDIMACS parser and compatibility wrapper."""
 
 from pathlib import Path
-from typing import Iterable, List, Sequence
+from typing import List, Sequence
 
 from .model import QDIMACSInstance, QuantifierBlock
 
@@ -13,17 +13,28 @@ def _parse_clause_tokens(tokens: Sequence[str]) -> List[int]:
     return clause[:-1]
 
 
-def _merge_prefix_blocks(blocks: Iterable[QuantifierBlock]) -> List[QuantifierBlock]:
-    merged: List[QuantifierBlock] = []
-    for block in blocks:
-        if merged and merged[-1].kind == block.kind:
-            merged[-1].variables.extend(block.variables)
-        else:
-            merged.append(QuantifierBlock(block.kind, list(block.variables)))
-    return merged
+def _build_qdimacs_instance(
+    comments: Sequence[str],
+    prefix: Sequence[QuantifierBlock],
+    clauses: Sequence[Sequence[int]],
+    num_vars: int,
+    num_clauses: int,
+    normalize: bool,
+) -> QDIMACSInstance:
+    instance = QDIMACSInstance(
+        num_vars=num_vars,
+        num_clauses=num_clauses,
+        prefix=[QuantifierBlock(block.kind, list(block.variables)) for block in prefix],
+        clauses=[[int(literal) for literal in clause] for clause in clauses],
+        comments=list(comments),
+    )
+    if normalize:
+        instance = instance.normalized()
+    instance.validate()
+    return instance
 
 
-def parse_qdimacs_string(content: str) -> QDIMACSInstance:
+def parse_qdimacs_string(content: str, normalize: bool = True) -> QDIMACSInstance:
     """Parse a QDIMACS string into a typed instance."""
 
     comments: List[str] = []
@@ -69,19 +80,20 @@ def parse_qdimacs_string(content: str) -> QDIMACSInstance:
             f"QDIMACS clause count mismatch: header says {num_clauses}, got {len(clauses)}"
         )
 
-    return QDIMACSInstance(
+    return _build_qdimacs_instance(
+        comments=comments,
+        prefix=prefix,
+        clauses=clauses,
         num_vars=num_vars,
         num_clauses=num_clauses,
-        prefix=_merge_prefix_blocks(prefix),
-        clauses=clauses,
-        comments=comments,
+        normalize=normalize,
     )
 
 
-def parse_qdimacs_file(path: str) -> QDIMACSInstance:
+def parse_qdimacs_file(path: str, normalize: bool = True) -> QDIMACSInstance:
     """Parse a QDIMACS file."""
 
-    return parse_qdimacs_string(Path(path).read_text(encoding="utf-8"))
+    return parse_qdimacs_string(Path(path).read_text(encoding="utf-8"), normalize=normalize)
 
 
 class PaserQDIMACS:
