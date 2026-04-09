@@ -4,7 +4,7 @@ Tests for SAT backbone algorithms
 
 import unittest
 from pysat.formula import CNF
-from aria.backbone import (
+from aria.bool.backbone import (
     compute_backbone,
     compute_backbone_iterative,
     compute_backbone_chunking,
@@ -13,6 +13,7 @@ from aria.backbone import (
     is_backbone_literal,
     BackboneAlgorithm,
 )
+from aria.backbone import compute_backbone as compute_backbone_legacy
 
 
 class TestSATBackbone(unittest.TestCase):
@@ -91,6 +92,10 @@ class TestSATBackbone(unittest.TestCase):
 
         backbone, calls = compute_backbone(self.cnf2)
         self.assertEqual(set(backbone), {1})
+
+    def test_legacy_import_path_still_works(self):
+        backbone, calls = compute_backbone_legacy(self.cnf1)
+        self.assertEqual(set(backbone), {3})
 
     def test_is_backbone_literal(self):
         is_backbone, calls = is_backbone_literal(self.cnf1, 3)

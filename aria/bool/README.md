@@ -19,6 +19,8 @@ A comprehensive collection of tools and algorithms for Boolean satisfiability (S
 - **Feature extraction**: SATzilla-style features for SAT instance analysis
 - **Knowledge compilation**: DNNF, OBDD compilation from logical formulas
 - **Boolean interpolation**: Proof-based and core-based algorithms
+- **Boolean backbone**: multiple SAT-level algorithms for implied literal extraction
+- **Prime implicants / implicates**: SAT-based enumeration of minimal terms and clauses
 
 ### Usage
 
@@ -42,6 +44,15 @@ write_dimacs(simplified, "output.cnf")
 # Tseitin transformation
 from aria.bool.tseitin_converter import tseitin
 cnf_result = tseitin(dnf_formula)
+
+# Prime implicants / implicates
+from aria.bool.prime import enumerate_prime_implicants, enumerate_prime_implicates
+prime_implicants = enumerate_prime_implicants(CNF(from_clauses=[[1, 2], [-1, 3]]))
+prime_implicates = enumerate_prime_implicates(CNF(from_clauses=[[1, 2], [-1, 3]]))
+
+# Backbone literals
+from aria.bool.backbone import compute_backbone
+backbone, calls = compute_backbone(CNF(from_clauses=[[1, 2], [-1, 3], [-2, 3]]))
 ```
 
 ## Submodules
@@ -53,5 +64,7 @@ cnf_result = tseitin(dnf_formula)
 - `knowledge_compiler/`: Knowledge compilation to DNNF/OBDD
 - `maxsat/`: Maximum satisfiability solvers
 - `nnf/`: Negation normal form reasoning
+- `backbone/`: Boolean backbone computation
+- `prime/`: Prime implicant and prime implicate enumeration
 - `qbf/`: Quantified Boolean formula support
 - `sat/`: Core SAT solver implementations

@@ -1,19 +1,16 @@
-"""
-The backbone module provides algorithms for computing backbones of
-Boolean formulas in both SAT and SMT contexts.
+"""Backbone utilities across Boolean and SMT reasoning.
 
-For SAT formulas, the backbone consists of literals that must be true
-in all satisfying assignments of the formula.
-
-For SMT formulas, the notion of backbone is less well-defined compared to SAT backbones.
+SAT backbone functionality now lives under ``aria.bool.backbone`` and is
+re-exported here for compatibility. SMT-specific helpers remain local to this
+package.
 """
 
 from .sat_backbone import (
+    BackboneAlgorithm,
     compute_backbone,
-    compute_backbone_iterative,
     compute_backbone_chunking,
+    compute_backbone_iterative,
     compute_backbone_refinement,
     compute_backbone_with_approximation,
     is_backbone_literal,
-    BackboneAlgorithm,
 )

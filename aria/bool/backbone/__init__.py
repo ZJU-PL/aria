@@ -1,6 +1,7 @@
-"""Backward-compatible re-export of SAT backbone APIs."""
+# coding: utf-8
+"""Boolean backbone computation algorithms."""
 
-from aria.bool.backbone.sat_backbone import (
+from .sat_backbone import (
     BackboneAlgorithm,
     compute_backbone,
     compute_backbone_chunking,

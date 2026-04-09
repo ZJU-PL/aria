@@ -1,6 +1,7 @@
 # Backbone Computation
 
-Algorithms for computing backbones (also called "implied literals") of Boolean and SMT formulas.
+Algorithms for computing backbones (also called implied literals) of Boolean
+and SMT formulas.
 
 ## What is a Backbone?
 
@@ -9,9 +10,12 @@ These literals are necessarily true and cannot be negated without making the for
 
 ## Components
 
-- `sat_backbone.py`: Backbone computation for SAT formulas
+- `aria.bool.backbone`: canonical home for SAT backbone computation
   - Multiple algorithms: iterative, chunking, refinement, approximation
-  - `compute_backbone()`, `compute_backbone_iterative()`, `compute_backbone_chunking()`, etc.
+  - `compute_backbone()`, `compute_backbone_iterative()`,
+    `compute_backbone_chunking()`, etc.
+- `sat_backbone.py`: compatibility re-export for older imports under
+  `aria.backbone`
 - `smt_backbone_literals.py`: Backbone computation for SMT formulas (literal-level)
 - `smt_backbone_clauses.py`: Backbone computation for SMT formulas (clause-level)
 
@@ -27,7 +31,7 @@ These literals are necessarily true and cannot be negated without making the for
 ## Usage
 
 ```python
-from aria.backbone import compute_backbone, BackboneAlgorithm
+from aria.bool.backbone import compute_backbone, BackboneAlgorithm
 
 # Compute backbone of a CNF formula
 backbone = compute_backbone(cnf, algorithm=BackboneAlgorithm.ITERATIVE)
