@@ -1,0 +1,5 @@
+#QCIR-G14
+exists(1)
+forall(2)
+output(3)
+3 = or(1,-2)

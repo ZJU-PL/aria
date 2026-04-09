@@ -1,178 +1,121 @@
-"""Parser for QCIR format QBF files."""
+"""QCIR parser and compatibility wrapper."""
+
+from pathlib import Path
+from typing import List, Sequence
+
+from .model import QCIRGate, QCIRInstance, QuantifierBlock
+
+
+def _parse_qcir_int_list(payload: str) -> List[int]:
+    payload = payload.strip()
+    if not payload:
+        return []
+    return [int(token.strip()) for token in payload.split(",") if token.strip()]
+
+
+def parse_qcir_string(content: str) -> QCIRInstance:
+    """Parse a QCIR string into a typed instance."""
+
+    comments: List[str] = []
+    prefix: List[QuantifierBlock] = []
+    gates: List[QCIRGate] = []
+    output_gate = 0
+
+    for raw_line in content.splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        if line.startswith("#"):
+            comments.append(line)
+            continue
+        compact = line.replace(" ", "")
+        if compact.startswith("exists(") or compact.startswith("forall("):
+            is_exists = compact.startswith("exists(")
+            kind = "e" if is_exists else "a"
+            payload = compact[7:-1] if is_exists else compact[7:-1]
+            prefix.append(QuantifierBlock(kind, _parse_qcir_int_list(payload)))
+            continue
+        if compact.startswith("output("):
+            output_gate = int(compact[len("output(") : -1])
+            continue
+        gate_id_str, rhs = compact.split("=", maxsplit=1)
+        if rhs.startswith("and("):
+            gates.append(QCIRGate("and", int(gate_id_str), _parse_qcir_int_list(rhs[4:-1])))
+        elif rhs.startswith("or("):
+            gates.append(QCIRGate("or", int(gate_id_str), _parse_qcir_int_list(rhs[3:-1])))
+        else:
+            raise ValueError(f"unsupported QCIR gate expression: {line}")
+
+    if output_gate == 0:
+        raise ValueError("QCIR file is missing an output(...) declaration")
+
+    merged_prefix: List[QuantifierBlock] = []
+    for block in prefix:
+        if merged_prefix and merged_prefix[-1].kind == block.kind:
+            merged_prefix[-1].variables.extend(block.variables)
+        else:
+            merged_prefix.append(QuantifierBlock(block.kind, list(block.variables)))
+
+    return QCIRInstance(
+        prefix=merged_prefix,
+        gates=gates,
+        output_gate=output_gate,
+        comments=comments,
+    )
+
+
+def parse_qcir_file(path: str) -> QCIRInstance:
+    """Parse a QCIR file."""
+
+    return parse_qcir_string(Path(path).read_text(encoding="utf-8"))
 
 
 class PaserQCIR:
-    """Parser for QCIR format QBF files."""
+    """Backward-compatible QCIR parser wrapper."""
 
-    # ==========================================================================================
-    # Parses prefix lines:
-    def parse_prefix(self, prefix_lines):
-        """Parse prefix lines and merge consecutive quantifier blocks of the same type."""
-        # we can merge prefix lines if there are the same quatifier type:
-        previous_qtype = ""
-
-        for line in prefix_lines:
-            # asserting the line is part of prefix:
-            assert "exists" in line or "forall" in line
-            # removing spaces
-            cleaned_line = line.replace(" ", "")
-            if "exists" in cleaned_line:
-                cur_var_list = cleaned_line.strip("exists(").strip(")").split(",")
-                cur_qtype = "e"
-            else:
-                assert "forall" in cleaned_line
-                cur_var_list = cleaned_line.strip("forall(").strip(")").split(",")
-                cur_qtype = "a"
-
-            # changing to integers:
-            int_cur_var_list = []
-
-            for var in cur_var_list:
-                int_cur_var_list.append(int(var))
-                # adding input gates to all gates:
-                if int(var) not in self.all_gates:
-                    self.all_gates.append(int(var))
-
-            # we are in the same quantifier block:
-            if previous_qtype == cur_qtype:
-                self.parsed_prefix[-1][1].extend(int_cur_var_list)
-            else:
-                # a tuple of type and the var list:
-                self.parsed_prefix.append((cur_qtype, int_cur_var_list))
-                previous_qtype = cur_qtype
-
-        # assert the quantifier are alternating in the parsed_prefix:
-        for i in range(len(self.parsed_prefix) - 1):
-            assert self.parsed_prefix[i][0] != self.parsed_prefix[i + 1][0]
-
-    # ==========================================================================================
-
-    # ==========================================================================================
-    # Parse gate lines:
-    def parse_gates(self, gate_lines):
-        """Parse gate lines and extract gate definitions."""
-        for line in gate_lines:
-            # asserting the line is part of gate:
-            assert "or" in line or "and" in line
-            # removing spaces
-            cleaned_line = line.replace(" ", "")
-            if "or" in cleaned_line:
-                # first seperating intermediate gate:
-                [cur_gate, cur_list] = cleaned_line.split("=")
-                cur_var_list = cur_list.strip("or(").strip(")").split(",")
-                # if empty gate, we make the list empty:
-                if cur_var_list == [""]:
-                    cur_var_list = []
-                cur_type = "or"
-            else:
-                assert "and" in cleaned_line
-                # first seperating intermediate gate:
-                [cur_gate, cur_list] = cleaned_line.split("=")
-                cur_var_list = cur_list.strip("and(").strip(")").split(",")
-                # if empty gate, we make the list empty:
-                if cur_var_list == [""]:
-                    cur_var_list = []
-                cur_type = "and"
-            # all gates:
-            if int(cur_gate) not in self.all_gates:
-                self.all_gates.append(int(cur_gate))
-            self.parsed_gates.append((cur_type, cur_gate, cur_var_list))
-
-    # Reads qcir format:
-    # Parses prefix lines:
-    def parse_qcir_format(self):
-        """Parse QCIR format file and extract prefix, gates, and output gate."""
-        with open(self.input_file, "r", encoding="utf-8") as f:
-            qcir_lines = f.readlines()
-
-        prefix_lines = []
-        gate_lines = []
-
-        # seperate prefix, output gate and inner gates:
-        for line in qcir_lines:
-            # we strip if there are any next lines or empty spaces:
-            stripped_line = line.strip("\n").strip(" ")
-            # we ignore if comment or empty line:
-            if line == "":
-                continue
-            if line[0] == "#":
-                continue
-            # if exists/forall in the line then it is part of prefix:
-            if "exists" in stripped_line or "forall" in stripped_line:
-                prefix_lines.append(stripped_line)
-            elif "output" in stripped_line:
-                self.output_gate = int(stripped_line.strip(")").split("(")[-1])
-            else:
-                gate_lines.append(stripped_line)
-
-        # Parse prefix lines:
-        self.parse_prefix(prefix_lines)
-
-        # Parse gate lines:
-        self.parse_gates(gate_lines)
-
-    # we flip universal layers in first k layers and add assumption as a new intermediate gate:
-    def flip_and_assume(self, k, assum, assertion):
-        """Flip universal layers in first k layers and add assumptions as gates."""
-
-        flipped_and_assumed_string = ""
-        append_at_end = ""
-
-        for i, layer in enumerate(self.parsed_prefix):
-            layer_string = ",".join(str(x) for x in layer[1])
-            if i < k:
-                append_at_end += "exists(" + layer_string + ")\n"
-                # flipped_and_assumed_string += "exists(" + layer_string + ")\n"
-            elif layer[0] == "e":
-                flipped_and_assumed_string += "exists(" + layer_string + ")\n"
-            else:
-                flipped_and_assumed_string += "forall(" + layer_string + ")\n"
-
-        flipped_and_assumed_string += append_at_end
-
-        # we add the assertions cnf into the encoding:
-        new_gates = []
-        assertion_gates_string = ""
-        new_gate = self.output_gate
-        for clause in assertion:
-            new_gate += 1
-            assertion_gates_string += (
-                str(new_gate) + "=" + "or(" + ",".join(str(x) for x in clause) + ")\n"
-            )
-            new_gates.append(new_gate)
-
-        # new output gate, assert it is not in the existing gates:
-        new_output_gate = new_gate + 1
-        assert new_output_gate not in self.all_gates
-        flipped_and_assumed_string += "output(" + str(new_output_gate) + ")\n"
-
-        # printing all the gates to the file:
-        for line in self.parsed_gates:
-            flipped_and_assumed_string += (
-                line[1] + "=" + line[0] + "(" + ",".join(line[2]) + ")\n"
-            )
-
-        flipped_and_assumed_string += assertion_gates_string
-
-        # new output gate, with assumptions + self.output_gate:
-        temp_assum = list(assum)
-        temp_assum.append(self.output_gate)
-        # adding the gates from assertions:
-        temp_assum.extend(new_gates)
-        flipped_and_assumed_string += (
-            str(new_output_gate) + "=and(" + ",".join(str(x) for x in temp_assum) + ")"
-        )
-
-        return flipped_and_assumed_string
-
-    def __init__(self, input_qbf):
-        """Initialize parser with input QCIR file."""
+    def __init__(self, input_qbf: str):
         self.input_file = input_qbf
-        self.parsed_prefix = []
-        self.parsed_gates = []
-        # remembering all gates for future assumptions:
-        self.all_gates = []
-        # initialising to 0, cannot be 0 at the end:
-        self.output_gate = 0
+        self.instance = parse_qcir_file(input_qbf)
+        self.parsed_prefix = self.instance.parsed_prefix
+        self.parsed_gates = self.instance.parsed_gates
+        self.all_gates = self.instance.all_gates
+        self.output_gate = self.instance.output_gate
 
-        self.parse_qcir_format()
+    def flip_and_assume(
+        self, k: int, assum: Sequence[int], assertion: Sequence[Sequence[int]]
+    ) -> str:
+        """Flip the first ``k`` quantifier blocks and conjoin assumptions/assertions."""
+
+        rewritten_prefix: List[QuantifierBlock] = []
+        flipped_vars: List[int] = []
+        for index, (kind, variables) in enumerate(self.parsed_prefix):
+            if index < k:
+                flipped_vars.extend(variables)
+                continue
+            rewritten_prefix.append(QuantifierBlock(kind, variables))
+        if flipped_vars:
+            rewritten_prefix.append(QuantifierBlock("e", flipped_vars))
+
+        next_gate = max(self.all_gates + [self.output_gate])
+        assertion_gate_ids: List[int] = []
+        extra_gates = list(self.instance.gates)
+        for clause in assertion:
+            next_gate += 1
+            extra_gates.append(QCIRGate("or", next_gate, list(clause)))
+            assertion_gate_ids.append(next_gate)
+
+        next_gate += 1
+        new_output_gate = next_gate
+        output_inputs = list(assum) + [self.output_gate] + assertion_gate_ids
+        extra_gates.append(QCIRGate("and", new_output_gate, output_inputs))
+
+        flipped = QCIRInstance(
+            prefix=rewritten_prefix,
+            gates=extra_gates,
+            output_gate=new_output_gate,
+            comments=self.instance.comments,
+        )
+        return flipped.to_qcir()
+
+
+QCIRParser = PaserQCIR
