@@ -22,6 +22,7 @@ A comprehensive collection of tools and algorithms for Boolean satisfiability (S
 - **Boolean backbone**: multiple SAT-level algorithms for implied literal extraction
 - **Modal logic**: finite Kripke semantics, parsing, normalization, model utilities, bounded witness search
 - **Prime implicants / implicates**: SAT-based enumeration of minimal terms and clauses
+- **Three-valued logic**: strong/weak Kleene and related propositional reasoning helpers
 
 ### Usage
 
@@ -68,5 +69,6 @@ backbone, calls = compute_backbone(CNF(from_clauses=[[1, 2], [-1, 3], [-2, 3]]))
 - `nnf/`: Negation normal form reasoning
 - `backbone/`: Boolean backbone computation
 - `prime/`: Prime implicant and prime implicate enumeration
+- `threeval/`: three-valued propositional semantics, parsing, and reasoning
 - `qbf/`: Quantified Boolean formula support
 - `sat/`: Core SAT solver implementations

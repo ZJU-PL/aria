@@ -2,6 +2,7 @@
 
 ARIA ships several SMT subpackages aimed at different fragments and solving strategies:
 
+- `adt`: algebraic datatype solving for quantifier-free datatype formulas, with a generic fallback for mixed ADT fragments.
 - `arith`: incremental linearization for non-linear arithmetic, plus helpers for LRA theory, MiniSAT CNF export, and Mathematica bridges.
 - `bv`: bit-vector infrastructure including mapped/unmapped BLAST bit-blasting and QF_BV / QF_AUFBV solver front-ends.
 - `bwind`: bit-width independence bit-vector solving (by translating to quantified integer formulas)

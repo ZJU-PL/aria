@@ -1,5 +1,6 @@
 """SMT solving and utilities.
 
+- adt: for algebraic datatype constraints
 - arith: for arithmetic constraints
 - bv: for bit-vector constraints
 - fp: for floating point constraints
@@ -9,6 +10,7 @@
 """
 
 __all__ = [
+    "adt",
     "arith",
     "bv",
     "fp",
