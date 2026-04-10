@@ -193,8 +193,9 @@ space and the default projection space.
 For `QF_DT` and `QF_UFDT`, `SamplingOptions(..., include_selector_closure=True)`
 adds a bounded one-level selector closure:
 
-- if constructor evidence such as `box == some(x)` or `is_some(box)` appears,
-  selector observations like `value(box)` become available
+- if positive top-level constructor evidence such as `box == some(x)` or
+  `is_some(box)` appears, selector observations like `value(box)` become
+  available
 - constructor evidence is propagated across datatype equalities, so aliases such
   as `box == tag(x)` can expose `value(tag(x))`
 - closure is intentionally bounded to one level to avoid term explosion

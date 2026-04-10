@@ -103,6 +103,54 @@ def _find_recognizer_constructor_index(
     return None
 
 
+def _collect_positive_equality_classes(
+    formula: z3.ExprRef,
+) -> Dict[int, List[z3.ExprRef]]:
+    """Collect positive top-level equality classes for ground terms."""
+    terms_by_id: Dict[int, z3.ExprRef] = {}
+    adjacency: Dict[int, Set[int]] = {}
+
+    def register_term(term: z3.ExprRef) -> None:
+        term_id = _ast_id(term)
+        terms_by_id[term_id] = term
+        adjacency.setdefault(term_id, set())
+
+    for expr in _positive_conjuncts(formula):
+        if not z3.is_eq(expr):
+            continue
+        lhs, rhs = expr.children()
+        if lhs.sort() != rhs.sort():
+            continue
+        register_term(lhs)
+        register_term(rhs)
+        lhs_id = _ast_id(lhs)
+        rhs_id = _ast_id(rhs)
+        adjacency[lhs_id].add(rhs_id)
+        adjacency[rhs_id].add(lhs_id)
+
+    classes: Dict[int, List[z3.ExprRef]] = {}
+    visited: Set[int] = set()
+    for term_id in terms_by_id:
+        if term_id in visited:
+            continue
+        stack = [term_id]
+        visited.add(term_id)
+        members: List[z3.ExprRef] = []
+        while stack:
+            current_id = stack.pop()
+            members.append(terms_by_id[current_id])
+            for neighbor_id in adjacency[current_id]:
+                if neighbor_id in visited:
+                    continue
+                visited.add(neighbor_id)
+                stack.append(neighbor_id)
+        members = _sorted_unique_terms(members)
+        for member in members:
+            classes[_ast_id(member)] = members
+
+    return classes
+
+
 def _collect_datatype_aliases_and_hints(
     formula: z3.ExprRef,
 ) -> Dict[int, Dict[str, Any]]:
@@ -345,6 +393,41 @@ def collect_ground_uf_terms(formula: z3.ExprRef) -> List[z3.ExprRef]:
         if expr.num_args() > 0 and expr.decl().kind() == z3.Z3_OP_UNINTERPRETED:
             terms.append(expr)
     return _sorted_unique_terms(terms)
+
+
+def collect_uf_observable_terms(
+    formula: z3.ExprRef,
+    include_congruence_closure: bool = True,
+) -> List[z3.ExprRef]:
+    """Collect UF observables, optionally closed under positive equalities."""
+    base_terms = collect_ground_uf_terms(formula)
+    if not include_congruence_closure:
+        return base_terms
+
+    equality_classes = _collect_positive_equality_classes(formula)
+    expanded_terms: List[z3.ExprRef] = list(base_terms)
+
+    for term in base_terms:
+        if term.num_args() == 0 or term.decl().kind() != z3.Z3_OP_UNINTERPRETED:
+            continue
+
+        arg_choices: List[List[z3.ExprRef]] = []
+        for arg in term.children():
+            arg_choices.append(equality_classes.get(_ast_id(arg), [arg]))
+
+        candidate_args_lists: List[List[z3.ExprRef]] = [[]]
+        for choices in arg_choices:
+            next_lists: List[List[z3.ExprRef]] = []
+            for prefix in candidate_args_lists:
+                for choice in choices:
+                    next_lists.append(prefix + [choice])
+            candidate_args_lists = next_lists
+
+        for candidate_args in candidate_args_lists:
+            candidate_term = term.decl()(*candidate_args)
+            expanded_terms.append(candidate_term)
+
+    return _sorted_unique_terms(expanded_terms)
 
 
 def collect_datatype_observable_terms(

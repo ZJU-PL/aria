@@ -35,6 +35,7 @@ pip install z3-solver
 - **QF_UF**: Quantifier-free uninterpreted functions
 - **QF_DT**: Quantifier-free algebraic datatypes
 - **QF_UFDT**: Quantifier-free uninterpreted functions with datatypes
+- **QF_DTLIA**: Quantifier-free algebraic datatypes with linear integer arithmetic
 - **QF_LRA**: Quantifier-free linear real arithmetic
 - **QF_LIA**: Quantifier-free linear integer arithmetic
 - **QF_NRA**: Quantifier-free non-linear real arithmetic
@@ -92,7 +93,45 @@ bv_result = sample_models_from_formula(bv_formula, Logic.QF_BV, options)
 i, j = z3.Ints('i j')
 lia_formula = z3.And(i + j > 0, i - j < 10)
 lia_result = sample_models_from_formula(lia_formula, Logic.QF_LIA, options)
+
+# Datatypes + linear integer arithmetic
+maybe = z3.Datatype('MaybeInt')
+maybe.declare('none')
+maybe.declare('some', ('value', z3.IntSort()))
+maybe = maybe.create()
+x = z3.Int('x')
+box = z3.Const('box', maybe)
+dtlia_formula = z3.And(x >= 0, x <= 2, box == maybe.some(x))
+dtlia_result = sample_models_from_formula(
+    dtlia_formula,
+    Logic.QF_DTLIA,
+    SamplingOptions(num_samples=10, include_selector_closure=True),
+)
+
+# Shape-first DTLIA sampling with diversity-aware selection
+shape_result = sample_models_from_formula(
+    dtlia_formula,
+    Logic.QF_DTLIA,
+    SamplingOptions(
+        method=SamplingMethod.SEARCH_TREE,
+        num_samples=3,
+        include_selector_closure=True,
+        max_shapes=4,
+        candidates_per_shape=4,
+        diversity_mode="max_distance",
+    ),
+)
 ```
+
+`QF_DTLIA` now supports two practical modes:
+
+- `ENUMERATION`: direct projected model enumeration over integer variables and
+  datatype observables
+- `SEARCH_TREE`: shape-first sampling that
+  - enumerates ADT constructor shapes first
+  - lowers each shape to a residual arithmetic problem
+  - samples integer payloads per shape
+  - can use `diversity_mode="max_distance"` for mixed-theory spread
 
 ### Advanced Usage
 

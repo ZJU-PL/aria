@@ -12,6 +12,7 @@ from aria.sampling.finite_domain.bv.base import BitVectorSampler
 from aria.sampling.finite_domain.dt.base import DatatypeSampler
 from aria.sampling.finite_domain.uf.base import UninterpretedFunctionSampler
 from aria.sampling.finite_domain.ufdt.base import MixedUFDatatypeSampler
+from aria.sampling.linear_ira.adt_lia_sampler import ADTLIASampler
 from aria.sampling.linear_ira.lira_sampler import LIRASampler
 from aria.sampling.general_sampler.mcmc_sampler import MCMCSampler
 
@@ -65,6 +66,7 @@ SamplerFactory.register(Logic.QF_BV, BitVectorSampler)
 SamplerFactory.register(Logic.QF_UF, UninterpretedFunctionSampler)
 SamplerFactory.register(Logic.QF_DT, DatatypeSampler)
 SamplerFactory.register(Logic.QF_UFDT, MixedUFDatatypeSampler)
+SamplerFactory.register(Logic.QF_DTLIA, ADTLIASampler)
 
 for _logic in (Logic.QF_LRA, Logic.QF_LIA, Logic.QF_LIRA):
     SamplerFactory.register(_logic, LIRASampler)

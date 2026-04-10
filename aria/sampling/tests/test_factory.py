@@ -99,6 +99,28 @@ class TestSampleModelsFromFormula:
         except ValueError as e:
             pytest.skip(f"Sampler not available: {e}")
 
+    def test_sample_adt_lia_formula(self):
+        """Test sampling from a mixed datatype + linear integer formula."""
+        maybe = z3.Datatype("MaybeIntFactoryTest")
+        maybe.declare("none")
+        maybe.declare("some", ("value", z3.IntSort()))
+        maybe = maybe.create()
+
+        x = z3.Int("x")
+        box = z3.Const("box", maybe)
+        formula = z3.And(x >= 0, x <= 1, box == maybe.some(x))
+
+        try:
+            result = sample_models_from_formula(
+                formula,
+                Logic.QF_DTLIA,
+                SamplingOptions(num_samples=10, include_selector_closure=True),
+            )
+            assert len(result) == 2
+            assert {sample["x"] for sample in result} == {0, 1}
+        except ValueError as e:
+            pytest.skip(f"Sampler not available: {e}")
+
     def test_sample_with_random_seed(self):
         """Test random seed reproducibility."""
         x = z3.Int("x")

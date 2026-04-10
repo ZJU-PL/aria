@@ -15,7 +15,7 @@ from aria.sampling.base import (
 )
 from aria.sampling.finite_domain.common import (
     collect_datatype_observable_terms,
-    collect_ground_uf_terms,
+    collect_uf_observable_terms,
     enumerate_projected_models,
 )
 from aria.utils.z3.expr import get_variables
@@ -41,7 +41,7 @@ class MixedUFDatatypeSampler(Sampler):
     def init_from_formula(self, formula: z3.ExprRef) -> None:
         self.formula = formula
         self.constants = sorted(get_variables(formula), key=str)
-        self.function_terms = collect_ground_uf_terms(formula)
+        self.function_terms = collect_uf_observable_terms(formula)
         datatype_terms = collect_datatype_observable_terms(
             formula, include_selector_closure=False
         )
