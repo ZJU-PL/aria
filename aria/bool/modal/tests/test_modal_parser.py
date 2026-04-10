@@ -6,7 +6,9 @@ from aria.bool.modal import (
     Box,
     Constant,
     Diamond,
+    format_formula,
     Formula,
+    Iff,
     Implies,
     KripkeModel,
     ModalSyntaxError,
@@ -15,6 +17,7 @@ from aria.bool.modal import (
     eliminate_implications,
     parse_formula,
     satisfies,
+    simplify,
     to_nnf,
 )
 
@@ -57,6 +60,29 @@ def test_parse_formula_supports_constants_and_unicode_aliases() -> None:
     assert parse_formula("⊥") == Constant(False)
 
 
+def test_parse_formula_supports_biconditionals() -> None:
+    assert parse_formula("p <-> q -> r") == Iff(
+        Atom("p"), Implies(Atom("q"), Atom("r"))
+    )
+    assert parse_formula("p ↔ q") == Iff(Atom("p"), Atom("q"))
+
+
+def test_format_formula_round_trips_in_ascii_and_unicode() -> None:
+    formula = Box(Implies(Atom("p"), Diamond(Not(Atom("q")))))
+
+    assert format_formula(formula) == "[](p -> <>!q)"
+    assert parse_formula(format_formula(formula)) == formula
+    assert format_formula(formula, unicode=True) == "□(p → ◇¬q)"
+    assert parse_formula(format_formula(formula, unicode=True)) == formula
+
+
+def test_format_formula_round_trips_biconditionals() -> None:
+    formula = Iff(Atom("p"), Implies(Atom("q"), Diamond(Atom("r"))))
+
+    assert format_formula(formula) == "p <-> q -> <>r"
+    assert parse_formula(format_formula(formula)) == formula
+
+
 @pytest.mark.parametrize(
     "text",
     [
@@ -80,6 +106,21 @@ def test_eliminate_implications_removes_implication_nodes() -> None:
         Not(Atom("p")),
         Or(Not(Box(Atom("q"))), Diamond(Atom("r"))),
     )
+
+
+def test_eliminate_implications_removes_biconditional_nodes() -> None:
+    formula = parse_formula("p <-> q")
+
+    assert eliminate_implications(formula) == And(
+        Or(Not(Atom("p")), Atom("q")),
+        Or(Not(Atom("q")), Atom("p")),
+    )
+
+
+def test_simplify_applies_boolean_and_modal_identities() -> None:
+    assert simplify(parse_formula("(p & true) <-> !!p")) == Constant(True)
+    assert simplify(parse_formula("[]true")) == Constant(True)
+    assert simplify(parse_formula("<>false")) == Constant(False)
 
 
 def test_to_nnf_pushes_negations_through_modal_operators() -> None:

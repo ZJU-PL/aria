@@ -3,20 +3,19 @@
 from __future__ import annotations
 
 import re
-import sys
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import TYPE_CHECKING, List, Optional
 
-# Lazy import to avoid cycle
-def _Formula():
-    from . import Formula
-    return Formula
+if TYPE_CHECKING:
+    from .formula import Formula
 
 
 _ATOM_PATTERN = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 _SYMBOL_TOKENS = (
     "[]",
     "<>",
+    "<->",
+    "<=>",
     "->",
     "(",
     ")",
@@ -27,6 +26,7 @@ _SYMBOL_TOKENS = (
     "∧",
     "∨",
     "→",
+    "↔",
     "□",
     "◇",
     "⊤",
@@ -50,7 +50,7 @@ class _Parser:
         self._index = 0
 
     def parse(self) -> "Formula":
-        formula = self._parse_implication()
+        formula = self._parse_biconditional()
         if self._peek() is not None:
             token = self._peek()
             assert token is not None
@@ -59,8 +59,19 @@ class _Parser:
             )
         return formula
 
+    def _parse_biconditional(self) -> "Formula":
+        from .formula import Iff
+
+        formula = self._parse_implication()
+        while True:
+            token = self._peek()
+            if token is None or token.value not in {"<->", "<=>", "↔"}:
+                return formula
+            self._advance()
+            formula = Iff(formula, self._parse_implication())
+
     def _parse_implication(self) -> "Formula":
-        from . import Implies
+        from .formula import Implies
 
         left = self._parse_disjunction()
         token = self._peek()
@@ -70,7 +81,7 @@ class _Parser:
         return left
 
     def _parse_disjunction(self) -> "Formula":
-        from . import Or
+        from .formula import Or
 
         formula = self._parse_conjunction()
         while True:
@@ -81,7 +92,7 @@ class _Parser:
             formula = Or(formula, self._parse_conjunction())
 
     def _parse_conjunction(self) -> "Formula":
-        from . import And
+        from .formula import And
 
         formula = self._parse_unary()
         while True:
@@ -105,7 +116,7 @@ class _Parser:
 
         if token.value == "(":
             self._advance()
-            formula = self._parse_implication()
+            formula = self._parse_biconditional()
             closing = self._peek()
             if closing is None or closing.value != ")":
                 raise ModalSyntaxError(
@@ -117,7 +128,7 @@ class _Parser:
         return self._parse_atom_or_constant()
 
     def _parse_atom_or_constant(self) -> "Formula":
-        from . import Atom
+        from .formula import Atom
 
         constant_tokens = _constant_tokens()
         token = self._peek()
@@ -178,7 +189,7 @@ def _tokenize(text: str) -> List[_Token]:
 
 
 def _constant_tokens():
-    from . import Constant
+    from .formula import Constant
 
     return {
         "true": Constant(True),
@@ -189,7 +200,7 @@ def _constant_tokens():
 
 
 def _unary_tokens():
-    from . import Box, Diamond, Not
+    from .formula import Box, Diamond, Not
 
     return {
         "!": Not,

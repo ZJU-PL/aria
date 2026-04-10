@@ -12,15 +12,23 @@ EXPECTED_API = (
     "And",
     "Or",
     "Implies",
+    "Iff",
     "Box",
     "Diamond",
     "FrameLogic",
     "KripkeModel",
     "CountermodelWitness",
+    "ModelWitness",
+    "formula_size",
+    "modal_depth",
+    "subformulas",
+    "format_formula",
+    "simplify",
     "satisfies",
     "is_valid",
     "entails",
     "validate_frame",
+    "find_model",
     "find_countermodel",
     "find_entailment_countermodel",
 )
@@ -76,6 +84,30 @@ def make_t_model(modal_api: Dict[str, Any]) -> Any:
         worlds={"w"},
         relation={("w", "w")},
         valuation={"p": set()},
+    )
+
+
+def make_serial_not_reflexive_model(modal_api: Dict[str, Any]) -> Any:
+    return modal_api["KripkeModel"](
+        worlds={"a", "b"},
+        relation={("a", "b"), ("b", "a")},
+        valuation={},
+    )
+
+
+def make_b_model(modal_api: Dict[str, Any]) -> Any:
+    return modal_api["KripkeModel"](
+        worlds={"a", "b"},
+        relation={("a", "a"), ("b", "b"), ("a", "b"), ("b", "a")},
+        valuation={},
+    )
+
+
+def make_transitive_non_reflexive_model(modal_api: Dict[str, Any]) -> Any:
+    return modal_api["KripkeModel"](
+        worlds={"a", "b"},
+        relation={("a", "b")},
+        valuation={},
     )
 
 
@@ -147,6 +179,7 @@ def test_formula_nodes_share_base_type_and_support_local_boolean_semantics(
     and_ = modal_api["And"]
     or_ = modal_api["Or"]
     implies = modal_api["Implies"]
+    iff = modal_api["Iff"]
     box = modal_api["Box"]
     diamond = modal_api["Diamond"]
     satisfies = modal_api["satisfies"]
@@ -164,6 +197,8 @@ def test_formula_nodes_share_base_type_and_support_local_boolean_semantics(
     assert satisfies(model, "w", or_(q, p))
     assert not satisfies(model, "w", implies(p, q))
     assert satisfies(model, "w", implies(q, p))
+    assert satisfies(model, "w", iff(p, constant(True)))
+    assert not satisfies(model, "w", iff(p, q))
 
 
 def test_bad_formula_operands_raise_type_error(modal_api: Dict[str, Any]):
@@ -275,12 +310,17 @@ def test_satisfies_rejects_unknown_worlds(modal_api: Dict[str, Any]):
 
 def test_kripke_model_exposes_relation_property_checks(modal_api: Dict[str, Any]):
     t_model = make_t_model(modal_api)
+    d_model = make_serial_not_reflexive_model(modal_api)
     s4_model = make_reflexive_non_transitive_model(modal_api)
     s5_model = make_s5_model(modal_api)
 
     assert t_model.is_reflexive()
     assert t_model.is_transitive()
     assert t_model.is_symmetric()
+    assert t_model.is_serial()
+
+    assert d_model.is_serial()
+    assert not d_model.is_reflexive()
 
     assert s4_model.is_reflexive()
     assert not s4_model.is_transitive()
@@ -295,21 +335,64 @@ def test_frame_validation_distinguishes_k_t_s4_and_s5(modal_api: Dict[str, Any])
     frame_logic = modal_api["FrameLogic"]
     validate_frame = modal_api["validate_frame"]
     k_model = make_dead_end_model(modal_api)
+    d_model = make_serial_not_reflexive_model(modal_api)
     t_model = make_t_model(modal_api)
+    b_model = make_b_model(modal_api)
+    k4_model = make_transitive_non_reflexive_model(modal_api)
     non_s4_model = make_reflexive_non_transitive_model(modal_api)
     s4_model = make_s4_not_s5_model(modal_api)
     s5_model = make_s5_model(modal_api)
 
     assert validate_frame(k_model, frame_logic.K)
+    assert not validate_frame(k_model, frame_logic.D)
     assert not validate_frame(k_model, frame_logic.T)
 
+    assert validate_frame(d_model, frame_logic.D)
     assert validate_frame(t_model, frame_logic.T)
+    assert validate_frame(b_model, frame_logic.B)
+
+    assert validate_frame(k4_model, frame_logic.K4)
+    assert not validate_frame(k4_model, frame_logic.T)
     assert not validate_frame(non_s4_model, frame_logic.S4)
 
     assert validate_frame(s4_model, frame_logic.S4)
     assert not validate_frame(s4_model, frame_logic.S5)
 
     assert validate_frame(s5_model, frame_logic.S5)
+
+
+def test_kripke_model_reachability_and_generated_submodels(modal_api: Dict[str, Any]):
+    model = modal_api["KripkeModel"](
+        worlds={"root", "left", "right", "leaf", "isolated"},
+        relation={
+            ("root", "left"),
+            ("left", "leaf"),
+            ("root", "right"),
+            ("isolated", "isolated"),
+        },
+        valuation={"p": {"root", "leaf", "isolated"}},
+    )
+
+    assert model.predecessors("leaf") == frozenset({"left"})
+    assert model.reachable_worlds("root") == frozenset(
+        {"root", "left", "right", "leaf"}
+    )
+
+    submodel = model.generated_submodel("root")
+
+    assert submodel.worlds == frozenset({"root", "left", "right", "leaf"})
+    assert ("isolated", "isolated") not in submodel.relation
+    assert submodel.truth_set("p") == frozenset({"root", "leaf"})
+
+
+def test_restrict_to_worlds_validates_input(modal_api: Dict[str, Any]):
+    model = make_branching_model(modal_api)
+
+    with pytest.raises(ValueError):
+        model.restrict_to_worlds(set())
+
+    with pytest.raises(ValueError):
+        model.restrict_to_worlds({"ghost"})
 
 
 def test_frame_aware_validity_checks_reject_incompatible_models(
@@ -353,6 +436,86 @@ def test_find_countermodel_respects_t_frames(modal_api: Dict[str, Any]):
     formula = implies(box(atom("p")), atom("p"))
 
     assert find_countermodel(formula, logic="T", max_worlds=2) is None
+
+
+def test_find_model_returns_bounded_witness(modal_api: Dict[str, Any]):
+    atom = modal_api["Atom"]
+    diamond = modal_api["Diamond"]
+    find_model = modal_api["find_model"]
+    satisfies = modal_api["satisfies"]
+    witness = find_model(diamond(atom("p")), logic="D", max_worlds=2)
+
+    assert witness is not None
+    assert witness.world in witness.model.worlds
+    assert satisfies(witness.model, witness.world, diamond(atom("p")))
+    assert all(witness.model.successors(world) for world in witness.model.worlds)
+
+
+def test_z3_backend_matches_exhaustive_model_search(modal_api: Dict[str, Any]):
+    atom = modal_api["Atom"]
+    box = modal_api["Box"]
+    diamond = modal_api["Diamond"]
+    and_ = modal_api["And"]
+    find_model = modal_api["find_model"]
+    formula = and_(diamond(atom("p")), box(diamond(atom("p"))))
+
+    exhaustive = find_model(formula, logic="K", max_worlds=2, backend="exhaustive")
+    solver_witness = find_model(formula, logic="K", max_worlds=2, backend="z3")
+
+    assert exhaustive is not None
+    assert solver_witness is not None
+    assert solver_witness.model.worlds == exhaustive.model.worlds
+
+
+def test_z3_backend_matches_exhaustive_countermodel_search(modal_api: Dict[str, Any]):
+    atom = modal_api["Atom"]
+    box = modal_api["Box"]
+    implies = modal_api["Implies"]
+    find_countermodel = modal_api["find_countermodel"]
+    formula = implies(box(atom("p")), atom("p"))
+
+    exhaustive = find_countermodel(formula, logic="K", max_worlds=1, backend="exhaustive")
+    solver_witness = find_countermodel(formula, logic="K", max_worlds=1, backend="z3")
+
+    assert exhaustive is not None
+    assert solver_witness is not None
+    assert solver_witness.model.relation == exhaustive.model.relation
+
+
+def test_find_model_returns_none_when_bound_is_too_small(modal_api: Dict[str, Any]):
+    atom = modal_api["Atom"]
+    diamond = modal_api["Diamond"]
+    box = modal_api["Box"]
+    and_ = modal_api["And"]
+    find_model = modal_api["find_model"]
+    formula = and_(diamond(atom("p")), box(modal_api["Not"](atom("p"))))
+
+    assert find_model(formula, logic="K", max_worlds=1) is None
+
+
+def test_formula_utility_helpers_measure_and_collect_structure(
+    modal_api: Dict[str, Any],
+):
+    atom = modal_api["Atom"]
+    and_ = modal_api["And"]
+    box = modal_api["Box"]
+    diamond = modal_api["Diamond"]
+    formula_size = modal_api["formula_size"]
+    modal_depth = modal_api["modal_depth"]
+    subformulas = modal_api["subformulas"]
+    formula = box(and_(atom("p"), diamond(atom("q"))))
+
+    assert formula_size(formula) == 5
+    assert modal_depth(formula) == 2
+    assert subformulas(formula) == frozenset(
+        {
+            formula,
+            and_(atom("p"), diamond(atom("q"))),
+            atom("p"),
+            diamond(atom("q")),
+            atom("q"),
+        }
+    )
 
 
 def test_find_countermodel_separates_t_from_s4(modal_api: Dict[str, Any]):

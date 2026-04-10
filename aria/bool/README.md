@@ -20,6 +20,7 @@ A comprehensive collection of tools and algorithms for Boolean satisfiability (S
 - **Knowledge compilation**: DNNF, OBDD compilation from logical formulas
 - **Boolean interpolation**: Proof-based and core-based algorithms
 - **Boolean backbone**: multiple SAT-level algorithms for implied literal extraction
+- **Modal logic**: finite Kripke semantics, parsing, normalization, model utilities, bounded witness search
 - **Prime implicants / implicates**: SAT-based enumeration of minimal terms and clauses
 
 ### Usage
@@ -63,6 +64,7 @@ backbone, calls = compute_backbone(CNF(from_clauses=[[1, 2], [-1, 3], [-2, 3]]))
 - `interpolant/`: Boolean interpolation algorithms
 - `knowledge_compiler/`: Knowledge compilation to DNNF/OBDD
 - `maxsat/`: Maximum satisfiability solvers
+- `modal/`: finite-model modal reasoning and bounded countermodel search
 - `nnf/`: Negation normal form reasoning
 - `backbone/`: Boolean backbone computation
 - `prime/`: Prime implicant and prime implicate enumeration
