@@ -606,7 +606,7 @@ def parse_arguments():
         "--llm4inv-remote-model",
         type=str,
         default="deepseek-v3",
-        help="Remote model for LLM4Inv: deepseek-v3, glm-4-flash, etc. (default: deepseek-v3)",
+        help="Remote model for LLM4Inv: deepseek-v3, gpt-4o, etc. (default: deepseek-v3)",
     )
     llm4inv_group.add_argument(
         "--llm4inv-temperature",

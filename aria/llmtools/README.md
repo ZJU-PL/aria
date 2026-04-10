@@ -14,7 +14,7 @@ LLM inference with routing across online and local providers.
   - `base`: `LLMProvider` (async chat API), `error_response`, `parse_openai_chat_response`.
   - `adapters`: `AsyncChatProvider`, `OpenAICompatibleProvider`, `build_messages`.
   - `online/`: OpenAI, Claude, Gemini, DeepSeek.
-  - `local/`: Codex, LM Studio, vLLM, SGLang.
+  - `local/`: LM Studio, vLLM, SGLang.
 
 - **`routing.py`** – Model-name and provider-hint routing; `resolve_provider()`.
 

@@ -2,7 +2,7 @@
 Provider modules are split by deployment target:
 
 - `online/`: hosted providers reached directly through Python SDKs or HTTP APIs, such as OpenAI-compatible endpoints, Gemini, Claude, and DeepSeek.
-- `local/`: self-hosted or workstation-local providers, such as LM Studio, vLLM, SGLang, and the local Codex-compatible endpoint.
+- `local/`: self-hosted or workstation-local providers, such as LM Studio, vLLM, and SGLang.
 
 Cross-cutting provider helpers live alongside those implementations:
 

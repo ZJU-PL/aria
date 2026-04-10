@@ -9,7 +9,7 @@ from aria.llmtools.providers.adapters import OpenAICompatibleProvider
 class OpenAIProvider(OpenAICompatibleProvider):
     """OpenAI provider for GPT models."""
 
-    default_model = "gpt-5.2"
+    default_model = "gpt-5.4"
     api_key_envs = ("OPENAI_API_KEY",)
 
     def should_send_temperature(self, model_name: str) -> bool:

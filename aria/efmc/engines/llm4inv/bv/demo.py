@@ -57,7 +57,7 @@ def main():
     logger.info("Starting LLM4Inv Demo")
     config = {
         "timeout": 300, "max_iterations": 5, "max_candidates_per_iter": 3,
-        "bit_width": 32, "llm_provider": "local", "llm_model": "gpt-5.2",
+        "bit_width": 32, "llm_provider": "local", "llm_model": "gpt-5.4",
         "temperature": 0.1, "max_output_length": 4096, "measure_cost": False,
         "local_provider": "tingly", "local_base_url": "http://localhost:12580/tingly/openai",
         "local_api_key": os.environ.get("TINGLY_API_KEY", ""), "local_max_retries": 3,

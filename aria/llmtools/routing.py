@@ -56,22 +56,6 @@ def _starts_with_lower(prefix: str) -> Matcher:
 
 ROUTED_PROVIDERS: Sequence[Route] = (
     Route(
-        matches=_contains("openai-codex"),
-        provider=ProviderSpec(
-            "aria.llmtools.providers.local.codex",
-            "CodexProvider",
-            100,
-        ),
-    ),
-    Route(
-        matches=_contains("openai_codex"),
-        provider=ProviderSpec(
-            "aria.llmtools.providers.local.codex",
-            "CodexProvider",
-            100,
-        ),
-    ),
-    Route(
         matches=_starts_with_lower("gpt"),
         provider=ProviderSpec(
             "aria.llmtools.providers.online.openai",
@@ -119,22 +103,9 @@ ROUTED_PROVIDERS: Sequence[Route] = (
             100,
         ),
     ),
-    Route(
-        matches=_contains("glm"),
-        provider=ProviderSpec(
-            "aria.llmtools.providers.online.glm",
-            "GLMProvider",
-            100,
-        ),
-    ),
 )
 
 PROVIDER_HINTS: Dict[str, ProviderSpec] = {
-    "codex": ProviderSpec(
-        "aria.llmtools.providers.local.codex",
-        "CodexProvider",
-        100,
-    ),
     "lm-studio": ProviderSpec(
         "aria.llmtools.providers.local.lm_studio",
         "LMStudioProvider",
