@@ -17,6 +17,11 @@ Enumeration-based sampler for datatype-valued variables using blocking clauses.
 - Constructor values are returned as strings for nullary constructors.
 - Non-nullary constructor values are returned as structured dictionaries with
   `constructor` and `fields`.
+- Datatype selectors and testers that appear in the formula are also valid
+  projection/output terms.
+- `include_selector_closure=True` exposes one level of selector observations
+  implied by constructor equalities or recognizers, such as `value(box)` when
+  the formula contains `box == some(x)` or `is_some(box)`.
 - Use `projection_terms=[x, y]` to enumerate unique assignments only over the
   selected datatype variables.
 - Use `return_full_model=True` to return all tracked datatype variables while

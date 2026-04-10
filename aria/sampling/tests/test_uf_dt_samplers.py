@@ -109,6 +109,48 @@ class TestUninterpretedFunctionSampler:
         assert all(set(sample.keys()) == {"y"} for sample in result)
         assert {sample["y"] for sample in result} == {"red", "green"}
 
+    def test_equal_arguments_preserve_uf_congruence(self):
+        color, (red, green) = z3.EnumSort("ColorUFCongruence", ["red", "green"])
+        x = z3.Const("x", color)
+        y = z3.Const("y", color)
+        f = z3.Function("f", color, color)
+        formula = cast(
+            z3.ExprRef,
+            z3.And(x == y, z3.Or(x == red, x == green), f(x) == red),
+        )
+
+        sampler = UninterpretedFunctionSampler()
+        sampler.init_from_formula(formula)
+        result = sampler.sample(
+            SamplingOptions(num_samples=5, tracked_terms=[f(x), f(y)])
+        )
+
+        assert len(result) == 2
+        for sample in result:
+            assert sample["f(x)"] == "red"
+            assert sample["f(y)"] == "red"
+
+    def test_nested_ground_uf_terms_are_tracked(self):
+        color, (red, green) = z3.EnumSort("ColorUFNested", ["red", "green"])
+        x = z3.Const("x", color)
+        g = z3.Function("g", color, color)
+        f = z3.Function("f", color, color)
+        formula = cast(
+            z3.ExprRef,
+            z3.And(z3.Or(x == red, x == green), g(x) == red, f(g(x)) == green),
+        )
+
+        sampler = UninterpretedFunctionSampler()
+        sampler.init_from_formula(formula)
+        result = sampler.sample(
+            SamplingOptions(num_samples=10, tracked_terms=["g(x)", "f(g(x))"])
+        )
+
+        assert len(result) == 2
+        for sample in result:
+            assert sample["g(x)"] == "red"
+            assert sample["f(g(x))"] == "green"
+
 
 class TestDatatypeSampler:
     """Test cases for DatatypeSampler."""
@@ -196,6 +238,102 @@ class TestDatatypeSampler:
         assert len(result) == 2
         assert all(set(sample.keys()) == {"x", "y"} for sample in result)
         assert {sample["x"] for sample in result} == {"red", "green"}
+
+    def test_selector_terms_can_be_projected(self):
+        color, (red, green) = z3.EnumSort("DatatypeSelectorColor", ["red", "green"])
+        maybe = z3.Datatype("DatatypeSelectorMaybe")
+        maybe.declare("none")
+        maybe.declare("some", ("value", color))
+        maybe = maybe.create()
+
+        box = z3.Const("box", maybe)
+        formula = cast(z3.ExprRef, z3.And(box != maybe.none, maybe.value(box) == red))
+
+        sampler = DatatypeSampler()
+        sampler.init_from_formula(formula)
+        result = sampler.sample(
+            SamplingOptions(num_samples=10, projection_terms=["value(box)"])
+        )
+
+        assert len(result) == 1
+        assert result[0] == {"value(box)": "red"}
+
+    def test_selector_closure_adds_payload_observation(self):
+        color, (red, green) = z3.EnumSort("DatatypeClosureColor", ["red", "green"])
+        maybe = z3.Datatype("DatatypeClosureMaybe")
+        maybe.declare("none")
+        maybe.declare("some", ("value", color))
+        maybe = maybe.create()
+
+        payload = z3.Const("payload", color)
+        box = z3.Const("box", maybe)
+        formula = cast(
+            z3.ExprRef,
+            z3.And(
+                z3.Or(payload == red, payload == green),
+                box == maybe.some(payload),
+            ),
+        )
+
+        sampler = DatatypeSampler()
+        sampler.init_from_formula(formula)
+        result = sampler.sample(
+            SamplingOptions(
+                num_samples=10,
+                projection_terms=["value(box)"],
+                include_selector_closure=True,
+            )
+        )
+
+        assert len(result) == 2
+        assert {sample["value(box)"] for sample in result} == {"red", "green"}
+
+    def test_selector_closure_does_not_use_disjunctive_constructor_hints(self):
+        color, (red, green) = z3.EnumSort("DatatypeDisjunctiveColor", ["red", "green"])
+        maybe = z3.Datatype("DatatypeDisjunctiveMaybe")
+        maybe.declare("none")
+        maybe.declare("some", ("value", color))
+        maybe = maybe.create()
+
+        box = z3.Const("box", maybe)
+        formula = cast(
+            z3.ExprRef,
+            z3.Or(box == maybe.none, box == maybe.some(red)),
+        )
+
+        sampler = DatatypeSampler()
+        sampler.init_from_formula(formula)
+
+        with pytest.raises(ValueError, match="Unknown projection term"):
+            sampler.sample(
+                SamplingOptions(
+                    num_samples=10,
+                    projection_terms=["value(box)"],
+                    include_selector_closure=True,
+                )
+            )
+
+    def test_selector_closure_does_not_use_negated_recognizers(self):
+        color, (red, green) = z3.EnumSort("DatatypeNegatedColor", ["red", "green"])
+        maybe = z3.Datatype("DatatypeNegatedMaybe")
+        maybe.declare("none")
+        maybe.declare("some", ("value", color))
+        maybe = maybe.create()
+
+        box = z3.Const("box", maybe)
+        formula = cast(z3.ExprRef, z3.Not(maybe.is_some(box)))
+
+        sampler = DatatypeSampler()
+        sampler.init_from_formula(formula)
+
+        with pytest.raises(ValueError, match="Unknown projection term"):
+            sampler.sample(
+                SamplingOptions(
+                    num_samples=10,
+                    projection_terms=["value(box)"],
+                    include_selector_closure=True,
+                )
+            )
 
 
 class TestMixedUFDatatypeSampler:
@@ -298,6 +436,129 @@ class TestMixedUFDatatypeSampler:
     def test_factory_registration(self):
         sampler = create_sampler(Logic.QF_UFDT)
         assert isinstance(sampler, MixedUFDatatypeSampler)
+
+    def test_mixed_sampler_projects_selector_over_uf_result(self):
+        color, (red, green) = z3.EnumSort("MixedSelectorColor", ["red", "green"])
+        maybe = z3.Datatype("MixedSelectorMaybe")
+        maybe.declare("none")
+        maybe.declare("some", ("value", color))
+        maybe = maybe.create()
+
+        x = z3.Const("x", color)
+        tag = z3.Function("tag", color, maybe)
+        formula = cast(
+            z3.ExprRef,
+            z3.And(
+                z3.Or(x == red, x == green),
+                tag(x) == maybe.some(x),
+                maybe.value(tag(x)) == x,
+            ),
+        )
+
+        sampler = MixedUFDatatypeSampler()
+        sampler.init_from_formula(formula)
+        result = sampler.sample(
+            SamplingOptions(num_samples=10, projection_terms=["value(tag(x))"])
+        )
+
+        assert len(result) == 2
+        assert {sample["value(tag(x))"] for sample in result} == {"red", "green"}
+
+    def test_mixed_selector_closure_propagates_across_aliases(self):
+        color, (red, green) = z3.EnumSort("MixedAliasColor", ["red", "green"])
+        maybe = z3.Datatype("MixedAliasMaybe")
+        maybe.declare("none")
+        maybe.declare("some", ("value", color))
+        maybe = maybe.create()
+
+        x = z3.Const("x", color)
+        box = z3.Const("box", maybe)
+        tag = z3.Function("tag", color, maybe)
+        formula = cast(
+            z3.ExprRef,
+            z3.And(
+                z3.Or(x == red, x == green),
+                box == tag(x),
+                box == maybe.some(x),
+            ),
+        )
+
+        sampler = MixedUFDatatypeSampler()
+        sampler.init_from_formula(formula)
+        result = sampler.sample(
+            SamplingOptions(
+                num_samples=10,
+                projection_terms=["value(tag(x))"],
+                include_selector_closure=True,
+            )
+        )
+
+        assert len(result) == 2
+        assert {sample["value(tag(x))"] for sample in result} == {"red", "green"}
+
+    def test_mixed_selector_closure_requires_positive_constructor_evidence(self):
+        color, (red, green) = z3.EnumSort("MixedNegativeAliasColor", ["red", "green"])
+        maybe = z3.Datatype("MixedNegativeAliasMaybe")
+        maybe.declare("none")
+        maybe.declare("some", ("value", color))
+        maybe = maybe.create()
+
+        x = z3.Const("x", color)
+        box = z3.Const("box", maybe)
+        tag = z3.Function("tag", color, maybe)
+        formula = cast(
+            z3.ExprRef,
+            z3.And(z3.Or(x == red, x == green), box == tag(x), z3.Not(maybe.is_some(box))),
+        )
+
+        sampler = MixedUFDatatypeSampler()
+        sampler.init_from_formula(formula)
+
+        with pytest.raises(ValueError, match="Unknown projection term"):
+            sampler.sample(
+                SamplingOptions(
+                    num_samples=10,
+                    projection_terms=["value(tag(x))"],
+                    include_selector_closure=True,
+                )
+            )
+
+    def test_unknown_exprref_projection_is_rejected(self):
+        color, (red, green) = z3.EnumSort("MixedUnknownExprColor", ["red", "green"])
+        maybe = z3.Datatype("MixedUnknownExprMaybe")
+        maybe.declare("none")
+        maybe.declare("some", ("value", color))
+        maybe = maybe.create()
+
+        box = z3.Const("box", maybe)
+        formula = cast(z3.ExprRef, z3.Or(box == maybe.none, box == maybe.some(red)))
+
+        sampler = DatatypeSampler()
+        sampler.init_from_formula(formula)
+
+        with pytest.raises(ValueError, match="Unknown projection term"):
+            sampler.sample(
+                SamplingOptions(
+                    num_samples=10,
+                    tracked_terms=[maybe.value(box)],
+                )
+            )
+
+    def test_stats_include_real_counts(self):
+        color, (red, green) = z3.EnumSort("MixedStatsColor", ["red", "green"])
+        x = z3.Const("x", color)
+        formula = cast(z3.ExprRef, z3.Or(x == red, x == green))
+
+        sampler = MixedUFDatatypeSampler()
+        sampler.init_from_formula(formula)
+        result = sampler.sample(SamplingOptions(num_samples=2))
+
+        assert result.stats["iterations"] == 2
+        assert result.stats["solver_checks"] >= 2
+        assert result.stats["tracked_term_count"] >= 1
+        assert result.stats["projection_term_count"] >= 1
+        assert result.stats["output_term_count"] >= 1
+        assert result.stats["time_ms"] >= 0
 
 
 if __name__ == "__main__":

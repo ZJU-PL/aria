@@ -16,6 +16,11 @@ appearing in the formula.
 
 **Notes:**
 - Datatype constants are sampled just like other tracked constants.
+- Datatype selectors and testers that occur in the formula are valid observable
+  terms, including mixed terms such as `value(tag(x))`.
+- `include_selector_closure=True` exposes one level of selector observations
+  implied by constructor evidence and propagates that evidence across datatype
+  equalities like `box == tag(x)`.
 - `projection_terms` controls both the returned sample keys and the uniqueness
   criterion used by blocking clauses.
 - `return_full_model=True` returns the full tracked model while keeping

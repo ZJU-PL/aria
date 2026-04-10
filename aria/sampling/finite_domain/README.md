@@ -180,6 +180,25 @@ UF, DT, and UFDT samplers support projected enumeration via
 - `tracked_terms=[...]` overrides the returned keys explicitly while preserving
   uniqueness from `projection_terms`
 
+## Observable Term Model
+
+The finite-domain samplers now distinguish between the full tracked observable
+space and the default projection space.
+
+- `QF_UF` tracks constants and ground UF applications appearing in the formula.
+- `QF_DT` tracks datatype variables plus any datatype selectors/testers that
+  syntactically appear in the formula.
+- `QF_UFDT` combines both sets of observables.
+
+For `QF_DT` and `QF_UFDT`, `SamplingOptions(..., include_selector_closure=True)`
+adds a bounded one-level selector closure:
+
+- if constructor evidence such as `box == some(x)` or `is_some(box)` appears,
+  selector observations like `value(box)` become available
+- constructor evidence is propagated across datatype equalities, so aliases such
+  as `box == tag(x)` can expose `value(tag(x))`
+- closure is intentionally bounded to one level to avoid term explosion
+
 ### By Requirements
 - **Need uniform distribution**: Use `HashBasedBVSampler` (approximate uniform for BV)
 - **Need all distinct solutions**: Use `BitVectorSampler` or `BooleanSampler`

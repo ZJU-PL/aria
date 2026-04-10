@@ -2,7 +2,7 @@
 Sampler for quantifier-free algebraic datatype formulas.
 """
 
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, List, Optional, Set
 
 import z3
 
@@ -14,12 +14,9 @@ from aria.sampling.base import (
     SamplingResult,
 )
 from aria.sampling.finite_domain.common import (
-    build_sample,
-    block_model_on_terms,
-    resolve_output_terms,
-    resolve_projection_terms,
+    collect_datatype_observable_terms,
+    enumerate_projected_models,
 )
-from aria.utils.z3.expr import get_variables
 
 
 class DatatypeSampler(Sampler):
@@ -27,62 +24,35 @@ class DatatypeSampler(Sampler):
 
     def __init__(self, **_kwargs: Any) -> None:
         self.formula: Optional[z3.ExprRef] = None
-        self.variables: List[z3.ExprRef] = []
+        self.default_terms: List[z3.ExprRef] = []
 
     def supports_logic(self, logic: Logic) -> bool:
         return logic == Logic.QF_DT
 
     def init_from_formula(self, formula: z3.ExprRef) -> None:
         self.formula = formula
-        self.variables = sorted(
-            [
-                var
-                for var in get_variables(formula)
-                if var.sort().kind() == z3.Z3_DATATYPE_SORT
-            ],
-            key=str,
+        self.default_terms = collect_datatype_observable_terms(
+            formula, include_selector_closure=False
         )
 
     def sample(self, options: SamplingOptions) -> SamplingResult:
         if self.formula is None:
             raise ValueError("Sampler not initialized with a formula")
 
-        solver = z3.SolverFor("QF_DT")
-        if options.random_seed is not None:
-            solver.set("random_seed", options.random_seed)
-            solver.set("seed", options.random_seed)
-        solver.add(self.formula)
-        projection_terms = resolve_projection_terms(
-            self.variables, options.additional_options.get("projection_terms")
+        include_selector_closure = bool(
+            options.additional_options.get("include_selector_closure", False)
         )
-        output_terms = resolve_output_terms(
-            self.variables,
-            options.additional_options.get("projection_terms"),
-            options.additional_options.get("tracked_terms"),
-            bool(options.additional_options.get("return_full_model", False)),
+        observed_terms = collect_datatype_observable_terms(
+            self.formula,
+            include_selector_closure=include_selector_closure,
         )
-
-        samples: List[Dict[str, Any]] = []
-        stats: Dict[str, Any] = {
-            "time_ms": 0,
-            "iterations": 0,
-            "projection_terms": [str(term) for term in projection_terms],
-            "output_terms": [str(term) for term in output_terms],
-        }
-
-        for _ in range(options.num_samples):
-            if solver.check() != z3.sat:
-                break
-
-            model = solver.model()
-            sample = build_sample(model, output_terms)
-            samples.append(sample)
-            stats["iterations"] += 1
-
-            if not block_model_on_terms(solver, model, projection_terms):
-                break
-
-        return SamplingResult(samples, stats)
+        return enumerate_projected_models(
+            self.formula,
+            options,
+            observed_terms,
+            default_terms=self.default_terms,
+            solver_factory=lambda: z3.SolverFor("QF_DT"),
+        )
 
     def get_supported_methods(self) -> Set[SamplingMethod]:
         return {SamplingMethod.ENUMERATION}

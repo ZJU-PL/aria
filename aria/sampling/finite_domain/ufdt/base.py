@@ -2,7 +2,7 @@
 Sampler for quantifier-free UF+datatype formulas.
 """
 
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, List, Optional, Set
 
 import z3
 
@@ -14,13 +14,16 @@ from aria.sampling.base import (
     SamplingResult,
 )
 from aria.sampling.finite_domain.common import (
-    build_sample,
-    block_model_on_terms,
+    collect_datatype_observable_terms,
     collect_ground_uf_terms,
-    resolve_output_terms,
-    resolve_projection_terms,
+    enumerate_projected_models,
 )
 from aria.utils.z3.expr import get_variables
+
+
+def _dedupe_sorted_terms(terms: List[z3.ExprRef]) -> List[z3.ExprRef]:
+    """Deduplicate tracked terms while preserving deterministic ordering."""
+    return list({str(term): term for term in sorted(terms, key=str)}.values())
 
 
 class MixedUFDatatypeSampler(Sampler):
@@ -30,6 +33,7 @@ class MixedUFDatatypeSampler(Sampler):
         self.formula: Optional[z3.ExprRef] = None
         self.constants: List[z3.ExprRef] = []
         self.function_terms: List[z3.ExprRef] = []
+        self.default_terms: List[z3.ExprRef] = []
 
     def supports_logic(self, logic: Logic) -> bool:
         return logic == Logic.QF_UFDT
@@ -38,48 +42,33 @@ class MixedUFDatatypeSampler(Sampler):
         self.formula = formula
         self.constants = sorted(get_variables(formula), key=str)
         self.function_terms = collect_ground_uf_terms(formula)
+        datatype_terms = collect_datatype_observable_terms(
+            formula, include_selector_closure=False
+        )
+        self.default_terms = _dedupe_sorted_terms(
+            self.constants + self.function_terms + datatype_terms
+        )
 
     def sample(self, options: SamplingOptions) -> SamplingResult:
         if self.formula is None:
             raise ValueError("Sampler not initialized with a formula")
 
-        solver = z3.Solver()
-        if options.random_seed is not None:
-            solver.set("random_seed", options.random_seed)
-            solver.set("seed", options.random_seed)
-        solver.add(self.formula)
-
-        tracked_terms = self.constants + self.function_terms
-        projection_terms = resolve_projection_terms(
-            tracked_terms, options.additional_options.get("projection_terms")
+        include_selector_closure = bool(
+            options.additional_options.get("include_selector_closure", False)
         )
-        output_terms = resolve_output_terms(
+        datatype_terms = collect_datatype_observable_terms(
+            self.formula,
+            include_selector_closure=include_selector_closure,
+        )
+        tracked_terms = _dedupe_sorted_terms(
+            self.constants + self.function_terms + datatype_terms
+        )
+        return enumerate_projected_models(
+            self.formula,
+            options,
             tracked_terms,
-            options.additional_options.get("projection_terms"),
-            options.additional_options.get("tracked_terms"),
-            bool(options.additional_options.get("return_full_model", False)),
+            default_terms=self.default_terms,
         )
-        samples: List[Dict[str, Any]] = []
-        stats: Dict[str, Any] = {
-            "time_ms": 0,
-            "iterations": 0,
-            "projection_terms": [str(term) for term in projection_terms],
-            "output_terms": [str(term) for term in output_terms],
-        }
-
-        for _ in range(options.num_samples):
-            if solver.check() != z3.sat:
-                break
-
-            model = solver.model()
-            sample = build_sample(model, output_terms)
-            samples.append(sample)
-            stats["iterations"] += 1
-
-            if not block_model_on_terms(solver, model, projection_terms):
-                break
-
-        return SamplingResult(samples, stats)
 
     def get_supported_methods(self) -> Set[SamplingMethod]:
         return {SamplingMethod.ENUMERATION}

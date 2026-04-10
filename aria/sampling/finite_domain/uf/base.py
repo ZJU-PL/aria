@@ -5,7 +5,7 @@ The sampler enumerates satisfying assignments over the ground uninterpreted
 constants and function applications that occur in the formula.
 """
 
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, List, Optional, Set
 
 import z3
 
@@ -17,11 +17,8 @@ from aria.sampling.base import (
     SamplingResult,
 )
 from aria.sampling.finite_domain.common import (
-    build_sample,
-    block_model_on_terms,
     collect_ground_uf_terms,
-    resolve_output_terms,
-    resolve_projection_terms,
+    enumerate_projected_models,
 )
 from aria.utils.z3.expr import get_variables
 
@@ -46,43 +43,12 @@ class UninterpretedFunctionSampler(Sampler):
         if self.formula is None:
             raise ValueError("Sampler not initialized with a formula")
 
-        solver = z3.Solver()
-        if options.random_seed is not None:
-            solver.set("random_seed", options.random_seed)
-            solver.set("seed", options.random_seed)
-        solver.add(self.formula)
-
         tracked_terms = self.constants + self.function_terms
-        projection_terms = resolve_projection_terms(
-            tracked_terms, options.additional_options.get("projection_terms")
-        )
-        output_terms = resolve_output_terms(
+        return enumerate_projected_models(
+            self.formula,
+            options,
             tracked_terms,
-            options.additional_options.get("projection_terms"),
-            options.additional_options.get("tracked_terms"),
-            bool(options.additional_options.get("return_full_model", False)),
         )
-        samples: List[Dict[str, Any]] = []
-        stats: Dict[str, Any] = {
-            "time_ms": 0,
-            "iterations": 0,
-            "projection_terms": [str(term) for term in projection_terms],
-            "output_terms": [str(term) for term in output_terms],
-        }
-
-        for _ in range(options.num_samples):
-            if solver.check() != z3.sat:
-                break
-
-            model = solver.model()
-            sample = build_sample(model, output_terms)
-            samples.append(sample)
-            stats["iterations"] += 1
-
-            if not block_model_on_terms(solver, model, projection_terms):
-                break
-
-        return SamplingResult(samples, stats)
 
     def get_supported_methods(self) -> Set[SamplingMethod]:
         return {SamplingMethod.ENUMERATION}
