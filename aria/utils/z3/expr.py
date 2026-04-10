@@ -57,23 +57,28 @@ def get_expr_vars(exp) -> List[z3.ExprRef]:
     """
     try:
         syms = {}
+        seen = set()
         stack = [exp]
 
         while stack:
             e = stack.pop()
+            ast_id = z3.Z3_get_ast_id(e.ctx.ref(), e.as_ast())
+            if ast_id in seen:
+                continue
+            seen.add(ast_id)
             if z3.is_quantifier(e):
                 stack.append(e.body())
                 continue
             if z3.is_app(e):
                 if e.num_args() == 0 and e.decl().kind() == z3.Z3_OP_UNINTERPRETED:
-                    syms[e.get_id()] = e
+                    syms[ast_id] = e
                 else:
                     stack.extend(e.children())
 
         return list(syms.values())
     except z3.Z3Exception as ex:
         print(ex)
-        return False
+        return []
 
 
 def get_variables(exp: z3.ExprRef) -> List[z3.ExprRef]:
