@@ -8,6 +8,12 @@ from aria.unsat_core.unsat_core import (
     Algorithm,
     UnsatCoreComputer,
     UnsatCoreResult,
+    enumerate_minimal_unsat_subsets,
 )
 
-__all__ = ["Algorithm", "UnsatCoreComputer", "UnsatCoreResult"]
+__all__ = [
+    "Algorithm",
+    "UnsatCoreComputer",
+    "UnsatCoreResult",
+    "enumerate_minimal_unsat_subsets",
+]

@@ -319,6 +319,41 @@ def enumerate_all_mus(
     return computer.enumerate_all_mus(constraints, solver_factory, timeout, **kwargs)
 
 
+def enumerate_minimal_unsat_subsets(
+    constraints: List[Any], max_cores: Optional[int] = None
+) -> List[Set[int]]:
+    """Enumerate minimal unsatisfiable subsets using the MARCO backend."""
+
+    module_name = "marco"
+    module_path = os.path.join(os.path.dirname(__file__), f"{module_name}.py")
+    spec = importlib.util.spec_from_file_location(module_name, module_path)
+    if spec is None or spec.loader is None:
+        raise ImportError("Failed to load marco module")
+
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    csolver = module.SubsetSolver(list(constraints))
+    msolver = module.MapSolver(n=csolver.n)
+
+    cores: List[Set[int]] = []
+    for orig, lits in module.enumerate_sets(csolver, msolver):
+        if orig != "MUS":
+            continue
+        core_indices = set()
+        for lit in lits:
+            if hasattr(lit, "children") and len(lit.children()) == 1:
+                control_var = lit.children()[0]
+            else:
+                control_var = lit
+            core_indices.add(csolver.idcache[module.get_id(control_var)])
+        cores.append(core_indices)
+        if max_cores is not None and len(cores) >= max_cores:
+            break
+
+    return cores
+
+
 def main():
     """Main function for testing unsat core computation."""
     from z3 import Bools
