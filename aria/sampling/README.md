@@ -32,6 +32,9 @@ pip install z3-solver
 
 - **QF_BOOL**: Quantifier-free Boolean logic
 - **QF_BV**: Quantifier-free bit-vector logic
+- **QF_UF**: Quantifier-free uninterpreted functions
+- **QF_DT**: Quantifier-free algebraic datatypes
+- **QF_UFDT**: Quantifier-free uninterpreted functions with datatypes
 - **QF_LRA**: Quantifier-free linear real arithmetic
 - **QF_LIA**: Quantifier-free linear integer arithmetic
 - **QF_NRA**: Quantifier-free non-linear real arithmetic

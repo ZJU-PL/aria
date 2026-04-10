@@ -9,6 +9,9 @@ import z3
 from .base import Sampler, Logic, SamplingMethod, SamplingOptions, SamplingResult
 from aria.sampling.finite_domain.bool.base import BooleanSampler
 from aria.sampling.finite_domain.bv.base import BitVectorSampler
+from aria.sampling.finite_domain.dt.base import DatatypeSampler
+from aria.sampling.finite_domain.uf.base import UninterpretedFunctionSampler
+from aria.sampling.finite_domain.ufdt.base import MixedUFDatatypeSampler
 from aria.sampling.linear_ira.lira_sampler import LIRASampler
 from aria.sampling.general_sampler.mcmc_sampler import MCMCSampler
 
@@ -59,6 +62,9 @@ class SamplerFactory:
 
 SamplerFactory.register(Logic.QF_BOOL, BooleanSampler)
 SamplerFactory.register(Logic.QF_BV, BitVectorSampler)
+SamplerFactory.register(Logic.QF_UF, UninterpretedFunctionSampler)
+SamplerFactory.register(Logic.QF_DT, DatatypeSampler)
+SamplerFactory.register(Logic.QF_UFDT, MixedUFDatatypeSampler)
 
 for _logic in (Logic.QF_LRA, Logic.QF_LIA, Logic.QF_LIRA):
     SamplerFactory.register(_logic, LIRASampler)
@@ -109,6 +115,7 @@ def demo() -> None:
     """Demonstrate the usage of the sampler factory."""
     x, y = z3.Reals("x y")
     formula = z3.And(x + y > 0, x - y < 1)
+    assert isinstance(formula, z3.ExprRef)
     result = sample_models_from_formula(
         formula, Logic.QF_LRA, SamplingOptions(num_samples=5)
     )

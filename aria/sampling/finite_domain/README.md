@@ -14,6 +14,15 @@ finite_domain/
 │   ├── hash_sampler.py    # HashBasedBVSampler - XOR-based uniform sampling
 │   ├── quick_sampler.py   # QuickBVSampler - optimization-guided sampling
 │   └── README.md          # Documentation and usage examples
+├── uf/                # Uninterpreted-function (QF_UF) samplers
+│   ├── base.py        # UninterpretedFunctionSampler - ground UF enumeration
+│   └── README.md      # Documentation and usage examples
+├── dt/                # Datatype (QF_DT) samplers
+│   ├── base.py        # DatatypeSampler - datatype-valued enumeration
+│   └── README.md      # Documentation and usage examples
+├── ufdt/              # Mixed UF+datatype (QF_UFDT) samplers
+│   ├── base.py        # MixedUFDatatypeSampler - composed UF/DT enumeration
+│   └── README.md      # Documentation and usage examples
 └── __init__.py        # Main exports
 ```
 
@@ -91,6 +100,24 @@ for sample in result:
 
 See `bv/README.md` for detailed comparisons and usage guidance.
 
+### UF Samplers (`uf/`)
+
+| Sampler | Strategy | Use Case |
+|---------|----------|----------|
+| `UninterpretedFunctionSampler` | Enumeration over ground UF terms | Ground QF_UF formulas with finite observed term space |
+
+### Datatype Samplers (`dt/`)
+
+| Sampler | Strategy | Use Case |
+|---------|----------|----------|
+| `DatatypeSampler` | Enumeration with blocking clauses | Enumeration datatypes and finite ADTs |
+
+### UF+Datatype Samplers (`ufdt/`)
+
+| Sampler | Strategy | Use Case |
+|---------|----------|----------|
+| `MixedUFDatatypeSampler` | Enumeration over constants, datatype vars, and ground UF terms | Mixed `QF_UFDT` formulas |
+
 ## Common Options
 
 All samplers accept `SamplingOptions`:
@@ -138,6 +165,20 @@ Different sampling strategies are separate classes, allowing users to:
 ### By Logic
 - **Boolean formulas (SAT)**: Use `BooleanSampler`
 - **Bit-vector formulas (QF_BV)**: Choose from `BitVectorSampler`, `HashBasedBVSampler`, or `QuickBVSampler`
+- **Uninterpreted functions (QF_UF)**: Use `UninterpretedFunctionSampler`
+- **Algebraic datatypes (QF_DT)**: Use `DatatypeSampler`
+- **UF + datatypes (QF_UFDT)**: Use `MixedUFDatatypeSampler`
+
+## Projected Sampling
+
+UF, DT, and UFDT samplers support projected enumeration via
+`SamplingOptions(..., projection_terms=[...])`.
+
+- `projection_terms` can contain Z3 expressions or their string names
+- duplicate blocking is also performed only on the projected terms
+- `return_full_model=True` keeps projected uniqueness but returns all tracked terms
+- `tracked_terms=[...]` overrides the returned keys explicitly while preserving
+  uniqueness from `projection_terms`
 
 ### By Requirements
 - **Need uniform distribution**: Use `HashBasedBVSampler` (approximate uniform for BV)

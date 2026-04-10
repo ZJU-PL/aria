@@ -4,6 +4,9 @@ Model Sampling
 This package provides tools for sampling models from SMT formulas across various logics.
 
 Available logics:
+- QF_UF: Quantifier-free uninterpreted functions
+- QF_DT: Quantifier-free algebraic datatypes
+- QF_UFDT: Quantifier-free uninterpreted functions with datatypes
 - QF_BOOL: Quantifier-free Boolean logic
 - QF_BV: Quantifier-free bit-vector logic
 - QF_LRA: Quantifier-free linear real arithmetic
