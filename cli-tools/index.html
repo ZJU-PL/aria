@@ -59,12 +59,6 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">CLI and Tools</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="cli.html">CLI Tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="translator.html">Translator Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="translator.html#introduction">Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="translator.html#components">Components</a></li>
-<li class="toctree-l2"><a class="reference internal" href="translator.html#command-line-interface-aria-cli-fmldoc-py">Command-Line Interface (<code class="docutils literal notranslate"><span class="pre">aria/cli/fmldoc.py</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="translator.html#examples">Examples</a></li>
-<li class="toctree-l2"><a class="reference internal" href="translator.html#applications">Applications</a></li>
-<li class="toctree-l2"><a class="reference internal" href="translator.html#references">References</a></li>
 <li class="toctree-l2"><a class="reference internal" href="applications.html">Applications</a></li>
 <li class="toctree-l2"><a class="reference internal" href="boogie_frontend.html">Boogie Frontend for EFMC</a></li>
 <li class="toctree-l2"><a class="reference internal" href="c_frontend.html">C Frontend for EFMC</a></li>
@@ -104,42 +98,19 @@
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="cli.html">CLI Tools</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#directory-structure">Directory Structure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#cli-tools-overview">CLI Tools Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#testing">Testing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#code-statistics">Code Statistics</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#dependencies">Dependencies</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#main-api-entry-points">Main API Entry Points</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#key-features">Key Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#registered-console-scripts">Registered console scripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#quick-start">Quick start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#tool-summaries">Tool summaries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#validation">Validation</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="translator.html">Translator Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="translator.html#introduction">Introduction</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="translator.html#key-features">Key Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="translator.html">Translator Module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#current-scope">Current scope</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#programmatic-usage">Programmatic usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#cli-access">CLI access</a></li>
+<li class="toctree-l2"><a class="reference internal" href="translator.html#notes">Notes</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="translator.html#components">Components</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="translator.html#dimacs-to-smt-lib2-aria-translator-dimacs2smt-py">DIMACS to SMT-LIB2 (<code class="docutils literal notranslate"><span class="pre">aria/translator/dimacs2smt.py</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="translator.html#qdimacs-to-smt-lib2-aria-translator-qbf2smt-py">QDIMACS to SMT-LIB2 (<code class="docutils literal notranslate"><span class="pre">aria/translator/qbf2smt.py</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="translator.html#cnf-to-smt-lib2-aria-translator-cnf2smt-py">CNF to SMT-LIB2 (<code class="docutils literal notranslate"><span class="pre">aria/translator/cnf2smt.py</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="translator.html#cnf-to-linear-programming-aria-translator-cnf2lp-py">CNF to Linear Programming (<code class="docutils literal notranslate"><span class="pre">aria/translator/cnf2lp.py</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="translator.html#smt-lib2-to-c-aria-translator-smt2c-py">SMT-LIB2 to C (<code class="docutils literal notranslate"><span class="pre">aria/translator/smt2c.py</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="translator.html#smt-lib2-to-sympy-aria-translator-smt2sympy-py">SMT-LIB2 to SymPy (<code class="docutils literal notranslate"><span class="pre">aria/translator/smt2sympy.py</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="translator.html#sygus-to-smt-lib2-aria-translator-sygus2smt-py">SyGuS to SMT-LIB2 (<code class="docutils literal notranslate"><span class="pre">aria/translator/sygus2smt.py</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="translator.html#weighted-cnf-to-z3-aria-translator-wcnf2z3-py">Weighted CNF to Z3 (<code class="docutils literal notranslate"><span class="pre">aria/translator/wcnf2z3.py</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="translator.html#flatzinc-to-omt-aria-translator-fzn2omt">FlatZinc to OMT (<code class="docutils literal notranslate"><span class="pre">aria/translator/fzn2omt/</span></code>)</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="translator.html#command-line-interface-aria-cli-fmldoc-py">Command-Line Interface (<code class="docutils literal notranslate"><span class="pre">aria/cli/fmldoc.py</span></code>)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="translator.html#examples">Examples</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="translator.html#converting-dimacs-to-smt-lib2">Converting DIMACS to SMT-LIB2</a></li>
-<li class="toctree-l2"><a class="reference internal" href="translator.html#converting-qdimacs-to-smt-lib2">Converting QDIMACS to SMT-LIB2</a></li>
-<li class="toctree-l2"><a class="reference internal" href="translator.html#using-cnf-to-z3-conversion">Using CNF to Z3 conversion</a></li>
-<li class="toctree-l2"><a class="reference internal" href="translator.html#weighted-maxsat-with-z3">Weighted MaxSAT with Z3</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="translator.html#applications">Applications</a></li>
-<li class="toctree-l1"><a class="reference internal" href="translator.html#references">References</a></li>
 <li class="toctree-l1"><a class="reference internal" href="applications.html">Applications</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="applications.html#testing">Testing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="applications.html#verification">Verification</a></li>

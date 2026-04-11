@@ -20,7 +20,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Interactive Theorem Proving (ITP)" href="itp.html" />
-    <link rel="prev" title="Abduction" href="abduction.html" /> 
+    <link rel="prev" title="Abductive Reasoning" href="abduction.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -47,14 +47,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../logic-and-solving/index.html">Logic and Solving</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Proofs and Explanations</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="abduction.html">Abduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abduction.html">Abductive Reasoning</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Interpolant Generation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#introduction-to-interpolation">Introduction to Interpolation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#interpolant-generation-in-aria">Interpolant Generation in Aria</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#usage-examples">Usage Examples</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#references">References</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#current-components">Current components</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#programmatic-usage">Programmatic usage</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="itp.html">Interactive Theorem Proving (ITP)</a></li>
@@ -99,60 +96,41 @@
              
   <section id="interpolant-generation">
 <h1>Interpolant Generation<a class="headerlink" href="#interpolant-generation" title="Link to this heading"></a></h1>
-<section id="introduction-to-interpolation">
-<h2>Introduction to Interpolation<a class="headerlink" href="#introduction-to-interpolation" title="Link to this heading"></a></h2>
-<p>Given two contradictory formulas <code class="docutils literal notranslate"><span class="pre">A</span></code> and <code class="docutils literal notranslate"><span class="pre">B</span></code>, a Craig interpolant <code class="docutils literal notranslate"><span class="pre">I</span></code> is a formula that satisfies the following conditions:</p>
+<p><code class="docutils literal notranslate"><span class="pre">aria.interpolant</span></code> contains Craig-interpolant generation helpers for SMT
+formulas.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>Given formulas <code class="docutils literal notranslate"><span class="pre">A</span></code> and <code class="docutils literal notranslate"><span class="pre">B</span></code> such that <code class="docutils literal notranslate"><span class="pre">A</span> <span class="pre">∧</span> <span class="pre">B</span></code> is unsatisfiable, a Craig
+interpolant <code class="docutils literal notranslate"><span class="pre">P</span></code> satisfies:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">I</span></code> is a logical consequence of <code class="docutils literal notranslate"><span class="pre">A</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">I</span></code> and <code class="docutils literal notranslate"><span class="pre">B</span></code> are contradictory</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">I</span></code> contains only the variables that are common to <code class="docutils literal notranslate"><span class="pre">A</span></code> and <code class="docutils literal notranslate"><span class="pre">B</span></code>.</p></li>
-</ul>
-<p>Craig interpolant is a formula that captures the shared information
-between <code class="docutils literal notranslate"><span class="pre">A</span></code> and <code class="docutils literal notranslate"><span class="pre">B</span></code>, and “explains” why they are contradictory.
-Craig interpolants have several important applications in model checking</p>
-<ul class="simple">
-<li><p>Abstraction refinement in verification</p></li>
-<li><p>Approximating the image computation in verification</p></li>
-<li><p>…?</p></li>
-</ul>
-<p>The computation of Craig interpolants is a challenging problem, and various
-algorithms and techniques have been developed to compute them efficiently.
-For example, for Boolean formulas, interpolants can be extracted from resolution proofs.</p>
-<p>Several approaches exist for computing Craig interpolants:</p>
-<p><strong>1. Proof-Based Methods</strong></p>
-<ul class="simple">
-<li><p>Extract interpolants from resolution proofs</p></li>
-<li><p>Transform proofs generated by SAT solvers</p></li>
-<li><p>Handle theory-specific interpolation</p></li>
-</ul>
-<p><strong>2. Symbol Elimination</strong></p>
-<ul class="simple">
-<li><p>Eliminate non-shared symbols through quantification</p></li>
-<li><p>Apply quantifier elimination techniques</p></li>
-</ul>
-<p><strong>3. Template-based Approaches</strong></p>
-<ul class="simple">
-<li><p>Start with parameterized templates</p></li>
-<li><p>Solve constraint systems to find parameters</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">A</span></code> implies <code class="docutils literal notranslate"><span class="pre">P</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">P</span> <span class="pre">∧</span> <span class="pre">B</span></code> is unsatisfiable</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">P</span></code> mentions only symbols shared by <code class="docutils literal notranslate"><span class="pre">A</span></code> and <code class="docutils literal notranslate"><span class="pre">B</span></code></p></li>
 </ul>
 </section>
-<section id="interpolant-generation-in-aria">
-<h2>Interpolant Generation in Aria<a class="headerlink" href="#interpolant-generation-in-aria" title="Link to this heading"></a></h2>
-<section id="usage-examples">
-<h3>Usage Examples<a class="headerlink" href="#usage-examples" title="Link to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria</span><span class="w"> </span><span class="kn">import</span>
-<span class="c1"># TBD</span>
+<section id="current-components">
+<h2>Current components<a class="headerlink" href="#current-components" title="Link to this heading"></a></h2>
+<p>The current package includes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">pysmt_interpolant.py</span></code>: PySMT-based interpolation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">smtinterpol_interpolant.py</span></code>: SMTInterpol-based interpolation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cvc5_interpolant.py</span></code>: cvc5-based interpolation</p></li>
+</ul>
+<p>Typical use cases include:</p>
+<ul class="simple">
+<li><p>program verification</p></li>
+<li><p>predicate abstraction</p></li>
+<li><p>CEGAR refinement loops</p></li>
+<li><p>model checking</p></li>
+</ul>
+</section>
+<section id="programmatic-usage">
+<h2>Programmatic usage<a class="headerlink" href="#programmatic-usage" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.interpolant</span><span class="w"> </span><span class="kn">import</span> <span class="n">pysmt_interpolant</span>
+
+<span class="n">interpolant</span> <span class="o">=</span> <span class="n">pysmt_interpolant</span><span class="o">.</span><span class="n">get_interpolant</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
 </pre></div>
 </div>
-</section>
-</section>
-<section id="references">
-<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
-<ul class="simple">
-<li><p>McMillan, K. L. (2003). “Interpolation and SAT-based Model Checking.” In Proceedings of the International Conference on Formal Methods in Computer-Aided Design (FMCAD)</p></li>
-<li><p>Henzinger, T. A., Jhala, R., Majumdar, R., &amp; McMillan, K. L. (2004). “Abstractions from proofs.” In Proceedings of the 31st ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages (POPL)</p></li>
-<li><p>D’Silva, V., Kroening, D., Purandare, M., &amp; Weissenbacher, G. (2010). “Interpolant strength.” In International Workshop on Verification, Model Checking, and Abstract Interpretation (VMCAI)</p></li>
-</ul>
 </section>
 </section>
 
@@ -160,7 +138,7 @@ For example, for Boolean formulas, interpolants can be extracted from resolution
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="abduction.html" class="btn btn-neutral float-left" title="Abduction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="abduction.html" class="btn btn-neutral float-left" title="Abductive Reasoning" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="itp.html" class="btn btn-neutral float-right" title="Interactive Theorem Proving (ITP)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

@@ -1,83 +1,72 @@
 Welcome to aria's Documentation!
-=================================
+================================
 
-
-=============
 Introduction
-=============
+------------
 
-Aria is a comprehensive toolkit for automated reasoning and constraint solving. It provides implementations of various algorithms and tools for:
+ARIA (Automated Reasoning Infrastructure & Applications) is a Python toolkit
+and research playground for automated reasoning. The repository combines
+libraries, CLI tools, and research prototypes across SAT/SMT solving,
+quantified reasoning, model counting, optimization, theorem proving, program
+verification, symbolic abstraction, and related experimentation.
 
-* **Abductive Inference** (``aria/abduction``) - Generate explanations for observations
-* **AllSMT** (``aria/allsmt``) - Enumerate all satisfying models
-* **Backbone Computation** (``aria/backbone``) - Extract forced assignments
-* **UNSAT Core Extraction** (``aria/unsat_core``) - Identify minimal unsatisfiable subsets
-* **Quantifier Reasoning** (``aria/quant``) - Handle exists-forall and quantified formulas
-* **Quantifier Elimination** (``aria/quant/qe``) - Eliminate quantifiers from formulas
-* **Solution Sampling** (``aria/sampling``) - Generate diverse solutions
-* **Model Counting** (``aria/counting``) - Count satisfying assignments
-* **Optimization Modulo Theory** (``aria/optimization``) - Solve optimization problems
-* **Interpolant Generation** (``aria/interpolant``) - Generate Craig interpolants
-* **Symbolic Abstraction** (``aria/symabs``) - Abstract state spaces
-* **Predicate Abstraction** (``aria/symabs/predicate_abstraction``) - Abstract with predicates
-* **Monadic Abstraction** (``aria/monabs``) - Monadic predicate abstraction
-* **Knowledge Compilation** (``aria/bool/knowledge_compiler``) - Compile to tractable forms
-* **MaxSAT Solving** (``aria/bool/maxsat``) - Solve maximum satisfiability problems
-* **QBF Solving** - Quantified Boolean formula solving
-* **Finite Field Solving** (``aria/smt/ff``) - SMT for Galois field constraints
- * **Interactive Theorem Proving** (``aria/itp``) - Proof assistant framework
- * **Automata Operations** (``aria/automata``) - Finite automata algorithms
-* **Program Synthesis** (``aria/synthesis``) - Synthesize programs from specifications
-* **Context-Free Language Reachability** (``aria/cfl``) - CFL solving algorithms
-* **Unification** (``aria/unification``) - Term unification algorithms
-* **Translator** (``aria/translator``) - Translate between different formats
-* **EFMC Verification** (``aria/efmc``) - Program verification with invariant generation, termination analysis, and more
+Major user-facing areas include:
 
-We welcome any feedback, issues, or suggestions for improvement. Please feel free to open an issue in our repository.
+* ``aria.bool``: SAT, MaxSAT, QBF, CNF simplification, and knowledge compilation
+* ``aria.smt``: SMT-oriented theory packages and solver utilities
+* ``aria.srk``: symbolic reasoning infrastructure
+* ``aria.quant``: quantified reasoning, EFSMT, QE, CHC tooling, and prototypes
+* ``aria.efmc``: program verification frontends and engines
+* ``aria.counting`` / ``aria.sampling`` / ``aria.prob``: counting, sampling,
+  and probabilistic reasoning
+* ``aria.optimization``: optimization and MaxSMT/MaxSAT-oriented workflows
+* ``aria.itp`` / ``aria.fol`` / ``aria.interpolant``: theorem proving and logic
+* ``aria.translator`` / ``aria.cli``: translators and command-line tools
 
-==========================
-Installing and Using Aria
-==========================
+Installing and using aria
+-------------------------
 
-Install aria from source
----------------------------------------
+Install from source:
 
-::
+.. code-block:: bash
 
-  git clone https://github.com/ZJU-PL/aria
-  virtualenv --python=python3 venv
-  source venv/bin/activate
-  cd aria
-  bash setup_local_env.sh
-  pip install -e .
+   git clone https://github.com/ZJU-PL/aria
+   cd aria
+   bash setup_local_env.sh
+   pip install -e .
 
-The setup script will:
-- Create a Python virtual environment if it doesn't exist
-- Activate the virtual environment and install the package and its dependencies (from pyproject.toml)
-- Download required solver binaries (CVC5, MathSAT, z3)
-- Run unit tests if available
+For a faster local setup with ``uv``:
 
-Quick Start
------------
+.. code-block:: bash
 
-::
+   uv venv
+   source .venv/bin/activate
+   uv pip install -e .
 
-  from aria import *
+Common console commands after installation include:
 
-  # Example: Check satisfiability
-  formula = Bool(True)  # Simple tautology
-  result = smt_solve(formula)
-  print(f"Formula is {'satisfiable' if result else 'unsatisfiable'}")
+* ``aria-fmldoc``
+* ``aria-mc``
+* ``aria-pyomt``
+* ``aria-efsmt``
+* ``aria-maxsat``
+* ``aria-unsat-core``
+* ``aria-allsmt``
+* ``aria-smt-server``
+* ``aria-efmc``
+* ``aria-efmc-efsmt``
+* ``aria-polyhorn``
 
-Documentation Map
+Documentation map
 -----------------
 
-- ``getting-started``: tutorials, quick reference, and topic overviews
-- ``logic-and-solving``: core logic APIs, solver stacks, SRK, and reusable reasoning infrastructure
-- ``proofs and explanations``: abduction, interpolation, and interactive theorem proving
-- ``quantified-reasoning``: quantified solving, quantifier elimination, and instantiation techniques
-- ``abstraction`` / ``verification``: program-analysis engines and verification workflows
-- ``counting-probability``: model counting, sampling, and probabilistic reasoning
+* ``getting-started``: installation notes, quick reference, and tutorials
+* ``logic-and-solving``: core solver and reasoning packages
+* ``proofs-and-explanations``: abduction, interpolation, and theorem proving
+* ``quantified-reasoning``: EFSMT, QE, and quantified workflows
+* ``verification`` / ``abstraction``: EFMC engines and abstraction-oriented pages
+* ``counting-probability``: counting, sampling, and probabilistic reasoning
+* ``cli-tools``: command-line frontends and translator-oriented workflows
 
 .. toctree::
     :maxdepth: 2

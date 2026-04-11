@@ -20,7 +20,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="BDD-based Symbolic Model Checking" href="bdd.html" />
+    <link rel="next" title="BDD-Based Verification" href="bdd.html" />
     <link rel="prev" title="CFL OBDD (Context-Free Language Ordered Binary Decision Diagrams)" href="../automata-languages/cflobdd.html" /> 
 </head>
 
@@ -51,13 +51,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../quantified-reasoning/index.html">Quantified Reasoning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../automata-languages/index.html">Automata and Languages</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Verification</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="bdd.html">BDD-based Symbolic Model Checking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bdd.html">BDD-Based Verification</a></li>
 <li class="toctree-l2"><a class="reference internal" href="verification.html">Program Verification</a></li>
 <li class="toctree-l2"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
 <li class="toctree-l2"><a class="reference internal" href="houdini.html">Houdini</a></li>
-<li class="toctree-l2"><a class="reference internal" href="kinduction.html">K-induction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kinduction.html">K-Induction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ksafety.html">K-Safety Verification</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ranking_functions.html">Ranking Function Templates for Termination Verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ranking_functions.html">Ranking Functions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="danger.html">Danger Invariants</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ltl.html">Linear Teamporal Logic</a></li>
 <li class="toctree-l2"><a class="reference internal" href="symautomata.html">Symbolic Finite Automata</a></li>
@@ -101,19 +101,17 @@
 <h1>Verification<a class="headerlink" href="#verification" title="Link to this heading"></a></h1>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="bdd.html">BDD-based Symbolic Model Checking</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="bdd.html#overview">Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="bdd.html#algorithm">Algorithm</a></li>
-<li class="toctree-l2"><a class="reference internal" href="bdd.html#usage">Usage</a></li>
-<li class="toctree-l2"><a class="reference internal" href="bdd.html#configuration-options">Configuration Options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="bdd.html#limitations">Limitations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="bdd.html#future-improvements">Future Improvements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="bdd.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bdd.html">BDD-Based Verification</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="bdd.html#current-api">Current API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bdd.html#high-level-behavior">High-level behavior</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bdd.html#notes">Notes</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="verification.html">Program Verification</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="verification.html#available-verification-engines">Available Verification Engines</a></li>
-<li class="toctree-l2"><a class="reference internal" href="verification.html#correctness">Correctness</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verification.html#verification-pipeline">Verification pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verification.html#main-engines">Main engines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verification.html#cli-entrypoints">CLI entrypoints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verification.html#where-to-look-next">Where to look next</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a><ul>
@@ -128,20 +126,17 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="houdini.html">Houdini</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="houdini.html#references">References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="houdini.html#current-engine-surface">Current engine surface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="houdini.html#how-it-fits-in-efmc">How it fits in EFMC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="houdini.html#programmatic-usage">Programmatic usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="houdini.html#cli-usage">CLI usage</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="kinduction.html">K-induction</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="kinduction.html#formal-verification-techniques">Formal Verification Techniques</a></li>
-<li class="toctree-l2"><a class="reference internal" href="kinduction.html#components-of-mathematical-induction">Components of Mathematical Induction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="kinduction.html#example-sum-of-the-first-n-natural-numbers">Example: Sum of the First <cite>n</cite> Natural Numbers</a></li>
-<li class="toctree-l2"><a class="reference internal" href="kinduction.html#basic-inductive-verification-approach">Basic Inductive Verification Approach</a></li>
-<li class="toctree-l2"><a class="reference internal" href="kinduction.html#formal-definition">Formal Definition</a></li>
-<li class="toctree-l2"><a class="reference internal" href="kinduction.html#challenges-in-inductive-verification">Challenges in Inductive Verification</a></li>
-<li class="toctree-l2"><a class="reference internal" href="kinduction.html#motivation-for-k-induction">Motivation for K-Induction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="kinduction.html#components-of-k-induction">Components of K-Induction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="kinduction.html#id1">Formal Definition</a></li>
-<li class="toctree-l2"><a class="reference internal" href="kinduction.html#choosing-k">Choosing <cite>k</cite></a></li>
+<li class="toctree-l1"><a class="reference internal" href="kinduction.html">K-Induction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="kinduction.html#current-engine-surface">Current engine surface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kinduction.html#idea">Idea</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kinduction.html#programmatic-usage">Programmatic usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kinduction.html#cli-usage">CLI usage</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="ksafety.html">K-Safety Verification</a><ul>
@@ -155,14 +150,11 @@
 <li class="toctree-l2"><a class="reference internal" href="ksafety.html#related-work">Related Work</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="ranking_functions.html">Ranking Function Templates for Termination Verification</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="ranking_functions.html#overview">Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ranking_functions.html#implemented-templates">Implemented Templates</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ranking_functions.html#usage">Usage</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ranking_functions.html#implementation-details">Implementation Details</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ranking_functions.html#limitations-and-future-work">Limitations and Future Work</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ranking_functions.html#examples">Examples</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ranking_functions.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ranking_functions.html">Ranking Functions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ranking_functions.html#current-status">Current status</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ranking_functions.html#how-to-approach-ranking-related-workflows-today">How to approach ranking-related workflows today</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ranking_functions.html#cli-entrypoint">CLI entrypoint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ranking_functions.html#notes">Notes</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="danger.html">Danger Invariants</a><ul>
@@ -212,7 +204,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="../automata-languages/cflobdd.html" class="btn btn-neutral float-left" title="CFL OBDD (Context-Free Language Ordered Binary Decision Diagrams)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="bdd.html" class="btn btn-neutral float-right" title="BDD-based Symbolic Model Checking" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="bdd.html" class="btn btn-neutral float-right" title="BDD-Based Verification" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

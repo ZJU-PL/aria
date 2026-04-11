@@ -87,79 +87,65 @@
 <h1>Welcome to aria’s Documentation!<a class="headerlink" href="#welcome-to-aria-s-documentation" title="Link to this heading"></a></h1>
 <section id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h2>
-<p>Aria is a comprehensive toolkit for automated reasoning and constraint solving. It provides implementations of various algorithms and tools for:</p>
+<p>ARIA (Automated Reasoning Infrastructure &amp; Applications) is a Python toolkit
+and research playground for automated reasoning. The repository combines
+libraries, CLI tools, and research prototypes across SAT/SMT solving,
+quantified reasoning, model counting, optimization, theorem proving, program
+verification, symbolic abstraction, and related experimentation.</p>
+<p>Major user-facing areas include:</p>
 <ul class="simple">
-<li><p><strong>Abductive Inference</strong> (<code class="docutils literal notranslate"><span class="pre">aria/abduction</span></code>) - Generate explanations for observations</p></li>
-<li><p><strong>AllSMT</strong> (<code class="docutils literal notranslate"><span class="pre">aria/allsmt</span></code>) - Enumerate all satisfying models</p></li>
-<li><p><strong>Backbone Computation</strong> (<code class="docutils literal notranslate"><span class="pre">aria/backbone</span></code>) - Extract forced assignments</p></li>
-<li><p><strong>UNSAT Core Extraction</strong> (<code class="docutils literal notranslate"><span class="pre">aria/unsat_core</span></code>) - Identify minimal unsatisfiable subsets</p></li>
-<li><p><strong>Quantifier Reasoning</strong> (<code class="docutils literal notranslate"><span class="pre">aria/quant</span></code>) - Handle exists-forall and quantified formulas</p></li>
-<li><p><strong>Quantifier Elimination</strong> (<code class="docutils literal notranslate"><span class="pre">aria/quant/qe</span></code>) - Eliminate quantifiers from formulas</p></li>
-<li><p><strong>Solution Sampling</strong> (<code class="docutils literal notranslate"><span class="pre">aria/sampling</span></code>) - Generate diverse solutions</p></li>
-<li><p><strong>Model Counting</strong> (<code class="docutils literal notranslate"><span class="pre">aria/counting</span></code>) - Count satisfying assignments</p></li>
-<li><p><strong>Optimization Modulo Theory</strong> (<code class="docutils literal notranslate"><span class="pre">aria/optimization</span></code>) - Solve optimization problems</p></li>
-<li><p><strong>Interpolant Generation</strong> (<code class="docutils literal notranslate"><span class="pre">aria/interpolant</span></code>) - Generate Craig interpolants</p></li>
-<li><p><strong>Symbolic Abstraction</strong> (<code class="docutils literal notranslate"><span class="pre">aria/symabs</span></code>) - Abstract state spaces</p></li>
-<li><p><strong>Predicate Abstraction</strong> (<code class="docutils literal notranslate"><span class="pre">aria/symabs/predicate_abstraction</span></code>) - Abstract with predicates</p></li>
-<li><p><strong>Monadic Abstraction</strong> (<code class="docutils literal notranslate"><span class="pre">aria/monabs</span></code>) - Monadic predicate abstraction</p></li>
-<li><p><strong>Knowledge Compilation</strong> (<code class="docutils literal notranslate"><span class="pre">aria/bool/knowledge_compiler</span></code>) - Compile to tractable forms</p></li>
-<li><p><strong>MaxSAT Solving</strong> (<code class="docutils literal notranslate"><span class="pre">aria/bool/maxsat</span></code>) - Solve maximum satisfiability problems</p></li>
-<li><p><strong>QBF Solving</strong> - Quantified Boolean formula solving</p></li>
-<li><p><strong>Finite Field Solving</strong> (<code class="docutils literal notranslate"><span class="pre">aria/smt/ff</span></code>) - SMT for Galois field constraints</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.bool</span></code>: SAT, MaxSAT, QBF, CNF simplification, and knowledge compilation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.smt</span></code>: SMT-oriented theory packages and solver utilities</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.srk</span></code>: symbolic reasoning infrastructure</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.quant</span></code>: quantified reasoning, EFSMT, QE, CHC tooling, and prototypes</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.efmc</span></code>: program verification frontends and engines</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.counting</span></code> / <code class="docutils literal notranslate"><span class="pre">aria.sampling</span></code> / <code class="docutils literal notranslate"><span class="pre">aria.prob</span></code>: counting, sampling,
+and probabilistic reasoning</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.optimization</span></code>: optimization and MaxSMT/MaxSAT-oriented workflows</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.itp</span></code> / <code class="docutils literal notranslate"><span class="pre">aria.fol</span></code> / <code class="docutils literal notranslate"><span class="pre">aria.interpolant</span></code>: theorem proving and logic</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.translator</span></code> / <code class="docutils literal notranslate"><span class="pre">aria.cli</span></code>: translators and command-line tools</p></li>
 </ul>
-<blockquote>
-<div><ul class="simple">
-<li><p><strong>Interactive Theorem Proving</strong> (<code class="docutils literal notranslate"><span class="pre">aria/itp</span></code>) - Proof assistant framework</p></li>
-<li><p><strong>Automata Operations</strong> (<code class="docutils literal notranslate"><span class="pre">aria/automata</span></code>) - Finite automata algorithms</p></li>
-</ul>
-</div></blockquote>
-<ul class="simple">
-<li><p><strong>Program Synthesis</strong> (<code class="docutils literal notranslate"><span class="pre">aria/synthesis</span></code>) - Synthesize programs from specifications</p></li>
-<li><p><strong>Context-Free Language Reachability</strong> (<code class="docutils literal notranslate"><span class="pre">aria/cfl</span></code>) - CFL solving algorithms</p></li>
-<li><p><strong>Unification</strong> (<code class="docutils literal notranslate"><span class="pre">aria/unification</span></code>) - Term unification algorithms</p></li>
-<li><p><strong>Translator</strong> (<code class="docutils literal notranslate"><span class="pre">aria/translator</span></code>) - Translate between different formats</p></li>
-<li><p><strong>EFMC Verification</strong> (<code class="docutils literal notranslate"><span class="pre">aria/efmc</span></code>) - Program verification with invariant generation, termination analysis, and more</p></li>
-</ul>
-<p>We welcome any feedback, issues, or suggestions for improvement. Please feel free to open an issue in our repository.</p>
 </section>
 <section id="installing-and-using-aria">
-<h2>Installing and Using Aria<a class="headerlink" href="#installing-and-using-aria" title="Link to this heading"></a></h2>
-<section id="install-aria-from-source">
-<h3>Install aria from source<a class="headerlink" href="#install-aria-from-source" title="Link to this heading"></a></h3>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">ZJU</span><span class="o">-</span><span class="n">PL</span><span class="o">/</span><span class="n">aria</span>
-<span class="n">virtualenv</span> <span class="o">--</span><span class="n">python</span><span class="o">=</span><span class="n">python3</span> <span class="n">venv</span>
-<span class="n">source</span> <span class="n">venv</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">activate</span>
-<span class="n">cd</span> <span class="n">aria</span>
-<span class="n">bash</span> <span class="n">setup_local_env</span><span class="o">.</span><span class="n">sh</span>
-<span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="o">.</span>
+<h2>Installing and using aria<a class="headerlink" href="#installing-and-using-aria" title="Link to this heading"></a></h2>
+<p>Install from source:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/ZJU-PL/aria
+<span class="nb">cd</span><span class="w"> </span>aria
+bash<span class="w"> </span>setup_local_env.sh
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
 </pre></div>
 </div>
-<p>The setup script will:
-- Create a Python virtual environment if it doesn’t exist
-- Activate the virtual environment and install the package and its dependencies (from pyproject.toml)
-- Download required solver binaries (CVC5, MathSAT, z3)
-- Run unit tests if available</p>
-</section>
-<section id="quick-start">
-<h3>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading"></a></h3>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
-
-<span class="c1"># Example: Check satisfiability</span>
-<span class="n">formula</span> <span class="o">=</span> <span class="n">Bool</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># Simple tautology</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">smt_solve</span><span class="p">(</span><span class="n">formula</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Formula is </span><span class="si">{</span><span class="s1">&#39;satisfiable&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;unsatisfiable&#39;</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<p>For a faster local setup with <code class="docutils literal notranslate"><span class="pre">uv</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>venv
+<span class="nb">source</span><span class="w"> </span>.venv/bin/activate
+uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
 </pre></div>
 </div>
+<p>Common console commands after installation include:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">aria-fmldoc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria-mc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria-pyomt</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria-efsmt</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria-maxsat</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria-unsat-core</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria-allsmt</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria-smt-server</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria-efmc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria-efmc-efsmt</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria-polyhorn</span></code></p></li>
+</ul>
 </section>
 <section id="documentation-map">
-<h3>Documentation Map<a class="headerlink" href="#documentation-map" title="Link to this heading"></a></h3>
+<h2>Documentation map<a class="headerlink" href="#documentation-map" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">getting-started</span></code>: tutorials, quick reference, and topic overviews</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">logic-and-solving</span></code>: core logic APIs, solver stacks, SRK, and reusable reasoning infrastructure</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">proofs</span> <span class="pre">and</span> <span class="pre">explanations</span></code>: abduction, interpolation, and interactive theorem proving</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">quantified-reasoning</span></code>: quantified solving, quantifier elimination, and instantiation techniques</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">abstraction</span></code> / <code class="docutils literal notranslate"><span class="pre">verification</span></code>: program-analysis engines and verification workflows</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">counting-probability</span></code>: model counting, sampling, and probabilistic reasoning</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">getting-started</span></code>: installation notes, quick reference, and tutorials</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">logic-and-solving</span></code>: core solver and reasoning packages</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">proofs-and-explanations</span></code>: abduction, interpolation, and theorem proving</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">quantified-reasoning</span></code>: EFSMT, QE, and quantified workflows</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">verification</span></code> / <code class="docutils literal notranslate"><span class="pre">abstraction</span></code>: EFMC engines and abstraction-oriented pages</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">counting-probability</span></code>: counting, sampling, and probabilistic reasoning</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cli-tools</span></code>: command-line frontends and translator-oriented workflows</p></li>
 </ul>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
@@ -168,7 +154,7 @@
 <li class="toctree-l2"><a class="reference internal" href="getting-started/tutorial.html">Tutorial</a></li>
 <li class="toctree-l2"><a class="reference internal" href="getting-started/quickref.html">Quick Reference</a></li>
 <li class="toctree-l2"><a class="reference internal" href="getting-started/topics.html">Research Topics and Thesis Projects</a></li>
-<li class="toctree-l2"><a class="reference internal" href="getting-started/verification-tutorial.html">Playing wiht Program Verification with EFMC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started/verification-tutorial.html">Program Verification with EFMC</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="logic-and-solving/index.html">Logic and Solving</a><ul>
@@ -194,7 +180,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="proofs-and-explanations/index.html">Proofs and Explanations</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="proofs-and-explanations/abduction.html">Abduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="proofs-and-explanations/abduction.html">Abductive Reasoning</a></li>
 <li class="toctree-l2"><a class="reference internal" href="proofs-and-explanations/interpolant.html">Interpolant Generation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="proofs-and-explanations/itp.html">Interactive Theorem Proving (ITP)</a></li>
 </ul>
@@ -222,13 +208,13 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="verification/index.html">Verification</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="verification/bdd.html">BDD-based Symbolic Model Checking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verification/bdd.html">BDD-Based Verification</a></li>
 <li class="toctree-l2"><a class="reference internal" href="verification/verification.html">Program Verification</a></li>
 <li class="toctree-l2"><a class="reference internal" href="verification/polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
 <li class="toctree-l2"><a class="reference internal" href="verification/houdini.html">Houdini</a></li>
-<li class="toctree-l2"><a class="reference internal" href="verification/kinduction.html">K-induction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verification/kinduction.html">K-Induction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="verification/ksafety.html">K-Safety Verification</a></li>
-<li class="toctree-l2"><a class="reference internal" href="verification/ranking_functions.html">Ranking Function Templates for Termination Verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verification/ranking_functions.html">Ranking Functions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="verification/danger.html">Danger Invariants</a></li>
 <li class="toctree-l2"><a class="reference internal" href="verification/ltl.html">Linear Teamporal Logic</a></li>
 <li class="toctree-l2"><a class="reference internal" href="verification/symautomata.html">Symbolic Finite Automata</a></li>
@@ -240,9 +226,7 @@
 <li class="toctree-l2"><a class="reference internal" href="abstraction/predicate_abstraction.html">Predicate Abstraction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="abstraction/predabs.html">Predicate Abstraction and CEGAR</a></li>
 <li class="toctree-l2"><a class="reference internal" href="abstraction/monabs.html">Monadic Predicate Abstraction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="abstraction/absint.html">Abstraction Interpretation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="abstraction/absint.html#widening">Widening</a></li>
-<li class="toctree-l2"><a class="reference internal" href="abstraction/absint.html#making-abstraction-interpretation-complete">Making Abstraction Interpretation Complete</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abstraction/absint.html">Abstract Interpretation</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="counting-probability/index.html">Counting, Sampling, and Probability</a><ul>
@@ -271,12 +255,6 @@
 <li class="toctree-l1"><a class="reference internal" href="cli-tools/index.html">CLI and Tools</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="cli-tools/cli.html">CLI Tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cli-tools/translator.html">Translator Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli-tools/translator.html#introduction">Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli-tools/translator.html#components">Components</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli-tools/translator.html#command-line-interface-aria-cli-fmldoc-py">Command-Line Interface (<code class="docutils literal notranslate"><span class="pre">aria/cli/fmldoc.py</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli-tools/translator.html#examples">Examples</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli-tools/translator.html#applications">Applications</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli-tools/translator.html#references">References</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cli-tools/applications.html">Applications</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cli-tools/boogie_frontend.html">Boogie Frontend for EFMC</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cli-tools/c_frontend.html">C Frontend for EFMC</a></li>
@@ -301,7 +279,6 @@
 </li>
 </ul>
 </div>
-</section>
 </section>
 </section>
 

@@ -63,9 +63,10 @@
 <li class="toctree-l2"><a class="reference internal" href="backbone.html">Backbone Computation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="unsat_core.html">UNSAT Core Extraction</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Optimization Modulo Theory</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#introduction">Introduction</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#omt-in-aria">OMT in Aria</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#references">References</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#current-layout">Current layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#floating-point-omt">Floating-point OMT</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cli-access">CLI access</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#public-api-note">Public API note</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="knowledge_compilation.html">Knowledge Compilation</a></li>
@@ -112,27 +113,43 @@
              
   <section id="optimization-modulo-theory">
 <h1>Optimization Modulo Theory<a class="headerlink" href="#optimization-modulo-theory" title="Link to this heading"></a></h1>
-<section id="introduction">
-<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h2>
-<p>Optimization Modulo Theories (OMT) extends Satisfiability Modulo Theories (SMT)
-by adding optimization capabilities. While SMT focuses on finding satisfying
-assignments to formulas in first-order logic with respect to background theories,
-OMT additionally allows for finding optimal solutions according to objective
-functions.</p>
-</section>
-<section id="omt-in-aria">
-<h2>OMT in Aria<a class="headerlink" href="#omt-in-aria" title="Link to this heading"></a></h2>
-<p>Currently, we rely on the <code class="docutils literal notranslate"><span class="pre">pyomt</span></code> library for solving OMT problems. (TBD: need
-to add it as a requirement)</p>
-<p>Basic Usage</p>
-</section>
-<section id="references">
-<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">aria.optimization</span></code> contains optimization and MaxSAT components. It is no
+longer described as a thin wrapper around an external <code class="docutils literal notranslate"><span class="pre">pyomt</span></code> dependency; the
+repo contains its own optimization package and CLI frontend.</p>
+<section id="current-layout">
+<h2>Current layout<a class="headerlink" href="#current-layout" title="Link to this heading"></a></h2>
+<p>The package currently contains:</p>
 <ul class="simple">
-<li><p>Sebastiani, R., &amp; Trentin, P. (2015). “Optimization Modulo Theories with Linear Rational Costs”. ACM Transactions on Computational Logic.</p></li>
-<li><p>Li, Y., Albarghouthi, A., Kincaid, Z., Gurfinkel, A., &amp; Chechik, M. (2014). “Symbolic Optimization with SMT Solvers”. POPL.</p></li>
-<li><p>Bjørner, N., Phan, A. D., &amp; Fleckenstein, L. (2015). “νZ - An Optimizing SMT Solver”. TACAS.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maxsmt/</span></code>: MaxSAT solvers and result handling</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">omt_solver.py</span></code>: main OMT solver entrypoint</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">omtarith/</span></code>: arithmetic OMT</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">omtbv/</span></code>: bit-vector OMT</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">omtfp/</span></code>: floating-point OMT</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">msa/</span></code>: minimal satisfying assignment components</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">omt_parser.py</span></code>, <code class="docutils literal notranslate"><span class="pre">pysmt_utils.py</span></code>, <code class="docutils literal notranslate"><span class="pre">bin_solver.py</span></code>: shared utilities</p></li>
 </ul>
+</section>
+<section id="floating-point-omt">
+<h2>Floating-point OMT<a class="headerlink" href="#floating-point-omt" title="Link to this heading"></a></h2>
+<p>The floating-point stack uses IEEE-754 <code class="docutils literal notranslate"><span class="pre">totalOrder</span></code> semantics, so optimization
+is defined over exact floating-point encodings rather than only the partial
+numeric order induced by <code class="docutils literal notranslate"><span class="pre">fp.lt</span></code> or <code class="docutils literal notranslate"><span class="pre">fp.leq</span></code>.</p>
+</section>
+<section id="cli-access">
+<h2>CLI access<a class="headerlink" href="#cli-access" title="Link to this heading"></a></h2>
+<p>The main command-line frontend is:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>aria-pyomt<span class="w"> </span>problem.smt2
+python<span class="w"> </span>-m<span class="w"> </span>aria.cli.pyomt_cli<span class="w"> </span>problem.smt2<span class="w"> </span>--engine<span class="w"> </span>qsmt
+</pre></div>
+</div>
+<p>Related MaxSAT workflows are available through <code class="docutils literal notranslate"><span class="pre">aria-maxsat</span></code>.</p>
+</section>
+<section id="public-api-note">
+<h2>Public API note<a class="headerlink" href="#public-api-note" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">aria.optimization</span></code> currently exports result types such as
+<code class="docutils literal notranslate"><span class="pre">OptimizationResult</span></code> and <code class="docutils literal notranslate"><span class="pre">OptimizationStatus</span></code>. Many solver implementations
+live in subpackages such as <code class="docutils literal notranslate"><span class="pre">aria.optimization.maxsmt</span></code> and the <code class="docutils literal notranslate"><span class="pre">omt*</span></code>
+directories.</p>
 </section>
 </section>
 

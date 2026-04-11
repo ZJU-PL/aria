@@ -53,18 +53,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../abstraction/index.html">Abstraction</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Counting, Sampling, and Probability</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Model Counting</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#introduction-to-model-counting">Introduction to Model Counting</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#model-counting-in-aria">Model Counting in Aria</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#model-counting-for-sat-formulas">Model Counting for SAT Formulas</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#model-counting-for-qf-bv-formulas">Model Counting for QF_BV Formulas</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#advanced-features">Advanced Features</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#projected-model-counting">Projected Model Counting</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#approximate-model-counting">Approximate Model Counting</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#references">References</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#current-package-layout">Current package layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#public-entrypoints">Public entrypoints</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#formula-level-counting">Formula-level counting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#file-based-counting">File-based counting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#supported-counting-modes">Supported counting modes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cli-access">CLI access</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#notes">Notes</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
@@ -105,77 +100,79 @@
              
   <section id="model-counting">
 <h1>Model Counting<a class="headerlink" href="#model-counting" title="Link to this heading"></a></h1>
-<section id="introduction-to-model-counting">
-<h2>Introduction to Model Counting<a class="headerlink" href="#introduction-to-model-counting" title="Link to this heading"></a></h2>
-<p>Model counting is the problem of determining the number of possible solutions
-(models) to a given formula. It is a fundamental problem in computer
-science and has applications in various fields such as artificial intelligence, cryptography, and verification.
-The complexity of model counting varies depending on the logic and constraints involved.
-For Boolean satisfiability (SAT), model counting is #P-complete.</p>
+<p><code class="docutils literal notranslate"><span class="pre">aria.counting</span></code> provides a shared frontend for counting satisfying assignments
+from formulas and files, with theory-specific backends for Boolean, bit-vector,
+and arithmetic fragments.</p>
+<section id="current-package-layout">
+<h2>Current package layout<a class="headerlink" href="#current-package-layout" title="Link to this heading"></a></h2>
+<p>Relevant pieces of the current package include:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.counting.api</span></code>: dispatch and theory detection</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.counting.bool</span></code>: DIMACS and Boolean counting backends</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.counting.bv</span></code>: QF_BV model counting</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.counting.arith</span></code>: arithmetic counting, including LattE-based flows</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.counting.core</span></code>: structured result objects</p></li>
+</ul>
 </section>
-<section id="model-counting-in-aria">
-<h2>Model Counting in Aria<a class="headerlink" href="#model-counting-in-aria" title="Link to this heading"></a></h2>
-<section id="model-counting-for-sat-formulas">
-<h3>Model Counting for SAT Formulas<a class="headerlink" href="#model-counting-for-sat-formulas" title="Link to this heading"></a></h3>
-<p>To count models for SAT formulas, please use <code class="docutils literal notranslate"><span class="pre">sharpSAT</span></code> or other third-party tools.
-SharpSAT is an efficient model counter for Boolean formulas in CNF format.</p>
-<p>Example usage: (to implement)</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># FIXME: to make it more conveinent for the users</span>
-<span class="c1"># we should allow for counting the models of a z3 exper or pysmt expr</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">aria.bool.counting</span><span class="w"> </span><span class="kn">import</span> <span class="n">count_models</span>  <span class="c1"># TBD</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">aria.logic</span><span class="w"> </span><span class="kn">import</span> <span class="c1"># TBD</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pysat</span><span class="w"> </span><span class="kn">import</span> <span class="o">...</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">pysmt</span>
-
-<span class="c1"># Create a CNF formula</span>
-<span class="n">cnf</span> <span class="o">=</span> <span class="n">CNF</span><span class="p">()</span>
-<span class="n">cnf</span><span class="o">.</span><span class="n">add_clause</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>  <span class="c1"># x1 OR x2</span>
-<span class="n">cnf</span><span class="o">.</span><span class="n">add_clause</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span> <span class="c1"># NOT x1 OR x3</span>
-
-<span class="c1"># Count models</span>
-<span class="n">count</span> <span class="o">=</span> <span class="n">count_models</span><span class="p">(</span><span class="n">cnf</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of solutions: </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<section id="public-entrypoints">
+<h2>Public entrypoints<a class="headerlink" href="#public-entrypoints" title="Link to this heading"></a></h2>
+<p>The package exports these helpers:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.counting</span><span class="w"> </span><span class="kn">import</span> <span class="n">count</span><span class="p">,</span> <span class="n">count_from_file</span><span class="p">,</span> <span class="n">count_result</span><span class="p">,</span> <span class="n">CountResult</span>
 </pre></div>
 </div>
+<p><code class="docutils literal notranslate"><span class="pre">count()</span></code> and <code class="docutils literal notranslate"><span class="pre">count_result()</span></code> operate on parsed Z3 formulas.
+<code class="docutils literal notranslate"><span class="pre">count_from_file()</span></code> and <code class="docutils literal notranslate"><span class="pre">count_result_from_file()</span></code> operate on <code class="docutils literal notranslate"><span class="pre">.cnf</span></code>,
+<code class="docutils literal notranslate"><span class="pre">.dimacs</span></code>, or <code class="docutils literal notranslate"><span class="pre">.smt2</span></code> files.</p>
 </section>
-<section id="model-counting-for-qf-bv-formulas">
-<h3>Model Counting for QF_BV Formulas<a class="headerlink" href="#model-counting-for-qf-bv-formulas" title="Link to this heading"></a></h3>
-<p>QF_BV stands for the quantifier-free bit-vector logic. It is a subset of the SMT-LIB standard and is commonly used in the analysis and verification
-of computer hardware and software systems.</p>
-<p>To count the models of a QF_BV formula, refer to
-- <code class="docutils literal notranslate"><span class="pre">aria\bv\qfbv_counting.py</span></code>.
-- <code class="docutils literal notranslate"><span class="pre">aria\tests\test_bv_counting.py</span></code></p>
-<p>Example usage: (to implement)</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.bv</span><span class="w"> </span><span class="kn">import</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">aria.bv.qfbv_counting</span><span class="w"> </span><span class="kn">import</span> <span class="n">count_bv_models</span>
-<span class="c1"># Create bit-vector variables</span>
+<section id="formula-level-counting">
+<h2>Formula-level counting<a class="headerlink" href="#formula-level-counting" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.counting</span><span class="w"> </span><span class="kn">import</span> <span class="n">count</span>
 
-<span class="c1"># Create a formula: x + y &lt; 10</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="n">formula</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Or</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
 
-<span class="c1"># Count models</span>
-<span class="n">count</span> <span class="o">=</span> <span class="n">count_bv_models</span><span class="p">(</span><span class="n">formula</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of solutions: </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">num_models</span> <span class="o">=</span> <span class="n">count</span><span class="p">(</span><span class="n">formula</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">num_models</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Note that we rely on sharpSAT for the implementation. Currently, you need to either copy a
-binary version of sharpSAT to <code class="docutils literal notranslate"><span class="pre">bin_solvers</span></code> or install a sharpSAT globally.</p>
+<p>The frontend detects the theory automatically unless <code class="docutils literal notranslate"><span class="pre">theory=...</span></code> is passed
+explicitly.</p>
 </section>
+<section id="file-based-counting">
+<h2>File-based counting<a class="headerlink" href="#file-based-counting" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.counting</span><span class="w"> </span><span class="kn">import</span> <span class="n">count_from_file</span>
+
+<span class="n">num_models</span> <span class="o">=</span> <span class="n">count_from_file</span><span class="p">(</span><span class="s2">&quot;formula.cnf&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">num_models</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For richer metadata, use <code class="docutils literal notranslate"><span class="pre">count_result()</span></code> or <code class="docutils literal notranslate"><span class="pre">count_result_from_file()</span></code>.</p>
 </section>
-<section id="advanced-features">
-<h2>Advanced Features<a class="headerlink" href="#advanced-features" title="Link to this heading"></a></h2>
-<section id="projected-model-counting">
-<h3>Projected Model Counting<a class="headerlink" href="#projected-model-counting" title="Link to this heading"></a></h3>
-<p>Projected model counting involves counting models while considering only a subset of variables.
-This is useful when you’re only interested in specific variables’ solutions.</p>
+<section id="supported-counting-modes">
+<h2>Supported counting modes<a class="headerlink" href="#supported-counting-modes" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Boolean</strong>: DIMACS counting and Boolean SMT counting</p></li>
+<li><p><strong>Bit-vector</strong>: <code class="docutils literal notranslate"><span class="pre">aria.counting.bv</span></code> backends</p></li>
+<li><p><strong>Arithmetic</strong>: exact or backend-specific arithmetic counting when supported</p></li>
+</ul>
+<p>When a theory or projection mode is unsupported, the structured result helpers
+return an informative status instead of silently guessing.</p>
 </section>
-<section id="approximate-model-counting">
-<h3>Approximate Model Counting<a class="headerlink" href="#approximate-model-counting" title="Link to this heading"></a></h3>
-<p>For large formulas where exact counting is impractical, approximate model counting can be used.</p>
+<section id="cli-access">
+<h2>CLI access<a class="headerlink" href="#cli-access" title="Link to this heading"></a></h2>
+<p>The command-line frontend is:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>aria-mc<span class="w"> </span>formula.smt2
+python<span class="w"> </span>-m<span class="w"> </span>aria.cli.mc_cli<span class="w"> </span>formula.cnf<span class="w"> </span>--theory<span class="w"> </span>bool
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="../cli-tools/cli.html"><span class="doc">CLI Tools</span></a> for the current CLI surface.</p>
 </section>
-</section>
-<section id="references">
-<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<section id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Link to this heading"></a></h2>
+<p>Some backends rely on optional external tools such as <code class="docutils literal notranslate"><span class="pre">sharpSAT</span></code> or LattE.
+Availability depends on the selected theory and method.</p>
 </section>
 </section>
 

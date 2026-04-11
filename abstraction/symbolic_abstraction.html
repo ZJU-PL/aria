@@ -77,8 +77,8 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#additional-components">Additional Components</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#model-counting-based-abstract-interpretation-mcai">Model Counting-based Abstract Interpretation (mcai)</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#congruence-closure-based-abstraction-congruence">Congruence Closure-based Abstraction (congruence)</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#range-set-sat-based-abstraction-rangeset-sat">Range Set SAT-based Abstraction (rangeset_sat)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#additional-package-notes">Additional package notes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#range-set-sat-based-abstraction-rangeset">Range Set SAT-based Abstraction (rangeset)</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#usage-examples">Usage Examples</a><ul>
@@ -116,9 +116,7 @@
 <li class="toctree-l2"><a class="reference internal" href="predicate_abstraction.html">Predicate Abstraction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="predabs.html">Predicate Abstraction and CEGAR</a></li>
 <li class="toctree-l2"><a class="reference internal" href="monabs.html">Monadic Predicate Abstraction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="absint.html">Abstraction Interpretation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="absint.html#widening">Widening</a></li>
-<li class="toctree-l2"><a class="reference internal" href="absint.html#making-abstraction-interpretation-complete">Making Abstraction Interpretation Complete</a></li>
+<li class="toctree-l2"><a class="reference internal" href="absint.html">Abstract Interpretation</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../counting-probability/index.html">Counting, Sampling, and Probability</a></li>
@@ -176,8 +174,9 @@ around several key approaches:</p>
 <li><p><strong>Optimization Modulo Theory-based Symbolic Abstraction</strong> (<code class="docutils literal notranslate"><span class="pre">omt_symabs</span></code>)</p></li>
 <li><p><strong>Predicate Abstraction</strong> (<code class="docutils literal notranslate"><span class="pre">predicate_abstraction</span></code>)</p></li>
 <li><p><strong>Model Counting-based Abstract Interpretation</strong> (<code class="docutils literal notranslate"><span class="pre">mcai</span></code>)</p></li>
-<li><p><strong>Congruence Closure-based Abstraction</strong> (<code class="docutils literal notranslate"><span class="pre">congruence</span></code>)</p></li>
-<li><p><strong>Range Set SAT-based Abstraction</strong> (<code class="docutils literal notranslate"><span class="pre">rangeset_sat</span></code>)</p></li>
+<li><p><strong>Affine-relation and related abstractions</strong> (see the package README for
+current coverage)</p></li>
+<li><p><strong>Range Set SAT-based Abstraction</strong> (<code class="docutils literal notranslate"><span class="pre">rangeset</span></code>)</p></li>
 </ol>
 <p>Each approach offers different trade-offs between precision, scalability, and applicability
 to different problem domains.</p>
@@ -310,10 +309,10 @@ positive and negative forms of the formula:</p>
 <section id="rsy-algorithm">
 <h4><strong>RSY Algorithm</strong><a class="headerlink" href="#rsy-algorithm" title="Link to this heading"></a></h4>
 <p>Recursive abstraction refinement algorithm that iteratively improves precision:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.symabs.ai_symabs.domains.algorithms.rsy</span><span class="w"> </span><span class="kn">import</span> <span class="n">rsy</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.symabs.ai_symabs.domains.algorithms.rsy</span><span class="w"> </span><span class="kn">import</span> <span class="n">RSY</span>
 
 <span class="c1"># Compute abstraction with RSY algorithm</span>
-<span class="n">abstract_state</span> <span class="o">=</span> <span class="n">rsy</span><span class="p">(</span><span class="n">concrete_formula</span><span class="p">,</span> <span class="n">domain</span><span class="p">)</span>
+<span class="n">abstract_state</span> <span class="o">=</span> <span class="n">RSY</span><span class="p">(</span><span class="n">concrete_formula</span><span class="p">,</span> <span class="n">domain</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -407,15 +406,16 @@ useful for:</p>
 <li><p>Bit-vector formula analysis</p></li>
 </ul>
 </section>
-<section id="congruence-closure-based-abstraction-congruence">
-<h3>Congruence Closure-based Abstraction (congruence)<a class="headerlink" href="#congruence-closure-based-abstraction-congruence" title="Link to this heading"></a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">congruence</span></code> submodule implements congruence closure techniques for abstraction,
-particularly useful for equality reasoning and uninterpreted functions.</p>
+<section id="additional-package-notes">
+<h3>Additional package notes<a class="headerlink" href="#additional-package-notes" title="Link to this heading"></a></h3>
+<p>Some older descriptions of this package mentioned extra submodules that are not
+part of the current documented surface. For the authoritative package map,
+prefer <code class="docutils literal notranslate"><span class="pre">aria/symabs/README.md</span></code>.</p>
 </section>
-<section id="range-set-sat-based-abstraction-rangeset-sat">
-<h3>Range Set SAT-based Abstraction (rangeset_sat)<a class="headerlink" href="#range-set-sat-based-abstraction-rangeset-sat" title="Link to this heading"></a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">rangeset_sat</span></code> submodule provides SAT-based abstraction techniques for range
-and set operations over bit-vectors, offering efficient analysis for hardware verification.</p>
+<section id="range-set-sat-based-abstraction-rangeset">
+<h3>Range Set SAT-based Abstraction (rangeset)<a class="headerlink" href="#range-set-sat-based-abstraction-rangeset" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">rangeset</span></code> submodule provides SAT-based abstraction techniques for range
+and set operations over bit-vectors.</p>
 </section>
 </section>
 <section id="usage-examples">

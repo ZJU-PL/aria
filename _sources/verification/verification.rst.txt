@@ -1,55 +1,63 @@
 Program Verification
-=====================
+====================
 
-Program verification is the process of checking whether a program satisfies a given specification. The specification can be a set of properties that the program must satisfy, such as correctness, safety, or liveness. Verification can be done using various techniques, such as model checking, static analysis, and theorem proving.
+``aria.efmc`` is the verification-oriented area of the repository. It combines
+frontends, transition-system construction, and multiple proving engines.
 
-Available Verification Engines
--------------------------------
+Verification pipeline
+---------------------
 
-EFMC provides multiple verification engines, each suited for different types of programs and properties:
+At a high level, EFMC follows this workflow:
 
-**Main Engines:**
-- **Template-based (EF)**: Constraint-based invariant generation using predefined templates
-- **PDR**: Property-Directed Reachability using Z3's Spacer engine
-- **K-Induction**: K-induction based verification with optional auxiliary invariants
-- **LLM4Inv**: LLM-guided invariant synthesis using a CEGIS loop
+1. Parse an input frontend such as CHC, SyGuS, Boogie, or a C-oriented flow.
+2. Build an internal transition-system representation.
+3. Select a proving engine.
+4. Run the engine and report ``safe``, ``unsafe``, or ``unknown``.
 
-**Additional Engines:**
-- **Houdini**: Iterative weakening for conjunctive invariant inference
-- **Abduction**: Abductive inference for invariant generation
-- **Quantifier Instantiation (QI)**: Direct solving via quantifier instantiation
-- **Quantifier Elimination (QE)**: Quantifier elimination based verification
-- **Predicate Abstraction**: Finite-state abstraction using predicates
-- **Symbolic Abstraction**: Symbolic abstraction-based verification
-- **BDD**: Binary Decision Diagram based verification
-- **K-Safety**: Relational verification for hyperproperties (programmatic API)
+Main engines
+------------
 
-**Specialized Engines:**
-- **PolyHorn**: Polynomial invariant generation for Horn clauses
-- **Abstract Interpretation**: Abstract interpretation based analysis
+Current engine families include:
 
+* **EF / template-based** invariant synthesis
+* **PDR** via Spacer-oriented workflows
+* **K-induction**
+* **Houdini**
+* **Abduction**
+* **QE** and **QI** verification paths
+* **Predicate abstraction** and **symbolic abstraction**
+* **BDD-based** verification
+* **LLM4Inv**
+* specialized areas such as **PolyHorn**, **k-safety**, **danger**, and
+  abstract-interpretation-related flows
 
-Correctness
------------
+CLI entrypoints
+---------------
 
-Consider the following program that computes the factorial of a number
-.. code-block:: python
+Primary verification commands:
 
-    def factorial(n):
-        if n == 0:
-            return 1
-        else:
-            return n * factorial(n-1)
+.. code-block:: bash
 
-The program computes the factorial of a non-negative integer `n`. The correctness of this program can be verified by proving that it satisfies the specification: for all non-negative integers `n`, the program returns `n!`, where `n!` is the factorial of `n`.
+   aria-efmc --help
+   aria-efmc-efsmt --help
+   aria-polyhorn --help
 
-To verify the correctness of the program, we can use mathematical induction. The proof consists of two parts:
-1. Base case: Show that the program is correct for the base case `n = 0`.
-   
-   When `n = 0`, the program returns `1`, which is `0!`. Therefore, the base case holds.
+Equivalent module entrypoints:
 
-2. Inductive step: Assume that the program is correct for `n = k`, i.e., assume that `factorial(k)` returns `k!`. Show that the program is correct for `n = k + 1`.
+.. code-block:: bash
 
-   When `n = k + 1`, the program returns `(k + 1) * factorial(k)`. By the inductive hypothesis, `factorial(k)` returns `k!`. Therefore, the program returns `(k + 1) * k!`, which is `(k + 1)!`. Hence, the inductive step holds.
+   python -m aria.cli.efmc_cli --help
+   python -m aria.cli.efmc_efsmt_cli --help
+   python -m aria.cli.polyhorn_cli --help
 
-Since both the base case and the inductive step have been proven, by mathematical induction, the program is correct for all non-negative integers `n`.
+Where to look next
+------------------
+
+* :doc:`kinduction`
+* :doc:`houdini`
+* :doc:`ksafety`
+* :doc:`llm4inv`
+* :doc:`polyhorn`
+
+For exact engine flags and supported options, prefer the current CLI help and
+the parser definitions in ``aria/cli/efmc_cli.py``.

@@ -1,341 +1,82 @@
 Utilities
 =========
 
-The ``aria.utils`` module provides common helper functions, type definitions, exception handling, and utility classes used throughout the ARIA codebase. It serves as a foundation for all other modules, offering standardized interfaces for solvers, expressions, values, and file parsing.
+``aria.utils`` contains shared helper code used across ARIA. The package mixes
+general utilities, solver-facing helpers, and Z3-specific helpers.
 
 .. contents:: Table of Contents
    :local:
    :depth: 2
 
-Directory Structure
-----------------
-
-```
-utils/
-├── __init__.py                     (7 lines - main entry point)
-├── types.py                         (Type definitions)
-├── exceptions.py                    (Exception hierarchy)
-├── (Other utility modules across utils/)
-└── (Various subdirectories for specialized utilities)
-```
-
-**Note**: The utils module is distributed across multiple subdirectories. Key utilities are documented below.
-
-Module-Level Exports
------------------
-
-From ``__init__.py``:
-
-.. code-block:: python
-
-   from aria.utils import (
-       SExprParser,          # S-expression parser
-       SolverResult,          # Unified solver result type
-       RE_GET_EXPR_VALUE_ALL  # Regex pattern for extracting values
-   )
-
-Key Components
+Package Layout
 --------------
 
-### 1. Type Definitions (``types.py``)
-
-Provides common type definitions used throughout ARIA.
-
-**Key Types:**
-
-* **SolverResult** (enum): Unified solver result type
-  - ``SAT``: Formula is satisfiable
-  - ``UNSAT``: Formula is unsatisfiable
-  - ``UNKNOWN``: Solver couldn't determine status
-  - ``ERROR``: Solver error occurred
-
-* **OSType** (enum): Operating system type for solver binaries
-* **BinarySMTSolverType** (enum): Types of binary SMT solvers
-
-**Usage Pattern**:
-
-.. code-block:: python
-
-   from aria.utils.types import SolverResult
-
-   result = SolverResult.SAT
-   if result == SolverResult.SAT:
-       print("Satisfiable")
-
-### 2. Exception Hierarchy (``exceptions.py``)
-
-Custom exception hierarchy for ARIA-specific errors.
-
-**Base Exception:**
-
-* **AriaException**: Base exception class for all ARIA errors
-  - Provides consistent error handling across modules
-  - Supports chaining for error context
-
-**Usage Pattern**:
-
-.. code-block:: python
-
-   from aria.utils.exceptions import AriaException
-
-   try:
-       # Some aria operation
-       pass
-   except AriaException as e:
-       print(f"ARIA error: {e}")
-
-### 3. S-Expression Parser (``SExprParser``)
-
-Parses S-expression format commonly used in SMT-LIB and related formats.
-
-**Key Methods:**
-
-* ``parse(string)``: Parse S-expression string into Python objects
-* Supports nested expressions
-* Handles quoted strings and special characters
-
-**Usage Pattern**:
-
-.. code-block:: python
-
-   from aria.utils import SExprParser
-
-   parser = SExprParser()
-   parsed = parser.parse("(and x y z)")
-   # Returns nested Python structure
-
-**Use Cases**:
-
-* **SMT-LIB2 parsing**: Read S-expressions from SMT-LIB format files
-* **Formula parsing**: Convert S-expression to internal representations
-* **Communication protocols**: Parse solver output in S-expression format
-
-### 4. Solver Utilities
-
-Various utilities for working with external solvers:
-
-**Common Patterns:**
-
-* Binary solver execution and output parsing
-* Standardized error handling across different solver backends
-* File I/O for solver communication
-* Process management for parallel solver execution
-
-### 5. Expression Utilities
-
-Helpers for working with Z3 and SMT expressions:
-
-**Common Functions:**
-
-* Variable extraction from formulas
-* Expression transformation and simplification
-* Type checking and validation
-* Substitution and evaluation utilities
-
-
-### 6. Value Conversion
-
-Utilities for converting between different value representations:
-
-**Use Cases:**
-
-* Converting solver outputs to ARIA internal types
-* Handling different numeric representations (integers, bit-vectors, reals)
-* String/bytes parsing and conversion
-
-Usage Across Codebase
-----------------------
-
-The utils module is used extensively throughout ARIA in these domains:
-
-### SMT Solving
-**aria/smt/pcdclt/** - Parallel CDCL(T) solver**
-
-* Solver configuration access
-* Type checking
-* Process management
-
-### Quantifier Solving
-**aria/quant/efbv/**, **aria/quant/eflira/**, **aria/quant/qe/** - Multiple solver orchestration
-
-* Binary solver invocation
-* Custom path configuration
-* Multi-solver coordination
-
-### Model Counting
-**aria/counting/bool/** - Boolean model counting
-
-* Solver availability checking
-* Model counter invocation
-
-### Synthesis
-**aria/synthesis/cvc5/** - SyGuS synthesis with CVC5
-
-* Solver path access
-* Binary management
-
-### Abduction
-**aria/abduction/** - Abductive reasoning
-
-* Solver orchestration
-* Multi-solver support
-
-### Interpolation
-**aria/interpolant/** - Interpolant generation
-
-* Multiple solver backends
-* Path configuration
-
-### Boolean Reasoning
-**aria/bool/** - Boolean logic operations
-
-* SAT solver wrappers
-* Expression utilities
-
-### General Utilities
-**Expression parsing**, **file I/O**, **process management**
-
-Design Patterns
---------------
-
-### 1. Centralized Configuration
-
-Utils provide standardized access to:
-
-* Solver paths and availability
-* Type definitions
-* Common interfaces
-
-**Benefits:**
-
-* **Consistency**: Single source of truth for solver configuration
-* **Maintainability**: Changes propagate automatically
-* **Testing**: Easy to mock utilities for testing
-
-### 2. Error Handling
-
-Unified exception hierarchy:
-
-* ``AriaException`` base class
-* Specific exceptions can inherit from it
-* Consistent error catching across modules
-
-### 3. Type Safety
-
-Strong typing with enums:
-
-* ``SolverResult`` for clear status communication
-* ``OSType`` for platform-specific behavior
-* ``BinarySMTSolverType`` for solver categorization
-
-### 4. Parser Utilities
-
-**SExprParser** for S-expression parsing:
-
-* Standard format in SMT and logic communities
-* Robust parsing with error handling
-* Support for nested structures
-
-Usage Examples
---------------
-
-### Solver Result Type
-~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: python
-
-   from aria.utils.types import SolverResult
-
-   def solve_formula(formula):
-       # ... solver logic ...
-       return SolverResult.SAT
-
-   def check_result(result):
-       if result == SolverResult.SAT:
-           print("Formula is satisfiable")
-       elif result == SolverResult.UNSAT:
-           print("Formula is unsatisfiable")
-       else:
-           print("Unknown or error")
-
-### Exception Handling
-~~~~~~~~~~~~~~~~~~
-
-.. code-block:: python
-
-   from aria.utils.exceptions import AriaException
-
-   def some_aria_function():
-       try:
-           # Operation that might fail
-           result = perform_solver_call()
-       except AriaException as e:
-           print(f"ARIA operation failed: {e}")
-           raise
-
-### S-Expression Parsing
-~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: python
-
-   from aria.utils import SExprParser
-
-   # Parse S-expression
-   parser = SExprParser()
-   parsed = parser.parse("(define-fun my-fun (x) (ite (is-sat x) true false))")
-
-   # Access parsed structure
-   print(parsed)
-
-Key Features
+Important areas inside ``aria.utils``:
+
+- ``types.py``: shared enums and solver-related types.
+- ``exceptions.py``: common ARIA exception types.
+- ``sexpr.py``: S-expression parsing helpers.
+- ``solver/``: solver-process and SMT-LIB helpers.
+- ``z3/``: Z3-specific expression, solver, optimization, and value helpers.
+
+Z3 Utilities
 ------------
 
-1. **Type Safety**: Strong typing with enums for results and configurations
-2. **Error Handling**: Centralized exception hierarchy for consistent error management
-3. **Parser Support**: S-expression parser for SMT-LIB compatibility
-4. **Solver Integration**: Utilities for working with external solver binaries
-5. **Expression Utilities**: Helpers for expression manipulation and analysis
-6. **Value Conversion**: Standardized conversion between different representations
-7. **Extensibility**: Easy to add new utilities as needed
+The ``aria.utils.z3`` package collects the Z3-focused helper modules.
 
-Integration Points
-------------------
+- ``__init__.py``: re-exports the Z3 helper modules in this package. Example
+  APIs: package-level imports from ``expr.py``, ``solver.py``, ``opt.py``,
+  ``bv.py``, ``uf.py``, ``values.py``, ``ext.py``, and ``cp.py``.
+- ``expr.py``: helpers for inspecting and transforming Z3 expressions and
+  formulas. Example APIs: ``get_variables``, ``get_atoms``, ``skolemize``,
+  ``big_and``, ``negate``, ``get_z3_logic``.
+- ``solver.py``: small solver-based predicates and model/DNF utilities.
+  Example APIs: ``is_sat``, ``is_unsat``, ``is_valid``, ``is_entail``,
+  ``to_dnf``, ``get_models``.
+- ``opt.py``: wrappers for Z3 optimization and MaxSMT APIs. Example APIs:
+  ``optimize``, ``box_optimize``, ``pareto_optimize``, ``maxsmt``.
+- ``bv.py``: bit-vector helpers, including extension operations and signedness
+  checks. Example APIs: ``zero_extension``, ``sign_extension``,
+  ``right_zero_extension``, ``get_signedness``, ``Signedness``.
+- ``values.py``: helpers for converting and manipulating Z3 values, especially
+  bit-vector and floating-point values. Example APIs: ``bool_to_bit_vec``,
+  ``bv_log2``, ``zext_or_trunc``, ``ctlz``, ``cttz``, ``fp_mod``.
+- ``uf.py``: utilities for working with uninterpreted functions and related
+  rewrites. Example APIs: ``visitor``, ``modify``,
+  ``replace_func_with_template``, ``instiatiate_func_with_axioms``, ``purify``.
+- ``ext.py``: extra or experimental helpers for quantifiers and boolean DNF
+  conversion. Example APIs: ``ground_quantifier``,
+  ``ground_quantifier_all``, ``reconstruct_quantified_formula``,
+  ``to_dnf_boolean``.
+- ``cp.py``: constraint-programming-style helpers and decompositions for global
+  constraints. Example APIs: ``makeIntVar``, ``makeIntVars``,
+  ``all_different``, ``element``, ``global_cardinality_count``, ``cumulative``.
 
-The utils module is imported in **numerous files across ARIA**:
+Other Core Utilities
+--------------------
 
-* **SMT solving**: aria/smt/pcdclt/
-* **Quantifiers**: aria/quant/efbv/, aria/quant/eflira/
-* **Model counting**: aria/counting/bool/
-* **Synthesis**: aria/synthesis/cvc5/
-* **Abduction**: aria/abduction/
-* **Interpolation**: aria/interpolant/
-* **Boolean reasoning**: aria/bool/
-* **Testing**: aria/tests/
+- ``types.py``: shared enums such as solver result and platform identifiers.
+- ``exceptions.py``: base and shared exception types used across ARIA.
+- ``sexpr.py``: parser utilities for SMT-LIB-style S-expressions.
+- ``solver/smtlib.py``: SMT-LIB process helpers for external solvers.
+- ``solver/pysmt.py``: PySMT-backed helpers.
+- ``solver/pysat.py``: PySAT-backed helpers.
+- ``solver/z3plus.py``: external-solver workflows around Z3-based pipelines.
 
-Design Philosophy
------------------
+Import Guidance
+---------------
 
-**"Utility First"**: Provide small, focused, well-tested utilities that:
-
-1. **Do one thing well** - Each utility has a clear, single purpose
-2. **Be reusable** - Designed for use across multiple modules
-3. **Stay simple** - Avoid unnecessary complexity
-4. **Document thoroughly** - Clear docstrings explain purpose and usage
-5. **Handle errors gracefully** - Proper exception raising and catching
-6. **Standardize interfaces** - Consistent APIs for similar functionality
+- Use ``aria.utils.z3.*`` for Z3-specific helpers.
+- Use ``aria.utils.solver.*`` for external solver orchestration and SMT-LIB
+  process handling.
+- Use top-level modules such as ``aria.utils.types`` and
+  ``aria.utils.exceptions`` for shared infrastructure.
 
 Notes
 -----
 
-* The utils module is the foundation upon which all other ARIA modules build
-* Changes to utils should be made carefully as they have wide-ranging effects
-* Priority is on correctness and reliability over performance
-* Documentation is essential due to the module's foundational role
-
-Size Statistics
----------------
-
-* Total documented components: 6+ (from analysis)
-* Type definitions: 3+ enums
-* Core utilities: SExprParser, exception hierarchy, solver wrappers
-* Integration points: 15+ modules across ARIA
+- ``aria.utils`` is a shared dependency across many ARIA subsystems.
+- Prefer importing from the narrowest submodule that provides the API you need.
+- In ``aria.utils.z3``, ``expr.py``, ``solver.py``, ``opt.py``, ``bv.py``,
+  ``uf.py``, and ``values.py`` form the main core; ``ext.py`` is more
+  experimental, and ``cp.py`` is a convenience layer for CP-style encodings.

@@ -48,9 +48,8 @@
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Logic and Solving</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="bool.html">Boolean Reasoning</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">SMT Solving</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#bit-vectors-floating-points-etc">Bit-Vectors, Floating Points, etc.</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#linear-arithmetic">Linear Arithmetic</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#strings">Strings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#current-subpackages">Current subpackages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#navigation">Navigation</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="ff.html">SMT Solving for Finite Field</a></li>
@@ -112,20 +111,34 @@
              
   <section id="smt-solving">
 <h1>SMT Solving<a class="headerlink" href="#smt-solving" title="Link to this heading"></a></h1>
-<p>SMT stands for Satisfiability Modulo Theories. It is a decision problem for logical formulas with respect to combinations of background theories.</p>
-<p>This page gives the theory-level entry points. Specialized solver workflows,
-including parallel CDCL(T), are grouped alongside it in <a class="reference internal" href="index.html"><span class="doc">Logic and Solving</span></a>.</p>
-<section id="bit-vectors-floating-points-etc">
-<h2>Bit-Vectors, Floating Points, etc.<a class="headerlink" href="#bit-vectors-floating-points-etc" title="Link to this heading"></a></h2>
-<p>See <code class="docutils literal notranslate"><span class="pre">bvfp_solver.py</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">aria.smt</span></code> collects SMT-oriented subpackages aimed at different theories and
+solving strategies.</p>
+<section id="current-subpackages">
+<h2>Current subpackages<a class="headerlink" href="#current-subpackages" title="Link to this heading"></a></h2>
+<p>The current <code class="docutils literal notranslate"><span class="pre">aria.smt</span></code> tree includes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">adt</span></code>: algebraic datatype solving</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">arith</span></code>: arithmetic reasoning and related helpers</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bv</span></code>: bit-vector infrastructure and frontends</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bwind</span></code>: bit-width-independence solving</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ff</span></code>: finite-field SMT solvers and tooling</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fp</span></code>: floating-point procedures and reductions</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lia_star</span></code>: LIA* and related BAPA-style support</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mba</span></code>: mixed Boolean-arithmetic simplification</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pcdclt</span></code>: parallel CDCL(T) stack</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">portfolio</span></code>: QF_BV portfolio runner</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">simplify</span></code>: formula simplification passes</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unknown_resolver</span></code>: workflows for resolving <code class="docutils literal notranslate"><span class="pre">unknown</span></code> outcomes</p></li>
+</ul>
 </section>
-<section id="linear-arithmetic">
-<h2>Linear Arithmetic<a class="headerlink" href="#linear-arithmetic" title="Link to this heading"></a></h2>
-<p>See <code class="docutils literal notranslate"><span class="pre">lira_solver.py</span></code></p>
-</section>
-<section id="strings">
-<h2>Strings<a class="headerlink" href="#strings" title="Link to this heading"></a></h2>
-<p>TBD</p>
+<section id="navigation">
+<h2>Navigation<a class="headerlink" href="#navigation" title="Link to this heading"></a></h2>
+<p>This page is a package-level overview. For adjacent user-facing workflows, see:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="parallel_cdclt.html"><span class="doc">Parallel SMT CDCL(T) Solving</span></a> for parallel CDCL(T)</p></li>
+<li><p><a class="reference internal" href="ff.html"><span class="doc">SMT Solving for Finite Field</span></a> for finite-field solving</p></li>
+<li><p><a class="reference internal" href="optimization.html"><span class="doc">Optimization Modulo Theory</span></a> for optimization-oriented stacks built on top of SMT</p></li>
+</ul>
 </section>
 </section>
 

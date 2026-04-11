@@ -19,7 +19,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="K-induction" href="kinduction.html" />
+    <link rel="next" title="K-Induction" href="kinduction.html" />
     <link rel="prev" title="PolyHorn: Polynomial Horn Clause Solver" href="polyhorn.html" /> 
 </head>
 
@@ -50,16 +50,19 @@
 <li class="toctree-l1"><a class="reference internal" href="../quantified-reasoning/index.html">Quantified Reasoning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../automata-languages/index.html">Automata and Languages</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Verification</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="bdd.html">BDD-based Symbolic Model Checking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bdd.html">BDD-Based Verification</a></li>
 <li class="toctree-l2"><a class="reference internal" href="verification.html">Program Verification</a></li>
 <li class="toctree-l2"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Houdini</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#references">References</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#current-engine-surface">Current engine surface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#how-it-fits-in-efmc">How it fits in EFMC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#programmatic-usage">Programmatic usage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cli-usage">CLI usage</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="kinduction.html">K-induction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kinduction.html">K-Induction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ksafety.html">K-Safety Verification</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ranking_functions.html">Ranking Function Templates for Termination Verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ranking_functions.html">Ranking Functions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="danger.html">Danger Invariants</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ltl.html">Linear Teamporal Logic</a></li>
 <li class="toctree-l2"><a class="reference internal" href="symautomata.html">Symbolic Finite Automata</a></li>
@@ -102,43 +105,45 @@
              
   <section id="houdini">
 <h1>Houdini<a class="headerlink" href="#houdini" title="Link to this heading"></a></h1>
-<p>The Houdini algorithm is a simple and efficient technique for inferring loop invariants.  It takes as input a set of predicates and outputs the maximal subset of these predicates that are inductive.</p>
-<p>At a high level, the algorithm works as follows:
-1. Start with a candidate invariant that is the conjunction of all predicates in the given set.
-2. Check if this candidate invariant is inductive with respect to the program’s transition relation.
-3. If it is inductive, return it as the solution.
-4. If not, identify the predicates that are violated in the inductiveness check.
-5. Remove these violated predicates from the candidate set.
-6. Repeat steps 2-5 with the reduced set of predicates until either:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>The candidate invariant becomes inductive, or</p></li>
-<li><p>All predicates have been eliminated (in which case the algorithm fails to find an inductive invariant from the given predicates).</p></li>
+<p><code class="docutils literal notranslate"><span class="pre">aria.efmc.engines.houdini</span></code> contains Houdini-style invariant pruning.</p>
+<section id="current-engine-surface">
+<h2>Current engine surface<a class="headerlink" href="#current-engine-surface" title="Link to this heading"></a></h2>
+<p>The package currently exposes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">HoudiniProver</span></code></p></li>
 </ul>
-</div></blockquote>
-<p>The algorithm is guaranteed to terminate because each iteration removes at least one predicate from the candidate set, and there are finitely many predicates.</p>
-<p>The key insight of Houdini is that if a conjunction of predicates is not inductive, then any conjunction containing the non-inductive predicates will also not be inductive. This allows Houdini to efficiently prune the search space.</p>
-<p>The Houdini  algorithm is interesting for several reasons:
-- It is an example of a “guess-and-check” style invariant inference. There are also many other technqeus for “guessing” such as SVM, neural networks, grammar-based enumeration.
-- It can also be regarded as “template-based” invariant inference. We can regard the set of predicates as a speicial template, and the Houdini algorithm tries to find the most general template that is inductive. There are also other template-based invariant inference algorithms, such as those using the TCM domains (interval, octagon, etc.)
-- It is can be used as a building block in more complex invariant inference algorithms.</p>
-<p>The Houdini algorithm is implemented in the EFMC tool as a standalone invariant inference module.</p>
-<section id="references">
-<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
-<aside class="footnote-list brackets">
-<aside class="footnote brackets" id="id1" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
-<ol class="upperalpha simple" start="11">
-<li><ol class="upperalpha simple" start="18">
-<li><ol class="upperalpha simple" start="13">
-<li><p>Leino and F. Logozzo, Houdini, an Annotation Assistant for ESC/Java. FME’01.</p></li>
+<p>It works with a transition system plus a candidate predicate/template set and
+iteratively removes predicates that fail the inductiveness checks.</p>
+</section>
+<section id="how-it-fits-in-efmc">
+<h2>How it fits in EFMC<a class="headerlink" href="#how-it-fits-in-efmc" title="Link to this heading"></a></h2>
+<p>Houdini is a lightweight invariant-inference technique:</p>
+<ol class="arabic simple">
+<li><p>start from a conjunction of candidate predicates</p></li>
+<li><p>check inductiveness against the transition relation</p></li>
+<li><p>remove predicates that are disproved</p></li>
+<li><p>repeat until the remaining conjunction is inductive or exhausted</p></li>
 </ol>
-</li>
-</ol>
-</li>
-</ol>
-</aside>
-</aside>
+</section>
+<section id="programmatic-usage">
+<h2>Programmatic usage<a class="headerlink" href="#programmatic-usage" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.engines.houdini</span><span class="w"> </span><span class="kn">import</span> <span class="n">HoudiniProver</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.sts</span><span class="w"> </span><span class="kn">import</span> <span class="n">TransitionSystem</span>
+
+<span class="n">sts</span> <span class="o">=</span> <span class="n">TransitionSystem</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="n">prover</span> <span class="o">=</span> <span class="n">HoudiniProver</span><span class="p">(</span><span class="n">sts</span><span class="p">,</span> <span class="n">predicates</span><span class="o">=</span><span class="p">[</span><span class="o">...</span><span class="p">])</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">prover</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="cli-usage">
+<h2>CLI usage<a class="headerlink" href="#cli-usage" title="Link to this heading"></a></h2>
+<p>Houdini-related workflows are exposed through the main verifier CLI:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>aria-efmc<span class="w"> </span>--lang<span class="w"> </span>chc<span class="w"> </span>--engine<span class="w"> </span>houdini<span class="w"> </span>--file<span class="w"> </span>program.smt2
+</pre></div>
+</div>
+<p>For exact CLI flags and current predicate/template handling, prefer
+<code class="docutils literal notranslate"><span class="pre">aria-efmc</span> <span class="pre">--help</span></code> and <code class="docutils literal notranslate"><span class="pre">aria/efmc/engines/houdini/</span></code>.</p>
 </section>
 </section>
 
@@ -147,7 +152,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="polyhorn.html" class="btn btn-neutral float-left" title="PolyHorn: Polynomial Horn Clause Solver" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="kinduction.html" class="btn btn-neutral float-right" title="K-induction" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="kinduction.html" class="btn btn-neutral float-right" title="K-Induction" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

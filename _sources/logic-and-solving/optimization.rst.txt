@@ -1,35 +1,46 @@
 Optimization Modulo Theory
-=============================
+==========================
 
-============
-Introduction
-============
+``aria.optimization`` contains optimization and MaxSAT components. It is no
+longer described as a thin wrapper around an external ``pyomt`` dependency; the
+repo contains its own optimization package and CLI frontend.
 
-Optimization Modulo Theories (OMT) extends Satisfiability Modulo Theories (SMT)
-by adding optimization capabilities. While SMT focuses on finding satisfying
-assignments to formulas in first-order logic with respect to background theories,
-OMT additionally allows for finding optimal solutions according to objective
-functions.
+Current layout
+--------------
 
+The package currently contains:
 
-=============
-OMT in Aria
-=============
+* ``maxsmt/``: MaxSAT solvers and result handling
+* ``omt_solver.py``: main OMT solver entrypoint
+* ``omtarith/``: arithmetic OMT
+* ``omtbv/``: bit-vector OMT
+* ``omtfp/``: floating-point OMT
+* ``msa/``: minimal satisfying assignment components
+* ``omt_parser.py``, ``pysmt_utils.py``, ``bin_solver.py``: shared utilities
 
-Currently, we rely on the ``pyomt`` library for solving OMT problems. (TBD: need
-to add it as a requirement)
+Floating-point OMT
+------------------
 
-Basic Usage
+The floating-point stack uses IEEE-754 ``totalOrder`` semantics, so optimization
+is defined over exact floating-point encodings rather than only the partial
+numeric order induced by ``fp.lt`` or ``fp.leq``.
 
+CLI access
+----------
 
-.. code-block:: python
-    from
+The main command-line frontend is:
 
+.. code-block:: bash
 
-===========
-References
-===========
+   aria-pyomt problem.smt2
+   python -m aria.cli.pyomt_cli problem.smt2 --engine qsmt
 
-- Sebastiani, R., & Trentin, P. (2015). "Optimization Modulo Theories with Linear Rational Costs". ACM Transactions on Computational Logic.
-- Li, Y., Albarghouthi, A., Kincaid, Z., Gurfinkel, A., & Chechik, M. (2014). "Symbolic Optimization with SMT Solvers". POPL.
-- Bjørner, N., Phan, A. D., & Fleckenstein, L. (2015). "νZ - An Optimizing SMT Solver". TACAS.
+Related MaxSAT workflows are available through ``aria-maxsat``.
+
+Public API note
+---------------
+
+``aria.optimization`` currently exports result types such as
+``OptimizationResult`` and ``OptimizationStatus``. Many solver implementations
+live in subpackages such as ``aria.optimization.maxsmt`` and the ``omt*``
+directories.

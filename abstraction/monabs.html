@@ -19,7 +19,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Abstraction Interpretation" href="absint.html" />
+    <link rel="next" title="Abstract Interpretation" href="absint.html" />
     <link rel="prev" title="Predicate Abstraction and CEGAR" href="predabs.html" /> 
 </head>
 
@@ -55,16 +55,13 @@
 <li class="toctree-l2"><a class="reference internal" href="predicate_abstraction.html">Predicate Abstraction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="predabs.html">Predicate Abstraction and CEGAR</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Monadic Predicate Abstraction</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#introduction-to-monadic-predicate-abstraction">Introduction to Monadic Predicate Abstraction</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#monadic-predicate-abstraction-in-aria">Monadic Predicate Abstraction in Aria</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#usage-example">Usage Example</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#performance-comparison">Performance Comparison</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#references">References</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#package-layout">Package layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#current-api-note">Current API note</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example-imports">Example imports</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="absint.html">Abstraction Interpretation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="absint.html#widening">Widening</a></li>
-<li class="toctree-l2"><a class="reference internal" href="absint.html#making-abstraction-interpretation-complete">Making Abstraction Interpretation Complete</a></li>
+<li class="toctree-l2"><a class="reference internal" href="absint.html">Abstract Interpretation</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../counting-probability/index.html">Counting, Sampling, and Probability</a></li>
@@ -102,80 +99,37 @@
              
   <section id="monadic-predicate-abstraction">
 <h1>Monadic Predicate Abstraction<a class="headerlink" href="#monadic-predicate-abstraction" title="Link to this heading"></a></h1>
-<section id="introduction-to-monadic-predicate-abstraction">
-<h2>Introduction to Monadic Predicate Abstraction<a class="headerlink" href="#introduction-to-monadic-predicate-abstraction" title="Link to this heading"></a></h2>
-<p>Given a formula F and a set of predicates {P1, …, Pn}, monadic predicate abstraction decides for
-each Pi whether F and Pi is satisfiable or not. This is a fundamental operation in many program analysis
-and verification tasks.</p>
-<p>Applications:</p>
+<p><code class="docutils literal notranslate"><span class="pre">aria.monabs</span></code> provides monadic predicate-abstraction utilities for checking,
+for each predicate in a set, whether it is compatible with a given formula.</p>
+<section id="package-layout">
+<h2>Package layout<a class="headerlink" href="#package-layout" title="Link to this heading"></a></h2>
+<p>The current package includes:</p>
 <ul class="simple">
-<li><p>In symbolic execution, F is a path condition, and Pi is a predicate related to certain properties.</p></li>
-<li><p>In program verification, F is an invariant, and Pi represents properties to be verified.</p></li>
-<li><p>In static analysis, monadic predicate abstraction can help determine which branches are feasible.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.monabs.cores</span></code>: core algorithms</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.monabs.analysis</span></code>: supporting analysis code</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.monabs.utils</span></code>: utilities</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.monabs.cpp</span></code>: C++ implementation and build example</p></li>
 </ul>
 </section>
-<section id="monadic-predicate-abstraction-in-aria">
-<h2>Monadic Predicate Abstraction in Aria<a class="headerlink" href="#monadic-predicate-abstraction-in-aria" title="Link to this heading"></a></h2>
-<p>Aria provides several implementations of monadic predicate abstraction with different performance characteristics:</p>
-<ol class="arabic simple">
-<li><p><strong>Unary Check</strong> (<cite>unary_check.py</cite>): Basic implementation that checks each predicate individually.
-- <cite>unary_check</cite>: Standard implementation
-- <cite>unary_check_cached</cite>: Optimized version with caching</p></li>
-<li><p><strong>Disjunctive Check</strong> (<cite>dis_check.py</cite>): Checks predicates using a disjunctive approach.
-- <cite>disjunctive_check</cite>: Standard implementation
-- <cite>disjunctive_check_incremental</cite>: Incremental version for better performance</p></li>
-<li><p><strong>UNSAT Check</strong> (<cite>unsat_check.py</cite>): Leverages UNSAT core computation for efficient checking.</p></li>
-<li><p><strong>Parallel Check</strong> (<cite>parallel_check.py</cite>): Parallelized implementation for improved performance on multi-core systems.</p></li>
-</ol>
-<p>The module also includes PySMT-specific implementations (<cite>unary_check_pysmt.py</cite>, <cite>dis_check_pysmt.py</cite>) for compatibility with the PySMT framework.</p>
+<section id="current-api-note">
+<h2>Current API note<a class="headerlink" href="#current-api-note" title="Link to this heading"></a></h2>
+<p>Older examples often referenced outdated top-level module locations. The current
+code lives under <code class="docutils literal notranslate"><span class="pre">aria.monabs.cores</span></code>.</p>
 </section>
-<section id="usage-example">
-<h2>Usage Example<a class="headerlink" href="#usage-example" title="Link to this heading"></a></h2>
-<p><a href="#id1"><span class="problematic" id="id2">``</span></a><a href="#id3"><span class="problematic" id="id4">`</span></a>python
-import z3
-from aria.monabs.unary_check import unary_check
-from aria.monabs.dis_check import disjunctive_check_incremental</p>
-<p># Define variables
-x, y, z = z3.Ints(‘x y z’)</p>
-<p># Define formula and predicates
-formula = z3.And(x &gt; 0, y &gt; x, z &lt; y)
-predicates = [x &lt; 10, y &lt; 20, z &gt; 5, x + y &gt; z]</p>
-<p># Run monadic predicate abstraction
-result_unary = unary_check(formula, predicates)
-result_incremental = disjunctive_check_incremental(formula, predicates)</p>
-<p># Results are boolean lists indicating satisfiability of each predicate
-print(“Unary check results:”, result_unary)
-print(“Incremental check results:”, result_incremental)
-<a href="#id5"><span class="problematic" id="id6">``</span></a><a href="#id7"><span class="problematic" id="id8">`</span></a></p>
-<p>For more advanced usage and benchmarking, refer to the <cite>run_monabs.py</cite> script in the repository root.</p>
+<section id="example-imports">
+<h2>Example imports<a class="headerlink" href="#example-imports" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.monabs.cores.unary_check</span><span class="w"> </span><span class="kn">import</span> <span class="n">unary_check</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.monabs.cores.dis_check</span><span class="w"> </span><span class="kn">import</span> <span class="n">disjunctive_check_cached</span>
+</pre></div>
+</div>
 </section>
-<section id="performance-comparison">
-<h2>Performance Comparison<a class="headerlink" href="#performance-comparison" title="Link to this heading"></a></h2>
-<p>The different implementations offer various performance trade-offs:</p>
-<ul class="simple">
-<li><p><cite>unary_check</cite>: Simple but potentially slower for many predicates</p></li>
-<li><p><cite>unary_check_cached</cite>: Improved performance through caching</p></li>
-<li><p><cite>disjunctive_check</cite>: Better for related predicates</p></li>
-<li><p><cite>disjunctive_check_incremental</cite>: Best for incremental solving</p></li>
-<li><p><cite>unsat_check</cite>: Efficient for formulas with many unsatisfiable predicates</p></li>
-<li><p><cite>parallel_check</cite>: Best for multi-core systems with many predicates</p></li>
-</ul>
-</section>
-<section id="references">
-<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
-<ul class="simple">
-<li><ol class="upperalpha simple" start="20">
-<li><p>Ball, R. Majumdar, T. Millstein, and S. K. Rajamani. “Automatic predicate abstraction of C programs.” In PLDI, 2001.</p></li>
-</ol>
-</li>
-<li><ol class="upperalpha simple" start="5">
-<li><ol class="upperalpha simple" start="13">
-<li><p>Clarke, O. Grumberg, S. Jha, Y. Lu, and H. Veith. “Counterexample-guided abstraction refinement.” In CAV, 2000.</p></li>
-</ol>
-</li>
-</ol>
-</li>
-</ul>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>Given a formula <code class="docutils literal notranslate"><span class="pre">F</span></code> and predicates <code class="docutils literal notranslate"><span class="pre">P1,</span> <span class="pre">...,</span> <span class="pre">Pn</span></code>, monadic predicate
+abstraction determines, for each predicate, whether <code class="docutils literal notranslate"><span class="pre">F</span></code> together with that
+predicate is satisfiable.</p>
+<p>Applications mentioned in the current package README include k-induction,
+optimization/symbolic-abstraction support, and value-flow style analyses.</p>
 </section>
 </section>
 
@@ -184,7 +138,7 @@ print(“Incremental check results:”, result_incremental)
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="predabs.html" class="btn btn-neutral float-left" title="Predicate Abstraction and CEGAR" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="absint.html" class="btn btn-neutral float-right" title="Abstraction Interpretation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="absint.html" class="btn btn-neutral float-right" title="Abstract Interpretation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

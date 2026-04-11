@@ -20,7 +20,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="PolyHorn: Polynomial Horn Clause Solver" href="polyhorn.html" />
-    <link rel="prev" title="BDD-based Symbolic Model Checking" href="bdd.html" /> 
+    <link rel="prev" title="BDD-Based Verification" href="bdd.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -50,17 +50,19 @@
 <li class="toctree-l1"><a class="reference internal" href="../quantified-reasoning/index.html">Quantified Reasoning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../automata-languages/index.html">Automata and Languages</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Verification</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="bdd.html">BDD-based Symbolic Model Checking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bdd.html">BDD-Based Verification</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Program Verification</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#available-verification-engines">Available Verification Engines</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#correctness">Correctness</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#verification-pipeline">Verification pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main-engines">Main engines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cli-entrypoints">CLI entrypoints</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#where-to-look-next">Where to look next</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
 <li class="toctree-l2"><a class="reference internal" href="houdini.html">Houdini</a></li>
-<li class="toctree-l2"><a class="reference internal" href="kinduction.html">K-induction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kinduction.html">K-Induction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ksafety.html">K-Safety Verification</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ranking_functions.html">Ranking Function Templates for Termination Verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ranking_functions.html">Ranking Functions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="danger.html">Danger Invariants</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ltl.html">Linear Teamporal Logic</a></li>
 <li class="toctree-l2"><a class="reference internal" href="symautomata.html">Symbolic Finite Automata</a></li>
@@ -103,55 +105,61 @@
              
   <section id="program-verification">
 <h1>Program Verification<a class="headerlink" href="#program-verification" title="Link to this heading"></a></h1>
-<p>Program verification is the process of checking whether a program satisfies a given specification. The specification can be a set of properties that the program must satisfy, such as correctness, safety, or liveness. Verification can be done using various techniques, such as model checking, static analysis, and theorem proving.</p>
-<section id="available-verification-engines">
-<h2>Available Verification Engines<a class="headerlink" href="#available-verification-engines" title="Link to this heading"></a></h2>
-<p>EFMC provides multiple verification engines, each suited for different types of programs and properties:</p>
-<p><strong>Main Engines:</strong>
-- <strong>Template-based (EF)</strong>: Constraint-based invariant generation using predefined templates
-- <strong>PDR</strong>: Property-Directed Reachability using Z3’s Spacer engine
-- <strong>K-Induction</strong>: K-induction based verification with optional auxiliary invariants
-- <strong>LLM4Inv</strong>: LLM-guided invariant synthesis using a CEGIS loop</p>
-<p><strong>Additional Engines:</strong>
-- <strong>Houdini</strong>: Iterative weakening for conjunctive invariant inference
-- <strong>Abduction</strong>: Abductive inference for invariant generation
-- <strong>Quantifier Instantiation (QI)</strong>: Direct solving via quantifier instantiation
-- <strong>Quantifier Elimination (QE)</strong>: Quantifier elimination based verification
-- <strong>Predicate Abstraction</strong>: Finite-state abstraction using predicates
-- <strong>Symbolic Abstraction</strong>: Symbolic abstraction-based verification
-- <strong>BDD</strong>: Binary Decision Diagram based verification
-- <strong>K-Safety</strong>: Relational verification for hyperproperties (programmatic API)</p>
-<p><strong>Specialized Engines:</strong>
-- <strong>PolyHorn</strong>: Polynomial invariant generation for Horn clauses
-- <strong>Abstract Interpretation</strong>: Abstract interpretation based analysis</p>
-</section>
-<section id="correctness">
-<h2>Correctness<a class="headerlink" href="#correctness" title="Link to this heading"></a></h2>
-<p>Consider the following program that computes the factorial of a number
-.. code-block:: python</p>
-<blockquote>
-<div><dl class="simple">
-<dt>def factorial(n):</dt><dd><dl class="simple">
-<dt>if n == 0:</dt><dd><p>return 1</p>
-</dd>
-<dt>else:</dt><dd><p>return n * factorial(n-1)</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</div></blockquote>
-<p>The program computes the factorial of a non-negative integer <cite>n</cite>. The correctness of this program can be verified by proving that it satisfies the specification: for all non-negative integers <cite>n</cite>, the program returns <cite>n!</cite>, where <cite>n!</cite> is the factorial of <cite>n</cite>.</p>
-<p>To verify the correctness of the program, we can use mathematical induction. The proof consists of two parts:
-1. Base case: Show that the program is correct for the base case <cite>n = 0</cite>.</p>
-<blockquote>
-<div><p>When <cite>n = 0</cite>, the program returns <cite>1</cite>, which is <cite>0!</cite>. Therefore, the base case holds.</p>
-</div></blockquote>
-<ol class="arabic" start="2">
-<li><p>Inductive step: Assume that the program is correct for <cite>n = k</cite>, i.e., assume that <cite>factorial(k)</cite> returns <cite>k!</cite>. Show that the program is correct for <cite>n = k + 1</cite>.</p>
-<p>When <cite>n = k + 1</cite>, the program returns <cite>(k + 1) * factorial(k)</cite>. By the inductive hypothesis, <cite>factorial(k)</cite> returns <cite>k!</cite>. Therefore, the program returns <cite>(k + 1) * k!</cite>, which is <cite>(k + 1)!</cite>. Hence, the inductive step holds.</p>
-</li>
+<p><code class="docutils literal notranslate"><span class="pre">aria.efmc</span></code> is the verification-oriented area of the repository. It combines
+frontends, transition-system construction, and multiple proving engines.</p>
+<section id="verification-pipeline">
+<h2>Verification pipeline<a class="headerlink" href="#verification-pipeline" title="Link to this heading"></a></h2>
+<p>At a high level, EFMC follows this workflow:</p>
+<ol class="arabic simple">
+<li><p>Parse an input frontend such as CHC, SyGuS, Boogie, or a C-oriented flow.</p></li>
+<li><p>Build an internal transition-system representation.</p></li>
+<li><p>Select a proving engine.</p></li>
+<li><p>Run the engine and report <code class="docutils literal notranslate"><span class="pre">safe</span></code>, <code class="docutils literal notranslate"><span class="pre">unsafe</span></code>, or <code class="docutils literal notranslate"><span class="pre">unknown</span></code>.</p></li>
 </ol>
-<p>Since both the base case and the inductive step have been proven, by mathematical induction, the program is correct for all non-negative integers <cite>n</cite>.</p>
+</section>
+<section id="main-engines">
+<h2>Main engines<a class="headerlink" href="#main-engines" title="Link to this heading"></a></h2>
+<p>Current engine families include:</p>
+<ul class="simple">
+<li><p><strong>EF / template-based</strong> invariant synthesis</p></li>
+<li><p><strong>PDR</strong> via Spacer-oriented workflows</p></li>
+<li><p><strong>K-induction</strong></p></li>
+<li><p><strong>Houdini</strong></p></li>
+<li><p><strong>Abduction</strong></p></li>
+<li><p><strong>QE</strong> and <strong>QI</strong> verification paths</p></li>
+<li><p><strong>Predicate abstraction</strong> and <strong>symbolic abstraction</strong></p></li>
+<li><p><strong>BDD-based</strong> verification</p></li>
+<li><p><strong>LLM4Inv</strong></p></li>
+<li><p>specialized areas such as <strong>PolyHorn</strong>, <strong>k-safety</strong>, <strong>danger</strong>, and
+abstract-interpretation-related flows</p></li>
+</ul>
+</section>
+<section id="cli-entrypoints">
+<h2>CLI entrypoints<a class="headerlink" href="#cli-entrypoints" title="Link to this heading"></a></h2>
+<p>Primary verification commands:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>aria-efmc<span class="w"> </span>--help
+aria-efmc-efsmt<span class="w"> </span>--help
+aria-polyhorn<span class="w"> </span>--help
+</pre></div>
+</div>
+<p>Equivalent module entrypoints:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>aria.cli.efmc_cli<span class="w"> </span>--help
+python<span class="w"> </span>-m<span class="w"> </span>aria.cli.efmc_efsmt_cli<span class="w"> </span>--help
+python<span class="w"> </span>-m<span class="w"> </span>aria.cli.polyhorn_cli<span class="w"> </span>--help
+</pre></div>
+</div>
+</section>
+<section id="where-to-look-next">
+<h2>Where to look next<a class="headerlink" href="#where-to-look-next" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="kinduction.html"><span class="doc">K-Induction</span></a></p></li>
+<li><p><a class="reference internal" href="houdini.html"><span class="doc">Houdini</span></a></p></li>
+<li><p><a class="reference internal" href="ksafety.html"><span class="doc">K-Safety Verification</span></a></p></li>
+<li><p><a class="reference internal" href="llm4inv.html"><span class="doc">LLM4Inv: LLM-Guided Invariant Synthesis</span></a></p></li>
+<li><p><a class="reference internal" href="polyhorn.html"><span class="doc">PolyHorn: Polynomial Horn Clause Solver</span></a></p></li>
+</ul>
+<p>For exact engine flags and supported options, prefer the current CLI help and
+the parser definitions in <code class="docutils literal notranslate"><span class="pre">aria/cli/efmc_cli.py</span></code>.</p>
 </section>
 </section>
 
@@ -159,7 +167,7 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="bdd.html" class="btn btn-neutral float-left" title="BDD-based Symbolic Model Checking" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="bdd.html" class="btn btn-neutral float-left" title="BDD-Based Verification" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="polyhorn.html" class="btn btn-neutral float-right" title="PolyHorn: Polynomial Horn Clause Solver" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

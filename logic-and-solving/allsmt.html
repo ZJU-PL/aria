@@ -60,13 +60,10 @@
 <li class="toctree-l2"><a class="reference internal" href="unification.html#applications">Applications</a></li>
 <li class="toctree-l2"><a class="reference internal" href="unification.html#references">References</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">AllSMT</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#introduction">Introduction</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#related-work">Related Work</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#blocking-solvers">Blocking Solvers</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#non-blocking-solvers">Non-blocking Solvers</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#references">References</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#current-api">Current API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example">Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#common-uses">Common uses</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cli-access">CLI access</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="backbone.html">Backbone Computation</a></li>
@@ -116,81 +113,45 @@
              
   <section id="allsmt">
 <h1>AllSMT<a class="headerlink" href="#allsmt" title="Link to this heading"></a></h1>
-<section id="introduction">
-<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h2>
-<p>AllSMT (All-Solutions Satisfiability Modulo Theories) extends AllSAT to SMT formulas,
-aiming to enumerate all satisfying assignments of an SMT formula. This problem is
-fundamental in various applications, including:</p>
+<p>AllSMT extends AllSAT-style enumeration to SMT formulas. In ARIA, the current
+user-facing API lives in <code class="docutils literal notranslate"><span class="pre">aria.allsmt</span></code>.</p>
+<section id="current-api">
+<h2>Current API<a class="headerlink" href="#current-api" title="Link to this heading"></a></h2>
+<p>The package exposes a factory-based interface:</p>
 <ul class="simple">
-<li><p>Combinational iteration testing</p></li>
-<li><p>Quantitative program analysis</p></li>
-<li><p>Constrained test generation</p></li>
-<li><p>Program synthesis</p></li>
-<li><p>Formal verification</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">create_allsmt_solver()</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">AllSMTSolver</span></code></p></li>
+<li><p>backends for Z3, PySMT, and MathSAT when available</p></li>
 </ul>
 </section>
-<section id="related-work">
-<h2>Related Work<a class="headerlink" href="#related-work" title="Link to this heading"></a></h2>
-<p>The closely related AllSAT problem (finding all satisfying assignments for Boolean formulas)
-serves as a foundation for AllSMT. AllSAT is NP-hard and not fixed-parameter tractable
-unless P=NP.</p>
-<p>Current AllSAT approaches fall into two categories:</p>
-<section id="blocking-solvers">
-<h3>Blocking Solvers<a class="headerlink" href="#blocking-solvers" title="Link to this heading"></a></h3>
+<section id="example">
+<h2>Example<a class="headerlink" href="#example" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">z3</span><span class="w"> </span><span class="kn">import</span> <span class="n">And</span><span class="p">,</span> <span class="n">Ints</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.allsmt</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_allsmt_solver</span>
+
+<span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">Ints</span><span class="p">(</span><span class="s2">&quot;x y&quot;</span><span class="p">)</span>
+<span class="n">solver</span> <span class="o">=</span> <span class="n">create_allsmt_solver</span><span class="p">(</span><span class="s2">&quot;z3&quot;</span><span class="p">)</span>
+<span class="n">models</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">And</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">==</span> <span class="mi">5</span><span class="p">,</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">y</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">),</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">],</span> <span class="n">model_limit</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="common-uses">
+<h2>Common uses<a class="headerlink" href="#common-uses" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>Built on CDCL (Conflict-Driven Clause Learning)</p></li>
-<li><p>Uses non-chronological backtracking (NCB)</p></li>
-<li><p>Adds blocking clauses to prevent duplicate solutions</p></li>
+<li><p>exhaustive test-input generation</p></li>
+<li><p>model enumeration for analysis</p></li>
+<li><p>projected reasoning workflows</p></li>
+<li><p>integration with verification and synthesis experiments</p></li>
 </ul>
 </section>
-<section id="non-blocking-solvers">
-<h3>Non-blocking Solvers<a class="headerlink" href="#non-blocking-solvers" title="Link to this heading"></a></h3>
-<ul class="simple">
-<li><p>Avoids blocking clauses overhead</p></li>
-<li><p>Employs chronological backtracking (CB)</p></li>
-<li><p>Generally more memory-efficient</p></li>
-</ul>
-<section id="allsmt-in-aria">
-<h4>AllSMT in Aria<a class="headerlink" href="#allsmt-in-aria" title="Link to this heading"></a></h4>
-<p>[Content to be added]</p>
-</section>
-</section>
-</section>
-<section id="references">
-<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
-<div role="list" class="citation-list">
-<div class="citation" id="sat23" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>SAT23<span class="fn-bracket">]</span></span>
-<p>Masina, G., Spallita, G., Sebastiani, R. (2023).
-<em>On CNF Conversion for Disjoint SAT Enumeration</em>. SAT 2023.</p>
+<section id="cli-access">
+<h2>CLI access<a class="headerlink" href="#cli-access" title="Link to this heading"></a></h2>
+<p>Use the CLI frontend for file-based workflows:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>aria-allsmt<span class="w"> </span>formula.smt2<span class="w"> </span>--limit<span class="w"> </span><span class="m">50</span>
+python<span class="w"> </span>-m<span class="w"> </span>aria.cli.allsmt_cli<span class="w"> </span>formula.smt2<span class="w"> </span>--solver<span class="w"> </span>z3
+</pre></div>
 </div>
-<div class="citation" id="tacas05" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>TACAS05<span class="fn-bracket">]</span></span>
-<p>Jin, H., Han, H., Somenzi, F. (2005).
-<em>Efficient Conflict Analysis for Finding All Satisfying Assignments of a Boolean Circuit</em>. TACAS 2005.</p>
-</div>
-<div class="citation" id="cav02" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>CAV02<span class="fn-bracket">]</span></span>
-<p>McMillan, K. L. (2002).
-<em>Applying SAT Methods in Unbounded Symbolic Model Checking</em>. CAV 2002.</p>
-</div>
-<div class="citation" id="fmcad04" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>FMCAD04<span class="fn-bracket">]</span></span>
-<p>Grumberg, O., Schuster, A., Yadgar, A. (2004).
-<em>Memory Efficient All-Solutions SAT Solver and Its Application for Reachability Analysis</em>. FMCAD 2004.</p>
-</div>
-<div class="citation" id="date04" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>DATE04<span class="fn-bracket">]</span></span>
-<p>Li, B., Hsiao, M. S., Sheng, S. (2004).
-<em>A Novel SAT All-Solutions Solver for Efficient Preimage Computation</em>. DATE 2004.</p>
-</div>
-<div class="citation" id="dpbs" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>DPBS<span class="fn-bracket">]</span></span>
-<p>Spallitta, G., Sebastiani, R., Biere, A.
-<em>Disjoint Projected Enumeration for SAT and SMT without Blocking Clauses</em>.
-<a class="reference external" href="https://github.com/giuspek/tabularAllSAT">GitHub Repository</a></p>
-</div>
-</div>
+<p>For more detail, see <code class="docutils literal notranslate"><span class="pre">aria/allsmt/README.md</span></code> and <a class="reference internal" href="../cli-tools/cli.html"><span class="doc">CLI Tools</span></a>.</p>
 </section>
 </section>
 

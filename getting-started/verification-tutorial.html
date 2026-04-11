@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Playing wiht Program Verification with EFMC &mdash; ARIA Documentation</title>
+  <title>Program Verification with EFMC &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
@@ -48,29 +48,14 @@
 <li class="toctree-l2"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
 <li class="toctree-l2"><a class="reference internal" href="quickref.html">Quick Reference</a></li>
 <li class="toctree-l2"><a class="reference internal" href="topics.html">Research Topics and Thesis Projects</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Playing wiht Program Verification with EFMC</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#setup-and-installation">1. Setup and Installation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#understanding-input-formats">2. Understanding Input Formats</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#example-chc-file">Example CHC File</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#basic-verification">3. Basic Verification</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#running-verification">Running Verification</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#understanding-results">Understanding Results</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#advanced-verification-techniques">4. Advanced Verification Techniques</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#k-induction">K-Induction</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#template-based-verification">Template-Based Verification</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#property-directed-reachability-pdr">Property-Directed Reachability (PDR)</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#best-practices">5. Best Practices</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#input-format-guidelines">Input Format Guidelines</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#example-workflow">6. Example Workflow</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#references">7. References</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Program Verification with EFMC</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#setup">Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#supported-frontends">Supported frontends</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#supported-engines">Supported engines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#typical-commands">Typical commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#results">Results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-entrypoints">Related entrypoints</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#notes">Notes</a></li>
 </ul>
 </li>
 </ul>
@@ -104,7 +89,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="index.html">Getting Started</a></li>
-      <li class="breadcrumb-item active">Playing wiht Program Verification with EFMC</li>
+      <li class="breadcrumb-item active">Program Verification with EFMC</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/getting-started/verification-tutorial.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -114,167 +99,81 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="playing-wiht-program-verification-with-efmc">
-<h1>Playing wiht Program Verification with EFMC<a class="headerlink" href="#playing-wiht-program-verification-with-efmc" title="Link to this heading"></a></h1>
-<p>This tutorial provides a step-by-step guide to program verification using EFMC.</p>
-<section id="setup-and-installation">
-<h2>1. Setup and Installation<a class="headerlink" href="#setup-and-installation" title="Link to this heading"></a></h2>
-<p>First, ensure you have EFMC installed:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create and activate a virtual environment (recommended)</span>
-<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">venv</span> <span class="n">venv</span>
-<span class="n">source</span> <span class="n">venv</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">activate</span>  <span class="c1"># On Unix/macOS</span>
-<span class="c1"># or</span>
-<span class="o">.</span>\<span class="n">venv</span>\<span class="n">Scripts</span>\<span class="n">activate</span>  <span class="c1"># On Windows</span>
-
-<span class="c1"># Install EFMC</span>
-<span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="o">.</span>
+  <section id="program-verification-with-efmc">
+<h1>Program Verification with EFMC<a class="headerlink" href="#program-verification-with-efmc" title="Link to this heading"></a></h1>
+<p>This page introduces the current EFMC verification workflow in ARIA.</p>
+<section id="setup">
+<h2>Setup<a class="headerlink" href="#setup" title="Link to this heading"></a></h2>
+<p>Install ARIA locally:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/ZJU-PL/aria
+<span class="nb">cd</span><span class="w"> </span>aria
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</pre></div>
+</div>
+<p>Then inspect the verifier CLI:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>aria-efmc<span class="w"> </span>--help
+python<span class="w"> </span>-m<span class="w"> </span>aria.cli.efmc_cli<span class="w"> </span>--help
 </pre></div>
 </div>
 </section>
-<section id="understanding-input-formats">
-<h2>2. Understanding Input Formats<a class="headerlink" href="#understanding-input-formats" title="Link to this heading"></a></h2>
-<p>EFMC supports two main input formats:</p>
-<ol class="arabic simple">
-<li><p>CHC (Constrained Horn Clauses)</p></li>
-<li><p>SyGuS (Syntax-Guided Synthesis)</p></li>
-</ol>
-<section id="example-chc-file">
-<h3>Example CHC File<a class="headerlink" href="#example-chc-file" title="Link to this heading"></a></h3>
-<p>Here’s a simple example (<code class="docutils literal notranslate"><span class="pre">fib04_32u.smt2</span></code>):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>(set-logic HORN)
-(declare-fun inv ((_ BitVec 32) (_ BitVec 32) ) Bool)
-(assert (forall ((x (_ BitVec 32)) (y (_ BitVec 32)))
-       (=&gt; ( = x ( bvadd (_ bv1 32) ( bvnot (_ bv50 32) ) ) ) (inv x y))))
-(assert (forall ((x (_ BitVec 32)) (y (_ BitVec 32)) (x! (_ BitVec 32)) (y! (_ BitVec 32)))
-       (=&gt; (and (inv x y) ( or ( and ( bvult x (_ bv0 32) ) ( = x! ( bvadd x y ) ) ( = y! ( bvadd y (_ bv1 32) ) ) ) ( and ( bvuge x (_ bv0 32) ) ( = x! x ) ( = y! y ) ) )) (inv x! y!))))
-(assert (forall ((x (_ BitVec 32)) (y (_ BitVec 32)))
-       (=&gt; (inv x y) ( =&gt; ( not ( bvult x (_ bv0 32) ) ) ( bvuge y (_ bv0 32) ) ))))
-(check-sat)
-</pre></div>
-</div>
-<p>This example represents:</p>
+<section id="supported-frontends">
+<h2>Supported frontends<a class="headerlink" href="#supported-frontends" title="Link to this heading"></a></h2>
+<p>The main EFMC CLI currently works with frontends such as:</p>
 <ul class="simple">
-<li><p>Program with two variables: <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code></p></li>
-<li><p>Initial condition: <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">-50</span></code></p></li>
-<li><p>Property to verify: When <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">≥</span> <span class="pre">0</span></code>, then <code class="docutils literal notranslate"><span class="pre">y</span> <span class="pre">≥</span> <span class="pre">0</span></code></p></li>
+<li><p>CHC</p></li>
+<li><p>SyGuS</p></li>
+<li><p>Boogie</p></li>
+<li><p>C-oriented frontend workflows</p></li>
 </ul>
 </section>
-</section>
-<section id="basic-verification">
-<h2>3. Basic Verification<a class="headerlink" href="#basic-verification" title="Link to this heading"></a></h2>
-<section id="running-verification">
-<h3>Running Verification<a class="headerlink" href="#running-verification" title="Link to this heading"></a></h3>
-<p>You can verify programs using different engines:</p>
-<ol class="arabic">
-<li><p>Template-based Verification:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">efmc</span> <span class="o">--</span><span class="n">engine</span> <span class="n">ef</span> <span class="o">--</span><span class="n">template</span> <span class="n">bv_interval</span> <span class="o">--</span><span class="n">lang</span> <span class="n">chc</span> <span class="o">--</span><span class="n">file</span> <span class="n">your_file</span><span class="o">.</span><span class="n">smt2</span>
-</pre></div>
-</div>
-</li>
-<li><p>PDR (Property-Directed Reachability):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">efmc</span> <span class="o">--</span><span class="n">engine</span> <span class="n">pdr</span> <span class="o">--</span><span class="n">lang</span> <span class="n">chc</span> <span class="o">--</span><span class="n">file</span> <span class="n">your_file</span><span class="o">.</span><span class="n">smt2</span>
-</pre></div>
-</div>
-</li>
-<li><p>K-Induction:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">efmc</span> <span class="o">--</span><span class="n">engine</span> <span class="n">kind</span> <span class="o">--</span><span class="n">lang</span> <span class="n">chc</span> <span class="o">--</span><span class="n">file</span> <span class="n">your_file</span><span class="o">.</span><span class="n">smt2</span>
-</pre></div>
-</div>
-</li>
-<li><p>LLM4Inv (LLM-guided Invariant Synthesis):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">efmc</span> <span class="o">--</span><span class="n">engine</span> <span class="n">llm4inv</span> <span class="o">--</span><span class="n">lang</span> <span class="n">chc</span> <span class="o">--</span><span class="n">file</span> <span class="n">your_file</span><span class="o">.</span><span class="n">smt2</span>
-</pre></div>
-</div>
-</li>
-</ol>
-</section>
-<section id="understanding-results">
-<h3>Understanding Results<a class="headerlink" href="#understanding-results" title="Link to this heading"></a></h3>
-<p>The verifier outputs one of these results:</p>
+<section id="supported-engines">
+<h2>Supported engines<a class="headerlink" href="#supported-engines" title="Link to this heading"></a></h2>
+<p>Current engine families exposed by the verifier include:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">safe</span></code>: Property is verified (program is safe)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">unsafe</span></code>: A bug is found</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">unknown</span></code>: Verifier cannot determine the result</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ef</span></code>: template-based invariant synthesis</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pdr</span></code>: Property-Directed Reachability</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">kind</span></code>: k-induction</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">qe</span></code> / <code class="docutils literal notranslate"><span class="pre">qi</span></code>: quantifier-based verification paths</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">houdini</span></code>: conjunctive invariant pruning</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">abduction</span></code>: abductive invariant generation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bdd</span></code>: BDD-based verification</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">predabs</span></code>: predicate abstraction</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">symabs</span></code>: symbolic abstraction</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">llm4inv</span></code>: LLM-guided invariant synthesis</p></li>
 </ul>
 </section>
-</section>
-<section id="advanced-verification-techniques">
-<h2>4. Advanced Verification Techniques<a class="headerlink" href="#advanced-verification-techniques" title="Link to this heading"></a></h2>
-<section id="k-induction">
-<h3>K-Induction<a class="headerlink" href="#k-induction" title="Link to this heading"></a></h3>
-<p>K-induction extends basic inductive verification by considering <code class="docutils literal notranslate"><span class="pre">k</span></code> consecutive states:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>efmc<span class="w"> </span>--engine<span class="w"> </span>kind<span class="w"> </span>--k<span class="w"> </span><span class="m">3</span><span class="w"> </span>--lang<span class="w"> </span>chc<span class="w"> </span>--file<span class="w"> </span>your_file.smt2
+<section id="typical-commands">
+<h2>Typical commands<a class="headerlink" href="#typical-commands" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>aria-efmc<span class="w"> </span>--lang<span class="w"> </span>chc<span class="w"> </span>--engine<span class="w"> </span>ef<span class="w"> </span>--file<span class="w"> </span>program.smt2
+aria-efmc<span class="w"> </span>--lang<span class="w"> </span>chc<span class="w"> </span>--engine<span class="w"> </span>pdr<span class="w"> </span>--file<span class="w"> </span>program.smt2
+aria-efmc<span class="w"> </span>--lang<span class="w"> </span>chc<span class="w"> </span>--engine<span class="w"> </span>kind<span class="w"> </span>--file<span class="w"> </span>program.smt2
+aria-efmc<span class="w"> </span>--lang<span class="w"> </span>chc<span class="w"> </span>--engine<span class="w"> </span>symabs<span class="w"> </span>--symabs-domain<span class="w"> </span>interval<span class="w"> </span>--file<span class="w"> </span>program.smt2
+aria-efmc<span class="w"> </span>--lang<span class="w"> </span>chc<span class="w"> </span>--engine<span class="w"> </span>llm4inv<span class="w"> </span>--file<span class="w"> </span>program.smt2
 </pre></div>
 </div>
 </section>
-<section id="template-based-verification">
-<h3>Template-Based Verification<a class="headerlink" href="#template-based-verification" title="Link to this heading"></a></h3>
-<p>Supports different templates:</p>
-<p><strong>Integer/Real Templates:</strong>
-- <code class="docutils literal notranslate"><span class="pre">interval</span></code>, <code class="docutils literal notranslate"><span class="pre">power_interval</span></code>: Interval constraints
-- <code class="docutils literal notranslate"><span class="pre">zone</span></code>, <code class="docutils literal notranslate"><span class="pre">power_zone</span></code>: Zone constraints
-- <code class="docutils literal notranslate"><span class="pre">octagon</span></code>, <code class="docutils literal notranslate"><span class="pre">power_octagon</span></code>: Octagonal constraints
-- <code class="docutils literal notranslate"><span class="pre">affine</span></code>, <code class="docutils literal notranslate"><span class="pre">power_affine</span></code>: Affine constraints
-- <code class="docutils literal notranslate"><span class="pre">poly</span></code>, <code class="docutils literal notranslate"><span class="pre">power_poly</span></code>: Polyhedral constraints</p>
-<p><strong>Bitvector Templates:</strong>
-- <code class="docutils literal notranslate"><span class="pre">bv_interval</span></code>, <code class="docutils literal notranslate"><span class="pre">power_bv_interval</span></code>: Bit-vector intervals
-- <code class="docutils literal notranslate"><span class="pre">bv_zone</span></code>, <code class="docutils literal notranslate"><span class="pre">power_bv_zone</span></code>: Bit-vector zones
-- <code class="docutils literal notranslate"><span class="pre">bv_octagon</span></code>, <code class="docutils literal notranslate"><span class="pre">power_bv_octagon</span></code>: Bit-vector octagons
-- <code class="docutils literal notranslate"><span class="pre">bv_poly</span></code>, <code class="docutils literal notranslate"><span class="pre">power_bv_poly</span></code>: Bit-vector polyhedra
-- <code class="docutils literal notranslate"><span class="pre">knownbits</span></code>: Known bits analysis
-- <code class="docutils literal notranslate"><span class="pre">bitpredabs</span></code>: Bit-level predicate abstraction
-- <code class="docutils literal notranslate"><span class="pre">bv_pattern</span></code>, <code class="docutils literal notranslate"><span class="pre">power_bv_pattern</span></code>: Pattern-based templates
-- <code class="docutils literal notranslate"><span class="pre">bv_xor_parity</span></code>, <code class="docutils literal notranslate"><span class="pre">power_bv_xor_parity</span></code>: XOR parity templates
-- <code class="docutils literal notranslate"><span class="pre">bv_rotation</span></code>, <code class="docutils literal notranslate"><span class="pre">power_bv_rotation</span></code>: Rotation templates</p>
-<p><strong>Floating-Point Templates:</strong>
-- <code class="docutils literal notranslate"><span class="pre">fp_interval</span></code>: Floating-point intervals
-- <code class="docutils literal notranslate"><span class="pre">fp_poly</span></code>: Floating-point polyhedra</p>
-<p>Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">efmc</span> <span class="o">--</span><span class="n">engine</span> <span class="n">ef</span> <span class="o">--</span><span class="n">template</span> <span class="n">bv_poly</span> <span class="o">--</span><span class="n">lang</span> <span class="n">chc</span> <span class="o">--</span><span class="n">file</span> <span class="n">your_file</span><span class="o">.</span><span class="n">smt2</span>
-</pre></div>
-</div>
+<section id="results">
+<h2>Results<a class="headerlink" href="#results" title="Link to this heading"></a></h2>
+<p>The verifier generally reports one of:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">safe</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unsafe</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unknown</span></code></p></li>
+</ul>
 </section>
-<section id="property-directed-reachability-pdr">
-<h3>Property-Directed Reachability (PDR)<a class="headerlink" href="#property-directed-reachability-pdr" title="Link to this heading"></a></h3>
-<p>Uses Z3’s Spacer engine for incremental invariant building:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">efmc</span> <span class="o">--</span><span class="n">engine</span> <span class="n">pdr</span> <span class="o">--</span><span class="n">lang</span> <span class="n">chc</span> <span class="o">--</span><span class="n">file</span> <span class="n">your_file</span><span class="o">.</span><span class="n">smt2</span>
-</pre></div>
-</div>
+<section id="related-entrypoints">
+<h2>Related entrypoints<a class="headerlink" href="#related-entrypoints" title="Link to this heading"></a></h2>
+<p>Adjacent verification CLIs include:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">aria-efmc-efsmt</span></code> / <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">aria.cli.efmc_efsmt_cli</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria-polyhorn</span></code> / <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">aria.cli.polyhorn_cli</span></code></p></li>
+</ul>
 </section>
-</section>
-<section id="best-practices">
-<h2>5. Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading"></a></h2>
-<section id="input-format-guidelines">
-<h3>Input Format Guidelines<a class="headerlink" href="#input-format-guidelines" title="Link to this heading"></a></h3>
-<ol class="arabic simple">
-<li><p>Use clear variable naming</p></li>
-<li><p>Specify precise pre and post-conditions</p></li>
-</ol>
-</section>
-</section>
-<section id="example-workflow">
-<h2>6. Example Workflow<a class="headerlink" href="#example-workflow" title="Link to this heading"></a></h2>
-<p>Try different engines:</p>
-<blockquote>
-<div><p># Try PDR
-efmc –engine pdr –lang chc –file your_file.smt2</p>
-<p># Try k-induction
-efmc –engine kind –kind-k 30 –lang chc –file your_file.smt2</p>
-<p># Try template-based approach
-efmc –engine ef –template bv_interval –lang chc –file your_file.smt2</p>
-<p># Try LLM4Inv with remote model
-efmc –engine llm4inv –llm4inv-provider remote –llm4inv-remote-model deepseek-v3 –lang chc –file your_file.smt2</p>
-<p># Try LLM4Inv with local model
-efmc –engine llm4inv –llm4inv-provider local –llm4inv-local-model qwen/qwen3-coder-30b –lang chc –file your_file.smt2</p>
-</div></blockquote>
-</section>
-<section id="references">
-<h2>7. References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
-<ol class="arabic simple">
-<li><p>Clarke, E. M., Grumberg, O., &amp; Peled, D. A. (1999). Model checking. MIT press.</p></li>
-<li><p>Bradley, A. R., &amp; Manna, Z. (2007). The Calculus of Computation: Decision Procedures with Applications to Verification.</p></li>
-<li><p>Sheeran, M., Singh, S., &amp; Stålmarck, G. (2000). Checking safety properties using induction and a SAT-solver.</p></li>
-</ol>
+<section id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Link to this heading"></a></h2>
+<p>Exact option sets evolve with the verifier. For concrete workflows and current
+flags, prefer <code class="docutils literal notranslate"><span class="pre">aria-efmc</span> <span class="pre">--help</span></code> and the parser definitions in
+<code class="docutils literal notranslate"><span class="pre">aria/cli/efmc_cli.py</span></code>.</p>
 </section>
 </section>
 

@@ -46,41 +46,23 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Getting Started</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Tutorial</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#getting-started">Getting Started</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#installation">Installation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#basic-usage">Basic Usage</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#creating-formulas">Creating Formulas</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#working-with-different-theories">Working with Different Theories</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main-package-areas">Main package areas</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#current-cli-workflow">Current CLI workflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples-of-current-python-apis">Examples of current Python APIs</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#model-counting">Model counting</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#allsmt-enumeration">AllSMT enumeration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#sampling">Sampling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#unsat-core-extraction">Unsat-core extraction</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#practical-examples">Practical Examples</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#sudoku-solver">Sudoku Solver</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#scheduling-problem">Scheduling Problem</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#cryptographic-constraint-solving">Cryptographic Constraint Solving</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#advanced-features">Advanced Features</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#model-counting">Model Counting</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#allsmt-all-satisfying-models">AllSMT (All Satisfying Models)</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#unsat-core-extraction">Unsat Core Extraction</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#backbone-literals">Backbone Literals</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#quantifier-elimination">Quantifier Elimination</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#abductive-reasoning">Abductive Reasoning</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#sampling-solutions">Sampling Solutions</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#optimization-maxsat">Optimization (MaxSAT)</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#best-practices">Best Practices</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#performance-tips">Performance Tips</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#debugging-tips">Debugging Tips</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#error-handling">Error Handling</a></li>
-</ul>
-</li>
+<li class="toctree-l3"><a class="reference internal" href="#verification-with-efmc">Verification with EFMC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#where-to-go-next">Where to go next</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="quickref.html">Quick Reference</a></li>
 <li class="toctree-l2"><a class="reference internal" href="topics.html">Research Topics and Thesis Projects</a></li>
-<li class="toctree-l2"><a class="reference internal" href="verification-tutorial.html">Playing wiht Program Verification with EFMC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verification-tutorial.html">Program Verification with EFMC</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../logic-and-solving/index.html">Logic and Solving</a></li>
@@ -124,682 +106,127 @@
              
   <section id="tutorial">
 <h1>Tutorial<a class="headerlink" href="#tutorial" title="Link to this heading"></a></h1>
-<p>This tutorial provides a comprehensive introduction to ARIA, a toolkit for automated reasoning and constraint solving. We’ll cover basic concepts, practical examples, and advanced features.</p>
-<nav class="contents local" id="contents">
-<ul class="simple">
-<li><p><a class="reference internal" href="#getting-started" id="id1">Getting Started</a></p>
-<ul>
-<li><p><a class="reference internal" href="#installation" id="id2">Installation</a></p></li>
-<li><p><a class="reference internal" href="#basic-usage" id="id3">Basic Usage</a></p></li>
-<li><p><a class="reference internal" href="#creating-formulas" id="id4">Creating Formulas</a></p></li>
-<li><p><a class="reference internal" href="#working-with-different-theories" id="id5">Working with Different Theories</a></p></li>
-</ul>
-</li>
-<li><p><a class="reference internal" href="#practical-examples" id="id6">Practical Examples</a></p>
-<ul>
-<li><p><a class="reference internal" href="#sudoku-solver" id="id7">Sudoku Solver</a></p></li>
-<li><p><a class="reference internal" href="#scheduling-problem" id="id8">Scheduling Problem</a></p></li>
-<li><p><a class="reference internal" href="#cryptographic-constraint-solving" id="id9">Cryptographic Constraint Solving</a></p></li>
-</ul>
-</li>
-<li><p><a class="reference internal" href="#advanced-features" id="id10">Advanced Features</a></p>
-<ul>
-<li><p><a class="reference internal" href="#model-counting" id="id11">Model Counting</a></p></li>
-<li><p><a class="reference internal" href="#allsmt-all-satisfying-models" id="id12">AllSMT (All Satisfying Models)</a></p></li>
-<li><p><a class="reference internal" href="#unsat-core-extraction" id="id13">Unsat Core Extraction</a></p></li>
-<li><p><a class="reference internal" href="#backbone-literals" id="id14">Backbone Literals</a></p></li>
-<li><p><a class="reference internal" href="#quantifier-elimination" id="id15">Quantifier Elimination</a></p></li>
-<li><p><a class="reference internal" href="#abductive-reasoning" id="id16">Abductive Reasoning</a></p></li>
-<li><p><a class="reference internal" href="#sampling-solutions" id="id17">Sampling Solutions</a></p></li>
-<li><p><a class="reference internal" href="#optimization-maxsat" id="id18">Optimization (MaxSAT)</a></p></li>
-</ul>
-</li>
-<li><p><a class="reference internal" href="#best-practices" id="id19">Best Practices</a></p>
-<ul>
-<li><p><a class="reference internal" href="#performance-tips" id="id20">Performance Tips</a></p></li>
-<li><p><a class="reference internal" href="#debugging-tips" id="id21">Debugging Tips</a></p></li>
-<li><p><a class="reference internal" href="#error-handling" id="id22">Error Handling</a></p></li>
-</ul>
-</li>
-</ul>
-</nav>
-<section id="getting-started">
-<h2><a class="toc-backref" href="#id1" role="doc-backlink">Getting Started</a><a class="headerlink" href="#getting-started" title="Link to this heading"></a></h2>
+<p>This tutorial is a current high-level orientation to ARIA’s package layout and
+entrypoints. The repository evolves quickly, so package README files and CLI
+<code class="docutils literal notranslate"><span class="pre">--help</span></code> output are the most reliable detailed references.</p>
 <section id="installation">
-<h3><a class="toc-backref" href="#id2" role="doc-backlink">Installation</a><a class="headerlink" href="#installation" title="Link to this heading"></a></h3>
-<p>First, install ARIA using pip:</p>
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
+<p>Install from PyPI:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>aria
 </pre></div>
 </div>
-<p>Or for the latest development version:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/ZJU-PL/aria.git
-</pre></div>
-</div>
-<p>For local development:</p>
+<p>Or install the development version from source:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/ZJU-PL/aria
 <span class="nb">cd</span><span class="w"> </span>aria
+bash<span class="w"> </span>setup_local_env.sh
 pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
 </pre></div>
 </div>
 </section>
-<section id="basic-usage">
-<h3><a class="toc-backref" href="#id3" role="doc-backlink">Basic Usage</a><a class="headerlink" href="#basic-usage" title="Link to this heading"></a></h3>
-<p>ARIA provides a high-level interface for creating and solving logical formulas. Here’s a simple example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria</span><span class="w"> </span><span class="kn">import</span> <span class="n">srk</span>
-
-<span class="c1"># Create symbolic variables</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">srk</span><span class="o">.</span><span class="n">Integer</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">srk</span><span class="o">.</span><span class="n">Integer</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
-
-<span class="c1"># Create a formula</span>
-<span class="n">formula</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">y</span> <span class="o">&gt;</span> <span class="n">x</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">y</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">)</span>
-
-<span class="c1"># Check satisfiability</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">srk</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">formula</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Formula is satisfiable: </span><span class="si">{</span><span class="n">result</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-<span class="c1"># Get a model (concrete assignment)</span>
-<span class="k">if</span> <span class="n">result</span><span class="p">:</span>
-    <span class="n">model</span> <span class="o">=</span> <span class="n">srk</span><span class="o">.</span><span class="n">get_model</span><span class="p">(</span><span class="n">formula</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Example solution: x=</span><span class="si">{</span><span class="n">model</span><span class="p">[</span><span class="n">x</span><span class="p">]</span><span class="si">}</span><span class="s2">, y=</span><span class="si">{</span><span class="n">model</span><span class="p">[</span><span class="n">y</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<section id="main-package-areas">
+<h2>Main package areas<a class="headerlink" href="#main-package-areas" title="Link to this heading"></a></h2>
+<p>ARIA is organized around several major user-facing subsystems:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.bool</span></code>: SAT, MaxSAT, QBF, CNF simplification, and compilation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.smt</span></code>: SMT-oriented theory packages and solver utilities</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.srk</span></code>: symbolic reasoning infrastructure</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.quant</span></code>: EFSMT, QE, CHC tooling, and quantified-reasoning prototypes</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.efmc</span></code>: verification frontends and engines</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.counting</span></code> / <code class="docutils literal notranslate"><span class="pre">aria.sampling</span></code> / <code class="docutils literal notranslate"><span class="pre">aria.prob</span></code>: counting and sampling</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.optimization</span></code>: optimization and MaxSMT-related flows</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.translator</span></code> / <code class="docutils literal notranslate"><span class="pre">aria.cli</span></code>: format translation and command-line tools</p></li>
+</ul>
+</section>
+<section id="current-cli-workflow">
+<h2>Current CLI workflow<a class="headerlink" href="#current-cli-workflow" title="Link to this heading"></a></h2>
+<p>Installed console commands include:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>aria-fmldoc
+aria-mc
+aria-pyomt
+aria-efsmt
+aria-maxsat
+aria-unsat-core
+aria-allsmt
+aria-smt-server
+aria-efmc
+aria-efmc-efsmt
+aria-polyhorn
+</pre></div>
+</div>
+<p>You can also invoke the corresponding Python modules directly:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>aria.cli.mc_cli<span class="w"> </span>--help
+python<span class="w"> </span>-m<span class="w"> </span>aria.cli.efmc_cli<span class="w"> </span>--help
 </pre></div>
 </div>
 </section>
-<section id="creating-formulas">
-<h3><a class="toc-backref" href="#id4" role="doc-backlink">Creating Formulas</a><a class="headerlink" href="#creating-formulas" title="Link to this heading"></a></h3>
-<p>ARIA provides several ways to create formulas depending on your needs.</p>
-<section id="using-srk-symbolic-reasoning-kit">
-<h4>Using SRK (Symbolic Reasoning Kit)<a class="headerlink" href="#using-srk-symbolic-reasoning-kit" title="Link to this heading"></a></h4>
-<p>The SRK module is the core of ARIA for symbolic reasoning:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.srk</span><span class="w"> </span><span class="kn">import</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">Real</span><span class="p">,</span> <span class="n">Bool</span><span class="p">,</span> <span class="n">And</span><span class="p">,</span> <span class="n">Or</span><span class="p">,</span> <span class="n">Implies</span>
-
-<span class="c1"># Integer variables</span>
-<span class="n">n</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">(</span><span class="s2">&quot;n&quot;</span><span class="p">)</span>
-
-<span class="c1"># Real (floating-point) variables</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">Real</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">Real</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
-
-<span class="c1"># Boolean variables</span>
-<span class="n">p</span> <span class="o">=</span> <span class="n">Bool</span><span class="p">(</span><span class="s2">&quot;p&quot;</span><span class="p">)</span>
-<span class="n">q</span> <span class="o">=</span> <span class="n">Bool</span><span class="p">(</span><span class="s2">&quot;q&quot;</span><span class="p">)</span>
-
-<span class="c1"># Create formulas</span>
-<span class="n">f1</span> <span class="o">=</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="mi">0</span>  <span class="c1"># n &gt; 0</span>
-<span class="n">f2</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="p">)</span> <span class="o">==</span> <span class="mi">10</span>  <span class="c1"># x + y = 10</span>
-<span class="n">f3</span> <span class="o">=</span> <span class="n">And</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">Or</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">f1</span><span class="p">))</span>  <span class="c1"># p AND (q OR n &gt; 0)</span>
-<span class="n">f4</span> <span class="o">=</span> <span class="n">Implies</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">f2</span><span class="p">)</span>  <span class="c1"># p IMPLIES (x + y = 10)</span>
-</pre></div>
-</div>
-</section>
-<section id="using-pysmt-integration">
-<h4>Using PySMT Integration<a class="headerlink" href="#using-pysmt-integration" title="Link to this heading"></a></h4>
-<p>ARIA is built on PySMT, giving you access to its full API:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.smt</span><span class="w"> </span><span class="kn">import</span> <span class="n">Solver</span><span class="p">,</span> <span class="n">REAL</span><span class="p">,</span> <span class="n">INT</span><span class="p">,</span> <span class="n">BOOL</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pysmt.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Function</span><span class="p">,</span> <span class="n">FunctionType</span>
-
-<span class="c1"># Create a solver</span>
-<span class="n">s</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">()</span>
-
-<span class="c1"># Create variables with types</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">NewSymbol</span><span class="p">(</span><span class="n">INT</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">NewSymbol</span><span class="p">(</span><span class="n">INT</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
-
-<span class="c1"># Add constraints</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">y</span> <span class="o">&gt;</span> <span class="n">x</span><span class="p">)</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">y</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">)</span>
-
-<span class="c1"># Check satisfiability</span>
-<span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">solve</span><span class="p">():</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;x = </span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;y = </span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-</section>
-<section id="working-with-different-theories">
-<h3><a class="toc-backref" href="#id5" role="doc-backlink">Working with Different Theories</a><a class="headerlink" href="#working-with-different-theories" title="Link to this heading"></a></h3>
-<section id="bit-vectors">
-<h4>Bit-Vectors<a class="headerlink" href="#bit-vectors" title="Link to this heading"></a></h4>
-<p>Bit-vectors represent fixed-width integers common in hardware verification and cryptography:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.srk</span><span class="w"> </span><span class="kn">import</span> <span class="n">BitVec</span><span class="p">,</span> <span class="n">BVAdd</span><span class="p">,</span> <span class="n">BVSub</span><span class="p">,</span> <span class="n">BVAnd</span><span class="p">,</span> <span class="n">BVLShr</span>
-
-<span class="c1"># Create 8-bit and 32-bit variables</span>
-<span class="n">byte</span> <span class="o">=</span> <span class="n">BitVec</span><span class="p">(</span><span class="s2">&quot;byte&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
-<span class="n">word</span> <span class="o">=</span> <span class="n">BitVec</span><span class="p">(</span><span class="s2">&quot;word&quot;</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
-
-<span class="c1"># Bit-vector operations</span>
-<span class="n">doubled</span> <span class="o">=</span> <span class="n">BVAdd</span><span class="p">(</span><span class="n">byte</span><span class="p">,</span> <span class="n">byte</span><span class="p">)</span>
-<span class="n">masked</span> <span class="o">=</span> <span class="n">BVAnd</span><span class="p">(</span><span class="n">byte</span><span class="p">,</span> <span class="mh">0x0F</span><span class="p">)</span>  <span class="c1"># Get lower 4 bits</span>
-
-<span class="c1"># Create a formula</span>
-<span class="n">formula</span> <span class="o">=</span> <span class="p">(</span><span class="n">byte</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">doubled</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">BVLShr</span><span class="p">(</span><span class="n">byte</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">==</span> <span class="mi">5</span><span class="p">)</span>
-
-<span class="c1"># Solve</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">srk</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">formula</span><span class="p">)</span>
-<span class="k">if</span> <span class="n">result</span><span class="p">:</span>
-    <span class="n">model</span> <span class="o">=</span> <span class="n">srk</span><span class="o">.</span><span class="n">get_model</span><span class="p">(</span><span class="n">formula</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;byte = </span><span class="si">{</span><span class="n">model</span><span class="p">[</span><span class="n">byte</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="floating-point-numbers">
-<h4>Floating-Point Numbers<a class="headerlink" href="#floating-point-numbers" title="Link to this heading"></a></h4>
-<p>ARIA supports IEEE 754 floating-point arithmetic:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.smt.fp</span><span class="w"> </span><span class="kn">import</span> <span class="n">FPSort</span><span class="p">,</span> <span class="n">FP</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">aria.smt</span><span class="w"> </span><span class="kn">import</span> <span class="n">Solver</span>
-
-<span class="n">s</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">()</span>
-
-<span class="c1"># Create floating-point variables (32-bit float)</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">NewSymbol</span><span class="p">(</span><span class="n">FPSort</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">11</span><span class="p">),</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>  <span class="c1"># 5 exponent bits, 11 significand bits</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">NewSymbol</span><span class="p">(</span><span class="n">FPSort</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">11</span><span class="p">),</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
-
-<span class="c1"># Add constraints</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">y</span> <span class="o">&gt;</span> <span class="n">x</span><span class="p">)</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">x</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">)</span>
-
-<span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">solve</span><span class="p">():</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;x = </span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;y = </span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="arrays">
-<h4>Arrays<a class="headerlink" href="#arrays" title="Link to this heading"></a></h4>
-<p>Arrays represent mappings from indices to values:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.smt</span><span class="w"> </span><span class="kn">import</span> <span class="n">Solver</span><span class="p">,</span> <span class="n">ArrayType</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pysmt.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">INT</span>
-
-<span class="n">s</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">()</span>
-
-<span class="c1"># Create array type: Array[10] of integers</span>
-<span class="n">arr_type</span> <span class="o">=</span> <span class="n">ArrayType</span><span class="p">(</span><span class="n">INT</span><span class="p">,</span> <span class="n">INT</span><span class="p">)</span>
-
-<span class="c1"># Create array variable</span>
-<span class="n">arr</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">NewSymbol</span><span class="p">(</span><span class="n">arr_type</span><span class="p">,</span> <span class="s2">&quot;arr&quot;</span><span class="p">)</span>
-
-<span class="c1"># Access and modify arrays</span>
-<span class="c1"># arr[i] reads element at index i</span>
-<span class="c1"># Store(arr, i, v) creates new array with arr[i] = v</span>
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">pysmt.operators</span><span class="w"> </span><span class="kn">import</span> <span class="n">PLUS</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">aria.smt.shortcuts</span><span class="w"> </span><span class="kn">import</span> <span class="n">Plus</span><span class="p">,</span> <span class="n">Store</span><span class="p">,</span> <span class="n">Ite</span>
-
-<span class="n">i</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">NewSymbol</span><span class="p">(</span><span class="n">INT</span><span class="p">,</span> <span class="s2">&quot;i&quot;</span><span class="p">)</span>
-<span class="n">j</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">NewSymbol</span><span class="p">(</span><span class="n">INT</span><span class="p">,</span> <span class="s2">&quot;j&quot;</span><span class="p">)</span>
-
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">)</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">j</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">j</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">)</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Store</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="mi">42</span><span class="p">)[</span><span class="n">j</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">42</span><span class="p">)</span>
-
-<span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">solve</span><span class="p">():</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Arrays can have different values at different indices&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="uninterpreted-functions">
-<h4>Uninterpreted Functions<a class="headerlink" href="#uninterpreted-functions" title="Link to this heading"></a></h4>
-<p>Uninterpreted functions allow reasoning about functions without knowing their implementation:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.smt</span><span class="w"> </span><span class="kn">import</span> <span class="n">Solver</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pysmt.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Function</span><span class="p">,</span> <span class="n">FunctionType</span><span class="p">,</span> <span class="n">INT</span>
-
-<span class="n">s</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">()</span>
-
-<span class="c1"># Create uninterpreted function type: f(int) -&gt; int</span>
-<span class="n">f_type</span> <span class="o">=</span> <span class="n">FunctionType</span><span class="p">(</span><span class="n">INT</span><span class="p">,</span> <span class="p">[</span><span class="n">INT</span><span class="p">])</span>
-<span class="n">f</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">NewSymbol</span><span class="p">(</span><span class="n">f_type</span><span class="p">,</span> <span class="s2">&quot;f&quot;</span><span class="p">)</span>
-
-<span class="n">x</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">NewSymbol</span><span class="p">(</span><span class="n">INT</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">NewSymbol</span><span class="p">(</span><span class="n">INT</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
-
-<span class="c1"># Add constraints about f</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">x</span> <span class="o">&lt;</span> <span class="n">y</span><span class="p">)</span>
-
-<span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">solve</span><span class="p">():</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Found satisfying assignment with uninterpreted function f&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-</section>
-</section>
-<section id="practical-examples">
-<h2><a class="toc-backref" href="#id6" role="doc-backlink">Practical Examples</a><a class="headerlink" href="#practical-examples" title="Link to this heading"></a></h2>
-<section id="sudoku-solver">
-<h3><a class="toc-backref" href="#id7" role="doc-backlink">Sudoku Solver</a><a class="headerlink" href="#sudoku-solver" title="Link to this heading"></a></h3>
-<p>Here’s how to solve a Sudoku puzzle using ARIA:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.smt</span><span class="w"> </span><span class="kn">import</span> <span class="n">Solver</span><span class="p">,</span> <span class="n">INT</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pysmt.shortcuts</span><span class="w"> </span><span class="kn">import</span> <span class="n">And</span><span class="p">,</span> <span class="n">Or</span><span class="p">,</span> <span class="n">Equals</span>
-
-<span class="c1"># Sudoku puzzle (0 for empty cells)</span>
-<span class="n">puzzle</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
-    <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
-    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
-    <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
-    <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
-    <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span>
-    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
-    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span>
-    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">9</span><span class="p">],</span>
-<span class="p">]</span>
-
-<span class="n">s</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">()</span>
-
-<span class="c1"># Create 81 variables for the grid</span>
-<span class="n">cells</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">):</span>
-    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">):</span>
-        <span class="n">cells</span><span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)]</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">NewSymbol</span><span class="p">(</span><span class="n">INT</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;cell_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-<span class="c1"># Constraint: Each cell is between 1 and 9</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">):</span>
-    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">):</span>
-        <span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">cells</span><span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)]</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">cells</span><span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)]</span> <span class="o">&lt;=</span> <span class="mi">9</span><span class="p">)</span>
-
-<span class="c1"># Constraint: Add given puzzle values</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">):</span>
-    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">puzzle</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">cells</span><span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)]</span> <span class="o">==</span> <span class="n">puzzle</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">])</span>
-
-<span class="c1"># Constraint: Each row has unique values</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">):</span>
-    <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">9</span><span class="p">):</span>
-            <span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">cells</span><span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="n">a</span><span class="p">)]</span> <span class="o">!=</span> <span class="n">cells</span><span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="n">b</span><span class="p">)])</span>
-
-<span class="c1"># Constraint: Each column has unique values</span>
-<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">):</span>
-    <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">9</span><span class="p">):</span>
-            <span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">cells</span><span class="p">[(</span><span class="n">a</span><span class="p">,</span> <span class="n">j</span><span class="p">)]</span> <span class="o">!=</span> <span class="n">cells</span><span class="p">[(</span><span class="n">b</span><span class="p">,</span> <span class="n">j</span><span class="p">)])</span>
-
-<span class="c1"># Constraint: Each 3x3 box has unique values</span>
-<span class="k">for</span> <span class="n">box_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
-    <span class="k">for</span> <span class="n">box_j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
-        <span class="n">cells_in_box</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">box_i</span> <span class="o">*</span> <span class="mi">3</span><span class="p">,</span> <span class="n">box_i</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">+</span> <span class="mi">3</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">box_j</span> <span class="o">*</span> <span class="mi">3</span><span class="p">,</span> <span class="n">box_j</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">+</span> <span class="mi">3</span><span class="p">):</span>
-                <span class="n">cells_in_box</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cells</span><span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)])</span>
-        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">9</span><span class="p">):</span>
-                <span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">cells_in_box</span><span class="p">[</span><span class="n">a</span><span class="p">]</span> <span class="o">!=</span> <span class="n">cells_in_box</span><span class="p">[</span><span class="n">b</span><span class="p">])</span>
-
-<span class="c1"># Solve</span>
-<span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">solve</span><span class="p">():</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Solved Sudoku:&quot;</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">):</span>
-        <span class="n">row</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">):</span>
-            <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="n">cells</span><span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)])))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">row</span><span class="p">))</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No solution exists&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="scheduling-problem">
-<h3><a class="toc-backref" href="#id8" role="doc-backlink">Scheduling Problem</a><a class="headerlink" href="#scheduling-problem" title="Link to this heading"></a></h3>
-<p>Solve a simple task scheduling problem:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.smt</span><span class="w"> </span><span class="kn">import</span> <span class="n">Solver</span><span class="p">,</span> <span class="n">INT</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pysmt.shortcuts</span><span class="w"> </span><span class="kn">import</span> <span class="n">Plus</span><span class="p">,</span> <span class="n">LT</span><span class="p">,</span> <span class="n">GT</span><span class="p">,</span> <span class="n">And</span>
-
-<span class="c1"># Task scheduling: 4 tasks, each takes 1-3 time units</span>
-<span class="c1"># Task 0 must finish before task 1 starts</span>
-<span class="c1"># Task 1 must finish before task 2 starts</span>
-<span class="c1"># Task 2 must finish before task 3 starts</span>
-<span class="c1"># All tasks must complete by time 10</span>
-
-<span class="n">n_tasks</span> <span class="o">=</span> <span class="mi">4</span>
-<span class="n">max_time</span> <span class="o">=</span> <span class="mi">10</span>
-
-<span class="n">s</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">()</span>
-
-<span class="c1"># Start times for each task</span>
-<span class="n">start</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">NewSymbol</span><span class="p">(</span><span class="n">INT</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;start_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_tasks</span><span class="p">)}</span>
-<span class="c1"># Durations for each task</span>
-<span class="n">duration</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">NewSymbol</span><span class="p">(</span><span class="n">INT</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;duration_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_tasks</span><span class="p">)}</span>
-
-<span class="c1"># Each duration is 1-3</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_tasks</span><span class="p">):</span>
-    <span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">duration</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">duration</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">3</span><span class="p">)</span>
-
-<span class="c1"># All tasks start at or after time 0</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_tasks</span><span class="p">):</span>
-    <span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">start</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
-
-<span class="c1"># Sequential scheduling (task i finishes before task i+1 starts)</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_tasks</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
-    <span class="n">finish_i</span> <span class="o">=</span> <span class="n">start</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">duration</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-    <span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">start</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">finish_i</span><span class="p">)</span>
-
-<span class="c1"># All tasks complete by max_time</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_tasks</span><span class="p">):</span>
-    <span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">start</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">duration</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">max_time</span><span class="p">)</span>
-
-<span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">solve</span><span class="p">():</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Scheduling found:&quot;</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_tasks</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Task </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: start=</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="n">start</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="si">}</span><span class="s2">, &quot;</span>
-              <span class="sa">f</span><span class="s2">&quot;duration=</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="n">duration</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="si">}</span><span class="s2">, &quot;</span>
-              <span class="sa">f</span><span class="s2">&quot;finish=</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="n">start</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">duration</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No valid schedule exists&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="cryptographic-constraint-solving">
-<h3><a class="toc-backref" href="#id9" role="doc-backlink">Cryptographic Constraint Solving</a><a class="headerlink" href="#cryptographic-constraint-solving" title="Link to this heading"></a></h3>
-<p>Solve constraints from a simple block cipher:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.smt</span><span class="w"> </span><span class="kn">import</span> <span class="n">Solver</span><span class="p">,</span> <span class="n">INT</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pysmt.shortcuts</span><span class="w"> </span><span class="kn">import</span> <span class="n">Equals</span><span class="p">,</span> <span class="n">Xor</span><span class="p">,</span> <span class="n">And</span>
-
-<span class="c1"># Simplified S-box constraint problem</span>
-<span class="c1"># Given: y = S(x) where S is a 4-bit S-box</span>
-<span class="c1"># Find x such that y = 0xA (1010 binary)</span>
-
-<span class="n">s</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">()</span>
-
-<span class="c1"># 4-bit input and output</span>
-<span class="n">x</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">NewSymbol</span><span class="p">(</span><span class="n">INT</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;x_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)}</span>
-<span class="n">y</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">NewSymbol</span><span class="p">(</span><span class="n">INT</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;y_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)}</span>
-
-<span class="c1"># x and y are bits (0 or 1)</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
-    <span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
-    <span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
-    <span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">)</span>
-
-<span class="c1"># S-box definition: y = S(x)</span>
-<span class="c1"># S-box mapping (simplified):</span>
-<span class="c1"># 0000 -&gt; 1111 (15)</span>
-<span class="c1"># 0001 -&gt; 0111 (7)</span>
-<span class="c1"># 0010 -&gt; 0011 (3)</span>
-<span class="c1"># 0011 -&gt; 1100 (12)</span>
-<span class="c1"># ... add more as needed</span>
-
-<span class="c1"># Want y = 1010 (decimal 10)</span>
-<span class="c1"># This means: y3=1, y2=0, y1=1, y0=0</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>  <span class="c1"># y0 = 0</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># y1 = 1</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>  <span class="c1"># y2 = 0</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># y3 = 1</span>
-
-<span class="c1"># Add S-box constraints (simplified example)</span>
-<span class="c1"># y[0] = x[0] XOR x[1] XOR 1</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-
-<span class="c1"># y[1] = NOT x[0] AND x[2]</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
-
-<span class="c1"># y[2] = x[1] XOR x[3]</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">x</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
-
-<span class="c1"># y[3] = x[0] OR x[2]</span>
-<span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
-
-<span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">solve</span><span class="p">():</span>
-    <span class="n">x_val</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
-    <span class="n">y_val</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Input x = </span><span class="si">{</span><span class="n">x_val</span><span class="si">}</span><span class="s2"> (decimal </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">x_val</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Output y = </span><span class="si">{</span><span class="n">y_val</span><span class="si">}</span><span class="s2"> (decimal </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">y_val</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No solution exists for this S-box configuration&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-</section>
-<section id="advanced-features">
-<h2><a class="toc-backref" href="#id10" role="doc-backlink">Advanced Features</a><a class="headerlink" href="#advanced-features" title="Link to this heading"></a></h2>
+<section id="examples-of-current-python-apis">
+<h2>Examples of current Python APIs<a class="headerlink" href="#examples-of-current-python-apis" title="Link to this heading"></a></h2>
 <section id="model-counting">
-<h3><a class="toc-backref" href="#id11" role="doc-backlink">Model Counting</a><a class="headerlink" href="#model-counting" title="Link to this heading"></a></h3>
-<p>Count the number of satisfying assignments:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.counting.bool_counting</span><span class="w"> </span><span class="kn">import</span> <span class="n">model_counter</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
+<h3>Model counting<a class="headerlink" href="#model-counting" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.counting</span><span class="w"> </span><span class="kn">import</span> <span class="n">count</span>
 
-<span class="c1"># Create a simple Boolean formula</span>
-<span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Bools</span><span class="p">(</span><span class="s2">&quot;a b c&quot;</span><span class="p">)</span>
-<span class="n">formula</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="n">z3</span><span class="o">.</span><span class="n">Or</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">),</span> <span class="n">z3</span><span class="o">.</span><span class="n">Or</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">))</span>
-
-<span class="c1"># Count models</span>
-<span class="n">count</span> <span class="o">=</span> <span class="n">model_counter</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="p">[</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of solutions: </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">count</span><span class="p">(</span><span class="n">z3</span><span class="o">.</span><span class="n">Or</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)))</span>
 </pre></div>
 </div>
 </section>
-<section id="allsmt-all-satisfying-models">
-<h3><a class="toc-backref" href="#id12" role="doc-backlink">AllSMT (All Satisfying Models)</a><a class="headerlink" href="#allsmt-all-satisfying-models" title="Link to this heading"></a></h3>
-<p>Enumerate all satisfying models:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.allsmt</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_allsmt_solver</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
+<section id="allsmt-enumeration">
+<h3>AllSMT enumeration<a class="headerlink" href="#allsmt-enumeration" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">z3</span><span class="w"> </span><span class="kn">import</span> <span class="n">And</span><span class="p">,</span> <span class="n">Ints</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.allsmt</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_allsmt_solver</span>
 
-<span class="c1"># Create variables</span>
-<span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="s2">&quot;x y&quot;</span><span class="p">)</span>
-<span class="n">formula</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">,</span> <span class="n">y</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">y</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">)</span>
-
-<span class="c1"># Create AllSMT solver and enumerate models</span>
+<span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">Ints</span><span class="p">(</span><span class="s2">&quot;x y&quot;</span><span class="p">)</span>
 <span class="n">solver</span> <span class="o">=</span> <span class="n">create_allsmt_solver</span><span class="p">(</span><span class="s2">&quot;z3&quot;</span><span class="p">)</span>
-<span class="n">solver</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">],</span> <span class="n">model_limit</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">solver</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">And</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">==</span> <span class="mi">5</span><span class="p">,</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">y</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">),</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">],</span> <span class="n">model_limit</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="sampling">
+<h3>Sampling<a class="headerlink" href="#sampling" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.sampling</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Logic</span><span class="p">,</span>
+    <span class="n">SamplingMethod</span><span class="p">,</span>
+    <span class="n">SamplingOptions</span><span class="p">,</span>
+    <span class="n">sample_models_from_formula</span><span class="p">,</span>
+<span class="p">)</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="n">solver</span><span class="o">.</span><span class="n">get_model_count</span><span class="p">()</span><span class="si">}</span><span class="s2"> models&quot;</span><span class="p">)</span>
-<span class="n">solver</span><span class="o">.</span><span class="n">print_models</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Reals</span><span class="p">(</span><span class="s2">&quot;x y&quot;</span><span class="p">)</span>
+<span class="n">sample_models_from_formula</span><span class="p">(</span>
+    <span class="n">z3</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">x</span> <span class="o">-</span> <span class="n">y</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">Logic</span><span class="o">.</span><span class="n">QF_LRA</span><span class="p">,</span>
+    <span class="n">SamplingOptions</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="n">SamplingMethod</span><span class="o">.</span><span class="n">ENUMERATION</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="unsat-core-extraction">
-<h3><a class="toc-backref" href="#id13" role="doc-backlink">Unsat Core Extraction</a><a class="headerlink" href="#unsat-core-extraction" title="Link to this heading"></a></h3>
-<p>Find the minimal unsatisfiable subset of constraints:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.unsat_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnsatCoreComputer</span><span class="p">,</span> <span class="n">Algorithm</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
-
-<span class="c1"># Create constraints</span>
-<span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="s2">&quot;x y&quot;</span><span class="p">)</span>
-<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span>
-    <span class="n">y</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span>
-    <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">,</span>
-    <span class="n">x</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">,</span>  <span class="c1"># This contradicts x + y &lt; 10</span>
-<span class="p">]</span>
-
-<span class="c1"># Extract unsat core using MARCO algorithm</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">solver_factory</span><span class="p">():</span>
-    <span class="n">s</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Solver</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">s</span>
-
-<span class="n">computer</span> <span class="o">=</span> <span class="n">UnsatCoreComputer</span><span class="p">(</span><span class="n">Algorithm</span><span class="o">.</span><span class="n">MARCO</span><span class="p">)</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">computer</span><span class="o">.</span><span class="n">compute_unsat_core</span><span class="p">(</span><span class="n">constraints</span><span class="p">,</span> <span class="n">solver_factory</span><span class="p">)</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">cores</span><span class="p">)</span><span class="si">}</span><span class="s2"> unsat core(s)&quot;</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">core</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">cores</span><span class="p">):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Core </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="p">[</span><span class="n">j</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">core</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="backbone-literals">
-<h3><a class="toc-backref" href="#id14" role="doc-backlink">Backbone Literals</a><a class="headerlink" href="#backbone-literals" title="Link to this heading"></a></h3>
-<p>Find literals that are true in all models:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.backbone.sat_backbone</span><span class="w"> </span><span class="kn">import</span> <span class="n">compute_backbone</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">aria.bool.sat.pysat_solver</span><span class="w"> </span><span class="kn">import</span> <span class="n">PySATSolver</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pysat.formula</span><span class="w"> </span><span class="kn">import</span> <span class="n">CNF</span>
-
-<span class="c1"># Create a CNF formula</span>
-<span class="n">cnf</span> <span class="o">=</span> <span class="n">CNF</span><span class="p">()</span>
-<span class="n">cnf</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>      <span class="c1"># x1 OR x2</span>
-<span class="n">cnf</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>     <span class="c1"># NOT x1 OR x3</span>
-<span class="n">cnf</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">])</span>     <span class="c1"># x2 OR NOT x3</span>
-
-<span class="c1"># Compute backbone literals (those true in all models)</span>
-<span class="n">solver</span> <span class="o">=</span> <span class="n">PySATSolver</span><span class="p">()</span>
-<span class="n">backbone</span> <span class="o">=</span> <span class="n">compute_backbone</span><span class="p">(</span><span class="n">cnf</span><span class="p">,</span> <span class="n">solver</span><span class="p">)</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Backbone literals: </span><span class="si">{</span><span class="n">backbone</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;These literals are true in ALL satisfying assignments&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="quantifier-elimination">
-<h3><a class="toc-backref" href="#id15" role="doc-backlink">Quantifier Elimination</a><a class="headerlink" href="#quantifier-elimination" title="Link to this heading"></a></h3>
-<p>Eliminate quantifiers from formulas:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.quant.qe</span><span class="w"> </span><span class="kn">import</span> <span class="n">ExternalQESolver</span><span class="p">,</span> <span class="n">QEBackend</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
-
-<span class="c1"># Formula: exists x. (x &gt; 0 and x &lt; y)</span>
-<span class="c1"># Eliminating x gives: y &gt; 1</span>
-
-<span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="s2">&quot;x y&quot;</span><span class="p">)</span>
-<span class="n">formula</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Exists</span><span class="p">([</span><span class="n">x</span><span class="p">],</span> <span class="n">z3</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">y</span><span class="p">))</span>
-
-<span class="c1"># Use Z3&#39;s built-in quantifier elimination</span>
-<span class="n">qe</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Tactic</span><span class="p">(</span><span class="s2">&quot;qe&quot;</span><span class="p">)</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">qe</span><span class="p">(</span><span class="n">z3</span><span class="o">.</span><span class="n">ForAll</span><span class="p">([</span><span class="n">x</span><span class="p">],</span> <span class="n">z3</span><span class="o">.</span><span class="n">Not</span><span class="p">(</span><span class="n">formula</span><span class="p">)))</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Original: exists x. (x &gt; 0 and x &lt; y)&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;After QE: </span><span class="si">{</span><span class="n">result</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="abductive-reasoning">
-<h3><a class="toc-backref" href="#id16" role="doc-backlink">Abductive Reasoning</a><a class="headerlink" href="#abductive-reasoning" title="Link to this heading"></a></h3>
-<p>Find explanations for observations:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.abduction.abductor</span><span class="w"> </span><span class="kn">import</span> <span class="n">abduce</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
-
-<span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="s2">&quot;x y&quot;</span><span class="p">)</span>
-
-<span class="c1"># Background knowledge: x &gt; 0 and x &lt; 10</span>
-<span class="n">background</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">)</span>
-
-<span class="c1"># Observation: y &gt; 5 (with additional constraint)</span>
-<span class="n">observation</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="n">y</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">,</span> <span class="n">x</span> <span class="o">==</span> <span class="n">y</span><span class="p">)</span>
-
-<span class="c1"># Find explanation (sufficient condition for observation given background)</span>
-<span class="n">explanation</span> <span class="o">=</span> <span class="n">abduce</span><span class="p">(</span><span class="n">background</span><span class="p">,</span> <span class="n">observation</span><span class="p">)</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Background: </span><span class="si">{</span><span class="n">background</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Observation: </span><span class="si">{</span><span class="n">observation</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="k">if</span> <span class="n">explanation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Explanation: </span><span class="si">{</span><span class="n">explanation</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No explanation found&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="sampling-solutions">
-<h3><a class="toc-backref" href="#id17" role="doc-backlink">Sampling Solutions</a><a class="headerlink" href="#sampling-solutions" title="Link to this heading"></a></h3>
-<p>Generate diverse solutions:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.sampling</span><span class="w"> </span><span class="kn">import</span> <span class="n">sample_models_from_formula</span><span class="p">,</span> <span class="n">Logic</span><span class="p">,</span> <span class="n">SamplingOptions</span><span class="p">,</span> <span class="n">SamplingMethod</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
-
-<span class="c1"># Create formula</span>
-<span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="s2">&quot;x y&quot;</span><span class="p">)</span>
-<span class="n">formula</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">,</span> <span class="n">y</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">y</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">)</span>
-
-<span class="c1"># Sample diverse solutions</span>
-<span class="n">options</span> <span class="o">=</span> <span class="n">SamplingOptions</span><span class="p">(</span>
-    <span class="n">method</span><span class="o">=</span><span class="n">SamplingMethod</span><span class="o">.</span><span class="n">ENUMERATION</span><span class="p">,</span>
-    <span class="n">num_samples</span><span class="o">=</span><span class="mi">5</span>
-<span class="p">)</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">sample_models_from_formula</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">Logic</span><span class="o">.</span><span class="n">QF_LIA</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-
-<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">model</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">samples</span><span class="p">):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sample </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">model</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="optimization-maxsat">
-<h3><a class="toc-backref" href="#id18" role="doc-backlink">Optimization (MaxSAT)</a><a class="headerlink" href="#optimization-maxsat" title="Link to this heading"></a></h3>
-<p>Find the optimal solution:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.bool.maxsat</span><span class="w"> </span><span class="kn">import</span> <span class="n">MaxSATSolver</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pysat.formula</span><span class="w"> </span><span class="kn">import</span> <span class="n">WCNF</span>
-
-<span class="c1"># Create a weighted CNF formula</span>
-<span class="n">wcnf</span> <span class="o">=</span> <span class="n">WCNF</span><span class="p">()</span>
-
-<span class="c1"># Hard constraints (must be satisfied)</span>
-<span class="n">wcnf</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>  <span class="c1"># x1 OR x2</span>
-<span class="n">wcnf</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>  <span class="c1"># NOT x1 OR x3</span>
-
-<span class="c1"># Soft constraints (with weights - higher weight = more important)</span>
-<span class="n">wcnf</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="mi">1</span><span class="p">],</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>   <span class="c1"># Prefer x1</span>
-<span class="n">wcnf</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="mi">2</span><span class="p">],</span> <span class="n">weight</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>   <span class="c1"># Strongly prefer x2</span>
-
-<span class="c1"># Solve MaxSAT</span>
-<span class="n">solver</span> <span class="o">=</span> <span class="n">MaxSATSolver</span><span class="p">(</span><span class="n">wcnf</span><span class="p">)</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
-
-<span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Optimal solution: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">model</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cost (unsatisfied weight): </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">cost</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<h3>Unsat-core extraction<a class="headerlink" href="#unsat-core-extraction" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.unsat_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Algorithm</span><span class="p">,</span> <span class="n">UnsatCoreComputer</span>
 </pre></div>
 </div>
 </section>
 </section>
-<section id="best-practices">
-<h2><a class="toc-backref" href="#id19" role="doc-backlink">Best Practices</a><a class="headerlink" href="#best-practices" title="Link to this heading"></a></h2>
-<section id="performance-tips">
-<h3><a class="toc-backref" href="#id20" role="doc-backlink">Performance Tips</a><a class="headerlink" href="#performance-tips" title="Link to this heading"></a></h3>
-<ol class="arabic simple">
-<li><p><strong>Use incremental solving</strong>: When solving multiple related problems, use incremental solving to share constraints between solves.</p></li>
-<li><p><strong>Simplify formulas</strong>: Use ARIA’s simplification passes before solving complex formulas.</p></li>
-<li><p><strong>Choose the right theory</strong>: Use bit-vector solvers for hardware problems, integer solvers for software, etc.</p></li>
-<li><p><strong>Set appropriate timeouts</strong>: Always set timeouts for solver calls to avoid hanging.</p></li>
-<li><p><strong>Use parallel solving</strong>: For large problems, use ARIA’s parallel solving capabilities.</p></li>
-</ol>
-</section>
-<section id="debugging-tips">
-<h3><a class="toc-backref" href="#id21" role="doc-backlink">Debugging Tips</a><a class="headerlink" href="#debugging-tips" title="Link to this heading"></a></h3>
-<ol class="arabic simple">
-<li><p><strong>Check satisfiability first</strong>: Always check if a formula is satisfiable before trying to get a model.</p></li>
-<li><p><strong>Use model-based debugging</strong>: When a formula is unsatisfiable, use unsat core extraction to find the problematic constraints.</p></li>
-<li><p><strong>Enable debug mode</strong>: Set <cite>ARIA_DEBUG=1</cite> to get detailed solver output.</p></li>
-<li><p><strong>Simplify incrementally</strong>: Start with a simple formula and add constraints one at a time to identify issues.</p></li>
-</ol>
-</section>
-<section id="error-handling">
-<h3><a class="toc-backref" href="#id22" role="doc-backlink">Error Handling</a><a class="headerlink" href="#error-handling" title="Link to this heading"></a></h3>
-<p>Always handle solver exceptions:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
-
-<span class="c1"># Create solver with timeout</span>
-<span class="n">s</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Solver</span><span class="p">()</span>
-<span class="n">s</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;timeout&quot;</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>  <span class="c1"># 1 second timeout</span>
-
-<span class="n">x</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
-
-<span class="k">try</span><span class="p">:</span>
-    <span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">check</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">result</span> <span class="o">==</span> <span class="n">z3</span><span class="o">.</span><span class="n">sat</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;x = </span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">model</span><span class="p">()[</span><span class="n">x</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">result</span> <span class="o">==</span> <span class="n">z3</span><span class="o">.</span><span class="n">unknown</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Solver returned unknown - try simplifying the problem&quot;</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Unsatisfiable&quot;</span><span class="p">)</span>
-<span class="k">except</span> <span class="n">z3</span><span class="o">.</span><span class="n">Z3Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Z3 error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<section id="verification-with-efmc">
+<h2>Verification with EFMC<a class="headerlink" href="#verification-with-efmc" title="Link to this heading"></a></h2>
+<p>The main verification frontend is <code class="docutils literal notranslate"><span class="pre">aria-efmc</span></code> / <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">aria.cli.efmc_cli</span></code>.
+It works over frontends such as CHC, SyGuS, Boogie, and C-oriented workflows and
+selects among engines including EF-template solving, PDR, k-induction, Houdini,
+abduction, predicate abstraction, symbolic abstraction, and LLM4Inv.</p>
+<p>Start with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>aria-efmc<span class="w"> </span>--help
 </pre></div>
 </div>
-<p>Now that you’ve completed this tutorial, explore these topics:</p>
+</section>
+<section id="where-to-go-next">
+<h2>Where to go next<a class="headerlink" href="#where-to-go-next" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p><a class="reference internal" href="../logic-and-solving/smt.html"><span class="doc">SMT Solving</span></a> - Detailed SMT solving documentation</p></li>
-<li><p><a class="reference internal" href="../logic-and-solving/srk.html"><span class="doc">SRK Symbolic Reasoning Kit</span></a> - Symbolic reason kernel capabilities</p></li>
-<li><p><a class="reference internal" href="../quantified-reasoning/quantifiers.html"><span class="doc">Playing wth Quantifiers</span></a> - Quantifier handling and elimination</p></li>
-<li><p><a class="reference internal" href="../logic-and-solving/optimization.html"><span class="doc">Optimization Modulo Theory</span></a> - MaxSAT and optimization solving</p></li>
-<li><p><a class="reference internal" href="../counting-probability/counting.html"><span class="doc">Model Counting</span></a> - Model counting techniques</p></li>
-<li><p><a class="reference internal" href="../cli-tools/applications.html"><span class="doc">Applications</span></a> - Real-world application examples</p></li>
+<li><p><a class="reference internal" href="quickref.html"><span class="doc">Quick Reference</span></a> for a compact API and CLI cheat sheet</p></li>
+<li><p><a class="reference internal" href="verification-tutorial.html"><span class="doc">Program Verification with EFMC</span></a> for EFMC-oriented usage</p></li>
+<li><p>package <code class="docutils literal notranslate"><span class="pre">README.md</span></code> files under <code class="docutils literal notranslate"><span class="pre">aria/</span></code> for subsystem-specific details</p></li>
 </ul>
-<p>For more examples, see the <code class="docutils literal notranslate"><span class="pre">examples/</span></code> directory in the repository.</p>
-</section>
 </section>
 </section>
 

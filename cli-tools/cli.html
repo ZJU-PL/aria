@@ -57,32 +57,24 @@
 <li class="toctree-l1"><a class="reference internal" href="../llm-ml/index.html">LLM and ML</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">CLI and Tools</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">CLI Tools</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#directory-structure">Directory Structure</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#cli-tools-overview">CLI Tools Overview</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#translate-translate-between-formats">#### <code class="docutils literal notranslate"><span class="pre">translate</span></code> - Translate between formats</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#validate-validate-file-format">#### <code class="docutils literal notranslate"><span class="pre">validate</span></code> - Validate file format</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#analyze-analyze-properties">#### <code class="docutils literal notranslate"><span class="pre">analyze</span></code> - Analyze properties</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#formats-list-supported-formats-and-translations">#### <code class="docutils literal notranslate"><span class="pre">formats</span></code> - List supported formats and translations</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#batch-batch-process-files">#### <code class="docutils literal notranslate"><span class="pre">batch</span></code> - Batch process files</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#basic-smt-lib2-commands">#### Basic SMT-LIB2 Commands</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#advanced-commands">#### Advanced Commands</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#configuration-options">#### Configuration Options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#registered-console-scripts">Registered console scripts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#quick-start">Quick start</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tool-summaries">Tool summaries</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#fmldoc"><code class="docutils literal notranslate"><span class="pre">fmldoc</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mc"><code class="docutils literal notranslate"><span class="pre">mc</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyomt"><code class="docutils literal notranslate"><span class="pre">pyomt</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#efsmt"><code class="docutils literal notranslate"><span class="pre">efsmt</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#maxsat"><code class="docutils literal notranslate"><span class="pre">maxsat</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#unsat-core"><code class="docutils literal notranslate"><span class="pre">unsat_core</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#allsmt"><code class="docutils literal notranslate"><span class="pre">allsmt</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smt-server"><code class="docutils literal notranslate"><span class="pre">smt_server</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#efmc-efmc-efsmt-polyhorn"><code class="docutils literal notranslate"><span class="pre">efmc</span></code> / <code class="docutils literal notranslate"><span class="pre">efmc_efsmt</span></code> / <code class="docutils literal notranslate"><span class="pre">polyhorn</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#testing">Testing</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#code-statistics">Code Statistics</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#dependencies">Dependencies</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#main-api-entry-points">Main API Entry Points</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#key-features">Key Features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#validation">Validation</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="translator.html">Translator Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="translator.html#introduction">Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="translator.html#components">Components</a></li>
-<li class="toctree-l2"><a class="reference internal" href="translator.html#command-line-interface-aria-cli-fmldoc-py">Command-Line Interface (<code class="docutils literal notranslate"><span class="pre">aria/cli/fmldoc.py</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="translator.html#examples">Examples</a></li>
-<li class="toctree-l2"><a class="reference internal" href="translator.html#applications">Applications</a></li>
-<li class="toctree-l2"><a class="reference internal" href="translator.html#references">References</a></li>
 <li class="toctree-l2"><a class="reference internal" href="applications.html">Applications</a></li>
 <li class="toctree-l2"><a class="reference internal" href="boogie_frontend.html">Boogie Frontend for EFMC</a></li>
 <li class="toctree-l2"><a class="reference internal" href="c_frontend.html">C Frontend for EFMC</a></li>
@@ -120,347 +112,187 @@
              
   <section id="cli-tools">
 <h1>CLI Tools<a class="headerlink" href="#cli-tools" title="Link to this heading"></a></h1>
-<p>The <code class="docutils literal notranslate"><span class="pre">aria.cli</span></code> module provides command-line interface tools for various automated reasoning tasks, including EFSMT solving, model counting, optimization (OMT/MaxSAT), UNSAT core and MUS computation, AllSMT model enumeration, and an enhanced SMT server with advanced features.</p>
-<nav class="contents local" id="table-of-contents">
-<p class="topic-title">Table of Contents</p>
-<ul class="simple">
-<li><p><a class="reference internal" href="#directory-structure" id="id7">Directory Structure</a></p></li>
-<li><p><a class="reference internal" href="#cli-tools-overview" id="id8">CLI Tools Overview</a></p>
-<ul>
-<li><p><a class="reference internal" href="#translate-translate-between-formats" id="id9">#### <code class="docutils literal notranslate"><span class="pre">translate</span></code> - Translate between formats</a></p></li>
-<li><p><a class="reference internal" href="#validate-validate-file-format" id="id10">#### <code class="docutils literal notranslate"><span class="pre">validate</span></code> - Validate file format</a></p></li>
-<li><p><a class="reference internal" href="#analyze-analyze-properties" id="id11">#### <code class="docutils literal notranslate"><span class="pre">analyze</span></code> - Analyze properties</a></p></li>
-<li><p><a class="reference internal" href="#formats-list-supported-formats-and-translations" id="id12">#### <code class="docutils literal notranslate"><span class="pre">formats</span></code> - List supported formats and translations</a></p></li>
-<li><p><a class="reference internal" href="#batch-batch-process-files" id="id13">#### <code class="docutils literal notranslate"><span class="pre">batch</span></code> - Batch process files</a></p></li>
-<li><p><a class="reference internal" href="#basic-smt-lib2-commands" id="id14">#### Basic SMT-LIB2 Commands</a></p></li>
-<li><p><a class="reference internal" href="#advanced-commands" id="id15">#### Advanced Commands</a></p></li>
-<li><p><a class="reference internal" href="#configuration-options" id="id16">#### Configuration Options</a></p></li>
-</ul>
-</li>
-<li><p><a class="reference internal" href="#testing" id="id17">Testing</a></p></li>
-<li><p><a class="reference internal" href="#code-statistics" id="id18">Code Statistics</a></p></li>
-<li><p><a class="reference internal" href="#dependencies" id="id19">Dependencies</a></p></li>
-<li><p><a class="reference internal" href="#main-api-entry-points" id="id20">Main API Entry Points</a></p></li>
-<li><p><a class="reference internal" href="#key-features" id="id21">Key Features</a></p></li>
-</ul>
-</nav>
-<section id="directory-structure">
-<h2><a class="toc-backref" href="#id7" role="doc-backlink">Directory Structure</a><a class="headerlink" href="#directory-structure" title="Link to this heading"></a></h2>
-<p><a href="#id1"><span class="problematic" id="id2">``</span></a>`
-cli/
-├── __init__.py                      (0 lines - empty)
-├── efsmt.py                         Exists-Forall SMT solver
-├── fmldoc.py                        Format conversion and validation
-├── mc.py                            Model counting
-├── pyomt.py                         OMT / MaxSMT optimization
-├── maxsat.py                        MaxSAT (WCNF) solver
-├── unsat_core.py                    UNSAT core / MUS / MSS
-├── allsmt.py                        All satisfying models enumeration
-├── smt_server.py                    Enhanced SMT server (IPC)
-├── README.md                        CLI usage guide
-└── tests/</p>
-<blockquote>
-<div><p>├── test_smt_server.py
-├── test_cli_maxsat.py
-├── test_cli_unsat_core.py
-└── test_cli_allsmt.py</p>
-</div></blockquote>
-<p><a href="#id3"><span class="problematic" id="id4">``</span></a><a href="#id5"><span class="problematic" id="id6">`</span></a></p>
-<p><strong>No subdirectories</strong> - flat module structure with tests/ subdirectory.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">aria.cli</span></code> package provides command-line entrypoints for several user-facing
+reasoning workflows. After <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span></code>, these tools are exposed both as
+console scripts such as <code class="docutils literal notranslate"><span class="pre">aria-mc</span></code> and as Python module entrypoints such as
+<code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">aria.cli.mc_cli</span></code>.</p>
+<section id="registered-console-scripts">
+<h2>Registered console scripts<a class="headerlink" href="#registered-console-scripts" title="Link to this heading"></a></h2>
+<p>The current <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> registers these commands:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Console command</p></th>
+<th class="head"><p>Module entrypoint</p></th>
+<th class="head"><p>Purpose</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">aria-fmldoc</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">aria.cli.fmldoc_cli</span></code></p></td>
+<td><p>Format conversion, validation, and analysis</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">aria-mc</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">aria.cli.mc_cli</span></code></p></td>
+<td><p>Model counting for Boolean, bit-vector, and arithmetic inputs</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">aria-pyomt</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">aria.cli.pyomt_cli</span></code></p></td>
+<td><p>Optimization modulo theories and MaxSMT frontends</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">aria-efsmt</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">aria.cli.efsmt_cli</span></code></p></td>
+<td><p>Exists-forall SMT solving</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">aria-maxsat</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">aria.cli.maxsat_cli</span></code></p></td>
+<td><p>Weighted partial MaxSAT from WCNF input</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">aria-unsat-core</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">aria.cli.unsat_core_cli</span></code></p></td>
+<td><p>UNSAT core, MUS, and MSS workflows</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">aria-allsmt</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">aria.cli.allsmt_cli</span></code></p></td>
+<td><p>AllSMT enumeration</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">aria-smt-server</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">aria.cli.smt_server_cli</span></code></p></td>
+<td><p>IPC-based SMT server</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">aria-efmc</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">aria.cli.efmc_cli</span></code></p></td>
+<td><p>Transition-system verification</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">aria-efmc-efsmt</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">aria.cli.efmc_efsmt_cli</span></code></p></td>
+<td><p>EFMC-specific EFSMT frontend</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">aria-polyhorn</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">aria.cli.polyhorn_cli</span></code></p></td>
+<td><p>Polynomial Horn solving</p></td>
+</tr>
+</tbody>
+</table>
 </section>
-<section id="cli-tools-overview">
-<h2><a class="toc-backref" href="#id8" role="doc-backlink">CLI Tools Overview</a><a class="headerlink" href="#cli-tools-overview" title="Link to this heading"></a></h2>
-<p>### 1. <strong>efsmt.py</strong> - Exists-Forall SMT Solver</p>
-<p><strong>Purpose</strong>: Solve EFSMT (Exists-Forall Satisfiability Modulo Theories) problems using various algorithms.</p>
-<p><strong>Usage</strong>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>aria.cli.efsmt<span class="w"> </span>&lt;file&gt;<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
+<section id="quick-start">
+<h2>Quick start<a class="headerlink" href="#quick-start" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>aria.cli.fmldoc_cli<span class="w"> </span>translate<span class="w"> </span>-i<span class="w"> </span>input.cnf<span class="w"> </span>-o<span class="w"> </span>output.smt2
+python<span class="w"> </span>-m<span class="w"> </span>aria.cli.mc_cli<span class="w"> </span>formula.smt2
+python<span class="w"> </span>-m<span class="w"> </span>aria.cli.pyomt_cli<span class="w"> </span>problem.smt2
+python<span class="w"> </span>-m<span class="w"> </span>aria.cli.efsmt_cli<span class="w"> </span>problem.smt2
+aria-maxsat<span class="w"> </span>formula.wcnf<span class="w"> </span>--solver<span class="w"> </span>rc2
+aria-unsat-core<span class="w"> </span>formula.smt2
+aria-allsmt<span class="w"> </span>formula.smt2<span class="w"> </span>--limit<span class="w"> </span><span class="m">100</span>
+python<span class="w"> </span>-m<span class="w"> </span>aria.cli.smt_server_cli
+python<span class="w"> </span>-m<span class="w"> </span>aria.cli.efmc_cli<span class="w"> </span>--help
+python<span class="w"> </span>-m<span class="w"> </span>aria.cli.polyhorn_cli<span class="w"> </span>--help
 </pre></div>
 </div>
-<p><strong>Arguments</strong>:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">file</span></code> - EFSMT SMT-LIB2 file (<code class="docutils literal notranslate"><span class="pre">.smt2</span></code>)</p></li>
-</ul>
-<p><strong>Options</strong>:</p>
-<p><strong>Features:</strong></p>
-<ul class="simple">
-<li><p>Automatic theory detection (Boolean, BitVector, LIRA)</p></li>
-<li><p>Multiple solver engines (Z3, CEGAR, parallel EF-BV/LIRA)</p></li>
-<li><p>Support for QF_BV, QF_LIRA, and Boolean theories</p></li>
-<li><p>Configurable timeouts and logging</p></li>
-</ul>
-<p><strong>Theory Support:</strong></p>
-<ul class="simple">
-<li><p><strong>Boolean</strong>: Pure SAT problems</p></li>
-<li><p><strong>BitVector</strong>: Quantifier-free bit-vector logic</p></li>
-<li><p><strong>LIRA</strong>: Linear Integer/Real Arithmetic</p></li>
-<li><p><strong>Auto</strong>: Auto-detect from problem content</p></li>
-</ul>
-<p>### 2. <strong>fmldoc.py</strong> - Logic Constraint Format Utilities</p>
-<p><strong>Purpose</strong>: Translate, validate, and analyze supported logic constraint formats.</p>
-<p><strong>Usage</strong>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>aria.cli.fmldoc<span class="w"> </span>&lt;command&gt;<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
-</pre></div>
-</div>
-<p><strong>Commands</strong>:</p>
-<section id="translate-translate-between-formats">
-<h3><a class="toc-backref" href="#id9" role="doc-backlink">#### <code class="docutils literal notranslate"><span class="pre">translate</span></code> - Translate between formats</a><a class="headerlink" href="#translate-translate-between-formats" title="Link to this heading"></a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>aria.cli.fmldoc<span class="w"> </span>translate<span class="w"> </span>-i<span class="w"> </span>INPUT_FILE<span class="w"> </span>-o<span class="w"> </span>OUTPUT_FILE<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
-</pre></div>
-</div>
-<p><strong>Options:</strong></p>
 </section>
-<section id="validate-validate-file-format">
-<h3><a class="toc-backref" href="#id10" role="doc-backlink">#### <code class="docutils literal notranslate"><span class="pre">validate</span></code> - Validate file format</a><a class="headerlink" href="#validate-validate-file-format" title="Link to this heading"></a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>aria.cli.fmldoc<span class="w"> </span>validate<span class="w"> </span>-i<span class="w"> </span>INPUT_FILE<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
+<section id="tool-summaries">
+<h2>Tool summaries<a class="headerlink" href="#tool-summaries" title="Link to this heading"></a></h2>
+<section id="fmldoc">
+<h3><code class="docutils literal notranslate"><span class="pre">fmldoc</span></code><a class="headerlink" href="#fmldoc" title="Link to this heading"></a></h3>
+<p>Translate, validate, and analyze supported logic-constraint files.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>aria.cli.fmldoc_cli<span class="w"> </span>translate<span class="w"> </span>-i<span class="w"> </span>input.cnf<span class="w"> </span>-o<span class="w"> </span>output.smt2
+python<span class="w"> </span>-m<span class="w"> </span>aria.cli.fmldoc_cli<span class="w"> </span>validate<span class="w"> </span>-i<span class="w"> </span>input.smt2<span class="w"> </span>-f<span class="w"> </span>smtlib2
+python<span class="w"> </span>-m<span class="w"> </span>aria.cli.fmldoc_cli<span class="w"> </span>analyze<span class="w"> </span>-i<span class="w"> </span>input.cnf
+python<span class="w"> </span>-m<span class="w"> </span>aria.cli.fmldoc_cli<span class="w"> </span>formats
 </pre></div>
 </div>
-<p><strong>Options:</strong></p>
 </section>
-<section id="analyze-analyze-properties">
-<h3><a class="toc-backref" href="#id11" role="doc-backlink">#### <code class="docutils literal notranslate"><span class="pre">analyze</span></code> - Analyze properties</a><a class="headerlink" href="#analyze-analyze-properties" title="Link to this heading"></a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>aria.cli.fmldoc<span class="w"> </span>analyze<span class="w"> </span>-i<span class="w"> </span>INPUT_FILE<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
+<section id="mc">
+<h3><code class="docutils literal notranslate"><span class="pre">mc</span></code><a class="headerlink" href="#mc" title="Link to this heading"></a></h3>
+<p>Count satisfying models for DIMACS or SMT-LIB2 inputs.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>aria.cli.mc_cli<span class="w"> </span>formula.smt2
+python<span class="w"> </span>-m<span class="w"> </span>aria.cli.mc_cli<span class="w"> </span>formula.cnf<span class="w"> </span>--theory<span class="w"> </span>bool
+python<span class="w"> </span>-m<span class="w"> </span>aria.cli.mc_cli<span class="w"> </span>formula.smt2<span class="w"> </span>--theory<span class="w"> </span>bv
+python<span class="w"> </span>-m<span class="w"> </span>aria.cli.mc_cli<span class="w"> </span>formula.smt2<span class="w"> </span>--theory<span class="w"> </span>arith
 </pre></div>
 </div>
-<p><strong>Options:</strong></p>
+<p>Key options: <code class="docutils literal notranslate"><span class="pre">--theory</span></code>, <code class="docutils literal notranslate"><span class="pre">--method</span></code>, <code class="docutils literal notranslate"><span class="pre">--project</span></code>, <code class="docutils literal notranslate"><span class="pre">--timeout</span></code>,
+<code class="docutils literal notranslate"><span class="pre">--log-level</span></code>.</p>
 </section>
-<section id="formats-list-supported-formats-and-translations">
-<h3><a class="toc-backref" href="#id12" role="doc-backlink">#### <code class="docutils literal notranslate"><span class="pre">formats</span></code> - List supported formats and translations</a><a class="headerlink" href="#formats-list-supported-formats-and-translations" title="Link to this heading"></a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>aria.cli.fmldoc<span class="w"> </span>formats
+<section id="pyomt">
+<h3><code class="docutils literal notranslate"><span class="pre">pyomt</span></code><a class="headerlink" href="#pyomt" title="Link to this heading"></a></h3>
+<p>Solve optimization problems from SMT-LIB2 input.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>aria.cli.pyomt_cli<span class="w"> </span>problem.smt2
+python<span class="w"> </span>-m<span class="w"> </span>aria.cli.pyomt_cli<span class="w"> </span>problem.smt2<span class="w"> </span>--engine<span class="w"> </span>qsmt
+python<span class="w"> </span>-m<span class="w"> </span>aria.cli.pyomt_cli<span class="w"> </span>problem.smt2<span class="w"> </span>--engine<span class="w"> </span>iter
+python<span class="w"> </span>-m<span class="w"> </span>aria.cli.pyomt_cli<span class="w"> </span>problem.smt2<span class="w"> </span>--engine<span class="w"> </span>maxsat
 </pre></div>
 </div>
-<p><strong>Output:</strong></p>
-<ul class="simple">
-<li><p>Validation and analysis formats currently supported</p></li>
-<li><p>Implemented translation pairs</p></li>
-</ul>
+<p>Key options: <code class="docutils literal notranslate"><span class="pre">--type</span></code>, <code class="docutils literal notranslate"><span class="pre">--theory</span></code>, <code class="docutils literal notranslate"><span class="pre">--engine</span></code>, <code class="docutils literal notranslate"><span class="pre">--solver</span></code>,
+<code class="docutils literal notranslate"><span class="pre">--log-level</span></code>.</p>
 </section>
-<section id="batch-batch-process-files">
-<h3><a class="toc-backref" href="#id13" role="doc-backlink">#### <code class="docutils literal notranslate"><span class="pre">batch</span></code> - Batch process files</a><a class="headerlink" href="#batch-batch-process-files" title="Link to this heading"></a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>aria.cli.fmldoc<span class="w"> </span>batch<span class="w"> </span>-i<span class="w"> </span>INPUT_DIR<span class="w"> </span>-o<span class="w"> </span>OUTPUT_DIR<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
+<section id="efsmt">
+<h3><code class="docutils literal notranslate"><span class="pre">efsmt</span></code><a class="headerlink" href="#efsmt" title="Link to this heading"></a></h3>
+<p>Solve exists-forall SMT problems with multiple backends.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>aria.cli.efsmt_cli<span class="w"> </span>problem.smt2
+python<span class="w"> </span>-m<span class="w"> </span>aria.cli.efsmt_cli<span class="w"> </span>problem.smt2<span class="w"> </span>--parser<span class="w"> </span>z3
+python<span class="w"> </span>-m<span class="w"> </span>aria.cli.efsmt_cli<span class="w"> </span>problem.smt2<span class="w"> </span>--theory<span class="w"> </span>bv
+python<span class="w"> </span>-m<span class="w"> </span>aria.cli.efsmt_cli<span class="w"> </span>problem.smt2<span class="w"> </span>--engine<span class="w"> </span>efbv-par
 </pre></div>
 </div>
-<p><strong>Options:</strong></p>
-<p><strong>Currently Supported Formats:</strong></p>
-<ul class="simple">
-<li><p>DIMACS (<code class="docutils literal notranslate"><span class="pre">.cnf</span></code>): validate, analyze, translate to SMT-LIB2</p></li>
-<li><p>SMT-LIB2 (<code class="docutils literal notranslate"><span class="pre">.smt2</span></code>): validate, analyze</p></li>
-</ul>
-<p><strong>Currently Implemented Translation Pairs:</strong></p>
-<ul class="simple">
-<li><p>DIMACS -&gt; SMT-LIB2</p></li>
-</ul>
-<p><strong>Global Options:</strong></p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">-v,</span> <span class="pre">--verbose</span></code>: Verbose output</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">-d,</span> <span class="pre">--debug</span></code>: Debug output</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">-h,</span> <span class="pre">--help</span></code>: Show help message</p></li>
-</ul>
-<p>### 3. <strong>mc.py</strong> - Model Counting Tool</p>
-<p><strong>Purpose</strong>: Count models of formulas in various theories (Boolean, QF_BV, Arithmetic).</p>
-<p><strong>Usage</strong>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>aria.cli.mc<span class="w"> </span>&lt;file&gt;<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
-</pre></div>
-</div>
-<p><strong>Arguments</strong>:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">file</span></code> - Formula file (<code class="docutils literal notranslate"><span class="pre">.smt2</span></code>, <code class="docutils literal notranslate"><span class="pre">.cnf</span></code>, <code class="docutils literal notranslate"><span class="pre">.dimacs</span></code>)</p></li>
-</ul>
-<p><strong>Options</strong>:</p>
-<p><strong>Features:</strong></p>
-<ul class="simple">
-<li><p>Automatic format detection (<code class="docutils literal notranslate"><span class="pre">.smt2</span></code>, <code class="docutils literal notranslate"><span class="pre">.cnf</span></code>, <code class="docutils literal notranslate"><span class="pre">.dimacs</span></code>)</p></li>
-<li><p>Auto theory detection from content</p></li>
-<li><p><strong>Theory-specific counting methods</strong>:
-- Boolean: DIMACS parallel counting
-- BitVector: Enumeration and sampling
-- Arithmetic: LattE-based and enumeration-based</p></li>
-</ul>
-<p><strong>Output</strong>: Prints number of models to stdout</p>
-<p>### 4. <strong>pyomt.py</strong> - Optimization Problems Solver</p>
-<p><strong>Purpose</strong>: Solve OMT (Optimization Modulo Theory) and MaxSMT problems.</p>
-<p><strong>Usage</strong>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>aria.cli.pyomt<span class="w"> </span>&lt;file&gt;<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
-</pre></div>
-</div>
-<p><strong>Arguments</strong>:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">file</span></code> - Optimization problem file (<code class="docutils literal notranslate"><span class="pre">.smt2</span></code>)</p></li>
-</ul>
-<p><strong>Options</strong>:</p>
-<p><strong>Problem Types:</strong></p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">omt</span></code>: Optimization Modulo Theory</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">maxsmt</span></code>: Maximum Satisfiability (not yet implemented)</p></li>
-</ul>
-<p><strong>Theory Support:</strong></p>
-<ul class="simple">
-<li><p>BitVector (<code class="docutils literal notranslate"><span class="pre">bv</span></code>)</p></li>
-<li><p>Arithmetic (<code class="docutils literal notranslate"><span class="pre">arith</span></code>)</p></li>
-<li><p>Auto (<code class="docutils literal notranslate"><span class="pre">auto</span></code> - auto-detect from objective)</p></li>
-</ul>
-<p><strong>Engines:</strong></p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">qsmt</span></code>: Quantified SMT (default: z3)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">maxsat</span></code>: MaxSAT solver (default: FM)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">iter</span></code>: Iterative search (default: z3-ls)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">z3py</span></code>: Z3 Python API (default: z3py)</p></li>
-</ul>
-<p><strong>Default Solver Mapping</strong>:</p>
-<ul class="simple">
-<li><p>qsmt → z3</p></li>
-<li><p>maxsat → FM</p></li>
-<li><p>iter → z3-ls</p></li>
-<li><p>z3py → z3py</p></li>
-</ul>
-<p><strong>Note</strong>: MaxSMT support is not yet implemented in the CLI.</p>
-<p>### 5. <strong>maxsat.py</strong> - MaxSAT Solver</p>
-<p><strong>Purpose</strong>: Solve (weighted partial) MaxSAT problems from WCNF files using RC2, FM, or LSU engines.</p>
-<p><strong>Usage</strong>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>aria.cli.maxsat<span class="w"> </span>&lt;file&gt;<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
-aria-maxsat<span class="w"> </span>&lt;file&gt;<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
-</pre></div>
-</div>
-<p><strong>Arguments</strong>:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">file</span></code> - WCNF formula file (<code class="docutils literal notranslate"><span class="pre">.wcnf</span></code>, <code class="docutils literal notranslate"><span class="pre">.cnf</span></code>)</p></li>
-</ul>
-<p><strong>Options</strong>:</p>
-<p><strong>Output</strong>: Prints <code class="docutils literal notranslate"><span class="pre">cost:</span> <span class="pre">&lt;n&gt;</span></code>, optional <code class="docutils literal notranslate"><span class="pre">status</span></code>, and with <code class="docutils literal notranslate"><span class="pre">--print-model</span></code> the satisfying literals.</p>
-<p>### 6. <strong>unsat_core.py</strong> - UNSAT Core / MUS / MSS</p>
-<p><strong>Purpose</strong>: Compute one minimal unsatisfiable core or enumerate all MUSes from an SMT-LIB2 formula.</p>
-<p><strong>Usage</strong>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>aria.cli.unsat_core<span class="w"> </span>&lt;file&gt;<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
-aria-unsat-core<span class="w"> </span>&lt;file&gt;<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
-</pre></div>
-</div>
-<p><strong>Arguments</strong>:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">file</span></code> - SMT-LIB2 formula file (<code class="docutils literal notranslate"><span class="pre">.smt2</span></code>)</p></li>
-</ul>
-<p><strong>Options</strong>:</p>
-<p>If the formula is satisfiable, the tool reports that and exits successfully. For unsatisfiable formulas, prints one or more cores (assertion indices and optionally the formulas).</p>
-<p>### 7. <strong>allsmt.py</strong> - All Satisfying Models</p>
-<p><strong>Purpose</strong>: Enumerate all satisfying models of an SMT-LIB2 formula up to a configurable limit.</p>
-<p><strong>Usage</strong>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>aria.cli.allsmt<span class="w"> </span>&lt;file&gt;<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
-aria-allsmt<span class="w"> </span>&lt;file&gt;<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
-</pre></div>
-</div>
-<p><strong>Arguments</strong>:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">file</span></code> - SMT-LIB2 formula file (<code class="docutils literal notranslate"><span class="pre">.smt2</span></code>)</p></li>
-</ul>
-<p><strong>Options</strong>:</p>
-<p><strong>Output</strong>: Without <code class="docutils literal notranslate"><span class="pre">--count-only</span></code>, prints each model; with <code class="docutils literal notranslate"><span class="pre">--count-only</span></code>, a single line with the count.</p>
-<p>### 8. <strong>smt_server.py</strong> - Enhanced SMT Server</p>
-<p><strong>Purpose</strong>: IPC-based SMT-LIB2 server with advanced aria features (AllSMT, UNSAT cores, backbone, model counting).</p>
-<p><strong>Usage</strong>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>aria.cli.smt_server<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
-</pre></div>
-</div>
-<p><strong>Options</strong>:</p>
-<p><strong>Supported Commands</strong>:</p>
+<p>Key options include <code class="docutils literal notranslate"><span class="pre">--parser</span></code>, <code class="docutils literal notranslate"><span class="pre">--theory</span></code>, <code class="docutils literal notranslate"><span class="pre">--engine</span></code>, <code class="docutils literal notranslate"><span class="pre">--timeout</span></code>,
+<code class="docutils literal notranslate"><span class="pre">--max-loops</span></code>, plus theory-specific solver options for bit-vectors and
+LIA/LRA.</p>
 </section>
-<section id="basic-smt-lib2-commands">
-<h3><a class="toc-backref" href="#id14" role="doc-backlink">#### Basic SMT-LIB2 Commands</a><a class="headerlink" href="#basic-smt-lib2-commands" title="Link to this heading"></a></h3>
-</section>
-<section id="advanced-commands">
-<h3><a class="toc-backref" href="#id15" role="doc-backlink">#### Advanced Commands</a><a class="headerlink" href="#advanced-commands" title="Link to this heading"></a></h3>
-</section>
-<section id="configuration-options">
-<h3><a class="toc-backref" href="#id16" role="doc-backlink">#### Configuration Options</a><a class="headerlink" href="#configuration-options" title="Link to this heading"></a></h3>
-<p><strong>Usage Example</strong>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Start server</span>
-python3<span class="w"> </span>-m<span class="w"> </span>aria.cli.smt_server
-
-<span class="c1"># In another terminal, send commands</span>
-<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;declare-const x Int&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>/tmp/smt_input
-<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;assert (&gt; x 0)&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>/tmp/smt_input
-<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;check-sat&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>/tmp/smt_input
-cat<span class="w"> </span>/tmp/smt_output<span class="w">  </span><span class="c1"># Read response</span>
+<section id="maxsat">
+<h3><code class="docutils literal notranslate"><span class="pre">maxsat</span></code><a class="headerlink" href="#maxsat" title="Link to this heading"></a></h3>
+<p>Solve weighted partial MaxSAT problems from WCNF input.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>aria-maxsat<span class="w"> </span>formula.wcnf
+aria-maxsat<span class="w"> </span>formula.wcnf<span class="w"> </span>--solver<span class="w"> </span>rc2
+aria-maxsat<span class="w"> </span>formula.wcnf<span class="w"> </span>--print-model
 </pre></div>
 </div>
-<p><strong>Advanced Features:</strong></p>
+</section>
+<section id="unsat-core">
+<h3><code class="docutils literal notranslate"><span class="pre">unsat_core</span></code><a class="headerlink" href="#unsat-core" title="Link to this heading"></a></h3>
+<p>Compute one UNSAT core or enumerate MUSes from SMT-LIB2 input.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>aria-unsat-core<span class="w"> </span>formula.smt2
+aria-unsat-core<span class="w"> </span>formula.smt2<span class="w"> </span>--algorithm<span class="w"> </span>musx
+aria-unsat-core<span class="w"> </span>formula.smt2<span class="w"> </span>--all-mus
+</pre></div>
+</div>
+</section>
+<section id="allsmt">
+<h3><code class="docutils literal notranslate"><span class="pre">allsmt</span></code><a class="headerlink" href="#allsmt" title="Link to this heading"></a></h3>
+<p>Enumerate satisfying models, optionally projected to selected variables.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>aria-allsmt<span class="w"> </span>formula.smt2
+aria-allsmt<span class="w"> </span>formula.smt2<span class="w"> </span>--limit<span class="w"> </span><span class="m">50</span>
+aria-allsmt<span class="w"> </span>formula.smt2<span class="w"> </span>--project<span class="w"> </span>x,y,z
+aria-allsmt<span class="w"> </span>formula.smt2<span class="w"> </span>--count-only
+</pre></div>
+</div>
+</section>
+<section id="smt-server">
+<h3><code class="docutils literal notranslate"><span class="pre">smt_server</span></code><a class="headerlink" href="#smt-server" title="Link to this heading"></a></h3>
+<p>Run an IPC-based SMT server with commands such as <code class="docutils literal notranslate"><span class="pre">assert</span></code>, <code class="docutils literal notranslate"><span class="pre">check-sat</span></code>,
+<code class="docutils literal notranslate"><span class="pre">get-model</span></code>, <code class="docutils literal notranslate"><span class="pre">allsmt</span></code>, <code class="docutils literal notranslate"><span class="pre">unsat-core</span></code>, and <code class="docutils literal notranslate"><span class="pre">backbone</span></code>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>aria.cli.smt_server_cli
+python<span class="w"> </span>-m<span class="w"> </span>aria.cli.smt_server_cli<span class="w"> </span>--input-pipe<span class="w"> </span>/tmp/in<span class="w"> </span>--output-pipe<span class="w"> </span>/tmp/out
+</pre></div>
+</div>
+</section>
+<section id="efmc-efmc-efsmt-polyhorn">
+<h3><code class="docutils literal notranslate"><span class="pre">efmc</span></code> / <code class="docutils literal notranslate"><span class="pre">efmc_efsmt</span></code> / <code class="docutils literal notranslate"><span class="pre">polyhorn</span></code><a class="headerlink" href="#efmc-efmc-efsmt-polyhorn" title="Link to this heading"></a></h3>
+<p>These entrypoints expose the verification and quantified-reasoning stacks:</p>
 <ul class="simple">
-<li><p><strong>AllSMT</strong>: Model enumeration with limit support</p></li>
-<li><p><strong>UNSAT Cores</strong>: Computation using MARCO, MUSX, OPTUX algorithms</p></li>
-<li><p><strong>Backbone</strong>: Literal extraction from all models</p></li>
-<li><p><strong>Model Counting</strong>: Exact and approximate counting with timeout</p></li>
-<li><p><strong>Scope Management</strong>: Push/pop for incremental solving</p></li>
-<li><p><strong>Named Pipe IPC</strong>: Unix-style pipe communication</p></li>
-</ul>
-<p>### 9. <strong>README.md</strong> - CLI Documentation</p>
-<p>Comprehensive documentation in <code class="docutils literal notranslate"><span class="pre">aria/cli/README.md</span></code> covering:</p>
-<ul class="simple">
-<li><p>All CLI tools (fmldoc, mc, pyomt, efsmt, maxsat, unsat_core, allsmt, smt_server)</p></li>
-<li><p>Server architecture and IPC mechanisms</p></li>
-<li><p>Complete command reference and options</p></li>
-<li><p>Usage examples and testing</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria-efmc</span></code> for verification over CHC, SyGuS, Boogie, and C-style inputs</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria-efmc-efsmt</span></code> for EFMC-focused EFSMT workflows</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria-polyhorn</span></code> for polynomial Horn solving</p></li>
 </ul>
 </section>
 </section>
-<section id="testing">
-<h2><a class="toc-backref" href="#id17" role="doc-backlink">Testing</a><a class="headerlink" href="#testing" title="Link to this heading"></a></h2>
-<p><strong>Run all CLI tests</strong>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest<span class="w"> </span>aria/tests/test_cli_*.py<span class="w"> </span>-v
-</pre></div>
-</div>
-<p><strong>Per-tool tests</strong>:</p>
+<section id="validation">
+<h2>Validation<a class="headerlink" href="#validation" title="Link to this heading"></a></h2>
+<p>For the current command surface, see:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">test_cli_fmldoc.py</span></code> - Format converter</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">test_cli_mc.py</span></code> - Model counting</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">test_cli_efsmt.py</span></code> - EFSMT solver</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">test_cli_pyomt.py</span></code> - OMT solver</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">test_cli_maxsat.py</span></code> - MaxSAT solver</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">test_cli_unsat_core.py</span></code> - UNSAT core / MUS</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">test_cli_allsmt.py</span></code> - AllSMT enumeration</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">test_smt_server.py</span></code> - SMT server (declare-const, assert, check-sat, get-model, AllSMT, UNSAT core, model counting, help)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria/cli/README.md</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> under <code class="docutils literal notranslate"><span class="pre">[project.scripts]</span></code></p></li>
+<li><p>the parser definitions in <code class="docutils literal notranslate"><span class="pre">aria/cli/*_cli.py</span></code></p></li>
 </ul>
-</section>
-<section id="code-statistics">
-<h2><a class="toc-backref" href="#id18" role="doc-backlink">Code Statistics</a><a class="headerlink" href="#code-statistics" title="Link to this heading"></a></h2>
-<p><strong>Documentation</strong>: <code class="docutils literal notranslate"><span class="pre">aria/cli/README.md</span></code>
-<strong>Tests</strong>: <code class="docutils literal notranslate"><span class="pre">test_cli_*.py</span></code>, <code class="docutils literal notranslate"><span class="pre">test_smt_server.py</span></code></p>
-</section>
-<section id="dependencies">
-<h2><a class="toc-backref" href="#id19" role="doc-backlink">Dependencies</a><a class="headerlink" href="#dependencies" title="Link to this heading"></a></h2>
-<p>Some tools require additional dependencies that may not be installed:</p>
-<ul class="simple">
-<li><p><strong>pysat</strong>: Required for EFSMT, MC, and pyomt tools</p></li>
-<li><p><strong>pysmt</strong>: Required for pyomt tool</p></li>
-</ul>
-<p><strong>Note</strong>: The help commands work even if dependencies are missing, showing the tool’s interface and options.</p>
-</section>
-<section id="main-api-entry-points">
-<h2><a class="toc-backref" href="#id20" role="doc-backlink">Main API Entry Points</a><a class="headerlink" href="#main-api-entry-points" title="Link to this heading"></a></h2>
-<p>All CLI tools can be invoked via Python module syntax:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>aria.cli.&lt;tool_name&gt;<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
-</pre></div>
-</div>
-<p>Where <code class="docutils literal notranslate"><span class="pre">&lt;tool_name&gt;</span></code> is one of:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">efsmt</span></code> - Exists-Forall SMT solver</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">fmldoc</span></code> - Format translator and validator</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">mc</span></code> - Model counting</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">pyomt</span></code> - OMT / MaxSMT optimization solver</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">maxsat</span></code> - MaxSAT (WCNF) solver (RC2, FM, LSU)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">unsat_core</span></code> - UNSAT core / MUS / MSS computation</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">allsmt</span></code> - Enumerate all satisfying models</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">smt_server</span></code> - SMT server (IPC)</p></li>
-</ul>
-</section>
-<section id="key-features">
-<h2><a class="toc-backref" href="#id21" role="doc-backlink">Key Features</a><a class="headerlink" href="#key-features" title="Link to this heading"></a></h2>
-<ol class="arabic simple">
-<li><p><strong>Modular Design</strong>: Each tool is a standalone Python module</p></li>
-<li><p><strong>Comprehensive CLI</strong>: Consistent argument parsing across all tools</p></li>
-<li><p><strong>Advanced Features</strong>: SMT server provides AllSMT, UNSAT cores, backbone, counting</p></li>
-<li><p><strong>Flexible Configuration</strong>: Multiple engines, theories, and algorithms per tool</p></li>
-<li><p><strong>Testing</strong>: SMT server has comprehensive test suite</p></li>
-<li><p><strong>Documentation</strong>: README.md provides detailed SMT server usage guide</p></li>
-<li><p><strong>Logging</strong>: Configurable logging levels for all tools</p></li>
-<li><p><strong>IPC Support</strong>: Named pipe communication for SMT server integration</p></li>
-</ol>
 </section>
 </section>
 

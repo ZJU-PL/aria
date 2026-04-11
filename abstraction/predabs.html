@@ -16,7 +16,6 @@
       <script src="../_static/documentation_options.js?v=01f34227"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -55,15 +54,13 @@
 <li class="toctree-l2"><a class="reference internal" href="symbolic_abstraction.html">Symbolic Abstraction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="predicate_abstraction.html">Predicate Abstraction</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Predicate Abstraction and CEGAR</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#predicate-abstraction">Predicate Abstraction</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#abstraction-refinement">Abstraction Refinement</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#references">References</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#current-engine-surface">Current engine surface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#programmatic-usage">Programmatic usage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#relationship-to-other-docs">Relationship to other docs</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="monabs.html">Monadic Predicate Abstraction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="absint.html">Abstraction Interpretation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="absint.html#widening">Widening</a></li>
-<li class="toctree-l2"><a class="reference internal" href="absint.html#making-abstraction-interpretation-complete">Making Abstraction Interpretation Complete</a></li>
+<li class="toctree-l2"><a class="reference internal" href="absint.html">Abstract Interpretation</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../counting-probability/index.html">Counting, Sampling, and Probability</a></li>
@@ -101,38 +98,33 @@
              
   <section id="predicate-abstraction-and-cegar">
 <h1>Predicate Abstraction and CEGAR<a class="headerlink" href="#predicate-abstraction-and-cegar" title="Link to this heading"></a></h1>
-<section id="predicate-abstraction">
-<h2>Predicate Abstraction<a class="headerlink" href="#predicate-abstraction" title="Link to this heading"></a></h2>
-<p>Abstraction aims at throwing away information about a system not needed to prove a given property. A safety invariant is an inductive invariant that implies the safety condition of a program.</p>
-<p>An abstraction is a restricted language <span class="math notranslate nohighlight">\(\mathcal{L}\)</span>. For example, in predicate abstraction, given a set of predicates <span class="math notranslate nohighlight">\(\Pi\)</span>, we try to construct the strongest inductive invariant of a program expressible as a Boolean combination of <span class="math notranslate nohighlight">\(\Pi\)</span>. That is, we are restricted to the language <span class="math notranslate nohighlight">\(\mathcal{L}\)</span> of Boolean combinations of <span class="math notranslate nohighlight">\(\Pi\)</span>.</p>
-<p><strong>Definition (Predicate Abstraction Domain)</strong></p>
-<p>Given a fixed finite set <span class="math notranslate nohighlight">\(\Pi\)</span> of FO formulas with free variables from the program variables which captures the program semantics, a <em>predicate abstraction domain</em> consists of of lattice of propositional formulas over <span class="math notranslate nohighlight">\(\Pi\)</span> ordered by implication.</p>
-<p>Given a region formula <span class="math notranslate nohighlight">\(\psi\)</span>, the <em>predicate abstraction</em> of <span class="math notranslate nohighlight">\(\psi\)</span> with respect to the set of <span class="math notranslate nohighlight">\(\Pi\)</span> of predicates is the smallest (in the implication ordering) region <span class="math notranslate nohighlight">\(Abs(\psi, \Pi)\)</span> which contains <span class="math notranslate nohighlight">\(\psi\)</span> and is representable as a Boolean combination of predicates from <span class="math notranslate nohighlight">\(\Pi\)</span>:</p>
-<div class="math notranslate nohighlight">
-\[Abs(\psi, \Pi) = \bigwedge \{  \phi \ | \ \phi \text{ is a Boolean formula over } \Pi \land \psi \Rightarrow \phi  \}\]</div>
+<p>This page covers the EFMC-facing predicate-abstraction engine rather than the
+lower-level standalone symbolic-abstraction helpers documented elsewhere.</p>
+<section id="current-engine-surface">
+<h2>Current engine surface<a class="headerlink" href="#current-engine-surface" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">aria.efmc.engines.predabs</span></code> currently exposes <code class="docutils literal notranslate"><span class="pre">PredicateAbstractionProver</span></code>.</p>
+<p>At a high level, predicate abstraction restricts reasoning to Boolean
+combinations of a chosen predicate set, producing a finite abstraction that can
+be used in verification workflows.</p>
 </section>
-<section id="abstraction-refinement">
-<h2>Abstraction Refinement<a class="headerlink" href="#abstraction-refinement" title="Link to this heading"></a></h2>
-<p>An abstraction refinement heuristic chooses a sequence of sublangauges <span class="math notranslate nohighlight">\(\mathcal{L}_0 \subseteq \mathcal{L}_1, \ldots\)</span> from a broader language <span class="math notranslate nohighlight">\(\mathcal{L}\)</span>. For example, in predicate abstraction with refinement, <span class="math notranslate nohighlight">\(\mathcal{L}\)</span> is the set of quantifier-free first-order formulas, and <span class="math notranslate nohighlight">\(\mathcal{L}_i\)</span> is characterized by a set of atomic predicates <span class="math notranslate nohighlight">\(P_i\)</span>.</p>
-<p><strong>Definition (Completeness relative to a language)</strong></p>
-<p>An abstraction refinement heuristic is complete for language <span class="math notranslate nohighlight">\(\mathcal{L}\)</span>, iff it always eventually chooses a sublanguage <span class="math notranslate nohighlight">\(\mathcal{L}_i \subseteq \mathcal{L}\)</span> containing a safety invariant whenever <span class="math notranslate nohighlight">\(\mathcal{L}\)</span> contains a safety invariant.</p>
+<section id="programmatic-usage">
+<h2>Programmatic usage<a class="headerlink" href="#programmatic-usage" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.engines.predabs</span><span class="w"> </span><span class="kn">import</span> <span class="n">PredicateAbstractionProver</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.sts</span><span class="w"> </span><span class="kn">import</span> <span class="n">TransitionSystem</span>
+
+<span class="n">sts</span> <span class="o">=</span> <span class="n">TransitionSystem</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="n">prover</span> <span class="o">=</span> <span class="n">PredicateAbstractionProver</span><span class="p">(</span><span class="n">sts</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">prover</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+</pre></div>
+</div>
 </section>
-<section id="references">
-<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
-<div role="list" class="citation-list">
-<div class="citation" id="ballr01" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>BallR01<span class="fn-bracket">]</span></span>
-<ol class="upperalpha simple" start="20">
-<li><p>Ball and S. Rajamani. Automatically validating temporal safety properties of interfaces. In Proceedings of the 8th International SPIN Workshop on Model Checking of Software, pages 103-122, 2001.</p></li>
-</ol>
-</div>
-<div class="citation" id="ballr02" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>BallR02<span class="fn-bracket">]</span></span>
-<ol class="upperalpha simple" start="20">
-<li><p>Ball and S. Rajamani. The SLAM project: debugging system software via static analysis. In Proceedings of the 29th ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages, pages 1-3, 2002.</p></li>
-</ol>
-</div>
-</div>
+<section id="relationship-to-other-docs">
+<h2>Relationship to other docs<a class="headerlink" href="#relationship-to-other-docs" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="predicate_abstraction.html"><span class="doc">Predicate Abstraction</span></a> covers the lower-level package under
+<code class="docutils literal notranslate"><span class="pre">aria.symabs.predicate_abstraction</span></code></p></li>
+<li><p>this page is about the verification-engine view inside EFMC</p></li>
+</ul>
 </section>
 </section>
 

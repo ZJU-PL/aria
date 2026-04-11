@@ -19,7 +19,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Playing wiht Program Verification with EFMC" href="verification-tutorial.html" />
+    <link rel="next" title="Program Verification with EFMC" href="verification-tutorial.html" />
     <link rel="prev" title="Quick Reference" href="quickref.html" /> 
 </head>
 
@@ -48,16 +48,16 @@
 <li class="toctree-l2"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
 <li class="toctree-l2"><a class="reference internal" href="quickref.html">Quick Reference</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Research Topics and Thesis Projects</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#core-algorithm-development">Core Algorithm Development</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#theory-specific-solving">Theory-Specific Solving</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#ai-enhanced-reasoning">AI-Enhanced Reasoning</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#advanced-sampling-enumeration">Advanced Sampling &amp; Enumeration</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#quantifier-handling">Quantifier Handling</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#applications-tools">Applications &amp; Tools</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#getting-started">Getting Started</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#core-algorithm-development">Core algorithm development</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#theory-specific-solving">Theory-specific solving</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ai-enhanced-reasoning">AI-enhanced reasoning</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#advanced-sampling-and-enumeration">Advanced sampling and enumeration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#quantifier-handling">Quantifier handling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#applications-and-tools">Applications and tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#getting-started">Getting started</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="verification-tutorial.html">Playing wiht Program Verification with EFMC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verification-tutorial.html">Program Verification with EFMC</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../logic-and-solving/index.html">Logic and Solving</a></li>
@@ -101,76 +101,75 @@
              
   <section id="research-topics-and-thesis-projects">
 <h1>Research Topics and Thesis Projects<a class="headerlink" href="#research-topics-and-thesis-projects" title="Link to this heading"></a></h1>
-<p>Aria offers numerous opportunities for research and thesis projects across multiple areas of automated reasoning.</p>
+<p>ARIA offers many research directions across automated reasoning, verification,
+and solver engineering.</p>
 <section id="core-algorithm-development">
-<h2>Core Algorithm Development<a class="headerlink" href="#core-algorithm-development" title="Link to this heading"></a></h2>
+<h2>Core algorithm development<a class="headerlink" href="#core-algorithm-development" title="Link to this heading"></a></h2>
 <dl class="simple">
-<dt><strong>Parallel CDCL(T) Solving</strong> (<code class="docutils literal notranslate"><span class="pre">aria/smt/pcdclt</span></code>)</dt><dd><p>Develop parallel algorithms for conflict-driven clause learning with theory reasoning. Focus on work distribution, clause sharing, and portfolio solving.</p>
+<dt><strong>Parallel CDCL(T) solving</strong> (<code class="docutils literal notranslate"><span class="pre">aria/smt/pcdclt</span></code>)</dt><dd><p>Develop parallel algorithms for clause learning with theory reasoning.</p>
 </dd>
-<dt><strong>Optimization Modulo Theory</strong> (<code class="docutils literal notranslate"><span class="pre">aria/optimization</span></code>)</dt><dd><p>Extend SMT solving with optimization capabilities. Implement algorithms for OMT over bit-vectors, arithmetic, and mixed theories.</p>
+<dt><strong>Optimization modulo theory</strong> (<code class="docutils literal notranslate"><span class="pre">aria/optimization</span></code>)</dt><dd><p>Extend OMT algorithms over bit-vectors, arithmetic, and mixed settings.</p>
 </dd>
-<dt><strong>Advanced Model Counting</strong> (<code class="docutils literal notranslate"><span class="pre">aria/counting</span></code>)</dt><dd><p>Improve counting algorithms for Boolean, arithmetic, and quantifier-free bit-vector formulas. Focus on scalability and approximation techniques.</p>
+<dt><strong>Advanced model counting</strong> (<code class="docutils literal notranslate"><span class="pre">aria/counting</span></code>)</dt><dd><p>Improve counting algorithms for Boolean, arithmetic, and QF_BV formulas.</p>
 </dd>
-<dt><strong>Symbolic Abstraction</strong> (<code class="docutils literal notranslate"><span class="pre">aria/symabs</span></code>)</dt><dd><p>Develop new abstraction techniques for infinite state systems. Implement counterexample-guided abstraction refinement (CEGAR).</p>
+<dt><strong>Symbolic abstraction</strong> (<code class="docutils literal notranslate"><span class="pre">aria/symabs</span></code>)</dt><dd><p>Develop abstraction techniques for infinite-state systems and verification.</p>
 </dd>
 </dl>
 </section>
 <section id="theory-specific-solving">
-<h2>Theory-Specific Solving<a class="headerlink" href="#theory-specific-solving" title="Link to this heading"></a></h2>
+<h2>Theory-specific solving<a class="headerlink" href="#theory-specific-solving" title="Link to this heading"></a></h2>
 <dl class="simple">
-<dt><strong>Finite Field SMT</strong> (<code class="docutils literal notranslate"><span class="pre">aria/smt/ff</span></code>)</dt><dd><p>Build decision procedures for Galois field constraints. Applications in cryptography and coding theory.</p>
+<dt><strong>Finite-field SMT</strong> (<code class="docutils literal notranslate"><span class="pre">aria/smt/ff</span></code>)</dt><dd><p>Build decision procedures for Galois-field constraints.</p>
 </dd>
-<dt><strong>Floating-Point Arithmetic</strong> (<code class="docutils literal notranslate"><span class="pre">aria/smt/fp</span></code>)</dt><dd><p>Develop efficient solvers for IEEE 754 floating-point constraints with proper handling of rounding modes and special values.</p>
-</dd>
-<dt><strong>String Constraint Solving</strong></dt><dd><p>Extend string theory support with automata-based techniques. Implement length constraints and regular language operations.</p>
+<dt><strong>Floating-point arithmetic</strong> (<code class="docutils literal notranslate"><span class="pre">aria/smt/fp</span></code>)</dt><dd><p>Develop efficient IEEE-754 solving and optimization workflows.</p>
 </dd>
 </dl>
 </section>
 <section id="ai-enhanced-reasoning">
-<h2>AI-Enhanced Reasoning<a class="headerlink" href="#ai-enhanced-reasoning" title="Link to this heading"></a></h2>
+<h2>AI-enhanced reasoning<a class="headerlink" href="#ai-enhanced-reasoning" title="Link to this heading"></a></h2>
 <dl class="simple">
-<dt><strong>Machine Learning for Solvers</strong> (<code class="docutils literal notranslate"><span class="pre">aria/ml</span></code>)</dt><dd><p>Extract features for learned solver selection, clause learning prediction, and variable ordering heuristics.</p>
+<dt><strong>Machine learning for solvers</strong> (<code class="docutils literal notranslate"><span class="pre">aria/ml</span></code>)</dt><dd><p>Learn solver selection, feature extraction, and tactic guidance.</p>
 </dd>
-<dt><strong>Automata Learning</strong> (<code class="docutils literal notranslate"><span class="pre">aria/automata</span></code>)</dt><dd><p>Apply active learning to infer automata from examples for string constraint solving and program verification.</p>
+<dt><strong>Automata learning</strong> (<code class="docutils literal notranslate"><span class="pre">aria/automata</span></code>)</dt><dd><p>Apply learning-based techniques to string solving and verification.</p>
 </dd>
 </dl>
 </section>
-<section id="advanced-sampling-enumeration">
-<h2>Advanced Sampling &amp; Enumeration<a class="headerlink" href="#advanced-sampling-enumeration" title="Link to this heading"></a></h2>
+<section id="advanced-sampling-and-enumeration">
+<h2>Advanced sampling and enumeration<a class="headerlink" href="#advanced-sampling-and-enumeration" title="Link to this heading"></a></h2>
 <dl class="simple">
-<dt><strong>Uniform Sampling</strong> (<code class="docutils literal notranslate"><span class="pre">aria/sampling</span></code>)</dt><dd><p>Develop algorithms for uniform solution sampling over complex constraint domains. Applications in probabilistic verification.</p>
+<dt><strong>Uniform sampling</strong> (<code class="docutils literal notranslate"><span class="pre">aria/sampling</span></code>)</dt><dd><p>Design diverse solution-sampling strategies over rich SMT theories.</p>
 </dd>
-<dt><strong>AllSMT Algorithms</strong> (<code class="docutils literal notranslate"><span class="pre">aria/allsmt</span></code>)</dt><dd><p>Enumerate all solutions efficiently. Focus on diversity metrics and incremental solving techniques.</p>
-</dd>
-<dt><strong>Solution Space Analysis</strong></dt><dd><p>Implement tools for analyzing solution spaces, including backbone computation and minimal unsatisfiable core extraction.</p>
+<dt><strong>AllSMT algorithms</strong> (<code class="docutils literal notranslate"><span class="pre">aria/allsmt</span></code>)</dt><dd><p>Improve exhaustive model enumeration and projection workflows.</p>
 </dd>
 </dl>
 </section>
 <section id="quantifier-handling">
-<h2>Quantifier Handling<a class="headerlink" href="#quantifier-handling" title="Link to this heading"></a></h2>
+<h2>Quantifier handling<a class="headerlink" href="#quantifier-handling" title="Link to this heading"></a></h2>
 <dl class="simple">
-<dt><strong>Quantifier Elimination</strong> (<code class="docutils literal notranslate"><span class="pre">aria/quant/qe</span></code>)</dt><dd><p>Develop QE procedures for mixed theories combining arithmetic, bit-vectors, and arrays.</p>
+<dt><strong>Quantifier elimination</strong> (<code class="docutils literal notranslate"><span class="pre">aria/quant/qe</span></code>)</dt><dd><p>Study QE procedures for arithmetic and related theories.</p>
 </dd>
-<dt><strong>E-Matching Optimization</strong> (<code class="docutils literal notranslate"><span class="pre">aria/quant/ematching</span></code>)</dt><dd><p>Improve quantifier instantiation through better pattern matching and trigger selection.</p>
+<dt><strong>E-matching optimization</strong> (<code class="docutils literal notranslate"><span class="pre">aria/ml/llm/ematching</span></code>)</dt><dd><p>Improve trigger selection and quantifier instantiation heuristics.</p>
 </dd>
-<dt><strong>CHC Solving</strong> (<code class="docutils literal notranslate"><span class="pre">aria/quant/chctools</span></code>)</dt><dd><p>Scale algorithms for constrained Horn clause solving. Applications in program verification and synthesis.</p>
+<dt><strong>CHC solving</strong> (<code class="docutils literal notranslate"><span class="pre">aria/quant/chctools</span></code>)</dt><dd><p>Scale constrained Horn clause solving for verification and synthesis.</p>
 </dd>
 </dl>
 </section>
-<section id="applications-tools">
-<h2>Applications &amp; Tools<a class="headerlink" href="#applications-tools" title="Link to this heading"></a></h2>
+<section id="applications-and-tools">
+<h2>Applications and tools<a class="headerlink" href="#applications-and-tools" title="Link to this heading"></a></h2>
 <dl class="simple">
-<dt><strong>Interactive Theorem Proving</strong> (<code class="docutils literal notranslate"><span class="pre">aria/itp</span></code>)</dt><dd><p>Build proof assistant tools with support for multiple theories and automated proof search.</p>
+<dt><strong>Interactive theorem proving</strong> (<code class="docutils literal notranslate"><span class="pre">aria/itp</span></code>)</dt><dd><p>Build proof tools across multiple theories.</p>
 </dd>
-<dt><strong>Program Synthesis</strong> (<code class="docutils literal notranslate"><span class="pre">aria/synthesis</span></code>)</dt><dd><p>Implement syntax-guided synthesis techniques for bit-vectors, arithmetic, and string domains.</p>
+<dt><strong>Program synthesis</strong> (<code class="docutils literal notranslate"><span class="pre">aria/synthesis</span></code>)</dt><dd><p>Explore SyGuS and related synthesis workflows.</p>
 </dd>
-<dt><strong>Abductive Reasoning</strong> (<code class="docutils literal notranslate"><span class="pre">aria/abduction</span></code>)</dt><dd><p>Develop algorithms for generating explanations and hypotheses from constraint observations.</p>
+<dt><strong>Abductive reasoning</strong> (<code class="docutils literal notranslate"><span class="pre">aria/abduction</span></code>)</dt><dd><p>Develop explanation and hypothesis-generation algorithms.</p>
 </dd>
 </dl>
 </section>
 <section id="getting-started">
-<h2>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading"></a></h2>
-<p>Each module includes examples and documentation. Start with <code class="docutils literal notranslate"><span class="pre">aria/allsmt</span></code> for basic usage patterns, then explore specialized areas based on your interests.</p>
+<h2>Getting started<a class="headerlink" href="#getting-started" title="Link to this heading"></a></h2>
+<p>Start with the package README files under <code class="docutils literal notranslate"><span class="pre">aria/</span></code> and the section pages in
+this documentation tree, then drill down into the subsystem that matches your
+interests.</p>
 </section>
 </section>
 
@@ -179,7 +178,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="quickref.html" class="btn btn-neutral float-left" title="Quick Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="verification-tutorial.html" class="btn btn-neutral float-right" title="Playing wiht Program Verification with EFMC" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="verification-tutorial.html" class="btn btn-neutral float-right" title="Program Verification with EFMC" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

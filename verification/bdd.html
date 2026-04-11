@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BDD-based Symbolic Model Checking &mdash; ARIA Documentation</title>
+  <title>BDD-Based Verification &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
@@ -50,22 +50,18 @@
 <li class="toctree-l1"><a class="reference internal" href="../quantified-reasoning/index.html">Quantified Reasoning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../automata-languages/index.html">Automata and Languages</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Verification</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">BDD-based Symbolic Model Checking</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#algorithm">Algorithm</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#usage">Usage</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#configuration-options">Configuration Options</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#limitations">Limitations</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#future-improvements">Future Improvements</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#references">References</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">BDD-Based Verification</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#current-api">Current API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#high-level-behavior">High-level behavior</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#notes">Notes</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="verification.html">Program Verification</a></li>
 <li class="toctree-l2"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
 <li class="toctree-l2"><a class="reference internal" href="houdini.html">Houdini</a></li>
-<li class="toctree-l2"><a class="reference internal" href="kinduction.html">K-induction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kinduction.html">K-Induction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ksafety.html">K-Safety Verification</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ranking_functions.html">Ranking Function Templates for Termination Verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ranking_functions.html">Ranking Functions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="danger.html">Danger Invariants</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ltl.html">Linear Teamporal Logic</a></li>
 <li class="toctree-l2"><a class="reference internal" href="symautomata.html">Symbolic Finite Automata</a></li>
@@ -96,7 +92,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="index.html">Verification</a></li>
-      <li class="breadcrumb-item active">BDD-based Symbolic Model Checking</li>
+      <li class="breadcrumb-item active">BDD-Based Verification</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/verification/bdd.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -106,82 +102,32 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="bdd-based-symbolic-model-checking">
-<h1>BDD-based Symbolic Model Checking<a class="headerlink" href="#bdd-based-symbolic-model-checking" title="Link to this heading"></a></h1>
-<p>The BDD (Binary Decision Diagram) module implements symbolic model checking for Boolean programs using Z3’s Boolean reasoning capabilities. This prover performs both forward and backward reachability analysis to verify safety properties.</p>
-<section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
-<p>BDD-based symbolic model checking is a technique that uses Binary Decision Diagrams to represent and manipulate Boolean functions efficiently. In EFMC, this is implemented using Z3’s Boolean reasoning capabilities rather than traditional BDD libraries.</p>
-</section>
-<section id="algorithm">
-<h2>Algorithm<a class="headerlink" href="#algorithm" title="Link to this heading"></a></h2>
-<p>The BDD prover implements two main approaches:</p>
-<p><strong>Forward Reachability Analysis:</strong>
-1. Start with the initial states
-2. Iteratively compute the image (successor states) using the transition relation
-3. Continue until a fixpoint is reached or the maximum number of iterations is exceeded
-4. Check if the computed reachable states satisfy the safety property</p>
-<p><strong>Backward Reachability Analysis:</strong>
-1. Start with the negation of the safety property (bad states)
-2. Iteratively compute the pre-image (predecessor states) using the transition relation
-3. Continue until a fixpoint is reached or the maximum number of iterations is exceeded
-4. Check if the initial states are contained in the computed bad states</p>
-</section>
-<section id="usage">
-<h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
-<p>The BDD prover can be used as follows:</p>
+  <section id="bdd-based-verification">
+<h1>BDD-Based Verification<a class="headerlink" href="#bdd-based-verification" title="Link to this heading"></a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">aria.efmc.engines.bdd</span></code> currently exposes <code class="docutils literal notranslate"><span class="pre">BDDProver</span></code> for symbolic
+reachability-style verification over Boolean-flavored transition systems.</p>
+<section id="current-api">
+<h2>Current API<a class="headerlink" href="#current-api" title="Link to this heading"></a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.engines.bdd</span><span class="w"> </span><span class="kn">import</span> <span class="n">BDDProver</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.sts</span><span class="w"> </span><span class="kn">import</span> <span class="n">TransitionSystem</span>
 
-<span class="c1"># Create transition system</span>
 <span class="n">sts</span> <span class="o">=</span> <span class="n">TransitionSystem</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
-
-<span class="c1"># Create BDD prover with forward analysis</span>
 <span class="n">prover</span> <span class="o">=</span> <span class="n">BDDProver</span><span class="p">(</span><span class="n">sts</span><span class="p">,</span> <span class="n">use_forward</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">max_iterations</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
-
-<span class="c1"># Solve the verification problem</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">prover</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
-
-<span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">is_safe</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;System is safe&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invariant: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">invariant</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;System is unsafe or unknown&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
-<section id="configuration-options">
-<h2>Configuration Options<a class="headerlink" href="#configuration-options" title="Link to this heading"></a></h2>
-<ul class="simple">
-<li><p><strong>use_forward</strong>: Boolean flag to choose between forward (True) and backward (False) analysis</p></li>
-<li><p><strong>max_iterations</strong>: Maximum number of iterations for fixpoint computation (default: 1000)</p></li>
-</ul>
+<section id="high-level-behavior">
+<h2>High-level behavior<a class="headerlink" href="#high-level-behavior" title="Link to this heading"></a></h2>
+<p>The prover supports forward and backward style reachability computations and is
+documented in the codebase as a BDD-oriented symbolic model-checking path within
+EFMC.</p>
 </section>
-<section id="limitations">
-<h2>Limitations<a class="headerlink" href="#limitations" title="Link to this heading"></a></h2>
-<ul class="simple">
-<li><p>Currently uses Z3’s Boolean reasoning rather than dedicated BDD libraries</p></li>
-</ul>
-</section>
-<section id="future-improvements">
-<h2>Future Improvements<a class="headerlink" href="#future-improvements" title="Link to this heading"></a></h2>
-<ul class="simple">
-<li><p>Integration with dedicated BDD libraries (e.g., CUDD) for better performance</p></li>
-</ul>
-</section>
-<section id="references">
-<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
-<aside class="footnote-list brackets">
-<aside class="footnote brackets" id="id1" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
-<ol class="upperalpha simple" start="5">
-<li><ol class="upperalpha simple" start="13">
-<li><p>Clarke, O. Grumberg, and D. A. Peled, “Model Checking,” MIT Press, 1999.</p></li>
-</ol>
-</li>
-</ol>
-</aside>
-</aside>
+<section id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Link to this heading"></a></h2>
+<p>This page is intentionally package-focused rather than a full BDD tutorial.
+For current behavior and tunable parameters, check
+<code class="docutils literal notranslate"><span class="pre">aria/efmc/engines/bdd/bdd_prover.py</span></code> and the EFMC CLI help.</p>
 </section>
 </section>
 
