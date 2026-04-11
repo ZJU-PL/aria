@@ -9,6 +9,7 @@ from typing import Tuple, Optional
 import z3
 
 from .base import MaxSMTSolverBase
+from aria.optimization.result import OptimizationResult, OptimizationStatus
 
 
 class Z3OptimizeSolver(MaxSMTSolverBase):
@@ -18,15 +19,16 @@ class Z3OptimizeSolver(MaxSMTSolverBase):
     Uses Z3's built-in Optimize engine to solve MaxSMT problems directly.
     """
 
-    def solve(self) -> Tuple[bool, Optional[z3.ModelRef], float]:
-        """Solve the MaxSMT problem using Z3's Optimize engine
+    def solve_result(self) -> OptimizationResult:
+        """Solve the MaxSMT problem using Z3's Optimize engine.
 
         Z3's Optimize engine can directly handle weighted MaxSMT problems.
         This method uses Z3's built-in functionality.
-
-        Returns:
-            Tuple of (sat, model, optimal_cost)
         """
+        empty_soft_result = self._default_result_for_empty_soft_constraints()
+        if empty_soft_result is not None:
+            return empty_soft_result
+
         # Create Z3 Optimize solver
         opt = z3.Optimize()
 
@@ -48,7 +50,7 @@ class Z3OptimizeSolver(MaxSMTSolverBase):
 
         # Set the objective: maximize the sum of weights of satisfied soft constraints
         objective = opt.maximize(
-            z3.Sum([z3.If(b, weight, 0) for b, weight in relax_vars])
+            z3.Sum([z3.If(b, z3.RealVal(weight), z3.RealVal(0)) for b, weight in relax_vars])
         )
 
         # Check if the formula is satisfiable
@@ -88,6 +90,17 @@ class Z3OptimizeSolver(MaxSMTSolverBase):
             # Cost is the weight of violated constraints
             cost = total_weight - satisfied_weight
 
-            return True, model, cost
+            return OptimizationResult(
+                status=OptimizationStatus.OPTIMAL,
+                model=model,
+                cost=cost,
+                engine="z3-opt",
+                solver=self.solver_name,
+            )
         # Formula is unsatisfiable
-        return False, None, float("inf")
+        return OptimizationResult(
+            status=OptimizationStatus.UNSAT,
+            engine="z3-opt",
+            solver=self.solver_name,
+            detail="Optimize could not satisfy hard constraints",
+        )

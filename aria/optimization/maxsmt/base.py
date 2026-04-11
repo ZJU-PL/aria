@@ -5,10 +5,12 @@ Provides the abstract base class for MaxSMT solvers and common utility functions
 """
 
 import logging
-from typing import List, Tuple, Optional, Set
 from enum import Enum
+from typing import List, Optional, Set, Tuple
 
 import z3
+
+from aria.optimization.result import OptimizationResult, OptimizationStatus
 
 logger = logging.getLogger(__name__)
 
@@ -95,16 +97,36 @@ class MaxSMTSolverBase:
         self.soft_constraints.extend(constraints)
         self.weights.extend(weights)
 
-    def solve(self) -> Tuple[bool, Optional[z3.ModelRef], float]:
-        """Solve the MaxSMT problem
-
-        Returns:
-            Tuple of (sat, model, optimal_cost)
-            sat: True if a solution was found
-            model: z3 model if sat is True, None otherwise
-            optimal_cost: Sum of weights of unsatisfied soft constraints
-        """
+    def solve_result(self) -> OptimizationResult:
+        """Solve the MaxSMT problem and return a normalized result object."""
         raise NotImplementedError("Subclasses must implement this method")
+
+    def solve(self) -> Tuple[bool, Optional[z3.ModelRef], float]:
+        """Solve the MaxSMT problem in the legacy tuple format."""
+        result = self.solve_result()
+        if result.status == OptimizationStatus.OPTIMAL:
+            return True, result.model, float(result.cost or 0.0)
+        return False, None, float("inf")
+
+    def _create_solver(self) -> z3.Solver:
+        """Create a solver instance matching the configured backend."""
+        if self.solver_name != "z3":
+            raise NotImplementedError(f"Solver {self.solver_name} not supported")
+        return z3.Solver()
+
+    def _check_hard_constraints(
+        self,
+    ) -> Tuple[bool, Optional[z3.Solver], Optional[z3.ModelRef]]:
+        """Check whether hard constraints are satisfiable."""
+        solver = self._create_solver()
+        for constraint in self.hard_constraints:
+            solver.add(constraint)
+
+        if solver.check() != z3.sat:
+            logger.warning("Hard constraints are unsatisfiable")
+            return False, None, None
+
+        return True, solver, solver.model()
 
     def _get_variables(self, formula: z3.ExprRef) -> Set[z3.ExprRef]:
         """Extract variables from a Z3 formula"""
@@ -113,9 +135,9 @@ class MaxSMTSolverBase:
         def collect(expr: z3.ExprRef) -> None:
             if (
                 z3.is_const(expr)
-                and not z3.is_bool(expr)
                 and not z3.is_true(expr)
                 and not z3.is_false(expr)
+                and expr.decl().kind() == z3.Z3_OP_UNINTERPRETED
             ):
                 variables.add(expr)
             else:
@@ -147,3 +169,26 @@ class MaxSMTSolverBase:
             if not self._evaluate(model, hc):
                 return False
         return True
+
+    def _default_result_for_empty_soft_constraints(
+        self,
+    ) -> Optional[OptimizationResult]:
+        """Return the unique result for instances without soft constraints."""
+        if self.soft_constraints:
+            return None
+
+        sat, _, model = self._check_hard_constraints()
+        if not sat:
+            return OptimizationResult(
+                status=OptimizationStatus.UNSAT,
+                engine=self.__class__.__name__,
+                solver=self.solver_name,
+                detail="Hard constraints are unsatisfiable",
+            )
+        return OptimizationResult(
+            status=OptimizationStatus.OPTIMAL,
+            model=model,
+            cost=0.0,
+            engine=self.__class__.__name__,
+            solver=self.solver_name,
+        )

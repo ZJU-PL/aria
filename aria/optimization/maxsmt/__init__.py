@@ -12,10 +12,11 @@ MaxSMT extends MaxSAT to SMT formulas, where each formula can have a weight
 The goal is to find an assignment that maximizes the sum of weights of satisfied constraints.
 """
 
-from typing import List, Tuple, Optional
+from typing import List, Optional, Tuple
 
 import z3
 
+from aria.optimization.result import OptimizationResult, maxsmt_result_tuple
 from .base import MaxSMTAlgorithm, MaxSMTSolverBase
 from .core_guided import CoreGuidedSolver
 from .ihs import ImplicitHittingSetSolver
@@ -26,6 +27,7 @@ from .z3_optimize import Z3OptimizeSolver
 __all__ = [
     "MaxSMTAlgorithm",
     "MaxSMTSolver",
+    "solve_maxsmt_result",
     "solve_maxsmt",
     "demo",
     "example_scheduling",
@@ -47,9 +49,6 @@ class MaxSMTSolver:
         """
         self.algorithm = algorithm
         self.solver_name = solver_name
-        self.hard_constraints = []
-        self.soft_constraints = []
-        self.weights = []
 
         # Create the appropriate solver based on the algorithm
         if algorithm == "z3-opt":
@@ -69,7 +68,6 @@ class MaxSMTSolver:
         Args:
             constraint: SMT formula that must be satisfied
         """
-        self.hard_constraints.append(constraint)
         self.solver.add_hard_constraint(constraint)
 
     def add_hard_constraints(self, constraints):
@@ -78,7 +76,6 @@ class MaxSMTSolver:
         Args:
             constraints: List of SMT formulas that must be satisfied
         """
-        self.hard_constraints.extend(constraints)
         self.solver.add_hard_constraints(constraints)
 
     def add_soft_constraint(self, constraint, weight: float = 1.0):
@@ -88,8 +85,6 @@ class MaxSMTSolver:
             constraint: SMT formula that should be satisfied if possible
             weight: Weight of the constraint (higher = more important)
         """
-        self.soft_constraints.append(constraint)
-        self.weights.append(weight)
         self.solver.add_soft_constraint(constraint, weight)
 
     def add_soft_constraints(self, constraints, weights=None):
@@ -105,44 +100,25 @@ class MaxSMTSolver:
         if len(constraints) != len(weights):
             raise ValueError("Number of constraints must match number of weights")
 
-        self.soft_constraints.extend(constraints)
-        self.weights.extend(weights)
         self.solver.add_soft_constraints(constraints, weights)
 
+    def solve_result(self) -> OptimizationResult:
+        """Solve the MaxSMT problem using the selected algorithm."""
+        return self.solver.solve_result()
+
     def solve(self) -> Tuple[bool, Optional[z3.ModelRef], float]:
-        """Solve the MaxSMT problem using the selected algorithm
-
-        Returns:
-            Tuple of (sat, model, optimal_cost)
-            sat: True if a solution was found
-            model: z3 model if sat is True, None otherwise
-            optimal_cost: Sum of weights of unsatisfied soft constraints
-        """
-        return self.solver.solve()
+        """Solve the MaxSMT problem using the legacy tuple format."""
+        return maxsmt_result_tuple(self.solve_result())
 
 
-def solve_maxsmt(
+def solve_maxsmt_result(
     hard_constraints: List[z3.ExprRef],
     soft_constraints: List[z3.ExprRef],
-    weights: List[float] = None,
+    weights: Optional[List[float]] = None,
     algorithm: str = "core-guided",
     solver_name: str = "z3",
-) -> Tuple[bool, Optional[z3.ModelRef], float]:
-    """Convenience function to solve a MaxSMT problem
-
-    Args:
-        hard_constraints: List of hard constraints (must be satisfied)
-        soft_constraints: List of soft constraints (may be violated)
-        weights: List of weights for soft constraints (default: all 1.0)
-        algorithm: Algorithm to use (core-guided, ihs, local-search, z3-opt)
-        solver_name: Underlying SMT solver to use
-
-    Returns:
-        Tuple of (sat, model, optimal_cost)
-        sat: True if a solution was found
-        model: z3 model if sat is True, None otherwise
-        optimal_cost: Sum of weights of unsatisfied soft constraints
-    """
+) -> OptimizationResult:
+    """Solve a MaxSMT problem and return a normalized result object."""
     if weights is None:
         weights = [1.0] * len(soft_constraints)
 
@@ -150,7 +126,26 @@ def solve_maxsmt(
     solver.add_hard_constraints(hard_constraints)
     solver.add_soft_constraints(soft_constraints, weights)
 
-    return solver.solve()
+    return solver.solve_result()
+
+
+def solve_maxsmt(
+    hard_constraints: List[z3.ExprRef],
+    soft_constraints: List[z3.ExprRef],
+    weights: Optional[List[float]] = None,
+    algorithm: str = "core-guided",
+    solver_name: str = "z3",
+) -> Tuple[bool, Optional[z3.ModelRef], float]:
+    """Convenience wrapper that preserves the legacy tuple format."""
+    return maxsmt_result_tuple(
+        solve_maxsmt_result(
+            hard_constraints,
+            soft_constraints,
+            weights,
+            algorithm,
+            solver_name,
+        )
+    )
 
 
 def demo():

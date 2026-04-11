@@ -1,13 +1,11 @@
-"""
-For calling bin solvers
-"""
+"""Helpers for invoking external solver binaries."""
 
+import logging
 import os
 import subprocess
-import logging
 import uuid
-from typing import List, Dict, Callable
 from threading import Timer
+from typing import Callable, Dict, List
 
 import z3
 
@@ -15,7 +13,18 @@ from aria.global_params import global_config
 
 logger = logging.getLogger(__name__)
 BIN_SOLVER_TIMEOUT = 100
-# Result = Literal["sat", "unsat", "unknown"]
+
+
+class SolverInvocationError(RuntimeError):
+    """Raised when an external solver cannot be run successfully."""
+
+
+class SolverTimeoutError(SolverInvocationError):
+    """Raised when an external solver exceeds the timeout."""
+
+
+class SolverOutputError(SolverInvocationError):
+    """Raised when an external solver returns an unrecognizable result."""
 
 
 def terminate(process, is_timeout: List):
@@ -37,7 +46,7 @@ def get_solver_command(
     solver_name_map = {
         "yices": "yices2",
     }
-    _ = solver_name_map.get(solver_name, solver_name)  # Unused but kept for future use
+    normalized_solver_name = solver_name_map.get(solver_name, solver_name)
 
     # Get solver path using the GlobalConfig API
     def get_path(solver: str) -> str:
@@ -62,17 +71,32 @@ def get_solver_command(
     }
 
     # Get command factory for the specific solver
-    cmd_factory = solver_configs.get(solver_type, {}).get(solver_name)
+    if solver_type not in solver_configs:
+        raise ValueError(f"Unsupported solver type: {solver_type}")
+
+    cmd_factory = solver_configs[solver_type].get(normalized_solver_name)
     if cmd_factory is None:
-        # Default to z3
-        return [get_path("z3"), tmp_filename]
+        supported = ", ".join(sorted(solver_configs[solver_type]))
+        raise ValueError(
+            f"Unsupported {solver_type} solver '{solver_name}'. "
+            f"Supported solvers: {supported}"
+        )
 
     return cmd_factory()
 
 
 def run_solver(cmd: List[str]) -> str:
     """Run solver command and handle timeout."""
-    with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as p:
+    try:
+        process = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+        )
+    except OSError as ex:
+        raise SolverInvocationError(
+            f"Failed to launch solver command {cmd}: {ex}"
+        ) from ex
+
+    with process as p:
         is_timeout = [False]
         timer = Timer(BIN_SOLVER_TIMEOUT, terminate, args=[p, is_timeout])
 
@@ -82,12 +106,16 @@ def run_solver(cmd: List[str]) -> str:
             out = " ".join([line.decode("UTF-8") for line in out])
 
             if is_timeout[0]:
-                return "unknown"
+                raise SolverTimeoutError(
+                    f"Solver command timed out after {BIN_SOLVER_TIMEOUT} seconds: {cmd}"
+                )
             if "unsat" in out:
                 return out
             if "sat" in out:
                 return out
-            return "unknown"
+            raise SolverOutputError(
+                f"Solver command returned unrecognized output: {out.strip() or '<empty>'}"
+            )
         finally:
             timer.cancel()
             if p.poll() is None:

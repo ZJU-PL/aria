@@ -4,11 +4,12 @@ Core-guided algorithm for MaxSMT solving.
 This module implements the Fu-Malik / MSUS3 core-guided approach for MaxSMT solving.
 """
 
-from typing import Tuple, Optional, List
+from typing import List, Optional, Tuple
 
 import z3
 
 from .base import MaxSMTSolverBase, logger
+from aria.optimization.result import OptimizationResult, OptimizationStatus
 
 
 class CoreGuidedSolver(MaxSMTSolverBase):
@@ -55,21 +56,20 @@ class CoreGuidedSolver(MaxSMTSolverBase):
             weights = [1.0] * len(constraints)
         self.original_weights.extend(weights)
 
-    def solve(self) -> Tuple[bool, Optional[z3.ModelRef], float]:
-        """Core-guided algorithm for MaxSMT
+    def solve_result(self) -> OptimizationResult:
+        """Core-guided algorithm for MaxSMT."""
+        empty_soft_result = self._default_result_for_empty_soft_constraints()
+        if empty_soft_result is not None:
+            return empty_soft_result
 
-        Returns:
-            Tuple of (sat, model, optimal_cost)
-        """
-        # Add hard constraints to solver
-        solver = z3.Solver()
-        for hc in self.hard_constraints:
-            solver.add(hc)
-
-        # Check if hard constraints are satisfiable
-        if solver.check() != z3.sat:
-            logger.warning("Hard constraints are unsatisfiable")
-            return False, None, float("inf")
+        sat, solver, _ = self._check_hard_constraints()
+        if not sat or solver is None:
+            return OptimizationResult(
+                status=OptimizationStatus.UNSAT,
+                engine="core-guided",
+                solver=self.solver_name,
+                detail="Hard constraints are unsatisfiable",
+            )
 
         # Build soft clauses with relaxation variables
         soft_clauses: List[dict] = []
@@ -112,11 +112,22 @@ class CoreGuidedSolver(MaxSMTSolverBase):
                 if standardized_cost + 1e-6 < lower_bound:
                     standardized_cost = lower_bound
 
-                return True, model, standardized_cost
+                return OptimizationResult(
+                    status=OptimizationStatus.OPTIMAL,
+                    model=model,
+                    cost=standardized_cost,
+                    engine="core-guided",
+                    solver=self.solver_name,
+                )
 
             core = solver.unsat_core()
             if not core:
-                return False, None, float("inf")
+                return OptimizationResult(
+                    status=OptimizationStatus.UNKNOWN,
+                    engine="core-guided",
+                    solver=self.solver_name,
+                    detail="Solver returned an empty unsat core",
+                )
 
             core_clauses = [
                 clause
@@ -124,7 +135,12 @@ class CoreGuidedSolver(MaxSMTSolverBase):
                 if clause["active"] and z3.Not(clause["relax"]) in core
             ]
             if not core_clauses:
-                return False, None, float("inf")
+                return OptimizationResult(
+                    status=OptimizationStatus.UNKNOWN,
+                    engine="core-guided",
+                    solver=self.solver_name,
+                    detail="Unsat core did not reference any active soft clauses",
+                )
 
             min_weight = min(clause["weight"] for clause in core_clauses)
             lower_bound += min_weight

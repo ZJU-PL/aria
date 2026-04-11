@@ -10,6 +10,7 @@ from typing import Tuple, Optional, List
 import z3
 
 from .base import MaxSMTSolverBase, logger
+from aria.optimization.result import OptimizationResult, OptimizationStatus
 
 
 class ImplicitHittingSetSolver(MaxSMTSolverBase):
@@ -19,26 +20,26 @@ class ImplicitHittingSetSolver(MaxSMTSolverBase):
     Iteratively finds optimal hitting sets for the collection of cores.
     """
 
-    def solve(self) -> Tuple[bool, Optional[z3.ModelRef], float]:
-        """Implicit Hitting Set algorithm for MaxSMT
+    def solve_result(self) -> OptimizationResult:
+        """Implicit Hitting Set algorithm for MaxSMT."""
+        empty_soft_result = self._default_result_for_empty_soft_constraints()
+        if empty_soft_result is not None:
+            return empty_soft_result
 
-        Returns:
-            Tuple of (sat, model, optimal_cost)
-        """
-        # Check if hard constraints are satisfiable
-        solver = z3.Solver()
-        for hc in self.hard_constraints:
-            solver.add(hc)
-
-        if solver.check() != z3.sat:
-            logger.warning("Hard constraints are unsatisfiable")
-            return False, None, float("inf")
+        sat, _, _ = self._check_hard_constraints()
+        if not sat:
+            return OptimizationResult(
+                status=OptimizationStatus.UNSAT,
+                engine="ihs",
+                solver=self.solver_name,
+                detail="Hard constraints are unsatisfiable",
+            )
 
         # Create relaxation variables for soft constraints
         relax_vars = [z3.Bool(f"_relax_{i}") for i in range(len(self.soft_constraints))]
 
         # Solver for finding cores
-        core_solver = z3.Solver()
+        core_solver = self._create_solver()
 
         # Add hard constraints
         for hc in self.hard_constraints:
@@ -62,14 +63,27 @@ class ImplicitHittingSetSolver(MaxSMTSolverBase):
         obj_terms = [
             (hs_vars[i], self.weights[i]) for i in range(len(self.soft_constraints))
         ]
-        hs_solver.minimize(z3.Sum([z3.If(var, weight, 0) for var, weight in obj_terms]))
+        hs_solver.minimize(
+            z3.Sum([z3.If(var, z3.RealVal(weight), z3.RealVal(0)) for var, weight in obj_terms])
+        )
 
         while True:
             # Solve the hitting set problem
             if hs_solver.check() != z3.sat:
                 if best_model is not None:
-                    return True, best_model, best_cost
-                return False, None, float("inf")
+                    return OptimizationResult(
+                        status=OptimizationStatus.OPTIMAL,
+                        model=best_model,
+                        cost=best_cost,
+                        engine="ihs",
+                        solver=self.solver_name,
+                    )
+                return OptimizationResult(
+                    status=OptimizationStatus.UNKNOWN,
+                    engine="ihs",
+                    solver=self.solver_name,
+                    detail="Hitting-set optimization became infeasible",
+                )
 
             hs_model = hs_solver.model()
             hitting_set = [
@@ -110,7 +124,13 @@ class ImplicitHittingSetSolver(MaxSMTSolverBase):
                     continue
 
                 # If no soft constraints are violated, we've found the optimal solution
-                return True, best_model, best_cost
+                return OptimizationResult(
+                    status=OptimizationStatus.OPTIMAL,
+                    model=best_model,
+                    cost=best_cost,
+                    engine="ihs",
+                    solver=self.solver_name,
+                )
 
             # Extract the unsatisfiable core
             core = core_solver.unsat_core()
@@ -123,8 +143,19 @@ class ImplicitHittingSetSolver(MaxSMTSolverBase):
             if not core_indices:
                 # No soft constraints in the core
                 if best_model is not None:
-                    return True, best_model, best_cost
-                return False, None, float("inf")
+                    return OptimizationResult(
+                        status=OptimizationStatus.OPTIMAL,
+                        model=best_model,
+                        cost=best_cost,
+                        engine="ihs",
+                        solver=self.solver_name,
+                    )
+                return OptimizationResult(
+                    status=OptimizationStatus.UNKNOWN,
+                    engine="ihs",
+                    solver=self.solver_name,
+                    detail="Unsat core did not reference any soft constraints",
+                )
 
             # Add constraint: at least one variable from the core must be hit
             hs_solver.add(z3.Or([hs_vars[i] for i in core_indices]))

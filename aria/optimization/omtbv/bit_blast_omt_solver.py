@@ -239,10 +239,10 @@ class BitBlastOMTBVSolver:
             return self._solve_weighted(maxsat_sol, obj_str, total_score)
         if self.engine == "OBV-BS":
             return self._solve_obv_bs(maxsat_sol, obj_str, bool_vars, is_signed)
-        # Default to FM
-        logger.warning("Unknown engine %s, defaulting to FM", self.engine)
-        maxsat_sol.set_maxsat_engine("FM")
-        return self._solve_weighted(maxsat_sol, obj_str, total_score)
+        raise ValueError(
+            f"Unknown MaxSAT engine '{self.engine}'. "
+            "Supported engines: FM, RC2, OBV-BS"
+        )
 
     def _solve_weighted(
         self, maxsat_sol: MaxSATSolver, obj_str: str, total_score: int

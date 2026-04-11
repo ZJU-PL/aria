@@ -8,6 +8,7 @@ import math
 from typing import Any, Dict, List, Tuple
 
 import z3
+from z3.z3util import get_vars
 
 from aria.prob.core._helpers import finite_support
 from aria.prob.core.density import (
@@ -15,7 +16,6 @@ from aria.prob.core.density import (
     DiscreteFactorizedDensity,
     UniformDensity,
 )
-from aria.utils.z3.expr import get_variables
 
 from ._config import WMIMethod, WMIOptions
 
@@ -63,7 +63,7 @@ def _validate_wmi_options(
 
 
 def _supported_formula_variables(formula: z3.ExprRef) -> List[z3.ExprRef]:
-    variables = sorted(get_variables(formula), key=str)
+    variables = sorted(get_vars(formula), key=str)
     unsupported = []
     for var in variables:
         if var.sort() not in (z3.IntSort(), z3.RealSort()):

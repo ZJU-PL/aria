@@ -4,10 +4,11 @@ Cmd line interface for solving OMT(BV) problems with different solvers.
 
 import argparse
 import logging
-from typing import Optional, cast
+from typing import Any, Optional, cast
 
 import z3
 
+from aria.optimization.result import OptimizationResult, OptimizationStatus
 from aria.optimization.omtfp.fp_omt_parser import FPOMTParser
 from aria.optimization.omtfp.fp_opt_qsmt import (
     format_fp_value,
@@ -27,9 +28,29 @@ from aria.optimization.omtbv.bv_opt_qsmt import bv_opt_with_qsmt
 from aria.optimization.omt_parser import OMTParser
 
 
+class OptimizationResultError(RuntimeError):
+    """Raised when an optimization backend returns no usable result."""
+
+
+def _result_with_value(
+    value: Any,
+    engine: str,
+    solver_name: str,
+    detail: Optional[str] = None,
+) -> OptimizationResult:
+    """Build a normalized optimal result."""
+    return OptimizationResult(
+        status=OptimizationStatus.OPTIMAL,
+        value=value,
+        engine=engine,
+        solver=solver_name,
+        detail=detail,
+    )
+
+
 def _solve_fp_opt_file(
     filename: str, engine: str, solver_name: str, opt_priority: str
-) -> Optional[str]:
+) -> OptimizationResult:
     """Solve OMT(QF_FP) instances with IEEE-754 faithful semantics."""
     logger = logging.getLogger(__name__)
 
@@ -46,43 +67,64 @@ def _solve_fp_opt_file(
             solver_name=solver_name,
         )
         logger.info("FP optimization result: %s", result)
-        return None if result is None else format_fp_value(result)
+        if result is None:
+            raise OptimizationResultError(
+                f"FP optimization returned no result for engine '{engine}' "
+                f"and solver '{solver_name}'"
+            )
+        return _result_with_value(
+            format_fp_value(result),
+            engine=engine,
+            solver_name=solver_name,
+            detail="floating-point objective",
+        )
 
     if opt_priority == "box":
         results = fp_optimize_boxed(
             fml, parser.objectives, parser.original_directions, engine, solver_name
         )
         logger.info("FP boxed optimization results: %s", results)
-        return format_fp_values(results)
+        return _result_with_value(
+            format_fp_values(results),
+            engine=engine,
+            solver_name=solver_name,
+            detail="floating-point boxed objectives",
+        )
     if opt_priority == "lex":
         results = fp_optimize_lex(
             fml, parser.objectives, parser.original_directions, engine, solver_name
         )
         logger.info("FP lex optimization results: %s", results)
-        return format_fp_values(results)
+        return _result_with_value(
+            format_fp_values(results),
+            engine=engine,
+            solver_name=solver_name,
+            detail="floating-point lexicographic objectives",
+        )
     if opt_priority == "par":
         results = fp_optimize_pareto(
             fml, parser.objectives, parser.original_directions, engine, solver_name
         )
         logger.info("FP pareto optimization results: %s", results)
-        return format_fp_frontier(results)
+        return _result_with_value(
+            format_fp_frontier(results),
+            engine=engine,
+            solver_name=solver_name,
+            detail="floating-point pareto frontier",
+        )
 
     raise ValueError(f"Unsupported FP optimization priority: {opt_priority}")
 
 
-def solve_opt_file(
+def solve_opt_file_result(
     filename: str, engine: str, solver_name: str, opt_priority: str = "box"
-) -> Optional[str]:
+) -> OptimizationResult:
     """Interface for solving single-objective optimization problems.
 
     Args:
         filename: Path to the OMT problem file
         engine: Optimization engine to use
         solver_name: Name of the solver to use
-
-    Returns:
-        String result (optimal value or status), or None if the engine
-        prints its own output (e.g. z3py).
 
     Note:
         The OMTParser converts all objectives to "maximize" internally.
@@ -110,24 +152,35 @@ def solve_opt_file(
                 fml, obj, minimize=False, solver_name=solver_type
             )
             logger.info("Linear search result: %s", lin_res)
-            return str(lin_res)
+            return _result_with_value(lin_res, engine=engine, solver_name=solver_name)
         if search_type == "bs":
             bin_res = bv_opt_with_binary_search(
                 fml, obj, minimize=False, solver_name=solver_type
             )
             logger.info("Binary search result: %s", bin_res)
-            return str(bin_res)
-        return None
+            return _result_with_value(bin_res, engine=engine, solver_name=solver_name)
+        raise ValueError(
+            f"Unsupported iterative search strategy '{search_type}' "
+            f"from solver '{solver_name}'"
+        )
     if engine == "maxsat":
         maxsat_res = bv_opt_with_maxsat(
             fml, obj, minimize=False, solver_name=solver_name
         )
         logger.info("MaxSAT result: %s", maxsat_res)
-        return str(maxsat_res)
+        if maxsat_res is None:
+            raise OptimizationResultError(
+                f"MaxSAT optimization produced no result for solver '{solver_name}'"
+            )
+        return _result_with_value(maxsat_res, engine=engine, solver_name=solver_name)
     if engine == "qsmt":
         qsmt_res = bv_opt_with_qsmt(fml, obj, minimize=False, solver_name=solver_name)
         logger.info("QSMT result: %s", qsmt_res)
-        return str(qsmt_res)
+        if not qsmt_res.strip():
+            raise OptimizationResultError(
+                f"QSMT optimization produced empty output for solver '{solver_name}'"
+            )
+        return _result_with_value(qsmt_res, engine=engine, solver_name=solver_name)
     if engine == "z3py":
         opt = z3.Optimize()
         opt.from_file(filename=filename)
@@ -136,12 +189,33 @@ def solve_opt_file(
             model = opt.model()
             for decl in model:
                 print(f"{decl} = {model[decl]}")
+            return OptimizationResult(
+                status=OptimizationStatus.OPTIMAL,
+                model=model,
+                engine=engine,
+                solver=solver_name,
+                detail="z3py printed model to stdout",
+            )
         else:
             print("No solution")
-        return None
+            return OptimizationResult(
+                status=OptimizationStatus.UNSAT,
+                engine=engine,
+                solver=solver_name,
+                detail="z3py reported no solution",
+            )
 
-    logger.warning("No result - invalid engine specified")
-    return None
+    raise ValueError(f"Unsupported optimization engine: {engine}")
+
+
+def solve_opt_file(
+    filename: str, engine: str, solver_name: str, opt_priority: str = "box"
+) -> Optional[str]:
+    """Compatibility wrapper returning the legacy string-or-None result."""
+    result = solve_opt_file_result(filename, engine, solver_name, opt_priority)
+    if result.value is None:
+        return None
+    return str(result.value)
 
 
 def main() -> None:
