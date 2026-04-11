@@ -10,6 +10,9 @@ from .base import Sampler, Logic, SamplingMethod, SamplingOptions, SamplingResul
 from aria.sampling.finite_domain.bool.base import BooleanSampler
 from aria.sampling.finite_domain.bv.base import BitVectorSampler
 from aria.sampling.finite_domain.dt.base import DatatypeSampler
+from aria.sampling.finite_domain.fp.base import FloatingPointSampler
+from aria.sampling.finite_domain.fp.hash_sampler import HashBasedFPSampler
+from aria.sampling.finite_domain.fp.total_order_sampler import TotalOrderFPSampler
 from aria.sampling.finite_domain.uf.base import UninterpretedFunctionSampler
 from aria.sampling.finite_domain.ufdt.base import MixedUFDatatypeSampler
 from aria.sampling.linear_ira.adt_lia_sampler import ADTLIASampler
@@ -63,6 +66,9 @@ class SamplerFactory:
 
 SamplerFactory.register(Logic.QF_BOOL, BooleanSampler)
 SamplerFactory.register(Logic.QF_BV, BitVectorSampler)
+SamplerFactory.register(Logic.QF_FP, FloatingPointSampler)
+SamplerFactory.register(Logic.QF_FP, HashBasedFPSampler)
+SamplerFactory.register(Logic.QF_FP, TotalOrderFPSampler)
 SamplerFactory.register(Logic.QF_UF, UninterpretedFunctionSampler)
 SamplerFactory.register(Logic.QF_DT, DatatypeSampler)
 SamplerFactory.register(Logic.QF_UFDT, MixedUFDatatypeSampler)

@@ -33,6 +33,7 @@ class TestSamplingMethod:
         assert SamplingMethod.ENUMERATION.value == "enumeration"
         assert SamplingMethod.MCMC.value == "mcmc"
         assert SamplingMethod.HASH_BASED.value == "hash_based"
+        assert SamplingMethod.TOTAL_ORDER.value == "total_order"
 
 
 class TestSamplingOptions:

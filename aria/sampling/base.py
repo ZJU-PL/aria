@@ -19,6 +19,7 @@ class Logic(Enum):
     QF_DTLIA = "QF_DTLIA"  # Quantifier-free datatypes + linear integer arithmetic
     QF_BOOL = "QF_BOOL"  # Quantifier-free Boolean logic
     QF_BV = "QF_BV"  # Quantifier-free bit-vector logic
+    QF_FP = "QF_FP"  # Quantifier-free floating-point logic
     QF_LRA = "QF_LRA"  # Quantifier-free linear real arithmetic
     QF_LIA = "QF_LIA"  # Quantifier-free linear integer arithmetic
     QF_NRA = "QF_NRA"  # Quantifier-free non-linear real arithmetic
@@ -35,6 +36,7 @@ class SamplingMethod(Enum):
     REGION = "region"  # Region-based sampling
     SEARCH_TREE = "search_tree"  # Search tree-based sampling
     HASH_BASED = "hash_based"  # Hash-based sampling
+    TOTAL_ORDER = "total_order"  # IEEE total-order guided sampling
     DIKIN_WALK = "dikin_walk"  # Dikin walk for continuous domains
 
 

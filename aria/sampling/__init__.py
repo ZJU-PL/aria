@@ -9,6 +9,7 @@ Available logics:
 - QF_UFDT: Quantifier-free uninterpreted functions with datatypes
 - QF_BOOL: Quantifier-free Boolean logic
 - QF_BV: Quantifier-free bit-vector logic
+- QF_FP: Quantifier-free floating-point logic
 - QF_LRA: Quantifier-free linear real arithmetic
 - QF_LIA: Quantifier-free linear integer arithmetic
 - QF_NRA: Quantifier-free non-linear real arithmetic

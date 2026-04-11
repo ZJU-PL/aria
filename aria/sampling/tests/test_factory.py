@@ -4,6 +4,8 @@ Unit tests for aria.sampling.factory module.
 Tests for SamplerFactory, create_sampler, and sample_models_from_formula.
 """
 
+from typing import cast
+
 import pytest
 import z3
 from aria.sampling.factory import (
@@ -51,7 +53,7 @@ class TestSampleModelsFromFormula:
     def test_sample_boolean_formula(self):
         """Test sampling from Boolean formula."""
         a, b = z3.Bools("a b")
-        formula = z3.And(z3.Or(a, b), z3.Not(z3.And(a, b)))
+        formula = cast(z3.ExprRef, z3.And(z3.Or(a, b), z3.Not(z3.And(a, b))))
         try:
             result = sample_models_from_formula(
                 formula, Logic.QF_BOOL, SamplingOptions(num_samples=2)
@@ -63,7 +65,7 @@ class TestSampleModelsFromFormula:
     def test_sample_bitvector_formula(self):
         """Test sampling from bit-vector formula."""
         x = z3.BitVec("x", 8)
-        formula = z3.And(x > 5, x < 10)
+        formula = cast(z3.ExprRef, z3.And(x > 5, x < 10))
         try:
             result = sample_models_from_formula(
                 formula, Logic.QF_BV, SamplingOptions(num_samples=3)
@@ -74,10 +76,33 @@ class TestSampleModelsFromFormula:
         except ValueError as e:
             pytest.skip(f"Sampler not available: {e}")
 
+    def test_sample_floating_point_formula(self):
+        """Test sampling from floating-point formula."""
+        x = z3.FP("x", z3.Float32())
+        formula = cast(z3.ExprRef, x == z3.FPVal(1.5, z3.Float32()))
+        try:
+            result = sample_models_from_formula(
+                formula, Logic.QF_FP, SamplingOptions(num_samples=2)
+            )
+            assert len(result) == 1
+            assert result[0]["x"] == "1.5 [bits=0x3fc00000]"
+        except ValueError as e:
+            pytest.skip(f"Sampler not available: {e}")
+
+    def test_create_hash_based_fp_sampler(self):
+        """Test creating a hash-based floating-point sampler."""
+        sampler = create_sampler(Logic.QF_FP, SamplingMethod.HASH_BASED)
+        assert SamplingMethod.HASH_BASED in sampler.get_supported_methods()
+
+    def test_create_total_order_fp_sampler(self):
+        """Test creating a total-order floating-point sampler."""
+        sampler = create_sampler(Logic.QF_FP, SamplingMethod.TOTAL_ORDER)
+        assert SamplingMethod.TOTAL_ORDER in sampler.get_supported_methods()
+
     def test_sample_lra_formula(self):
         """Test sampling from linear real arithmetic formula."""
         x, y = z3.Reals("x y")
-        formula = z3.And(x + y > 0, x - y < 1)
+        formula = cast(z3.ExprRef, z3.And(x + y > 0, x - y < 1))
         try:
             result = sample_models_from_formula(
                 formula, Logic.QF_LRA, SamplingOptions(num_samples=2)
@@ -89,7 +114,7 @@ class TestSampleModelsFromFormula:
     def test_sample_unsatisfiable_formula(self):
         """Test sampling from unsatisfiable formula."""
         x = z3.Int("x")
-        formula = z3.And(x > 10, x < 5)
+        formula = cast(z3.ExprRef, z3.And(x > 10, x < 5))
         try:
             result = sample_models_from_formula(
                 formula, Logic.QF_LIA, SamplingOptions(num_samples=1)
@@ -108,7 +133,7 @@ class TestSampleModelsFromFormula:
 
         x = z3.Int("x")
         box = z3.Const("box", maybe)
-        formula = z3.And(x >= 0, x <= 1, box == maybe.some(x))
+        formula = cast(z3.ExprRef, z3.And(x >= 0, x <= 1, box == maybe.some(x)))
 
         try:
             result = sample_models_from_formula(
@@ -124,7 +149,7 @@ class TestSampleModelsFromFormula:
     def test_sample_with_random_seed(self):
         """Test random seed reproducibility."""
         x = z3.Int("x")
-        formula = z3.And(x > 0, x < 100)
+        formula = cast(z3.ExprRef, z3.And(x > 0, x < 100))
         try:
             opts = SamplingOptions(num_samples=5, random_seed=42)
             result1 = sample_models_from_formula(formula, Logic.QF_LIA, opts)
@@ -140,7 +165,7 @@ class TestSampleFormulaDeprecated:
     def test_deprecation_warning(self):
         """Test that sample_formula raises deprecation warning."""
         x = z3.Int("x")
-        formula = z3.And(x > 0, x < 10)
+        formula = cast(z3.ExprRef, z3.And(x > 0, x < 10))
         try:
             with pytest.warns(DeprecationWarning, match="deprecated"):
                 sample_formula(formula, Logic.QF_LIA)

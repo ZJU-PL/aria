@@ -14,6 +14,11 @@ finite_domain/
 │   ├── hash_sampler.py    # HashBasedBVSampler - XOR-based uniform sampling
 │   ├── quick_sampler.py   # QuickBVSampler - optimization-guided sampling
 │   └── README.md          # Documentation and usage examples
+├── fp/                # Floating-point (QF_FP) samplers
+│   ├── base.py        # FloatingPointSampler - IEEE-754 enumeration
+│   ├── hash_sampler.py # HashBasedFPSampler - XOR over IEEE encodings
+│   ├── total_order_sampler.py # TotalOrderFPSampler - spread by IEEE totalOrder
+│   └── README.md      # Documentation and usage examples
 ├── uf/                # Uninterpreted-function (QF_UF) samplers
 │   ├── base.py        # UninterpretedFunctionSampler - ground UF enumeration
 │   └── README.md      # Documentation and usage examples
@@ -106,6 +111,14 @@ See `bv/README.md` for detailed comparisons and usage guidance.
 |---------|----------|----------|
 | `UninterpretedFunctionSampler` | Enumeration over ground UF terms | Ground QF_UF formulas with finite observed term space |
 
+### Floating-Point Samplers (`fp/`)
+
+| Sampler | Strategy | Use Case |
+|---------|----------|----------|
+| `FloatingPointSampler` | Enumeration with IEEE bit-pattern blocking | Ground `QF_FP` formulas over floating-point variables |
+| `HashBasedFPSampler` | XOR-based hashing over IEEE bit patterns | More diverse approximate-uniform `QF_FP` sampling |
+| `TotalOrderFPSampler` | Candidate spreading by IEEE `totalOrder` | Deliberate coverage across numeric regions |
+
 ### Datatype Samplers (`dt/`)
 
 | Sampler | Strategy | Use Case |
@@ -165,6 +178,9 @@ Different sampling strategies are separate classes, allowing users to:
 ### By Logic
 - **Boolean formulas (SAT)**: Use `BooleanSampler`
 - **Bit-vector formulas (QF_BV)**: Choose from `BitVectorSampler`, `HashBasedBVSampler`, or `QuickBVSampler`
+- **Floating-point formulas (QF_FP)**: Use `FloatingPointSampler`
+- **Floating-point formulas (QF_FP), more diversity**: Use `HashBasedFPSampler`
+- **Floating-point formulas (QF_FP), wider numeric spread**: Use `TotalOrderFPSampler`
 - **Uninterpreted functions (QF_UF)**: Use `UninterpretedFunctionSampler`
 - **Algebraic datatypes (QF_DT)**: Use `DatatypeSampler`
 - **UF + datatypes (QF_UFDT)**: Use `MixedUFDatatypeSampler`
