@@ -93,6 +93,12 @@ def format_fp_values(values: Sequence[Optional[z3.ExprRef]]) -> str:
     return "[" + ", ".join(rendered) + "]"
 
 
+def format_fp_frontier(frontier: Sequence[Sequence[z3.ExprRef]]) -> str:
+    """Render a Pareto frontier of FP objective tuples."""
+    rendered = [format_fp_values(point) for point in frontier]
+    return "[" + ", ".join(rendered) + "]"
+
+
 def prepare_fp_objective(
     z3_fml: z3.ExprRef, z3_obj: z3.ExprRef, prefix: str = "fp_obj"
 ) -> Tuple[z3.ExprRef, z3.ExprRef]:
@@ -264,6 +270,185 @@ def fp_optimize_lex(
         current_fml = cast(z3.ExprRef, z3.And(current_fml, pin_fp_value(obj_var, result)))
 
     return results
+
+
+def _normalize_fp_objectives(
+    z3_fml: z3.ExprRef, objectives: Sequence[z3.ExprRef], prefix: str
+) -> Tuple[z3.ExprRef, List[z3.ExprRef]]:
+    """Convert all objectives into named FP variables over one formula."""
+    current_fml = z3_fml
+    obj_vars: List[z3.ExprRef] = []
+    for index, objective in enumerate(objectives):
+        current_fml, obj_var = prepare_fp_objective(
+            current_fml, objective, prefix=f"{prefix}_{index}"
+        )
+        obj_vars.append(obj_var)
+    return current_fml, obj_vars
+
+
+def _fp_is_strictly_better(
+    left: z3.ExprRef, right: z3.ExprRef, direction: str
+) -> bool:
+    """Check whether one exact FP value is strictly better than another."""
+    left_width = cast(z3.FPSortRef, left.sort()).ebits() + cast(z3.FPSortRef, left.sort()).sbits()
+    left_sign_mask = 1 << (left_width - 1)
+    left_full_mask = (1 << left_width) - 1
+    left_bits = fp_value_bits(left)
+    left_key = (
+        (~left_bits) & left_full_mask
+        if left_bits & left_sign_mask
+        else left_bits ^ left_sign_mask
+    )
+
+    right_width = cast(z3.FPSortRef, right.sort()).ebits() + cast(z3.FPSortRef, right.sort()).sbits()
+    right_sign_mask = 1 << (right_width - 1)
+    right_full_mask = (1 << right_width) - 1
+    right_bits = fp_value_bits(right)
+    right_key = (
+        (~right_bits) & right_full_mask
+        if right_bits & right_sign_mask
+        else right_bits ^ right_sign_mask
+    )
+    if direction == "min":
+        return left_key < right_key
+    return left_key > right_key
+
+
+def _fp_no_worse_constraint(
+    obj_var: z3.ExprRef, value: z3.ExprRef, direction: str
+) -> z3.ExprRef:
+    """Constraint requiring an objective not to get worse than a reference."""
+    if direction == "min":
+        return fp_total_le(obj_var, value)
+    return fp_total_le(value, obj_var)
+
+
+def _fp_strictly_better_constraint(
+    obj_var: z3.ExprRef, value: z3.ExprRef, direction: str
+) -> z3.ExprRef:
+    """Constraint requiring an objective to improve over a reference."""
+    if direction == "min":
+        return fp_total_lt(obj_var, value)
+    return fp_total_lt(value, obj_var)
+
+
+def _extract_fp_point(model: z3.ModelRef, obj_vars: Sequence[z3.ExprRef]) -> List[z3.ExprRef]:
+    """Extract exact objective values from a model."""
+    return [fp_model_value(model, obj_var) for obj_var in obj_vars]
+
+
+def _find_point_with_objective_value(
+    z3_fml: z3.ExprRef,
+    obj_vars: Sequence[z3.ExprRef],
+    objective_index: int,
+    objective_value: z3.ExprRef,
+) -> Optional[List[z3.ExprRef]]:
+    """Find a witness point for a fixed objective value."""
+    solver = z3.Solver()
+    solver.add(z3_fml)
+    solver.add(pin_fp_value(obj_vars[objective_index], objective_value))
+    if solver.check() != z3.sat:
+        return None
+    return _extract_fp_point(solver.model(), obj_vars)
+
+
+def _refine_fp_pareto_point(
+    z3_fml: z3.ExprRef,
+    obj_vars: Sequence[z3.ExprRef],
+    directions: Sequence[str],
+    initial_point: Sequence[z3.ExprRef],
+    engine: str,
+    solver_name: str,
+) -> List[z3.ExprRef]:
+    """Iteratively improve a feasible point until it becomes Pareto-optimal."""
+    current = list(initial_point)
+
+    improved = True
+    while improved:
+        improved = False
+        for index, (obj_var, direction) in enumerate(zip(obj_vars, directions)):
+            local_constraints = [z3_fml]
+            for ref_var, ref_value, ref_dir in zip(obj_vars, current, directions):
+                local_constraints.append(
+                    _fp_no_worse_constraint(ref_var, ref_value, ref_dir)
+                )
+
+            local_fml = cast(z3.ExprRef, z3.And(*local_constraints))
+            best_value = solve_fp_objective(
+                local_fml,
+                obj_var,
+                minimize=direction == "min",
+                engine=engine,
+                solver_name=solver_name,
+            )
+            if best_value is None:
+                continue
+
+            witness_point = _find_point_with_objective_value(
+                local_fml, obj_vars, index, best_value
+            )
+            if witness_point is None:
+                continue
+
+            if any(
+                _fp_is_strictly_better(new_value, old_value, ref_dir)
+                for new_value, old_value, ref_dir in zip(
+                    witness_point, current, directions
+                )
+            ):
+                current = witness_point
+                improved = True
+
+    return current
+
+
+def fp_optimize_pareto(
+    z3_fml: z3.ExprRef,
+    objectives: Sequence[z3.ExprRef],
+    directions: Sequence[str],
+    engine: str,
+    solver_name: str,
+) -> List[List[z3.ExprRef]]:
+    """Enumerate Pareto-optimal FP objective tuples under IEEE totalOrder."""
+    current_fml, obj_vars = _normalize_fp_objectives(
+        z3_fml, objectives, prefix="pareto_fp_obj"
+    )
+    frontier: List[List[z3.ExprRef]] = []
+    blocking_constraints: List[z3.ExprRef] = []
+
+    while True:
+        solver = z3.Solver()
+        solver.add(current_fml)
+        solver.add(*blocking_constraints)
+        if solver.check() != z3.sat:
+            break
+
+        seed_point = _extract_fp_point(solver.model(), obj_vars)
+        pareto_point = _refine_fp_pareto_point(
+            cast(z3.ExprRef, z3.And(current_fml, *blocking_constraints)),
+            obj_vars,
+            directions,
+            seed_point,
+            engine,
+            solver_name,
+        )
+        frontier.append(pareto_point)
+
+        blocking_constraints.append(
+            cast(
+                z3.ExprRef,
+                z3.Or(
+                    *[
+                        _fp_strictly_better_constraint(obj_var, value, direction)
+                        for obj_var, value, direction in zip(
+                            obj_vars, pareto_point, directions
+                        )
+                    ]
+                ),
+            )
+        )
+
+    return frontier
 
 
 def solve_fp_objective(

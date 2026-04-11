@@ -35,6 +35,17 @@ Optimization and Maximum Satisfiability (MaxSAT) solvers.
 - As a result, optimization over QF_FP objectives is well-defined for signed zeros,
   infinities, and NaNs, including distinct NaN payload/sign encodings.
 
+### Floating-Point Pareto Semantics
+- FP Pareto optimization compares objective tuples componentwise using the same
+  IEEE-754 `totalOrder` semantics.
+- A point is Pareto-optimal if no other feasible point is at least as good in every
+  objective and strictly better in at least one objective under the per-objective
+  direction (`maximize` or `minimize`).
+- The reported frontier therefore preserves floating-point distinctions such as
+  `-0.0` versus `+0.0` and different NaN encodings whenever they affect dominance.
+- Pareto results are rendered as lists of objective tuples, and each FP value is
+  shown with both a readable form and its exact IEEE bit pattern.
+
 ### MSA (Minimal Satisfying Assignment)
 - `msa/mistral_msa.py`: Mistral MSA solver
 - `msa/mistral_pysmt.py`: PySMT integration

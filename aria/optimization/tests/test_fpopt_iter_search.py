@@ -15,6 +15,7 @@ from aria.optimization.omtfp.fp_opt_iterative_search import (
 )
 from aria.optimization.omtfp.fp_opt_qsmt import (
     fp_opt_with_qsmt,
+    fp_optimize_pareto,
     fp_total_key,
 )
 
@@ -315,6 +316,79 @@ class TestFPOMTIterativeSearch(unittest.TestCase):
         result_text = cast(str, result)
         self.assertIn("-0.0", result_text)
         self.assertIn("2", result_text)
+
+    def test_fp_optimize_pareto_enumerates_frontier(self):
+        x = z3.FP("x_pareto", self.sort)
+        y = z3.FP("y_pareto", self.sort)
+        xb = z3.BitVec("xb_pareto", 32)
+        yb = z3.BitVec("yb_pareto", 32)
+        zero_bits = z3.BitVecVal(_fp_bits(self.zero), 32)
+        one_bits = z3.BitVecVal(_fp_bits(self.one), 32)
+        two_bits = z3.BitVecVal(_fp_bits(self.two), 32)
+        fml = cast(
+            z3.ExprRef,
+            z3.And(
+                x == z3.fpBVToFP(xb, self.sort),
+                y == z3.fpBVToFP(yb, self.sort),
+                z3.Or(
+                    z3.And(xb == zero_bits, yb == two_bits),
+                    z3.And(xb == one_bits, yb == one_bits),
+                    z3.And(xb == two_bits, yb == zero_bits),
+                ),
+            ),
+        )
+
+        frontier = fp_optimize_pareto(
+            fml,
+            [x, y],
+            ["max", "max"],
+            engine="iter",
+            solver_name="z3-bs",
+        )
+
+        points = {tuple(_fp_bits(value) for value in point) for point in frontier}
+        expected = {
+            (_fp_bits(self.zero), _fp_bits(self.two)),
+            (_fp_bits(self.one), _fp_bits(self.one)),
+            (_fp_bits(self.two), _fp_bits(self.zero)),
+        }
+        self.assertEqual(points, expected)
+
+    def test_solve_opt_file_supports_pareto_multi_objective_fp(self):
+        smt2 = """
+        (set-logic QF_FP)
+        (declare-fun x () (_ FloatingPoint 8 24))
+        (declare-fun y () (_ FloatingPoint 8 24))
+        (define-fun z0 () (_ FloatingPoint 8 24) ((_ to_fp 8 24) RNE 0.0))
+        (define-fun z1 () (_ FloatingPoint 8 24) ((_ to_fp 8 24) RNE 1.0))
+        (define-fun z2 () (_ FloatingPoint 8 24) ((_ to_fp 8 24) RNE 2.0))
+        (assert (or (and (fp.eq x z0) (fp.eq y z2))
+                    (and (fp.eq x z1) (fp.eq y z1))
+                    (and (fp.eq x z2) (fp.eq y z0))))
+        (maximize x)
+        (maximize y)
+        (check-sat)
+        """
+
+        with tempfile.NamedTemporaryFile("w", suffix=".smt2", delete=False) as handle:
+            handle.write(smt2)
+            filename = handle.name
+
+        try:
+            result = solve_opt_file(
+                filename,
+                engine="iter",
+                solver_name="z3-bs",
+                opt_priority="par",
+            )
+        finally:
+            os.unlink(filename)
+
+        self.assertIsNotNone(result)
+        result_text = cast(str, result)
+        self.assertIn("0.0", result_text)
+        self.assertIn("1", result_text)
+        self.assertIn("1*(2**1)", result_text)
 
     def test_solve_opt_file_rejects_unsupported_fp_engines(self):
         smt2 = """

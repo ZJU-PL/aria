@@ -11,9 +11,11 @@ import z3
 from aria.optimization.omtfp.fp_omt_parser import FPOMTParser
 from aria.optimization.omtfp.fp_opt_qsmt import (
     format_fp_value,
+    format_fp_frontier,
     format_fp_values,
     fp_optimize_boxed,
     fp_optimize_lex,
+    fp_optimize_pareto,
     solve_fp_objective,
 )
 from aria.optimization.omtbv.bv_opt_iterative_search import (
@@ -59,7 +61,11 @@ def _solve_fp_opt_file(
         logger.info("FP lex optimization results: %s", results)
         return format_fp_values(results)
     if opt_priority == "par":
-        raise ValueError("Pareto OMT(QF_FP) is not implemented")
+        results = fp_optimize_pareto(
+            fml, parser.objectives, parser.original_directions, engine, solver_name
+        )
+        logger.info("FP pareto optimization results: %s", results)
+        return format_fp_frontier(results)
 
     raise ValueError(f"Unsupported FP optimization priority: {opt_priority}")
 
