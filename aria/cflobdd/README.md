@@ -12,6 +12,11 @@ context-free language reachability using OBDDs.
 - `btor2.py`: BTOR2 parser for bit-vector theories
 - `z3interface.py`: Z3 integration for solving
 - `bitwuzlainterface.py`: Bitwuzla integration for solving
+- `relation.py`: finite relation algebra with composition, elimination, and symbolic CFLOBVDD predicates
+- `fixpoint.py`: fixed-point and closure helpers for reachability
+- `grammar.py`: grammar-driven nonterminal reachability solving
+- `pushdown.py`: balanced call/return reachability helpers
+- `witness.py`: witness formatting, tree building, and path extraction utilities
 
 ## What is CFL-OBDD?
 
