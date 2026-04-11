@@ -1,88 +1,78 @@
 Research Topics and Thesis Projects
 ===================================
 
-Aria offers numerous opportunities for research and thesis projects across multiple areas of automated reasoning.
+ARIA offers many research directions across automated reasoning, verification,
+and solver engineering.
 
-=========
-Core Algorithm Development
-=========
+Core algorithm development
+--------------------------
 
-**Parallel CDCL(T) Solving** (``aria/smt/pcdclt``)
-  Develop parallel algorithms for conflict-driven clause learning with theory reasoning. Focus on work distribution, clause sharing, and portfolio solving.
+**Parallel CDCL(T) solving** (``aria/smt/pcdclt``)
+  Develop parallel algorithms for clause learning with theory reasoning.
 
-**Optimization Modulo Theory** (``aria/optimization``)
-  Extend SMT solving with optimization capabilities. Implement algorithms for OMT over bit-vectors, arithmetic, and mixed theories.
+**Optimization modulo theory** (``aria/optimization``)
+  Extend OMT algorithms over bit-vectors, arithmetic, and mixed settings.
 
-**Advanced Model Counting** (``aria/counting``)
-  Improve counting algorithms for Boolean, arithmetic, and quantifier-free bit-vector formulas. Focus on scalability and approximation techniques.
+**Advanced model counting** (``aria/counting``)
+  Improve counting algorithms for Boolean, arithmetic, and QF_BV formulas.
 
-**Symbolic Abstraction** (``aria/symabs``)
-  Develop new abstraction techniques for infinite state systems. Implement counterexample-guided abstraction refinement (CEGAR).
+**Symbolic abstraction** (``aria/symabs``)
+  Develop abstraction techniques for infinite-state systems and verification.
 
-=========
-Theory-Specific Solving
-=========
+Theory-specific solving
+-----------------------
 
-**Finite Field SMT** (``aria/smt/ff``)
-  Build decision procedures for Galois field constraints. Applications in cryptography and coding theory.
+**Finite-field SMT** (``aria/smt/ff``)
+  Build decision procedures for Galois-field constraints.
 
-**Floating-Point Arithmetic** (``aria/smt/fp``)
-  Develop efficient solvers for IEEE 754 floating-point constraints with proper handling of rounding modes and special values.
+**Floating-point arithmetic** (``aria/smt/fp``)
+  Develop efficient IEEE-754 solving and optimization workflows.
 
-**String Constraint Solving**
-  Extend string theory support with automata-based techniques. Implement length constraints and regular language operations.
+AI-enhanced reasoning
+---------------------
 
-=========
-AI-Enhanced Reasoning
-=========
+**Machine learning for solvers** (``aria/ml``)
+  Learn solver selection, feature extraction, and tactic guidance.
 
-**Machine Learning for Solvers** (``aria/ml``)
-  Extract features for learned solver selection, clause learning prediction, and variable ordering heuristics.
+**Automata learning** (``aria/automata``)
+  Apply learning-based techniques to string solving and verification.
 
-**Automata Learning** (``aria/automata``)
-  Apply active learning to infer automata from examples for string constraint solving and program verification.
+Advanced sampling and enumeration
+---------------------------------
 
-=========
-Advanced Sampling & Enumeration
-=========
+**Uniform sampling** (``aria/sampling``)
+  Design diverse solution-sampling strategies over rich SMT theories.
 
-**Uniform Sampling** (``aria/sampling``)
-  Develop algorithms for uniform solution sampling over complex constraint domains. Applications in probabilistic verification.
+**AllSMT algorithms** (``aria/allsmt``)
+  Improve exhaustive model enumeration and projection workflows.
 
-**AllSMT Algorithms** (``aria/allsmt``)
-  Enumerate all solutions efficiently. Focus on diversity metrics and incremental solving techniques.
+Quantifier handling
+-------------------
 
-**Solution Space Analysis**
-  Implement tools for analyzing solution spaces, including backbone computation and minimal unsatisfiable core extraction.
+**Quantifier elimination** (``aria/quant/qe``)
+  Study QE procedures for arithmetic and related theories.
 
-=========
-Quantifier Handling
-=========
+**E-matching optimization** (``aria/ml/llm/ematching``)
+  Improve trigger selection and quantifier instantiation heuristics.
 
-**Quantifier Elimination** (``aria/quant/qe``)
-  Develop QE procedures for mixed theories combining arithmetic, bit-vectors, and arrays.
+**CHC solving** (``aria/quant/chctools``)
+  Scale constrained Horn clause solving for verification and synthesis.
 
-**E-Matching Optimization** (``aria/quant/ematching``)
-  Improve quantifier instantiation through better pattern matching and trigger selection.
+Applications and tools
+----------------------
 
-**CHC Solving** (``aria/quant/chctools``)
-  Scale algorithms for constrained Horn clause solving. Applications in program verification and synthesis.
+**Interactive theorem proving** (``aria/itp``)
+  Build proof tools across multiple theories.
 
-=========
-Applications & Tools
-=========
+**Program synthesis** (``aria/synthesis``)
+  Explore SyGuS and related synthesis workflows.
 
-**Interactive Theorem Proving** (``aria/itp``)
-  Build proof assistant tools with support for multiple theories and automated proof search.
+**Abductive reasoning** (``aria/abduction``)
+  Develop explanation and hypothesis-generation algorithms.
 
-**Program Synthesis** (``aria/synthesis``)
-  Implement syntax-guided synthesis techniques for bit-vectors, arithmetic, and string domains.
+Getting started
+---------------
 
-**Abductive Reasoning** (``aria/abduction``)
-  Develop algorithms for generating explanations and hypotheses from constraint observations.
-
-=========
-Getting Started
-=========
-
-Each module includes examples and documentation. Start with ``aria/allsmt`` for basic usage patterns, then explore specialized areas based on your interests.
+Start with the package README files under ``aria/`` and the section pages in
+this documentation tree, then drill down into the subsystem that matches your
+interests.

@@ -1,66 +1,46 @@
 AllSMT
-===========================
+======
 
+AllSMT extends AllSAT-style enumeration to SMT formulas. In ARIA, the current
+user-facing API lives in ``aria.allsmt``.
 
-=====================
-Introduction
-=====================
-AllSMT (All-Solutions Satisfiability Modulo Theories) extends AllSAT to SMT formulas,
-aiming to enumerate all satisfying assignments of an SMT formula. This problem is
-fundamental in various applications, including:
+Current API
+-----------
 
-* Combinational iteration testing
-* Quantitative program analysis
-* Constrained test generation
-* Program synthesis
-* Formal verification
+The package exposes a factory-based interface:
 
+* ``create_allsmt_solver()``
+* ``AllSMTSolver``
+* backends for Z3, PySMT, and MathSAT when available
 
-=====================
-Related Work
-=====================
+Example
+-------
 
-The closely related AllSAT problem (finding all satisfying assignments for Boolean formulas)
-serves as a foundation for AllSMT. AllSAT is NP-hard and not fixed-parameter tractable
-unless P=NP.
+.. code-block:: python
 
-Current AllSAT approaches fall into two categories:
+   from z3 import And, Ints
+   from aria.allsmt import create_allsmt_solver
 
-Blocking Solvers
-~~~~~~~~~~~~~~~
-* Built on CDCL (Conflict-Driven Clause Learning)
-* Uses non-chronological backtracking (NCB)
-* Adds blocking clauses to prevent duplicate solutions
+   x, y = Ints("x y")
+   solver = create_allsmt_solver("z3")
+   models = solver.solve(And(x + y == 5, x > 0, y > 0), [x, y], model_limit=10)
 
-Non-blocking Solvers
-~~~~~~~~~~~~~~~~~~~
-* Avoids blocking clauses overhead
-* Employs chronological backtracking (CB)
-* Generally more memory-efficient
+Common uses
+-----------
 
-AllSMT in Aria
---------------
-[Content to be added]
+* exhaustive test-input generation
+* model enumeration for analysis
+* projected reasoning workflows
+* integration with verification and synthesis experiments
 
+CLI access
+----------
 
-=====================
-References
-=====================
-.. [SAT23] Masina, G., Spallita, G., Sebastiani, R. (2023).
-    *On CNF Conversion for Disjoint SAT Enumeration*. SAT 2023.
+Use the CLI frontend for file-based workflows:
 
-.. [TACAS05] Jin, H., Han, H., Somenzi, F. (2005).
-    *Efficient Conflict Analysis for Finding All Satisfying Assignments of a Boolean Circuit*. TACAS 2005.
+.. code-block:: bash
 
-.. [CAV02] McMillan, K. L. (2002).
-    *Applying SAT Methods in Unbounded Symbolic Model Checking*. CAV 2002.
+   aria-allsmt formula.smt2 --limit 50
+   python -m aria.cli.allsmt_cli formula.smt2 --solver z3
 
-.. [FMCAD04] Grumberg, O., Schuster, A., Yadgar, A. (2004).
-    *Memory Efficient All-Solutions SAT Solver and Its Application for Reachability Analysis*. FMCAD 2004.
-
-.. [DATE04] Li, B., Hsiao, M. S., Sheng, S. (2004).
-    *A Novel SAT All-Solutions Solver for Efficient Preimage Computation*. DATE 2004.
-
-.. [DPBS] Spallitta, G., Sebastiani, R., Biere, A.
-    *Disjoint Projected Enumeration for SAT and SMT without Blocking Clauses*.
-    `GitHub Repository <https://github.com/giuspek/tabularAllSAT>`_
+For more detail, see ``aria/allsmt/README.md`` and :doc:`../cli-tools/cli`.

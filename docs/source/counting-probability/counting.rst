@@ -1,95 +1,88 @@
 Model Counting
-=================================
+==============
 
+``aria.counting`` provides a shared frontend for counting satisfying assignments
+from formulas and files, with theory-specific backends for Boolean, bit-vector,
+and arithmetic fragments.
 
-==========
-Introduction to Model Counting
-==========
+Current package layout
+----------------------
 
-Model counting is the problem of determining the number of possible solutions
-(models) to a given formula. It is a fundamental problem in computer
-science and has applications in various fields such as artificial intelligence, cryptography, and verification.
-The complexity of model counting varies depending on the logic and constraints involved.
-For Boolean satisfiability (SAT), model counting is #P-complete.
+Relevant pieces of the current package include:
 
+* ``aria.counting.api``: dispatch and theory detection
+* ``aria.counting.bool``: DIMACS and Boolean counting backends
+* ``aria.counting.bv``: QF_BV model counting
+* ``aria.counting.arith``: arithmetic counting, including LattE-based flows
+* ``aria.counting.core``: structured result objects
 
-==========
-Model Counting in Aria
-==========
+Public entrypoints
+------------------
 
-Model Counting for SAT Formulas
+The package exports these helpers:
+
+.. code-block:: python
+
+   from aria.counting import count, count_from_file, count_result, CountResult
+
+``count()`` and ``count_result()`` operate on parsed Z3 formulas.
+``count_from_file()`` and ``count_result_from_file()`` operate on ``.cnf``,
+``.dimacs``, or ``.smt2`` files.
+
+Formula-level counting
+----------------------
+
+.. code-block:: python
+
+   import z3
+   from aria.counting import count
+
+   x = z3.Bool("x")
+   y = z3.Bool("y")
+   formula = z3.Or(x, y)
+
+   num_models = count(formula)
+   print(num_models)
+
+The frontend detects the theory automatically unless ``theory=...`` is passed
+explicitly.
+
+File-based counting
+-------------------
+
+.. code-block:: python
+
+   from aria.counting import count_from_file
+
+   num_models = count_from_file("formula.cnf")
+   print(num_models)
+
+For richer metadata, use ``count_result()`` or ``count_result_from_file()``.
+
+Supported counting modes
+------------------------
+
+* **Boolean**: DIMACS counting and Boolean SMT counting
+* **Bit-vector**: ``aria.counting.bv`` backends
+* **Arithmetic**: exact or backend-specific arithmetic counting when supported
+
+When a theory or projection mode is unsupported, the structured result helpers
+return an informative status instead of silently guessing.
+
+CLI access
+----------
+
+The command-line frontend is:
+
+.. code-block:: bash
+
+   aria-mc formula.smt2
+   python -m aria.cli.mc_cli formula.cnf --theory bool
+
+See :doc:`../cli-tools/cli` for the current CLI surface.
+
+Notes
 -----
 
-
-To count models for SAT formulas, please use ``sharpSAT`` or other third-party tools.
-SharpSAT is an efficient model counter for Boolean formulas in CNF format.
-
-Example usage: (to implement)
-
-.. code-block:: python
-
-    # FIXME: to make it more conveinent for the users
-    # we should allow for counting the models of a z3 exper or pysmt expr
-    from aria.bool.counting import count_models  # TBD
-    from aria.logic import # TBD
-    from pysat import ...
-    import z3
-    import pysmt
-
-    # Create a CNF formula
-    cnf = CNF()
-    cnf.add_clause([1, 2])  # x1 OR x2
-    cnf.add_clause([-1, 3]) # NOT x1 OR x3
-
-    # Count models
-    count = count_models(cnf)
-    print(f"Number of solutions: {count}")
-
-Model Counting for QF_BV Formulas
-----------------------------------
-
-QF_BV stands for the quantifier-free bit-vector logic. It is a subset of the SMT-LIB standard and is commonly used in the analysis and verification
-of computer hardware and software systems.
-
-To count the models of a QF_BV formula, refer to
-- ``aria\bv\qfbv_counting.py``.
-- ``aria\tests\test_bv_counting.py``
-
-
-Example usage: (to implement)
-
-.. code-block:: python
-
-    from aria.bv import
-    from aria.bv.qfbv_counting import count_bv_models
-    # Create bit-vector variables
-
-    # Create a formula: x + y < 10
-
-    # Count models
-    count = count_bv_models(formula)
-    print(f"Number of solutions: {count}")
-
-Note that we rely on sharpSAT for the implementation. Currently, you need to either copy a
-binary version of sharpSAT to ``bin_solvers`` or install a sharpSAT globally.
-
-
-==========
-Advanced Features
-==========
-
-Projected Model Counting
-------
-
-Projected model counting involves counting models while considering only a subset of variables.
-This is useful when you're only interested in specific variables' solutions.
-
-Approximate Model Counting
--------
-
-For large formulas where exact counting is impractical, approximate model counting can be used.
-
-
-============
-References
-============
+Some backends rely on optional external tools such as ``sharpSAT`` or LattE.
+Availability depends on the selected theory and method.

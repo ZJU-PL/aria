@@ -27,8 +27,9 @@ around several key approaches:
 2. **Optimization Modulo Theory-based Symbolic Abstraction** (``omt_symabs``)
 3. **Predicate Abstraction** (``predicate_abstraction``)
 4. **Model Counting-based Abstract Interpretation** (``mcai``)
-5. **Congruence Closure-based Abstraction** (``congruence``)
-6. **Range Set SAT-based Abstraction** (``rangeset_sat``)
+5. **Affine-relation and related abstractions** (see the package README for
+   current coverage)
+6. **Range Set SAT-based Abstraction** (``rangeset``)
 
 Each approach offers different trade-offs between precision, scalability, and applicability
 to different problem domains.
@@ -189,10 +190,10 @@ Recursive abstraction refinement algorithm that iteratively improves precision:
 
 .. code-block:: python
 
-   from aria.symabs.ai_symabs.domains.algorithms.rsy import rsy
+   from aria.symabs.ai_symabs.domains.algorithms.rsy import RSY
 
    # Compute abstraction with RSY algorithm
-   abstract_state = rsy(concrete_formula, domain)
+   abstract_state = RSY(concrete_formula, domain)
 
 
 ============================
@@ -293,17 +294,18 @@ useful for:
 - Comparing different abstract domains
 - Bit-vector formula analysis
 
-Congruence Closure-based Abstraction (congruence)
---------------------------------------------------
+Additional package notes
+------------------------
 
-The ``congruence`` submodule implements congruence closure techniques for abstraction,
-particularly useful for equality reasoning and uninterpreted functions.
+Some older descriptions of this package mentioned extra submodules that are not
+part of the current documented surface. For the authoritative package map,
+prefer ``aria/symabs/README.md``.
 
-Range Set SAT-based Abstraction (rangeset_sat)
------------------------------------------------
+Range Set SAT-based Abstraction (rangeset)
+------------------------------------------
 
-The ``rangeset_sat`` submodule provides SAT-based abstraction techniques for range
-and set operations over bit-vectors, offering efficient analysis for hardware verification.
+The ``rangeset`` submodule provides SAT-based abstraction techniques for range
+and set operations over bit-vectors.
 
 
 ===============

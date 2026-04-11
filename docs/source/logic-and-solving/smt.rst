@@ -1,22 +1,32 @@
 SMT Solving
-======================
-SMT stands for Satisfiability Modulo Theories. It is a decision problem for logical formulas with respect to combinations of background theories.
+===========
 
-This page gives the theory-level entry points. Specialized solver workflows,
-including parallel CDCL(T), are grouped alongside it in :doc:`index`.
+``aria.smt`` collects SMT-oriented subpackages aimed at different theories and
+solving strategies.
 
-Bit-Vectors, Floating Points, etc.
------
+Current subpackages
+-------------------
 
-See ``bvfp_solver.py``
+The current ``aria.smt`` tree includes:
 
+* ``adt``: algebraic datatype solving
+* ``arith``: arithmetic reasoning and related helpers
+* ``bv``: bit-vector infrastructure and frontends
+* ``bwind``: bit-width-independence solving
+* ``ff``: finite-field SMT solvers and tooling
+* ``fp``: floating-point procedures and reductions
+* ``lia_star``: LIA* and related BAPA-style support
+* ``mba``: mixed Boolean-arithmetic simplification
+* ``pcdclt``: parallel CDCL(T) stack
+* ``portfolio``: QF_BV portfolio runner
+* ``simplify``: formula simplification passes
+* ``unknown_resolver``: workflows for resolving ``unknown`` outcomes
 
-Linear Arithmetic
------
+Navigation
+----------
 
-See ``lira_solver.py``
+This page is a package-level overview. For adjacent user-facing workflows, see:
 
-Strings
------
-
-TBD
+* :doc:`parallel_cdclt` for parallel CDCL(T)
+* :doc:`ff` for finite-field solving
+* :doc:`optimization` for optimization-oriented stacks built on top of SMT
