@@ -9,6 +9,8 @@ from typing import Any, Dict, List, Optional, Tuple, cast
 
 import z3
 
+from aria.utils.z3.expr import get_expr_vars
+
 
 def _lcm(a: int, b: int) -> int:
     return abs(a * b) // gcd(a, b)
@@ -222,6 +224,61 @@ def _expr_plus_const(expr: z3.ArithRef, delta: int) -> z3.ArithRef:
     return cast(z3.ArithRef, z3.simplify(expr + z3.IntVal(delta)))
 
 
+def _congruence_literal(
+    term: z3.ArithRef, modulus: int, residue: int = 0
+) -> z3.BoolRef:
+    if modulus <= 0:
+        _unsupported("modulus must be positive")
+    normalized_residue = residue % modulus
+    return cast(
+        z3.BoolRef,
+        z3.simplify((term % z3.IntVal(modulus)) == z3.IntVal(normalized_residue)),
+    )
+
+
+def _extract_congruence_atom(
+    atom: z3.BoolRef,
+) -> Optional[Tuple[_AffineExpr, int]]:
+    if atom.decl().kind() != z3.Z3_OP_EQ or atom.num_args() != 2:
+        return None
+
+    left = atom.arg(0)
+    right = atom.arg(1)
+    mod_side: Optional[z3.ArithRef] = None
+    residue_side: Optional[z3.IntNumRef] = None
+    if z3.is_app(left) and left.decl().kind() == z3.Z3_OP_MOD and z3.is_int_value(right):
+        mod_side = cast(z3.ArithRef, left)
+        residue_side = cast(z3.IntNumRef, right)
+    elif z3.is_app(right) and right.decl().kind() == z3.Z3_OP_MOD and z3.is_int_value(left):
+        mod_side = cast(z3.ArithRef, right)
+        residue_side = cast(z3.IntNumRef, left)
+
+    if mod_side is None or residue_side is None:
+        return None
+
+    modulus_expr = mod_side.arg(1)
+    if not z3.is_int_value(modulus_expr):
+        _unsupported("symbolic moduli are not supported")
+    modulus = cast(z3.IntNumRef, modulus_expr).as_long()
+    if modulus <= 0:
+        _unsupported("modulus must be positive")
+
+    affine = _parse_affine_term(cast(z3.ExprRef, mod_side.arg(0)))
+    residue = residue_side.as_long() % modulus
+    if residue != 0:
+        affine = affine.add_scaled(_AffineExpr(const=-residue), 1)
+    return affine, modulus
+
+
+def _literal_mentions_var(literal: z3.BoolRef, var_id: int) -> bool:
+    return any(var.get_id() == var_id for var in get_expr_vars(literal))
+
+
+def _project_cube_with_qe2(cube: Sequence[z3.BoolRef], var: z3.ExprRef) -> z3.BoolRef:
+    cube_expr = z3.BoolVal(True) if not cube else cast(z3.BoolRef, z3.And(*cube))
+    return cast(z3.BoolRef, z3.Tactic("qe2")(z3.Exists([var], cube_expr)).as_expr())
+
+
 def _as_atom_info(literal: z3.BoolRef, var_id: int) -> _AtomInfo:
     if z3.is_not(literal):
         child = literal.arg(0)
@@ -252,24 +309,9 @@ def _as_atom_info(literal: z3.BoolRef, var_id: int) -> _AtomInfo:
 
     kind = literal.decl().kind()
     if kind == z3.Z3_OP_EQ:
-        left = literal.arg(0)
-        right = literal.arg(1)
-        mod_side = None
-        zero_side = None
-        if z3.is_app(left) and left.decl().kind() == z3.Z3_OP_MOD and z3.is_int_value(right):
-            mod_side = cast(z3.ArithRef, left)
-            zero_side = cast(z3.IntNumRef, right)
-        elif z3.is_app(right) and right.decl().kind() == z3.Z3_OP_MOD and z3.is_int_value(left):
-            mod_side = cast(z3.ArithRef, right)
-            zero_side = cast(z3.IntNumRef, left)
-        if mod_side is not None and zero_side is not None and zero_side.as_long() == 0:
-            modulus_expr = mod_side.arg(1)
-            if not z3.is_int_value(modulus_expr):
-                _unsupported("symbolic moduli are not supported")
-            modulus = cast(z3.IntNumRef, modulus_expr).as_long()
-            if modulus <= 0:
-                _unsupported("modulus must be positive")
-            affine = _parse_affine_term(cast(z3.ExprRef, mod_side.arg(0)))
+        congruence = _extract_congruence_atom(literal)
+        if congruence is not None:
+            affine, modulus = congruence
             coeff = affine.coeffs.get(var_id, 0)
             return _AtomInfo(
                 coeff=coeff,
@@ -301,6 +343,64 @@ def _as_atom_info(literal: z3.BoolRef, var_id: int) -> _AtomInfo:
     return _AtomInfo(coeff=coeff, rest=affine.without_var(var_id), op=op)
 
 
+def _literal_alternatives(literal: z3.BoolRef) -> List[List[z3.BoolRef]]:
+    if z3.is_true(literal):
+        return [[]]
+    if z3.is_false(literal):
+        return []
+
+    if z3.is_not(literal):
+        child = cast(z3.BoolRef, literal.arg(0))
+        if z3.is_eq(child):
+            congruence = _extract_congruence_atom(child)
+            if congruence is not None:
+                affine, modulus = congruence
+                term = affine.to_expr()
+                return [
+                    [_congruence_literal(term, modulus, residue)]
+                    for residue in range(1, modulus)
+                ]
+            left = cast(z3.ArithRef, child.arg(0))
+            right = cast(z3.ArithRef, child.arg(1))
+            _ = _parse_affine_term(cast(z3.ExprRef, left - right))
+            return [
+                [cast(z3.BoolRef, left < right)],
+                [cast(z3.BoolRef, left > right)],
+            ]
+        if child.decl().kind() == z3.Z3_OP_LE:
+            _ = _parse_affine_term(cast(z3.ExprRef, child.arg(0) - child.arg(1)))
+            return [[cast(z3.BoolRef, child.arg(0) > child.arg(1))]]
+        if child.decl().kind() == z3.Z3_OP_LT:
+            _ = _parse_affine_term(cast(z3.ExprRef, child.arg(0) - child.arg(1)))
+            return [[cast(z3.BoolRef, child.arg(0) >= child.arg(1))]]
+        if child.decl().kind() == z3.Z3_OP_GE:
+            _ = _parse_affine_term(cast(z3.ExprRef, child.arg(0) - child.arg(1)))
+            return [[cast(z3.BoolRef, child.arg(0) < child.arg(1))]]
+        if child.decl().kind() == z3.Z3_OP_GT:
+            _ = _parse_affine_term(cast(z3.ExprRef, child.arg(0) - child.arg(1)))
+            return [[cast(z3.BoolRef, child.arg(0) <= child.arg(1))]]
+        return [[literal]]
+
+    kind = literal.decl().kind()
+    if kind in {z3.Z3_OP_LE, z3.Z3_OP_LT, z3.Z3_OP_GE, z3.Z3_OP_GT}:
+        _ = _parse_affine_term(cast(z3.ExprRef, literal.arg(0) - literal.arg(1)))
+        return [[literal]]
+    if kind == z3.Z3_OP_EQ:
+        if _extract_congruence_atom(literal) is not None:
+            return [[literal]]
+        _ = _parse_affine_term(cast(z3.ExprRef, literal.arg(0) - literal.arg(1)))
+        return [[literal]]
+    if kind == z3.Z3_OP_DISTINCT and literal.num_args() == 2:
+        left = cast(z3.ArithRef, literal.arg(0))
+        right = cast(z3.ArithRef, literal.arg(1))
+        _ = _parse_affine_term(cast(z3.ExprRef, left - right))
+        return [
+            [cast(z3.BoolRef, left < right)],
+            [cast(z3.BoolRef, left > right)],
+        ]
+    return [[literal]]
+
+
 def _nnf_to_dnf_cubes(expr: z3.BoolRef) -> List[List[z3.BoolRef]]:
     if z3.is_true(expr):
         return [[]]
@@ -321,7 +421,7 @@ def _nnf_to_dnf_cubes(expr: z3.BoolRef) -> List[List[z3.BoolRef]]:
         for child in expr.children():
             cubes.extend(_nnf_to_dnf_cubes(cast(z3.BoolRef, child)))
         return cubes
-    return [[expr]]
+    return _literal_alternatives(expr)
 
 
 def _candidate_congruence_holds(
@@ -432,6 +532,9 @@ def _eliminate_cube_with_equality(cube: Sequence[z3.BoolRef], var: z3.ExprRef) -
     for literal in cube:
         if z3.eq(literal, pivot_literal):
             continue
+        if not _literal_mentions_var(literal, var_id):
+            result_literals.append(literal)
+            continue
         atom = _as_atom_info(literal, var_id)
         if atom.op == "congr":
             if atom.modulus is None:
@@ -534,6 +637,11 @@ def _eliminate_cube_without_equality(cube: Sequence[z3.BoolRef], var: z3.ExprRef
         lower_bounds.extend(atom_lower)
         upper_bounds.extend(atom_upper)
 
+    if candidate_congruences and (not lower_bounds or not upper_bounds):
+        return cast(z3.BoolRef, z3.simplify(z3.And(*independent_literals))) if not any(
+            _literal_mentions_var(literal, var_id) for literal in cube
+        ) else _project_cube_with_qe2(cube, var)
+
     interval = _eliminate_unit_interval(
         lower_bounds,
         upper_bounds,
@@ -578,13 +686,22 @@ def _ensure_supported_formula(phi: z3.BoolRef) -> None:
         if not z3.is_app(expr):
             _unsupported("unexpected non-application Boolean term")
         if expr.num_args() == 0:
-            _unsupported("Boolean variables are not supported in the Cooper QE path")
-        if expr.decl().kind() == z3.Z3_OP_DISTINCT:
-            _unsupported("!= is not supported in the Cooper QE path")
+            continue
+        if expr.decl().kind() == z3.Z3_OP_DISTINCT and expr.num_args() == 2:
+            _parse_affine_term(cast(z3.ExprRef, expr.arg(0) - expr.arg(1)))
+            continue
         if expr.num_args() != 2:
-            _unsupported("only binary affine arithmetic atoms are supported")
-        _parse_affine_term(expr.arg(0))
-        _parse_affine_term(expr.arg(1))
+            continue
+        if _extract_congruence_atom(cast(z3.BoolRef, expr)) is not None:
+            continue
+        if expr.decl().kind() in {
+            z3.Z3_OP_LE,
+            z3.Z3_OP_LT,
+            z3.Z3_OP_GE,
+            z3.Z3_OP_GT,
+            z3.Z3_OP_EQ,
+        }:
+            _parse_affine_term(cast(z3.ExprRef, expr.arg(0) - expr.arg(1)))
 
 
 def _eliminate_one_var(phi: z3.BoolRef, var: z3.ExprRef) -> z3.BoolRef:

@@ -17,6 +17,12 @@ MAX_CUBE_COUNT = 64
 AffineMap = Dict[int, Tuple[z3.ExprRef, Fraction]]
 Bound = Tuple[AffineMap, Fraction, bool]
 
+FALLBACK_ERROR_FRAGMENTS = (
+    "DNF cube expansion exceeds the guarded limit",
+    "expected affine arithmetic atoms over Reals",
+    "unsupported atom under negation",
+)
+
 
 def _fraction_to_real_val(value: Fraction) -> z3.ArithRef:
     return z3.RealVal(f"{value.numerator}/{value.denominator}")
@@ -359,6 +365,31 @@ def _contains_quantifier(expr: z3.ExprRef) -> bool:
     return False
 
 
+def _has_only_real_free_vars(expr: z3.ExprRef) -> bool:
+    stack = [expr]
+    seen = set()
+    while stack:
+        current = stack.pop()
+        ast_id = current.get_id()
+        if ast_id in seen:
+            continue
+        seen.add(ast_id)
+        if z3.is_quantifier(current):
+            stack.extend(current.children())
+            continue
+        if z3.is_const(current) and current.decl().kind() == z3.Z3_OP_UNINTERPRETED:
+            sort_kind = current.sort().kind()
+            if sort_kind not in {z3.Z3_REAL_SORT, z3.Z3_BOOL_SORT}:
+                return False
+        stack.extend(current.children())
+    return True
+
+
+def _project_cube_with_qe2(cube: Sequence[z3.BoolRef], var: z3.ExprRef) -> z3.BoolRef:
+    cube_expr = z3.BoolVal(True) if not cube else cast(z3.BoolRef, z3.And(*cube))
+    return cast(z3.BoolRef, z3.Tactic("qe2")(z3.Exists([var], cube_expr)).as_expr())
+
+
 def qelim_exists_lra_fm(
     phi: Any, qvars: Any, *, keep_vars: Optional[Any] = None
 ) -> z3.BoolRef:
@@ -377,11 +408,22 @@ def qelim_exists_lra_fm(
         _validate_real_vars(normalized_keep_vars)
 
     result = cast(z3.BoolRef, phi)
-    _ = _normalize_to_cubes(result, max_cubes=MAX_CUBE_COUNT)
 
     for var in projection_vars:
-        cubes = _normalize_to_cubes(cast(z3.BoolRef, result), max_cubes=MAX_CUBE_COUNT)
-        eliminated_cubes = [_eliminate_var_from_cube(cube, var) for cube in cubes]
+        try:
+            cubes = _normalize_to_cubes(cast(z3.BoolRef, result), max_cubes=MAX_CUBE_COUNT)
+            eliminated_cubes = [_eliminate_var_from_cube(cube, var) for cube in cubes]
+        except ValueError as exc:
+            if not any(fragment in str(exc) for fragment in FALLBACK_ERROR_FRAGMENTS):
+                raise
+            if not _has_only_real_free_vars(cast(z3.ExprRef, result)):
+                raise
+            fallback = cast(
+                z3.BoolRef,
+                z3.Tactic("qe2")(z3.Exists([var], cast(z3.BoolRef, result))).as_expr(),
+            )
+            result = z3.simplify(fallback)
+            continue
         result = z3.simplify(z3.Or(eliminated_cubes))
 
     return cast(z3.BoolRef, z3.simplify(result))

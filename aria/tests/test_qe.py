@@ -203,6 +203,28 @@ class TestFourierMotzkinQuantifierElimination(TestCase):
         with self.assertRaises(ValueError):
             qelim_exists_lra_fm(phi, [x])
 
+    def test_fm_falls_back_when_cube_expansion_guard_trips(self):
+        """FM should still project large Boolean disjunctions via safe fallback"""
+        x = z3.Real("x")
+
+        phi = z3.Or(*[x == z3.RealVal(i) for i in range(70)])
+        projected = qelim_exists_lra_fm(phi, [x])
+        expected = z3.Exists([x], phi)
+
+        assert is_equivalent(projected, expected)
+        assert z3.is_true(z3.simplify(projected))
+
+    def test_fm_falls_back_for_boolean_structure_outside_affine_atoms(self):
+        """FM should preserve benign Boolean structure by delegating projection"""
+        b = z3.Bool("b")
+        x, y = z3.Reals("x y")
+
+        phi = z3.And(z3.Or(b, x < y), x > 0)
+        projected = qelim_exists_lra_fm(phi, [x])
+        expected = z3.Exists([x], phi)
+
+        assert is_equivalent(projected, expected)
+
 
 def brute_force_exists(
     phi: z3.BoolRef,
@@ -323,7 +345,6 @@ class TestCooperQuantifierElimination(TestCase):
         f = z3.Function("f", z3.IntSort(), z3.IntSort())
 
         unsupported = [
-            x != y,
             cast(z3.BoolRef, cast(z3.ArithRef, x * y) > 0),
             cast(z3.BoolRef, x + z3.ToInt(r) > 0),
             cast(z3.BoolRef, x + (y % 2) > 0),
@@ -334,6 +355,22 @@ class TestCooperQuantifierElimination(TestCase):
         for phi in unsupported:
             with self.assertRaises(ValueError):
                 qelim_exists_lia_cooper(phi, [x])
+
+    def test_accepts_input_congruence_atoms(self):
+        x, y = z3.Ints("x y")
+
+        phi = cast(z3.BoolRef, ((2 * x + y) % 4) == 0)
+        projected = qelim_exists_lia_cooper(phi, [x])
+
+        assert is_equivalent(projected, z3.Exists([x], phi))
+
+    def test_accepts_input_disequalities(self):
+        x, y = z3.Ints("x y")
+
+        phi = z3.And(x != y, x >= 0)
+        projected = qelim_exists_lia_cooper(phi, [x])
+
+        assert is_equivalent(projected, z3.Exists([x], phi))
 
     def test_small_domain_bruteforce_sanity_check(self):
         x, y, z = z3.Ints("x y z")
