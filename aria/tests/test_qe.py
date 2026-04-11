@@ -184,6 +184,31 @@ class TestFourierMotzkinQuantifierElimination(TestCase):
 
         assert is_equivalent(projected, expected)
 
+    def test_fm_keep_vars_can_preserve_boolean_variables(self):
+        """FM should allow Boolean keep_vars and preserve them in the result"""
+        b = z3.Bool("b")
+        x = z3.Real("x")
+
+        phi = z3.And(b, x > 0)
+        projected = qelim_exists_lra_fm(phi, [x], keep_vars=[b])
+        expected = z3.Exists([x], phi)
+
+        assert is_equivalent(projected, expected)
+        remaining_vars = {str(var) for var in z3.z3util.get_vars(projected)}
+        assert remaining_vars == {"b"}
+
+    def test_fm_keep_vars_empty_projects_away_boolean_free_vars(self):
+        """FM should project away Boolean free vars when keep_vars requests closure"""
+        b = z3.Bool("b")
+        x = z3.Real("x")
+
+        phi = z3.And(b, x > 0)
+        projected = qelim_exists_lra_fm(phi, [x], keep_vars=[])
+        expected = z3.Exists([x, b], phi)
+
+        assert is_equivalent(projected, expected)
+        assert z3.z3util.get_vars(projected) == []
+
     def test_fm_rejects_mixed_int_real_fragment(self):
         """FM should fail fast when non-Real variables appear in the fragment"""
         x = z3.Real("x")
@@ -193,6 +218,13 @@ class TestFourierMotzkinQuantifierElimination(TestCase):
 
         with self.assertRaises(ValueError):
             qelim_exists_lra_fm(phi, [x])
+
+    def test_fm_rejects_non_variable_qvars(self):
+        """FM should reject quantified items that are not variables"""
+        x, y = z3.Reals("x y")
+
+        with self.assertRaises(ValueError):
+            qelim_exists_lra_fm(x > y, [x + 1])
 
     def test_fm_rejects_nonlinear_terms(self):
         """FM should fail fast on nonlinear arithmetic"""
@@ -204,23 +236,31 @@ class TestFourierMotzkinQuantifierElimination(TestCase):
             qelim_exists_lra_fm(phi, [x])
 
     def test_fm_falls_back_when_cube_expansion_guard_trips(self):
-        """FM should still project large Boolean disjunctions via safe fallback"""
+        """FM should reject formulas that exceed the guarded DNF cube limit"""
         x = z3.Real("x")
 
         phi = z3.Or(*[x == z3.RealVal(i) for i in range(70)])
-        projected = qelim_exists_lra_fm(phi, [x])
-        expected = z3.Exists([x], phi)
-
-        assert is_equivalent(projected, expected)
-        assert z3.is_true(z3.simplify(projected))
+        with self.assertRaises(ValueError):
+            qelim_exists_lra_fm(phi, [x])
 
     def test_fm_falls_back_for_boolean_structure_outside_affine_atoms(self):
-        """FM should preserve benign Boolean structure by delegating projection"""
+        """FM should preserve Boolean structure without delegating to QE"""
         b = z3.Bool("b")
         x, y = z3.Reals("x y")
 
         phi = z3.And(z3.Or(b, x < y), x > 0)
         projected = qelim_exists_lra_fm(phi, [x])
+        expected = z3.Exists([x], phi)
+
+        assert is_equivalent(projected, expected)
+
+    def test_fm_preserves_boolean_literals_while_projecting_reals(self):
+        """FM should keep Boolean literals intact while projecting real vars"""
+        b = z3.Bool("b")
+        x = z3.Real("x")
+
+        phi = z3.And(z3.Or(b, x > 0), z3.Or(z3.Not(b), x < 1))
+        projected = qelim_exists_lra_fm(phi, [x], keep_vars=[b])
         expected = z3.Exists([x], phi)
 
         assert is_equivalent(projected, expected)

@@ -17,12 +17,6 @@ MAX_CUBE_COUNT = 64
 AffineMap = Dict[int, Tuple[z3.ExprRef, Fraction]]
 Bound = Tuple[AffineMap, Fraction, bool]
 
-FALLBACK_ERROR_FRAGMENTS = (
-    "DNF cube expansion exceeds the guarded limit",
-    "expected affine arithmetic atoms over Reals",
-    "unsupported atom under negation",
-)
-
 
 def _fraction_to_real_val(value: Fraction) -> z3.ArithRef:
     return z3.RealVal(f"{value.numerator}/{value.denominator}")
@@ -177,11 +171,30 @@ def _negate_atom(atom: z3.BoolRef) -> z3.BoolRef:
     raise ValueError("unsupported fragment: unsupported atom under negation")
 
 
+def _is_bool_var(expr: z3.ExprRef) -> bool:
+    return (
+        z3.is_const(expr)
+        and expr.decl().kind() == z3.Z3_OP_UNINTERPRETED
+        and expr.sort().kind() == z3.Z3_BOOL_SORT
+    )
+
+
+def _bool_literal_info(literal: z3.BoolRef) -> Optional[Tuple[z3.BoolRef, bool]]:
+    if _is_bool_var(literal):
+        return cast(z3.BoolRef, literal), True
+    if z3.is_not(literal) and _is_bool_var(literal.arg(0)):
+        return cast(z3.BoolRef, literal.arg(0)), False
+    return None
+
+
 def _literal_alternatives(literal: z3.BoolRef) -> List[List[z3.BoolRef]]:
     if z3.is_true(literal):
         return [[]]
     if z3.is_false(literal):
         return []
+    bool_literal = _bool_literal_info(literal)
+    if bool_literal is not None:
+        return [[literal]]
     if z3.is_not(literal):
         return _literal_alternatives(_negate_atom(cast(z3.BoolRef, literal.arg(0))))
 
@@ -314,6 +327,9 @@ def _eliminate_var_from_cube(cube: Sequence[z3.BoolRef], var: z3.ExprRef) -> z3.
     uppers: List[Bound] = []
 
     for atom in cube:
+        if _bool_literal_info(atom) is not None:
+            preserved.append(atom)
+            continue
         for zero_terms, zero_const, operator in _atom_to_zero_comparison(atom):
             coeff = zero_terms.get(var.get_id(), (var, Fraction(0)))[1]
             if coeff == 0:
@@ -344,10 +360,47 @@ def _eliminate_var_from_cube(cube: Sequence[z3.BoolRef], var: z3.ExprRef) -> z3.
     return cast(z3.BoolRef, z3.simplify(z3.And(preserved)))
 
 
-def _validate_real_vars(vars_to_check: Sequence[z3.ExprRef]) -> None:
+def _eliminate_bool_var_from_cube(cube: Sequence[z3.BoolRef], var: z3.ExprRef) -> z3.BoolRef:
+    preserved: List[z3.BoolRef] = []
+    literal_polarities: Dict[int, bool] = {}
+
+    for literal in cube:
+        info = _bool_literal_info(literal)
+        if info is None:
+            preserved.append(literal)
+            continue
+
+        bool_var, polarity = info
+        previous = literal_polarities.get(bool_var.get_id())
+        if previous is not None and previous != polarity:
+            return z3.BoolVal(False)
+        literal_polarities[bool_var.get_id()] = polarity
+
+        if bool_var.get_id() == var.get_id():
+            continue
+        preserved.append(literal)
+
+    if not preserved:
+        return z3.BoolVal(True)
+    return cast(z3.BoolRef, z3.simplify(z3.And(preserved)))
+
+
+def _validate_projection_vars(
+    vars_to_check: Sequence[z3.ExprRef], *, allow_bool: bool
+) -> None:
+    allowed_sorts = {z3.Z3_REAL_SORT}
+    if allow_bool:
+        allowed_sorts.add(z3.Z3_BOOL_SORT)
+
     for var in vars_to_check:
-        if var.sort().kind() != z3.Z3_REAL_SORT:
-            raise ValueError("unsupported fragment: only Real variables are supported")
+        if not z3.is_const(var) or var.decl().kind() != z3.Z3_OP_UNINTERPRETED:
+            raise ValueError(
+                "unsupported fragment: quantified and kept items must be variables"
+            )
+        if var.sort().kind() not in allowed_sorts:
+            raise ValueError(
+                "unsupported fragment: only Real and Boolean variables are supported"
+            )
 
 
 def _contains_quantifier(expr: z3.ExprRef) -> bool:
@@ -365,31 +418,6 @@ def _contains_quantifier(expr: z3.ExprRef) -> bool:
     return False
 
 
-def _has_only_real_free_vars(expr: z3.ExprRef) -> bool:
-    stack = [expr]
-    seen = set()
-    while stack:
-        current = stack.pop()
-        ast_id = current.get_id()
-        if ast_id in seen:
-            continue
-        seen.add(ast_id)
-        if z3.is_quantifier(current):
-            stack.extend(current.children())
-            continue
-        if z3.is_const(current) and current.decl().kind() == z3.Z3_OP_UNINTERPRETED:
-            sort_kind = current.sort().kind()
-            if sort_kind not in {z3.Z3_REAL_SORT, z3.Z3_BOOL_SORT}:
-                return False
-        stack.extend(current.children())
-    return True
-
-
-def _project_cube_with_qe2(cube: Sequence[z3.BoolRef], var: z3.ExprRef) -> z3.BoolRef:
-    cube_expr = z3.BoolVal(True) if not cube else cast(z3.BoolRef, z3.And(*cube))
-    return cast(z3.BoolRef, z3.Tactic("qe2")(z3.Exists([var], cube_expr)).as_expr())
-
-
 def qelim_exists_lra_fm(
     phi: Any, qvars: Any, *, keep_vars: Optional[Any] = None
 ) -> z3.BoolRef:
@@ -403,27 +431,19 @@ def qelim_exists_lra_fm(
     normalized_keep_vars = normalize_vars(keep_vars) if keep_vars is not None else None
     projection_vars = get_projection_vars(phi, normalized_qvars, normalized_keep_vars)
 
-    _validate_real_vars(projection_vars)
+    _validate_projection_vars(normalized_qvars, allow_bool=False)
+    _validate_projection_vars(projection_vars, allow_bool=True)
     if normalized_keep_vars is not None:
-        _validate_real_vars(normalized_keep_vars)
+        _validate_projection_vars(normalized_keep_vars, allow_bool=True)
 
     result = cast(z3.BoolRef, phi)
 
     for var in projection_vars:
-        try:
-            cubes = _normalize_to_cubes(cast(z3.BoolRef, result), max_cubes=MAX_CUBE_COUNT)
+        cubes = _normalize_to_cubes(cast(z3.BoolRef, result), max_cubes=MAX_CUBE_COUNT)
+        if var.sort().kind() == z3.Z3_BOOL_SORT:
+            eliminated_cubes = [_eliminate_bool_var_from_cube(cube, var) for cube in cubes]
+        else:
             eliminated_cubes = [_eliminate_var_from_cube(cube, var) for cube in cubes]
-        except ValueError as exc:
-            if not any(fragment in str(exc) for fragment in FALLBACK_ERROR_FRAGMENTS):
-                raise
-            if not _has_only_real_free_vars(cast(z3.ExprRef, result)):
-                raise
-            fallback = cast(
-                z3.BoolRef,
-                z3.Tactic("qe2")(z3.Exists([var], cast(z3.BoolRef, result))).as_expr(),
-            )
-            result = z3.simplify(fallback)
-            continue
         result = z3.simplify(z3.Or(eliminated_cubes))
 
     return cast(z3.BoolRef, z3.simplify(result))

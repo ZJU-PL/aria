@@ -290,3 +290,62 @@ class TestADTLIASampler:
         assert {sample["x"] for sample in result} == {0, 1, 2}
         assert all("box" in sample for sample in result)
         assert result.stats["residual_projection_mode"] == "payload_terms"
+
+    def test_shape_mode_coverage_guided_covers_multiple_shapes(self):
+        maybe = _make_maybe_int("MaybeIntCoverageShapes")
+        x = z3.Int("x")
+        box = z3.Const("box", maybe)
+        formula = z3.And(
+            x >= 0,
+            x <= 1,
+            z3.Or(box == maybe.none, box == maybe.some(x)),
+        )
+
+        sampler = ADTLIASampler()
+        sampler.init_from_formula(formula)
+        result = sampler.sample(
+            SamplingOptions(
+                method=SamplingMethod.SEARCH_TREE,
+                num_samples=2,
+                max_shapes=4,
+                candidates_per_shape=3,
+                include_selector_closure=True,
+                return_full_model=True,
+                diversity_mode="coverage_guided",
+            )
+        )
+
+        constructors = [
+            sample["box"]["constructor"] if isinstance(sample["box"], dict) else sample["box"]
+            for sample in result
+        ]
+        assert set(constructors) == {"none", "some"}
+        assert result.stats["diversity_mode"] == "coverage_guided"
+        assert result.stats["coverage_feature_count"] >= 2
+        assert result.stats["coverage_selected_feature_count"] >= 2
+        assert result.stats["coverage_ratio"] > 0.0
+
+    def test_shape_mode_coverage_guided_prefers_integer_boundaries(self):
+        maybe = _make_maybe_int("MaybeIntCoverageBounds")
+        x = z3.Int("x")
+        box = z3.Const("box", maybe)
+        formula = z3.And(x >= 0, x <= 4, box == maybe.some(x))
+
+        sampler = ADTLIASampler()
+        sampler.init_from_formula(formula)
+        result = sampler.sample(
+            SamplingOptions(
+                method=SamplingMethod.SEARCH_TREE,
+                num_samples=2,
+                max_shapes=1,
+                candidates_per_shape=5,
+                include_selector_closure=True,
+                projection_terms=["value(box)"],
+                diversity_mode="coverage_guided",
+            )
+        )
+
+        values = {sample["value(box)"] for sample in result}
+        assert values == {0, 4}
+        assert result.stats["coverage_selection"] == "weighted_set_cover"
+        assert result.stats["coverage_selected_feature_count"] > 0

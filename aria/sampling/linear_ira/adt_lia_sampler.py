@@ -18,7 +18,11 @@ from aria.sampling.finite_domain.common import (
     enumerate_projected_models,
 )
 from aria.utils.z3.expr import get_variables, is_int_sort
-from .shape_sampler import enumerate_datatype_shapes, select_max_distance_subset
+from .shape_sampler import (
+    enumerate_datatype_shapes,
+    select_coverage_guided_subset,
+    select_max_distance_subset,
+)
 
 
 def _dedupe_sorted_terms(terms: List[z3.ExprRef]) -> List[z3.ExprRef]:
@@ -134,6 +138,7 @@ class ADTLIASampler(Sampler):
         candidate_samples_by_shape: List[List[Dict[str, Any]]] = []
         shape_sample_counts: List[int] = []
         shape_payload_terms: List[List[str]] = []
+        candidate_shape_signatures: List[str] = []
 
         for shape in shapes:
             residual_formula = (
@@ -177,11 +182,23 @@ class ADTLIASampler(Sampler):
             candidate_samples_by_shape.append(list(residual_result.samples))
             shape_sample_counts.append(len(residual_result.samples))
             shape_payload_terms.append([str(term) for term in shape.payload_terms])
+            candidate_shape_signatures.extend(
+                [str(shape.signature)] * len(residual_result.samples)
+            )
 
+        coverage_stats: Dict[str, Any] = {}
         if diversity_mode == "max_distance":
             selected_samples = select_max_distance_subset(
                 candidate_samples, options.num_samples
             )
+        elif diversity_mode == "coverage_guided":
+            coverage_result = select_coverage_guided_subset(
+                candidate_samples,
+                options.num_samples,
+                shape_signatures=candidate_shape_signatures,
+            )
+            selected_samples = coverage_result.samples
+            coverage_stats = coverage_result.stats
         else:
             selected_samples = self._select_shape_first_round_robin(
                 candidate_samples_by_shape,
@@ -205,6 +222,7 @@ class ADTLIASampler(Sampler):
                 else "payload_terms"
             ),
         }
+        stats.update(coverage_stats)
         return SamplingResult(selected_samples, stats)
 
     @staticmethod

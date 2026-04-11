@@ -121,6 +121,20 @@ shape_result = sample_models_from_formula(
         diversity_mode="max_distance",
     ),
 )
+
+# Coverage-guided DTLIA sampling for test generation
+coverage_result = sample_models_from_formula(
+    dtlia_formula,
+    Logic.QF_DTLIA,
+    SamplingOptions(
+        method=SamplingMethod.SEARCH_TREE,
+        num_samples=3,
+        include_selector_closure=True,
+        max_shapes=4,
+        candidates_per_shape=6,
+        diversity_mode="coverage_guided",
+    ),
+)
 ```
 
 `QF_DTLIA` now supports two practical modes:
@@ -132,6 +146,8 @@ shape_result = sample_models_from_formula(
   - lowers each shape to a residual arithmetic problem
   - samples integer payloads per shape
   - can use `diversity_mode="max_distance"` for mixed-theory spread
+  - can use `diversity_mode="coverage_guided"` to prioritize constructor,
+    alias, and integer-boundary coverage for testing workloads
 
 ### Advanced Usage
 
