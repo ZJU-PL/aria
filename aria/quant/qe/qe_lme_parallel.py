@@ -8,6 +8,7 @@ import os
 import re
 import json
 import logging
+import shutil
 import z3
 
 from aria.utils.z3.expr import negate  # get_atoms
@@ -16,8 +17,12 @@ from aria.global_params import global_config
 # Set up logging
 logger = logging.getLogger(__name__)
 
-# Path to Z3 executable
-Z3_PATH = global_config.get_solver_path("z3")
+DEFAULT_MAX_ITERATIONS = 5
+DEFAULT_SOLVER_TIMEOUT = 30
+
+# Legacy module-level name retained for compatibility.
+Z3_PATH = None
+_z3_path_cache = None
 
 # SMT-LIB templates
 SMT_HEADER = """
@@ -44,6 +49,73 @@ def to_smtlib(expr):
     if hasattr(expr, "sexpr"):
         return expr.sexpr()
     return str(expr)
+
+
+def resolve_z3_path():
+    """Resolve and validate the Z3 executable path lazily."""
+    global _z3_path_cache
+
+    if _z3_path_cache:
+        return _z3_path_cache
+
+    try:
+        configured_path = global_config.get_solver_path("z3")
+    except (ValueError, OSError) as exc:
+        logger.error("Unable to resolve Z3 path: %s", exc)
+        return None
+
+    if not configured_path:
+        logger.error("Z3 solver path is not configured")
+        return None
+
+    resolved_path = None
+    if os.path.isfile(configured_path) and os.access(configured_path, os.X_OK):
+        resolved_path = configured_path
+    else:
+        resolved_path = shutil.which(configured_path)
+
+    if not resolved_path:
+        logger.error("Z3 solver executable is unavailable: %s", configured_path)
+        return None
+
+    _z3_path_cache = resolved_path
+    return _z3_path_cache
+
+
+def run_z3_script(smt_script, timeout=DEFAULT_SOLVER_TIMEOUT, z3_path=None):
+    """Run a temporary SMT-LIB script via Z3 with guaranteed cleanup."""
+    solver_path = z3_path or resolve_z3_path()
+    if not solver_path:
+        return None
+
+    temp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            suffix=".smt2", mode="w+", delete=False
+        ) as temp_file:
+            temp_path = temp_file.name
+            temp_file.write(smt_script)
+
+        return subprocess.run(
+            [solver_path, temp_path],
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            check=False,
+        )
+    except (subprocess.TimeoutExpired, subprocess.SubprocessError, OSError) as exc:
+        logger.error("Error running Z3 subprocess: %s", exc)
+        return None
+    finally:
+        if temp_path and os.path.exists(temp_path):
+            try:
+                os.unlink(temp_path)
+            except OSError as cleanup_exc:
+                logger.warning(
+                    "Failed to remove temporary SMT file %s: %s",
+                    temp_path,
+                    cleanup_exc,
+                )
 
 
 def get_declarations(expr):
@@ -93,7 +165,7 @@ def get_declarations(expr):
                     decls.add(f"(declare-const {var_name} Real)")
 
     except (AttributeError, TypeError, ValueError) as e:
-        print(f"Warning: Error parsing declarations: {e}")
+        logger.warning("Error parsing declarations: %s", e)
 
     return "\n".join(sorted(list(decls)))
 
@@ -144,7 +216,7 @@ def parse_model(z3_output):
 
                     model_dict[var_name] = {"type": var_type, "value": var_value}
     except (AttributeError, ValueError, KeyError) as e:
-        print(f"Error parsing model: {e}")
+        logger.error("Error parsing model: %s", e)
 
     return model_dict
 
@@ -169,7 +241,13 @@ def create_blocking_clause(model_dict):
     return f"(or {' '.join(clauses)})"
 
 
-def extract_models(formula, num_models=10, blocked_models=None):
+def extract_models(
+    formula,
+    num_models=10,
+    blocked_models=None,
+    solver_timeout=DEFAULT_SOLVER_TIMEOUT,
+    z3_path=None,
+):
     """Extract models from a formula using Z3 via IPC"""
     if blocked_models is None:
         blocked_models = []
@@ -194,20 +272,11 @@ def extract_models(formula, num_models=10, blocked_models=None):
             smt_script += "\n(check-sat)"
             smt_script += "\n(get-model)"
 
-            with tempfile.NamedTemporaryFile(
-                suffix=".smt2", mode="w+", delete=False
-            ) as temp_file:
-                temp_path = temp_file.name
-                temp_file.write(smt_script)
-
-            result = subprocess.run(
-                [Z3_PATH, temp_path],
-                capture_output=True,
-                text=True,
-                timeout=30,
-                check=False,
+            result = run_z3_script(
+                smt_script, timeout=solver_timeout, z3_path=z3_path
             )
-            os.unlink(temp_path)
+            if result is None:
+                break
 
             if "sat" in result.stdout:
                 model_dict = parse_model(result.stdout)
@@ -222,7 +291,7 @@ def extract_models(formula, num_models=10, blocked_models=None):
                 break
 
     except (subprocess.TimeoutExpired, subprocess.SubprocessError, OSError) as e:
-        print(f"Error in extract_models: {e}")
+        logger.error("Error in extract_models: %s", e)
 
     return models
 
@@ -279,7 +348,12 @@ def build_minterm_from_model(model):
     return f"(and {' '.join(constraints)})"
 
 
-def process_model(model_json, qvars_json):
+def process_model(
+    model_json,
+    qvars_json,
+    solver_timeout=DEFAULT_SOLVER_TIMEOUT,
+    z3_path=None,
+):
     """Process a single model for QE"""
     try:
         model = json.loads(model_json)
@@ -327,20 +401,9 @@ def process_model(model_json, qvars_json):
         verify_smt += f"(assert {projection})\n"
         verify_smt += "(check-sat)\n"
 
-        with tempfile.NamedTemporaryFile(
-            suffix=".smt2", mode="w+", delete=False
-        ) as temp_file:
-            temp_path = temp_file.name
-            temp_file.write(verify_smt)
-
-        result = subprocess.run(
-            [Z3_PATH, temp_path],
-            capture_output=True,
-            text=True,
-            timeout=30,
-            check=False,
-        )
-        os.unlink(temp_path)
+        result = run_z3_script(verify_smt, timeout=solver_timeout, z3_path=z3_path)
+        if result is None:
+            return "false"
 
         if "sat" in result.stdout:
             return projection
@@ -355,32 +418,32 @@ def process_model(model_json, qvars_json):
         subprocess.SubprocessError,
         OSError,
     ) as e:
-        print(f"Error in process_model: {e}")
+        logger.error("Error in process_model: %s", e)
         return "false"
 
 
-def simplify_result(result):
-    """Simplify the result formula by removing duplicate clauses from disjunctions"""
-    if not result or result == "true" or result == "false":
-        return result
+def dedupe_projections(projections):
+    """Remove duplicate projection strings while preserving order."""
+    unique_projections = []
+    seen = set()
 
-    if result.startswith("(or ") and result.endswith(")"):
-        inner_content = result[4:-1].strip()
+    for projection in projections:
+        if projection in seen:
+            continue
+        seen.add(projection)
+        unique_projections.append(projection)
 
-        constraints = []
-        pattern = r"\(=\s+z\s+(.+?)\)"
-        for match in re.finditer(pattern, inner_content):
-            constraint = match.group(0)
-            if constraint not in constraints:
-                constraints.append(constraint)
-
-        if constraints:
-            return "(or " + " ".join(constraints) + ")"
-
-    return result
+    return unique_projections
 
 
-def qelim_exists_lme_parallel(phi, qvars, num_workers=None, batch_size=4):
+def qelim_exists_lme_parallel(
+    phi,
+    qvars,
+    num_workers=None,
+    batch_size=4,
+    max_iterations=DEFAULT_MAX_ITERATIONS,
+    solver_timeout=DEFAULT_SOLVER_TIMEOUT,
+):
     """
     Parallel Existential Quantifier Elimination using Lazy Model Enumeration with IPC
 
@@ -389,11 +452,27 @@ def qelim_exists_lme_parallel(phi, qvars, num_workers=None, batch_size=4):
         qvars: List of variables to eliminate (Z3 variables)
         num_workers: Number of parallel workers (default: CPU count)
         batch_size: Number of models to sample in each iteration
+        max_iterations: Maximum number of LME iterations
+        solver_timeout: Timeout in seconds for each Z3 subprocess call
     """
     if num_workers is None:
         num_workers = mp.cpu_count()
 
     try:
+        if batch_size <= 0:
+            logger.error("batch_size must be positive, got %s", batch_size)
+            return "false"
+        if max_iterations < 0:
+            logger.error("max_iterations must be non-negative, got %s", max_iterations)
+            return "false"
+        if solver_timeout <= 0:
+            logger.error("solver_timeout must be positive, got %s", solver_timeout)
+            return "false"
+
+        z3_path = resolve_z3_path()
+        if not z3_path:
+            return "false"
+
         # Get atomic predicates
         # predicates = [to_smtlib(pred) for pred in get_atoms(phi)]
 
@@ -408,14 +487,18 @@ def qelim_exists_lme_parallel(phi, qvars, num_workers=None, batch_size=4):
         blocking_clauses = []
 
         # Main loop for model enumeration
-        max_iterations = 5  # Limit iterations for testing
         for _ in range(max_iterations):
             # Extract models from the formula, blocking existing projections
             formula_with_blocking = phi_smtlib
             for clause in blocking_clauses:
                 formula_with_blocking = f"(and {formula_with_blocking} (not {clause}))"
 
-            models = extract_models(formula_with_blocking, num_models=batch_size)
+            models = extract_models(
+                formula_with_blocking,
+                num_models=batch_size,
+                solver_timeout=solver_timeout,
+                z3_path=z3_path,
+            )
 
             # If no more models, break
             if not models:
@@ -430,7 +513,13 @@ def qelim_exists_lme_parallel(phi, qvars, num_workers=None, batch_size=4):
                     model_json = json.dumps(model)
 
                     # Submit job to process this model
-                    future = executor.submit(process_model, model_json, qvars_json)
+                    future = executor.submit(
+                        process_model,
+                        model_json,
+                        qvars_json,
+                        solver_timeout,
+                        z3_path,
+                    )
                     futures.append(future)
 
                 # Collect results as they complete
@@ -439,8 +528,10 @@ def qelim_exists_lme_parallel(phi, qvars, num_workers=None, batch_size=4):
                         projection = future.result()
                         if projection and projection != "false":
                             new_projections.append(projection)
-                    except (ValueError, KeyError) as e:
-                        print(f"Error in parallel processing: {e}")
+                    except Exception as e:
+                        logger.error("Error in parallel processing: %s", e)
+
+            new_projections = dedupe_projections(new_projections)
 
             # Update projections and blocking clauses
             projections.extend(new_projections)
@@ -453,13 +544,11 @@ def qelim_exists_lme_parallel(phi, qvars, num_workers=None, batch_size=4):
         if not projections:
             return "false"
 
-        if len(projections) == 1:
-            result = projections[0]
-        else:
-            result = f"(or {' '.join(projections)})"
+        projections = dedupe_projections(projections)
 
-        # Simplify the result by removing duplicates
-        return simplify_result(result)
+        if len(projections) == 1:
+            return projections[0]
+        return f"(or {' '.join(projections)})"
 
     except (
         AttributeError,
@@ -469,5 +558,5 @@ def qelim_exists_lme_parallel(phi, qvars, num_workers=None, batch_size=4):
         subprocess.SubprocessError,
         OSError,
     ) as e:
-        print(f"Error in qelim_exists_lme_parallel: {e}")
+        logger.error("Error in qelim_exists_lme_parallel: %s", e)
         return "false"

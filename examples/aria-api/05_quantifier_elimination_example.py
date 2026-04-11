@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import z3
+from aria.quant.qe import qelim_exists_lia_cooper
+from aria.quant.qe.qe_fm import qelim_exists_lra_fm
 from aria.quant.qe.qe_lme import qelim_exists_lme
 
 
@@ -23,6 +25,36 @@ def lra_qe():
         print("LRA QE failed")
 
 
+def partial_projection_qe():
+    x, y, z = z3.Reals("x y z")
+    f = z3.And(x == y + z, y >= 0, z >= 1)
+    try:
+        r = qelim_exists_lme(f, [x], keep_vars=[y])
+        print(f"Partial projection QE (keep y): {r}")
+    except Exception:
+        print("Partial projection QE failed")
+
+
+def fm_qe():
+    x, y, z = z3.Reals("x y z")
+    f = z3.And(x >= y + 1, x <= z - 2)
+    try:
+        r = qelim_exists_lra_fm(f, [x], keep_vars=[y, z])
+        print(f"FM LRA QE: {r}")
+    except Exception:
+        print("FM LRA QE failed")
+
+
+def cooper_lia_qe():
+    x, y = z3.Ints("x y")
+    f = z3.And(3 * x + 1 == y, x > 0)
+    try:
+        r = qelim_exists_lia_cooper(f, [x])
+        print(f"Cooper LIA QE: {r}")
+    except Exception as exc:
+        print(f"Cooper LIA QE failed: {exc}")
+
+
 def z3_qe():
     x, y = z3.Reals("x y")
     f = z3.Exists([x], z3.And(x + y > 0, x < 5))
@@ -34,6 +66,9 @@ def main():
     print("QE Examples\n" + "=" * 20)
     basic_qe()
     lra_qe()
+    partial_projection_qe()
+    fm_qe()
+    cooper_lia_qe()
     z3_qe()
     print("Done!")
 

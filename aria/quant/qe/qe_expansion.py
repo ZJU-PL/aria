@@ -1,11 +1,15 @@
-"""Quantifier Elimination for Boolean formulas via Shannon Expansion"""
+"""Existential QE for Boolean CNFs via Shannon expansion.
+
+This prototype handles only existential quantifier elimination on Boolean
+formulas represented in CNF.
+"""
 
 from pysat.formula import CNF
 from pysat.solvers import Glucose3
 
 
 class QuantifierElimination:
-    """Quantifier elimination using Shannon expansion for Boolean formulas."""
+    """Existential quantifier elimination for Boolean CNF formulas."""
 
     def __init__(self):
         """Initialize the quantifier elimination instance."""
@@ -21,38 +25,79 @@ class QuantifierElimination:
             self.var_counter += 1
         return self.var_map[var_name]
 
+    @staticmethod
+    def _is_true(cnf_formula):
+        """Return whether the CNF formula is logically true."""
+        return len(cnf_formula.clauses) == 0
+
+    @staticmethod
+    def _is_false(cnf_formula):
+        """Return whether the CNF formula is logically false."""
+        return any(len(clause) == 0 for clause in cnf_formula.clauses)
+
+    @staticmethod
+    def _normalize_clause(clause):
+        """Deduplicate literals and drop tautological clauses."""
+        normalized = []
+        seen = set()
+
+        for lit in clause:
+            if -lit in seen:
+                return None
+            if lit not in seen:
+                seen.add(lit)
+                normalized.append(lit)
+
+        return normalized
+
     def shannon_expand(self, cnf_formula, var_id):
         """Perform Shannon expansion on a CNF formula for a given variable."""
         pos_cofactor, neg_cofactor = CNF(), CNF()
+
         for clause in cnf_formula.clauses:
+            has_pos = var_id in clause
+            has_neg = -var_id in clause
             new_clause = [lit for lit in clause if abs(lit) != var_id]
-            if any(lit == var_id for lit in clause):
-                if not any(lit > 0 and abs(lit) == var_id for lit in clause):
-                    pos_cofactor.append(new_clause)
-            else:
+
+            if not has_pos:
                 pos_cofactor.append(new_clause)
-            if any(lit == -var_id for lit in clause):
-                if not any(lit < 0 and abs(lit) == var_id for lit in clause):
-                    neg_cofactor.append(new_clause)
-            else:
+            if not has_neg:
                 neg_cofactor.append(new_clause)
+
         return pos_cofactor, neg_cofactor
 
     def eliminate_exists(self, cnf_formula, var_id):
-        """Eliminate existential quantifier for a given variable."""
+        """Eliminate one existentially quantified Boolean variable from a CNF."""
         pos_cofactor, neg_cofactor = self.shannon_expand(cnf_formula, var_id)
-        result = CNF()
-        if not pos_cofactor.clauses or not neg_cofactor.clauses:
+
+        if self._is_true(pos_cofactor) or self._is_true(neg_cofactor):
             return CNF()
+        if self._is_false(pos_cofactor) and self._is_false(neg_cofactor):
+            return CNF(from_clauses=[[]])
+        if self._is_false(pos_cofactor):
+            return neg_cofactor
+        if self._is_false(neg_cofactor):
+            return pos_cofactor
+
+        result = CNF()
+        seen_clauses = set()
+
         for clause1 in pos_cofactor.clauses:
             for clause2 in neg_cofactor.clauses:
-                resolvent = list(set(clause1 + clause2))
-                if resolvent:
+                resolvent = self._normalize_clause(clause1 + clause2)
+
+                if resolvent is None:
+                    continue
+
+                resolvent_key = tuple(sorted(resolvent))
+                if resolvent_key not in seen_clauses:
+                    seen_clauses.add(resolvent_key)
                     result.append(resolvent)
+
         return result
 
     def eliminate_quantifiers(self, cnf_formula, variables):
-        """Eliminate quantifiers for a list of variables."""
+        """Eliminate a list of existentially quantified Boolean variables."""
         result = cnf_formula
         for var in variables:
             var_id = self.get_var_id(var)
