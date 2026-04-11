@@ -4,10 +4,18 @@ Cmd line interface for solving OMT(BV) problems with different solvers.
 
 import argparse
 import logging
-from typing import Optional
+from typing import Optional, cast
 
 import z3
 
+from aria.optimization.omtfp.fp_omt_parser import FPOMTParser
+from aria.optimization.omtfp.fp_opt_qsmt import (
+    format_fp_value,
+    format_fp_values,
+    fp_optimize_boxed,
+    fp_optimize_lex,
+    solve_fp_objective,
+)
 from aria.optimization.omtbv.bv_opt_iterative_search import (
     bv_opt_with_linear_search,
     bv_opt_with_binary_search,
@@ -17,7 +25,48 @@ from aria.optimization.omtbv.bv_opt_qsmt import bv_opt_with_qsmt
 from aria.optimization.omt_parser import OMTParser
 
 
-def solve_opt_file(filename: str, engine: str, solver_name: str) -> Optional[str]:
+def _solve_fp_opt_file(
+    filename: str, engine: str, solver_name: str, opt_priority: str
+) -> Optional[str]:
+    """Solve OMT(QF_FP) instances with IEEE-754 faithful semantics."""
+    logger = logging.getLogger(__name__)
+
+    parser = FPOMTParser()
+    parser.parse_with_z3(filename, is_file=True)
+    fml = cast(z3.ExprRef, z3.And(parser.assertions))
+
+    if len(parser.objectives) == 1:
+        result = solve_fp_objective(
+            fml,
+            parser.objectives[0],
+            minimize=parser.original_directions[0] == "min",
+            engine=engine,
+            solver_name=solver_name,
+        )
+        logger.info("FP optimization result: %s", result)
+        return None if result is None else format_fp_value(result)
+
+    if opt_priority == "box":
+        results = fp_optimize_boxed(
+            fml, parser.objectives, parser.original_directions, engine, solver_name
+        )
+        logger.info("FP boxed optimization results: %s", results)
+        return format_fp_values(results)
+    if opt_priority == "lex":
+        results = fp_optimize_lex(
+            fml, parser.objectives, parser.original_directions, engine, solver_name
+        )
+        logger.info("FP lex optimization results: %s", results)
+        return format_fp_values(results)
+    if opt_priority == "par":
+        raise ValueError("Pareto OMT(QF_FP) is not implemented")
+
+    raise ValueError(f"Unsupported FP optimization priority: {opt_priority}")
+
+
+def solve_opt_file(
+    filename: str, engine: str, solver_name: str, opt_priority: str = "box"
+) -> Optional[str]:
     """Interface for solving single-objective optimization problems.
 
     Args:
@@ -34,10 +83,18 @@ def solve_opt_file(filename: str, engine: str, solver_name: str) -> Optional[str
     """
     logger = logging.getLogger(__name__)
 
-    s = OMTParser()
-    s.parse_with_z3(filename, is_file=True)
-    fml = z3.And(s.assertions)
-    obj = s.objective
+    try:
+        s = OMTParser()
+        s.parse_with_z3(filename, is_file=True)
+        fml = cast(z3.ExprRef, z3.And(s.assertions))
+        obj = s.objective
+    except z3.Z3Exception as ex:
+        if "Objective must be bit-vector, integer or real" not in str(ex):
+            raise
+        return _solve_fp_opt_file(filename, engine, solver_name, opt_priority)
+
+    if obj is None:
+        raise ValueError("Expected a single optimization objective")
 
     if engine == "iter":
         solver_type = solver_name.split("-")[0]
@@ -213,7 +270,7 @@ def main() -> None:
     else:
         raise ValueError("Invalid engine specified")
 
-    solve_opt_file(args.filename, args.engine, solver)
+    solve_opt_file(args.filename, args.engine, solver, args.opt_priority)
 
 
 if __name__ == "__main__":
