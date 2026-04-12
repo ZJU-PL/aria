@@ -1,7 +1,7 @@
 # pyDatalog Examples
 
 These examples exercise the vendored `pyDatalog` runtime in `aria.datalog`,
-imported via `from aria.datalog import pyDatalog`.
+imported via `from aria.datalog import py_datalog`.
 
 They target the trimmed ARIA vendor rather than a full upstream mirror.
 

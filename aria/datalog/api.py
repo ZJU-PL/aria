@@ -10,10 +10,10 @@ from pathlib import Path
 import re
 from typing import Dict, Iterable, Iterator, List, Optional, Sequence, Tuple, Union
 
-from . import Aggregate
-from . import pyDatalog
-from . import pyEngine
-from . import pyParser
+from . import aggregate
+from . import py_datalog
+from . import py_engine
+from . import py_parser
 from . import util
 
 
@@ -158,7 +158,7 @@ class DatalogExpression(object):
 
     def __eq__(self, other) -> Goal:  # type: ignore[override]
         goal = self._inner == _unwrap(other)
-        if isinstance(self._inner, pyParser.Function):
+        if isinstance(self._inner, py_parser.Function):
             return Assignment(goal)
         return Goal(goal)
 
@@ -168,7 +168,7 @@ class Variable(DatalogExpression):
 
     def __init__(self, name: str, inner=None):
         self.name = name
-        super(Variable, self).__init__(inner or pyParser.Term(name))
+        super(Variable, self).__init__(inner or py_parser.Term(name))
 
     def values(self) -> List[object]:
         data = getattr(self._inner, "_data", [])
@@ -206,16 +206,16 @@ class AggregateBuilder(object):
     """Namespace of aggregate constructors for the Pythonic API."""
 
     @staticmethod
-    def count(value) -> Aggregate.Len:
-        return Aggregate.Len(_unwrap(value))
+    def count(value) -> aggregate.Len:
+        return aggregate.Len(_unwrap(value))
 
     @staticmethod
     def sum(
         value,
         *,
         for_each: Union[object, Sequence[object]],
-    ) -> Aggregate.Sum:
-        return Aggregate.Sum(
+    ) -> aggregate.Sum:
+        return aggregate.Sum(
             _unwrap(value),
             for_each=_unwrap_many(for_each),
         )
@@ -225,8 +225,8 @@ class AggregateBuilder(object):
         value,
         *,
         order_by: Union[object, Sequence[object]],
-    ) -> Aggregate.Min:
-        return Aggregate.Min(
+    ) -> aggregate.Min:
+        return aggregate.Min(
             _unwrap(value),
             order_by=_unwrap_many(order_by),
         )
@@ -236,8 +236,8 @@ class AggregateBuilder(object):
         value,
         *,
         order_by: Union[object, Sequence[object]],
-    ) -> Aggregate.Max:
-        return Aggregate.Max(
+    ) -> aggregate.Max:
+        return aggregate.Max(
             _unwrap(value),
             order_by=_unwrap_many(order_by),
         )
@@ -247,8 +247,8 @@ class AggregateBuilder(object):
         value,
         *,
         order_by: Union[object, Sequence[object]],
-    ) -> Aggregate.Tuple:
-        return Aggregate.Tuple(
+    ) -> aggregate.Tuple:
+        return aggregate.Tuple(
             _unwrap(value),
             order_by=_unwrap_many(order_by),
         )
@@ -259,8 +259,8 @@ class AggregateBuilder(object):
         *,
         order_by: Union[object, Sequence[object]],
         sep: str,
-    ) -> Aggregate.Concat:
-        return Aggregate.Concat(
+    ) -> aggregate.Concat:
+        return aggregate.Concat(
             _unwrap(value),
             order_by=_unwrap_many(order_by),
             sep=sep,
@@ -271,8 +271,8 @@ class AggregateBuilder(object):
         *,
         group_by: Union[object, Sequence[object]] = (),
         order_by: Union[object, Sequence[object]],
-    ) -> Aggregate.Rank:
-        return Aggregate.Rank(
+    ) -> aggregate.Rank:
+        return aggregate.Rank(
             None,
             group_by=_unwrap_many(group_by),
             order_by=_unwrap_many(order_by),
@@ -284,8 +284,8 @@ class AggregateBuilder(object):
         *,
         group_by: Union[object, Sequence[object]] = (),
         order_by: Union[object, Sequence[object]],
-    ) -> Aggregate.Running_sum:
-        return Aggregate.Running_sum(
+    ) -> aggregate.Running_sum:
+        return aggregate.Running_sum(
             _unwrap(value),
             group_by=_unwrap_many(group_by),
             order_by=_unwrap_many(order_by),
@@ -307,7 +307,7 @@ class Relation(object):
                 "Relation %s expects %d arguments, got %d."
                 % (self.name, self.arity, len(args))
             )
-        inner = pyParser.Literal.make(
+        inner = py_parser.Literal.make(
             self.name, tuple(_unwrap(arg) for arg in args), {}
         )
         return Atom(self, args, inner)
@@ -332,7 +332,7 @@ class Function(object):
                 % (self.name, self.arity, len(args))
             )
         return DatalogExpression(
-            pyParser.Function(self.name, tuple(_unwrap(arg) for arg in args))
+            py_parser.Function(self.name, tuple(_unwrap(arg) for arg in args))
         )
 
     def __repr__(self) -> str:
@@ -463,7 +463,7 @@ class Program(object):
             self.clear()
 
     def clear(self) -> None:
-        pyDatalog.clear()
+        py_datalog.clear()
         for relation in self._relations.values():
             self._register_relation(relation)
 
@@ -557,7 +557,7 @@ class Program(object):
         for name, arity in _collect_relation_specs(source, source_name="load"):
             self.relation(name, arity)
         try:
-            pyDatalog.load(source)
+            py_datalog.load(source)
         except util.DatalogError as exc:
             raise _translate_datalog_error(exc, source, source_name="load")
         except SyntaxError as exc:
@@ -574,7 +574,7 @@ class Program(object):
         ):
             self.relation(name, arity)
         try:
-            pyDatalog.load(normalized)
+            py_datalog.load(normalized)
         except util.DatalogError as exc:
             raise _translate_datalog_error(
                 exc,
@@ -594,7 +594,7 @@ class Program(object):
 
         source = _normalize_source(code)
         try:
-            raw = pyDatalog.ask(source)
+            raw = py_datalog.ask(source)
         except util.DatalogError as exc:
             raise _translate_datalog_error(exc, source, source_name="ask")
         except SyntaxError as exc:
@@ -654,7 +654,7 @@ class Program(object):
         return rule
 
     def _register_relation(self, relation: Relation) -> None:
-        pyEngine.insert(pyEngine.Pred(relation.name, relation.arity))
+        py_engine.insert(py_engine.Pred(relation.name, relation.arity))
 
 
 def vars_(names: Union[str, Iterable[str]]) -> Tuple[Variable, ...]:

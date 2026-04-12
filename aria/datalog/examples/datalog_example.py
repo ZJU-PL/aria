@@ -1,14 +1,14 @@
-from aria.datalog import pyDatalog
+from aria.datalog import py_datalog
 
-pyDatalog.create_atoms("salary", "manager")
-pyDatalog.create_atoms(
+py_datalog.create_atoms("salary", "manager")
+py_datalog.create_atoms(
     "salary_class", "indirect_manager", "report_count", "budget", "lowest",
     "X", "Y", "Z", "N"
 )
 
 
 def main() -> None:
-    pyDatalog.clear()
+    py_datalog.clear()
 
     +(salary["John"] == 6800)
     +(manager["Mary"] == "John")

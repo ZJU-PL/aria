@@ -1,13 +1,23 @@
 """Datalog-related functionality for ARIA."""
 
 from . import version
-from . import Logic as _logic_module
+from . import aggregate
+from . import logic as _logic_module
+from . import py_engine
+from . import py_parser
+from . import user_list
 
 Logic = _logic_module.Logic
+logic = _logic_module
 Logic().clear()
 
-from . import Aggregate
-from . import UserList
+from . import py_datalog
+
+Aggregate = aggregate
+UserList = user_list
+pyDatalog = py_datalog
+pyEngine = py_engine
+pyParser = py_parser
 from .api import (
     DatalogParseError,
     DatalogAPIError,
@@ -20,9 +30,6 @@ from .api import (
     Variable,
     vars_,
 )
-from . import pyDatalog
-from . import pyEngine
-from . import pyParser
 from . import util
 
 __all__ = [
@@ -38,9 +45,15 @@ __all__ = [
     "UndefinedPredicateError",
     "UserList",
     "Variable",
+    "aggregate",
+    "logic",
+    "py_datalog",
+    "py_engine",
+    "py_parser",
     "pyDatalog",
     "pyEngine",
     "pyParser",
+    "user_list",
     "util",
     "vars_",
     "version",

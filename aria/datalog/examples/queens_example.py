@@ -1,13 +1,13 @@
 import time
 
-from aria.datalog import pyDatalog
+from aria.datalog import py_datalog
 
-pyDatalog.create_terms(
+py_datalog.create_terms(
     "ok, queens, next_queen, X0, X1, X2, X3, X4, X5, X6, X7, N"
 )
 
 
-@pyDatalog.program()
+@py_datalog.program()
 def _() -> None:
     ok(X1, N, X2) <= (X1 != X2) & (X1 != X2 + N) & (X1 != X2 - N)
 

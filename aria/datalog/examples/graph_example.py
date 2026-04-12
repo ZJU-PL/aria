@@ -1,10 +1,10 @@
-from aria.datalog import pyDatalog
+from aria.datalog import py_datalog
 
 
 def main() -> None:
-    pyDatalog.clear()
+    py_datalog.clear()
 
-    @pyDatalog.program()
+    @py_datalog.program()
     def _() -> None:
         +link(1, 2)
         +link(2, 3)
@@ -37,7 +37,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    pyDatalog.create_terms(
+    py_datalog.create_terms(
         "link, can_reach, path_with_cost, shortest_path, X, Y, Z, P, P2, C, C2"
     )
     main()

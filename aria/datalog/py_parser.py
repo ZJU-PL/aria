@@ -64,9 +64,9 @@ import threading
 PY3 = sys.version_info[0] == 3
 func_code = '__code__' if PY3 else 'func_code'
 
-from . import pyEngine
+from . import py_engine
+from . import user_list
 from . import util
-from . import UserList
 
 # global variable to differentiate between in-line queries and pyDatalog program / ask
 Thread_storage = threading.local()
@@ -77,7 +77,7 @@ def clear():
     
 """                             Parser classes                                                   """
 
-class LazyList(UserList.UserList):
+class LazyList(user_list.UserList):
     """a subclassable list that is populated when it is accessed """
     """used by Literal, Body, Variable to delay evaluation of datalog queries written in python  """
     """ during debugging, beware that viewing a Lazylist will force its udpate""" 
@@ -138,7 +138,7 @@ class Expression(object):
     @classmethod
     def _pyD_for(cls, operand):
         """ factory that converts an operand to an Expression """
-        from .Aggregate import Aggregate
+        from .aggregate import Aggregate
         if isinstance(operand, (Expression, Aggregate)):
             return operand
         if isinstance(operand, type(lambda: None)) and (operand.__name__ if PY3 else operand.func_name) == '<lambda>':
@@ -247,7 +247,7 @@ class Term(threading.local, Expression, LazyList):
             self._pyD_value = list(map(Expression._pyD_for, name))
             self._pyD_name = util.unicode_type([element._pyD_name for element in self._pyD_value])
             self._pyD_type = 'tuple'
-            self._pyD_lua = pyEngine.Term_of([e._pyD_lua for e in self._pyD_value])
+            self._pyD_lua = py_engine.Term_of([e._pyD_lua for e in self._pyD_value])
             self._pyD_precalculations = pre_calculations(self._pyD_value)
         elif forced_type=="constant" or isinstance(name, (int, float, bool)) \
         or name is None \
@@ -255,22 +255,22 @@ class Term(threading.local, Expression, LazyList):
             self._pyD_value = name
             self._pyD_name = util.unicode_type(name)
             self._pyD_type = 'constant'
-            self._pyD_lua = pyEngine.Term_of(name)
+            self._pyD_lua = py_engine.Term_of(name)
         else:
             self._pyD_value = name
             self._pyD_name = name
             self._pyD_type = 'variable'
             index = name.find('.')
             if 0 < index:
-                self._pyD_lua = pyEngine.Operation(pyEngine.Var(name[:index]), '.',  pyEngine.Const(name[index:]))
+                self._pyD_lua = py_engine.Operation(py_engine.Var(name[:index]), '.',  py_engine.Const(name[index:]))
             else:
-                self._pyD_lua = pyEngine.Var(name) 
+                self._pyD_lua = py_engine.Var(name) 
 
     @classmethod
     def make_for_prefix(cls, name): #prefixed #call
         """ returns either '_pyD_class' or the prefix"""
         prefix = name.split('.')[0]
-        if prefix in pyEngine.Class_dict or prefix not in Thread_storage.variables:
+        if prefix in py_engine.Class_dict or prefix not in Thread_storage.variables:
             return Term('_pyD_class', forced_type='constant')
         return Term(prefix)
 
@@ -336,7 +336,7 @@ class Term(threading.local, Expression, LazyList):
 
     def __call__ (self, *args, **kwargs):
         """ called when evaluating p(args) """
-        from . import Aggregate
+        from . import aggregate
         if self._pyD_name == 'ask': # call ask() and return an answer
             if 1<len(args):
                 raise RuntimeError('Too many arguments for ask !')
@@ -345,34 +345,34 @@ class Term(threading.local, Expression, LazyList):
         # manage the aggregate functions
         elif self._pyD_name in ('_sum', 'sum_'):
             if isinstance(args[0], Term):
-                return Aggregate.Sum(args[0], for_each=kwargs.get('for_each', kwargs.get('key', [])))
+                return aggregate.Sum(args[0], for_each=kwargs.get('for_each', kwargs.get('key', [])))
             else:
                 return sum(args)
         elif self._pyD_name in ('concat', 'concat_'):
-            return Aggregate.Concat(args[0], order_by=kwargs.get('order_by',kwargs.get('key', [])), sep=kwargs['sep'])
+            return aggregate.Concat(args[0], order_by=kwargs.get('order_by',kwargs.get('key', [])), sep=kwargs['sep'])
         elif self._pyD_name in ('_min', 'min_'):
             if isinstance(args[0], Term):
-                return Aggregate.Min(args[0], order_by=kwargs.get('order_by',kwargs.get('key', [])),)
+                return aggregate.Min(args[0], order_by=kwargs.get('order_by',kwargs.get('key', [])),)
             else:
                 return min(args)
         elif self._pyD_name in ('_max', 'max_'):
             if isinstance(args[0], Term):
-                return Aggregate.Max(args[0], order_by=kwargs.get('order_by',kwargs.get('key', [])),)
+                return aggregate.Max(args[0], order_by=kwargs.get('order_by',kwargs.get('key', [])),)
             else:
                 return max(args)
         elif self._pyD_name in ('rank', 'rank_'):
-            return Aggregate.Rank(None, group_by=kwargs.get('group_by', []), order_by=kwargs.get('order_by', []))
+            return aggregate.Rank(None, group_by=kwargs.get('group_by', []), order_by=kwargs.get('order_by', []))
         elif self._pyD_name in ('running_sum', 'running_sum_'):
-            return Aggregate.Running_sum(args[0], group_by=kwargs.get('group_by', []), order_by=kwargs.get('order_by', []))
+            return aggregate.Running_sum(args[0], group_by=kwargs.get('group_by', []), order_by=kwargs.get('order_by', []))
         elif self._pyD_name == 'tuple_':
-            return Aggregate.Tuple(args[0], order_by=kwargs.get('order_by', []))
+            return aggregate.Tuple(args[0], order_by=kwargs.get('order_by', []))
         elif self._pyD_name == 'mean_':
-            return Aggregate.Mean(args[0], for_each=kwargs.get('for_each', []))
+            return aggregate.Mean(args[0], for_each=kwargs.get('for_each', []))
         elif self._pyD_name == 'linear_regression_':
-            return Aggregate.Linear_regression(args[0], for_each=kwargs.get('for_each', []))
+            return aggregate.Linear_regression(args[0], for_each=kwargs.get('for_each', []))
         elif self._pyD_name in ('_len', 'len_'):
             if isinstance(args[0], Term):
-                return Aggregate.Len(args[0])
+                return aggregate.Len(args[0])
             else: 
                 return len(args[0]) 
         elif self._pyD_name == 'range_':
@@ -381,7 +381,7 @@ class Term(threading.local, Expression, LazyList):
             return Operation(args[0], '%', args[1:])
         elif '.' in self._pyD_name: #call
             pre_term = (Term.make_for_prefix(self._pyD_name), ) #prefixed
-            if pyEngine.Pred.is_known('%s/%i' % (self._pyD_name, len(args)+1)):
+            if py_engine.Pred.is_known('%s/%i' % (self._pyD_name, len(args)+1)):
                 return Literal.make(self._pyD_name, pre_term + tuple(args), kwargs)
             return Call(self._pyD_name, pre_term + tuple(args), kwargs)
         else: # create a literal
@@ -441,7 +441,7 @@ class Operation(Expression):
         self._pyD_operator = operator
         self._pyD_lhs = Expression._pyD_for(lhs) # left  hand side
         self._pyD_rhs = Expression._pyD_for(rhs)
-        self._pyD_lua = pyEngine.Operation(self._pyD_lhs._pyD_lua, self._pyD_operator, self._pyD_rhs._pyD_lua)
+        self._pyD_lua = py_engine.Operation(self._pyD_lhs._pyD_lua, self._pyD_operator, self._pyD_rhs._pyD_lua)
         self._pyD_precalculations = pre_calculations((self._pyD_lhs, self._pyD_rhs)) #TODO test for slice, len
         
     @property
@@ -466,7 +466,7 @@ class Literal(object):
     operator '<=' means 'is true if', and creates a Clause
     """
     def __init__(self, predicate_name, args, kwargs, prearity=None, aggregate=None):
-        from .Aggregate import Aggregate
+        from .aggregate import Aggregate
         t = sorted(kwargs.items()) if kwargs is not None else ()
         self.predicate_name = '_'.join([predicate_name]+[p[0] for p in t])
         self.args = list(args) + [p[1] for p in t]
@@ -476,7 +476,7 @@ class Literal(object):
         self.todo = self
         
         cls_name = self.predicate_name.split('.')[0].replace('~','') if 1< len(self.predicate_name.split('.')) else ''
-        if pyEngine.Class_dict.get(cls_name) and 2 <= len(self.args) and not isinstance(self.args[1], Term) \
+        if py_engine.Class_dict.get(cls_name) and 2 <= len(self.args) and not isinstance(self.args[1], Term) \
                 and cls_name not in [c.__name__ for c in self.args[1].__class__.__mro__]:
             raise TypeError("Object is incompatible with the class that is queried.") #prefixed
 
@@ -497,7 +497,7 @@ class Literal(object):
             
         tbl = [a._pyD_lua for a in self.terms]
         # now create the literal for the head of a clause
-        self.lua = pyEngine.Literal(self.predicate_name, tbl, self.prearity, aggregate)
+        self.lua = py_engine.Literal(self.predicate_name, tbl, self.prearity, aggregate)
         # TODO check that l.pred.aggregate is empty
 
     @classmethod
@@ -512,7 +512,7 @@ class Literal(object):
     @classmethod
     def make_for_comparison(cls, self, operator, other):
         """ factory of Literal (or Body) for a comparison. """
-        from .Aggregate import Aggregate
+        from .aggregate import Aggregate
         other = Expression._pyD_for(other)
         if isinstance(other, Function) and operator == '==':
             self, other = other, self
@@ -548,7 +548,7 @@ class Literal(object):
         Thread_storage.variables = set([]) #call reset the list of variables
         body = body.as_literal if isinstance(body, Call) else body #call
         if body is None:
-            pyEngine.remove(self.lua.pred)
+            py_engine.remove(self.lua.pred)
         elif not isinstance(body, (Literal, Body)):
                 raise util.DatalogError("Invalid body for clause", None, None)
         else:
@@ -582,15 +582,15 @@ class Query(Literal, LazyListOfList):
         " unary + means insert into database as fact "
         if self._variables():
             raise util.DatalogError("Cannot assert a fact containing Variables", None, None)
-        clause = pyEngine.Clause(self.lua, [])
-        pyEngine.assert_(clause)
+        clause = py_engine.Clause(self.lua, [])
+        py_engine.assert_(clause)
 
     def __neg__(self):
         " unary - means retract fact from database "
         if self._variables():
             raise util.DatalogError("Cannot retract a fact containing Variables", None, None)
-        clause = pyEngine.Clause(self.lua, [])
-        pyEngine.retract(clause)
+        clause = py_engine.Clause(self.lua, [])
+        py_engine.retract(clause)
         
     def __invert__(self):
         """unary ~ means negation """
@@ -708,8 +708,8 @@ def add_clause(head,body):
         tbl = [a.lua for a in body.literals]
     else: # body is a literal
         tbl = [body.lua,]
-    clause = pyEngine.Clause(head.lua, tbl)
-    result = pyEngine.assert_(clause)
+    clause = py_engine.Clause(head.lua, tbl)
+    result = py_engine.assert_(clause)
     if not result: 
         raise util.DatalogError("Can't create clause", None, None)
     return result
@@ -856,7 +856,7 @@ class Answer(object):
             answer = Answer('_pyD_query', len(answers), answers)
         else:
             answer = None
-        if pyEngine.Auto_print: 
+        if py_engine.Auto_print: 
             print(answers)
         return answer        
 

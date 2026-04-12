@@ -40,14 +40,14 @@ except:
         return sum(aList) / len(aList)
 
 from . import util
-from . import pyEngine
-from .pyParser import Expression, Literal, Term, Operation, add_clause
+from . import py_engine
+from .py_parser import Expression, Literal, Operation, Term, add_clause
 
 class Aggregate(object):
     """ 
     represents a generic aggregation_method(X, for_each=Y, order_by=Z, sep=sep)
     e.g. 'sum(Y,key=Z)' in '(a[X]==sum(Y,key=Z))'
-    pyEngine calls sort_result(), key(), reset(), add() and fact() to compute the aggregate
+    py_engine calls sort_result(), key(), reset(), add() and fact() to compute the aggregate
     """
     counter = util.Counter()
     

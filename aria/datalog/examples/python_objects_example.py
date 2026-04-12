@@ -1,9 +1,9 @@
-from aria.datalog import pyDatalog
+from aria.datalog import py_datalog
 
-pyDatalog.create_terms("X, Y")
+py_datalog.create_terms("X, Y")
 
 
-class Employee(pyDatalog.Mixin):
+class Employee(py_datalog.Mixin):
     def __init__(self, name: str, manager, salary: int):
         super(Employee, self).__init__()
         self.name = name
@@ -13,7 +13,7 @@ class Employee(pyDatalog.Mixin):
     def __repr__(self) -> str:
         return self.name
 
-    @pyDatalog.program()
+    @py_datalog.program()
     def Employee(self):
         Employee.salary_class[X] = Employee.salary[X] // 1000
         Employee.indirect_manager(X, Y) <= (Employee.manager[X] == Y) & (

@@ -2,7 +2,7 @@
 
 This directory contains the flattened vendored `pyDatalog` runtime for ARIA.
 
-- Import path: `from aria.datalog import pyDatalog`
+- Import path: `from aria.datalog import py_datalog`
 - New Pythonic API: `from aria.datalog import Program`
 - Examples:
   [aria/datalog/examples](/Users/rainoftime/Work/logic/aria/aria/datalog/examples)
@@ -158,7 +158,7 @@ Design notes:
 - Each `Program` now snapshots and restores the vendored thread-local engine
   state around every operation, so multiple `Program` instances can coexist in
   one thread without clobbering each other's facts and rules.
-- Advanced users can keep using `pyDatalog` directly for aggregates, mixins, and
+- Advanced users can keep using `py_datalog` directly for aggregates, mixins, and
   lower-level engine access.
 - Querying an undeclared predicate now raises `UndefinedPredicateError` instead
   of silently returning an empty result. A declared relation with no facts or

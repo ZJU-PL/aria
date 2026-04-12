@@ -1,10 +1,10 @@
-from aria.datalog import pyDatalog
+from aria.datalog import py_datalog
 
-pyDatalog.create_terms("parent, ancestor, manager, bill, X, Y, Z, N, F, factorial")
+py_datalog.create_terms("parent, ancestor, manager, bill, X, Y, Z, N, F, factorial")
 
 
 def main() -> None:
-    pyDatalog.clear()
+    py_datalog.clear()
 
     +parent(bill, "John Adams")
     +parent("John Adams", "Sam Adams")
