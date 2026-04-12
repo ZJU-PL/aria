@@ -7,7 +7,7 @@ import z3
 
 from aria.sampling.base import Logic, SamplingMethod, SamplingOptions
 from aria.sampling.factory import create_sampler, sample_models_from_formula
-from aria.sampling.linear_ira.adt_lia_sampler import ADTLIASampler
+from aria.sampling.dtlia import ADTLIASampler
 
 
 def _make_maybe_int(name: str) -> z3.DatatypeSortRef:

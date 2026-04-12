@@ -15,7 +15,7 @@ from aria.sampling.finite_domain.fp.hash_sampler import HashBasedFPSampler
 from aria.sampling.finite_domain.fp.total_order_sampler import TotalOrderFPSampler
 from aria.sampling.finite_domain.uf.base import UninterpretedFunctionSampler
 from aria.sampling.finite_domain.ufdt.base import MixedUFDatatypeSampler
-from aria.sampling.linear_ira.adt_lia_sampler import ADTLIASampler
+from aria.sampling.dtlia import ADTLIASampler
 from aria.sampling.linear_ira.lira_sampler import LIRASampler
 from aria.sampling.general_sampler.mcmc_sampler import MCMCSampler
 

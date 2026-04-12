@@ -2,7 +2,7 @@
 Sampler for formulas mixing algebraic datatypes and linear integer arithmetic.
 """
 
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, cast
 
 import z3
 
@@ -18,10 +18,13 @@ from aria.sampling.finite_domain.common import (
     enumerate_projected_models,
 )
 from aria.utils.z3.expr import get_variables, is_int_sort
-from .shape_sampler import (
-    enumerate_datatype_shapes,
+
+from .candidate_selector import (
     select_coverage_guided_subset,
     select_max_distance_subset,
+)
+from .shape_enumerator import (
+    enumerate_datatype_shapes,
 )
 
 
@@ -64,19 +67,20 @@ class ADTLIASampler(Sampler):
     def sample(self, options: SamplingOptions) -> SamplingResult:
         if self.formula is None:
             raise ValueError("Sampler not initialized with a formula")
+        formula = cast(z3.ExprRef, self.formula)
 
         if options.method == SamplingMethod.SEARCH_TREE:
             return self._sample_via_shapes(options)
 
         datatype_terms = collect_datatype_observable_terms(
-            self.formula,
+            formula,
             include_selector_closure=bool(
                 options.additional_options.get("include_selector_closure", False)
             ),
         )
         tracked_terms = _dedupe_sorted_terms(self.int_variables + datatype_terms)
         return enumerate_projected_models(
-            self.formula,
+            formula,
             options,
             tracked_terms,
             default_terms=self.default_terms,
@@ -89,6 +93,10 @@ class ADTLIASampler(Sampler):
         return {Logic.QF_DTLIA}
 
     def _sample_via_shapes(self, options: SamplingOptions) -> SamplingResult:
+        if self.formula is None:
+            raise ValueError("Sampler not initialized with a formula")
+        formula = cast(z3.ExprRef, self.formula)
+
         include_selector_closure = bool(
             options.additional_options.get("include_selector_closure", False)
         )
@@ -100,7 +108,7 @@ class ADTLIASampler(Sampler):
         tracked_terms = _dedupe_sorted_terms(
             self.int_variables
             + collect_datatype_observable_terms(
-                self.formula,
+                formula,
                 include_selector_closure=include_selector_closure,
             )
         )
@@ -114,7 +122,7 @@ class ADTLIASampler(Sampler):
         )
 
         shapes = enumerate_datatype_shapes(
-            self.formula,
+            formula,
             self.datatype_roots,
             max_shapes=max_shapes,
             random_seed=options.random_seed,
@@ -122,7 +130,7 @@ class ADTLIASampler(Sampler):
         )
         if not shapes:
             return enumerate_projected_models(
-                self.formula,
+                formula,
                 SamplingOptions(
                     method=SamplingMethod.ENUMERATION,
                     num_samples=options.num_samples,
@@ -141,10 +149,9 @@ class ADTLIASampler(Sampler):
         candidate_shape_signatures: List[str] = []
 
         for shape in shapes:
-            residual_formula = (
-                z3.And(self.formula, *shape.constraints)
-                if shape.constraints
-                else self.formula
+            residual_formula = cast(
+                z3.ExprRef,
+                z3.And(formula, *shape.constraints) if shape.constraints else formula,
             )
             residual_tracked_terms = _dedupe_sorted_terms(
                 self.int_variables

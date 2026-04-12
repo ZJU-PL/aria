@@ -137,7 +137,7 @@ coverage_result = sample_models_from_formula(
 )
 ```
 
-`QF_DTLIA` now supports two practical modes:
+`QF_DTLIA` now supports two practical modes via `aria.sampling.dtlia`:
 
 - `ENUMERATION`: direct projected model enumeration over integer variables and
   datatype observables

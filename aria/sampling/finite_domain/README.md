@@ -263,6 +263,7 @@ class MyNewSampler(Sampler):
 ## Related Directories
 
 - `../general_sampler/`: General-purpose samplers (MCMC, search tree, region-based)
+- `../dtlia/`: Samplers for datatype + linear integer arithmetic (QF_DTLIA)
 - `../linear_ira/`: Samplers for linear integer/real arithmetic (QF_LIA, QF_LRA)
 - `../nonlinear_ira/`: Samplers for non-linear arithmetic (QF_NRA, QF_NIA)
 - `../base.py`: Base classes and interfaces for all samplers
