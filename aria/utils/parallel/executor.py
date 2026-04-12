@@ -56,6 +56,8 @@ class ParallelExecutor:
     kill_pool_on_timeout: bool = False
 
     def __post_init__(self) -> None:
+        self._shutdown_requested = False
+        self._fast_shutdown = False
         if self.kind not in ("threads", "processes"):
             raise ValueError("kind must be 'threads' or 'processes'")
         if self.logger is None:
@@ -91,6 +93,12 @@ class ParallelExecutor:
     def shutdown(
         self, wait_for_completion: bool = True, cancel_futures: bool = False
     ) -> None:
+        if self._shutdown_requested:
+            return
+        if self._fast_shutdown:
+            wait_for_completion = False
+            cancel_futures = True
+        self._shutdown_requested = True
         self._pool.shutdown(wait=wait_for_completion, cancel_futures=cancel_futures)
 
     def run(
@@ -108,16 +116,21 @@ class ParallelExecutor:
         order even when tasks finish out of order.
         """
         futures = [self.submit(fn, item) for item in items]
-        return _gather_results(
-            futures,
-            timeout=timeout,
-            logger=self.logger,
-            cancel_on_error=self.cancel_on_error,
-            kill_pool_on_timeout=self.kill_pool_on_timeout,
-            on_timeout=self._terminate_pool,
-            return_exceptions=return_exceptions,
-            preserve_order=preserve_order,
-        )
+        try:
+            return _gather_results(
+                futures,
+                timeout=timeout,
+                logger=self.logger,
+                cancel_on_error=self.cancel_on_error,
+                kill_pool_on_timeout=self.kill_pool_on_timeout,
+                on_timeout=self._terminate_pool,
+                on_timeout_return=self._mark_fast_shutdown,
+                return_exceptions=return_exceptions,
+                preserve_order=preserve_order,
+            )
+        except Exception:
+            self._fast_shutdown = True
+            raise
 
     def _terminate_pool(self) -> None:
         kill_workers = getattr(self._pool, "kill_workers", None)
@@ -131,6 +144,9 @@ class ParallelExecutor:
             return
 
         self.shutdown(wait_for_completion=False, cancel_futures=True)
+
+    def _mark_fast_shutdown(self) -> None:
+        self._fast_shutdown = True
 
     # Optional context manager convenience
     def __enter__(self) -> "ParallelExecutor":
@@ -182,16 +198,21 @@ def run_tasks(
     )
     try:
         futures = [ex.submit(fn, *args, **kwargs) for fn, args, kwargs in tasks]
-        return _gather_results(
-            futures,
-            timeout=timeout,
-            logger=ex.logger,
-            cancel_on_error=ex.cancel_on_error,
-            kill_pool_on_timeout=ex.kill_pool_on_timeout,
-            on_timeout=ex._terminate_pool,
-            return_exceptions=False,
-            preserve_order=True,
-        )
+        try:
+            return _gather_results(
+                futures,
+                timeout=timeout,
+                logger=ex.logger,
+                cancel_on_error=ex.cancel_on_error,
+                kill_pool_on_timeout=ex.kill_pool_on_timeout,
+                on_timeout=ex._terminate_pool,
+                on_timeout_return=ex._mark_fast_shutdown,
+                return_exceptions=False,
+                preserve_order=True,
+            )
+        except Exception:
+            ex._fast_shutdown = True
+            raise
     finally:
         ex.shutdown()
 
@@ -223,6 +244,7 @@ def _gather_results(
     cancel_on_error: bool,
     kill_pool_on_timeout: bool,
     on_timeout: Optional[Callable[[], None]],
+    on_timeout_return: Optional[Callable[[], None]],
     return_exceptions: bool,
     preserve_order: bool,
 ) -> List:
@@ -260,6 +282,8 @@ def _gather_results(
                     on_timeout()
                 raise TimeoutError("parallel execution timed out")
             if return_exceptions:
+                if on_timeout_return is not None:
+                    on_timeout_return()
                 for idx in pending.values():
                     exc = TimeoutError("parallel execution timed out")
                     results[idx] = exc

@@ -10,10 +10,57 @@ from collections import defaultdict
 import logging
 import queue
 import threading
+import time
 from dataclasses import dataclass, field
-from typing import Any, Callable, DefaultDict, Dict, List, Sequence, Tuple
+from typing import Any, Callable, DefaultDict, Dict, List, Optional, Sequence, Tuple
 
 from .executor import ParallelExecutor
+
+
+class _ClosableQueue(queue.Queue):
+    """Queue that can interrupt blocked publishers during shutdown."""
+
+    def __init__(self, maxsize: int = 0) -> None:
+        super().__init__(maxsize=maxsize)
+        self._closed = False
+
+    def close(self) -> None:
+        with self.mutex:
+            self._closed = True
+            self.not_empty.notify_all()
+            self.not_full.notify_all()
+
+    def put(
+        self, item: Any, block: bool = True, timeout: Optional[float] = None
+    ) -> None:
+        with self.not_full:
+            if self._closed:
+                raise RuntimeError("dataflow queue closed")
+
+            if self.maxsize > 0:
+                if not block:
+                    if self._qsize() >= self.maxsize:
+                        raise queue.Full
+                elif timeout is None:
+                    while self._qsize() >= self.maxsize:
+                        if self._closed:
+                            raise RuntimeError("dataflow queue closed")
+                        self.not_full.wait(timeout=0.05)
+                elif timeout < 0:
+                    raise ValueError("'timeout' must be a non-negative number")
+                else:
+                    endtime = time.monotonic() + timeout
+                    while self._qsize() >= self.maxsize:
+                        if self._closed:
+                            raise RuntimeError("dataflow queue closed")
+                        remaining = endtime - time.monotonic()
+                        if remaining <= 0.0:
+                            raise queue.Full
+                        self.not_full.wait(timeout=min(remaining, 0.05))
+
+            self._put(item)
+            self.unfinished_tasks += 1
+            self.not_empty.notify()
 
 
 @dataclass
@@ -29,7 +76,6 @@ class Dataflow:
     def __init__(self) -> None:
         self.nodes: Dict[str, Node] = {}
         self.queues: Dict[str, int] = {}
-        self.threads: List[threading.Thread] = []
         self._logger = logging.getLogger("aria.parallel.dataflow")
         self._sentinel = object()
         self._sources: DefaultDict[str, List[List[Any]]] = defaultdict(list)
@@ -57,25 +103,25 @@ class Dataflow:
     def _build_runtime(
         self,
     ) -> Tuple[
-        Dict[str, List[queue.Queue]],
-        Dict[str, List[queue.Queue]],
+        Dict[str, List[_ClosableQueue]],
+        Dict[str, List[_ClosableQueue]],
         Dict[str, int],
-        List[Tuple[str, List[Any], queue.Queue]],
+        List[Tuple[str, List[Any], _ClosableQueue]],
     ]:
-        subscribers: DefaultDict[str, List[queue.Queue]] = defaultdict(list)
-        node_inputs: Dict[str, List[queue.Queue]] = {}
-        sinks: List[Tuple[str, List[Any], queue.Queue]] = []
+        subscribers: DefaultDict[str, List[_ClosableQueue]] = defaultdict(list)
+        node_inputs: Dict[str, List[_ClosableQueue]] = {}
+        sinks: List[Tuple[str, List[Any], _ClosableQueue]] = []
 
         for node in self.nodes.values():
-            inboxes: List[queue.Queue] = []
+            inboxes: List[_ClosableQueue] = []
             for qn in node.inputs:
-                inbox = queue.Queue(maxsize=self.queues.get(qn, 1024))
+                inbox = _ClosableQueue(maxsize=self.queues.get(qn, 1024))
                 subscribers[qn].append(inbox)
                 inboxes.append(inbox)
             node_inputs[node.name] = inboxes
 
         for queue_name, collector in self._sinks:
-            inbox = queue.Queue(maxsize=self.queues.get(queue_name, 1024))
+            inbox = _ClosableQueue(maxsize=self.queues.get(queue_name, 1024))
             subscribers[queue_name].append(inbox)
             sinks.append((queue_name, collector, inbox))
 
@@ -89,51 +135,86 @@ class Dataflow:
         return dict(subscribers), node_inputs, dict(producer_counts), sinks
 
     def _publish(
-        self, subscribers: Dict[str, List[queue.Queue]], queue_name: str, item: Any
+        self,
+        subscribers: Dict[str, List[_ClosableQueue]],
+        queue_name: str,
+        item: Any,
     ) -> None:
         for inbox in subscribers.get(queue_name, []):
-            inbox.put(item)
+            try:
+                inbox.put(item)
+            except RuntimeError:
+                continue
 
-    def _start_source_threads(self, subscribers: Dict[str, List[queue.Queue]]) -> None:
+    def _start_source_threads(
+        self,
+        subscribers: Dict[str, List[_ClosableQueue]],
+        threads: List[threading.Thread],
+        stop_event: threading.Event,
+    ) -> None:
         for queue_name, source_batches in self._sources.items():
             for items in source_batches:
 
                 def source_loop(name: str = queue_name, batch: Sequence[Any] = items) -> None:
                     for item in batch:
+                        if stop_event.is_set():
+                            return
                         self._publish(subscribers, name, item)
+                    if stop_event.is_set():
+                        return
                     self._publish(subscribers, name, self._sentinel)
 
                 t = threading.Thread(target=source_loop, daemon=True)
-                self.threads.append(t)
+                threads.append(t)
                 t.start()
 
     def _start_sink_threads(
         self,
-        sinks: List[Tuple[str, List[Any], queue.Queue]],
+        sinks: List[Tuple[str, List[Any], _ClosableQueue]],
         producer_counts: Dict[str, int],
+        threads: List[threading.Thread],
+        stop_event: threading.Event,
     ) -> None:
         for queue_name, collector, inbox in sinks:
 
             def sink_loop(
                 name: str = queue_name,
                 sink_collector: List[Any] = collector,
-                sink_inbox: queue.Queue = inbox,
+                sink_inbox: _ClosableQueue = inbox,
             ) -> None:
                 remaining = producer_counts.get(name, 0)
-                while remaining > 0:
-                    item = sink_inbox.get()
+                while remaining > 0 and not stop_event.is_set():
+                    try:
+                        item = sink_inbox.get(timeout=0.05)
+                    except queue.Empty:
+                        continue
                     if item is self._sentinel:
                         remaining -= 1
                         continue
                     sink_collector.append(item)
 
             t = threading.Thread(target=sink_loop, daemon=True)
-            self.threads.append(t)
+            threads.append(t)
             t.start()
 
     def run(self) -> None:
+        threads: List[threading.Thread] = []
+        node_error: List[BaseException] = []
+        error_lock = threading.Lock()
+        stop_event = threading.Event()
         subscribers, node_inputs, producer_counts, sinks = self._build_runtime()
-        self._start_sink_threads(sinks, producer_counts)
+
+        def stop_flow(exc: BaseException) -> None:
+            with error_lock:
+                if node_error:
+                    return
+                node_error.append(exc)
+                stop_event.set()
+            for subscriber_group in subscribers.values():
+                for inbox in subscriber_group:
+                    inbox.close()
+
+        self._start_sink_threads(sinks, producer_counts, threads, stop_event)
 
         # Start each node thread that pulls from inputs and pushes to outputs.
         for node in self.nodes.values():
@@ -146,8 +227,8 @@ class Dataflow:
                 idx = 0
 
                 with ParallelExecutor(kind="threads", max_workers=n.parallelism) as ex:
-                    while not all(closed) or pending:
-                        if not all(closed) and in_qs:
+                    while (not all(closed) or pending) and not stop_event.is_set():
+                        if not all(closed) and in_qs and not stop_event.is_set():
                             for _ in range(len(in_qs)):
                                 pos = idx % len(in_qs)
                                 idx += 1
@@ -174,19 +255,26 @@ class Dataflow:
                                 self._logger.exception(
                                     "dataflow node failed name=%s err=%s", n.name, exc
                                 )
+                                ex._fast_shutdown = True
+                                stop_flow(exc)
                             else:
                                 for queue_name in n.outputs:
                                     self._publish(subscribers, queue_name, result)
                             pending.remove(future)
 
+                    ex._fast_shutdown = ex._fast_shutdown or stop_event.is_set()
+
                 for queue_name in n.outputs:
                     self._publish(subscribers, queue_name, self._sentinel)
 
             t = threading.Thread(target=node_loop, daemon=True)
-            self.threads.append(t)
+            threads.append(t)
             t.start()
 
-        self._start_source_threads(subscribers)
+        self._start_source_threads(subscribers, threads, stop_event)
 
-        for t in self.threads:
+        for t in threads:
             t.join()
+
+        if node_error:
+            raise node_error[0]

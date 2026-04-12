@@ -11,7 +11,7 @@ import collections
 import functools
 import subprocess
 import sys
-from typing import Any, TextIO, cast
+from typing import Any, Awaitable, Callable, TextIO, cast
 
 
 async def forward_and_return_data(
@@ -51,7 +51,7 @@ async def forward_and_return_data(
             # Ensure line has newline for consistent formatting
             if not line.endswith(b"\n"):
                 line += b"\n"
-            output.write(f"[{prefix}]{space}{line.decode('utf-8')}")
+            output.write(f"[{prefix}]{space}{line.decode('utf-8', errors='replace')}")
     return b"".join(blocks)
 
 
@@ -99,8 +99,11 @@ async def kill_process_async(
         except ProcessLookupError:
             # Process already gone
             return
-        # Wait up to wait_before_kill_secs for process to exit gracefully
-        await asyncio.wait_for(proc.wait(), wait_before_kill_secs)
+        try:
+            # Wait up to wait_before_kill_secs for process to exit gracefully
+            await asyncio.wait_for(proc.wait(), wait_before_kill_secs)
+        except asyncio.TimeoutError:
+            pass
 
         # Check if process exited during the wait
         if cast(int | None, proc.returncode) is not None:
@@ -112,6 +115,62 @@ async def kill_process_async(
     except ProcessLookupError:
         # Process already terminated, ignore
         pass
+    else:
+        try:
+            await proc.wait()
+        except ProcessLookupError:
+            pass
+
+
+async def _write_stdin_and_close(
+    proc: asyncio.subprocess.Process, input_data: bytes
+) -> None:
+    """Write subprocess stdin and close the pipe when present."""
+    if proc.stdin is None:
+        return
+
+    proc.stdin.write(input_data)
+    await proc.stdin.drain()
+    proc.stdin.close()
+    wait_closed = cast(
+        Callable[[], Awaitable[None]] | None, getattr(proc.stdin, "wait_closed", None)
+    )
+    if wait_closed is not None:
+        await wait_closed()
+
+
+async def _consume_process_output(
+    proc: asyncio.subprocess.Process,
+    *,
+    prefix: str | None,
+    input_data: bytes | None,
+) -> tuple[bytes, bytes, int]:
+    """Wait for a subprocess, optionally forwarding output and writing stdin."""
+    if prefix:
+        assert proc.stdout is not None
+        assert proc.stderr is not None
+        tasks = [
+            forward_and_return_data(sys.stdout, f"{prefix} stdout", proc.stdout),
+            forward_and_return_data(sys.stderr, f"{prefix} stderr", proc.stderr),
+            proc.wait(),
+        ]
+        if input_data is not None:
+            tasks.append(_write_stdin_and_close(proc, input_data))
+        gathered = await asyncio.gather(*tasks)
+        stdout = cast(bytes, gathered[0])
+        stderr = cast(bytes, gathered[1])
+        retcode = cast(int, gathered[2])
+        return stdout, stderr, retcode
+
+    if input_data is not None:
+        stdout, stderr = await proc.communicate(input=input_data)
+        retcode = cast(int, proc.returncode)
+        return stdout or b"", stderr or b"", retcode
+
+    stdout = b""
+    stderr = b""
+    retcode = await proc.wait()
+    return stdout, stderr, retcode
 
 
 @functools.wraps(asyncio.create_subprocess_exec)
@@ -247,29 +306,9 @@ async def check_call_async(
     )
 
     try:
-        if input is not None:
-            # Mode 1: Send input and wait for completion
-            stdout = b""
-            stderr = b""
-            await proc.communicate(input=input)
-            retcode = proc.returncode
-        elif prefix:
-            # Mode 2: Forward output with prefixes (concurrent forwarding)
-            assert proc.stdout is not None
-            assert proc.stderr is not None
-            # Run forwarding and waiting concurrently
-            stdout, stderr, retcode = await asyncio.gather(
-                forward_and_return_data(sys.stdout, f"{prefix} stdout", proc.stdout),
-                forward_and_return_data(sys.stderr, f"{prefix} stderr", proc.stderr),
-                proc.wait(),
-            )
-        else:
-            # Mode 3: Default - let process handle its own I/O or suppress it
-            assert proc.stdout is None
-            assert proc.stderr is None
-            stdout = b""
-            stderr = b""
-            retcode = await proc.wait()
+        stdout, stderr, retcode = await _consume_process_output(
+            proc, prefix=prefix, input_data=input
+        )
     finally:
         # Always ensure proper cleanup, even if an exception occurs
         await kill_process_async(proc, wait_before_kill_secs=wait_before_kill_secs)
