@@ -6,6 +6,7 @@ import logging
 import queue
 import threading
 import time
+from concurrent.futures import FIRST_COMPLETED, wait
 from dataclasses import dataclass
 from typing import Any, Callable, Iterable, List, Optional, Sequence
 
@@ -81,6 +82,9 @@ def pipeline(
 
     if not stages:
         return list(inputs)
+    for stage in stages:
+        if stage.parallelism <= 0:
+            raise ValueError("pipeline stage parallelism must be positive")
 
     queues = [_ClosableQueue(maxsize=queue_size) for _ in range(len(stages) + 1)]
 
@@ -101,8 +105,9 @@ def pipeline(
                     return
                 queues[0].put(item)
             queues[0].put(END_SENTINEL)
-        except RuntimeError:
-            pass
+        except BaseException as exc:
+            if not (error_event.is_set() and isinstance(exc, RuntimeError)):
+                stop_pipeline(exc)
 
     threads: List[threading.Thread] = []
     t_feed = threading.Thread(target=feeder, daemon=True)
@@ -120,36 +125,61 @@ def pipeline(
             in_queue=in_q,
             out_queue=out_q,
         ) -> None:
-            # Bind queues at definition time to avoid late-binding bugs across threads
-            with ParallelExecutor(kind=kind, max_workers=n.parallelism) as ex:
-                pending: set = set()
-                stop_seen = False
-                while (not stop_seen or pending) and not error_event.is_set():
-                    if not stop_seen and not error_event.is_set():
-                        try:
-                            item = in_queue.get(timeout=0.05)
-                        except queue.Empty:
-                            item = empty_marker
-                        if item is END_SENTINEL:
-                            stop_seen = True
-                        elif item is not empty_marker:
-                            pending.add(ex.submit(n.worker, item))
-                    done = {f for f in pending if f.done()}
-                    for fut in done:
-                        try:
-                            out_queue.put(fut.result())
-                        except Exception as exc:
-                            logger.error(
-                                "pipeline stage failure idx=%s err=%s", stage_idx, exc
-                            )
-                            ex._fast_shutdown = True
-                            stop_pipeline(exc)
-                        pending.remove(fut)
-                ex._fast_shutdown = ex._fast_shutdown or error_event.is_set()
             try:
-                out_queue.put(END_SENTINEL)
-            except RuntimeError:
-                pass
+                # Bind queues at definition time to avoid late-binding bugs across threads
+                with ParallelExecutor(kind=kind, max_workers=n.parallelism) as ex:
+                    pending: set = set()
+                    stop_seen = False
+
+                    def drain_completed(block: bool) -> None:
+                        if not pending:
+                            return
+
+                        wait_timeout = 0.05 if block else 0
+                        done, _ = wait(
+                            pending,
+                            timeout=wait_timeout,
+                            return_when=FIRST_COMPLETED,
+                        )
+                        for fut in done:
+                            try:
+                                out_queue.put(fut.result())
+                            except Exception as exc:
+                                logger.error(
+                                    "pipeline stage failure idx=%s err=%s",
+                                    stage_idx,
+                                    exc,
+                                )
+                                ex._fast_shutdown = True
+                                stop_pipeline(exc)
+                            finally:
+                                pending.remove(fut)
+
+                    while (not stop_seen or pending) and not error_event.is_set():
+                        if pending and (stop_seen or len(pending) >= n.parallelism):
+                            drain_completed(block=True)
+                            continue
+
+                        if not stop_seen and not error_event.is_set():
+                            try:
+                                item = in_queue.get(timeout=0.05)
+                            except queue.Empty:
+                                item = empty_marker
+                            if item is END_SENTINEL:
+                                stop_seen = True
+                            elif item is not empty_marker:
+                                pending.add(ex.submit(n.worker, item))
+
+                        drain_completed(block=False)
+                    ex._fast_shutdown = ex._fast_shutdown or error_event.is_set()
+            except BaseException as exc:
+                stop_pipeline(exc)
+            else:
+                if not error_event.is_set():
+                    try:
+                        out_queue.put(END_SENTINEL)
+                    except RuntimeError:
+                        pass
 
         t = threading.Thread(target=stage_worker, daemon=True)
         threads.append(t)

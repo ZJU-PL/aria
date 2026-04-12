@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from concurrent.futures import as_completed
+from concurrent.futures import FIRST_COMPLETED, wait
 import queue
 import threading
 import time
@@ -74,8 +74,12 @@ def producer_consumer(
 
     Returns results in completion order.
     """
+    if consumer_parallelism <= 0:
+        raise ValueError("consumer_parallelism must be positive")
+
     q: _ClosableQueue = _ClosableQueue(maxsize=queue_size)
     produce_error: Optional[BaseException] = None
+    producer_failed = threading.Event()
 
     def producer_wrapper() -> None:
         nonlocal produce_error
@@ -84,30 +88,62 @@ def producer_consumer(
         except BaseException as exc:  # pragma: no cover - propagated below
             if not (q._closed and isinstance(exc, RuntimeError)):
                 produce_error = exc
+                producer_failed.set()
+                q.close()
         finally:
-            try:
-                q.put(END_SENTINEL)
-            except RuntimeError:
-                pass
+            if not producer_failed.is_set():
+                try:
+                    q.put(END_SENTINEL)
+                except RuntimeError:
+                    pass
 
     t_prod = threading.Thread(target=producer_wrapper, daemon=True)
     t_prod.start()
 
     results: List[R] = []
     with ParallelExecutor(kind=kind, max_workers=consumer_parallelism) as ex:
-        futures = []
-        while True:
-            item = q.get()
-            if item is END_SENTINEL:
-                break
-            futures.append(ex.submit(consume, item))
+        pending = set()
+        producer_done = False
+
+        def raise_if_producer_failed() -> None:
+            if produce_error is not None:
+                raise produce_error
+
+        def drain_completed(block: bool) -> None:
+            if not pending:
+                return
+
+            wait_timeout = 0.05 if block else 0
+            done, _ = wait(
+                    pending, timeout=wait_timeout, return_when=FIRST_COMPLETED
+            )
+            for fut in done:
+                pending.remove(fut)
+                results.append(fut.result())
 
         try:
-            for fut in as_completed(futures):
-                results.append(fut.result())
-        except Exception:
+            while not producer_done or pending:
+                raise_if_producer_failed()
+                if pending and (producer_done or len(pending) >= consumer_parallelism):
+                    drain_completed(block=True)
+                    continue
+
+                try:
+                    item = q.get(timeout=0.05)
+                except queue.Empty:
+                    drain_completed(block=False)
+                    continue
+
+                if item is END_SENTINEL:
+                    producer_done = True
+                else:
+                    pending.add(ex.submit(consume, item))
+
+                drain_completed(block=False)
+                raise_if_producer_failed()
+        except BaseException:
             q.close()
-            for fut in futures:
+            for fut in pending:
                 if not fut.done():
                     fut.cancel()
             ex._fast_shutdown = True
@@ -115,8 +151,7 @@ def producer_consumer(
             raise
 
     t_prod.join()
-    if produce_error is not None:
-        raise produce_error
+    raise_if_producer_failed()
     return results
 
 

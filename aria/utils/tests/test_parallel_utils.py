@@ -17,8 +17,10 @@ from aria.utils.parallel import (
 )
 from aria.utils.parallel.async_utils import (
     check_call_async,
+    check_output_async,
     forward_and_return_data,
     kill_process_async,
+    run_subprocess_async,
 )
 from aria.utils.parallel.actor import spawn
 from aria.utils.parallel.dataflow import Dataflow, Node
@@ -87,6 +89,31 @@ def test_parallel_executor_timeout_with_return_exceptions_returns_promptly():
     assert time.time() - start < 0.2
     assert len(results) == 1
     assert isinstance(results[0], TimeoutError)
+
+
+def test_parallel_executor_rejects_negative_timeout():
+    with ParallelExecutor(max_workers=1) as ex:
+        with pytest.raises(ValueError, match="timeout must be non-negative"):
+            ex.run(lambda x: x, [1], timeout=-0.1)
+
+
+def test_parallel_executor_iterable_failure_returns_promptly():
+    release = threading.Event()
+
+    def items():
+        yield 1
+        raise ValueError("items boom")
+
+    def slow(_: int) -> int:
+        release.wait()
+        return 1
+
+    start = time.time()
+    with pytest.raises(ValueError, match="items boom"):
+        with ParallelExecutor(max_workers=1) as ex:
+            ex.run(slow, items())
+    assert time.time() - start < 0.2
+    release.set()
 
 
 def test_actor_ask_raises_exception():
@@ -160,9 +187,76 @@ def test_pipeline_raises_stage_failures_promptly():
     assert time.time() - start < 0.2
 
 
+def test_pipeline_raises_feeder_failures_promptly():
+    yielded = threading.Event()
+
+    def bad_inputs():
+        yielded.set()
+        yield 1
+        raise ValueError("input boom")
+
+    start = time.time()
+    with pytest.raises(ValueError, match="input boom"):
+        pipeline([PipelineStage(worker=lambda x: x)], inputs=bad_inputs())
+    assert yielded.is_set()
+    assert time.time() - start < 0.2
+
+
+def test_pipeline_rejects_non_positive_parallelism():
+    with pytest.raises(ValueError, match="parallelism must be positive"):
+        pipeline([PipelineStage(worker=lambda x: x, parallelism=0)], inputs=[1])
+
+
+def test_pipeline_applies_backpressure_to_stage_submissions():
+    release = threading.Event()
+    started = threading.Event()
+    yielded = 0
+    yielded_lock = threading.Lock()
+    result_holder = {}
+
+    def inputs():
+        nonlocal yielded
+        for item in range(20):
+            with yielded_lock:
+                yielded += 1
+            yield item
+
+    def work(x: int) -> int:
+        started.set()
+        release.wait()
+        return x
+
+    def run_pipeline() -> None:
+        try:
+            result_holder["results"] = pipeline(
+                [PipelineStage(worker=work, parallelism=1)],
+                inputs=inputs(),
+                queue_size=1,
+            )
+        except Exception as exc:  # pragma: no cover - assertion below reports this
+            result_holder["error"] = exc
+
+    thread = threading.Thread(target=run_pipeline, daemon=True)
+    thread.start()
+    assert started.wait(0.1)
+    time.sleep(0.05)
+    with yielded_lock:
+        assert yielded <= 3
+    release.set()
+    thread.join(timeout=1.0)
+    assert not thread.is_alive()
+    assert "error" not in result_holder
+    assert sorted(result_holder["results"]) == list(range(20))
+
+
 def test_stream_map_collects_results():
     data = list(range(4))
     assert Stream(data).map(lambda x: x + 1).collect() == [1, 2, 3, 4]
+
+
+def test_stream_batch_rejects_non_positive_sizes():
+    with pytest.raises(ValueError, match="batch size must be positive"):
+        Stream([1, 2, 3]).batch(0)
 
 
 def test_producer_consumer_runs_multiple_consumers_concurrently():
@@ -207,6 +301,51 @@ def test_producer_consumer_raises_promptly_on_consumer_failure():
     with pytest.raises(ValueError, match="boom"):
         producer_consumer(produce, consume, consumer_parallelism=3)
     assert time.time() - start < 0.15
+
+
+def test_producer_consumer_raises_promptly_with_unbounded_producer():
+    def produce(q):
+        item = 0
+        while True:
+            q.put(item)
+            item += 1
+
+    def consume(item: int) -> int:
+        if item == 0:
+            raise ValueError("boom")
+        time.sleep(0.3)
+        return item
+
+    start = time.time()
+    with pytest.raises(ValueError, match="boom"):
+        producer_consumer(produce, consume, consumer_parallelism=1, queue_size=1)
+    assert time.time() - start < 0.2
+
+
+def test_producer_consumer_raises_producer_failures_promptly():
+    consumer_started = threading.Event()
+    release = threading.Event()
+
+    def produce(q):
+        q.put(1)
+        raise ValueError("producer boom")
+
+    def consume(item: int) -> int:
+        consumer_started.set()
+        release.wait()
+        return item
+
+    start = time.time()
+    with pytest.raises(ValueError, match="producer boom"):
+        producer_consumer(produce, consume, consumer_parallelism=1, queue_size=1)
+    assert consumer_started.is_set()
+    assert time.time() - start < 0.2
+    release.set()
+
+
+def test_producer_consumer_rejects_non_positive_parallelism():
+    with pytest.raises(ValueError, match="consumer_parallelism must be positive"):
+        producer_consumer(lambda q: None, lambda item: item, consumer_parallelism=0)
 
 
 def test_dataflow_broadcasts_shared_inputs_to_multiple_nodes():
@@ -275,6 +414,24 @@ def test_dataflow_raises_node_failures_promptly():
     with pytest.raises(ValueError, match="boom"):
         flow.run()
     assert time.time() - start < 0.2
+
+
+def test_dataflow_runs_inputless_source_nodes():
+    collector = []
+    flow = Dataflow()
+    flow.add_node(Node("src", lambda: 7, outputs=["out"]))
+    flow.connect_sink("out", collector)
+
+    flow.run()
+
+    assert collector == [7]
+
+
+def test_dataflow_rejects_non_positive_parallelism():
+    flow = Dataflow()
+
+    with pytest.raises(ValueError, match="parallelism must be positive"):
+        flow.add_node(Node("bad", lambda x: x, parallelism=0, inputs=["src"]))
 
 
 def test_actor_stop_does_not_block_on_full_mailbox():
@@ -365,6 +522,58 @@ def test_forward_and_return_data_handles_non_utf8_output():
     assert "[worker]" in rendered
 
 
+def test_forward_and_return_data_flushes_output():
+    class TrackingOutput(io.StringIO):
+        def __init__(self) -> None:
+            super().__init__()
+            self.flush_count = 0
+
+        def flush(self) -> None:
+            self.flush_count += 1
+            super().flush()
+
+    async def run_test() -> TrackingOutput:
+        reader = asyncio.StreamReader()
+        reader.feed_data(b"hello\n")
+        reader.feed_eof()
+        output = TrackingOutput()
+        await forward_and_return_data(output, "worker", reader)
+        return output
+
+    output = asyncio.run(run_test())
+    assert output.flush_count >= 1
+
+
+def test_run_subprocess_async_only_pipes_stdin_when_input_given(monkeypatch):
+    stdin_modes = []
+
+    class FakeProc:
+        def __init__(self) -> None:
+            self.returncode = None
+            self._transport = None
+
+        async def communicate(self, input=None):
+            self.returncode = 0
+            return (b"out", b"err")
+
+    async def fake_create_subprocess_exec(
+        *cmd, stdin=None, stdout=None, stderr=None, **kwargs
+    ):
+        del cmd, stdout, stderr, kwargs
+        stdin_modes.append(stdin)
+        return FakeProc()
+
+    monkeypatch.setattr(asyncio, "create_subprocess_exec", fake_create_subprocess_exec)
+
+    async def run_test() -> None:
+        await run_subprocess_async("dummy")
+        await run_subprocess_async("dummy", input=b"hello")
+
+    asyncio.run(run_test())
+
+    assert stdin_modes == [None, asyncio.subprocess.PIPE]
+
+
 def test_kill_process_async_kills_after_terminate_timeout():
     async def run_test() -> int:
         proc = await asyncio.create_subprocess_exec(
@@ -416,6 +625,43 @@ def test_check_call_async_preserves_output_with_input_and_prefix(monkeypatch):
     assert "HELLO" in stdout.getvalue()
     assert "[worker stderr]" in stderr.getvalue()
     assert "err:hello" in stderr.getvalue()
+
+
+def test_check_call_async_prefix_overrides_suppress_stdout(monkeypatch):
+    async def run_test() -> None:
+        await check_call_async(
+            sys.executable,
+            "-c",
+            "import sys; sys.stdout.write('out'); sys.stderr.write('err')",
+            prefix="worker",
+            suppress_stdout=True,
+        )
+
+    stdout = io.StringIO()
+    stderr = io.StringIO()
+    monkeypatch.setattr(sys, "stdout", stdout)
+    monkeypatch.setattr(sys, "stderr", stderr)
+
+    asyncio.run(run_test())
+
+    assert "[worker stdout]" in stdout.getvalue()
+    assert "out" in stdout.getvalue()
+    assert "[worker stderr]" in stderr.getvalue()
+    assert "err" in stderr.getvalue()
+
+
+def test_check_output_async_without_capture_returns_empty_outputs():
+    async def run_test() -> tuple[bytes, bytes]:
+        return await check_output_async(
+            sys.executable,
+            "-c",
+            "print('hi')",
+            capture_output=False,
+        )
+
+    stdout, stderr = asyncio.run(run_test())
+    assert stdout == b""
+    assert stderr == b""
 
 
 def test_producer_consumer_stops_producer_after_consumer_failure():

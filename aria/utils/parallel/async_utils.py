@@ -52,6 +52,9 @@ async def forward_and_return_data(
             if not line.endswith(b"\n"):
                 line += b"\n"
             output.write(f"[{prefix}]{space}{line.decode('utf-8', errors='replace')}")
+            flush = cast(Callable[[], None] | None, getattr(output, "flush", None))
+            if flush is not None:
+                flush()
     return b"".join(blocks)
 
 
@@ -209,7 +212,7 @@ async def run_subprocess_async(
     """
     proc = await asyncio.create_subprocess_exec(
         *cmd,
-        stdin=asyncio.subprocess.PIPE,
+        stdin=(asyncio.subprocess.PIPE if input is not None else None),
         stdout=(asyncio.subprocess.PIPE if capture_output else None),
         stderr=(asyncio.subprocess.PIPE if capture_output else None),
         **kwargs,
@@ -298,7 +301,12 @@ async def check_call_async(
     """
     # Determine subprocess output modes based on parameters
     stderr_mode = asyncio.subprocess.PIPE if prefix else None
-    stdout_mode = asyncio.subprocess.DEVNULL if suppress_stdout else stderr_mode
+    if prefix:
+        stdout_mode = asyncio.subprocess.PIPE
+    elif suppress_stdout:
+        stdout_mode = asyncio.subprocess.DEVNULL
+    else:
+        stdout_mode = None
     input_mode = asyncio.subprocess.PIPE if input is not None else None
 
     proc = await asyncio.create_subprocess_exec(

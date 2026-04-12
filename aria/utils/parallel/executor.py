@@ -115,8 +115,8 @@ class ParallelExecutor:
         preserve_order controls whether the returned list matches the submission
         order even when tasks finish out of order.
         """
-        futures = [self.submit(fn, item) for item in items]
         try:
+            futures = [self.submit(fn, item) for item in items]
             return _gather_results(
                 futures,
                 timeout=timeout,
@@ -256,15 +256,18 @@ def _gather_results(
     - On timeout: cancels remaining futures; optionally signals to kill pool
       by raising TimeoutError
     """
+    if timeout is not None and timeout < 0:
+        raise ValueError("timeout must be non-negative")
+
     results: Dict[int, Any] = {}
     completion_order: List[Any] = []
     pending: Dict[Any, int] = {f: idx for idx, f in enumerate(futures)}
-    deadline = None if timeout is None else time.time() + timeout
+    deadline = None if timeout is None else time.monotonic() + timeout
 
     def _remaining_time() -> Optional[float]:
         if deadline is None:
             return None
-        return max(0.0, deadline - time.time())
+        return max(0.0, deadline - time.monotonic())
 
     def _cancel_all() -> None:
         for rem in pending:

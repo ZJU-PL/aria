@@ -39,6 +39,9 @@ class Stream(Iterable[T]):
         return Stream(x for x in self.source if pred(x))
 
     def batch(self, size: int) -> "Stream[Sequence[T]]":
+        if size <= 0:
+            raise ValueError("batch size must be positive")
+
         def gen() -> Iterator[Sequence[T]]:
             buf: List[T] = []
             for x in self.source:

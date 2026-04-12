@@ -7,6 +7,7 @@ Execution pushes data along edges; nodes run with per-node parallelism.
 from __future__ import annotations
 
 from collections import defaultdict
+from concurrent.futures import FIRST_COMPLETED, wait
 import logging
 import queue
 import threading
@@ -66,10 +67,14 @@ class _ClosableQueue(queue.Queue):
 @dataclass
 class Node:
     name: str
-    func: Callable[[Any], Any]
+    func: Callable[..., Any]
     parallelism: int = 1
     inputs: List[str] = field(default_factory=list)
     outputs: List[str] = field(default_factory=list)
+
+
+def _invoke_source_node(fn: Callable[..., Any]) -> Any:
+    return fn()
 
 
 class Dataflow:
@@ -85,6 +90,8 @@ class Dataflow:
         self.queues[name] = maxsize
 
     def add_node(self, node: Node) -> None:
+        if node.parallelism <= 0:
+            raise ValueError("dataflow node parallelism must be positive")
         self.nodes[node.name] = node
         for qn in [*node.inputs, *node.outputs]:
             if qn not in self.queues:
@@ -220,52 +227,88 @@ class Dataflow:
         for node in self.nodes.values():
 
             def node_loop(n: Node = node) -> None:
-                in_qs = node_inputs[n.name]
-                remaining = [producer_counts.get(qn, 0) for qn in n.inputs]
-                closed = [count == 0 for count in remaining]
-                pending = set()
-                idx = 0
+                try:
+                    in_qs = node_inputs[n.name]
+                    remaining = [producer_counts.get(qn, 0) for qn in n.inputs]
+                    closed = [count == 0 for count in remaining]
+                    pending = set()
+                    idx = 0
+                    source_pending = not n.inputs
 
-                with ParallelExecutor(kind="threads", max_workers=n.parallelism) as ex:
-                    while (not all(closed) or pending) and not stop_event.is_set():
-                        if not all(closed) and in_qs and not stop_event.is_set():
-                            for _ in range(len(in_qs)):
-                                pos = idx % len(in_qs)
-                                idx += 1
-                                if closed[pos]:
-                                    continue
+                    with ParallelExecutor(
+                        kind="threads", max_workers=n.parallelism
+                    ) as ex:
+                        def drain_completed(block: bool) -> None:
+                            if not pending:
+                                return
+
+                            wait_timeout = 0.05 if block else 0
+                            done, _ = wait(
+                                pending,
+                                timeout=wait_timeout,
+                                return_when=FIRST_COMPLETED,
+                            )
+                            for future in done:
                                 try:
-                                    item = in_qs[pos].get(timeout=0.05)
-                                except queue.Empty:
-                                    continue
-
-                                if item is self._sentinel:
-                                    remaining[pos] -= 1
-                                    if remaining[pos] == 0:
-                                        closed[pos] = True
+                                    result = future.result()
+                                except Exception as exc:
+                                    self._logger.exception(
+                                        "dataflow node failed name=%s err=%s",
+                                        n.name,
+                                        exc,
+                                    )
+                                    ex._fast_shutdown = True
+                                    stop_flow(exc)
                                 else:
-                                    pending.add(ex.submit(n.func, item))
-                                break
+                                    for queue_name in n.outputs:
+                                        self._publish(subscribers, queue_name, result)
+                                finally:
+                                    pending.remove(future)
 
-                        done = {future for future in pending if future.done()}
-                        for future in done:
-                            try:
-                                result = future.result()
-                            except Exception as exc:
-                                self._logger.exception(
-                                    "dataflow node failed name=%s err=%s", n.name, exc
-                                )
-                                ex._fast_shutdown = True
-                                stop_flow(exc)
-                            else:
-                                for queue_name in n.outputs:
-                                    self._publish(subscribers, queue_name, result)
-                            pending.remove(future)
+                        while (
+                            source_pending or not all(closed) or pending
+                        ) and not stop_event.is_set():
+                            if pending and (
+                                (not source_pending and all(closed))
+                                or len(pending) >= n.parallelism
+                            ):
+                                drain_completed(block=True)
+                                continue
 
-                    ex._fast_shutdown = ex._fast_shutdown or stop_event.is_set()
+                            if source_pending and not stop_event.is_set():
+                                pending.add(ex.submit(_invoke_source_node, n.func))
+                                source_pending = False
+                                drain_completed(block=False)
+                                continue
 
-                for queue_name in n.outputs:
-                    self._publish(subscribers, queue_name, self._sentinel)
+                            if not all(closed) and in_qs and not stop_event.is_set():
+                                for _ in range(len(in_qs)):
+                                    pos = idx % len(in_qs)
+                                    idx += 1
+                                    if closed[pos]:
+                                        continue
+                                    try:
+                                        item = in_qs[pos].get(timeout=0.05)
+                                    except queue.Empty:
+                                        continue
+
+                                    if item is self._sentinel:
+                                        remaining[pos] -= 1
+                                        if remaining[pos] == 0:
+                                            closed[pos] = True
+                                    else:
+                                        pending.add(ex.submit(n.func, item))
+                                    break
+
+                            drain_completed(block=False)
+
+                        ex._fast_shutdown = ex._fast_shutdown or stop_event.is_set()
+                except BaseException as exc:
+                    stop_flow(exc)
+                else:
+                    if not stop_event.is_set():
+                        for queue_name in n.outputs:
+                            self._publish(subscribers, queue_name, self._sentinel)
 
             t = threading.Thread(target=node_loop, daemon=True)
             threads.append(t)
