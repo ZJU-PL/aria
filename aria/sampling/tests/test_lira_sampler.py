@@ -137,6 +137,71 @@ class TestLIRASampler:
         for sample in result:
             assert abs(sample["x"] + sample["y"] - 10) < 0.1
 
+    def test_walk_sampling_uses_selected_hit_and_run(self):
+        """Test walk-based sampling with hit-and-run selection."""
+        sampler = LIRASampler()
+        x, y = z3.Reals("x y")
+        formula = z3.And(x >= 0, x <= 1, y >= 0, y <= 1)
+
+        sampler.init_from_formula(formula)
+        result = sampler.sample(
+            SamplingOptions(
+                method=SamplingMethod.DIKIN_WALK,
+                num_samples=4,
+                random_seed=7,
+                walk="hit_and_run",
+                burn=5,
+                thin=1,
+            )
+        )
+
+        assert len(result) == 4
+        assert result.stats["walk"] == "hit_and_run"
+        for sample in result:
+            assert 0 <= sample["x"] <= 1
+            assert 0 <= sample["y"] <= 1
+
+    def test_walk_sampling_handles_equalities(self):
+        """Test walk-based sampling after equality reduction."""
+        sampler = LIRASampler()
+        x, y = z3.Reals("x y")
+        formula = z3.And(x + y == 1, x >= 0, y >= 0)
+
+        sampler.init_from_formula(formula)
+        result = sampler.sample(
+            SamplingOptions(
+                method=SamplingMethod.DIKIN_WALK,
+                num_samples=3,
+                random_seed=11,
+                walk="coordinate_hit_and_run",
+                burn=5,
+                thin=1,
+            )
+        )
+
+        assert len(result) == 3
+        assert result.stats["walk"] == "coordinate_hit_and_run"
+        for sample in result:
+            assert abs(sample["x"] + sample["y"] - 1.0) < 1e-5
+            assert sample["x"] >= -1e-6
+            assert sample["y"] >= -1e-6
+
+    def test_walk_sampling_rejects_integer_variables(self):
+        """Test walk-based sampling rejects integer variables for now."""
+        sampler = LIRASampler()
+        x = z3.Int("x")
+        formula = z3.And(x >= 0, x <= 3)
+
+        sampler.init_from_formula(formula)
+        with pytest.raises(ValueError, match="real-valued linear formulas only"):
+            sampler.sample(
+                SamplingOptions(
+                    method=SamplingMethod.DIKIN_WALK,
+                    num_samples=2,
+                    walk="ball_walk",
+                )
+            )
+
 
 if __name__ == "__main__":
     pytest.main()

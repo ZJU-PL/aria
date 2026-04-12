@@ -20,9 +20,6 @@ try:
 except ImportError:
     plt = None
 
-from six.moves import range
-
-
 def hessian(a, b, x):
     """Return log-barrier Hessian matrix at x."""
     d = b - a.dot(x)
@@ -35,17 +32,18 @@ def local_norm(h, v):
     return v.T.dot(h).dot(v)
 
 
-def sample_ellipsoid(e, r):
+def sample_ellipsoid(e, r, rng=None):
     """Return a point in the (hyper)ellipsoid uniformly sampled.
     The ellipsoid is defined by the positive definite matrix, ``e``, and
     the radius, ``r``.
     """
     # Generate a point on the sphere surface
-    p = np.random.normal(size=e.shape[0])
+    generator = rng or np.random.default_rng()
+    p = generator.normal(size=e.shape[0])
     p /= np.linalg.norm(p)
 
     # Scale to a point in the sphere volume
-    p *= np.random.uniform() ** (1.0 / e.shape[0])
+    p *= generator.uniform() ** (1.0 / e.shape[0])
 
     # Transform to a point in the ellipsoid
     return np.sqrt(r) * np.linalg.cholesky(np.linalg.inv(e)).dot(p)
@@ -57,9 +55,10 @@ def ellipsoid_axes(e):
     return v.dot(np.diag(w ** (-1 / 2.0)))
 
 
-def dikin_walk(a, b, x0, r=3 / 40):
+def dikin_walk(a, b, x0, r=3 / 40, rng=None):
     """Generate points with Dikin walk."""
-    x = x0
+    generator = rng or np.random.default_rng()
+    x = np.array(x0, dtype=float, copy=True)
     h_x = hessian(a, b, x)
 
     while True:
@@ -67,11 +66,11 @@ def dikin_walk(a, b, x0, r=3 / 40):
             print(a.dot(x) - b)
             raise ValueError(f"Invalid state: {x}")
 
-        if np.random.uniform() < 0.5:
+        if generator.uniform() < 0.5:
             yield x
             continue
 
-        z = x + sample_ellipsoid(h_x, r)
+        z = x + sample_ellipsoid(h_x, r, rng=generator)
         h_z = hessian(a, b, z)
 
         if local_norm(h_z, x - z) > 1.0:
@@ -79,7 +78,7 @@ def dikin_walk(a, b, x0, r=3 / 40):
             continue
 
         p = np.sqrt(np.linalg.det(h_z) / np.linalg.det(h_x))
-        if p >= 1 or np.random.uniform() < p:
+        if p >= 1 or generator.uniform() < p:
             x = z
             h_x = h_z
 
