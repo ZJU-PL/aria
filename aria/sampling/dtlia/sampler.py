@@ -2,6 +2,7 @@
 Sampler for formulas mixing algebraic datatypes and linear integer arithmetic.
 """
 
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Set, cast
 
 import z3
@@ -19,18 +20,47 @@ from aria.sampling.finite_domain.common import (
 )
 from aria.utils.z3.expr import get_variables, is_int_sort
 
-from .candidate_selector import (
-    select_coverage_guided_subset,
-    select_max_distance_subset,
-)
-from .shape_enumerator import (
-    enumerate_datatype_shapes,
-)
+from .coverage_selector import CoverageSelectionResult, select_coverage_guided_subset
+from .distance_selector import select_max_distance_subset
+from .shape_enumerator import enumerate_datatype_shapes
 
 
 def _dedupe_sorted_terms(terms: List[z3.ExprRef]) -> List[z3.ExprRef]:
-    """Deduplicate tracked terms while preserving deterministic ordering."""
+    """Deduplicate tracked terms with a deterministic string-sorted order.
+
+    Uses string representation for sorting so that the result is stable across
+    calls regardless of Z3 AST allocation order. Prefer this when a
+    reproducible, human-readable ordering matters (e.g. building tracked-term
+    lists that appear in stats output).  For order-preserving deduplication by
+    AST identity, see ``_dedupe_terms`` in shape_enumerator.py.
+    """
     return list({str(term): term for term in sorted(terms, key=str)}.values())
+
+
+@dataclass
+class ShapeSamplingConfig:
+    """Knobs read from ``SamplingOptions.additional_options`` for shape-based sampling."""
+
+    include_selector_closure: bool
+    explicit_projection_terms: Optional[List[Any]]
+    explicit_tracked_terms: Optional[List[Any]]
+    return_full_model: bool
+    max_shapes: int
+    candidates_per_shape: int
+    diversity_mode: str  # "enumeration" | "max_distance" | "coverage_guided"
+
+    @classmethod
+    def from_options(cls, options: SamplingOptions) -> "ShapeSamplingConfig":
+        opts = options.additional_options
+        return cls(
+            include_selector_closure=bool(opts.get("include_selector_closure", False)),
+            explicit_projection_terms=opts.get("projection_terms"),
+            explicit_tracked_terms=opts.get("tracked_terms"),
+            return_full_model=bool(opts.get("return_full_model", False)),
+            max_shapes=int(opts.get("max_shapes", options.num_samples)),
+            candidates_per_shape=int(opts.get("candidates_per_shape", options.num_samples)),
+            diversity_mode=str(opts.get("diversity_mode", "enumeration")),
+        )
 
 
 class ADTLIASampler(Sampler):
@@ -97,34 +127,19 @@ class ADTLIASampler(Sampler):
             raise ValueError("Sampler not initialized with a formula")
         formula = cast(z3.ExprRef, self.formula)
 
-        include_selector_closure = bool(
-            options.additional_options.get("include_selector_closure", False)
-        )
-        explicit_projection_terms = options.additional_options.get("projection_terms")
-        explicit_tracked_terms = options.additional_options.get("tracked_terms")
-        return_full_model = bool(
-            options.additional_options.get("return_full_model", False)
-        )
+        cfg = ShapeSamplingConfig.from_options(options)
         tracked_terms = _dedupe_sorted_terms(
             self.int_variables
             + collect_datatype_observable_terms(
                 formula,
-                include_selector_closure=include_selector_closure,
+                include_selector_closure=cfg.include_selector_closure,
             )
-        )
-
-        max_shapes = int(options.additional_options.get("max_shapes", options.num_samples))
-        candidates_per_shape = int(
-            options.additional_options.get("candidates_per_shape", options.num_samples)
-        )
-        diversity_mode = str(
-            options.additional_options.get("diversity_mode", "enumeration")
         )
 
         shapes = enumerate_datatype_shapes(
             formula,
             self.datatype_roots,
-            max_shapes=max_shapes,
+            max_shapes=cfg.max_shapes,
             random_seed=options.random_seed,
             timeout=options.timeout,
         )
@@ -157,30 +172,30 @@ class ADTLIASampler(Sampler):
                 self.int_variables
                 + collect_datatype_observable_terms(
                     residual_formula,
-                    include_selector_closure=include_selector_closure,
+                    include_selector_closure=cfg.include_selector_closure,
                 )
             )
             residual_projection_terms = (
-                explicit_projection_terms
-                if explicit_projection_terms is not None
+                cfg.explicit_projection_terms
+                if cfg.explicit_projection_terms is not None
                 else list(shape.payload_terms)
             )
             output_terms = (
-                explicit_tracked_terms
-                if explicit_tracked_terms is not None
+                cfg.explicit_tracked_terms
+                if cfg.explicit_tracked_terms is not None
                 else residual_tracked_terms
             )
             residual_result = enumerate_projected_models(
                 residual_formula,
                 SamplingOptions(
                     method=SamplingMethod.ENUMERATION,
-                    num_samples=candidates_per_shape,
+                    num_samples=cfg.candidates_per_shape,
                     timeout=options.timeout,
                     random_seed=options.random_seed,
                     projection_terms=residual_projection_terms,
                     tracked_terms=output_terms,
-                    return_full_model=return_full_model,
-                    include_selector_closure=include_selector_closure,
+                    return_full_model=cfg.return_full_model,
+                    include_selector_closure=cfg.include_selector_closure,
                 ),
                 residual_tracked_terms,
                 default_terms=self.default_terms,
@@ -194,12 +209,14 @@ class ADTLIASampler(Sampler):
             )
 
         coverage_stats: Dict[str, Any] = {}
-        if diversity_mode == "max_distance":
+        selected_samples: List[Dict[str, Any]]
+
+        if cfg.diversity_mode == "max_distance":
             selected_samples = select_max_distance_subset(
                 candidate_samples, options.num_samples
             )
-        elif diversity_mode == "coverage_guided":
-            coverage_result = select_coverage_guided_subset(
+        elif cfg.diversity_mode == "coverage_guided":
+            coverage_result: CoverageSelectionResult = select_coverage_guided_subset(
                 candidate_samples,
                 options.num_samples,
                 shape_signatures=candidate_shape_signatures,
@@ -212,20 +229,20 @@ class ADTLIASampler(Sampler):
                 options.num_samples,
             )
 
-        stats = {
+        stats: Dict[str, Any] = {
             "time_ms": 0,
             "iterations": len(selected_samples),
             "method": options.method.value,
             "shape_count": len(shapes),
             "candidate_count": len(candidate_samples),
-            "candidates_per_shape": candidates_per_shape,
-            "diversity_mode": diversity_mode,
+            "candidates_per_shape": cfg.candidates_per_shape,
+            "diversity_mode": cfg.diversity_mode,
             "shape_signatures": [str(shape.signature) for shape in shapes],
             "shape_sample_counts": shape_sample_counts,
             "shape_payload_terms": shape_payload_terms,
             "residual_projection_mode": (
                 "explicit"
-                if explicit_projection_terms is not None
+                if cfg.explicit_projection_terms is not None
                 else "payload_terms"
             ),
         }

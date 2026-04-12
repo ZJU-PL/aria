@@ -19,7 +19,15 @@ def _is_datatype_sort(sort: z3.SortRef) -> bool:
 
 
 def _dedupe_terms(terms: Iterable[z3.ExprRef]) -> List[z3.ExprRef]:
-    """Deduplicate Z3 terms while preserving first occurrence order."""
+    """Deduplicate Z3 terms while preserving first occurrence order.
+
+    Uses Z3 AST identity (``_ast_id``) rather than string representation so
+    that structurally identical but separately allocated expressions are treated
+    as the same term. Insertion order is preserved, making this suitable for
+    constraint lists where position matters. For a sorted, string-keyed variant
+    used when deterministic human-readable ordering is required, see
+    ``_dedupe_sorted_terms`` in sampler.py.
+    """
     unique_terms: List[z3.ExprRef] = []
     seen_ids: Set[int] = set()
 
