@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from concurrent.futures import as_completed
 import queue
 import threading
-from typing import Any, Callable, List, TypeVar
+from typing import Any, Callable, List, Optional, TypeVar
 
 from ._shared import END_SENTINEL
 from .executor import ParallelExecutor
@@ -25,27 +26,35 @@ def producer_consumer(
     Returns results in completion order.
     """
     q: queue.Queue = queue.Queue(maxsize=queue_size)
-    results: List[R] = []
-    results_lock = threading.Lock()
+    produce_error: Optional[BaseException] = None
 
-    def consumer_loop() -> None:
-        with ParallelExecutor(kind=kind, max_workers=consumer_parallelism) as ex:
-            while True:
-                item = q.get()
-                if item is END_SENTINEL:
-                    break
-                out = ex.run(consume, [item])[0]
-                with results_lock:
-                    results.append(out)
+    def producer_wrapper() -> None:
+        nonlocal produce_error
+        try:
+            produce(q)
+        except BaseException as exc:  # pragma: no cover - propagated below
+            produce_error = exc
+        finally:
+            q.put(END_SENTINEL)
 
-    t_prod = threading.Thread(target=produce, args=(q,), daemon=True)
-    t_cons = threading.Thread(target=consumer_loop, daemon=True)
+    t_prod = threading.Thread(target=producer_wrapper, daemon=True)
     t_prod.start()
-    t_cons.start()
+
+    results: List[R] = []
+    with ParallelExecutor(kind=kind, max_workers=consumer_parallelism) as ex:
+        futures = []
+        while True:
+            item = q.get()
+            if item is END_SENTINEL:
+                break
+            futures.append(ex.submit(consume, item))
+
+        for fut in as_completed(futures):
+            results.append(fut.result())
 
     t_prod.join()
-    q.put(END_SENTINEL)
-    t_cons.join()
+    if produce_error is not None:
+        raise produce_error
     return results
 
 

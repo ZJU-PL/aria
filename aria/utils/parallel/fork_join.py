@@ -9,6 +9,10 @@ from .executor import ParallelExecutor
 R = TypeVar("R")
 
 
+def _invoke_nullary(fn: Callable[[], R]) -> R:
+    return fn()
+
+
 def fork_join(
     tasks: Sequence[Callable[[], R]],
     *,
@@ -17,7 +21,7 @@ def fork_join(
 ) -> List[R]:
     """Run independent callables in parallel and join their results in order."""
     with ParallelExecutor(kind=kind, max_workers=max_workers) as ex:
-        return ex.run(lambda fn: fn(), tasks)
+        return ex.run(_invoke_nullary, tasks)
 
 
 __all__ = ["fork_join"]

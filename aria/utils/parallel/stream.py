@@ -31,7 +31,7 @@ class Stream(Iterable[T]):
     ) -> "Stream[R]":
         def gen() -> Iterator[R]:
             with ParallelExecutor(kind=kind, max_workers=max_workers) as ex:
-                yield from ex.run(fn, self.source)
+                yield from ex.iter_map(fn, self.source)
 
         return Stream(gen())
 

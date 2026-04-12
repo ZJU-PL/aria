@@ -36,7 +36,10 @@ class ActorRef:
         """Send and wait for a reply, raising on timeout."""
         reply_q: "queue.Queue[Any]" = queue.Queue(maxsize=1)
         self._mailbox.put((message, reply_q))
-        res = reply_q.get(timeout=timeout)
+        try:
+            res = reply_q.get(timeout=timeout)
+        except queue.Empty as exc:
+            raise TimeoutError(f"actor '{self.name}' timed out waiting for reply") from exc
         if raise_on_error and isinstance(res, Exception):
             raise res
         return res

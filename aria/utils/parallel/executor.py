@@ -10,9 +10,9 @@ Features:
 from __future__ import annotations
 
 from concurrent.futures import (
-    ThreadPoolExecutor,
-    ProcessPoolExecutor,
     FIRST_COMPLETED,
+    ProcessPoolExecutor,
+    ThreadPoolExecutor,
     wait,
 )
 import logging
@@ -61,12 +61,16 @@ class ParallelExecutor:
         if self.logger is None:
             self.logger = logging.getLogger("aria.parallel")
         if self.kind == "threads":
-            self._pool: PoolKind = ThreadPoolExecutor(max_workers=self.max_workers)
+            self._pool: PoolKind = ThreadPoolExecutor(
+                max_workers=self.max_workers,
+                initializer=self.initializer,
+                initargs=self.initargs or (),
+            )
         else:
             self._pool = ProcessPoolExecutor(
                 max_workers=self.max_workers,
                 initializer=self.initializer,
-                initargs=self.initargs,
+                initargs=self.initargs or (),
             )
 
     def submit(self, fn: Callable[..., R], *args: Any, **kwargs: Any):
@@ -80,6 +84,9 @@ class ParallelExecutor:
 
     def map(self, fn: Callable[[T], R], items: Iterable[T]) -> List[R]:
         return list(self._pool.map(fn, items))
+
+    def iter_map(self, fn: Callable[[T], R], items: Iterable[T]) -> Iterable[R]:
+        return self._pool.map(fn, items)
 
     def shutdown(
         self, wait_for_completion: bool = True, cancel_futures: bool = False
@@ -107,9 +114,23 @@ class ParallelExecutor:
             logger=self.logger,
             cancel_on_error=self.cancel_on_error,
             kill_pool_on_timeout=self.kill_pool_on_timeout,
+            on_timeout=self._terminate_pool,
             return_exceptions=return_exceptions,
             preserve_order=preserve_order,
         )
+
+    def _terminate_pool(self) -> None:
+        kill_workers = getattr(self._pool, "kill_workers", None)
+        terminate_workers = getattr(self._pool, "terminate_workers", None)
+
+        if callable(kill_workers):
+            kill_workers()
+            return
+        if callable(terminate_workers):
+            terminate_workers()
+            return
+
+        self.shutdown(wait_for_completion=False, cancel_futures=True)
 
     # Optional context manager convenience
     def __enter__(self) -> "ParallelExecutor":
@@ -167,6 +188,7 @@ def run_tasks(
             logger=ex.logger,
             cancel_on_error=ex.cancel_on_error,
             kill_pool_on_timeout=ex.kill_pool_on_timeout,
+            on_timeout=ex._terminate_pool,
             return_exceptions=False,
             preserve_order=True,
         )
@@ -200,6 +222,7 @@ def _gather_results(
     logger: Optional[logging.Logger],
     cancel_on_error: bool,
     kill_pool_on_timeout: bool,
+    on_timeout: Optional[Callable[[], None]],
     return_exceptions: bool,
     preserve_order: bool,
 ) -> List:
@@ -212,6 +235,7 @@ def _gather_results(
       by raising TimeoutError
     """
     results: Dict[int, Any] = {}
+    completion_order: List[Any] = []
     pending: Dict[Any, int] = {f: idx for idx, f in enumerate(futures)}
     deadline = None if timeout is None else time.time() + timeout
 
@@ -232,30 +256,39 @@ def _gather_results(
             # timeout expired
             _cancel_all()
             if kill_pool_on_timeout:
+                if on_timeout is not None:
+                    on_timeout()
                 raise TimeoutError("parallel execution timed out")
             if return_exceptions:
                 for idx in pending.values():
-                    results[idx] = TimeoutError("parallel execution timed out")
+                    exc = TimeoutError("parallel execution timed out")
+                    results[idx] = exc
+                    completion_order.append(exc)
                 break
             raise TimeoutError("parallel execution timed out")
 
         for fut in done:
             idx = pending.pop(fut)
             try:
-                results[idx] = fut.result(timeout=0)
+                result = fut.result(timeout=0)
+                results[idx] = result
+                completion_order.append(result)
             except Exception as exc:  # includes TimeoutError
                 if logger:
                     logger.error("task.error type=%s msg=%s", type(exc).__name__, exc)
                 if return_exceptions:
                     results[idx] = exc
+                    completion_order.append(exc)
                     continue
                 if cancel_on_error:
                     _cancel_all()
                 if isinstance(exc, TimeoutError) and kill_pool_on_timeout:
                     _cancel_all()
+                    if on_timeout is not None:
+                        on_timeout()
                     raise TimeoutError("parallel execution timed out") from exc
                 raise
 
     if preserve_order:
         return [results[i] for i in sorted(results)]
-    return list(results.values())
+    return completion_order
