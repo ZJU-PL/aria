@@ -75,7 +75,7 @@ class ActorRef:
             res = reply_q.get(timeout=remaining)
         except queue.Empty as exc:
             raise TimeoutError(f"actor '{self.name}' timed out waiting for reply") from exc
-        if raise_on_error and isinstance(res, Exception):
+        if raise_on_error and isinstance(res, BaseException):
             raise res
         return res
 
@@ -123,7 +123,10 @@ def spawn(
     def loop() -> None:
         while not stop_event.is_set():
             try:
-                msg, reply_q = mbox.get()
+                try:
+                    msg, reply_q = mbox.get(timeout=0.05)
+                except queue.Empty:
+                    continue
                 if stop_event.is_set():
                     break
                 if reply_q is None:
@@ -133,7 +136,7 @@ def spawn(
                     try:
                         res = handler(msg)
                         reply_q.put(res)
-                    except Exception as exc:  # return exception to asker
+                    except BaseException as exc:  # return failure to asker
                         reply_q.put(exc)
             except Exception as exc:
                 logger.exception("actor.loop error name=%s err=%s", actor_name, exc)

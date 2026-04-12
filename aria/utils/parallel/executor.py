@@ -17,7 +17,7 @@ from concurrent.futures import (
 )
 import logging
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import (
     Any,
     Callable,
@@ -54,6 +54,13 @@ class ParallelExecutor:
     logger: Optional[logging.Logger] = None
     cancel_on_error: bool = True
     kill_pool_on_timeout: bool = False
+
+    # Internal state — excluded from __init__, __repr__, and equality checks so
+    # that dataclasses.replace() produces a clean new executor rather than
+    # copying an already-running pool.
+    _pool: PoolKind = field(init=False, repr=False, compare=False)
+    _shutdown_requested: bool = field(init=False, repr=False, compare=False)
+    _fast_shutdown: bool = field(init=False, repr=False, compare=False)
 
     def __post_init__(self) -> None:
         self._shutdown_requested = False

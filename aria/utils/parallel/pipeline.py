@@ -128,20 +128,24 @@ def pipeline(
             try:
                 # Bind queues at definition time to avoid late-binding bugs across threads
                 with ParallelExecutor(kind=kind, max_workers=n.parallelism) as ex:
-                    pending: set = set()
+                    pending: list = []  # ordered: index 0 is oldest submitted future
                     stop_seen = False
 
                     def drain_completed(block: bool) -> None:
-                        if not pending:
-                            return
-
-                        wait_timeout = 0.05 if block else 0
-                        done, _ = wait(
-                            pending,
-                            timeout=wait_timeout,
-                            return_when=FIRST_COMPLETED,
-                        )
-                        for fut in done:
+                        # Drain from the front to preserve input order.
+                        while pending:
+                            fut = pending[0]
+                            if not fut.done():
+                                if not block:
+                                    break
+                                done, _ = wait(
+                                    [fut],
+                                    timeout=0.05,
+                                    return_when=FIRST_COMPLETED,
+                                )
+                                if not done:
+                                    break
+                            pending.pop(0)
                             try:
                                 out_queue.put(fut.result())
                             except Exception as exc:
@@ -152,8 +156,6 @@ def pipeline(
                                 )
                                 ex._fast_shutdown = True
                                 stop_pipeline(exc)
-                            finally:
-                                pending.remove(fut)
 
                     while (not stop_seen or pending) and not error_event.is_set():
                         if pending and (stop_seen or len(pending) >= n.parallelism):
@@ -168,7 +170,7 @@ def pipeline(
                             if item is END_SENTINEL:
                                 stop_seen = True
                             elif item is not empty_marker:
-                                pending.add(ex.submit(n.worker, item))
+                                pending.append(ex.submit(n.worker, item))
 
                         drain_completed(block=False)
                     ex._fast_shutdown = ex._fast_shutdown or error_event.is_set()

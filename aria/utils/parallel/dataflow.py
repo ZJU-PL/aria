@@ -204,7 +204,7 @@ class Dataflow:
             threads.append(t)
             t.start()
 
-    def run(self) -> None:
+    def run(self, *, kind: str = "threads") -> None:
         threads: List[threading.Thread] = []
         node_error: List[BaseException] = []
         error_lock = threading.Lock()
@@ -236,7 +236,7 @@ class Dataflow:
                     source_pending = not n.inputs
 
                     with ParallelExecutor(
-                        kind="threads", max_workers=n.parallelism
+                        kind=kind, max_workers=n.parallelism
                     ) as ex:
                         def drain_completed(block: bool) -> None:
                             if not pending:

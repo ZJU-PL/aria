@@ -132,14 +132,22 @@ async def _write_stdin_and_close(
     if proc.stdin is None:
         return
 
-    proc.stdin.write(input_data)
-    await proc.stdin.drain()
-    proc.stdin.close()
-    wait_closed = cast(
-        Callable[[], Awaitable[None]] | None, getattr(proc.stdin, "wait_closed", None)
-    )
-    if wait_closed is not None:
-        await wait_closed()
+    try:
+        proc.stdin.write(input_data)
+        await proc.stdin.drain()
+    except (BrokenPipeError, ConnectionResetError):
+        # Process exited before we finished writing; not an error here —
+        # proc.wait() in the gather will capture the real exit code.
+        pass
+    try:
+        proc.stdin.close()
+        wait_closed = cast(
+            Callable[[], Awaitable[None]] | None, getattr(proc.stdin, "wait_closed", None)
+        )
+        if wait_closed is not None:
+            await wait_closed()
+    except Exception:
+        pass
 
 
 async def _consume_process_output(

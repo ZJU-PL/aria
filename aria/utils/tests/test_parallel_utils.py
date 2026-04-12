@@ -427,6 +427,45 @@ def test_dataflow_runs_inputless_source_nodes():
     assert collector == [7]
 
 
+def test_dataflow_respects_node_executor_kind(monkeypatch):
+    kinds = []
+
+    class TrackingExecutor:
+        def __init__(self, *, kind="threads", max_workers=None, **kwargs):
+            del max_workers, kwargs
+            kinds.append(kind)
+            self._fast_shutdown = False
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            del exc_type, exc, tb
+
+        def submit(self, fn, *args, **kwargs):
+            from concurrent.futures import Future
+
+            fut = Future()
+            try:
+                fut.set_result(fn(*args, **kwargs))
+            except Exception as exc:  # pragma: no cover - exercised via future APIs
+                fut.set_exception(exc)
+            return fut
+
+    monkeypatch.setattr("aria.utils.parallel.dataflow.ParallelExecutor", TrackingExecutor)
+
+    collector = []
+    flow = Dataflow()
+    flow.add_node(Node("node", lambda x: x + 1, inputs=["src"], outputs=["out"]))
+    flow.connect_source("src", [1, 2])
+    flow.connect_sink("out", collector)
+
+    flow.run(kind="processes")
+
+    assert collector == [2, 3]
+    assert kinds == ["processes"]
+
+
 def test_dataflow_rejects_non_positive_parallelism():
     flow = Dataflow()
 
@@ -506,6 +545,18 @@ def test_actor_ask_timeout_includes_mailbox_enqueue_wait():
     finally:
         release.set()
         handle.thread.join(timeout=0.5)
+
+
+def test_actor_ask_raises_base_exceptions():
+    def bad(_: str) -> str:
+        raise KeyboardInterrupt()
+
+    handle = spawn(bad, name="base-exc-actor")
+    try:
+        with pytest.raises(KeyboardInterrupt):
+            handle.ref.ask("hi", timeout=0.1)
+    finally:
+        handle.stop()
 
 
 def test_forward_and_return_data_handles_non_utf8_output():

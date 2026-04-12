@@ -22,8 +22,9 @@ class _ClosableQueue(queue.Queue):
         self._closed = False
 
     def close(self) -> None:
-        with self.not_full:
+        with self.mutex:
             self._closed = True
+            self.not_empty.notify_all()
             self.not_full.notify_all()
 
     def put(
@@ -123,7 +124,6 @@ def producer_consumer(
 
         try:
             while not producer_done or pending:
-                raise_if_producer_failed()
                 if pending and (producer_done or len(pending) >= consumer_parallelism):
                     drain_completed(block=True)
                     continue
@@ -131,6 +131,7 @@ def producer_consumer(
                 try:
                     item = q.get(timeout=0.05)
                 except queue.Empty:
+                    raise_if_producer_failed()
                     drain_completed(block=False)
                     continue
 
@@ -140,7 +141,8 @@ def producer_consumer(
                     pending.add(ex.submit(consume, item))
 
                 drain_completed(block=False)
-                raise_if_producer_failed()
+                if q.empty():
+                    raise_if_producer_failed()
         except BaseException:
             q.close()
             for fut in pending:
