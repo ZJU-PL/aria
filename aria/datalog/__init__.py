@@ -9,7 +9,9 @@ Logic().clear()
 from . import Aggregate
 from . import UserList
 from .api import (
+    DatalogParseError,
     DatalogAPIError,
+    Function,
     Program,
     QueryResult,
     Relation,
@@ -26,6 +28,8 @@ from . import util
 __all__ = [
     "Aggregate",
     "DatalogAPIError",
+    "DatalogParseError",
+    "Function",
     "Logic",
     "Program",
     "QueryResult",
