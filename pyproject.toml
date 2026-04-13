@@ -52,6 +52,9 @@ dependencies = [
     "multipledispatch==1.0.0",
     "toolz==1.0.0",
     "numpy",
+    "networkx",
+    "unified-planning",
+    "up-pyperplan",
     "hypothesis",
     "loguru",
     "openai",
@@ -115,6 +118,7 @@ aria-unsat-core = "aria.cli.unsat_core_cli:main"
 aria-allsmt = "aria.cli.allsmt_cli:main"
 aria-efmc = "aria.cli.efmc_cli:main"
 aria-polyhorn = "aria.cli.polyhorn_cli:main"
+aria-pypmt = "aria.cli.pypmt_cli:main"
 
 [tool.black]
 line-length = 88

@@ -78,5 +78,4 @@ __all__ = [
     "global_params", # Global parameters
 ]
 
-# Import main submodules for convenience
-from . import prob  # noqa: F401
+# Keep subpackages importable without forcing optional dependency trees.
