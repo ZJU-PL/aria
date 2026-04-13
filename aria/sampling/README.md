@@ -33,6 +33,7 @@ pip install z3-solver
 - **QF_BOOL**: Quantifier-free Boolean logic
 - **QF_BV**: Quantifier-free bit-vector logic
 - **QF_UF**: Quantifier-free uninterpreted functions
+- **QF_UFLIA**: Quantifier-free uninterpreted functions with linear integer arithmetic
 - **QF_DT**: Quantifier-free algebraic datatypes
 - **QF_UFDT**: Quantifier-free uninterpreted functions with datatypes
 - **QF_DTLIA**: Quantifier-free algebraic datatypes with linear integer arithmetic
@@ -93,6 +94,17 @@ bv_result = sample_models_from_formula(bv_formula, Logic.QF_BV, options)
 i, j = z3.Ints('i j')
 lia_formula = z3.And(i + j > 0, i - j < 10)
 lia_result = sample_models_from_formula(lia_formula, Logic.QF_LIA, options)
+
+# Uninterpreted functions + linear integer arithmetic
+u = z3.Int('u')
+v = z3.Int('v')
+f = z3.Function('f', z3.IntSort(), z3.IntSort())
+uflia_formula = z3.And(u >= 0, u <= 1, v == f(u), v <= 2)
+uflia_result = sample_models_from_formula(
+    uflia_formula,
+    Logic.QF_UFLIA,
+    SamplingOptions(num_samples=10, projection_terms=[u, v, f(u)]),
+)
 
 # Datatypes + linear integer arithmetic
 maybe = z3.Datatype('MaybeInt')

@@ -4,13 +4,13 @@
 
 There are many interesting research topics. You are welcome to contribute to the following research topics:
 
-- Constrained sampling for QF_DTLIA (algebraic data type + linear interger arithmetic): See `aria/sampling/linear_ira/adt_lia_sampler.py`.
+- Constrained sampling for QF_DTLIA (algebraic data type + linear interger arithmetic): See `aria/sampling/dtlia`.
   + Potental applications: proper-based testing for functional languages.
 - Parallel CDCL(T): See `aria/smt/pcdclt`. Here we have a new algorithm for parallelizing lazy SMT solving
 - Parallel solving for Exists-Forall problems
-- Hybrid LLM-SMT constraint solving: See `aria/ml/llm/smto`
 - SMT solving for the theory of finite field: `aria/smt/ff`
 - Taint-based model finding for SMT: `aria/quant/taintmodel`
+-  Hybrid LLM-SMT constraint solving: See `aria/ml/llm/smto`
 - ...
 
 ## Features

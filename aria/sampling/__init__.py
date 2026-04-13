@@ -5,6 +5,7 @@ This package provides tools for sampling models from SMT formulas across various
 
 Available logics:
 - QF_UF: Quantifier-free uninterpreted functions
+- QF_UFLIA: Quantifier-free uninterpreted functions with linear integer arithmetic
 - QF_DT: Quantifier-free algebraic datatypes
 - QF_UFDT: Quantifier-free uninterpreted functions with datatypes
 - QF_BOOL: Quantifier-free Boolean logic

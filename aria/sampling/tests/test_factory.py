@@ -146,6 +146,30 @@ class TestSampleModelsFromFormula:
         except ValueError as e:
             pytest.skip(f"Sampler not available: {e}")
 
+    def test_sample_uf_lia_formula(self):
+        """Test sampling from a mixed UF + linear integer formula."""
+        x = z3.Int("x")
+        y = z3.Int("y")
+        f = z3.Function("f", z3.IntSort(), z3.IntSort())
+        formula = cast(
+            z3.ExprRef,
+            z3.And(x >= 0, x <= 1, y == f(x), y <= 2),
+        )
+
+        try:
+            result = sample_models_from_formula(
+                formula,
+                Logic.QF_UFLIA,
+                SamplingOptions(num_samples=10, projection_terms=[x, y, f(x)]),
+            )
+            assert len(result) == 2
+            assert {sample["x"] for sample in result} == {0, 1}
+            for sample in result:
+                assert sample["y"] == sample["f(x)"]
+                assert sample["y"] <= 2
+        except ValueError as e:
+            pytest.skip(f"Sampler not available: {e}")
+
     def test_sample_with_random_seed(self):
         """Test random seed reproducibility."""
         x = z3.Int("x")

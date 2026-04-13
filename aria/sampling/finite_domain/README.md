@@ -182,6 +182,7 @@ Different sampling strategies are separate classes, allowing users to:
 - **Floating-point formulas (QF_FP), more diversity**: Use `HashBasedFPSampler`
 - **Floating-point formulas (QF_FP), wider numeric spread**: Use `TotalOrderFPSampler`
 - **Uninterpreted functions (QF_UF)**: Use `UninterpretedFunctionSampler`
+- **Uninterpreted functions + linear integer arithmetic (QF_UFLIA)**: Use `UninterpretedFunctionSampler`
 - **Algebraic datatypes (QF_DT)**: Use `DatatypeSampler`
 - **UF + datatypes (QF_UFDT)**: Use `MixedUFDatatypeSampler`
 
@@ -202,6 +203,8 @@ The finite-domain samplers now distinguish between the full tracked observable
 space and the default projection space.
 
 - `QF_UF` tracks constants and ground UF applications appearing in the formula.
+- `QF_UFLIA` tracks the same UF observables plus integer variables appearing in
+  the formula.
 - `QF_DT` tracks datatype variables plus any datatype selectors/testers that
   syntactically appear in the formula.
 - `QF_UFDT` combines both sets of observables.

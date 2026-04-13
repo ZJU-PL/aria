@@ -20,6 +20,7 @@ class TestUninterpretedFunctionSampler:
     def test_supports_correct_logic(self):
         sampler = UninterpretedFunctionSampler()
         assert sampler.supports_logic(Logic.QF_UF) is True
+        assert sampler.supports_logic(Logic.QF_UFLIA) is True
         assert sampler.supports_logic(Logic.QF_DT) is False
 
     def test_sample_ground_uf_formula(self):
@@ -49,6 +50,31 @@ class TestUninterpretedFunctionSampler:
     def test_factory_registration(self):
         sampler = create_sampler(Logic.QF_UF)
         assert isinstance(sampler, UninterpretedFunctionSampler)
+
+    def test_factory_registration_for_uflia(self):
+        sampler = create_sampler(Logic.QF_UFLIA)
+        assert isinstance(sampler, UninterpretedFunctionSampler)
+
+    def test_sample_ground_uf_lia_formula(self):
+        x = z3.Int("x_uflia")
+        y = z3.Int("y_uflia")
+        f = z3.Function("f_uflia", z3.IntSort(), z3.IntSort())
+        formula = cast(
+            z3.ExprRef,
+            z3.And(x >= 0, x <= 1, y == f(x), y <= 3),
+        )
+
+        sampler = UninterpretedFunctionSampler()
+        sampler.init_from_formula(formula)
+        result = sampler.sample(
+            SamplingOptions(num_samples=10, projection_terms=[x, y, f(x)])
+        )
+
+        assert len(result) == 2
+        assert {sample["x_uflia"] for sample in result} == {0, 1}
+        for sample in result:
+            assert sample["y_uflia"] == sample["f_uflia(x_uflia)"]
+            assert sample["y_uflia"] <= 3
 
     def test_projected_sampling_by_term(self):
         color, (red, green, blue) = z3.EnumSort(

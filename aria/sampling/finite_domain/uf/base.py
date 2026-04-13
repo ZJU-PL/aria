@@ -20,7 +20,7 @@ from aria.sampling.finite_domain.common import (
     collect_uf_observable_terms,
     enumerate_projected_models,
 )
-from aria.utils.z3.expr import get_variables
+from aria.utils.z3.expr import get_variables, is_int_sort
 
 
 class UninterpretedFunctionSampler(Sampler):
@@ -29,21 +29,29 @@ class UninterpretedFunctionSampler(Sampler):
     def __init__(self, **_kwargs: Any) -> None:
         self.formula: Optional[z3.ExprRef] = None
         self.constants: List[z3.ExprRef] = []
+        self.int_variables: List[z3.ExprRef] = []
         self.function_terms: List[z3.ExprRef] = []
 
     def supports_logic(self, logic: Logic) -> bool:
-        return logic == Logic.QF_UF
+        return logic in {Logic.QF_UF, Logic.QF_UFLIA}
 
     def init_from_formula(self, formula: z3.ExprRef) -> None:
         self.formula = formula
         self.constants = sorted(get_variables(formula), key=str)
+        self.int_variables = sorted(
+            [var for var in self.constants if is_int_sort(var)],
+            key=str,
+        )
         self.function_terms = collect_uf_observable_terms(formula)
 
     def sample(self, options: SamplingOptions) -> SamplingResult:
         if self.formula is None:
             raise ValueError("Sampler not initialized with a formula")
 
-        tracked_terms = self.constants + self.function_terms
+        tracked_terms = sorted(
+            {str(term): term for term in self.constants + self.int_variables + self.function_terms}.values(),
+            key=str,
+        )
         return enumerate_projected_models(
             self.formula,
             options,
@@ -54,4 +62,4 @@ class UninterpretedFunctionSampler(Sampler):
         return {SamplingMethod.ENUMERATION}
 
     def get_supported_logics(self) -> Set[Logic]:
-        return {Logic.QF_UF, Logic.QF_UFDT}
+        return {Logic.QF_UF, Logic.QF_UFLIA}

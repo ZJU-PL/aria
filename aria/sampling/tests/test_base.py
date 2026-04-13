@@ -15,6 +15,7 @@ class TestLogic:
         """Test that all logic enum values exist."""
         assert Logic.QF_BOOL.value == "QF_BOOL"
         assert Logic.QF_BV.value == "QF_BV"
+        assert Logic.QF_UFLIA.value == "QF_UFLIA"
         assert Logic.QF_LRA.value == "QF_LRA"
         assert Logic.QF_LIRA.value == "QF_LIRA"
 

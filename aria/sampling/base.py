@@ -14,6 +14,7 @@ class Logic(Enum):
     """Supported SMT logics for sampling."""
 
     QF_UF = "QF_UF"  # Quantifier-free uninterpreted functions
+    QF_UFLIA = "QF_UFLIA"  # Quantifier-free uninterpreted functions + linear integer arithmetic
     QF_DT = "QF_DT"  # Quantifier-free algebraic datatypes
     QF_UFDT = "QF_UFDT"  # Quantifier-free uninterpreted functions + datatypes
     QF_DTLIA = "QF_DTLIA"  # Quantifier-free datatypes + linear integer arithmetic
