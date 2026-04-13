@@ -1,4 +1,4 @@
-"""Utilities and definitions for aria.quant.taintmodel.test_arrays."""
+"""Tests for array-specific SIC inference."""
 
 import pytest
 from z3 import *

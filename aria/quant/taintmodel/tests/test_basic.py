@@ -1,11 +1,11 @@
 # tests/test_basic.py --------------------------------------------------------
-import pytest, os, textwrap
+import pytest
 from aria.quant.taintmodel.solver import QuantSolver
 from aria.quant.taintmodel.taint import (
-    _simplify_bv_equality,
     infer_sic,
     infer_sic_with_taints,
 )
+from aria.quant.taintmodel.theories import _simplify_bv_equality
 from z3 import *
 
 
