@@ -3,7 +3,8 @@ Enumerate datatype constructor shapes for DTLIA sampling.
 """
 
 from dataclasses import dataclass
-from typing import Any, Iterable, List, Sequence, Set, Tuple
+from time import perf_counter
+from typing import Any, Dict, Iterable, List, Sequence, Set, Tuple
 
 import z3
 
@@ -41,16 +42,6 @@ def _dedupe_terms(terms: Iterable[z3.ExprRef]) -> List[z3.ExprRef]:
     return unique_terms
 
 
-def _find_constructor_index(
-    sort: z3.DatatypeSortRef, decl: z3.FuncDeclRef
-) -> int:
-    """Return the constructor index for a datatype declaration."""
-    for idx in range(sort.num_constructors()):
-        if decl.eq(sort.constructor(idx)):
-            return idx
-    raise ValueError(f"Constructor {decl} does not belong to sort {sort}")
-
-
 def _value_to_shape_signature(value: z3.ExprRef) -> Tuple[Any, ...]:
     """Convert a datatype value into a constructor-shape signature."""
     if not _is_datatype_sort(value.sort()):
@@ -70,41 +61,6 @@ def _value_to_shape_signature(value: z3.ExprRef) -> Tuple[Any, ...]:
     return (value.decl().name(), tuple(field_signatures))
 
 
-def _extract_shape_constraints(
-    term: z3.ExprRef,
-    value: z3.ExprRef,
-) -> Tuple[List[z3.ExprRef], List[z3.ExprRef]]:
-    """Lower a datatype model value to constructor-shape constraints."""
-    if not _is_datatype_sort(term.sort()):
-        return [], []
-
-    sort = term.sort()
-    if not isinstance(sort, z3.DatatypeSortRef):
-        return [], []
-
-    constructor_idx = _find_constructor_index(sort, value.decl())
-    constraints: List[z3.ExprRef] = [sort.recognizer(constructor_idx)(term)]
-    payload_terms: List[z3.ExprRef] = []
-
-    for field_idx in range(value.num_args()):
-        accessor = sort.accessor(constructor_idx, field_idx)
-        child_term = accessor(term)
-        child_value = value.arg(field_idx)
-
-        if _is_datatype_sort(child_term.sort()):
-            child_constraints, child_payload_terms = _extract_shape_constraints(
-                child_term, child_value
-            )
-            constraints.extend(child_constraints)
-            payload_terms.extend(child_payload_terms)
-        elif child_term.sort().kind() == z3.Z3_INT_SORT:
-            payload_terms.append(child_term)
-        else:
-            constraints.append(child_term == child_value)
-
-    return constraints, payload_terms
-
-
 @dataclass(frozen=True)
 class ShapeSample:
     """A sampled datatype shape with residual constraints and payload terms."""
@@ -114,16 +70,54 @@ class ShapeSample:
     payload_terms: Tuple[z3.ExprRef, ...]
 
 
+@dataclass(frozen=True)
+class ShapeEnumerationResult:
+    """Complete result for shape exploration, including pruning statistics."""
+
+    shapes: List[ShapeSample]
+    stats: Dict[str, Any]
+
+
+def _pending_term_key(term: z3.ExprRef) -> Tuple[int, str]:
+    """Return a deterministic key for pending datatype terms."""
+    return (_ast_id(term), str(term))
+
+
+def _append_pending_term(
+    pending_terms: List[z3.ExprRef],
+    pending_ids: Set[int],
+    assigned_ids: Set[int],
+    term: z3.ExprRef,
+) -> None:
+    """Append a datatype child term to the pending queue once."""
+    term_id = _ast_id(term)
+    if term_id in pending_ids or term_id in assigned_ids:
+        return
+    pending_terms.append(term)
+    pending_ids.add(term_id)
+
+
 def enumerate_datatype_shapes(
     formula: z3.ExprRef,
     root_terms: Sequence[z3.ExprRef],
     max_shapes: int,
     random_seed: int | None = None,
     timeout: float | None = None,
-) -> List[ShapeSample]:
-    """Enumerate distinct constructor shapes for root datatype terms."""
+) -> ShapeEnumerationResult:
+    """Enumerate distinct constructor shapes via partial constructor search."""
     if not root_terms or max_shapes <= 0:
-        return []
+        return ShapeEnumerationResult(
+            shapes=[],
+            stats={
+                "shape_enumerator": "partial_feasibility",
+                "shape_solver_checks": 0,
+                "shape_pruned_branches": 0,
+                "shape_partial_states": 0,
+                "shape_duplicate_signatures": 0,
+                "shape_complete_assignments": 0,
+                "shape_enumeration_time_ms": 0,
+            },
+        )
 
     solver = z3.Solver()
     if random_seed is not None:
@@ -133,40 +127,142 @@ def enumerate_datatype_shapes(
         solver.set("timeout", max(1, int(timeout * 1000)))
     solver.add(formula)
 
+    started_at = perf_counter()
+    ordered_root_terms = _dedupe_terms(root_terms)
     shapes: List[ShapeSample] = []
     seen_signatures: Set[Tuple[Any, ...]] = set()
+    solver_checks = 0
+    pruned_branches = 0
+    partial_states = 0
+    duplicate_signatures = 0
+    complete_assignments = 0
 
-    while len(shapes) < max_shapes and solver.check() == z3.sat:
-        model = solver.model()
-        signature_parts: List[Tuple[Any, ...]] = []
-        shape_constraints: List[z3.ExprRef] = []
-        payload_terms: List[z3.ExprRef] = []
+    initial_pending = sorted(ordered_root_terms, key=_pending_term_key)
 
-        for root_term in root_terms:
-            root_value = model.evaluate(root_term, model_completion=True)
-            signature_parts.append(_value_to_shape_signature(root_value))
-            root_constraints, root_payload_terms = _extract_shape_constraints(
-                root_term, root_value
+    def explore(
+        pending_terms: List[z3.ExprRef],
+        pending_ids: Set[int],
+        assigned_ids: Set[int],
+        shape_constraints: List[z3.ExprRef],
+        payload_terms: List[z3.ExprRef],
+    ) -> None:
+        nonlocal solver_checks
+        nonlocal pruned_branches
+        nonlocal partial_states
+        nonlocal duplicate_signatures
+        nonlocal complete_assignments
+
+        if len(shapes) >= max_shapes:
+            return
+
+        if not pending_terms:
+            complete_assignments += 1
+            model = solver.model()
+            signature = tuple(
+                _value_to_shape_signature(
+                    model.evaluate(root_term, model_completion=True)
+                )
+                for root_term in ordered_root_terms
             )
-            shape_constraints.extend(root_constraints)
-            payload_terms.extend(root_payload_terms)
+            if signature in seen_signatures:
+                duplicate_signatures += 1
+                return
 
-        signature = tuple(signature_parts)
-        if signature in seen_signatures:
-            break
-        seen_signatures.add(signature)
-
-        deduped_constraints = tuple(_dedupe_terms(shape_constraints))
-        shapes.append(
-            ShapeSample(
-                signature=signature,
-                constraints=deduped_constraints,
-                payload_terms=tuple(_dedupe_terms(payload_terms)),
+            seen_signatures.add(signature)
+            shapes.append(
+                ShapeSample(
+                    signature=signature,
+                    constraints=tuple(_dedupe_terms(shape_constraints)),
+                    payload_terms=tuple(_dedupe_terms(payload_terms)),
+                )
             )
-        )
+            return
 
-        if not deduped_constraints:
-            break
-        solver.add(z3.Not(z3.And(*deduped_constraints)))
+        partial_states += 1
+        term = pending_terms[0]
+        remaining_pending = list(pending_terms[1:])
+        remaining_ids = set(pending_ids)
+        remaining_ids.discard(_ast_id(term))
 
-    return shapes
+        sort = term.sort()
+        if not isinstance(sort, z3.DatatypeSortRef):
+            explore(
+                remaining_pending,
+                remaining_ids,
+                set(assigned_ids),
+                list(shape_constraints),
+                list(payload_terms),
+            )
+            return
+
+        term_id = _ast_id(term)
+        next_assigned_ids = set(assigned_ids)
+        next_assigned_ids.add(term_id)
+
+        for constructor_idx in range(sort.num_constructors()):
+            recognizer = sort.recognizer(constructor_idx)
+            constructor_constraint = recognizer(term)
+
+            solver.push()
+            solver.add(constructor_constraint)
+            solver_checks += 1
+
+            if solver.check() != z3.sat:
+                pruned_branches += 1
+                solver.pop()
+                continue
+
+            constructor_decl = sort.constructor(constructor_idx)
+            branch_constraints = list(shape_constraints)
+            branch_constraints.append(constructor_constraint)
+            branch_payload_terms = list(payload_terms)
+            branch_pending = list(remaining_pending)
+            branch_pending_ids = set(remaining_ids)
+
+            for field_idx in range(constructor_decl.arity()):
+                accessor = sort.accessor(constructor_idx, field_idx)
+                child_term = accessor(term)
+                if _is_datatype_sort(child_term.sort()):
+                    _append_pending_term(
+                        branch_pending,
+                        branch_pending_ids,
+                        next_assigned_ids,
+                        child_term,
+                    )
+                elif child_term.sort().kind() == z3.Z3_INT_SORT:
+                    branch_payload_terms.append(child_term)
+
+            branch_pending.sort(key=_pending_term_key)
+            explore(
+                branch_pending,
+                branch_pending_ids,
+                next_assigned_ids,
+                branch_constraints,
+                branch_payload_terms,
+            )
+            solver.pop()
+
+            if len(shapes) >= max_shapes:
+                return
+
+    explore(
+        initial_pending,
+        {_ast_id(term) for term in initial_pending},
+        set(),
+        [],
+        [],
+    )
+
+    elapsed_ms = int((perf_counter() - started_at) * 1000)
+    return ShapeEnumerationResult(
+        shapes=shapes,
+        stats={
+            "shape_enumerator": "partial_feasibility",
+            "shape_solver_checks": solver_checks,
+            "shape_pruned_branches": pruned_branches,
+            "shape_partial_states": partial_states,
+            "shape_duplicate_signatures": duplicate_signatures,
+            "shape_complete_assignments": complete_assignments,
+            "shape_enumeration_time_ms": elapsed_ms,
+        },
+    )

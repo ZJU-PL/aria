@@ -136,13 +136,14 @@ class ADTLIASampler(Sampler):
             )
         )
 
-        shapes = enumerate_datatype_shapes(
+        shape_result = enumerate_datatype_shapes(
             formula,
             self.datatype_roots,
             max_shapes=cfg.max_shapes,
             random_seed=options.random_seed,
             timeout=options.timeout,
         )
+        shapes = shape_result.shapes
         if not shapes:
             return enumerate_projected_models(
                 formula,
@@ -246,6 +247,7 @@ class ADTLIASampler(Sampler):
                 else "payload_terms"
             ),
         }
+        stats.update(shape_result.stats)
         stats.update(coverage_stats)
         return SamplingResult(selected_samples, stats)
 

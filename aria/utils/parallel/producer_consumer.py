@@ -124,6 +124,8 @@ def producer_consumer(
 
         try:
             while not producer_done or pending:
+                raise_if_producer_failed()
+
                 if pending and (producer_done or len(pending) >= consumer_parallelism):
                     drain_completed(block=True)
                     continue
@@ -138,6 +140,7 @@ def producer_consumer(
                 if item is END_SENTINEL:
                     producer_done = True
                 else:
+                    raise_if_producer_failed()
                     pending.add(ex.submit(consume, item))
 
                 drain_completed(block=False)

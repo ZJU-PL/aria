@@ -12,6 +12,7 @@ from aria.utils.parallel import (
     PipelineStage,
     Stream,
     fork_join,
+    master_slave,
     pipeline,
     producer_consumer,
 )
@@ -22,7 +23,7 @@ from aria.utils.parallel.async_utils import (
     kill_process_async,
     run_subprocess_async,
 )
-from aria.utils.parallel.actor import spawn
+from aria.utils.parallel.actor import ActorStoppedError, spawn
 from aria.utils.parallel.dataflow import Dataflow, Node
 
 
@@ -73,6 +74,20 @@ def test_parallel_executor_error_returns_promptly():
 
     start = time.time()
     with pytest.raises(ValueError, match="boom"):
+        with ParallelExecutor(max_workers=2) as ex:
+            ex.run(work, [0, 1])
+    assert time.time() - start < 0.2
+
+
+def test_parallel_executor_base_exception_returns_promptly():
+    def work(x: int) -> int:
+        if x == 0:
+            raise KeyboardInterrupt()
+        time.sleep(0.3)
+        return x
+
+    start = time.time()
+    with pytest.raises(KeyboardInterrupt):
         with ParallelExecutor(max_workers=2) as ex:
             ex.run(work, [0, 1])
     assert time.time() - start < 0.2
@@ -185,6 +200,37 @@ def test_pipeline_raises_stage_failures_promptly():
     with pytest.raises(ValueError, match="boom"):
         pipeline([PipelineStage(worker=work, parallelism=2)], inputs=[0, 1])
     assert time.time() - start < 0.2
+
+
+def test_pipeline_raises_base_exceptions_promptly():
+    def work(x: int) -> int:
+        if x == 0:
+            raise KeyboardInterrupt()
+        time.sleep(0.3)
+        return x
+
+    start = time.time()
+    with pytest.raises(KeyboardInterrupt):
+        pipeline([PipelineStage(worker=work, parallelism=2)], inputs=[0, 1])
+    assert time.time() - start < 0.2
+
+
+def test_pipeline_surfaces_later_failures_without_waiting_for_earlier_items():
+    release = threading.Event()
+
+    def work(x: int) -> int:
+        if x == 0:
+            release.wait()
+            return x
+        if x == 1:
+            raise ValueError("boom")
+        return x
+
+    start = time.time()
+    with pytest.raises(ValueError, match="boom"):
+        pipeline([PipelineStage(worker=work, parallelism=2)], inputs=[0, 1])
+    assert time.time() - start < 0.2
+    release.set()
 
 
 def test_pipeline_raises_feeder_failures_promptly():
@@ -323,7 +369,6 @@ def test_producer_consumer_raises_promptly_with_unbounded_producer():
 
 
 def test_producer_consumer_raises_producer_failures_promptly():
-    consumer_started = threading.Event()
     release = threading.Event()
 
     def produce(q):
@@ -331,14 +376,12 @@ def test_producer_consumer_raises_producer_failures_promptly():
         raise ValueError("producer boom")
 
     def consume(item: int) -> int:
-        consumer_started.set()
         release.wait()
         return item
 
     start = time.time()
     with pytest.raises(ValueError, match="producer boom"):
         producer_consumer(produce, consume, consumer_parallelism=1, queue_size=1)
-    assert consumer_started.is_set()
     assert time.time() - start < 0.2
     release.set()
 
@@ -416,6 +459,25 @@ def test_dataflow_raises_node_failures_promptly():
     assert time.time() - start < 0.2
 
 
+def test_dataflow_raises_base_exceptions_promptly():
+    flow = Dataflow()
+
+    def work(x: int) -> int:
+        if x == 0:
+            raise KeyboardInterrupt()
+        time.sleep(0.3)
+        return x
+
+    flow.add_node(Node("bad", work, parallelism=2, inputs=["src"], outputs=["out"]))
+    flow.connect_source("src", [0, 1])
+    flow.connect_sink("out", [])
+
+    start = time.time()
+    with pytest.raises(KeyboardInterrupt):
+        flow.run()
+    assert time.time() - start < 0.2
+
+
 def test_dataflow_runs_inputless_source_nodes():
     collector = []
     flow = Dataflow()
@@ -471,6 +533,13 @@ def test_dataflow_rejects_non_positive_parallelism():
 
     with pytest.raises(ValueError, match="parallelism must be positive"):
         flow.add_node(Node("bad", lambda x: x, parallelism=0, inputs=["src"]))
+
+
+def test_dataflow_rejects_multiple_input_queues():
+    flow = Dataflow()
+
+    with pytest.raises(ValueError, match="at most one input queue"):
+        flow.add_node(Node("bad", lambda x: x, inputs=["left", "right"]))
 
 
 def test_actor_stop_does_not_block_on_full_mailbox():
@@ -559,6 +628,112 @@ def test_actor_ask_raises_base_exceptions():
         handle.stop()
 
 
+def test_actor_tell_base_exception_stops_actor():
+    def bad(_: int) -> None:
+        raise KeyboardInterrupt()
+
+    handle = spawn(bad, name="fatal-tell-actor")
+    try:
+        handle.ref.tell(1)
+        handle.thread.join(timeout=0.2)
+
+        assert not handle.is_alive
+        with pytest.raises(ActorStoppedError, match="stopped"):
+            handle.ref.tell(2)
+        with pytest.raises(ActorStoppedError, match="stopped"):
+            handle.ref.ask(3, timeout=0.1)
+    finally:
+        handle.stop()
+
+
+def test_actor_stop_unblocks_pending_ask_callers():
+    started = threading.Event()
+    release = threading.Event()
+    result_holder = {}
+
+    def slow(_: int) -> int:
+        started.set()
+        release.wait()
+        return 1
+
+    handle = spawn(slow, mailbox_size=1, name="stoppable-actor")
+    ask_thread = None
+    try:
+        handle.ref.tell(1)
+        assert started.wait(0.1)
+
+        def ask_actor() -> None:
+            try:
+                handle.ref.ask(2)
+            except BaseException as exc:  # pragma: no cover - assertion below checks it
+                result_holder["error"] = exc
+
+        ask_thread = threading.Thread(target=ask_actor, daemon=True)
+        ask_thread.start()
+        time.sleep(0.05)
+
+        handle.stop(timeout=0.01)
+        ask_thread.join(timeout=0.2)
+
+        assert not ask_thread.is_alive()
+        assert isinstance(result_holder.get("error"), ActorStoppedError)
+    finally:
+        release.set()
+        if ask_thread is not None:
+            ask_thread.join(timeout=0.5)
+        handle.thread.join(timeout=0.5)
+
+
+def test_actor_rejects_new_messages_after_stop():
+    handle = spawn(lambda x: x, name="stopped-actor")
+    handle.stop()
+
+    with pytest.raises(ActorStoppedError, match="stopped"):
+        handle.ref.tell(1)
+
+    with pytest.raises(ActorStoppedError, match="stopped"):
+        handle.ref.ask(1, timeout=0.1)
+
+
+def test_actor_stop_unblocks_ask_waiting_for_mailbox_space():
+    started = threading.Event()
+    release = threading.Event()
+    result_holder = {}
+
+    def slow(_: int) -> int:
+        started.set()
+        release.wait()
+        return 1
+
+    handle = spawn(slow, mailbox_size=1, name="stopping-bounded-actor")
+    ask_thread = None
+    try:
+        handle.ref.tell(1)
+        assert started.wait(0.1)
+        handle.ref.tell(2)
+
+        def ask_actor() -> None:
+            try:
+                handle.ref.ask(3)
+            except BaseException as exc:  # pragma: no cover - assertion below checks it
+                result_holder["error"] = exc
+
+        ask_thread = threading.Thread(target=ask_actor, daemon=True)
+        ask_thread.start()
+        time.sleep(0.05)
+
+        handle.stop(timeout=0.01)
+        ask_thread.join(timeout=0.2)
+
+        assert not ask_thread.is_alive()
+        assert isinstance(result_holder.get("error"), ActorStoppedError)
+    finally:
+        release.set()
+        if ask_thread is not None:
+            ask_thread.join(timeout=0.5)
+        handle.thread.join(timeout=0.5)
+
+
 def test_forward_and_return_data_handles_non_utf8_output():
     async def run_test() -> tuple[bytes, str]:
         reader = asyncio.StreamReader()
@@ -593,6 +768,21 @@ def test_forward_and_return_data_flushes_output():
 
     output = asyncio.run(run_test())
     assert output.flush_count >= 1
+
+
+def test_forward_and_return_data_handles_long_unterminated_chunks():
+    async def run_test() -> tuple[bytes, str]:
+        reader = asyncio.StreamReader()
+        payload = b"a" * 70000
+        reader.feed_data(payload)
+        reader.feed_eof()
+        output = io.StringIO()
+        data = await forward_and_return_data(output, "worker", reader)
+        return data, output.getvalue()
+
+    data, rendered = asyncio.run(run_test())
+    assert data == b"a" * 70000
+    assert rendered.startswith("[worker]")
 
 
 def test_run_subprocess_async_only_pipes_stdin_when_input_given(monkeypatch):
@@ -740,3 +930,71 @@ def test_producer_consumer_stops_producer_after_consumer_failure():
         )
 
     assert producer_stopped.wait(0.6)
+
+
+def test_producer_consumer_raises_promptly_on_buffered_producer_failure():
+    release = threading.Event()
+
+    def produce(q):
+        for item in range(5):
+            q.put(item)
+        raise ValueError("producer boom")
+
+    def consume(item: int) -> int:
+        release.wait()
+        return item
+
+    start = time.time()
+    with pytest.raises(ValueError, match="producer boom"):
+        producer_consumer(produce, consume, consumer_parallelism=1, queue_size=10)
+    assert time.time() - start < 0.2
+    release.set()
+
+
+def test_master_slave_starts_processing_before_generator_exhausts():
+    yielded_first = threading.Event()
+    worker_started = threading.Event()
+    allow_rest = threading.Event()
+    result_holder = {}
+
+    def tasks():
+        yielded_first.set()
+        yield 1
+        allow_rest.wait()
+        yield 2
+
+    def work(item: int) -> int:
+        worker_started.set()
+        return item
+
+    def run_master_slave() -> None:
+        try:
+            result_holder["results"] = master_slave(tasks(), work, max_workers=1)
+        except BaseException as exc:  # pragma: no cover - assertion below checks it
+            result_holder["error"] = exc
+
+    thread = threading.Thread(target=run_master_slave, daemon=True)
+    thread.start()
+
+    assert yielded_first.wait(0.1)
+    assert worker_started.wait(0.1)
+
+    allow_rest.set()
+    thread.join(timeout=1.0)
+
+    assert not thread.is_alive()
+    assert "error" not in result_holder
+    assert result_holder["results"] == [1, 2]
+
+
+def test_master_slave_raises_failures_promptly():
+    def work(x: int) -> int:
+        if x == 0:
+            raise ValueError("boom")
+        time.sleep(0.3)
+        return x
+
+    start = time.time()
+    with pytest.raises(ValueError, match="boom"):
+        master_slave([0, 1], work, max_workers=2)
+    assert time.time() - start < 0.2

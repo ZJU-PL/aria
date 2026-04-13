@@ -42,19 +42,42 @@ async def forward_and_return_data(
     blocks: collections.deque[bytes] = collections.deque()
     # Calculate spacing to align prefixes nicely (target width ~30 chars)
     space = " " * max(1, (30 - 2 - len(prefix)))
+    pending = b""
+
+    def flush_output_chunk(chunk: bytes, *, final: bool = False) -> None:
+        nonlocal pending
+        if output is None:
+            return
+
+        pending += chunk
+        while True:
+            newline_idx = pending.find(b"\n")
+            if newline_idx < 0:
+                break
+            line = pending[: newline_idx + 1]
+            pending = pending[newline_idx + 1 :]
+            output.write(
+                f"[{prefix}]{space}{line.decode('utf-8', errors='replace')}"
+            )
+
+        if final and pending:
+            output.write(
+                f"[{prefix}]{space}{pending.decode('utf-8', errors='replace')}\n"
+            )
+            pending = b""
+
+        flush = cast(Callable[[], None] | None, getattr(output, "flush", None))
+        if flush is not None:
+            flush()
+
     while not input.at_eof():
-        line = await input.readline()
-        if len(line) == 0:
+        chunk = await input.read(8192)
+        if len(chunk) == 0:
             break
-        blocks.append(line)
-        if output is not None:
-            # Ensure line has newline for consistent formatting
-            if not line.endswith(b"\n"):
-                line += b"\n"
-            output.write(f"[{prefix}]{space}{line.decode('utf-8', errors='replace')}")
-            flush = cast(Callable[[], None] | None, getattr(output, "flush", None))
-            if flush is not None:
-                flush()
+        blocks.append(chunk)
+        flush_output_chunk(chunk)
+
+    flush_output_chunk(b"", final=True)
     return b"".join(blocks)
 
 

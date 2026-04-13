@@ -135,7 +135,7 @@ class ParallelExecutor:
                 return_exceptions=return_exceptions,
                 preserve_order=preserve_order,
             )
-        except Exception:
+        except BaseException:
             self._fast_shutdown = True
             raise
 
@@ -217,7 +217,7 @@ def run_tasks(
                 return_exceptions=False,
                 preserve_order=True,
             )
-        except Exception:
+        except BaseException:
             ex._fast_shutdown = True
             raise
     finally:
@@ -287,13 +287,13 @@ def _gather_results(
         if not done:
             # timeout expired
             _cancel_all()
+            if on_timeout_return is not None:
+                on_timeout_return()
             if kill_pool_on_timeout:
                 if on_timeout is not None:
                     on_timeout()
                 raise TimeoutError("parallel execution timed out")
             if return_exceptions:
-                if on_timeout_return is not None:
-                    on_timeout_return()
                 for idx in pending.values():
                     exc = TimeoutError("parallel execution timed out")
                     results[idx] = exc
@@ -307,7 +307,7 @@ def _gather_results(
                 result = fut.result(timeout=0)
                 results[idx] = result
                 completion_order.append(result)
-            except Exception as exc:  # includes TimeoutError
+            except BaseException as exc:  # includes TimeoutError
                 if logger:
                     logger.error("task.error type=%s msg=%s", type(exc).__name__, exc)
                 if return_exceptions:

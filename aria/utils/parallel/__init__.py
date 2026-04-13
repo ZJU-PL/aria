@@ -5,7 +5,7 @@ from .fork_join import fork_join
 from .pipeline import pipeline, PipelineStage
 from .producer_consumer import producer_consumer
 from .master_slave import master_slave
-from .actor import ActorSystem, spawn, ActorRef, ActorHandle
+from .actor import ActorSystem, spawn, ActorRef, ActorHandle, ActorStoppedError
 from .stream import Stream
 from .dataflow import Dataflow, Node
 
@@ -24,6 +24,7 @@ __all__ = [
     "spawn",
     "ActorRef",
     "ActorHandle",
+    "ActorStoppedError",
     # streaming
     "Stream",
     # dataflow

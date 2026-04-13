@@ -92,6 +92,8 @@ class Dataflow:
     def add_node(self, node: Node) -> None:
         if node.parallelism <= 0:
             raise ValueError("dataflow node parallelism must be positive")
+        if len(node.inputs) > 1:
+            raise ValueError("dataflow nodes support at most one input queue")
         self.nodes[node.name] = node
         for qn in [*node.inputs, *node.outputs]:
             if qn not in self.queues:
@@ -251,7 +253,7 @@ class Dataflow:
                             for future in done:
                                 try:
                                     result = future.result()
-                                except Exception as exc:
+                                except BaseException as exc:
                                     self._logger.exception(
                                         "dataflow node failed name=%s err=%s",
                                         n.name,

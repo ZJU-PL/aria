@@ -128,27 +128,29 @@ def pipeline(
             try:
                 # Bind queues at definition time to avoid late-binding bugs across threads
                 with ParallelExecutor(kind=kind, max_workers=n.parallelism) as ex:
-                    pending: list = []  # ordered: index 0 is oldest submitted future
+                    pending: dict = {}
+                    completed: dict = {}
                     stop_seen = False
+                    next_submit = 0
+                    next_emit = 0
 
                     def drain_completed(block: bool) -> None:
-                        # Drain from the front to preserve input order.
-                        while pending:
-                            fut = pending[0]
-                            if not fut.done():
-                                if not block:
-                                    break
-                                done, _ = wait(
-                                    [fut],
-                                    timeout=0.05,
-                                    return_when=FIRST_COMPLETED,
-                                )
-                                if not done:
-                                    break
-                            pending.pop(0)
+                        nonlocal next_emit
+
+                        if not pending:
+                            return
+
+                        wait_timeout = 0.05 if block else 0
+                        done, _ = wait(
+                            pending.keys(),
+                            timeout=wait_timeout,
+                            return_when=FIRST_COMPLETED,
+                        )
+                        for fut in done:
+                            seq = pending.pop(fut)
                             try:
-                                out_queue.put(fut.result())
-                            except Exception as exc:
+                                completed[seq] = fut.result()
+                            except BaseException as exc:
                                 logger.error(
                                     "pipeline stage failure idx=%s err=%s",
                                     stage_idx,
@@ -156,6 +158,10 @@ def pipeline(
                                 )
                                 ex._fast_shutdown = True
                                 stop_pipeline(exc)
+
+                        while next_emit in completed:
+                            out_queue.put(completed.pop(next_emit))
+                            next_emit += 1
 
                     while (not stop_seen or pending) and not error_event.is_set():
                         if pending and (stop_seen or len(pending) >= n.parallelism):
@@ -170,9 +176,14 @@ def pipeline(
                             if item is END_SENTINEL:
                                 stop_seen = True
                             elif item is not empty_marker:
-                                pending.append(ex.submit(n.worker, item))
+                                pending[ex.submit(n.worker, item)] = next_submit
+                                next_submit += 1
 
                         drain_completed(block=False)
+
+                    while next_emit in completed and not error_event.is_set():
+                        out_queue.put(completed.pop(next_emit))
+                        next_emit += 1
                     ex._fast_shutdown = ex._fast_shutdown or error_event.is_set()
             except BaseException as exc:
                 stop_pipeline(exc)

@@ -349,3 +349,76 @@ class TestADTLIASampler:
         assert values == {0, 4}
         assert result.stats["coverage_selection"] == "weighted_set_cover"
         assert result.stats["coverage_selected_feature_count"] > 0
+
+    def test_shape_mode_partial_exploration_prunes_infeasible_branches(self):
+        tree = z3.Datatype("IntTree")
+        tree.declare("leaf", ("leaf_value", z3.IntSort()))
+        tree.declare("node", ("left", tree), ("right", tree))
+        tree = tree.create()
+
+        root = z3.Const("root", tree)
+        formula = z3.And(
+            tree.is_node(root),
+            tree.is_leaf(tree.left(root)),
+            tree.leaf_value(tree.left(root)) >= 0,
+            tree.is_node(tree.right(root)),
+            tree.is_leaf(tree.left(tree.right(root))),
+            tree.leaf_value(tree.left(tree.right(root))) == 1,
+            tree.is_leaf(tree.right(tree.right(root))),
+            tree.leaf_value(tree.right(tree.right(root))) == 2,
+        )
+
+        sampler = ADTLIASampler()
+        sampler.init_from_formula(formula)
+        result = sampler.sample(
+            SamplingOptions(
+                method=SamplingMethod.SEARCH_TREE,
+                num_samples=4,
+                max_shapes=8,
+                candidates_per_shape=4,
+                include_selector_closure=True,
+                return_full_model=True,
+            )
+        )
+
+        assert len(result) >= 1
+        assert result.stats["shape_enumerator"] == "partial_feasibility"
+        assert result.stats["shape_count"] == 1
+        assert result.stats["shape_pruned_branches"] > 0
+        assert result.stats["shape_solver_checks"] >= result.stats["shape_pruned_branches"]
+
+    def test_shape_mode_partial_exploration_keeps_recursive_payload_terms(self):
+        tree = z3.Datatype("MaybeTree")
+        tree.declare("empty")
+        tree.declare("branch", ("value", z3.IntSort()), ("next", tree))
+        tree = tree.create()
+
+        root = z3.Const("root", tree)
+        formula = z3.And(
+            tree.is_branch(root),
+            tree.value(root) >= 0,
+            tree.value(root) <= 1,
+            tree.is_branch(tree.next(root)),
+            tree.value(tree.next(root)) == tree.value(root) + 10,
+            tree.next(tree.next(root)) == tree.empty,
+        )
+
+        sampler = ADTLIASampler()
+        sampler.init_from_formula(formula)
+        result = sampler.sample(
+            SamplingOptions(
+                method=SamplingMethod.SEARCH_TREE,
+                num_samples=4,
+                max_shapes=8,
+                candidates_per_shape=4,
+                include_selector_closure=True,
+                projection_terms=["value(root)", "value(next(root))"],
+            )
+        )
+
+        assert {sample["value(root)"] for sample in result} == {0, 1}
+        assert {sample["value(next(root))"] for sample in result} == {10, 11}
+        assert any(
+            "value(next(root))" in payload_terms
+            for payload_terms in result.stats["shape_payload_terms"]
+        )
