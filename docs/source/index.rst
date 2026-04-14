@@ -19,7 +19,7 @@ Major user-facing areas include:
 * ``aria.efmc``: program verification frontends and engines
 * ``aria.counting`` / ``aria.sampling`` / ``aria.prob``: counting, sampling,
   and probabilistic reasoning
-* ``aria.optimization``: optimization and MaxSMT/MaxSAT-oriented workflows
+* ``aria.pyomt``: optimization and MaxSMT/MaxSAT-oriented workflows
 * ``aria.itp`` / ``aria.fol`` / ``aria.interpolant``: theorem proving and logic
 * ``aria.translator`` / ``aria.cli``: translators and command-line tools
 

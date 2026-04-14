@@ -137,7 +137,7 @@ The module is imported in **21 files** across the project, with common use cases
    
    solver_path = global_config.get_solver_path("z3")
 
-**Used in**: efbv_bin_solvers.py, mathsat_solver.py, cvc5_sygus_abduct.py, cvc5_interpolant.py, smtinterpol_interpolant.py, z3_plus_smtlib_solver.py, dimacs_counting.py, optimization/bin_solver.py, eflira_parallel.py
+**Used in**: efbv_bin_solvers.py, mathsat_solver.py, cvc5_sygus_abduct.py, cvc5_interpolant.py, smtinterpol_interpolant.py, z3_plus_smtlib_solver.py, dimacs_counting.py, pyomt/bin_solver.py, eflira_parallel.py
 
 ### 2. Availability Checking
 

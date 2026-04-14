@@ -51,7 +51,7 @@ __all__ = [
     "smt",           # SMT operations and utilities
     "bool",          # Boolean operations and engines
     "quant",         # Quantifier reasoning and solvers
-    "optimization",  # Optimization and MaxSAT solvers
+    "pyomt",         # Optimization and MaxSAT solvers
     # Specialized modules
     "abduction",     # Abductive reasoning
     "allsmt",        # AllSMT (enumerate all satisfying models)

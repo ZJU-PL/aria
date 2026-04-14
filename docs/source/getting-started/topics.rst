@@ -10,7 +10,7 @@ Core algorithm development
 **Parallel CDCL(T) solving** (``aria/smt/pcdclt``)
   Develop parallel algorithms for clause learning with theory reasoning.
 
-**Optimization modulo theory** (``aria/optimization``)
+**Optimization modulo theory** (``aria/pyomt``)
   Extend OMT algorithms over bit-vectors, arithmetic, and mixed settings.
 
 **Advanced model counting** (``aria/counting``)

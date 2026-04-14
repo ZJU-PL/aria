@@ -9,7 +9,7 @@ quantifier elimination.
 import z3
 from aria.utils.z3.solver import is_sat, is_entail
 from aria.utils.z3.expr import get_variables
-from aria.optimization.msa.mistral_msa import MSASolver
+from aria.pyomt.msa.mistral_msa import MSASolver
 
 
 def generalize_model(model, pre_cond, post_cond):

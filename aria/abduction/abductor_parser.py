@@ -1,302 +1,257 @@
-"""Parse abduction problems from SMT-LIB2 to Z3 expressions."""
+"""Parse abduction problems from SMT-LIB2 into Z3 expressions."""
 
-from typing import Tuple, Dict, Any
+from typing import Any, Dict, List, Optional, Tuple
+
 import z3
-
-from aria.abduction.utils import extract_variables_from_smt2
 from aria.utils.sexpr import SExprParser
 
+_SMT2_PRELUDE_KEY = "__smt2_prelude__"
 
-def balance_parentheses(expr: str) -> str:
-    """Balance parentheses in expression."""
-    open_count = expr.count("(")
-    close_count = expr.count(")")
-    return expr + ")" * (open_count - close_count) if open_count > close_count else expr
+
+def _skip_whitespace(text: str, idx: int) -> int:
+    """Advance past whitespace characters."""
+    while idx < len(text) and text[idx].isspace():
+        idx += 1
+    return idx
 
 
 def extract_balanced_expr(text: str, start_idx: int = 0) -> str:
-    """Extract balanced expression with matching parentheses."""
-    stack = []
-    for i in range(start_idx, len(text)):
-        if text[i] == "(":
-            stack.append(i)
-        elif text[i] == ")":
-            if stack:
-                stack.pop()
-                if not stack:
-                    return text[start_idx : i + 1]
+    """Extract the balanced parenthesized expression starting at ``start_idx``."""
+    start_idx = _skip_whitespace(text, start_idx)
+    if start_idx >= len(text) or text[start_idx] != "(":
+        return ""
+
+    depth = 0
+    in_string = False
+    escaped = False
+
+    for idx in range(start_idx, len(text)):
+        char = text[idx]
+        if in_string:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == '"':
+                in_string = False
+            continue
+
+        if char == '"':
+            in_string = True
+        elif char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+            if depth == 0:
+                return text[start_idx : idx + 1]
+
     return text[start_idx:]
 
 
-def get_sort_str(var: z3.ExprRef) -> str:
-    """Get SMT-LIB2 sort string for Z3 variable."""
-    if hasattr(var, "sort"):
-        sort = var.sort()
-        if z3.is_bv_sort(sort):
-            return f"(_ BitVec {sort.size()})"
-        if z3.is_array_sort(sort):
-            return f"(Array {sort.domain()} {sort.range()})"
-        return str(sort)
-    if isinstance(var, z3.FuncDeclRef):
-        domain = [str(var.domain(i)) for i in range(var.arity())]
-        return f"({' '.join(domain)}) {var.range()}"
-    return "Int"
+def extract_all_commands(smt2_str: str) -> List[str]:
+    """Extract all top-level SMT-LIB commands in source order."""
+    commands: List[str] = []
+    idx = 0
+    length = len(smt2_str)
+
+    while idx < length:
+        idx = _skip_whitespace(smt2_str, idx)
+        if idx >= length:
+            break
+        if smt2_str[idx] == ";":
+            next_newline = smt2_str.find("\n", idx)
+            idx = length if next_newline == -1 else next_newline + 1
+            continue
+        if smt2_str[idx] != "(":
+            idx += 1
+            continue
+
+        command = extract_balanced_expr(smt2_str, idx)
+        if not command:
+            break
+        commands.append(command)
+        idx += len(command)
+
+    return commands
+
+
+def _parse_command(expr: str) -> Any:
+    """Parse one SMT-LIB command into a Python S-expression."""
+    sexpr = SExprParser.parse(expr)
+    if sexpr is None:
+        raise ValueError(f"Failed to parse SMT-LIB command: {expr}")
+    return sexpr
+
+
+def _collect_declarations(commands: List[str]) -> Tuple[Dict[str, Any], Dict[str, z3.SortRef]]:
+    """Collect constants, functions, and sorts declared in the input."""
+    declarations: Dict[str, Any] = {}
+    datatypes: Dict[str, z3.SortRef] = {}
+
+    for command in commands:
+        sexpr = _parse_command(command)
+        if not isinstance(sexpr, list) or not sexpr:
+            continue
+
+        head = sexpr[0]
+        if head == "declare-sort" and len(sexpr) >= 2:
+            sort_name = str(sexpr[1])
+            datatypes[sort_name] = z3.DeclareSort(sort_name)
+            continue
+        if head == "define-sort" and len(sexpr) >= 4:
+            sort_name = str(sexpr[1])
+            parameters = sexpr[2] if isinstance(sexpr[2], list) else []
+            if parameters:
+                raise ValueError(f"Parameterized sort aliases are not supported: {sort_name}")
+            datatypes[sort_name] = _sexpr_to_sort(sexpr[3], datatypes)
+            continue
+
+        if head not in {"declare-fun", "declare-const"} or len(sexpr) < 3:
+            continue
+
+        name = str(sexpr[1])
+        if head == "declare-const":
+            domain_spec: List[Any] = []
+            range_spec = sexpr[2]
+        else:
+            domain_spec = list(sexpr[2]) if isinstance(sexpr[2], list) else []
+            range_spec = sexpr[3]
+
+        domain_sorts = [_sexpr_to_sort(item, datatypes) for item in domain_spec]
+        range_sort = _sexpr_to_sort(range_spec, datatypes)
+
+        if domain_sorts:
+            declarations[name] = z3.Function(name, *domain_sorts, range_sort)
+        else:
+            declarations[name] = z3.Const(name, range_sort)
+
+    return declarations, datatypes
+
+
+def _sexpr_to_sort(sort_expr: Any, datatypes: Dict[str, z3.SortRef]) -> z3.SortRef:
+    """Convert a parsed SMT-LIB sort expression into a Z3 sort."""
+    if isinstance(sort_expr, str):
+        if sort_expr == "Int":
+            return z3.IntSort()
+        if sort_expr == "Real":
+            return z3.RealSort()
+        if sort_expr == "Bool":
+            return z3.BoolSort()
+        if sort_expr == "String":
+            return z3.StringSort()
+        if sort_expr in datatypes:
+            return datatypes[sort_expr]
+        raise ValueError(f"Unsupported sort: {sort_expr}")
+
+    if isinstance(sort_expr, list) and sort_expr:
+        head = sort_expr[0]
+        if head == "_" and len(sort_expr) == 3 and sort_expr[1] == "BitVec":
+            return z3.BitVecSort(int(sort_expr[2]))
+        if head == "Array" and len(sort_expr) == 3:
+            return z3.ArraySort(
+                _sexpr_to_sort(sort_expr[1], datatypes),
+                _sexpr_to_sort(sort_expr[2], datatypes),
+            )
+
+    raise ValueError(f"Unsupported sort expression: {sort_expr}")
 
 
 def parse_smt2_expr(expr_str: str, variables: Dict[str, Any]) -> z3.ExprRef:
-    """Parse SMT-LIB2 expression to Z3."""
+    """Parse one SMT-LIB2 expression using the provided symbol environment."""
     return parse_expr(expr_str, variables)
 
 
-def extract_assertion(smt2_str: str, start: int) -> Tuple[str, int]:
-    """Extract assertion from SMT-LIB2 string."""
-    expr_start = smt2_str.find("(", start + 7) or start + 7
-    expr = extract_balanced_expr(smt2_str, expr_start)
-    next_pos = smt2_str.find(")", expr_start + len(expr)) + 1
-    return expr, next_pos
+def extract_assertion(smt2_str: str, start: int) -> Tuple[Optional[str], int]:
+    """Extract the body of an ``assert`` command starting at ``start``."""
+    command = extract_balanced_expr(smt2_str, start)
+    if not command:
+        return None, start
+
+    sexpr = SExprParser.parse(command)
+    if not isinstance(sexpr, list) or len(sexpr) != 2 or sexpr[0] != "assert":
+        return None, start + len(command)
+
+    body = SExprParser.sexpr_to_string(sexpr[1])
+    return body, start + len(command)
 
 
-def extract_abduction_goal(smt2_str: str) -> str:
-    """Extract abduction goal from SMT-LIB2 string."""
-    idx = smt2_str.find("(get-abduct")
-    if idx == -1:
-        return None
-    expr_start = smt2_str.find("(", idx + 10)
-    return extract_balanced_expr(smt2_str, expr_start) if expr_start != -1 else None
+def extract_abduction_goal(smt2_str: str) -> Optional[str]:
+    """Extract the goal expression from the first ``get-abduct`` command."""
+    for command in extract_all_commands(smt2_str):
+        sexpr = SExprParser.parse(command)
+        if not isinstance(sexpr, list) or not sexpr or sexpr[0] != "get-abduct":
+            continue
+        if len(sexpr) < 3:
+            raise ValueError("Malformed get-abduct command")
+        return SExprParser.sexpr_to_string(sexpr[2])
+    return None
+
+
+def _extract_assertions(commands: List[str]) -> List[str]:
+    """Return all assertion bodies in source order."""
+    assertions: List[str] = []
+    for command in commands:
+        sexpr = SExprParser.parse(command)
+        if isinstance(sexpr, list) and len(sexpr) == 2 and sexpr[0] == "assert":
+            assertions.append(SExprParser.sexpr_to_string(sexpr[1]))
+    return assertions
+
+
+def _build_prelude(commands: List[str]) -> str:
+    """Build the SMT-LIB prelude used when parsing isolated expressions."""
+    prelude_commands: List[str] = []
+    for command in commands:
+        sexpr = SExprParser.parse(command)
+        if not isinstance(sexpr, list) or not sexpr:
+            continue
+        if sexpr[0] in {"declare-sort", "define-sort", "define-fun"}:
+            prelude_commands.append(command)
+    return "\n".join(prelude_commands)
+
+
+def _with_internal_prelude(variables: Dict[str, Any], prelude: str) -> Dict[str, Any]:
+    """Return a parsing environment augmented with internal parser metadata."""
+    parser_env = dict(variables)
+    parser_env[_SMT2_PRELUDE_KEY] = prelude
+    return parser_env
 
 
 def parse_abduction_problem(
     smt2_str: str,
 ) -> Tuple[z3.BoolRef, z3.BoolRef, Dict[str, Any]]:
-    """Parse abduction problem from SMT-LIB2 to Z3 formulas."""
-    variables = extract_variables_from_smt2(smt2_str)
+    """Parse an SMT-LIB abduction problem into precondition, goal, and symbols."""
+    commands = extract_all_commands(smt2_str)
+    variables, _ = _collect_declarations(commands)
+    parser_env = _with_internal_prelude(variables, _build_prelude(commands))
 
-    # Extract preconditions
-    assertions = []
-    pos = smt2_str.find("(assert")
-    while pos != -1:
-        expr, next_pos = extract_assertion(smt2_str, pos)
-        if expr:
-            try:
-                assertions.append(parse_expr(expr, variables))
-            except (ValueError, z3.Z3Exception) as e:
-                print(f"Warning: Failed to parse assertion: {expr}. {e}")
-            except Exception as e:
-                print(f"Warning: Failed to parse assertion: {expr}. {e}")
-        pos = smt2_str.find("(assert", next_pos)
+    assertions = [parse_expr(expr, parser_env) for expr in _extract_assertions(commands)]
 
-    # Extract goal
     goal_expr = extract_abduction_goal(smt2_str)
     if not goal_expr:
         raise ValueError("No abduction goal found in the input")
-    goal = parse_expr(goal_expr, variables)
+    goal = parse_expr(goal_expr, parser_env)
 
-    # Combine preconditions
-    if len(assertions) > 1:
-        precond = z3.And(*assertions)
-    elif assertions:
-        precond = assertions[0]
+    if assertions:
+        precond = z3.And(*assertions) if len(assertions) > 1 else assertions[0]
     else:
         precond = z3.BoolVal(True)
     return precond, goal, variables
 
 
 def parse_expr(expr_str: str, variables: Dict[str, Any]) -> z3.ExprRef:
-    """Parse SMT-LIB2 expression to Z3."""
-    balanced_expr = balance_parentheses(expr_str)
+    """Parse an SMT-LIB expression using Z3's parser with custom declarations."""
+    prelude = variables.get(_SMT2_PRELUDE_KEY, "")
+    decls = {
+        name: value
+        for name, value in variables.items()
+        if name != _SMT2_PRELUDE_KEY
+    }
     try:
-        s_expr = SExprParser.parse(balanced_expr)
-        if s_expr is None:
-            raise ValueError("Failed to parse expression: empty result")
-        return _convert_sexpr_to_z3(s_expr, variables)
-    except SExprParser.ParseError as e:
-        raise ValueError(f"S-expression parse error: {e}") from e
-    except Exception as e:
-        raise ValueError(
-            f"Failed to parse expression: {balanced_expr}. Error: {e}"
-        ) from e
+        wrapped = "\n".join(part for part in [prelude, f"(assert {expr_str})"] if part)
+        exprs = z3.parse_smt2_string(wrapped, decls=decls)
+    except z3.Z3Exception as exc:
+        raise ValueError(f"Failed to parse expression: {expr_str}. Error: {exc}") from exc
 
-
-def _convert_sexpr_to_z3(sexpr: Any, variables: Dict[str, Any]) -> z3.ExprRef:
-    """Convert S-expression to Z3 expression."""
-    # Handle atoms
-    if isinstance(sexpr, str):
-        if sexpr in variables:
-            return variables[sexpr]
-        if sexpr in ["true", "false"]:
-            return z3.BoolVal(sexpr == "true")
-        if sexpr.startswith("#x"):
-            return z3.BitVecVal(int(sexpr[2:], 16), 32)
-        if sexpr.startswith("#b"):
-            return z3.BitVecVal(int(sexpr[2:], 2), len(sexpr) - 2)
-        return z3.Int(sexpr)
-
-    # Handle numbers
-    if isinstance(sexpr, (int, float)):
-        return z3.IntVal(sexpr) if isinstance(sexpr, int) else z3.RealVal(sexpr)
-
-    # Handle lists
-    if isinstance(sexpr, list) and sexpr:
-        op = sexpr[0]
-        args = [_convert_sexpr_to_z3(arg, variables) for arg in sexpr[1:]]
-
-        # Arithmetic
-        if op == "+":
-            return sum(args[1:], args[0])
-        if op == "-":
-            if len(args) == 1:
-                return -args[0]
-            return args[0] - sum(args[1:])
-        if op == "*":
-            result = args[0]
-            for arg in args[1:]:
-                result *= arg
-            return result
-        if op in ["div", "/"]:
-            return args[0] / args[1]
-
-        # Comparisons
-        if op == "=":
-            return args[0] == args[1]
-        if op == "<":
-            return args[0] < args[1]
-        if op == "<=":
-            return args[0] <= args[1]
-        if op == ">":
-            return args[0] > args[1]
-        if op == ">=":
-            return args[0] >= args[1]
-
-        # Boolean
-        if op == "and":
-            return z3.And(*args)
-        if op == "or":
-            return z3.Or(*args)
-        if op == "not":
-            return z3.Not(args[0])
-        if op == "=>":
-            return z3.Implies(args[0], args[1])
-
-        # Bit-vector operations
-        bv_ops = {
-            "bvadd": lambda a, b: a + b,
-            "bvsub": lambda a, b: a - b,
-            "bvmul": lambda a, b: a * b,
-            "bvudiv": z3.UDiv,
-            "bvurem": z3.URem,
-            "bvslt": lambda a, b: a < b,
-        }
-        if op in bv_ops:
-            return bv_ops[op](args[0], args[1])
-
-        # Bit-vector comparisons
-        bv_cmp = {
-            "bvult": z3.ULT,
-            "bvule": z3.ULE,
-            "bvugt": z3.UGT,
-            "bvuge": z3.UGE,
-            "bvsle": lambda a, b: a <= b,
-            "bvsgt": lambda a, b: a > b,
-        }
-        if op in bv_cmp:
-            return bv_cmp[op](args[0], args[1])
-
-        # Arrays and control flow
-        if op == "select":
-            return z3.Select(args[0], args[1])
-        if op == "store":
-            return z3.Store(args[0], args[1], args[2])
-        if op == "ite":
-            return z3.If(args[0], args[1], args[2])
-
-        # Function applications
-        if op in variables and isinstance(variables[op], z3.FuncDeclRef):
-            return variables[op](*args)
-
-        # Special cases
-        if op == "_" and len(args) >= 2 and str(args[0]) == "BitVec":
-            return z3.BitVec("result", args[1].as_long())
-
-        raise ValueError(f"Unsupported operation: {op}")
-
-    raise ValueError(f"Unsupported S-expression: {sexpr}")
-
-
-def example_int():
-    """Integer variables example."""
-    smt2_str = """
-    (declare-fun x () Int)
-    (declare-fun y () Int)
-    (declare-fun z () Int)
-    (declare-fun w () Int)
-    (declare-fun u () Int)
-    (declare-fun v () Int)
-    (assert (>= x 0))
-    (assert (or (>= x 0) (< u v)))
-    (get-abduct A (and (>= (+ x y z w u v) 2) (<= (+ x y z w) 3)))
-    """
-
-    try:
-        precond, goal, variables = parse_abduction_problem(smt2_str)
-        print("== Integer Example ==")
-        print("Variables:", list(variables.keys()))
-        print("Precondition:", precond)
-        print("Goal:", goal)
-    except (ValueError, z3.Z3Exception) as e:
-        print(f"Error: {e}")
-
-
-def example_bv():
-    """Bit-vector variables example."""
-    smt2_str = """
-    (declare-fun x () (_ BitVec 32))
-    (declare-fun y () (_ BitVec 32))
-    (declare-fun z () (_ BitVec 32))
-    (assert (bvuge x #x00000000))
-    (assert (bvult y #x00000064))
-    (get-abduct A (bvuge (bvadd x y z) #x00000002))
-    """
-
-    try:
-        precond, goal, variables = parse_abduction_problem(smt2_str)
-        print("\n== Bit-Vector Example ==")
-        print("Variables:", list(variables.keys()))
-        print("Precondition:", precond)
-        print("Goal:", goal)
-    except (ValueError, z3.Z3Exception) as e:
-        print(f"Error: {e}")
-
-
-def example_mixed():
-    """Mixed types example."""
-    smt2_str = """
-    (declare-fun x () Int)
-    (declare-fun y () (_ BitVec 32))
-    (declare-fun arr () (Array Int Int))
-    (declare-fun f (Int Int) Bool)
-    (assert (>= x 0))
-    (assert (bvult y #x00000064))
-    (assert (= (select arr 5) 10))
-    (get-abduct A (> x 5))
-    """
-
-    try:
-        precond, goal, variables = parse_abduction_problem(smt2_str)
-        print("\n== Mixed Types Example ==")
-        print("Variables:", list(variables.keys()))
-        for name, var in variables.items():
-            if isinstance(var, z3.FuncDeclRef):
-                args = [str(var.domain(i)) for i in range(var.arity())]
-                print(f"  {name}: Function({', '.join(args)}) -> {var.range()}")
-            else:
-                print(f"  {name}: {var.sort()}")
-        print("Precondition:", precond)
-        print("Goal:", goal)
-    except (ValueError, z3.Z3Exception) as e:
-        print(f"Error: {e}")
-
-
-if __name__ == "__main__":
-    example_int()
-    example_bv()
-    example_mixed()
+    if len(exprs) != 1:
+        raise ValueError(f"Expected a single expression, got {len(exprs)} from: {expr_str}")
+    return exprs[0]

@@ -8,10 +8,10 @@ from typing import Optional
 
 import z3
 
-from aria.optimization.omt_solver import solve_opt_file
-from aria.optimization.omt_parser import OMTParser
-from aria.optimization.omtarith.arith_opt_qsmt import arith_opt_with_qsmt
-from aria.optimization.omtarith.arith_opt_ls import arith_opt_with_ls
+from aria.pyomt.omt_solver import solve_opt_file
+from aria.pyomt.omt_parser import OMTParser
+from aria.pyomt.omtarith.arith_opt_qsmt import arith_opt_with_qsmt
+from aria.pyomt.omtarith.arith_opt_ls import arith_opt_with_ls
 
 
 def solve_omt_problem(

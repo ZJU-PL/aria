@@ -6,13 +6,11 @@ import pytest
 import z3
 from aria.pyomt.omtbv.bv_opt_maxsat import bv_opt_with_maxsat
 import logging
-from aria.tests import TestCase, main
-
 
 logger = logging.getLogger(__name__)
 
 
-class TestBVOptMaxSAT(TestCase):
+class TestBVOptMaxSAT:
 
     def test_maximize_simple(self):
         # Test maximization with y > 3 and y < 10
@@ -48,7 +46,6 @@ class TestBVOptMaxSAT(TestCase):
 
     def test_edge_case_min(self):
         # Test with minimum possible value in range
-        return
         y = z3.BitVec("y", 4)
         fml = z3.And(z3.UGE(y, 0), z3.ULE(y, 15))
         result = bv_opt_with_maxsat(fml, y, minimize=True, solver_name="FM")
@@ -57,7 +54,6 @@ class TestBVOptMaxSAT(TestCase):
 
     def test_unsatisfiable(self):
         # Test handling of unsatisfiable formulas
-        return
         y = z3.BitVec("y", 4)
         fml = z3.And(z3.UGT(y, 10), z3.ULT(y, 5))  # Unsatisfiable
         result = bv_opt_with_maxsat(fml, y, minimize=True, solver_name="FM")
@@ -79,6 +75,20 @@ class TestBVOptMaxSAT(TestCase):
             except Exception as e:
                 logger.warning(f"Solver {solver} failed: {str(e)}")
 
+    def test_error_handling(self):
+        # Test error handling with invalid solver
+        y = z3.BitVec("y", 4)
+        fml = z3.And(z3.UGE(y, 0), z3.ULE(y, 15))
+
+        try:
+            result = bv_opt_with_maxsat(
+                fml, y, minimize=True, solver_name="INVALID_SOLVER"
+            )
+            assert result is None, "Should handle invalid solver gracefully"
+        except ValueError:
+            # Both returning None or raising ValueError are acceptable
+            pass
+
 
 if __name__ == "__main__":
-    main()
+    pytest.main([__file__])

@@ -1,6 +1,6 @@
 # Symbolic Abstraction
 
-(Closely related to aria/optimization)
+(Closely related to aria/pyomt)
 
 This module implements various symbolic abstraction techniques for program analysis and verification. The main
 components are:

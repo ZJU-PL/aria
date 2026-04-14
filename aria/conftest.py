@@ -32,7 +32,7 @@ if not _has_module("pysmt"):
     SKIP_FILES.update(
         [
             "monabs/tests/test_pysmt_monabs.py",
-            "optimization/tests/test_bvopt_iter_search.py",
+            "pyomt/tests/test_bvopt_iter_search.py",
             "tests/test_bool_counting.py",
             "tests/test_cli_pyomt.py",
         ]
