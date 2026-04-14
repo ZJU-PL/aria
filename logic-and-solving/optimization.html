@@ -113,7 +113,7 @@
              
   <section id="optimization-modulo-theory">
 <h1>Optimization Modulo Theory<a class="headerlink" href="#optimization-modulo-theory" title="Link to this heading"></a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">aria.optimization</span></code> contains optimization and MaxSAT components. It is no
+<p><code class="docutils literal notranslate"><span class="pre">aria.pyomt</span></code> contains optimization and MaxSAT components. It is no
 longer described as a thin wrapper around an external <code class="docutils literal notranslate"><span class="pre">pyomt</span></code> dependency; the
 repo contains its own optimization package and CLI frontend.</p>
 <section id="current-layout">
@@ -146,9 +146,9 @@ python<span class="w"> </span>-m<span class="w"> </span>aria.cli.pyomt_cli<span 
 </section>
 <section id="public-api-note">
 <h2>Public API note<a class="headerlink" href="#public-api-note" title="Link to this heading"></a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">aria.optimization</span></code> currently exports result types such as
+<p><code class="docutils literal notranslate"><span class="pre">aria.pyomt</span></code> currently exports result types such as
 <code class="docutils literal notranslate"><span class="pre">OptimizationResult</span></code> and <code class="docutils literal notranslate"><span class="pre">OptimizationStatus</span></code>. Many solver implementations
-live in subpackages such as <code class="docutils literal notranslate"><span class="pre">aria.optimization.maxsmt</span></code> and the <code class="docutils literal notranslate"><span class="pre">omt*</span></code>
+live in subpackages such as <code class="docutils literal notranslate"><span class="pre">aria.pyomt.maxsmt</span></code> and the <code class="docutils literal notranslate"><span class="pre">omt*</span></code>
 directories.</p>
 </section>
 </section>

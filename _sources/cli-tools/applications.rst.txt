@@ -41,7 +41,7 @@ Optimization
 ==========
 
 **Optimization Modulo Theory**
-  Solve optimization problems over logical theories using ``aria/optimization``.
+  Solve optimization problems over logical theories using ``aria/pyomt``.
 
 **MaxSAT Solving**
   Solve maximum satisfiability problems with ``aria/bool/maxsat``.

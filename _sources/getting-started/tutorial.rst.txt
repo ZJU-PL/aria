@@ -34,7 +34,7 @@ ARIA is organized around several major user-facing subsystems:
 * ``aria.quant``: EFSMT, QE, CHC tooling, and quantified-reasoning prototypes
 * ``aria.efmc``: verification frontends and engines
 * ``aria.counting`` / ``aria.sampling`` / ``aria.prob``: counting and sampling
-* ``aria.optimization``: optimization and MaxSMT-related flows
+* ``aria.pyomt``: optimization and MaxSMT-related flows
 * ``aria.translator`` / ``aria.cli``: format translation and command-line tools
 
 Current CLI workflow

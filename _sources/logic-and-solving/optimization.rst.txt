@@ -1,7 +1,7 @@
 Optimization Modulo Theory
 ==========================
 
-``aria.optimization`` contains optimization and MaxSAT components. It is no
+``aria.pyomt`` contains optimization and MaxSAT components. It is no
 longer described as a thin wrapper around an external ``pyomt`` dependency; the
 repo contains its own optimization package and CLI frontend.
 
@@ -40,7 +40,7 @@ Related MaxSAT workflows are available through ``aria-maxsat``.
 Public API note
 ---------------
 
-``aria.optimization`` currently exports result types such as
+``aria.pyomt`` currently exports result types such as
 ``OptimizationResult`` and ``OptimizationStatus``. Many solver implementations
-live in subpackages such as ``aria.optimization.maxsmt`` and the ``omt*``
+live in subpackages such as ``aria.pyomt.maxsmt`` and the ``omt*``
 directories.
