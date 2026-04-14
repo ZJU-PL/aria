@@ -51,16 +51,24 @@ otherwise an empty list.
 []
 """
 
+from typing import Dict, List, Sequence, Tuple
+
 from sympy.core import S, expand
 from sympy.core.numbers import Integer, Rational
 from sympy.core.function import diff
 from sympy.core.relational import Relational
+from sympy.logic.boolalg import And, Not, Or, to_cnf
 from sympy.polys.rootoftools import ComplexRootOf
 from sympy.polys import Poly, real_roots, nroots
 from sympy.polys.polytools import LT, LC, degree, subresultants, factor_list
 from sympy.polys.domains import QQ
 from sympy.polys.polyerrors import PolynomialError
 from sympy.functions.elementary.integers import floor, ceiling
+
+try:
+    from pysat.solvers import Solver as PySATSolver
+except ImportError:  # pragma: no cover - handled at runtime in the solver entrypoint
+    PySATSolver = None
 
 
 def solve_poly_system_cad(seq, gens, return_one_sample=True):
@@ -126,6 +134,167 @@ def solve_poly_system_cad(seq, gens, return_one_sample=True):
                 break
 
     return valid_samples
+
+
+def solve_bool_system_cdclt(formula, gens, return_one_sample=True):
+    """
+    Solve a Boolean combination of polynomial constraints with a lightweight
+    CDCL(T)-style loop:
+
+    1. Abstract each arithmetic atom to a Boolean variable.
+    2. Search Boolean models with PySAT.
+    3. Validate each selected arithmetic cube with CAD.
+    4. Learn a blocking clause from an infeasible cube and continue.
+
+    Parameters
+    ==========
+
+    formula: SymPy Boolean expression
+        Boolean combination over polynomial relationals.
+    gens: generators
+        Variables occurring in the arithmetic constraints.
+    return_one_sample: bool
+        If True, stop after the first satisfying sample.
+
+    Returns
+    =======
+
+    List[Dict]
+        Sample points satisfying the formula. Returns an empty list when the
+        formula is unsatisfiable.
+    """
+    if PySATSolver is None:
+        raise ImportError("pysat is required for solve_bool_system_cdclt")
+
+    if formula is S.false:
+        return []
+    if formula is S.true:
+        return [{}] if not gens else [{gen: 0 for gen in gens}]
+
+    cnf_formula = to_cnf(formula, simplify=False)
+    clauses = _clauses_from_cnf(cnf_formula)
+    atoms = _collect_relational_atoms(cnf_formula)
+
+    if not atoms:
+        return [{}] if formula is S.true else []
+
+    atom_to_id = {atom: idx + 1 for idx, atom in enumerate(atoms)}
+    sat_solver = PySATSolver(name="m22")
+
+    for clause in clauses:
+        sat_solver.add_clause(_encode_clause(clause, atom_to_id))
+
+    valid_samples = []
+
+    try:
+        while sat_solver.solve():
+            model = sat_solver.get_model() or []
+            cube = _extract_model_cube(model, atom_to_id)
+            sample = _find_cad_sample_for_literals(cube, gens)
+
+            if sample is not None:
+                valid_samples.append(sample)
+                if return_one_sample:
+                    break
+                sat_solver.add_clause([-lit for lit in cube_to_dimacs(cube, atom_to_id)])
+                continue
+
+            core = _minimize_conflict_core(cube, gens)
+            sat_solver.add_clause(
+                _blocking_clause_from_core(core, atom_to_id)
+            )
+    finally:
+        sat_solver.delete()
+
+    return valid_samples
+
+
+def cube_to_dimacs(
+    cube: Sequence[Tuple[Relational, bool]], atom_to_id: Dict[Relational, int]
+) -> List[int]:
+    """Convert a theory cube to DIMACS literals."""
+    return [atom_to_id[atom] if polarity else -atom_to_id[atom] for atom, polarity in cube]
+
+
+def _collect_relational_atoms(expr) -> List[Relational]:
+    atoms = sorted(expr.atoms(Relational), key=str)
+    return atoms
+
+
+def _clauses_from_cnf(expr) -> List[List]:
+    if expr is S.true:
+        return []
+    if expr is S.false:
+        return [[]]
+    if expr.func == And:
+        return [_literals_from_clause(arg) for arg in expr.args]
+    return [_literals_from_clause(expr)]
+
+
+def _literals_from_clause(clause) -> List:
+    if clause.func == Or:
+        return list(clause.args)
+    return [clause]
+
+
+def _encode_clause(clause: Sequence, atom_to_id: Dict[Relational, int]) -> List[int]:
+    encoded = []
+    for lit in clause:
+        if lit.func == Not:
+            encoded.append(-atom_to_id[lit.args[0]])
+        else:
+            encoded.append(atom_to_id[lit])
+    return encoded
+
+
+def _extract_model_cube(
+    model: Sequence[int], atom_to_id: Dict[Relational, int]
+) -> List[Tuple[Relational, bool]]:
+    id_to_atom = {var_id: atom for atom, var_id in atom_to_id.items()}
+    cube = []
+    for lit in model:
+        atom = id_to_atom.get(abs(lit))
+        if atom is None:
+            continue
+        cube.append((atom, lit > 0))
+    cube.sort(key=lambda item: str(item[0]))
+    return cube
+
+
+def _find_cad_sample_for_literals(
+    literals: Sequence[Tuple[Relational, bool]], gens
+):
+    constraints = [_literal_to_relational(atom, polarity) for atom, polarity in literals]
+    samples = solve_poly_system_cad(constraints, gens, return_one_sample=True)
+    if samples:
+        return samples[0]
+    return None
+
+
+def _literal_to_relational(atom: Relational, polarity: bool) -> Relational:
+    if polarity:
+        return atom
+    return atom.negated
+
+
+def _minimize_conflict_core(
+    literals: Sequence[Tuple[Relational, bool]], gens
+) -> List[Tuple[Relational, bool]]:
+    core = list(literals)
+    index = 0
+    while index < len(core):
+        candidate = core[:index] + core[index + 1 :]
+        if candidate and _find_cad_sample_for_literals(candidate, gens) is None:
+            core = candidate
+            continue
+        index += 1
+    return core
+
+
+def _blocking_clause_from_core(
+    core: Sequence[Tuple[Relational, bool]], atom_to_id: Dict[Relational, int]
+) -> List[int]:
+    return [-lit for lit in cube_to_dimacs(core, atom_to_id)]
 
 
 # HONG PROJECTOR OPERATOR AND OPERATIONS USED FOR IT
