@@ -98,6 +98,32 @@ class TestTranslatorRegressions(TestCase):
             solver.add(z3.parse_smt2_file(smt_path))
             self.assertEqual(solver.check(), z3.sat)
 
+    def test_qcir_translation_supports_nary_xor_parity(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            qcir_path = os.path.join(temp_dir, "parity.qcir")
+            smt_path = os.path.join(temp_dir, "parity.smt2")
+            with open(qcir_path, "w", encoding="utf-8") as fd:
+                fd.write(
+                    "#QCIR-G14\n"
+                    "output(4)\n"
+                    "4 = xor(1,2,3)\n"
+                )
+
+            qcir2smt.convert_qcir_to_smt2(qcir_path, smt_path)
+
+            solver = z3.Solver()
+            solver.add(z3.parse_smt2_file(smt_path))
+            q1 = z3.Bool("q1")
+            q2 = z3.Bool("q2")
+            q3 = z3.Bool("q3")
+            solver.add(q1, q2, q3)
+            self.assertEqual(solver.check(), z3.sat)
+
+            solver.push()
+            solver.add(z3.Not(q1))
+            self.assertEqual(solver.check(), z3.unsat)
+            solver.pop()
+
     def test_cnf2smt_shared_parser_handles_blank_lines(self):
         dimacs_str = "p cnf 1 1\n\n1 0\n"
         num_vars, num_clauses, clauses = cnf2smt.parse_dimacs_string(dimacs_str)

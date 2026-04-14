@@ -219,6 +219,7 @@ def test_translate_qcir_direct_output_to_smtlib2(tmp_path):
     solver = z3.Solver()
     solver.add(z3.parse_smt2_file(str(out_file)))
     assert solver.check() == z3.sat
+    assert "(set-logic UFBV)" in out_file.read_text(encoding="utf-8")
     assert "(declare-const q1 Bool)" in out_file.read_text(encoding="utf-8")
 
 
