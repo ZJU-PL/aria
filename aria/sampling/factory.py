@@ -18,6 +18,7 @@ from aria.sampling.finite_domain.ufdt.base import MixedUFDatatypeSampler
 from aria.sampling.dtlia import ADTLIASampler
 from aria.sampling.linear_ira.lira_sampler import LIRASampler
 from aria.sampling.general_sampler.mcmc_sampler import MCMCSampler
+from aria.sampling.nonlinear_ira import NASampler
 
 
 class SamplerFactory:
@@ -77,6 +78,9 @@ SamplerFactory.register(Logic.QF_DTLIA, ADTLIASampler)
 
 for _logic in (Logic.QF_LRA, Logic.QF_LIA, Logic.QF_LIRA):
     SamplerFactory.register(_logic, LIRASampler)
+
+for _logic in (Logic.QF_NRA, Logic.QF_NIA):
+    SamplerFactory.register(_logic, NASampler)
 
 for _logic in (
     Logic.QF_LRA,

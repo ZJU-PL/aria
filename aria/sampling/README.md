@@ -161,6 +161,14 @@ coverage_result = sample_models_from_formula(
   - can use `diversity_mode="coverage_guided"` to prioritize constructor,
     alias, and integer-boundary coverage for testing workloads
 
+`QF_NRA` and `QF_NIA` support two basic modes via
+`aria.sampling.nonlinear_ira`:
+
+- `ENUMERATION`: iterative model enumeration with blocking clauses over the
+  extracted numeric variables
+- `SEARCH_TREE`: approximate search-tree sampling over the extracted numeric
+  variables
+
 ### Advanced Usage
 
 ```python

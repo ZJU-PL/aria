@@ -6,10 +6,6 @@ from typing import Optional
 
 import z3
 
-from aria.counting.bv import BVModelCounter
-from aria.counting.bool.dimacs_counting import count_dimacs_solutions_parallel
-
-
 def count_solutions(
     formula_str: str, fmt: str = "smtlib2", timeout: Optional[int] = None
 ) -> int:
@@ -39,6 +35,8 @@ def count_solutions(
 def _count_smtlib2_solutions(formula_str: str, _timeout: Optional[int] = None) -> int:
     """Count solutions for SMTLIB2 format formulas."""
     try:
+        from aria.counting.bv import BVModelCounter
+
         # Parse the SMTLIB2 formula
         solver = z3.Solver()
         solver.from_string(formula_str)
@@ -83,6 +81,8 @@ def _count_smtlib2_solutions(formula_str: str, _timeout: Optional[int] = None) -
 def _count_dimacs_solutions(formula_str: str, _timeout: Optional[int] = None) -> int:
     """Count solutions for DIMACS format formulas."""
     try:
+        from aria.counting.bool.dimacs_counting import count_dimacs_solutions_parallel
+
         # Parse the DIMACS format string
         lines = formula_str.strip().split("\n")
         header = []
