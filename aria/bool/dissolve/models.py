@@ -42,7 +42,7 @@ class WorkerResult:
     status: SolverResult
     learnt_clauses: List[List[int]]
     decision_literals: List[int]
-    polarities: Dict[int, int]  # variable -> polarity (0 or 1)
+    polarities: Dict[int, float]  # variable -> estimated positive polarity in [0, 1]
     model_or_core: Optional[List[int]] = None
     dilemma_info: Optional[DilemmaTriple] = None
 

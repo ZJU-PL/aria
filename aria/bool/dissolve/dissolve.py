@@ -23,11 +23,10 @@ Key components:
 
 from __future__ import annotations
 
+from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 import logging
-import multiprocessing as mp
 import os
 import random
-import threading
 import time
 from typing import Dict, List, Optional, Sequence, Tuple
 
@@ -54,21 +53,21 @@ logger = logging.getLogger(__name__)
 
 
 class Dissolve:  # pylint: disable=too-many-instance-attributes,too-few-public-methods
-    """Complete Dissolve algorithm implementation following the full paper."""
+    """Practical Dissolve-style solver with round-based splitting and clause sharing."""
 
     def __init__(self, config: Optional[DissolveConfig] = None) -> None:
         self.cfg = config or DissolveConfig()
-        self.dilemma_engine = DilemmaEngine()
         self.ubtree = UBTree()
-        self.scheduler: Optional[Scheduler] = None
 
         # State tracking
         self.global_learnts: List[List[int]] = []
         self.variable_scores: Dict[int, int] = {}
-        self.decision_polarities: Dict[int, int] = {}
+        self.decision_polarities: Dict[int, float] = {}
         self.query_counter = 0
         self.sat_model: Optional[List[int]] = None
         self.sat_found = False
+        self.unsat_core: Optional[List[int]] = None
+        self.available_vars: List[int] = []
 
     # -------------------------- Budget strategies ------------------------- #
 
@@ -122,19 +121,18 @@ class Dissolve:  # pylint: disable=too-many-instance-attributes,too-few-public-m
 
     def _select_split_variables(self) -> List[int]:
         """Select variables for dilemma splitting using sophisticated heuristics."""
-        # Use variable scores from previous rounds
-        candidates = list(range(1, self.cfg.k_split_vars + 1))
+        if not self.available_vars:
+            return []
 
-        # Boost by scores from conflict clauses
-        if self.variable_scores:
-            candidates.sort(key=lambda v: -self.variable_scores.get(v, 0))
+        def sort_key(var: int) -> Tuple[int, float, int]:
+            return (
+                -self.variable_scores.get(var, 0),
+                abs(self.decision_polarities.get(var, 0.5) - 0.5),
+                var,
+            )
 
-        # Also consider polarity information
-        if self.decision_polarities:
-            # Prefer variables with balanced polarities
-            candidates.sort(key=lambda v: abs(self.decision_polarities.get(v, 0) - 0.5))
-
-        return candidates[: self.cfg.k_split_vars]
+        candidates = sorted(self.available_vars, key=sort_key)
+        return candidates[: min(self.cfg.k_split_vars, len(candidates))]
 
     def _assumptions_from_mask(self, vars_to_split: List[int], mask: int) -> List[int]:
         """Convert a bitmask to variable assumptions."""
@@ -168,75 +166,77 @@ class Dissolve:  # pylint: disable=too-many-instance-attributes,too-few-public-m
     # -------------------------- Worker Query Processing ------------------------- #
 
     def _solve_dilemma_query(
-        self, query: DilemmaQuery, original_clauses: List[List[int]]
+        self,
+        query: DilemmaQuery,
+        original_clauses: List[List[int]],
+        shared_clauses: List[List[int]],
     ) -> WorkerResult:
         """Solve a dilemma-based query using PySAT (Algorithm 2 implementation)."""
         try:
-            # Get shared clauses from previous rounds
-            shared_clauses = self._get_shared_clauses(query.round_id)
-
             # Combine original clauses with shared clauses
             all_clauses = original_clauses + shared_clauses
 
             # Initialize solver
-            s = Solver(name=self.cfg.solver_name, bootstrap_with=all_clauses)
+            with Solver(name=self.cfg.solver_name, bootstrap_with=all_clauses) as s:
 
-            # Set conflict budget
-            budget = self._budget_for_round(query.round_id)
-            try:
-                s.conf_budget(budget)
-                budgeted = True
-            except (AttributeError, RuntimeError):
-                budgeted = False
+                # Set conflict budget
+                budget = self._budget_for_round(query.round_id)
+                try:
+                    s.conf_budget(budget)
+                    budgeted = True
+                except (AttributeError, RuntimeError):
+                    budgeted = False
 
-            # Solve with assumptions
-            assumptions = query.assumptions
-            if budgeted:
-                status_val = s.solve_limited(assumptions=assumptions)
-            else:
-                status_val = s.solve(assumptions=assumptions)
+                # Solve with assumptions
+                assumptions = query.assumptions
+                if budgeted:
+                    status_val = s.solve_limited(assumptions=assumptions)
+                else:
+                    status_val = s.solve(assumptions=assumptions)
 
-            if status_val is True:
-                model = s.get_model()
-                return WorkerResult(
-                    status=SolverResult.SAT,
-                    learnt_clauses=[],
-                    decision_literals=[],
-                    polarities=self._extract_polarities(model),
-                    model_or_core=model,
-                    dilemma_info=query.dilemma_triple,
-                )
+                if status_val is True:
+                    model = s.get_model()
+                    return WorkerResult(
+                        status=SolverResult.SAT,
+                        learnt_clauses=[],
+                        decision_literals=[],
+                        polarities=self._extract_polarities(model),
+                        model_or_core=model,
+                        dilemma_info=query.dilemma_triple,
+                    )
 
-            # Unknown due to budget/timeout
-            if budgeted and status_val is None:
-                return WorkerResult(
-                    status=SolverResult.UNKNOWN,
-                    learnt_clauses=[],
-                    decision_literals=[],
-                    polarities={},
-                    model_or_core=None,
-                    dilemma_info=query.dilemma_triple,
-                )
+                # Unknown due to budget/timeout
+                if budgeted and status_val is None:
+                    return WorkerResult(
+                        status=SolverResult.UNKNOWN,
+                        learnt_clauses=[],
+                        decision_literals=[],
+                        polarities={},
+                        model_or_core=None,
+                        dilemma_info=query.dilemma_triple,
+                    )
 
-            # UNSAT case
-            core = None
-            try:
-                core = s.get_core()
-            except (AttributeError, RuntimeError):
+                # UNSAT case
                 core = None
+                try:
+                    core = s.get_core()
+                except (AttributeError, RuntimeError):
+                    core = None
+                if core is None and not assumptions:
+                    core = []
 
-            # Extract learned clauses and variable information
-            learnt_clauses = self._extract_learnt_clauses(s, assumptions)
-            polarities = self._analyze_polarities(learnt_clauses)
+                # Extract learned clauses and variable information
+                learnt_clauses = self._extract_learnt_clauses(core, assumptions)
+                polarities = self._analyze_polarities(learnt_clauses)
 
-            return WorkerResult(
-                status=SolverResult.UNSAT,
-                learnt_clauses=learnt_clauses,
-                decision_literals=self._extract_decision_literals(assumptions),
-                polarities=polarities,
-                model_or_core=core,
-                dilemma_info=query.dilemma_triple,
-            )
+                return WorkerResult(
+                    status=SolverResult.UNSAT,
+                    learnt_clauses=learnt_clauses,
+                    decision_literals=self._extract_decision_literals(assumptions),
+                    polarities=polarities,
+                    model_or_core=core,
+                    dilemma_info=query.dilemma_triple,
+                )
 
         except (RuntimeError, ValueError, AttributeError) as exc:
             logger.exception("Query %d failed: %s", query.query_id, exc)
@@ -258,42 +258,35 @@ class Dissolve:  # pylint: disable=too-many-instance-attributes,too-few-public-m
         )
 
     def _extract_learnt_clauses(
-        self, _solver: Solver, assumptions: List[int]
+        self, core: Optional[List[int]], assumptions: List[int]
     ) -> List[List[int]]:
-        """Extract learned clauses from the solver."""
-        # In a full implementation, this would access the solver's learned clause database
-        # For now, return a sample based on assumptions
-        learnt = []
-        for i in range(0, len(assumptions), 2):
-            if i + 1 < len(assumptions):
-                # Create a binary clause from consecutive assumptions
-                clause = [assumptions[i], assumptions[i + 1]]
-                if clause not in learnt:
-                    learnt.append(clause)
-        return learnt[:10]  # Limit for practicality
+        """Extract sound clauses implied by an UNSAT assumption core."""
+        if core:
+            return [[-lit for lit in core]]
+        if assumptions:
+            return [[-lit for lit in assumptions]]
+        return []
 
-    def _extract_polarities(self, model: List[int]) -> Dict[int, int]:
+    def _extract_polarities(self, model: List[int]) -> Dict[int, float]:
         """Extract variable polarities from a model."""
-        polarities = {}
+        polarities: Dict[int, float] = {}
         for lit in model:
             var = abs(lit)
-            polarity = 1 if lit > 0 else 0
+            polarity = 1.0 if lit > 0 else 0.0
             polarities[var] = polarity
         return polarities
 
-    def _analyze_polarities(self, learnt_clauses: List[List[int]]) -> Dict[int, int]:
+    def _analyze_polarities(self, learnt_clauses: List[List[int]]) -> Dict[int, float]:
         """Analyze polarities from learned clauses."""
-        polarities = {}
+        sums: Dict[int, float] = {}
+        counts: Dict[int, int] = {}
         for clause in learnt_clauses:
             for lit in clause:
                 var = abs(lit)
-                polarity = 1 if lit > 0 else 0
-                if var in polarities:
-                    # Average the polarities
-                    polarities[var] = (polarities[var] + polarity) / 2
-                else:
-                    polarities[var] = polarity
-        return polarities
+                polarity = 1.0 if lit > 0 else 0.0
+                sums[var] = sums.get(var, 0.0) + polarity
+                counts[var] = counts.get(var, 0) + 1
+        return {var: sums[var] / counts[var] for var in sums}
 
     def _extract_decision_literals(self, assumptions: List[int]) -> List[int]:
         """Extract decision literals from assumptions."""
@@ -301,10 +294,10 @@ class Dissolve:  # pylint: disable=too-many-instance-attributes,too-few-public-m
 
     # -------------------------- Result Processing ------------------------- #
 
-    def _process_worker_result(self, result: Tuple[int, WorkerResult]) -> None:
+    def _process_worker_result(
+        self, query: DilemmaQuery, worker_result: WorkerResult
+    ) -> None:
         """Process a result from a worker."""
-        _query_id, worker_result = result
-
         if worker_result.status == SolverResult.SAT:
             # Found a satisfying assignment
             self.sat_model = worker_result.model_or_core
@@ -313,7 +306,7 @@ class Dissolve:  # pylint: disable=too-many-instance-attributes,too-few-public-m
         elif worker_result.status == SolverResult.UNSAT:
             # Process learned clauses and update scores
             for clause in worker_result.learnt_clauses:
-                self.ubtree.insert_clause(clause, 0)  # Use round 0 for global
+                self.ubtree.insert_clause(clause, query.round_id)
 
                 # Update variable scores
                 for lit in clause:
@@ -328,6 +321,13 @@ class Dissolve:  # pylint: disable=too-many-instance-attributes,too-few-public-m
                     ) / 2
                 else:
                     self.decision_polarities[var] = polarity
+
+            if (
+                self.unsat_core is None
+                and not query.assumptions
+                and worker_result.model_or_core is not None
+            ):
+                self.unsat_core = worker_result.model_or_core
 
         # Update global learned clauses
         self.global_learnts.extend(worker_result.learnt_clauses)
@@ -346,61 +346,68 @@ class Dissolve:  # pylint: disable=too-many-instance-attributes,too-few-public-m
         self.global_learnts = []
         self.variable_scores = {}
         self.decision_polarities = {}
+        self.query_counter = 0
         self.sat_model = None
         self.sat_found = False
+        self.unsat_core = None
+        self.available_vars = sorted({abs(lit) for clause in clauses for lit in clause})
 
-        # Initialize scheduler
-        self.scheduler = Scheduler(num_workers)
-
-        # Start worker processes
-        processes = []
-        for i in range(num_workers):
-            p = mp.Process(target=self.scheduler.worker_loop, args=(i, self))
-            p.start()
-            processes.append(p)
-
-        # Start producer
-        producer = threading.Thread(
-            target=self.scheduler.producer_loop, args=(self, clauses)
-        )
-        producer.start()
-
-        # Wait for completion or timeout
-        round_id = 0
         max_rounds = self.cfg.max_rounds or 100
 
-        while not self.sat_found and round_id < max_rounds:
-            # Wait for current round to complete
-            time.sleep(0.1)
+        with ThreadPoolExecutor(max_workers=num_workers) as executor:
+            for round_id in range(max_rounds):
+                queries = self._generate_dilemma_queries(round_id)
+                shared_clauses = self._get_shared_clauses(round_id)
 
-            # Check if we found a solution
-            if self.sat_found and self.sat_model:
-                break
+                if not queries:
+                    queries = [
+                        DilemmaQuery(
+                            assumptions=[],
+                            dilemma_triple=None,
+                            round_id=round_id,
+                            query_id=self.query_counter,
+                        )
+                    ]
+                    self.query_counter += 1
 
-            round_id += 1
+                futures: Dict[Future[WorkerResult], DilemmaQuery] = {
+                    executor.submit(
+                        self._solve_dilemma_query, query, clauses, shared_clauses
+                    ): query
+                    for query in queries
+                }
 
-        # Stop everything
-        self.scheduler.stop_event.set()
+                round_results: List[Tuple[DilemmaQuery, WorkerResult]] = []
 
-        # Wait for processes to finish
-        for p in processes:
-            p.join(timeout=5.0)
-            if p.is_alive():
-                p.terminate()
+                for future in as_completed(futures):
+                    query = futures[future]
+                    worker_result = future.result()
+                    round_results.append((query, worker_result))
+                    self._process_worker_result(query, worker_result)
 
-        producer.join(timeout=5.0)
+                    if worker_result.status == SolverResult.SAT and self.sat_model:
+                        return DissolveResult(
+                            result=SolverResult.SAT,
+                            model=self.sat_model,
+                            rounds=round_id + 1,
+                            runtime_sec=time.time() - start,
+                        )
+
+                if round_results and all(
+                    result.status == SolverResult.UNSAT
+                    for _query, result in round_results
+                ):
+                    return DissolveResult(
+                        result=SolverResult.UNSAT,
+                        unsat_core=self.unsat_core,
+                        rounds=round_id + 1,
+                        runtime_sec=time.time() - start,
+                    )
 
         # Determine final result
-        if self.sat_found and self.sat_model:
-            return DissolveResult(
-                result=SolverResult.SAT,
-                model=self.sat_model,
-                rounds=round_id,
-                runtime_sec=time.time() - start,
-            )
         return DissolveResult(
             result=SolverResult.UNKNOWN,
-            rounds=round_id,
+            rounds=max_rounds,
             runtime_sec=time.time() - start,
         )
 

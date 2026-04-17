@@ -37,11 +37,10 @@ class UBTreeNode:
 
     def is_subsumed_by(self, other: "UBTreeNode") -> bool:
         """Check if this node is subsumed by another node."""
-        # Two nodes are equivalent if they represent the same clause
         if (
             self.clause is not None
             and other.clause is not None
-            and set(abs(l) for l in self.clause) == set(abs(l) for l in other.clause)
+            and set(other.clause).issubset(set(self.clause))
         ):
             return True
         return False
@@ -73,10 +72,8 @@ class UBTree:
 
     def _clause_key(self, clause: List[int]) -> Tuple[int, ...]:
         """Create a normalized key for a clause."""
-        # Sort by absolute value, maintain sign relationships
-        abs_literals = [abs(l) for l in clause]
-        sorted_indices = sorted(range(len(clause)), key=lambda i: abs_literals[i])
-        return tuple(clause[i] for i in sorted_indices)
+        unique_literals = sorted(set(clause), key=lambda lit: (abs(lit), lit))
+        return tuple(unique_literals)
 
     def _calculate_lbd(self, clause: List[int], assignment: Dict[int, int]) -> int:
         """Calculate Literal Block Distance for a clause."""
@@ -107,23 +104,24 @@ class UBTree:
 
         # Normalize clause for key generation
         clause_key = self._clause_key(clause)
+        normalized_clause = list(clause_key)
 
         # Check if we already have this clause
         if clause_key in self.nodes_by_clause:
             existing_node = self.nodes_by_clause[clause_key]
             if existing_node.clause is None:
-                existing_node.clause = clause
+                existing_node.clause = normalized_clause
             return existing_node
 
         # Create path for the clause
-        current_node = self.root.find_or_create_path(clause)
+        current_node = self.root.find_or_create_path(normalized_clause)
 
         # Set the clause for the leaf node
-        current_node.clause = clause
+        current_node.clause = normalized_clause
 
         # Calculate quality metrics
-        size = len(clause)
-        lbd = self._calculate_lbd(clause, assignment or {})
+        size = len(normalized_clause)
+        lbd = self._calculate_lbd(normalized_clause, assignment or {})
 
         # Determine tier based on size and LBD
         if size == 1:
@@ -147,7 +145,7 @@ class UBTree:
         if new_node.clause is None:
             return
 
-        new_clause = set(abs(l) for l in new_node.clause)
+        new_clause = set(new_node.clause)
 
         # Check against nodes in higher tiers first (better quality)
         for tier in [1, 2, 3]:
@@ -155,10 +153,10 @@ class UBTree:
                 continue
 
             for existing_node in self.tiers[round_id][tier]:
-                if existing_node.clause is None:
+                if existing_node is new_node or existing_node.clause is None:
                     continue
 
-                existing_clause = set(abs(l) for l in existing_node.clause)
+                existing_clause = set(existing_node.clause)
 
                 # Check if new clause subsumes existing clause
                 if new_clause.issubset(existing_clause):
