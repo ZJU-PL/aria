@@ -83,6 +83,41 @@ def test_format_formula_round_trips_biconditionals() -> None:
     assert parse_formula(format_formula(formula)) == formula
 
 
+def test_format_formula_preserves_right_nested_conjunctions() -> None:
+    formula = And(Atom("p"), And(Atom("q"), Atom("r")))
+
+    assert format_formula(formula) == "p & (q & r)"
+    assert parse_formula(format_formula(formula)) == formula
+
+
+def test_format_formula_preserves_right_nested_disjunctions() -> None:
+    formula = Or(Atom("p"), Or(Atom("q"), Atom("r")))
+
+    assert format_formula(formula) == "p | (q | r)"
+    assert parse_formula(format_formula(formula)) == formula
+
+
+def test_format_formula_preserves_left_nested_implications() -> None:
+    formula = Implies(Implies(Atom("p"), Atom("q")), Atom("r"))
+
+    assert format_formula(formula) == "(p -> q) -> r"
+    assert parse_formula(format_formula(formula)) == formula
+
+
+def test_format_formula_preserves_implication_over_biconditional() -> None:
+    formula = Implies(Atom("p"), Iff(Atom("q"), Atom("r")))
+
+    assert format_formula(formula) == "p -> (q <-> r)"
+    assert parse_formula(format_formula(formula)) == formula
+
+
+def test_format_formula_preserves_right_nested_biconditionals() -> None:
+    formula = Iff(Atom("p"), Iff(Atom("q"), Atom("r")))
+
+    assert format_formula(formula) == "p <-> (q <-> r)"
+    assert parse_formula(format_formula(formula)) == formula
+
+
 @pytest.mark.parametrize(
     "text",
     [
@@ -97,6 +132,13 @@ def test_format_formula_round_trips_biconditionals() -> None:
 def test_parse_formula_rejects_malformed_input(text: str) -> None:
     with pytest.raises(ModalSyntaxError):
         _ = parse_formula(text)
+
+
+def test_atom_names_reject_reserved_constant_keywords() -> None:
+    with pytest.raises(ValueError):
+        Atom("true")
+    with pytest.raises(ValueError):
+        Atom("false")
 
 
 def test_eliminate_implications_removes_implication_nodes() -> None:

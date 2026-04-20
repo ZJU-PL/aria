@@ -82,6 +82,18 @@ def format_formula(formula: Formula, unicode: bool = False) -> str:
         Iff: -1,
     }
 
+    def _needs_child_parens(child: Formula, parent: Formula, is_right: bool) -> bool:
+        parent_prec = precedence[type(parent)]
+        child_prec = precedence[type(child)]
+        if child_prec < parent_prec:
+            return True
+        if child_prec > parent_prec or not isinstance(child, BinaryFormula):
+            return False
+
+        if isinstance(parent, Implies):
+            return not is_right
+        return is_right
+
     def _format(current: Formula, parent_prec: int, is_right: bool = False) -> str:
         current_prec = precedence[type(current)]
         if isinstance(current, Constant):
@@ -89,30 +101,22 @@ def format_formula(formula: Formula, unicode: bool = False) -> str:
         elif isinstance(current, Atom):
             rendered = current.name
         elif isinstance(current, UnaryFormula):
-            rendered = unary_symbols[type(current)] + _format(
-                current.operand, current_prec
-            )
+            operand = _format(current.operand, current_prec)
+            if isinstance(current.operand, BinaryFormula):
+                operand = f"({operand})"
+            rendered = unary_symbols[type(current)] + operand
         elif isinstance(current, BinaryFormula):
             left = _format(current.left, current_prec)
-            right_parent_prec = current_prec
-            if isinstance(current, Implies):
-                right_parent_prec = current_prec - 1
-            right = _format(current.right, right_parent_prec, is_right=True)
+            if _needs_child_parens(current.left, current, is_right=False):
+                left = f"({left})"
+
+            right = _format(current.right, current_prec, is_right=True)
+            if _needs_child_parens(current.right, current, is_right=True):
+                right = f"({right})"
             rendered = left + binary_symbols[type(current)] + right
         else:
             raise TypeError(f"Unsupported modal formula: {current!r}")
 
-        needs_parens = current_prec < parent_prec
-        if isinstance(current, Implies) and is_right and current_prec == parent_prec:
-            needs_parens = False
-        elif (
-            isinstance(current, BinaryFormula)
-            and is_right
-            and current_prec <= parent_prec
-        ):
-            needs_parens = current_prec < parent_prec
-        if needs_parens:
-            return f"({rendered})"
         return rendered
 
     return _format(formula, -1)

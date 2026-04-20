@@ -76,3 +76,12 @@ def test_prime_enumeration_minimality_on_mixed_formula():
 
     _assert_all_prime_implicants(formula, implicants)
     _assert_all_prime_implicates(formula, implicates)
+
+
+def test_prime_implicate_enumeration_finds_all_dual_primes():
+    formula = CNF(from_clauses=[[1, 2], [-1, -3]])
+
+    implicates = enumerate_prime_implicates(formula)
+
+    assert implicates == [[-1, -3], [1, 2], [2, -3]]
+    _assert_all_prime_implicates(formula, implicates)

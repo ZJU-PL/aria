@@ -31,6 +31,10 @@ class Atom(Formula):
     def __post_init__(self) -> None:
         if not isinstance(self.name, str):
             raise TypeError(f"Atom names must be strings, got {self.name!r}")
+        if self.name in {"true", "false"}:
+            raise ValueError(
+                "Atom names 'true' and 'false' are reserved modal constants"
+            )
 
     def atoms(self) -> set[str]:
         return {self.name}
