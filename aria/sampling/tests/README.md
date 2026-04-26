@@ -8,6 +8,7 @@ Comprehensive unit tests for the `aria.sampling` module.
 - **test_factory.py** - Tests for SamplerFactory, create_sampler, and sample_models_from_formula
 - **test_bool_sampler.py** - Tests for Boolean formula sampler
 - **test_bv_samplers.py** - Tests for bit-vector samplers (base, hash-based, QuickSampler)
+- **test_adt_lia_sampler.py** - Tests for datatype + linear integer arithmetic sampling
 - **test_lira_sampler.py** - Tests for linear integer/real arithmetic sampler
 - **test_mcmc_sampler.py** - Tests for MCMC (Markov Chain Monte Carlo) sampler
 - **test_exceptions.py** - Tests for custom exception classes
@@ -32,10 +33,10 @@ pytest aria/sampling/tests/ --cov=aria.sampling
 
 The tests cover:
 - **Core functionality**: Sampler initialization, formula parsing, sample generation
-- **Multiple logics**: QF_BOOL, QF_BV, QF_LRA, QF_LIA, QF_LIRA
-- **Multiple methods**: Enumeration, MCMC, hash-based, QuickSampler
+- **Multiple logics**: QF_BOOL, QF_BV, QF_DT, QF_DTLIA, QF_LRA, QF_LIA, QF_LIRA
+- **Multiple methods**: Enumeration, MCMC, hash-based, QuickSampler, shape-first search
 - **Edge cases**: Unsatisfiable formulas, empty samples, blocking clauses
-- **Configuration**: Random seeds, timeouts, custom parameters
+- **Configuration**: Random seeds, timeouts, custom parameters, DTLIA shape options
 - **Error handling**: Invalid inputs, missing initialization, unsupported operations
 
 ## Notes

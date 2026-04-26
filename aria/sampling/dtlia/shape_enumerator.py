@@ -1,10 +1,9 @@
-"""
-Enumerate datatype constructor shapes for DTLIA sampling.
-"""
+"""Enumerate datatype constructor shapes for DTLIA sampling."""
 
+import random
 from dataclasses import dataclass
 from time import perf_counter
-from typing import Any, Dict, Iterable, List, Sequence, Set, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
 import z3
 
@@ -78,6 +77,18 @@ class ShapeEnumerationResult:
     stats: Dict[str, Any]
 
 
+@dataclass(frozen=True)
+class BranchChoice:
+    """A feasible constructor branch discovered for a pending datatype term."""
+
+    constructor_idx: int
+    constructor_constraint: z3.ExprRef
+    child_terms: Tuple[z3.ExprRef, ...]
+    scalar_terms: Tuple[z3.ExprRef, ...]
+    preferred_by_model: bool
+    tie_breaker: float
+
+
 def _pending_term_key(term: z3.ExprRef) -> Tuple[int, str]:
     """Return a deterministic key for pending datatype terms."""
     return (_ast_id(term), str(term))
@@ -97,12 +108,21 @@ def _append_pending_term(
     pending_ids.add(term_id)
 
 
+def _branch_order_key(choice: BranchChoice) -> Tuple[int, float, int]:
+    """Order feasible branches reproducibly while reducing decl-order bias."""
+    return (
+        0 if choice.preferred_by_model else 1,
+        choice.tie_breaker,
+        choice.constructor_idx,
+    )
+
+
 def enumerate_datatype_shapes(
     formula: z3.ExprRef,
     root_terms: Sequence[z3.ExprRef],
     max_shapes: int,
-    random_seed: int | None = None,
-    timeout: float | None = None,
+    random_seed: Optional[int] = None,
+    timeout: Optional[float] = None,
 ) -> ShapeEnumerationResult:
     """Enumerate distinct constructor shapes via partial constructor search."""
     if not root_terms or max_shapes <= 0:
@@ -115,11 +135,15 @@ def enumerate_datatype_shapes(
                 "shape_partial_states": 0,
                 "shape_duplicate_signatures": 0,
                 "shape_complete_assignments": 0,
+                "shape_unknown_branches": 0,
+                "shape_enumeration_complete": True,
+                "shape_enumeration_termination_reason": "exhausted",
                 "shape_enumeration_time_ms": 0,
             },
         )
 
     solver = z3.Solver()
+    rng = random.Random(random_seed)
     if random_seed is not None:
         solver.set("random_seed", random_seed)
         solver.set("seed", random_seed)
@@ -136,6 +160,9 @@ def enumerate_datatype_shapes(
     partial_states = 0
     duplicate_signatures = 0
     complete_assignments = 0
+    unknown_branches = 0
+    enumerator_complete = True
+    termination_reason = "exhausted"
 
     initial_pending = sorted(ordered_root_terms, key=_pending_term_key)
 
@@ -151,8 +178,28 @@ def enumerate_datatype_shapes(
         nonlocal partial_states
         nonlocal duplicate_signatures
         nonlocal complete_assignments
+        nonlocal unknown_branches
+        nonlocal enumerator_complete
+        nonlocal termination_reason
 
         if len(shapes) >= max_shapes:
+            enumerator_complete = False
+            termination_reason = "max_shapes"
+            return
+
+        solver.push()
+        solver.add(*shape_constraints)
+        check_result = solver.check()
+        solver_checks += 1
+        if check_result == z3.unsat:
+            pruned_branches += 1
+            solver.pop()
+            return
+        if check_result != z3.sat:
+            unknown_branches += 1
+            enumerator_complete = False
+            termination_reason = str(check_result)
+            solver.pop()
             return
 
         if not pending_terms:
@@ -166,6 +213,7 @@ def enumerate_datatype_shapes(
             )
             if signature in seen_signatures:
                 duplicate_signatures += 1
+                solver.pop()
                 return
 
             seen_signatures.add(signature)
@@ -176,6 +224,7 @@ def enumerate_datatype_shapes(
                     payload_terms=tuple(_dedupe_terms(payload_terms)),
                 )
             )
+            solver.pop()
             return
 
         partial_states += 1
@@ -186,6 +235,7 @@ def enumerate_datatype_shapes(
 
         sort = term.sort()
         if not isinstance(sort, z3.DatatypeSortRef):
+            solver.pop()
             explore(
                 remaining_pending,
                 remaining_ids,
@@ -199,38 +249,72 @@ def enumerate_datatype_shapes(
         next_assigned_ids = set(assigned_ids)
         next_assigned_ids.add(term_id)
 
+        model = solver.model()
+        branch_choices: List[BranchChoice] = []
         for constructor_idx in range(sort.num_constructors()):
             recognizer = sort.recognizer(constructor_idx)
             constructor_constraint = recognizer(term)
 
             solver.push()
             solver.add(constructor_constraint)
+            branch_result = solver.check()
             solver_checks += 1
-
-            if solver.check() != z3.sat:
+            if branch_result == z3.unsat:
                 pruned_branches += 1
                 solver.pop()
                 continue
+            if branch_result != z3.sat:
+                unknown_branches += 1
+                enumerator_complete = False
+                termination_reason = str(branch_result)
+                solver.pop()
+                break
 
             constructor_decl = sort.constructor(constructor_idx)
-            branch_constraints = list(shape_constraints)
-            branch_constraints.append(constructor_constraint)
-            branch_payload_terms = list(payload_terms)
-            branch_pending = list(remaining_pending)
-            branch_pending_ids = set(remaining_ids)
-
+            child_terms: List[z3.ExprRef] = []
+            scalar_terms: List[z3.ExprRef] = []
             for field_idx in range(constructor_decl.arity()):
                 accessor = sort.accessor(constructor_idx, field_idx)
                 child_term = accessor(term)
                 if _is_datatype_sort(child_term.sort()):
-                    _append_pending_term(
-                        branch_pending,
-                        branch_pending_ids,
-                        next_assigned_ids,
-                        child_term,
-                    )
-                elif child_term.sort().kind() == z3.Z3_INT_SORT:
-                    branch_payload_terms.append(child_term)
+                    child_terms.append(child_term)
+                else:
+                    scalar_terms.append(child_term)
+
+            constructor_value = model.evaluate(recognizer(term), model_completion=True)
+            branch_choices.append(
+                BranchChoice(
+                    constructor_idx=constructor_idx,
+                    constructor_constraint=constructor_constraint,
+                    child_terms=tuple(child_terms),
+                    scalar_terms=tuple(scalar_terms),
+                    preferred_by_model=z3.is_true(constructor_value),
+                    tie_breaker=rng.random(),
+                )
+            )
+            solver.pop()
+
+        solver.pop()
+
+        if termination_reason == "unknown":
+            return
+
+        ordered_branch_choices = sorted(branch_choices, key=_branch_order_key)
+        for branch_index, branch_choice in enumerate(ordered_branch_choices):
+            branch_constraints = list(shape_constraints)
+            branch_constraints.append(branch_choice.constructor_constraint)
+            branch_payload_terms = list(payload_terms)
+            branch_payload_terms.extend(branch_choice.scalar_terms)
+            branch_pending = list(remaining_pending)
+            branch_pending_ids = set(remaining_ids)
+
+            for child_term in branch_choice.child_terms:
+                _append_pending_term(
+                    branch_pending,
+                    branch_pending_ids,
+                    next_assigned_ids,
+                    child_term,
+                )
 
             branch_pending.sort(key=_pending_term_key)
             explore(
@@ -240,9 +324,12 @@ def enumerate_datatype_shapes(
                 branch_constraints,
                 branch_payload_terms,
             )
-            solver.pop()
-
             if len(shapes) >= max_shapes:
+                if branch_index < len(ordered_branch_choices) - 1:
+                    enumerator_complete = False
+                    termination_reason = "max_shapes"
+                return
+            if termination_reason == "unknown":
                 return
 
     explore(
@@ -263,6 +350,9 @@ def enumerate_datatype_shapes(
             "shape_partial_states": partial_states,
             "shape_duplicate_signatures": duplicate_signatures,
             "shape_complete_assignments": complete_assignments,
+            "shape_unknown_branches": unknown_branches,
+            "shape_enumeration_complete": enumerator_complete,
+            "shape_enumeration_termination_reason": termination_reason,
             "shape_enumeration_time_ms": elapsed_ms,
         },
     )

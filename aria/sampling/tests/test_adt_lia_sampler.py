@@ -17,6 +17,13 @@ def _make_maybe_int(name: str) -> z3.DatatypeSortRef:
     return maybe.create()
 
 
+def _make_flag_box(name: str) -> z3.DatatypeSortRef:
+    flag_box = z3.Datatype(name)
+    flag_box.declare("off")
+    flag_box.declare("on", ("flag", z3.BoolSort()))
+    return flag_box.create()
+
+
 class TestADTLIASampler:
     """Test cases for ADTLIASampler."""
 
@@ -291,6 +298,40 @@ class TestADTLIASampler:
         assert all("box" in sample for sample in result)
         assert result.stats["residual_projection_mode"] == "payload_terms"
 
+    def test_shape_mode_default_payload_projection_keeps_non_int_scalars(self):
+        flag_box = _make_flag_box("FlagBoxImplicitPayload")
+        box = z3.Const("box", flag_box)
+        formula = z3.Or(
+            box == flag_box.off,
+            box == flag_box.on(True),
+            box == flag_box.on(False),
+        )
+
+        sampler = ADTLIASampler()
+        sampler.init_from_formula(formula)
+        result = sampler.sample(
+            SamplingOptions(
+                method=SamplingMethod.SEARCH_TREE,
+                num_samples=3,
+                max_shapes=3,
+                candidates_per_shape=3,
+                include_selector_closure=True,
+                return_full_model=True,
+            )
+        )
+
+        assert len(result) == 3
+        assert {
+            sample["box"]["constructor"]
+            if isinstance(sample["box"], dict)
+            else sample["box"]
+            for sample in result
+        } == {"off", "on"}
+        assert {sample["flag(box)"] for sample in result if "flag(box)" in sample} == {
+            False,
+            True,
+        }
+
     def test_shape_mode_coverage_guided_covers_multiple_shapes(self):
         maybe = _make_maybe_int("MaybeIntCoverageShapes")
         x = z3.Int("x")
@@ -386,6 +427,8 @@ class TestADTLIASampler:
         assert result.stats["shape_count"] == 1
         assert result.stats["shape_pruned_branches"] > 0
         assert result.stats["shape_solver_checks"] >= result.stats["shape_pruned_branches"]
+        assert result.stats["shape_exploration_complete"] is True
+        assert result.stats["shape_exploration_termination_reason"] == "exhausted"
 
     def test_shape_mode_partial_exploration_keeps_recursive_payload_terms(self):
         tree = z3.Datatype("MaybeTree")
@@ -422,3 +465,105 @@ class TestADTLIASampler:
             "value(next(root))" in payload_terms
             for payload_terms in result.stats["shape_payload_terms"]
         )
+
+    def test_shape_mode_reports_truncation_when_max_shapes_hits_limit(self):
+        maybe = _make_maybe_int("MaybeIntShapeTruncation")
+        x = z3.Int("x")
+        left = z3.Const("left", maybe)
+        right = z3.Const("right", maybe)
+        formula = z3.And(
+            x >= 0,
+            x <= 1,
+            z3.Or(left == maybe.none, left == maybe.some(x)),
+            z3.Or(right == maybe.none, right == maybe.some(x)),
+        )
+
+        sampler = ADTLIASampler()
+        sampler.init_from_formula(formula)
+        result = sampler.sample(
+            SamplingOptions(
+                method=SamplingMethod.SEARCH_TREE,
+                num_samples=2,
+                max_shapes=1,
+                candidates_per_shape=2,
+                include_selector_closure=True,
+                return_full_model=True,
+            )
+        )
+
+        assert len(result) >= 1
+        assert result.stats["shape_count"] == 1
+        assert result.stats["shape_exploration_complete"] is False
+        assert result.stats["shape_exploration_termination_reason"] == "max_shapes"
+        assert result.stats["time_ms"] >= result.stats["shape_enumeration_time_ms"]
+
+    def test_shape_mode_rejects_unknown_diversity_mode(self):
+        maybe = _make_maybe_int("MaybeIntBadDiversity")
+        x = z3.Int("x")
+        box = z3.Const("box", maybe)
+        formula = z3.And(x >= 0, x <= 1, box == maybe.some(x))
+
+        sampler = ADTLIASampler()
+        sampler.init_from_formula(formula)
+
+        with pytest.raises(ValueError, match="Unknown diversity_mode"):
+            sampler.sample(
+                SamplingOptions(
+                    method=SamplingMethod.SEARCH_TREE,
+                    num_samples=2,
+                    diversity_mode="furthest_first",
+                )
+            )
+
+    def test_shape_mode_rejects_unknown_search_tree_option(self):
+        maybe = _make_maybe_int("MaybeIntBadOption")
+        x = z3.Int("x")
+        box = z3.Const("box", maybe)
+        formula = z3.And(x >= 0, x <= 1, box == maybe.some(x))
+
+        sampler = ADTLIASampler()
+        sampler.init_from_formula(formula)
+
+        with pytest.raises(ValueError, match="Unknown DTLIA search-tree options"):
+            sampler.sample(
+                SamplingOptions(
+                    method=SamplingMethod.SEARCH_TREE,
+                    num_samples=2,
+                    branch_budget=4,
+                )
+            )
+
+    def test_shape_mode_supports_multiple_recursive_roots(self):
+        tree = z3.Datatype("ForestNode")
+        tree.declare("leaf", ("value", z3.IntSort()))
+        tree.declare("node", ("left", tree), ("right", tree))
+        tree = tree.create()
+
+        left_root = z3.Const("left_root", tree)
+        right_root = z3.Const("right_root", tree)
+        formula = z3.And(
+            tree.is_leaf(left_root),
+            tree.value(left_root) >= 0,
+            tree.value(left_root) <= 1,
+            tree.is_node(right_root),
+            tree.left(right_root) == left_root,
+            tree.is_leaf(tree.right(right_root)),
+            tree.value(tree.right(right_root)) == tree.value(left_root) + 10,
+        )
+
+        sampler = ADTLIASampler()
+        sampler.init_from_formula(formula)
+        result = sampler.sample(
+            SamplingOptions(
+                method=SamplingMethod.SEARCH_TREE,
+                num_samples=4,
+                max_shapes=4,
+                candidates_per_shape=4,
+                include_selector_closure=True,
+                projection_terms=["value(left_root)", "value(right(right_root))"],
+            )
+        )
+
+        assert {sample["value(left_root)"] for sample in result} == {0, 1}
+        assert {sample["value(right(right_root))"] for sample in result} == {10, 11}
+        assert result.stats["shape_count"] == 1

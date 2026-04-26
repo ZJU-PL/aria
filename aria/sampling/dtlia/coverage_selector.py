@@ -6,7 +6,7 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass
 from typing import Any, DefaultDict, Dict, List, Optional, Sequence, Set, Tuple
 
-from .distance_selector import _next_max_distance_index, sample_distance  # noqa: F401
+from .distance_selector import _build_distance_matrix, _next_max_distance_index
 
 
 @dataclass(frozen=True)
@@ -244,6 +244,7 @@ def select_coverage_guided_subset(
     candidate_feature_sets = _build_candidate_feature_sets(
         candidates, shape_signatures=shape_signatures
     )
+    distance_matrix = _build_distance_matrix(candidates)
     feature_counts = Counter(
         feature
         for feature_set in candidate_feature_sets
@@ -310,6 +311,7 @@ def select_coverage_guided_subset(
             candidates,
             selected_indices,
             remaining_indices,
+            distance_matrix=distance_matrix,
         )
         if next_index is None:
             break

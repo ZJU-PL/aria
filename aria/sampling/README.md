@@ -161,6 +161,20 @@ coverage_result = sample_models_from_formula(
   - can use `diversity_mode="coverage_guided"` to prioritize constructor,
     alias, and integer-boundary coverage for testing workloads
 
+`SEARCH_TREE` also reports shape-exploration status in `SamplingResult.stats`:
+
+- `shape_exploration_complete`: whether constructor-shape exploration finished
+  without truncation
+- `shape_exploration_termination_reason`: one of `exhausted`, `max_shapes`,
+  or a solver status such as `unknown`
+- `shape_enumeration_time_ms`: time spent enumerating shapes before residual
+  payload sampling
+
+When `projection_terms` is omitted in `SEARCH_TREE`, residual enumeration now
+projects over all non-datatype payload terms implied by the discovered shape,
+not only integer payloads. This preserves distinctions on Boolean and other
+scalar selector values within a fixed constructor shape.
+
 `QF_NRA` and `QF_NIA` support two basic modes via
 `aria.sampling.nonlinear_ira`:
 

@@ -1,7 +1,7 @@
-"""
-Sampler for formulas mixing algebraic datatypes and linear integer arithmetic.
-"""
+"""Sampler for formulas mixing algebraic datatypes and linear integer arithmetic."""
 
+from enum import Enum
+from time import perf_counter
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Set, cast
 
@@ -37,6 +37,14 @@ def _dedupe_sorted_terms(terms: List[z3.ExprRef]) -> List[z3.ExprRef]:
     return list({str(term): term for term in sorted(terms, key=str)}.values())
 
 
+class DiversityMode(str, Enum):
+    """Supported candidate-selection modes for shape-first sampling."""
+
+    ENUMERATION = "enumeration"
+    MAX_DISTANCE = "max_distance"
+    COVERAGE_GUIDED = "coverage_guided"
+
+
 @dataclass
 class ShapeSamplingConfig:
     """Knobs read from ``SamplingOptions.additional_options`` for shape-based sampling."""
@@ -47,19 +55,55 @@ class ShapeSamplingConfig:
     return_full_model: bool
     max_shapes: int
     candidates_per_shape: int
-    diversity_mode: str  # "enumeration" | "max_distance" | "coverage_guided"
+    diversity_mode: DiversityMode
 
     @classmethod
     def from_options(cls, options: SamplingOptions) -> "ShapeSamplingConfig":
         opts = options.additional_options
+        allowed_option_keys = {
+            "include_selector_closure",
+            "projection_terms",
+            "tracked_terms",
+            "return_full_model",
+            "max_shapes",
+            "candidates_per_shape",
+            "diversity_mode",
+        }
+        unknown_keys = sorted(set(opts) - allowed_option_keys)
+        if unknown_keys:
+            raise ValueError(
+                "Unknown DTLIA search-tree options: " + ", ".join(unknown_keys)
+            )
+
+        max_shapes = int(opts.get("max_shapes", options.num_samples))
+        candidates_per_shape = int(
+            opts.get("candidates_per_shape", options.num_samples)
+        )
+        if max_shapes <= 0:
+            raise ValueError("max_shapes must be positive")
+        if candidates_per_shape <= 0:
+            raise ValueError("candidates_per_shape must be positive")
+
+        diversity_mode_value = str(
+            opts.get("diversity_mode", DiversityMode.ENUMERATION.value)
+        )
+        try:
+            diversity_mode = DiversityMode(diversity_mode_value)
+        except ValueError as exc:
+            allowed_modes = ", ".join(mode.value for mode in DiversityMode)
+            raise ValueError(
+                f"Unknown diversity_mode '{diversity_mode_value}'. "
+                f"Expected one of: {allowed_modes}"
+            ) from exc
+
         return cls(
             include_selector_closure=bool(opts.get("include_selector_closure", False)),
             explicit_projection_terms=opts.get("projection_terms"),
             explicit_tracked_terms=opts.get("tracked_terms"),
             return_full_model=bool(opts.get("return_full_model", False)),
-            max_shapes=int(opts.get("max_shapes", options.num_samples)),
-            candidates_per_shape=int(opts.get("candidates_per_shape", options.num_samples)),
-            diversity_mode=str(opts.get("diversity_mode", "enumeration")),
+            max_shapes=max_shapes,
+            candidates_per_shape=candidates_per_shape,
+            diversity_mode=diversity_mode,
         )
 
 
@@ -126,6 +170,7 @@ class ADTLIASampler(Sampler):
         if self.formula is None:
             raise ValueError("Sampler not initialized with a formula")
         formula = cast(z3.ExprRef, self.formula)
+        started_at = perf_counter()
 
         cfg = ShapeSamplingConfig.from_options(options)
         tracked_terms = _dedupe_sorted_terms(
@@ -163,6 +208,8 @@ class ADTLIASampler(Sampler):
         shape_sample_counts: List[int] = []
         shape_payload_terms: List[List[str]] = []
         candidate_shape_signatures: List[str] = []
+        residual_termination_reasons: List[str] = []
+        residual_solver_checks = 0
 
         for shape in shapes:
             residual_formula = cast(
@@ -205,6 +252,10 @@ class ADTLIASampler(Sampler):
             candidate_samples_by_shape.append(list(residual_result.samples))
             shape_sample_counts.append(len(residual_result.samples))
             shape_payload_terms.append([str(term) for term in shape.payload_terms])
+            residual_termination_reasons.append(
+                str(residual_result.stats.get("termination_reason", "unknown"))
+            )
+            residual_solver_checks += int(residual_result.stats.get("solver_checks", 0))
             candidate_shape_signatures.extend(
                 [str(shape.signature)] * len(residual_result.samples)
             )
@@ -212,11 +263,11 @@ class ADTLIASampler(Sampler):
         coverage_stats: Dict[str, Any] = {}
         selected_samples: List[Dict[str, Any]]
 
-        if cfg.diversity_mode == "max_distance":
+        if cfg.diversity_mode == DiversityMode.MAX_DISTANCE:
             selected_samples = select_max_distance_subset(
                 candidate_samples, options.num_samples
             )
-        elif cfg.diversity_mode == "coverage_guided":
+        elif cfg.diversity_mode == DiversityMode.COVERAGE_GUIDED:
             coverage_result: CoverageSelectionResult = select_coverage_guided_subset(
                 candidate_samples,
                 options.num_samples,
@@ -230,17 +281,26 @@ class ADTLIASampler(Sampler):
                 options.num_samples,
             )
 
+        elapsed_ms = int((perf_counter() - started_at) * 1000)
         stats: Dict[str, Any] = {
-            "time_ms": 0,
+            "time_ms": elapsed_ms,
             "iterations": len(selected_samples),
             "method": options.method.value,
             "shape_count": len(shapes),
             "candidate_count": len(candidate_samples),
             "candidates_per_shape": cfg.candidates_per_shape,
-            "diversity_mode": cfg.diversity_mode,
+            "diversity_mode": cfg.diversity_mode.value,
             "shape_signatures": [str(shape.signature) for shape in shapes],
             "shape_sample_counts": shape_sample_counts,
             "shape_payload_terms": shape_payload_terms,
+            "shape_exploration_complete": shape_result.stats.get(
+                "shape_enumeration_complete", True
+            ),
+            "shape_exploration_termination_reason": shape_result.stats.get(
+                "shape_enumeration_termination_reason", "exhausted"
+            ),
+            "residual_solver_checks": residual_solver_checks,
+            "residual_termination_reasons": residual_termination_reasons,
             "residual_projection_mode": (
                 "explicit"
                 if cfg.explicit_projection_terms is not None
