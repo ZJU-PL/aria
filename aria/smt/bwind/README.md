@@ -39,3 +39,7 @@ unsat
 - Assumes a single bit-width, which must be named k.
 - In particular: no extract and concat.
 ~~~~
+
+## Related Work
+
+- SAT 25: Bit-Precise Reasoning with Parametric Bit-Vectors.
