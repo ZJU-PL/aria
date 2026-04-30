@@ -46,6 +46,8 @@ from .syntax import (
     mk_not,
     mk_true,
     mk_false,
+    mk_exists as syntax_mk_exists,
+    mk_forall as syntax_mk_forall,
     destruct,
     expr_typ,
     symbols,
@@ -104,8 +106,7 @@ class SimplifyingContext:
         Returns:
             Expression: An existential quantification expression.
         """
-        sym = mk_symbol(self.context, name, typ)
-        return self.context.mk_exists(sym, body)
+        return syntax_mk_exists(name, typ, body)
 
     def mk_forall(self, name: str, typ: Type, body: Expression) -> Expression:
         """Create a universal quantification over a variable.
@@ -118,8 +119,7 @@ class SimplifyingContext:
         Returns:
             Expression: A universal quantification expression.
         """
-        sym = mk_symbol(self.context, name, typ)
-        return self.context.mk_forall(sym, body)
+        return syntax_mk_forall(name, typ, body)
 
     def show_symbol(self, sym: Symbol) -> str:
         """Convert a symbol to its string representation.
@@ -142,29 +142,17 @@ formula = FormulaExpression
 
 
 def mk_quantified(
-    mkq: Callable[[str], Callable[[Expression], Expression]],
+    mkq: Callable[[str, Type], Callable[[Expression], Expression]],
     ks: List[Symbol],
     phi: Expression,
 ) -> Expression:
     """Create a quantified formula with variable substitution."""
-    # Reverse the list for proper substitution order
-    ks_rev = list(reversed(ks))
-
-    def subst(k: Symbol) -> ArithExpression:
-        try:
-            i = ks_rev.index(k)
-            return _simplifying_context.mk_var(i, Type.REAL)
-        except ValueError:
-            return _simplifying_context.mk_const(k)
-
-    # Substitute constants in phi
-    phi_substituted = substitute_const(_simplifying_context.context, subst, phi)
-
-    # Apply quantifiers from right to left (innermost first)
-    result = phi_substituted
+    # The current SRK quantifier representation binds by variable name/type.
+    # Keep the body unchanged and wrap it with nested quantifiers.
+    result = phi
     for k in reversed(ks):
         name = _simplifying_context.show_symbol(k)
-        result = mkq(name)(result)
+        result = mkq(name, k.typ)(result)
 
     return result
 
@@ -172,8 +160,8 @@ def mk_quantified(
 def mk_exists(ks: List[Symbol], phi: Expression) -> Expression:
     """Create an existential quantification over the given variables."""
 
-    def mkq(name: str) -> Callable[[Expression], Expression]:
-        return lambda body: _simplifying_context.mk_exists(name, Type.REAL, body)
+    def mkq(name: str, typ: Type) -> Callable[[Expression], Expression]:
+        return lambda body: _simplifying_context.mk_exists(name, typ, body)
 
     return mk_quantified(mkq, ks, phi)
 
@@ -181,8 +169,8 @@ def mk_exists(ks: List[Symbol], phi: Expression) -> Expression:
 def mk_forall(ks: List[Symbol], phi: Expression) -> Expression:
     """Create a universal quantification over the given variables."""
 
-    def mkq(name: str) -> Callable[[Expression], Expression]:
-        return lambda body: _simplifying_context.mk_forall(name, Type.REAL, body)
+    def mkq(name: str, typ: Type) -> Callable[[Expression], Expression]:
+        return lambda body: _simplifying_context.mk_forall(name, typ, body)
 
     return mk_quantified(mkq, ks, phi)
 

@@ -1529,14 +1529,42 @@ def mk_false(*args) -> FalseExpr:
         raise TypeError(f"mk_false expects () or (context), got {len(args)} args")
 
 
-def mk_exists(var_name: str, var_type: Type, body: FormulaExpression) -> Exists:
-    """Create an Exists expression."""
-    return _default_builder.mk_exists(var_name, var_type, body)
+def mk_exists(*args) -> Exists:
+    """Create an Exists expression.
+
+    Supports:
+    - mk_exists(var_name, var_type, body)
+    - mk_exists(context, var_name, var_type, body)
+    """
+    if len(args) == 3:
+        var_name, var_type, body = args
+        return _default_builder.mk_exists(var_name, var_type, body)
+    if len(args) == 4 and isinstance(args[0], Context):
+        _, var_name, var_type, body = args
+        return _default_builder.mk_exists(var_name, var_type, body)
+    raise TypeError(
+        "mk_exists expects (var_name, var_type, body) or "
+        "(context, var_name, var_type, body)"
+    )
 
 
-def mk_forall(var_name: str, var_type: Type, body: FormulaExpression) -> Forall:
-    """Create a Forall expression."""
-    return _default_builder.mk_forall(var_name, var_type, body)
+def mk_forall(*args) -> Forall:
+    """Create a Forall expression.
+
+    Supports:
+    - mk_forall(var_name, var_type, body)
+    - mk_forall(context, var_name, var_type, body)
+    """
+    if len(args) == 3:
+        var_name, var_type, body = args
+        return _default_builder.mk_forall(var_name, var_type, body)
+    if len(args) == 4 and isinstance(args[0], Context):
+        _, var_name, var_type, body = args
+        return _default_builder.mk_forall(var_name, var_type, body)
+    raise TypeError(
+        "mk_forall expects (var_name, var_type, body) or "
+        "(context, var_name, var_type, body)"
+    )
 
 
 def mk_ite(
@@ -1677,6 +1705,24 @@ def mk_int(context_or_value: Union[Context, int], value: int = None) -> Const:
         return _default_builder.mk_const(
             _default_builder.mk_symbol(str(value), Type.INT)
         )
+
+
+def mk_zero(context: Optional[Context] = None, typ: Type = Type.INT) -> Const:
+    """Create the zero constant for the requested type."""
+    if typ == Type.REAL:
+        return mk_real(context, 0) if context is not None else mk_real(0)
+    if typ == Type.INT:
+        return mk_int(context, 0) if context is not None else mk_int(0)
+    raise TypeError(f"mk_zero only supports INT and REAL, got {typ}")
+
+
+def mk_one(context: Optional[Context] = None, typ: Type = Type.INT) -> Const:
+    """Create the one constant for the requested type."""
+    if typ == Type.REAL:
+        return mk_real(context, 1) if context is not None else mk_real(1)
+    if typ == Type.INT:
+        return mk_int(context, 1) if context is not None else mk_int(1)
+    raise TypeError(f"mk_one only supports INT and REAL, got {typ}")
 
 
 def mk_sub(

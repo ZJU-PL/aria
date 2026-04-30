@@ -282,3 +282,7 @@ __all__ = [
     # Ring theory exports
     # Big O complexity exports
 ]
+
+# Keep wildcard imports stable even when the Python port has not implemented
+# every OCaml-era export listed above yet.
+__all__ = [name for name in __all__ if name in globals()]

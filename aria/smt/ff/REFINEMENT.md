@@ -4,8 +4,8 @@ This note documents the current refinement architecture implemented by
 [`solvers/ff_perf_solver.py`](aria/smt/ff/solvers/ff_perf_solver.py) and the
 local algebra support in [`core/ff_algebra.py`](aria/smt/ff/core/ff_algebra.py).
 
-For a paper-oriented framing of the same implementation, see
-[`PAPER_SKETCH.md`](aria/smt/ff/PAPER_SKETCH.md).
+For a concise formalization of the same implementation, see
+[`FORMALIZATION.md`](aria/smt/ff/FORMALIZATION.md).
 
 It is written for two audiences:
 

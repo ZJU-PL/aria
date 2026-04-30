@@ -52,8 +52,8 @@ The package is organized by responsibility:
 For details, see [ARCHITECTURE.md](aria/smt/ff/ARCHITECTURE.md).
 For the current partition-driven refinement design, see
 [REFINEMENT.md](aria/smt/ff/REFINEMENT.md).
-For a paper-oriented framing of the current implementation, see
-[PAPER_SKETCH.md](aria/smt/ff/PAPER_SKETCH.md).
+For a concise formalization of the current implementation, see
+[FORMALIZATION.md](aria/smt/ff/FORMALIZATION.md).
 
 ## Front-End
 

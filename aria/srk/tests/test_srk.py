@@ -7,6 +7,7 @@ This module tests the overall package structure, imports, and basic functionalit
 import unittest
 import sys
 import os
+import importlib
 
 # Add the parent directory to the path so we can import aria.srk
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -109,6 +110,14 @@ class TestPackageImports(unittest.TestCase):
         except ImportError as e:
             self.fail(f"Failed to import util module: {e}")
 
+    def test_termination_dta_import(self):
+        """Test that terminationDTA can be imported."""
+        try:
+            termination_dta = importlib.import_module("aria.srk.terminationDTA")
+            self.assertIsNotNone(termination_dta)
+        except ImportError as e:
+            self.fail(f"Failed to import terminationDTA module: {e}")
+
 
 class TestPackageStructure(unittest.TestCase):
     """Test the overall package structure and exports."""
@@ -153,6 +162,17 @@ class TestPackageStructure(unittest.TestCase):
             self.assertTrue(True)  # If we get here, imports worked
         except ImportError as e:
             self.fail(f"Failed to import main exports: {e}")
+
+    def test_star_import_smoke(self):
+        """Test that wildcard imports do not expose missing symbols."""
+        namespace = {}
+        try:
+            exec("from aria.srk import *", namespace)
+        except Exception as e:
+            self.fail(f"Wildcard import failed: {e}")
+
+        self.assertIn("Context", namespace)
+        self.assertIn("SMTInterface", namespace)
 
 
 class TestBasicFunctionality(unittest.TestCase):
@@ -203,6 +223,49 @@ class TestBasicFunctionality(unittest.TestCase):
             self.assertIsNotNone(interval)
         except Exception as e:
             self.fail(f"Failed to create interval: {e}")
+
+    def test_zero_and_one_helpers(self):
+        """Test compatibility zero/one constructors."""
+        from aria.srk.syntax import Context, Type, expr_typ, mk_one, mk_zero
+
+        context = Context()
+
+        zero_int = mk_zero(context)
+        one_int = mk_one(context)
+        zero_real = mk_zero(context, Type.REAL)
+        one_real = mk_one(context, Type.REAL)
+
+        self.assertEqual(expr_typ(zero_int), Type.INT)
+        self.assertEqual(expr_typ(one_int), Type.INT)
+        self.assertEqual(expr_typ(zero_real), Type.REAL)
+        self.assertEqual(expr_typ(one_real), Type.REAL)
+
+    def test_srkast_quantifier_helpers(self):
+        """Test list-based srkAst quantifier helpers."""
+        from aria.srk.srkAst import mk_exists as ast_mk_exists, mk_forall as ast_mk_forall
+        from aria.srk.syntax import Context, Exists, Forall, Type, mk_const, mk_eq
+        from aria.srk.syntax import mk_exists, mk_forall, mk_int
+        from aria.srk.syntax import mk_symbol
+
+        context = Context()
+        x = mk_symbol(context, "x", Type.INT)
+        body = mk_eq(context, mk_const(context, x), mk_int(context, 0))
+
+        exists_formula = ast_mk_exists([x], body)
+        forall_formula = ast_mk_forall([x], body)
+
+        self.assertIsInstance(exists_formula, Exists)
+        self.assertIsInstance(forall_formula, Forall)
+        self.assertEqual(exists_formula.var_name, "x")
+        self.assertEqual(forall_formula.var_name, "x")
+        self.assertEqual(exists_formula.var_type, Type.INT)
+        self.assertEqual(forall_formula.var_type, Type.INT)
+
+        explicit_exists = mk_exists(context, "x", Type.INT, body)
+        explicit_forall = mk_forall(context, "x", Type.INT, body)
+
+        self.assertIsInstance(explicit_exists, Exists)
+        self.assertIsInstance(explicit_forall, Forall)
 
 
 class TestModuleIntegration(unittest.TestCase):
