@@ -115,7 +115,8 @@ Comprehensive library for Negation Normal Form manipulation and reasoning.
 CNF Simplification (``cnfsimplifier/``)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Advanced CNF formula simplification.
+Advanced CNF formula simplification — see :doc:`cnfsimplifier` for the full
+standalone reference.
 
 **Simplification Techniques** (8 methods):
 
@@ -154,7 +155,8 @@ Quantified Boolean Formula handling.
 Feature Extraction (``features/``)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-SATzilla-style feature extraction for SAT instance analysis.
+SATzilla-style feature extraction for SAT instance analysis — see
+:doc:`features` for the full standalone reference.
 
 **Key Classes:**
 
@@ -183,7 +185,8 @@ SATzilla-style feature extraction for SAT instance analysis.
 Distributed SAT Solver (``dissolve/``)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Practical implementation of Dissolve distributed SAT solver.
+Practical implementation of the Dissolve distributed SAT solver — see
+:doc:`dissolve` for the full standalone reference.
 
 **Key Classes:**
 

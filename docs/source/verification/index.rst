@@ -6,6 +6,8 @@ Verification
 
    bdd
    verification
+   pdr
+   smttools
    polyhorn
    houdini
    kinduction
