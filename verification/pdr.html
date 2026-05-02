@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Houdini &mdash; ARIA Documentation</title>
+  <title>PDR (Property-Directed Reachability) &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
@@ -19,8 +19,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="K-Induction" href="kinduction.html" />
-    <link rel="prev" title="PolyHorn: Polynomial Horn Clause Solver" href="polyhorn.html" /> 
+    <link rel="next" title="SMT Tools" href="smttools.html" />
+    <link rel="prev" title="Program Verification" href="verification.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -52,16 +52,16 @@
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Verification</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="bdd.html">BDD-Based Verification</a></li>
 <li class="toctree-l2"><a class="reference internal" href="verification.html">Program Verification</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pdr.html">PDR (Property-Directed Reachability)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="smttools.html">SMT Tools</a></li>
-<li class="toctree-l2"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Houdini</a><ul>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">PDR (Property-Directed Reachability)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#current-engine-surface">Current engine surface</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#how-it-fits-in-efmc">How it fits in EFMC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#idea">Idea</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#programmatic-usage">Programmatic usage</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#cli-usage">CLI usage</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="smttools.html">SMT Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="houdini.html">Houdini</a></li>
 <li class="toctree-l2"><a class="reference internal" href="kinduction.html">K-Induction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ksafety.html">K-Safety Verification</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ranking_functions.html">Ranking Functions</a></li>
@@ -95,9 +95,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="index.html">Verification</a></li>
-      <li class="breadcrumb-item active">Houdini</li>
+      <li class="breadcrumb-item active">PDR (Property-Directed Reachability)</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/verification/houdini.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/verification/pdr.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -105,47 +105,61 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="houdini">
-<h1>Houdini<a class="headerlink" href="#houdini" title="Link to this heading"></a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">aria.efmc.engines.houdini</span></code> contains Houdini-style invariant pruning.</p>
+  <section id="pdr-property-directed-reachability">
+<h1>PDR (Property-Directed Reachability)<a class="headerlink" href="#pdr-property-directed-reachability" title="Link to this heading"></a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">aria.efmc.engines.pdr</span></code> provides a Property-Directed Reachability (IC3)
+verification engine for transition systems.</p>
 <section id="current-engine-surface">
 <h2>Current engine surface<a class="headerlink" href="#current-engine-surface" title="Link to this heading"></a></h2>
-<p>The package currently exposes:</p>
+<p>The package exposes:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">HoudiniProver</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PDRProver</span></code></p></li>
 </ul>
-<p>It works with a transition system plus a candidate predicate/template set and
-iteratively removes predicates that fail the inductiveness checks.</p>
+<p>It operates over <code class="docutils literal notranslate"><span class="pre">aria.efmc.sts.TransitionSystem</span></code> and returns results
+through <code class="docutils literal notranslate"><span class="pre">VerificationResult</span></code>.</p>
 </section>
-<section id="how-it-fits-in-efmc">
-<h2>How it fits in EFMC<a class="headerlink" href="#how-it-fits-in-efmc" title="Link to this heading"></a></h2>
-<p>Houdini is a lightweight invariant-inference technique:</p>
-<ol class="arabic simple">
-<li><p>start from a conjunction of candidate predicates</p></li>
-<li><p>check inductiveness against the transition relation</p></li>
-<li><p>remove predicates that are disproved</p></li>
-<li><p>repeat until the remaining conjunction is inductive or exhausted</p></li>
-</ol>
+<section id="idea">
+<h2>Idea<a class="headerlink" href="#idea" title="Link to this heading"></a></h2>
+<p>PDR (also known as IC3) proves safety by searching for an inductive invariant
+that is reachable from the initial states, preserved by transitions, and
+disjoint from unsafe states. Rather than implementing IC3 from scratch, the
+current engine encodes the verification problem as Constrained Horn Clauses
+(CHC) and delegates the PDR search to Z3’s <code class="docutils literal notranslate"><span class="pre">HORN</span></code> solver.</p>
+<p>The encoding constructs three Horn clauses over an uninterpreted predicate
+<code class="docutils literal notranslate"><span class="pre">inv</span></code>:</p>
+<ul class="simple">
+<li><p><strong>Init</strong>: <code class="docutils literal notranslate"><span class="pre">∀</span> <span class="pre">vars.</span> <span class="pre">init(vars)</span> <span class="pre">⟹</span> <span class="pre">inv(vars)</span></code></p></li>
+<li><p><strong>Inductive</strong>: <code class="docutils literal notranslate"><span class="pre">∀</span> <span class="pre">vars,</span> <span class="pre">vars'.</span> <span class="pre">inv(vars)</span> <span class="pre">∧</span> <span class="pre">trans(vars,</span> <span class="pre">vars')</span> <span class="pre">⟹</span> <span class="pre">inv(vars')</span></code></p></li>
+<li><p><strong>Post</strong>: <code class="docutils literal notranslate"><span class="pre">∀</span> <span class="pre">vars.</span> <span class="pre">inv(vars)</span> <span class="pre">⟹</span> <span class="pre">post(vars)</span></code></p></li>
+</ul>
+<p>When Z3 finds a satisfying model, <code class="docutils literal notranslate"><span class="pre">inv</span></code> is extracted as the inductive
+invariant. Supported variable sorts include <code class="docutils literal notranslate"><span class="pre">Int</span></code>, <code class="docutils literal notranslate"><span class="pre">Real</span></code>, <code class="docutils literal notranslate"><span class="pre">BitVec</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">Bool</span></code>.</p>
 </section>
 <section id="programmatic-usage">
 <h2>Programmatic usage<a class="headerlink" href="#programmatic-usage" title="Link to this heading"></a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.engines.houdini</span><span class="w"> </span><span class="kn">import</span> <span class="n">HoudiniProver</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.engines.pdr</span><span class="w"> </span><span class="kn">import</span> <span class="n">PDRProver</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.sts</span><span class="w"> </span><span class="kn">import</span> <span class="n">TransitionSystem</span>
 
 <span class="n">sts</span> <span class="o">=</span> <span class="n">TransitionSystem</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
-<span class="n">prover</span> <span class="o">=</span> <span class="n">HoudiniProver</span><span class="p">(</span><span class="n">sts</span><span class="p">,</span> <span class="n">predicates</span><span class="o">=</span><span class="p">[</span><span class="o">...</span><span class="p">])</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">prover</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+<span class="n">prover</span> <span class="o">=</span> <span class="n">PDRProver</span><span class="p">(</span><span class="n">sts</span><span class="p">)</span>
+<span class="n">prover</span><span class="o">.</span><span class="n">set_verbose</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">prover</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">is_safe</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Invariant:&quot;</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">invariant</span><span class="p">)</span>
+<span class="k">elif</span> <span class="n">result</span><span class="o">.</span><span class="n">is_unknown</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Unknown (may have timed out)&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="cli-usage">
 <h2>CLI usage<a class="headerlink" href="#cli-usage" title="Link to this heading"></a></h2>
-<p>Houdini-related workflows are exposed through the main verifier CLI:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>aria-efmc<span class="w"> </span>--lang<span class="w"> </span>chc<span class="w"> </span>--engine<span class="w"> </span>houdini<span class="w"> </span>--file<span class="w"> </span>program.smt2
+<p>Use the EFMC frontend:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>aria-efmc<span class="w"> </span>--lang<span class="w"> </span>chc<span class="w"> </span>--engine<span class="w"> </span>pdr<span class="w"> </span>--file<span class="w"> </span>program.smt2
 </pre></div>
 </div>
-<p>For exact CLI flags and current predicate/template handling, prefer
-<code class="docutils literal notranslate"><span class="pre">aria-efmc</span> <span class="pre">--help</span></code> and <code class="docutils literal notranslate"><span class="pre">aria/efmc/engines/houdini/</span></code>.</p>
+<p>For exact flags see <code class="docutils literal notranslate"><span class="pre">aria.cli.efmc_cli</span></code>.</p>
 </section>
 </section>
 
@@ -153,8 +167,8 @@ iteratively removes predicates that fail the inductiveness checks.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="polyhorn.html" class="btn btn-neutral float-left" title="PolyHorn: Polynomial Horn Clause Solver" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="kinduction.html" class="btn btn-neutral float-right" title="K-Induction" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="verification.html" class="btn btn-neutral float-left" title="Program Verification" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="smttools.html" class="btn btn-neutral float-right" title="SMT Tools" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

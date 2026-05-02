@@ -53,6 +53,8 @@ Equivalent module entrypoints:
 Where to look next
 ------------------
 
+* :doc:`pdr`
+* :doc:`smttools`
 * :doc:`kinduction`
 * :doc:`houdini`
 * :doc:`ksafety`

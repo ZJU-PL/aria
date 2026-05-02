@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Parallel SMT CDCL(T) Solving &mdash; ARIA Documentation</title>
+  <title>Boolean Analysis &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
@@ -19,8 +19,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Modal Logic" href="modal.html" />
-    <link rel="prev" title="Knowledge Compilation" href="knowledge_compilation.html" /> 
+    <link rel="next" title="CNF Simplification Framework" href="cnfsimplifier.html" />
+    <link rel="prev" title="SAT Instance Feature Extraction" href="features.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -64,18 +64,20 @@
 <li class="toctree-l2"><a class="reference internal" href="unsat_core.html">UNSAT Core Extraction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
 <li class="toctree-l2"><a class="reference internal" href="knowledge_compilation.html">Knowledge Compilation</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Parallel SMT CDCL(T) Solving</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#cdcl-t">CDCL(T)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#parallel-cdcl-t">Parallel CDCL(T)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#how-to-use">How to Use</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="parallel_cdclt.html">Parallel SMT CDCL(T) Solving</a></li>
 <li class="toctree-l2"><a class="reference internal" href="modal.html">Modal Logic</a></li>
 <li class="toctree-l2"><a class="reference internal" href="dissolve.html">Dissolve (Distributed SAT)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="threeval.html">Three-Valued Logic</a></li>
 <li class="toctree-l2"><a class="reference internal" href="prime.html">Prime Implicant / Implicate Enumeration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="features.html">SAT Instance Feature Extraction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="analysis.html">Boolean Analysis</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Boolean Analysis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#directory-structure">Directory structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cnf-analysis">CNF Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#metrics">Metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#qbf-analysis">QBF Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#programmatic-usage">Programmatic usage</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="cnfsimplifier.html">CNF Simplification Framework</a></li>
 </ul>
 </li>
@@ -107,9 +109,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="index.html">Logic and Solving</a></li>
-      <li class="breadcrumb-item active">Parallel SMT CDCL(T) Solving</li>
+      <li class="breadcrumb-item active">Boolean Analysis</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/logic-and-solving/parallel_cdclt.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/logic-and-solving/analysis.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -117,39 +119,44 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="parallel-smt-cdcl-t-solving">
-<h1>Parallel SMT CDCL(T) Solving<a class="headerlink" href="#parallel-smt-cdcl-t-solving" title="Link to this heading"></a></h1>
-<section id="cdcl-t">
-<h2>CDCL(T)<a class="headerlink" href="#cdcl-t" title="Link to this heading"></a></h2>
-<p>CDCL(T) stands for Conflict-Driven Clause Learning modulo Theory, which is a powerful
-algorithm for solving Satisfiability Modulo Theories (SMT) problems.
-It extends the CDCL algorithm used in SAT solving to handle theories beyond
-pure propositional logic.</p>
-<ul class="simple">
-<li><p>Combines boolean reasoning (SAT) with theory reasoning</p></li>
-<li><p>Maintains a boolean abstraction of the formula</p></li>
-<li><p>Performs theory-specific consistency checks</p></li>
-<li><p>Learns new clauses from conflicts</p></li>
-</ul>
+  <section id="boolean-analysis">
+<h1>Boolean Analysis<a class="headerlink" href="#boolean-analysis" title="Link to this heading"></a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">aria.bool.analysis</span></code> provides analytical tools for Boolean and QBF
+formulas, including CNF structural metrics and QBF analysis utilities.</p>
+<section id="directory-structure">
+<h2>Directory structure<a class="headerlink" href="#directory-structure" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>aria/bool/analysis/
+├── cnf.py       # CNF structural analysis and metrics
+├── metrics.py   # General Boolean formula metrics
+└── qbf.py       # QBF-specific analysis
+</pre></div>
+</div>
 </section>
-<section id="parallel-cdcl-t">
-<h2>Parallel CDCL(T)<a class="headerlink" href="#parallel-cdcl-t" title="Link to this heading"></a></h2>
+<section id="cnf-analysis">
+<h2>CNF Analysis<a class="headerlink" href="#cnf-analysis" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">cnf.py</span></code> computes structural metrics over CNF formulas, such as clause
+length distributions, variable occurrence counts, and related statistics
+used for understanding formula structure and hardness.</p>
 </section>
-<section id="how-to-use">
-<h2>How to Use<a class="headerlink" href="#how-to-use" title="Link to this heading"></a></h2>
-<ol class="arabic simple">
-<li><p>Build and install all binary solvers in the <code class="docutils literal notranslate"><span class="pre">bin_solvers</span></code> directory.</p></li>
-<li><p>Install the package and its dependencies: <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span></code> (see <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>).</p></li>
-</ol>
-<p>Refer to the following links for related work:</p>
-<ul class="simple">
-<li><p>[<a class="reference external" href="https://smt-comp.github.io/2022/results/results-cloud](https://smt-comp.github.io/2022/results/results-cloud">https://smt-comp.github.io/2022/results/results-cloud](https://smt-comp.github.io/2022/results/results-cloud</a>)</p></li>
-<li><p>[<a class="reference external" href="https://github.com/usi-verification-and-security/SMTS/tree/cube-and-conquer-fixed](https://github.com/usi-verification-and-security/SMTS/tree/cube-and-conquer-fixed">https://github.com/usi-verification-and-security/SMTS/tree/cube-and-conquer-fixed](https://github.com/usi-verification-and-security/SMTS/tree/cube-and-conquer-fixed</a>)</p></li>
-<li><p>[<a class="reference external" href="https://github.com/usi-verification-and-security/SMTS/tree/portfolio](https://github.com/usi-verification-and-security/SMTS/tree/portfolio">https://github.com/usi-verification-and-security/SMTS/tree/portfolio](https://github.com/usi-verification-and-security/SMTS/tree/portfolio</a>)</p></li>
-<li><p>cvc5-cloud: [<a class="reference external" href="https://github.com/amaleewilson/aws-satcomp-solver-sample/tree/cvc5](https://github.com/amaleewilson/aws-satcomp-solver-sample/tree/cvc5">https://github.com/amaleewilson/aws-satcomp-solver-sample/tree/cvc5](https://github.com/amaleewilson/aws-satcomp-solver-sample/tree/cvc5</a>)</p></li>
-<li><p>Vampire portfolio: [<a class="reference external" href="https://smt-comp.github.io/2022/system-descriptions/Vampire.pdf](https://smt-comp.github.io/2022/system-descriptions/Vampire.pdf">https://smt-comp.github.io/2022/system-descriptions/Vampire.pdf](https://smt-comp.github.io/2022/system-descriptions/Vampire.pdf</a>)</p></li>
-</ul>
-<p>Refer to <a class="reference external" href="https://smtlib.cs.uiowa.edu/benchmarks.shtml">https://smtlib.cs.uiowa.edu/benchmarks.shtml</a> for benchmarks.</p>
+<section id="metrics">
+<h2>Metrics<a class="headerlink" href="#metrics" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">metrics.py</span></code> provides general-purpose metrics over Boolean formulas,
+complementing the feature extraction in <code class="docutils literal notranslate"><span class="pre">aria.bool.features</span></code> with lighter-weight
+structural measurements.</p>
+</section>
+<section id="qbf-analysis">
+<h2>QBF Analysis<a class="headerlink" href="#qbf-analysis" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">qbf.py</span></code> offers analysis utilities specific to Quantified Boolean Formulas,
+such as quantifier depth evaluation, variable dependency analysis, and
+related structural checks.</p>
+</section>
+<section id="programmatic-usage">
+<h2>Programmatic usage<a class="headerlink" href="#programmatic-usage" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.bool.analysis.cnf</span><span class="w"> </span><span class="kn">import</span> <span class="n">analyse_cnf</span>
+
+<span class="n">metrics</span> <span class="o">=</span> <span class="n">analyse_cnf</span><span class="p">(</span><span class="n">cnf_clauses</span><span class="p">)</span>
+</pre></div>
+</div>
 </section>
 </section>
 
@@ -157,8 +164,8 @@ pure propositional logic.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="knowledge_compilation.html" class="btn btn-neutral float-left" title="Knowledge Compilation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="modal.html" class="btn btn-neutral float-right" title="Modal Logic" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="features.html" class="btn btn-neutral float-left" title="SAT Instance Feature Extraction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="cnfsimplifier.html" class="btn btn-neutral float-right" title="CNF Simplification Framework" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

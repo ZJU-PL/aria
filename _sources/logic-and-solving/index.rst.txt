@@ -21,3 +21,10 @@ for core APIs, solver backends, and reusable reasoning infrastructure.
    optimization
    knowledge_compilation
    parallel_cdclt
+   modal
+   dissolve
+   threeval
+   prime
+   features
+   analysis
+   cnfsimplifier

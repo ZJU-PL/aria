@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Parallel SMT CDCL(T) Solving &mdash; ARIA Documentation</title>
+  <title>SAT Instance Feature Extraction &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
@@ -19,8 +19,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Modal Logic" href="modal.html" />
-    <link rel="prev" title="Knowledge Compilation" href="knowledge_compilation.html" /> 
+    <link rel="next" title="Boolean Analysis" href="analysis.html" />
+    <link rel="prev" title="Prime Implicant / Implicate Enumeration" href="prime.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -64,17 +64,18 @@
 <li class="toctree-l2"><a class="reference internal" href="unsat_core.html">UNSAT Core Extraction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
 <li class="toctree-l2"><a class="reference internal" href="knowledge_compilation.html">Knowledge Compilation</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Parallel SMT CDCL(T) Solving</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#cdcl-t">CDCL(T)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#parallel-cdcl-t">Parallel CDCL(T)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#how-to-use">How to Use</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="parallel_cdclt.html">Parallel SMT CDCL(T) Solving</a></li>
 <li class="toctree-l2"><a class="reference internal" href="modal.html">Modal Logic</a></li>
 <li class="toctree-l2"><a class="reference internal" href="dissolve.html">Dissolve (Distributed SAT)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="threeval.html">Three-Valued Logic</a></li>
 <li class="toctree-l2"><a class="reference internal" href="prime.html">Prime Implicant / Implicate Enumeration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="features.html">SAT Instance Feature Extraction</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">SAT Instance Feature Extraction</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#directory-structure">Directory structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#key-class">Key class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#feature-categories">Feature categories</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#programmatic-usage">Programmatic usage</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="analysis.html">Boolean Analysis</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cnfsimplifier.html">CNF Simplification Framework</a></li>
 </ul>
@@ -107,9 +108,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="index.html">Logic and Solving</a></li>
-      <li class="breadcrumb-item active">Parallel SMT CDCL(T) Solving</li>
+      <li class="breadcrumb-item active">SAT Instance Feature Extraction</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/logic-and-solving/parallel_cdclt.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/logic-and-solving/features.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -117,39 +118,61 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="parallel-smt-cdcl-t-solving">
-<h1>Parallel SMT CDCL(T) Solving<a class="headerlink" href="#parallel-smt-cdcl-t-solving" title="Link to this heading"></a></h1>
-<section id="cdcl-t">
-<h2>CDCL(T)<a class="headerlink" href="#cdcl-t" title="Link to this heading"></a></h2>
-<p>CDCL(T) stands for Conflict-Driven Clause Learning modulo Theory, which is a powerful
-algorithm for solving Satisfiability Modulo Theories (SMT) problems.
-It extends the CDCL algorithm used in SAT solving to handle theories beyond
-pure propositional logic.</p>
+  <section id="sat-instance-feature-extraction">
+<h1>SAT Instance Feature Extraction<a class="headerlink" href="#sat-instance-feature-extraction" title="Link to this heading"></a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">aria.bool.features</span></code> implements SATzilla-style feature extraction for CNF
+formulas. It computes 40+ structural, statistical, and probing-based
+features that characterise SAT instances, useful for algorithm selection and
+machine-learning applications.</p>
+<section id="directory-structure">
+<h2>Directory structure<a class="headerlink" href="#directory-structure" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>aria/bool/features/
+├── sat_instance.py      # High-level API: SATInstance class
+├── base_features.py     # Core feature extraction (size, graph, balance)
+├── active_features.py   # Active feature computation
+├── balance_features.py  # Positive/negative literal balance statistics
+├── graph_features.py    # Variable-clause and variable-variable graph features
+├── dpll.py              # DPLL probing (unit propagation at various depths)
+├── parse_cnf.py         # CNF file parser
+├── enums.py             # Feature name enumerations
+├── array_stats.py       # Statistical helpers (mean, std, entropy, …)
+└── stopwatch.py         # Timing utility
+</pre></div>
+</div>
+</section>
+<section id="key-class">
+<h2>Key class<a class="headerlink" href="#key-class" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>Combines boolean reasoning (SAT) with theory reasoning</p></li>
-<li><p>Maintains a boolean abstraction of the formula</p></li>
-<li><p>Performs theory-specific consistency checks</p></li>
-<li><p>Learns new clauses from conflicts</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SATInstance</span></code> – main entry point; loads a CNF file and exposes feature
+extraction via its attributes and helper methods.</p></li>
 </ul>
 </section>
-<section id="parallel-cdcl-t">
-<h2>Parallel CDCL(T)<a class="headerlink" href="#parallel-cdcl-t" title="Link to this heading"></a></h2>
-</section>
-<section id="how-to-use">
-<h2>How to Use<a class="headerlink" href="#how-to-use" title="Link to this heading"></a></h2>
-<ol class="arabic simple">
-<li><p>Build and install all binary solvers in the <code class="docutils literal notranslate"><span class="pre">bin_solvers</span></code> directory.</p></li>
-<li><p>Install the package and its dependencies: <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span></code> (see <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>).</p></li>
-</ol>
-<p>Refer to the following links for related work:</p>
+<section id="feature-categories">
+<h2>Feature categories<a class="headerlink" href="#feature-categories" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>[<a class="reference external" href="https://smt-comp.github.io/2022/results/results-cloud](https://smt-comp.github.io/2022/results/results-cloud">https://smt-comp.github.io/2022/results/results-cloud](https://smt-comp.github.io/2022/results/results-cloud</a>)</p></li>
-<li><p>[<a class="reference external" href="https://github.com/usi-verification-and-security/SMTS/tree/cube-and-conquer-fixed](https://github.com/usi-verification-and-security/SMTS/tree/cube-and-conquer-fixed">https://github.com/usi-verification-and-security/SMTS/tree/cube-and-conquer-fixed](https://github.com/usi-verification-and-security/SMTS/tree/cube-and-conquer-fixed</a>)</p></li>
-<li><p>[<a class="reference external" href="https://github.com/usi-verification-and-security/SMTS/tree/portfolio](https://github.com/usi-verification-and-security/SMTS/tree/portfolio">https://github.com/usi-verification-and-security/SMTS/tree/portfolio](https://github.com/usi-verification-and-security/SMTS/tree/portfolio</a>)</p></li>
-<li><p>cvc5-cloud: [<a class="reference external" href="https://github.com/amaleewilson/aws-satcomp-solver-sample/tree/cvc5](https://github.com/amaleewilson/aws-satcomp-solver-sample/tree/cvc5">https://github.com/amaleewilson/aws-satcomp-solver-sample/tree/cvc5](https://github.com/amaleewilson/aws-satcomp-solver-sample/tree/cvc5</a>)</p></li>
-<li><p>Vampire portfolio: [<a class="reference external" href="https://smt-comp.github.io/2022/system-descriptions/Vampire.pdf](https://smt-comp.github.io/2022/system-descriptions/Vampire.pdf">https://smt-comp.github.io/2022/system-descriptions/Vampire.pdf](https://smt-comp.github.io/2022/system-descriptions/Vampire.pdf</a>)</p></li>
+<li><p><strong>Size features</strong> – number of clauses, variables, clause-to-variable ratio.</p></li>
+<li><p><strong>Variable-clause graph</strong> – degree statistics (mean, std, coeff. of
+variation, min, max), entropy.</p></li>
+<li><p><strong>Variable graph</strong> – co-occurrence graph statistics.</p></li>
+<li><p><strong>Balance features</strong> – positive/negative literal ratios per variable and
+clause.</p></li>
+<li><p><strong>Horn clause proximity</strong> – fraction of Horn and anti-Horn clauses.</p></li>
+<li><p><strong>DPLL probing</strong> – unit propagation counts at decision depths 1–10
+(<code class="docutils literal notranslate"><span class="pre">dpll.py</span></code>).</p></li>
+<li><p><strong>Structural features</strong> – power-law exponent, modularity, fractal dimension.</p></li>
+<li><p><strong>Graph features</strong> – statistics over 8 weighted bipartite and primal graphs.</p></li>
 </ul>
-<p>Refer to <a class="reference external" href="https://smtlib.cs.uiowa.edu/benchmarks.shtml">https://smtlib.cs.uiowa.edu/benchmarks.shtml</a> for benchmarks.</p>
+</section>
+<section id="programmatic-usage">
+<h2>Programmatic usage<a class="headerlink" href="#programmatic-usage" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.bool.features.sat_instance</span><span class="w"> </span><span class="kn">import</span> <span class="n">SATInstance</span>
+
+<span class="n">instance</span> <span class="o">=</span> <span class="n">SATInstance</span><span class="p">(</span><span class="s2">&quot;benchmark.cnf&quot;</span><span class="p">)</span>
+<span class="c1"># Access extracted features as a dictionary</span>
+<span class="n">features</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">features_dict</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">features</span><span class="p">[</span><span class="s2">&quot;nVars&quot;</span><span class="p">],</span> <span class="n">features</span><span class="p">[</span><span class="s2">&quot;nClauses&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
 </section>
 </section>
 
@@ -157,8 +180,8 @@ pure propositional logic.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="knowledge_compilation.html" class="btn btn-neutral float-left" title="Knowledge Compilation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="modal.html" class="btn btn-neutral float-right" title="Modal Logic" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="prime.html" class="btn btn-neutral float-left" title="Prime Implicant / Implicate Enumeration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="analysis.html" class="btn btn-neutral float-right" title="Boolean Analysis" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

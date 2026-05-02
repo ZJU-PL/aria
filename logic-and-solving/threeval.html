@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Parallel SMT CDCL(T) Solving &mdash; ARIA Documentation</title>
+  <title>Three-Valued Logic &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
@@ -19,8 +19,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Modal Logic" href="modal.html" />
-    <link rel="prev" title="Knowledge Compilation" href="knowledge_compilation.html" /> 
+    <link rel="next" title="Prime Implicant / Implicate Enumeration" href="prime.html" />
+    <link rel="prev" title="Dissolve (Distributed SAT)" href="dissolve.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -64,15 +64,16 @@
 <li class="toctree-l2"><a class="reference internal" href="unsat_core.html">UNSAT Core Extraction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
 <li class="toctree-l2"><a class="reference internal" href="knowledge_compilation.html">Knowledge Compilation</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Parallel SMT CDCL(T) Solving</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#cdcl-t">CDCL(T)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#parallel-cdcl-t">Parallel CDCL(T)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#how-to-use">How to Use</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="parallel_cdclt.html">Parallel SMT CDCL(T) Solving</a></li>
 <li class="toctree-l2"><a class="reference internal" href="modal.html">Modal Logic</a></li>
 <li class="toctree-l2"><a class="reference internal" href="dissolve.html">Dissolve (Distributed SAT)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="threeval.html">Three-Valued Logic</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Three-Valued Logic</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#directory-structure">Directory structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#three-valued-semantics">Three-valued semantics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#key-components">Key components</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#programmatic-usage">Programmatic usage</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="prime.html">Prime Implicant / Implicate Enumeration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="features.html">SAT Instance Feature Extraction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="analysis.html">Boolean Analysis</a></li>
@@ -107,9 +108,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="index.html">Logic and Solving</a></li>
-      <li class="breadcrumb-item active">Parallel SMT CDCL(T) Solving</li>
+      <li class="breadcrumb-item active">Three-Valued Logic</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/logic-and-solving/parallel_cdclt.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/logic-and-solving/threeval.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -117,39 +118,54 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="parallel-smt-cdcl-t-solving">
-<h1>Parallel SMT CDCL(T) Solving<a class="headerlink" href="#parallel-smt-cdcl-t-solving" title="Link to this heading"></a></h1>
-<section id="cdcl-t">
-<h2>CDCL(T)<a class="headerlink" href="#cdcl-t" title="Link to this heading"></a></h2>
-<p>CDCL(T) stands for Conflict-Driven Clause Learning modulo Theory, which is a powerful
-algorithm for solving Satisfiability Modulo Theories (SMT) problems.
-It extends the CDCL algorithm used in SAT solving to handle theories beyond
-pure propositional logic.</p>
+  <section id="three-valued-logic">
+<h1>Three-Valued Logic<a class="headerlink" href="#three-valued-logic" title="Link to this heading"></a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">aria.bool.threeval</span></code> implements propositional reasoning in Kleene’s
+three-valued logic, where propositions can be <code class="docutils literal notranslate"><span class="pre">true</span></code>, <code class="docutils literal notranslate"><span class="pre">false</span></code>, or
+<code class="docutils literal notranslate"><span class="pre">unknown</span></code>.</p>
+<section id="directory-structure">
+<h2>Directory structure<a class="headerlink" href="#directory-structure" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>aria/bool/threeval/
+├── propositional.py    # Three-valued formula AST and evaluation
+├── parser.py           # Parser for three-valued logic expressions
+├── adapters.py         # Adapters bridging three-valued and two-valued worlds
+└── minimization.py     # Formula minimisation techniques
+</pre></div>
+</div>
+</section>
+<section id="three-valued-semantics">
+<h2>Three-valued semantics<a class="headerlink" href="#three-valued-semantics" title="Link to this heading"></a></h2>
+<p>Formulas are evaluated under Kleene strong three-valued logic:</p>
 <ul class="simple">
-<li><p>Combines boolean reasoning (SAT) with theory reasoning</p></li>
-<li><p>Maintains a boolean abstraction of the formula</p></li>
-<li><p>Performs theory-specific consistency checks</p></li>
-<li><p>Learns new clauses from conflicts</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">true</span> <span class="pre">∧</span> <span class="pre">unknown</span> <span class="pre">=</span> <span class="pre">unknown</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">false</span> <span class="pre">∧</span> <span class="pre">unknown</span> <span class="pre">=</span> <span class="pre">false</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">true</span> <span class="pre">∨</span> <span class="pre">unknown</span> <span class="pre">=</span> <span class="pre">true</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">false</span> <span class="pre">∨</span> <span class="pre">unknown</span> <span class="pre">=</span> <span class="pre">unknown</span></code></p></li>
+</ul>
+<p>This is useful for reasoning about partial models, over-approximations, and
+verification scenarios where some propositions are undetermined.</p>
+</section>
+<section id="key-components">
+<h2>Key components<a class="headerlink" href="#key-components" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Propositional</strong> (<code class="docutils literal notranslate"><span class="pre">propositional.py</span></code>) – defines the three-valued
+formula AST and truth-table evaluation engine.</p></li>
+<li><p><strong>Parser</strong> (<code class="docutils literal notranslate"><span class="pre">parser.py</span></code>) – textual parser for three-valued logic
+expressions.</p></li>
+<li><p><strong>Adapters</strong> (<code class="docutils literal notranslate"><span class="pre">adapters.py</span></code>) – bridge utilities that translate between
+three-valued assignments and classical two-valued SAT/QBF encodings.</p></li>
+<li><p><strong>Minimisation</strong> (<code class="docutils literal notranslate"><span class="pre">minimization.py</span></code>) – algorithms for simplifying or
+minimising three-valued formulas.</p></li>
 </ul>
 </section>
-<section id="parallel-cdcl-t">
-<h2>Parallel CDCL(T)<a class="headerlink" href="#parallel-cdcl-t" title="Link to this heading"></a></h2>
-</section>
-<section id="how-to-use">
-<h2>How to Use<a class="headerlink" href="#how-to-use" title="Link to this heading"></a></h2>
-<ol class="arabic simple">
-<li><p>Build and install all binary solvers in the <code class="docutils literal notranslate"><span class="pre">bin_solvers</span></code> directory.</p></li>
-<li><p>Install the package and its dependencies: <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span></code> (see <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>).</p></li>
-</ol>
-<p>Refer to the following links for related work:</p>
-<ul class="simple">
-<li><p>[<a class="reference external" href="https://smt-comp.github.io/2022/results/results-cloud](https://smt-comp.github.io/2022/results/results-cloud">https://smt-comp.github.io/2022/results/results-cloud](https://smt-comp.github.io/2022/results/results-cloud</a>)</p></li>
-<li><p>[<a class="reference external" href="https://github.com/usi-verification-and-security/SMTS/tree/cube-and-conquer-fixed](https://github.com/usi-verification-and-security/SMTS/tree/cube-and-conquer-fixed">https://github.com/usi-verification-and-security/SMTS/tree/cube-and-conquer-fixed](https://github.com/usi-verification-and-security/SMTS/tree/cube-and-conquer-fixed</a>)</p></li>
-<li><p>[<a class="reference external" href="https://github.com/usi-verification-and-security/SMTS/tree/portfolio](https://github.com/usi-verification-and-security/SMTS/tree/portfolio">https://github.com/usi-verification-and-security/SMTS/tree/portfolio](https://github.com/usi-verification-and-security/SMTS/tree/portfolio</a>)</p></li>
-<li><p>cvc5-cloud: [<a class="reference external" href="https://github.com/amaleewilson/aws-satcomp-solver-sample/tree/cvc5](https://github.com/amaleewilson/aws-satcomp-solver-sample/tree/cvc5">https://github.com/amaleewilson/aws-satcomp-solver-sample/tree/cvc5](https://github.com/amaleewilson/aws-satcomp-solver-sample/tree/cvc5</a>)</p></li>
-<li><p>Vampire portfolio: [<a class="reference external" href="https://smt-comp.github.io/2022/system-descriptions/Vampire.pdf](https://smt-comp.github.io/2022/system-descriptions/Vampire.pdf">https://smt-comp.github.io/2022/system-descriptions/Vampire.pdf](https://smt-comp.github.io/2022/system-descriptions/Vampire.pdf</a>)</p></li>
-</ul>
-<p>Refer to <a class="reference external" href="https://smtlib.cs.uiowa.edu/benchmarks.shtml">https://smtlib.cs.uiowa.edu/benchmarks.shtml</a> for benchmarks.</p>
+<section id="programmatic-usage">
+<h2>Programmatic usage<a class="headerlink" href="#programmatic-usage" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.bool.threeval.propositional</span><span class="w"> </span><span class="kn">import</span> <span class="n">evaluate</span>
+
+<span class="c1"># Evaluate a three-valued formula over a partial assignment</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">evaluate</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">assignment</span><span class="p">)</span>
+</pre></div>
+</div>
 </section>
 </section>
 
@@ -157,8 +173,8 @@ pure propositional logic.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="knowledge_compilation.html" class="btn btn-neutral float-left" title="Knowledge Compilation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="modal.html" class="btn btn-neutral float-right" title="Modal Logic" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="dissolve.html" class="btn btn-neutral float-left" title="Dissolve (Distributed SAT)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="prime.html" class="btn btn-neutral float-right" title="Prime Implicant / Implicate Enumeration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

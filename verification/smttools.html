@@ -1,0 +1,239 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SMT Tools &mdash; ARIA Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="PolyHorn: Polynomial Horn Clause Solver" href="polyhorn.html" />
+    <link rel="prev" title="PDR (Property-Directed Reachability)" href="pdr.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ARIA
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../logic-and-solving/index.html">Logic and Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../proofs-and-explanations/index.html">Proofs and Explanations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quantified-reasoning/index.html">Quantified Reasoning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../automata-languages/index.html">Automata and Languages</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Verification</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="bdd.html">BDD-Based Verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verification.html">Program Verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pdr.html">PDR (Property-Directed Reachability)</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">SMT Tools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#directory-structure">Directory structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pysmtsolver">PySMTSolver</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sygus-solver">SyGuS Solver</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#exceptions">Exceptions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#programmatic-usage">Programmatic usage</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="houdini.html">Houdini</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kinduction.html">K-Induction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ksafety.html">K-Safety Verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ranking_functions.html">Ranking Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="danger.html">Danger Invariants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ltl.html">Linear Teamporal Logic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="symautomata.html">Symbolic Finite Automata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="llm4inv.html">LLM4Inv: LLM-Guided Invariant Synthesis</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../abstraction/index.html">Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../counting-probability/index.html">Counting, Sampling, and Probability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../synthesis/index.html">Program Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../logic-programming/index.html">Logic Programming</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../llm-ml/index.html">LLM and ML</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cli-tools/index.html">CLI and Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../global_params.html">Global Parameters</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ARIA</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Verification</a></li>
+      <li class="breadcrumb-item active">SMT Tools</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/verification/smttools.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="smt-tools">
+<h1>SMT Tools<a class="headerlink" href="#smt-tools" title="Link to this heading"></a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">aria.efmc.smttools</span></code> provides SMT-level utilities used across EFMC
+engines: PySMT-enhanced solving, Craig interpolation, portfolio and
+exists-forall (EFSMT) solving, and SyGuS-based function synthesis via CVC5.</p>
+<section id="directory-structure">
+<h2>Directory structure<a class="headerlink" href="#directory-structure" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>aria/efmc/smttools/
+├── pysmt_solver.py      # PySMTSolver and helpers
+├── sygus_solver.py      # SyGuS encoding, CVC5 invocation, result parsing
+└── smt_exceptions.py    # SMTError / SmtlibError / SolverError hierarchy
+</pre></div>
+</div>
+</section>
+<section id="pysmtsolver">
+<h2>PySMTSolver<a class="headerlink" href="#pysmtsolver" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">PySMTSolver</span></code> extends <code class="docutils literal notranslate"><span class="pre">z3.Solver</span></code> with PySMT-backed capabilities.</p>
+<p><strong>Key methods:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">convert(zf)</span></code> – static; converts a Z3 formula to PySMT, returning
+<code class="docutils literal notranslate"><span class="pre">(pysmt_vars,</span> <span class="pre">pysmt_fml)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">check_with_pysmt()</span></code> – satisfiability check via PySMT backend</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">check_portfolio()</span></code> – parallel portfolio solving across MathSAT (×3),
+CVC4, and Yices</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">all_smt(keys,</span> <span class="pre">bound=5)</span></code> – samples up to <code class="docutils literal notranslate"><span class="pre">bound</span></code> models by blocking
+partial assignments</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">binary_interpolant(fml_a,</span> <span class="pre">fml_b,</span> <span class="pre">...)</span></code> – Craig binary interpolation,
+result mapped back to Z3</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sequence_interpolant(formulas)</span></code> – sequence interpolation over a list of
+formulas</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">efsmt(evars,</span> <span class="pre">uvars,</span> <span class="pre">z3fml,</span> <span class="pre">...)</span></code> – solves <code class="docutils literal notranslate"><span class="pre">∃x.</span> <span class="pre">∀y.</span> <span class="pre">φ(x,y)</span></code> via a
+CEGIS-style loop; supports <code class="docutils literal notranslate"><span class="pre">maxloops</span></code>, <code class="docutils literal notranslate"><span class="pre">timeout</span></code>, and configurable
+existential/universal solvers</p></li>
+</ul>
+<p><strong>Helper function:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">to_pysmt_vars(z3vars)</span></code> – converts a list of Z3 variables to PySMT
+<code class="docutils literal notranslate"><span class="pre">FNode</span></code> variables (supports Int, Real, BitVector, Boolean)</p></li>
+</ul>
+</section>
+<section id="sygus-solver">
+<h2>SyGuS Solver<a class="headerlink" href="#sygus-solver" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">sygus_solver</span></code> module encodes synthesis problems in the SyGuS format,
+invokes CVC5, and maps results back to Z3 expressions.</p>
+<p><strong>Key functions:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">synthesize_function(func,</span> <span class="pre">constraints,</span> <span class="pre">variables,</span> <span class="pre">...)</span></code> – top-level
+synthesis entry point; auto-detects logic (LIA, BV, String), uses shortcut
+implementations for common functions (<code class="docutils literal notranslate"><span class="pre">max</span></code>, <code class="docutils literal notranslate"><span class="pre">min</span></code>, <code class="docutils literal notranslate"><span class="pre">xor</span></code>, <code class="docutils literal notranslate"><span class="pre">concat</span></code>,
+etc.), and falls back to CVC5</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">build_sygus_cnt(funcs,</span> <span class="pre">cnts,</span> <span class="pre">variables,</span> <span class="pre">logic)</span></code> – encodes a Z3
+synthesis specification into SyGuS input format</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">solve_sygus(sygus_problem,</span> <span class="pre">timeout)</span></code> – writes the problem to a temp file
+and invokes CVC5</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">parse_sygus_solution(cvc5_output)</span></code> – parses CVC5’s <code class="docutils literal notranslate"><span class="pre">define-fun</span></code>
+output into a structured dictionary</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sygus_to_z3(func_name,</span> <span class="pre">func_def,</span> <span class="pre">variables)</span></code> – converts a parsed SyGuS
+function definition back to a Z3 expression</p></li>
+</ul>
+</section>
+<section id="exceptions">
+<h2>Exceptions<a class="headerlink" href="#exceptions" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">SMTError</span></code> – base exception for SMT-related errors</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SmtlibError</span></code> – SMT-LIB format errors</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SolverError</span></code> – solver invocation / runtime errors</p></li>
+</ul>
+</section>
+<section id="programmatic-usage">
+<h2>Programmatic usage<a class="headerlink" href="#programmatic-usage" title="Link to this heading"></a></h2>
+<p><strong>Interpolation:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.smttools.pysmt_solver</span><span class="w"> </span><span class="kn">import</span> <span class="n">PySMTSolver</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
+
+<span class="n">solver</span> <span class="o">=</span> <span class="n">PySMTSolver</span><span class="p">()</span>
+<span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Bools</span><span class="p">(</span><span class="s2">&quot;a b&quot;</span><span class="p">)</span>
+<span class="n">itp</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">binary_interpolant</span><span class="p">(</span><span class="n">z3</span><span class="o">.</span><span class="n">Implies</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">),</span> <span class="n">z3</span><span class="o">.</span><span class="n">Not</span><span class="p">(</span><span class="n">b</span><span class="p">))</span>
+</pre></div>
+</div>
+<p><strong>Portfolio solving:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">solver</span> <span class="o">=</span> <span class="n">PySMTSolver</span><span class="p">()</span>
+<span class="n">solver</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">constraints</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">check_portfolio</span><span class="p">()</span>  <span class="c1"># parallel across 5 backends</span>
+</pre></div>
+</div>
+<p><strong>SyGuS synthesis:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.efmc.smttools.sygus_solver</span><span class="w"> </span><span class="kn">import</span> <span class="n">synthesize_function</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">synthesize_function</span><span class="p">(</span>
+    <span class="n">func</span><span class="o">=</span><span class="n">uninterp_func</span><span class="p">,</span>
+    <span class="n">constraints</span><span class="o">=</span><span class="p">[</span><span class="n">phi1</span><span class="p">,</span> <span class="n">phi2</span><span class="p">],</span>
+    <span class="n">variables</span><span class="o">=</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">],</span>
+    <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="pdr.html" class="btn btn-neutral float-left" title="PDR (Property-Directed Reachability)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="polyhorn.html" class="btn btn-neutral float-right" title="PolyHorn: Polynomial Horn Clause Solver" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
