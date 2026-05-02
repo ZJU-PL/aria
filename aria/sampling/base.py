@@ -23,6 +23,7 @@ class Logic(Enum):
     QF_FP = "QF_FP"  # Quantifier-free floating-point logic
     QF_LRA = "QF_LRA"  # Quantifier-free linear real arithmetic
     QF_LIA = "QF_LIA"  # Quantifier-free linear integer arithmetic
+    QF_SLIA = "QF_SLIA"  # Quantifier-free strings + linear integer arithmetic
     QF_NRA = "QF_NRA"  # Quantifier-free non-linear real arithmetic
     QF_NIA = "QF_NIA"  # Quantifier-free non-linear integer arithmetic
     QF_LIRA = "QF_LIRA"  # Quantifier-free linear integer and real arithmetic

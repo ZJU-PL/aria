@@ -37,6 +37,7 @@ pip install z3-solver
 - **QF_DT**: Quantifier-free algebraic datatypes
 - **QF_UFDT**: Quantifier-free uninterpreted functions with datatypes
 - **QF_DTLIA**: Quantifier-free algebraic datatypes with linear integer arithmetic
+- **QF_SLIA**: Quantifier-free strings with linear integer arithmetic
 - **QF_LRA**: Quantifier-free linear real arithmetic
 - **QF_LIA**: Quantifier-free linear integer arithmetic
 - **QF_NRA**: Quantifier-free non-linear real arithmetic
@@ -182,6 +183,66 @@ scalar selector values within a fixed constructor shape.
   extracted numeric variables
 - `SEARCH_TREE`: approximate search-tree sampling over the extracted numeric
   variables
+
+`QF_SLIA` supports structure-aware string sampling via `aria.sampling.slia`:
+
+- `SLIA-Enum`
+  - projected model enumeration over string and integer observables
+  - repeated `sat` query, emit sample, block the projection, repeat
+- `SLIA-LengthTree`
+  - enumerate feasible `Length(s)` shapes first
+  - solve the residual string problem under each length shape
+  - select candidates with a diversity policy
+- `SLIA-RegexCover`
+  - extract `InRe(...)` atoms
+  - derive branch features from concrete matches such as union branch, concat
+    split, and star/plus behavior
+  - prefer samples that increase regex branch coverage
+- `SLIA-Boundary`
+  - perturb feasible length shapes by small `±d` edits
+  - score a shape by how many nearby perturbations become `unsat`
+  - prefer samples near the SAT/UNSAT frontier when `boundary_focus=True`
+- `SLIA-Shrink`
+  - re-solve with `Optimize`
+  - minimize length, integer magnitude, character usage, and preferred
+    position-wise characters
+  - return a smaller satisfying witness
+
+In code, this is exposed as `SEARCH_TREE` plus options such as:
+
+- `max_length_shapes`
+- `candidates_per_length_shape`
+- `diversity_mode`
+- `boundary_focus`
+- `boundary_neighbor_radius`
+- `shrink_samples`
+- `shrink_preserve_projection`
+
+Example:
+
+```python
+s = z3.String("s")
+x = z3.Int("x")
+regex = z3.Union(
+    z3.Concat(z3.Re("a"), z3.Star(z3.Range("0", "9"))),
+    z3.Concat(z3.Re("z"), z3.Star(z3.Range("0", "9"))),
+)
+slia_formula = z3.And(x == z3.Length(s), x == 2, z3.InRe(s, regex))
+
+slia_result = sample_models_from_formula(
+    slia_formula,
+    Logic.QF_SLIA,
+    SamplingOptions(
+        method=SamplingMethod.SEARCH_TREE,
+        num_samples=2,
+        max_length_shapes=2,
+        candidates_per_length_shape=8,
+        diversity_mode="coverage_guided",
+        boundary_focus=True,
+        shrink_samples=True,
+    ),
+)
+```
 
 ### Advanced Usage
 

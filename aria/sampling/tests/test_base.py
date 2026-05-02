@@ -18,6 +18,7 @@ class TestLogic:
         assert Logic.QF_UFLIA.value == "QF_UFLIA"
         assert Logic.QF_LRA.value == "QF_LRA"
         assert Logic.QF_LIRA.value == "QF_LIRA"
+        assert Logic.QF_SLIA.value == "QF_SLIA"
 
     def test_logic_enum_membership(self):
         """Test that logic enums work in sets."""

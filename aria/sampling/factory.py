@@ -16,9 +16,16 @@ from aria.sampling.finite_domain.fp.total_order_sampler import TotalOrderFPSampl
 from aria.sampling.finite_domain.uf.base import UninterpretedFunctionSampler
 from aria.sampling.finite_domain.ufdt.base import MixedUFDatatypeSampler
 from aria.sampling.dtlia import ADTLIASampler
-from aria.sampling.linear_ira.lira_sampler import LIRASampler
 from aria.sampling.general_sampler.mcmc_sampler import MCMCSampler
 from aria.sampling.nonlinear_ira import NASampler
+from aria.sampling.slia import SLIASampler
+
+try:
+    from aria.sampling.linear_ira.lira_sampler import LIRASampler
+except ModuleNotFoundError as exc:
+    if exc.name != "numpy":
+        raise
+    LIRASampler = None
 
 
 class SamplerFactory:
@@ -75,9 +82,11 @@ SamplerFactory.register(Logic.QF_UFLIA, UninterpretedFunctionSampler)
 SamplerFactory.register(Logic.QF_DT, DatatypeSampler)
 SamplerFactory.register(Logic.QF_UFDT, MixedUFDatatypeSampler)
 SamplerFactory.register(Logic.QF_DTLIA, ADTLIASampler)
+SamplerFactory.register(Logic.QF_SLIA, SLIASampler)
 
-for _logic in (Logic.QF_LRA, Logic.QF_LIA, Logic.QF_LIRA):
-    SamplerFactory.register(_logic, LIRASampler)
+if LIRASampler is not None:
+    for _logic in (Logic.QF_LRA, Logic.QF_LIA, Logic.QF_LIRA):
+        SamplerFactory.register(_logic, LIRASampler)
 
 for _logic in (Logic.QF_NRA, Logic.QF_NIA):
     SamplerFactory.register(_logic, NASampler)

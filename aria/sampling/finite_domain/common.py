@@ -21,6 +21,11 @@ def _is_datatype_sort(sort: z3.SortRef) -> bool:
     return sort.kind() == z3.Z3_DATATYPE_SORT
 
 
+def _is_string_sort(sort: z3.SortRef) -> bool:
+    """Check whether a sort is the built-in string sort."""
+    return sort == z3.StringSort()
+
+
 def _unique_terms(terms: Iterable[z3.ExprRef]) -> List[z3.ExprRef]:
     """Deduplicate Z3 terms while preserving first occurrence order."""
     unique: List[z3.ExprRef] = []
@@ -478,6 +483,38 @@ def collect_datatype_observable_terms(
                         expanded_terms.append(accessor_decl(term))
 
         observed_terms.extend(expanded_terms)
+
+    return _sorted_unique_terms(observed_terms)
+
+
+def collect_string_observable_terms(formula: z3.ExprRef) -> List[z3.ExprRef]:
+    """Collect string/int observables from a QF_SLIA-style formula.
+
+    Observables include string- and integer-typed variables plus any non-literal
+    string/int subterms that syntactically occur in the formula. The length of
+    each string variable is also exposed even if it does not occur explicitly.
+    This makes common projection terms such as ``Length(s)``, ``Concat(s, t)``,
+    and ``SubString(s, i, n)`` available without attempting a broader
+    theory-specific closure.
+    """
+    string_variables = [var for var in get_variables(formula) if _is_string_sort(var.sort())]
+    int_variables = [var for var in get_variables(formula) if var.sort() == z3.IntSort()]
+
+    observed_terms = [
+        var
+        for var in string_variables + int_variables
+    ]
+    observed_terms.extend(z3.Length(var) for var in string_variables)
+
+    for expr in _walk_exprs(formula):
+        if not z3.is_app(expr):
+            continue
+
+        if z3.is_string_value(expr) or z3.is_int_value(expr):
+            continue
+
+        if _is_string_sort(expr.sort()) or expr.sort() == z3.IntSort():
+            observed_terms.append(expr)
 
     return _sorted_unique_terms(observed_terms)
 

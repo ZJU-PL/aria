@@ -146,6 +146,35 @@ class TestSampleModelsFromFormula:
         except ValueError as e:
             pytest.skip(f"Sampler not available: {e}")
 
+    def test_sample_slia_formula(self):
+        """Test sampling from a mixed string + linear integer formula."""
+        s = z3.String("s")
+        x = z3.Int("x")
+        formula = cast(
+            z3.ExprRef,
+            z3.And(
+                z3.Or(
+                    s == z3.StringVal(""),
+                    s == z3.StringVal("a"),
+                    s == z3.StringVal("bb"),
+                ),
+                x == z3.Length(s),
+            ),
+        )
+
+        try:
+            result = sample_models_from_formula(
+                formula, Logic.QF_SLIA, SamplingOptions(num_samples=10)
+            )
+            assert len(result) == 3
+            assert {(sample["s"], sample["x"]) for sample in result} == {
+                ("", 0),
+                ("a", 1),
+                ("bb", 2),
+            }
+        except ValueError as e:
+            pytest.skip(f"Sampler not available: {e}")
+
     def test_sample_uf_lia_formula(self):
         """Test sampling from a mixed UF + linear integer formula."""
         x = z3.Int("x")
