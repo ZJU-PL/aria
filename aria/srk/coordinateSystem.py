@@ -800,3 +800,80 @@ def mk_empty(context: Context) -> CoordinateSystem:
 def get_context(cs: CoordinateSystem) -> Context:
     """Get the context from a coordinate system."""
     return cs.context
+
+
+def polynomial_of_term(cs: CoordinateSystem, term: ArithExpression) -> "Polynomial":
+    """Convert an arithmetic term to a polynomial in the coordinate system.
+
+    Uses the coordinate system's term-to-dimension mapping to build
+    a QQXs polynomial. Mirrors OCaml ``CS.polynomial_of_term``.
+    """
+    from aria.srk.polynomial import Polynomial, Monomial
+
+    dim_id = cs.cs_term_id(cs, term)
+    m = Monomial((dim_id,)) if dim_id >= 0 else Monomial(())
+    return Polynomial({m: Fraction(1)})
+
+
+def term_of_polynomial(cs: CoordinateSystem, poly: "Polynomial") -> ArithExpression:
+    """Convert a polynomial back to an arithmetic term using the coordinate system.
+
+    Mirrors OCaml ``CS.term_of_polynomial``.
+    """
+    from aria.srk.syntax import mk_add, mk_mul, mk_real
+
+    ctx = cs.context
+    parts: List[ArithExpression] = []
+    for mon, coeff in poly.terms.items():
+        coeff_term = mk_real(ctx, coeff)
+        for dim in mon.exponents:
+            term = cs.term_of_dim(cs, dim)
+            coeff_term = mk_mul(ctx, [coeff_term, term])
+        parts.append(coeff_term)
+    if not parts:
+        return mk_real(ctx, Fraction(0))
+    if len(parts) == 1:
+        return parts[0]
+    return mk_add(ctx, parts)
+
+
+def project_ideal(
+    cs: CoordinateSystem,
+    generators: List["Polynomial"],
+    pred: Callable[[Symbol], bool],
+    subterm_pred: Optional[Callable[[Symbol], bool]] = None,
+) -> List[Tuple[int, ArithExpression, "FormulaExpression"]]:
+    """Project a polynomial ideal onto a subset of coordinates.
+
+    Given an ideal (list of polynomial generators) and a predicate
+    selecting coordinates to project away, returns a list of projected
+    (coordinate, term, formula) triples.
+
+    Mirrors OCaml ``CS.project_ideal``.
+    """
+    from aria.srk.syntax import mk_eq, mk_or, mk_true, mk_const
+
+    ctx = cs.context
+    results: List[Tuple[int, ArithExpression, "FormulaExpression"]] = []
+
+    keep_dims = set()
+    for sym_id in cs.symbol_to_dim.values():
+        sym = ctx._symbols.get(sym_id)
+        if sym and not pred(sym):
+            keep_dims.add(sym_id)
+
+    for poly in generators:
+        remaining_terms: Dict["Monomial", Fraction] = {}
+        for mon, coeff in poly.terms.items():
+            if any(dim in keep_dims for dim in mon.exponents if isinstance(dim, int)):
+                remaining_terms[mon] = coeff
+        if not remaining_terms:
+            results.append((0, mk_real(ctx, Fraction(0)), mk_true(ctx)))
+        else:
+            from aria.srk.polynomial import Polynomial as Poly
+            remaining = Poly(remaining_terms)
+            term = term_of_polynomial(cs, remaining)
+            dim = next(iter(keep_dims)) if keep_dims else 0
+            results.append((dim, term, mk_eq(ctx, term, mk_real(ctx, Fraction(0)))))
+
+    return results

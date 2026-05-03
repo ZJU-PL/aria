@@ -832,9 +832,38 @@ def of_term(ctx: RationalTermContext, term: ArithExpression) -> RationalTerm:
         else:
             raise ValueError(f"Unknown operation: {op}")
 
-    # This would need the actual destruct function from syntax module
-    # For now, returning a placeholder
-    return RationalTerm.zero()
+    # Dispatch via destruct
+    srk = ctx.srk
+    d = destruct(srk, term)
+    tag = d[0] if d else "Unknown"
+
+    if tag == "Add":
+        return functools.reduce(lambda acc, x: acc.add(of_term(ctx, x)), d[1] if isinstance(d[1], tuple) else (), RationalTerm.zero())
+    elif tag == "Mul":
+        return functools.reduce(lambda acc, x: acc.mul(of_term(ctx, x)), d[1] if isinstance(d[1], tuple) else (), RationalTerm.one())
+    elif tag == "Real":
+        return RationalTerm.scalar(d[1] if isinstance(d[1], Fraction) else Fraction(0))
+    elif tag == "Unop" and d[1] == "Neg":
+        return of_term(ctx, d[2]).negate()
+    elif tag == "Unop" and d[1] == "Floor":
+        return of_term(ctx, mk_floor(srk, term))
+    elif tag == "Binop" and d[1] == "Div":
+        left = of_term(ctx, d[2])
+        right = of_term(ctx, d[3])
+        return RationalTerm(left.num, Monomial.mul_term(right.num, 1, right.den))
+    elif tag == "Binop" and d[1] == "Mod":
+        return of_term(ctx, mk_mod(srk, term, mk_real(srk, Fraction(1))))
+    elif tag == "Var":
+        return RationalTerm(QQXs.of_dim(ctx.int_of(term)), Monomial.one)
+    elif tag == "Const":
+        sym = d[1]
+        if hasattr(sym, 'name') and sym.name and sym.name.startswith("real_"):
+            return RationalTerm.scalar(Fraction(float(sym.name[5:])))
+        return RationalTerm.scalar(Fraction(0))
+    elif tag == "App":
+        return of_term(ctx, mk_app(srk, d[1], list(d[2] if isinstance(d[2], tuple) else ())))
+    else:
+        return RationalTerm(QQXs.of_dim(ctx.int_of(term)), Monomial.one)
 
 
 def term_of(ctx: RationalTermContext, p: RationalTerm) -> ArithExpression:

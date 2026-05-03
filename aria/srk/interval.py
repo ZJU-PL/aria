@@ -376,3 +376,40 @@ class Interval:
             return (self, self)
 
         return (Interval(self.lower, mid), Interval(mid, self.upper))
+
+
+# Standalone functions matching OCaml API
+def compare(a: Interval, b: Interval) -> int:
+    if a == b: return 0
+    if a.lower is not None and b.lower is not None and a.lower < b.lower: return -1
+    return 1
+
+def pp(out, x: Interval) -> None: out.write(str(x))
+def show(x: Interval) -> str: return str(x)
+def negate_fn(x: Interval) -> Interval: return Interval.negate(x)
+def mul_fn(a: Interval, b: Interval) -> Interval: return Interval.mul(a, b)
+def div_fn(a: Interval, b: Interval) -> Interval: return Interval.truediv(a, b)
+def add_fn(a: Interval, b: Interval) -> Interval: return Interval.add(a, b)
+def sub_fn(a: Interval, b: Interval) -> Interval: return Interval.sub(a, b)
+def floor_fn(x: Interval) -> Interval: return Interval.floor(x)
+def modulo(a: Interval, b: Interval) -> Interval: return top() if b.is_bottom() else top()
+def is_nonpositive(x: Interval) -> bool: return x.upper is not None and x.upper <= 0
+def is_negative(x: Interval) -> bool: return x.upper is not None and x.upper < 0
+def is_positive(x: Interval) -> bool: return x.lower is not None and x.lower > 0
+def integral(x: Interval) -> Interval:
+    lo = floor_fn(x)
+    return Interval(lo.lower, lo.upper)
+def log_fn(a: Interval, b: Interval) -> Interval: return top()
+def exp_const_fn(a: Interval, n: int) -> Interval:
+    if n < 0: return top()
+    r = const(1); base = a
+    while n:
+        if n & 1: r = mul_fn(r, base)
+        base = mul_fn(base, base); n >>= 1
+    return r
+def exp_fn(a: Interval, b: Interval) -> Interval: return top()
+def of_apron(apron_interval) -> Interval:
+    try:
+        lo = apron_interval.inf; hi = apron_interval.sup
+        return make(lo if lo is not None else None, hi if hi is not None else None)
+    except Exception: return top()

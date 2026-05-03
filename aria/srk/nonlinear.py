@@ -701,9 +701,23 @@ class NonlinearOperations:
         elif not isinstance(result, list):
             return lin_phi
 
-        # Build symbolic intervals and constraints
-        # This is a simplified version - full implementation would match OCaml more closely
-        return lin_phi
+        # Build symbolic intervals and constraints from optimization results
+        constraints = [lin_phi]
+        for i, sym in enumerate(symbol_list):
+            if i < len(result):
+                interval = result[i]
+                if hasattr(interval, 'lower') and interval.lower is not None:
+                    constraints.append(
+                        mk_leq(mk_real(interval.lower), mk_const(sym))
+                    )
+                if hasattr(interval, 'upper') and interval.upper is not None:
+                    constraints.append(
+                        mk_leq(mk_const(sym), mk_real(interval.upper))
+                    )
+
+        if len(constraints) == 1:
+            return lin_phi
+        return mk_and(constraints)
 
     def optimize_box(
         self, phi: FormulaExpression, objectives: List[ArithExpression]

@@ -3976,6 +3976,9 @@ class Infix:
     def formula(self, expr: FormulaExpression) -> _InfixFormula:
         return self._InfixFormula(expr, self)
 
+    def __mod__(self, base: ArithExpression, modulus: ArithExpression) -> _InfixTerm:
+        return self._InfixTerm(Mod(base, modulus), self)
+
     def select(self, array: ArithExpression, index: ArithExpression) -> _InfixTerm:
         return self._InfixTerm(Select(array, index), self)
 
@@ -4551,19 +4554,35 @@ Expr = _ExprModule()
 # pp_smtlib2 — SMTLIB2 serialization
 # ---------------------------------------------------------------------------
 
-def pp_smtlib2_gen(srk: Context, env: Optional[Env] = None) -> Callable[[Any, Expression], str]:
+def pp_smtlib2_gen(
+    srk: Context,
+    env: Optional[Env] = None,
+    named: bool = False,
+    strings: bool = False,
+) -> Callable[[Any, Union[Expression, List[Expression]]], None]:
     """Create a function that prints expressions in SMTLIB2 format.
+
+    Mirrors OCaml ``pp_smtlib2_gen``. Accepts optional ``named`` (add names
+    to bound variables) and ``strings`` (encode symbols as strings) flags.
 
     Args:
         srk: The SRK context for symbol name resolution.
         env: Optional De Bruijn environment for resolving bound variables.
+        named: If True, annotate bound variables with their names.
+        strings: If True, encode symbols using SMTLIB2 string encoding.
 
     Returns:
-        A function taking (file-like, expression) and printing to the file.
+        A function taking (file-like, expression|list) and printing to the file.
     """
-    def printer(out, expr: Expression) -> None:
-        s = _smtlib2_str(expr, env or Env.empty())
-        out.write(s)
+    def printer(out, expr) -> None:
+        if isinstance(expr, list):
+            for e in expr:
+                s = _smtlib2_str(e, env or Env.empty())
+                out.write(s)
+                out.write("\n")
+        else:
+            s = _smtlib2_str(expr, env or Env.empty())
+            out.write(s)
 
     return printer
 
@@ -4656,3 +4675,107 @@ def pp_smtlib2(srk: Context, out: Any, expr: Expression) -> None:
     """
     printer = pp_smtlib2_gen(srk)
     printer(out, expr)
+
+
+# ---------------------------------------------------------------------------
+# Standalone top-level functions (mirror OCaml standalone API)
+# ---------------------------------------------------------------------------
+
+def int_of_symbol(sym: Symbol) -> int:
+    """Get the integer representation of a symbol."""
+    return sym.id
+
+
+def symbol_of_int(i: int) -> Symbol:
+    """Create a symbol from its integer representation."""
+    return Symbol(i, None, Type.INT)
+
+
+def context_stats(ctx: Context) -> Tuple[int, int, int]:
+    """Return (num_sexprs, num_symbols, num_named_symbols) for a context."""
+    return ctx.stats()
+
+
+def pp_typ(out: Any, typ: Type) -> None:
+    out.write(str(typ))
+
+
+def pp_symbol(ctx: Context, out: Any, sym: Symbol) -> None:
+    out.write(ctx.show_symbol(sym))
+
+
+def pp_expr_unnumbered(ctx: Context, out: Any, expr: Expression, env: Optional[Env] = None) -> None:
+    printer = pp_smtlib2_gen(ctx, env)
+    printer(out, expr)
+
+
+class _ExprMemoClass:
+    """Expression memoization wrapper (mirrors OCaml ``Expr.ExprMemo.memo``)."""
+
+    @staticmethod
+    def memo(size: Optional[int] = None):
+        from functools import lru_cache
+
+        def decorator(f):
+            return lru_cache(maxsize=size)(f) if size else lru_cache(maxsize=None)(f)
+        return decorator
+
+
+ExprMemo = _ExprMemoClass()
+
+
+# Nest Symbol.Set/Map inside Symbol class
+Symbol.Set = SymbolSet
+Symbol.Map = SymbolMap
+
+
+def eval_partial_term(
+    term: ArithExpression, env: Dict[int, "Fraction"]
+) -> "Fraction":
+    """Evaluate a term with a partial assignment of variables.
+
+    Mirrors OCaml ``Term.eval_partial``. Variables not in env
+    raise ValueError.
+    """
+    from fractions import Fraction as Frac
+
+    if isinstance(term, Var):
+        if term.var_id in env:
+            return env[term.var_id]
+        raise ValueError(f"Variable {term.var_id} not in partial assignment")
+    if isinstance(term, Const):
+        return eval_term(term)
+    if isinstance(term, Add):
+        return sum(eval_partial_term(a, env) for a in term.args)
+    if isinstance(term, Mul):
+        result = Frac(1)
+        for a in term.args:
+            result *= eval_partial_term(a, env)
+        return result
+    if isinstance(term, Div):
+        return eval_partial_term(term.left, env) / eval_partial_term(term.right, env)
+    if isinstance(term, Neg):
+        return -eval_partial_term(term.arg, env)
+    if isinstance(term, Pow):
+        base = eval_partial_term(term.base, env)
+        return base ** term.exponent
+    return eval_term(term)
+
+
+def destruct_formula(f: FormulaExpression) -> Tuple[str, Any]:
+    """Destruct a formula (mirrors OCaml ``Formula.destruct``)."""
+    return destruct(f)
+
+
+def construct_formula(srk: Context, label: str, children: List[Expression]) -> FormulaExpression:
+    """Construct a formula from label and children (mirrors OCaml ``Formula.construct``)."""
+    return Expr.construct_sexpr(srk, label, children)
+
+
+def make_context() -> Context:
+    return Context()
+
+
+def make_simplifying_context() -> "SimplifyingContext":
+    from .srkAst import SimplifyingContext
+    return SimplifyingContext()

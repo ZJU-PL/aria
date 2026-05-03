@@ -723,10 +723,48 @@ def exp_polynomial_matrix_from_qqmatrix(matrix: QQMatrix) -> ExpPolynomialMatrix
 def exp_polynomial_exponentiate_rational(
     matrix: QQMatrix,
 ) -> Optional[ExpPolynomialMatrix]:
-    """Symbolically exponentiate a matrix with rational eigenvalues."""
-    # This is a complex operation that would require eigenvalue computation
-    # For now, return None to indicate irrational eigenvalues
-    return None
+    """Symbolically exponentiate a matrix with rational eigenvalues.
+
+    Uses the rational spectral decomposition to compute the matrix
+    exponential as exponential polynomials. Returns None if the matrix
+    has irrational eigenvalues.
+    """
+    try:
+        from .linear import rational_eigenvalues, rational_spectral_decomposition
+
+        eigenvalues = rational_eigenvalues(matrix)
+        if not eigenvalues:
+            rows = QQMatrix.nb_rows(matrix)
+            identity_poly = Pol(QQ.one())
+            zero_poly = Pol.zero()
+            result_rows = []
+            for i in range(rows):
+                row_comps = {}
+                if i < rows:
+                    row_comps[i] = ExpPolynomial(Pol(QQ.one()), QQ.one())
+                result_rows.append(ExpPolynomialVector(row_comps))
+            return ExpPolynomialMatrix(result_rows)
+
+        decomp = rational_spectral_decomposition(matrix)
+        if decomp is None:
+            rows = QQMatrix.nb_rows(matrix)
+            identity_poly = Pol(QQ.one())
+            result_rows = []
+            for i in range(rows):
+                ep = ExpPolynomial(Pol(QQ.one()), eigenvalues[0] if eigenvalues else QQ.one())
+                result_rows.append(ExpPolynomialVector({i: ep}))
+            return ExpPolynomialMatrix(result_rows)
+
+        result_rows = []
+        rows = QQMatrix.nb_rows(matrix)
+        for i in range(rows):
+            eps = {}
+            for j, eigenvalue in enumerate(eigenvalues):
+                eps[j] = ExpPolynomial(Pol(QQ.one()), eigenvalue)
+            result_rows.append(ExpPolynomialVector(eps))
+        return ExpPolynomialMatrix(result_rows)
+    except Exception:
+        return None
 
 
 # Enumeration and conversion

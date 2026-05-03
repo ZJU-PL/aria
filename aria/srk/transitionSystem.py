@@ -741,15 +741,40 @@ def make_query(
 def remove_temporaries(ts: TransitionSystem[T]) -> TransitionSystem[T]:
     """Remove temporary variables from transitions.
 
-    This function removes edges that represent temporary variable assignments
-    and connects their predecessors directly to their successors.
+    Identifies vertices that have no incoming guard edges (only identity
+    assignments) and bypasses them, connecting predecessors directly to
+    successors with combined weights.
     """
-    # For now, return the transition system as-is
-    # A full implementation would:
-    # 1. Identify temporary variables (could be marked in some way)
-    # 2. For each vertex with only temporary assignments, bypass it
-    # 3. Connect predecessors directly to successors with combined weights
-    return ts
+    new_edges: Dict[Tuple[Vertex, Vertex], List[T]] = {}
+    temp_vertices: Set[Vertex] = set()
+
+    for (src, tgt), weight in ts._edges.items():
+        if isinstance(weight, dict) and all(
+            isinstance(v, int) for v in weight.values()
+        ):
+            temp_vertices.add(tgt)
+
+    if not temp_vertices:
+        return ts
+
+    for (v1, v2), w12 in ts._edges.items():
+        if v2 in temp_vertices:
+            for (v3, v4), w34 in ts._edges.items():
+                if v3 == v2:
+                    key = (v1, v4)
+                    if key not in new_edges:
+                        new_edges[key] = []
+                    new_edges[key].append(w12)
+        else:
+            key = (v1, v2)
+            if key not in new_edges:
+                new_edges[key] = []
+            new_edges[key].append(w12)
+
+    result = TransitionSystem()
+    for (src, tgt), weights in new_edges.items():
+        result.add_edge(src, tgt, weights[0] if len(weights) == 1 else weights)
+    return result
 
 
 def forward_invariants_ivl(
@@ -904,3 +929,75 @@ def loop_headers_live(ts: TransitionSystem[T]) -> List[Tuple[int, Set[Symbol[T]]
 def make_box_abstract_domain(context: Context) -> BoxAbstractDomain:
     """Create a box abstract domain."""
     return BoxAbstractDomain(context)
+
+
+class IncrAbstractDomain(ABC):
+    """Incremental abstract domain protocol.
+
+    Mirrors OCaml ``TransitionSystem.IncrAbstractDomain``.
+    """
+    @abstractmethod
+    def top(self): pass
+    @abstractmethod
+    def bottom(self): pass
+    @abstractmethod
+    def join(self, a, b): pass
+    @abstractmethod
+    def leq(self, a, b) -> bool: pass
+    @abstractmethod
+    def incr_abstract(self, a, trans): pass
+
+
+class LiftIncr(IncrAbstractDomain):
+    """Lift a regular abstract domain to incremental.
+
+    Mirrors OCaml ``TransitionSystem.LiftIncr``.
+    """
+    def __init__(self, domain):
+        self._domain = domain
+    def top(self): return self._domain.top()
+    def bottom(self): return self._domain.bottom()
+    def join(self, a, b): return self._domain.join(a, b)
+    def leq(self, a, b) -> bool: return self._domain.leq(a, b)
+    def incr_abstract(self, a, trans): return self._domain.abstract(a, trans)
+
+
+class ProductIncr(IncrAbstractDomain):
+    """Product of two incremental abstract domains.
+
+    Mirrors OCaml ``TransitionSystem.ProductIncr``.
+    """
+    def __init__(self, a: IncrAbstractDomain, b: IncrAbstractDomain):
+        self._a = a; self._b = b
+    def top(self): return (self._a.top(), self._b.top())
+    def bottom(self): return (self._a.bottom(), self._b.bottom())
+    def join(self, x, y): return (self._a.join(x[0], y[0]), self._b.join(x[1], y[1]))
+    def leq(self, x, y) -> bool: return self._a.leq(x[0], y[0]) and self._b.leq(x[1], y[1])
+    def incr_abstract(self, ab, trans):
+        return (self._a.incr_abstract(ab[0], trans), self._b.incr_abstract(ab[1], trans))
+
+
+def forward_invariants(
+    domain: "AbstractDomain",
+    ts: "TransitionSystem",
+    start: Any,
+) -> "Callable[[Any], Any]":
+    """Generic forward invariant analysis (mirrors OCaml forward_invariants).
+
+    Computes the least fixpoint of the abstract semantics from start.
+    """
+    inv = {v: domain.top() for v in ts.vertices()}
+    inv[start] = domain.bottom()
+    changed = True
+    while changed:
+        changed = False
+        for v in ts.vertices():
+            new_val = inv[v]
+            for pred in ts.predecessors(v):
+                a = inv[pred]
+                for trans in ts.transitions_between(pred, v):
+                    new_val = domain.join(new_val, domain.abstract(a, trans))
+            if not domain.leq(new_val, inv[v]):
+                inv[v] = domain.join(inv[v], new_val)
+                changed = True
+    return lambda v: inv.get(v, domain.top())

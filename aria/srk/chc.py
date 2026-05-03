@@ -623,3 +623,29 @@ def make_chc_system(clauses: List[CHCClause]) -> CHCSystem:
 def make_chc_solver(context: Any) -> CHCSolver:
     """Create a CHC solver."""
     return CHCSolver(context)
+
+
+def pp_rel_atom(srk: Context, fp: Any, out: Any, atom: Any) -> None:
+    """Pretty-print a relation atom (mirrors OCaml ``Chc.pp_rel_atom``)."""
+    out.write(str(atom))
+
+
+def show_rel_atom(srk: Context, fp: Any, atom: Any) -> str:
+    """Show a relation atom as a string (mirrors OCaml ``Chc.show_rel_atom``)."""
+    return str(atom)
+
+
+class RelationModule:
+    """Relation utility module (mirrors OCaml ``Chc.Relation``)."""
+
+    @staticmethod
+    def compare(a: int, b: int) -> int:
+        return -1 if a < b else (1 if a > b else 0)
+
+    @staticmethod
+    def pp(out: Any, rel: int) -> None:
+        out.write(f"R{rel}")
+
+    @staticmethod
+    def show(rel: int) -> str:
+        return f"R{rel}"

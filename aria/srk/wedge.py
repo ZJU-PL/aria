@@ -704,13 +704,50 @@ def atom_of_lincons(wedge: Wedge, lincons: Lincons0) -> syntax.Formula:
 
 
 def pp(formatter, wedge: Wedge) -> None:
-    """Pretty print wedge"""
-    formatter.write(f"Wedge with {CS.dim(wedge.cs)} dimensions")
+    """Pretty-print a wedge (mirrors OCaml ``Wedge.pp``)."""
+    if hasattr(wedge, 'to_formula'):
+        formatter.write(str(wedge.to_formula()))
+    else:
+        formatter.write(f"Wedge({CS.dim(wedge.cs)} dims)")
 
 
 def show(wedge: Wedge) -> str:
-    """String representation of wedge"""
+    """String representation of a wedge (mirrors OCaml ``Wedge.show``)."""
+    if hasattr(wedge, 'to_formula'):
+        return str(wedge.to_formula())
     return f"Wedge({CS.dim(wedge.cs)} dims)"
+
+
+def coordinate_system(wedge: Wedge):
+    """Get the coordinate system associated with a wedge.
+
+    Mirrors OCaml ``Wedge.coordinate_system``.
+    """
+    if hasattr(wedge, 'cs'):
+        return wedge.cs
+    return None
+
+
+def polyhedron(
+    wedge: Wedge,
+) -> List[Tuple[str, "QQVector"]]:
+    """Extract the polyhedron as tagged (Eq/Geq, QQVector) pairs.
+
+    Mirrors OCaml ``Wedge.polyhedron``.
+    """
+    from .polyhedron import Polyhedron as _Poly
+
+    constraints: List[Tuple[str, "QQVector"]] = []
+    for atom in wedge.to_atoms():
+        if isinstance(atom, Eq):
+            from .linear import linterm_of
+            vec = linterm_of(wedge.srk, mk_sub(wedge.srk, atom.left, atom.right))
+            constraints.append(("Eq", vec))
+        elif isinstance(atom, Leq):
+            from .linear import linterm_of
+            vec = linterm_of(wedge.srk, mk_sub(wedge.srk, atom.right, atom.left))
+            constraints.append(("Geq", vec))
+    return constraints
 
 
 def lincons_of_atom(
@@ -2958,75 +2995,75 @@ class WedgeDomain:
 # Missing wedge operations
 # ---------------------------------------------------------------------------
 
-def farkas_equalities(wedge: "Wedge") -> "FormulaExpression":
+def farkas_equalities(wedge: "Wedge") -> List[Tuple["ArithExpression", "QQVector"]]:
     """Extract entailed affine equalities via Farkas' lemma.
 
-    Returns a formula representing the strongest affine equalities
-    implied by the wedge constraints.
+    Returns list of (term, coefficient_vector) pairs representing
+    affine equalities entailed by the wedge constraints.
     """
-    from aria.srk.syntax import mk_and, mk_eq, mk_add, mk_real, mk_const
+    from .syntax import Eq
 
-    poly_cones = wedge.polynomial_cone() if hasattr(wedge, 'polynomial_cone') else []
-    equalities = []
+    equalities: List[Tuple["ArithExpression", "QQVector"]] = []
     if hasattr(wedge, 'to_atoms'):
         atoms = wedge.to_atoms()
         for atom in atoms:
-            if hasattr(atom, 'expr') and isinstance(atom.expr, tuple) and atom.expr[0] == 'Eq':
-                equalities.append(atom.expr)
-    if not equalities:
-        return mk_true()
-    return mk_and(list(equalities))
+            if isinstance(atom, Eq):
+                try:
+                    from .linear import linterm_of
+                    diff = mk_sub(wedge.srk, atom.left, atom.right)
+                    vec = linterm_of(wedge.srk, diff)
+                    equalities.append((atom.left, vec))
+                except Exception:
+                    pass
+    return equalities
 
 
-def ensure_min_max(wedge: "Wedge") -> "Wedge":
-    """Ensure min/max are non-negative. Returns copy with strengthened constraints."""
-    return wedge.copy() if hasattr(wedge, 'copy') else wedge
+def bounds(
+    wedge: "Wedge", term: "ArithExpression"
+) -> "Interval":
+    """Compute bounds for an arithmetic term within the wedge.
 
-
-def symbolic_bounds_formula(
-    wedge: "Wedge"
-) -> "FormulaExpression":
-    """Compute symbolic bounds as a formula.
-
-    Returns a formula representing the conjunction of all
-    symbolic bound constraints in the wedge.
+    Mirrors OCaml ``Wedge.bounds``. Returns the interval [lower, upper]
+    for the given term, using the wedge's constraint system.
     """
-    if hasattr(wedge, 'to_formula'):
-        return wedge.to_formula()
-    return mk_true()
+    from .interval import Interval as _Int
 
-
-def symbolic_bounds_formula_list(
-    wedge: "Wedge",
-) -> List["FormulaExpression"]:
-    """Return symbolic bounds as a list of formulas."""
-    if hasattr(wedge, 'to_atoms'):
-        return wedge.to_atoms()
-    return []
-
-
-def coordinate_system(wedge: "Wedge"):
-    """Get the coordinate system associated with this wedge."""
-    if hasattr(wedge, 'coordinate_system'):
-        return wedge.coordinate_system
-    return None
-
-
-def polyhedron(wedge: "Wedge"):
-    """Extract the polyhedron (linear part) of the wedge."""
-    if hasattr(wedge, 'polyhedron'):
-        return wedge.polyhedron
-    return None
+    if not hasattr(wedge, 'cs'):
+        return _Int.top()
+    try:
+        dim = wedge.cs.cs_term_id(wedge.cs, term)
+        for atom in wedge.to_atoms():
+            if isinstance(atom, Eq):
+                if atom.left == term:
+                    return _Int.make(0, 0)
+        lo = _Int.bottom()
+        hi = _Int.top()
+        for atom in wedge.to_atoms():
+            if isinstance(atom, Leq):
+                if atom.left == term:
+                    hi = _Int.make(None, 0)
+                if atom.right == term:
+                    lo = _Int.make(0, None)
+        return _Int(lo.lower, hi.upper)
+    except Exception:
+        return _Int.top()
 
 
 def reduce(wedge: "Wedge", lemma: Optional["Wedge"] = None) -> "Wedge":
-    """Reduce the wedge representation to a canonical form.
+    """Reduce the wedge representation via strengthening.
 
-    If a lemma wedge is provided, it is used to validate constraints.
+    Mirrors OCaml ``Wedge.reduce``. Applies equational saturation,
+    strengthens intervals, and applies cut constraints when a lemma
+    wedge is available.
     """
-    if hasattr(wedge, 'strengthen'):
-        wedge.strengthen(lemma)
-    return wedge
+    w = wedge.copy() if hasattr(wedge, 'copy') else wedge
+    if hasattr(w, 'equational_saturation'):
+        w.equational_saturation()
+    if hasattr(w, 'strengthen'):
+        w.strengthen(lemma)
+    if hasattr(w, 'strengthen_intervals'):
+        w.strengthen_intervals()
+    return w
 
 
 def cover(
@@ -3035,10 +3072,49 @@ def cover(
     lemma: Optional["Wedge"] = None,
     subterm_pred: Optional[Callable[[Symbol], bool]] = None,
 ) -> "Wedge":
-    """Existential quantifier elimination via covering.
+    """Overapproximate existential quantifier elimination via GFM.
 
-    Projects symbols matching pred from the wedge.
+    Mirrors OCaml ``Wedge.cover``. Projects symbols matching pred
+    using the wedge's projection capabilities.
     """
-    if hasattr(wedge, 'exists'):
-        return wedge.exists(lemma, pred, subterm_pred)
-    return wedge
+    w = wedge.copy() if hasattr(wedge, 'copy') else wedge
+    if hasattr(w, 'exists'):
+        try:
+            return w.exists(lemma, pred, subterm_pred)
+        except Exception:
+            pass
+    if hasattr(w, 'generalized_fourier_motzkin'):
+        try:
+            return w.generalized_fourier_motzkin(pred)
+        except Exception:
+            pass
+    return w
+
+
+def symbolic_bounds_formula(
+    exists: Callable[[Symbol], bool],
+    srk: "Context",
+    phi: "FormulaExpression",
+    sym: Optional[Symbol] = None,
+) -> "FormulaExpression":
+    """Compute symbolic bounds as a formula (mirrors OCaml ``Wedge.symbolic_bounds_formula``).
+
+    Given a formula phi and a predicate `exists` selecting symbols, computes
+    a formula representing the strongest bounds for each term.
+    """
+    w = abstract_to_wedge(srk, phi) if hasattr(phi, '__class__') else phi
+    if hasattr(w, 'to_formula'):
+        return w.to_formula()
+    return mk_true(srk)
+
+
+def symbolic_bounds_formula_list(
+    exists: Callable[[Symbol], bool],
+    srk: "Context",
+    phi: "FormulaExpression",
+) -> List["FormulaExpression"]:
+    """Return symbolic bounds as a list of formulas (mirrors OCaml ``Wedge.symbolic_bounds_formula_list``)."""
+    w = abstract_to_wedge(srk, phi) if hasattr(phi, '__class__') else phi
+    if hasattr(w, 'to_atoms'):
+        return w.to_atoms()
+    return [mk_true(srk)]

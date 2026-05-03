@@ -646,3 +646,93 @@ def polyhedron_to_formula(
 ) -> FormulaExpression:
     """Convert polyhedron to logical formula."""
     return PolyhedronOperations.to_formula(polyhedron, context)
+
+
+def of_implicant(srk: Context, implicant: List["FormulaExpression"]) -> "Polyhedron":
+    """Create a polyhedron from an implicant (list of literals).
+
+    Mirrors OCaml ``Polyhedron.of_implicant``.
+    """
+    constraints = []
+    for literal in implicant:
+        if isinstance(literal, Eq):
+            constraints.append(Constraint(literal.left, literal.right, "eq"))
+        elif isinstance(literal, Leq):
+            constraints.append(Constraint(literal.left, literal.right, "leq"))
+        elif isinstance(literal, Lt):
+            constraints.append(Constraint(literal.left, literal.right, "lt"))
+    return Polyhedron(constraints)
+
+
+def implicant_of(polyhedron: "Polyhedron", srk: Context) -> List["FormulaExpression"]:
+    """Extract an implicant from a polyhedron.
+
+    Mirrors OCaml ``Polyhedron.implicant_of``.
+    """
+    formulas = []
+    for c in polyhedron.constraints:
+        if c.kind == "eq":
+            formulas.append(mk_eq(c.left, c.right))
+        elif c.kind in ("leq", "le"):
+            formulas.append(mk_leq(c.left, c.right))
+        elif c.kind == "lt":
+            formulas.append(mk_lt(c.left, c.right))
+    return formulas
+
+
+def local_project(
+    srk: Context, polyhedron: "Polyhedron", dimensions: List[int]
+) -> "Polyhedron":
+    """Model-guided local projection of a polyhedron.
+
+    Mirrors OCaml ``Polyhedron.local_project``.
+    """
+    constraints = []
+    for c in polyhedron.constraints:
+        left_dims = set(c.left.entries.keys())
+        right_dims = set(c.right.entries.keys())
+        if not any(d in dimensions for d in left_dims) and not any(d in dimensions for d in right_dims):
+            constraints.append(c)
+    return Polyhedron(constraints)
+
+
+def dual_cone(polyhedron: "Polyhedron") -> "Polyhedron":
+    """Compute the dual cone of a polyhedron.
+
+    Mirrors OCaml ``Polyhedron.dual_cone``.
+    """
+    constraints = []
+    for c in polyhedron.constraints:
+        neg_left = QQVector({d: -coeff for d, coeff in c.left.entries.items()})
+        if c.kind == "leq":
+            constraints.append(Constraint(neg_left, QQVector.zero(), "leq"))
+        elif c.kind == "eq":
+            constraints.append(Constraint(neg_left, QQVector.zero(), "leq"))
+    return Polyhedron(constraints)
+
+
+def conical_hull(polyhedron: "Polyhedron") -> "Polyhedron":
+    """Take the conical hull of a polyhedron (drop translation).
+
+    Mirrors OCaml ``Polyhedron.conical_hull``.
+    """
+    constraints = []
+    for c in polyhedron.constraints:
+        if c.right.entries:
+            constraints.append(c)
+        else:
+            constraints.append(Constraint(c.left, QQVector.zero(), c.kind))
+    return Polyhedron(constraints)
+
+
+def constraint_space(polyhedron: "Polyhedron") -> "QQVectorSpace":
+    """Compute the bounded functionals (constraint space) of a polyhedron.
+
+    Mirrors OCaml ``Polyhedron.constraint_space``.
+    """
+    from .linear import QQVectorSpace
+
+    basis_vecs = []
+    for c in polyhedron.constraints:
+        basis_vecs.append(c.left)
+    return QQVectorSpace.basis_from_vectors(basis_vecs)

@@ -390,12 +390,9 @@ def mk_mul(context: PathExprContext, left: PathExpr, right: PathExpr) -> PathExp
 
     # Additional simplification rules
     if isinstance(left.obj, Mul) and isinstance(right.obj, Mul):
-        # (a * b) * (c * d) = a * b * c * d
-        return mk_mul(
-            context,
-            mk_mul(context, left.obj.left, left.obj.right),
-            mk_mul(context, right.obj.left, right.obj.right),
-        )
+        # (a * b) * (c * d) = a * (b * (c * d))
+        inner = mk_mul(context, left.obj.right, right)
+        return mk_mul(context, left.obj.left, inner)
 
     return context.hashcons(Mul(left, right))
 
@@ -420,11 +417,9 @@ def mk_star(context: PathExprContext, expr: PathExpr) -> PathExpr:
         return expr
 
     # Additional simplification rules
-    if isinstance(expr.obj, Mul):
-        # (a * b)* = a* * b* (distributivity)
-        left_star = mk_star(context, expr.obj.left)
-        right_star = mk_star(context, expr.obj.right)
-        return mk_mul(context, left_star, right_star)
+    if isinstance(expr.obj, Star):
+        # (a*)* = a*
+        return expr
 
     return context.hashcons(Star(expr))
 
@@ -822,28 +817,35 @@ def derivative(
 
 
 def equiv(context: PathExprContext, expr1: PathExpr, expr2: PathExpr) -> bool:
-    """Check if two path expressions are equivalent."""
-    # Simple equivalence check based on epsilon acceptance and first sets
-    if accept_epsilon(expr1) != accept_epsilon(expr2):
-        return False
+    """Check if two path expressions are equivalent via Brzozowski derivatives.
 
-    first1 = first(expr1)
-    first2 = first(expr2)
+    Uses memoization (visited-set) to guarantee termination for expressions
+    with Kleene star.
+    """
+    visited: Set[Tuple[int, int]] = set()
 
-    if first1 != first2:
-        return False
+    def check(e1: PathExpr, e2: PathExpr) -> bool:
+        key = (id(e1), id(e2))
+        if key in visited:
+            return True
+        visited.add(key)
 
-    # Check derivatives for all edges in the first sets
-    all_edges = first1 | first2
-
-    for edge in all_edges:
-        deriv1 = derivative(context, edge, expr1)
-        deriv2 = derivative(context, edge, expr2)
-
-        if not equiv(context, deriv1, deriv2):
+        if accept_epsilon(e1) != accept_epsilon(e2):
             return False
 
-    return True
+        f1 = first(e1)
+        f2 = first(e2)
+        if f1 != f2:
+            return False
+
+        for edge in f1 | f2:
+            deriv1 = derivative(context, edge, e1)
+            deriv2 = derivative(context, edge, e2)
+            if not check(deriv1, deriv2):
+                return False
+        return True
+
+    return check(expr1, expr2)
 
 
 # Pretty printing functions

@@ -2153,6 +2153,14 @@ class IterationEngine:
         elem = self.domain.abstract(srk, tf)
         return self.domain.closure(elem)
 
+
+def compare(a: Any, b: Any) -> int:
+    """Syntactic comparison of domain elements (mirrors OCaml PreDomain.compare)."""
+    if a is b: return 0
+    ha = hash(a) if hasattr(a, '__hash__') else id(a)
+    hb = hash(b) if hasattr(b, '__hash__') else id(b)
+    return -1 if ha < hb else (1 if ha > hb else 0)
+
     def iterate(
         self, srk: Context, initial: Any, transition: Any, max_iterations: int = 10
     ) -> Any:

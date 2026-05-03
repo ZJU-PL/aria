@@ -834,3 +834,139 @@ def fold_reachable_edges(
         return acc
 
     return dfs(v, acc)
+
+
+# ---------------------------------------------------------------------------
+# RecGraph — Recursive graph with call edges for interprocedural analysis
+# ---------------------------------------------------------------------------
+
+class RecGraph(Generic[T]):
+    """Recursive graph with intra-procedural edges and call edges.
+
+    Call edges represent function calls and return vertices.
+    Supports iterative summary computation via widening.
+    Mirrors OCaml ``WeightedGraph.RecGraph``.
+    """
+
+    def __init__(self):
+        self._vertices: Set[Vertex] = set()
+        self._edges: Dict[Tuple[Vertex, Vertex], T] = {}
+        self._call_edges: Dict[Tuple[Vertex, Vertex], Tuple[Vertex, Vertex]] = {}
+        self._summaries: Dict[Tuple[Vertex, Vertex], T] = {}
+        self._call_vertex_sets: Dict[Vertex, Set[Vertex]] = {}
+
+    @staticmethod
+    def empty() -> "RecGraph[T]":
+        return RecGraph()
+
+    def add_vertex(self, v: Vertex) -> "RecGraph[T]":
+        self._vertices.add(v)
+        return self
+
+    def add_edge(self, src: Vertex, tgt: Vertex, weight: T) -> "RecGraph[T]":
+        self._edges[(src, tgt)] = weight
+        self._vertices.add(src)
+        self._vertices.add(tgt)
+        return self
+
+    def add_call_edge(self, caller: Vertex, start: Vertex, ret: Vertex) -> "RecGraph[T]":
+        self._call_edges[(caller, start)] = (start, ret)
+        self._vertices.add(caller)
+        self._vertices.add(start)
+        self._vertices.add(ret)
+        if caller not in self._call_vertex_sets:
+            self._call_vertex_sets[caller] = set()
+        self._call_vertex_sets[caller].add(ret)
+        return self
+
+    def successors(self, v: Vertex) -> List[Vertex]:
+        return [tgt for (src, tgt) in self._edges if src == v]
+
+    def call_successors(self, v: Vertex) -> List[Tuple[Vertex, Vertex]]:
+        return [(tgt, ret) for (src, tgt), (_, ret) in self._call_edges.items() if src == v]
+
+    def vertices(self) -> Set[Vertex]:
+        return self._vertices
+
+    def get_summary(self, call_start: Vertex, ret: Vertex) -> Optional[T]:
+        return self._summaries.get((call_start, ret))
+
+    def set_summary(self, call_start: Vertex, ret: Vertex, weight: T) -> None:
+        self._summaries[(call_start, ret)] = weight
+
+    def summarize_iterative(
+        self,
+        algebra: "Algebra[T]",
+        omega_algebra: Optional["OmegaAlgebra[T]"] = None,
+        max_iter: int = 100,
+    ) -> "RecGraph[T]":
+        """Iteratively compute call summaries using widening.
+
+        Repeatedly computes intra-procedural path weights and propagates
+        summaries across call edges until a fixpoint is reached.
+        """
+        for _ in range(max_iter):
+            changed = False
+            for (caller, start), (_, ret) in self._call_edges.items():
+                old_summary = self.get_summary(start, ret)
+                new_summary = self._compute_path_weight(start, ret, algebra, omega_algebra)
+                if old_summary is None or not self._weight_equal(new_summary, old_summary, algebra):
+                    self.set_summary(start, ret, new_summary)
+                    changed = True
+            if not changed:
+                break
+        return self
+
+    def _compute_path_weight(
+        self, src: Vertex, tgt: Vertex, algebra: "Algebra[T]", omega_algebra: Optional["OmegaAlgebra[T]"] = None
+    ) -> T:
+        stack = [(src, algebra.one)]
+        visited: Dict[Vertex, T] = {}
+        while stack:
+            v, w = stack.pop()
+            if v in visited:
+                visited[v] = algebra.add(visited[v], w)
+            else:
+                visited[v] = w
+            for nxt in self.successors(v):
+                edge_w = self._edges.get((v, nxt), algebra.zero)
+                nxt_w = algebra.mul(w, edge_w)
+                stack.append((nxt, nxt_w))
+            for nxt, ret in self.call_successors(v):
+                summary = self.get_summary(nxt, ret)
+                if summary is not None:
+                    stack.append((ret, algebra.mul(w, summary)))
+        return visited.get(tgt, algebra.zero)
+
+    def _weight_equal(self, w1: T, w2: T, algebra) -> bool:
+        try:
+            return w1 == w2
+        except Exception:
+            return False
+
+    def path_weight(self, src: Vertex, tgt: Vertex, algebra: "Algebra[T]") -> T:
+        return self._compute_path_weight(src, tgt, algebra)
+
+    def call_weight(self, call_start: Vertex, ret: Vertex) -> Optional[T]:
+        return self.get_summary(call_start, ret)
+
+
+class Algebra(Generic[T]):
+    def __init__(self, zero: T, one: T, add, mul, star):
+        self.zero = zero
+        self.one = one
+        self.add = add
+        self.mul = mul
+        self.star = star
+
+
+class OmegaAlgebra(Generic[T]):
+    def __init__(self, zero: T, one: T, add, mul, star, omega, omega_add, omega_mul):
+        self.zero = zero
+        self.one = one
+        self.add = add
+        self.mul = mul
+        self.star = star
+        self.omega = omega
+        self.omega_add = omega_add
+        self.omega_mul = omega_mul

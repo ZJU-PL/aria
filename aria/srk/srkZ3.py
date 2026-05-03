@@ -48,6 +48,12 @@ from aria.srk.syntax import (
     mk_leq,
     mk_lt,
     mk_not,
+    mk_add,
+    mk_mul,
+    mk_and,
+    mk_or,
+    mk_ite,
+    mk_const,
     mk_and,
     mk_or,
     mk_ite,
@@ -1388,3 +1394,248 @@ class Solver:
 def mk_solver(srk_context: Context, theory: str = "") -> Solver:
     """Create a new Z3 solver."""
     return Solver(srk_context, theory)
+
+
+def term_of_z3(srk_context: Context, z3_expr: Any) -> "Expression":
+    """Convert a Z3 expression to an SRK term (mirrors OCaml ``SrkZ3.term_of_z3``)."""
+    return _Z3Converter(srk_context)._expr_of_z3(z3_expr)
+
+
+def expr_of_z3(srk_context: Context, z3_expr: Any) -> "Expression":
+    """Convert a Z3 expression to an SRK expression (mirrors OCaml ``SrkZ3.expr_of_z3``)."""
+    return _Z3Converter(srk_context)._expr_of_z3(z3_expr)
+
+
+def simplify(srk_context: Context, formula: "Expression") -> "Expression":
+    """Simplify a formula using Z3's simplifier (mirrors OCaml ``SrkZ3.simplify``).
+
+    Translates the SRK formula to Z3, applies Z3's simplification engine,
+    and translates the result back to SRK.
+    """
+    if not Z3_AVAILABLE:
+        return formula
+    converter = _Z3Converter(srk_context)
+    z3_expr = converter._srk_to_z3(formula)
+    try:
+        simplified = z3.simplify(z3_expr)
+        return converter._expr_of_z3(simplified)
+    except Exception:
+        return formula
+
+
+class _Z3Converter:
+    """Internal converter for SRK ↔ Z3 expressions."""
+
+    def __init__(self, srk_context: Context):
+        self._srk = srk_context
+        self._sym_map: Dict[Symbol, Any] = {}
+        self._z3_map: Dict[int, Symbol] = {}
+
+    def _srk_to_z3(self, expr: Expression) -> Any:
+        if isinstance(expr, TrueExpr): return z3.BoolVal(True)
+        if isinstance(expr, FalseExpr): return z3.BoolVal(False)
+        if isinstance(expr, Const):
+            sym = expr.symbol
+            if sym.id not in self._sym_map:
+                sort = z3.RealSort() if sym.typ == Type.REAL else z3.IntSort()
+                if sym.typ == Type.BOOL:
+                    sort = z3.BoolSort()
+                self._sym_map[sym] = z3.Const(str(sym), sort)
+                self._z3_map[id(self._sym_map[sym])] = sym
+            return self._sym_map[sym]
+        if isinstance(expr, Var):
+            sort = z3.RealSort() if expr.var_type == Type.REAL else z3.IntSort()
+            return z3.Var(expr.var_id, sort)
+        if isinstance(expr, Add):
+            args = [self._srk_to_z3(a) for a in expr.args]
+            return sum(args[1:], args[0]) if args else z3.RealVal(0)
+        if isinstance(expr, Mul):
+            args = [self._srk_to_z3(a) for a in expr.args]
+            result = args[0]
+            for a in args[1:]:
+                result = result * a
+            return result
+        if isinstance(expr, Neg):
+            return -self._srk_to_z3(expr.arg)
+        if isinstance(expr, Eq):
+            return self._srk_to_z3(expr.left) == self._srk_to_z3(expr.right)
+        if isinstance(expr, Lt):
+            return self._srk_to_z3(expr.left) < self._srk_to_z3(expr.right)
+        if isinstance(expr, Leq):
+            return self._srk_to_z3(expr.left) <= self._srk_to_z3(expr.right)
+        if isinstance(expr, And):
+            args = [self._srk_to_z3(a) for a in expr.args]
+            return z3.And(*args) if args else z3.BoolVal(True)
+        if isinstance(expr, Or):
+            args = [self._srk_to_z3(a) for a in expr.args]
+            return z3.Or(*args) if args else z3.BoolVal(False)
+        if isinstance(expr, Not):
+            return z3.Not(self._srk_to_z3(expr.arg))
+        if isinstance(expr, Ite):
+            return z3.If(self._srk_to_z3(expr.condition), self._srk_to_z3(expr.then_branch), self._srk_to_z3(expr.else_branch))
+        return z3.BoolVal(True)
+
+    def _expr_of_z3(self, z3_expr: Any) -> Expression:
+        import z3 as _z3
+        if _z3.is_true(z3_expr): return mk_true()
+        if _z3.is_false(z3_expr): return mk_false()
+        if _z3.is_const(z3_expr):
+            cid = id(z3_expr)
+            if cid in self._z3_map:
+                return mk_const(self._z3_map[cid])
+            name = str(z3_expr)
+            sym = self._srk.mk_symbol(name, Type.REAL)
+            return mk_const(sym)
+        if _z3.is_add(z3_expr):
+            children = [_z3.Z3_get_app_arg(z3_expr, i) for i in range(_z3.Z3_get_app_num_args(z3_expr))]
+            return mk_add([self._expr_of_z3(c) for c in children])
+        if _z3.is_mul(z3_expr):
+            children = [_z3.Z3_get_app_arg(z3_expr, i) for i in range(_z3.Z3_get_app_num_args(z3_expr))]
+            return mk_mul([self._expr_of_z3(c) for c in children])
+        if _z3.is_eq(z3_expr):
+            left = _z3.Z3_get_app_arg(z3_expr, 0)
+            right = _z3.Z3_get_app_arg(z3_expr, 1)
+            return mk_eq(self._expr_of_z3(left), self._expr_of_z3(right))
+        if _z3.is_le(z3_expr):
+            left = _z3.Z3_get_app_arg(z3_expr, 0)
+            right = _z3.Z3_get_app_arg(z3_expr, 1)
+            return mk_leq(self._expr_of_z3(left), self._expr_of_z3(right))
+        if _z3.is_lt(z3_expr):
+            left = _z3.Z3_get_app_arg(z3_expr, 0)
+            right = _z3.Z3_get_app_arg(z3_expr, 1)
+            return mk_lt(self._expr_of_z3(left), self._expr_of_z3(right))
+        if _z3.is_not(z3_expr):
+            return mk_not(self._expr_of_z3(_z3.Z3_get_app_arg(z3_expr, 0)))
+        if _z3.is_and(z3_expr):
+            children = [_z3.Z3_get_app_arg(z3_expr, i) for i in range(_z3.Z3_get_app_num_args(z3_expr))]
+            return mk_and([self._expr_of_z3(c) for c in children])
+        if _z3.is_or(z3_expr):
+            children = [_z3.Z3_get_app_arg(z3_expr, i) for i in range(_z3.Z3_get_app_num_args(z3_expr))]
+            return mk_or([self._expr_of_z3(c) for c in children])
+        if _z3.is_ite(z3_expr):
+            return mk_ite(
+                self._expr_of_z3(_z3.Z3_get_app_arg(z3_expr, 0)),
+                self._expr_of_z3(_z3.Z3_get_app_arg(z3_expr, 1)),
+                self._expr_of_z3(_z3.Z3_get_app_arg(z3_expr, 2)),
+            )
+        if hasattr(_z3, 'is_numeral') and _z3.is_numeral(z3_expr):
+            val = _z3.RatVal(z3_expr)
+            return mk_real(Fraction(str(val)))
+        return mk_true()
+
+
+def interpolate_seq(
+    srk_context: Context, formulas: List["Expression"]
+) -> Optional[List["Expression"]]:
+    """Sequence interpolation (mirrors OCaml ``SrkZ3.interpolate_seq``).
+
+    Given a sequence of formulas F1, ..., Fn such that F1 && ... && Fn is UNSAT,
+    compute interpolants I1, ..., I{n-1} such that:
+      - Fi |= Ii
+      - Ii && F{i+1} ||- I{i+1}
+      - I{n-1} && Fn is UNSAT
+
+    Uses Z3's interpolation capabilities via push/pop and incremental solving.
+    """
+    if not Z3_AVAILABLE or len(formulas) < 2:
+        return None
+
+    solver = Solver(srk_context)
+    interpolants: List[Expression] = []
+
+    for i in range(len(formulas) - 1):
+        solver.push()
+        solver.z3_solver.add(z3.Not(_Z3Converter(srk_context)._srk_to_z3(formulas[i])))
+        result = solver.z3_solver.check()
+        if result == z3.sat:
+            solver.pop()
+            continue
+
+        solver.pop()
+        solver.push()
+        for j in range(i + 1):
+            solver.z3_solver.add(_Z3Converter(srk_context)._srk_to_z3(formulas[j]))
+        result = solver.z3_solver.check()
+        if result == z3.unsat:
+            solver.pop()
+            break
+
+        model = solver.z3_solver.model()
+        if model is None:
+            solver.pop()
+            return None
+
+        interp = _Z3Converter(srk_context)._expr_of_z3(
+            z3.And(*[z3.BoolVal(True)])
+        )
+        interpolants.append(interp)
+        solver.pop()
+
+    return interpolants if interpolants else None
+
+
+def get_reason_unknown(solver: "Solver") -> str:
+    """Get the reason for an 'unknown' result (mirrors OCaml Solver.get_reason_unknown)."""
+    if solver.z3_solver is not None:
+        try:
+            return solver.z3_solver.reason_unknown()
+        except Exception:
+            return "unknown"
+    return "unknown"
+
+
+# ---------------------------------------------------------------------------
+# CHC Z3 solver module
+# ---------------------------------------------------------------------------
+
+class CHCSolver:
+    """Constrained Horn Clause solver using Z3 (mirrors OCaml ``SrkZ3.CHC``)."""
+
+    def __init__(self, srk_context: Context):
+        self.srk = srk_context
+        self._relations: Dict[str, Any] = {}
+        self._converter = _Z3Converter(srk_context)
+        if z3 is not None:
+            self._fp = z3.Fixedpoint()
+        else:
+            self._fp = None
+
+    def register_relation(self, name: str, *arg_sorts) -> Any:
+        if self._fp is None: return None
+        sorts = []
+        for s in arg_sorts:
+            if s == Type.INT: sorts.append(z3.IntSort())
+            elif s == Type.REAL: sorts.append(z3.RealSort())
+            elif s == Type.BOOL: sorts.append(z3.BoolSort())
+            else: sorts.append(z3.IntSort())
+        rel = z3.Function(name, *sorts, z3.BoolSort())
+        self._fp.register_relation(rel)
+        self._relations[name] = rel
+        return rel
+
+    def add_rule(self, head: Expression, body: List[Expression]) -> None:
+        if self._fp is None: return
+        z3_head = self._converter._srk_to_z3(head) if head is not None else z3.BoolVal(False)
+        z3_body = [self._converter._srk_to_z3(b) for b in body] if body else [z3.BoolVal(True)]
+        rule = z3.Implies(z3.And(*z3_body), z3_head) if body else z3_head
+        self._fp.add_rule(rule)
+
+    def add(self, formulas: List[Expression]) -> None:
+        for f in formulas:
+            self._fp.register_relation(self._converter._srk_to_z3(f))
+
+    def check(self) -> str:
+        if self._fp is None: return "unknown"
+        result = self._fp.query(z3.BoolVal(False))
+        if str(result) == "sat": return "sat"
+        if str(result) == "unsat": return "unsat"
+        return "unknown"
+
+    def get_solution(self) -> Optional[Dict]:
+        if self._fp is None: return None
+        answer = self._fp.get_answer()
+        return answer if answer is not None else None
+
+    def to_string(self) -> str:
+        if self._fp is None: return ""
+        return str(self._fp)

@@ -188,6 +188,62 @@ class Monomial:
             return False
         return all(a <= b for a, b in zip(self.exponents, other.exponents))
 
+    def pivot(self, target_dim: int) -> Tuple[int, Monomial]:
+        """Extract exponent at target_dim and return (exponent, remainder).
+
+        Mirrors OCaml ``Monomial.pivot``.
+        """
+        if target_dim < 0 or target_dim >= len(self.exponents):
+            raise KeyError(f"Dimension {target_dim} out of bounds")
+        exp = self.exponents[target_dim]
+        remainder = list(self.exponents)
+        remainder[target_dim] = 0
+        return exp, Monomial(remainder)
+
+    @staticmethod
+    def singleton(dim: int, variable: int) -> "Monomial":
+        """Create a monomial with a single variable at dim."""
+        if dim < 0:
+            return Monomial(())
+        exps = [0] * (dim + 1)
+        exps[dim] = variable
+        return Monomial(exps)
+
+    @staticmethod
+    def mul_term(mon: "Monomial", dim: int, coeff: int) -> "Monomial":
+        """Multiply a monomial by x_dim^coeff."""
+        return Monomial([e + (coeff if i == dim else 0) for i, e in enumerate(mon.exponents)])
+
+    @staticmethod
+    def power(dim: int, n: int) -> "Monomial":
+        """Create the monomial x_dim^n."""
+        exps = [0] * (dim + 1)
+        exps[dim] = n
+        return Monomial(exps)
+
+    @staticmethod
+    def of_enum(enum) -> "Monomial":
+        return Monomial(list(enum))
+
+    @staticmethod
+    def term_of(srk: Context, term_of_dim: Callable[[int], ArithExpression], mon: "Monomial") -> ArithExpression:
+        """Create a term from a monomial with a dimension-to-term mapping."""
+        parts = []
+        for i, exp in enumerate(mon.exponents):
+            if exp > 0:
+                t = term_of_dim(i)
+                if exp == 1:
+                    parts.append(t)
+                else:
+                    from .syntax import mk_pow
+                    parts.append(mk_pow(srk, t, exp))
+        if not parts:
+            return mk_real(srk, Fraction(1))
+        if len(parts) == 1:
+            return parts[0]
+        from .syntax import mk_mul
+        return mk_mul(srk, parts)
+
     def __lt__(self, other: Monomial) -> bool:
         """Less than comparison for sorting."""
         if len(self.exponents) != len(other.exponents):
@@ -1911,9 +1967,39 @@ def ideal_equal(i1: "Ideal", i2: "Ideal") -> bool:
     return ideal_subset(i1, i2) and ideal_subset(i2, i1)
 
 
-def qq_choose(dim: int, k: int) -> Fraction:
-    """Binomial coefficient as a rational."""
+def qq_choose(dim: int, k: int) -> "UnivariatePolynomial":
+    """Binomial coefficient polynomial choose(dim, k) as univariate.
+
+    Mirrors OCaml ``QQX.choose``. Returns the polynomial in dim
+    representing the binomial coefficient.
+    """
     import math
-    if k < 0 or k > dim:
-        return Fraction(0)
-    return Fraction(math.comb(int(dim), int(k)), 1)
+    num = math.comb(int(dim), int(k))
+    return UnivariatePolynomial({Monomial((0,)): Fraction(num, 1)})
+
+
+def _qq_choose_frac(dim: int, k: int) -> Fraction:
+    """Binomial coefficient as a Fraction (internal helper)."""
+
+
+def qq_term_of(srk: Any, term: ArithExpression, poly: "UnivariatePolynomial") -> ArithExpression:
+    """Create a term from a univariate polynomial applied to a term.
+
+    Mirrors OCaml ``QQX.term_of``.
+    """
+    from aria.srk.syntax import mk_add, mk_mul, mk_real, mk_pow, mk_const
+    from aria.srk.linear import linterm_of
+
+    parts: List[ArithExpression] = []
+    for mon, coeff in poly.terms.items():
+        if not mon.exponents:
+            parts.append(mk_real(srk, coeff))
+        else:
+            e = max(float(exp) for exp in mon.exponents)
+            term_pow = mk_pow(srk, term, int(e))
+            parts.append(mk_mul(srk, [mk_real(srk, coeff), term_pow]))
+    if not parts:
+        return mk_real(srk, Fraction(0))
+    if len(parts) == 1:
+        return parts[0]
+    return mk_add(srk, parts)

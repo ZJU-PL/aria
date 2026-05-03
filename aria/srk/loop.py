@@ -145,8 +145,9 @@ def compute_loop_nesting_forest(graph: GraphProtocol[V]) -> List[Union[V, Loop[V
     vertices = set()
     graph.iter_vertex(lambda v: vertices.add(v))
 
-    # Find SCCs (simplified for now)
+    # Find SCCs
     sccs = find_strongly_connected_components(graph)
+    entries: Set[V] = set()
 
     # Process each SCC
     forest = []
@@ -166,25 +167,13 @@ def compute_loop_nesting_forest(graph: GraphProtocol[V]) -> List[Union[V, Loop[V
             else:
                 forest.append(v)
         else:
-            # Multi-vertex SCC - need to find header and nested structure
-            # For simplicity, pick the first vertex as header
-            header = next(iter(scc))
-            body = scc.copy()
+        # Multi-vertex SCC - find header (entry vertex) and recursively decompose
+        header = _find_header(scc, graph, entries)
+        body = scc - {header}
 
-            # Find nested loops in the remaining vertices
-            subgraph_vertices = body - {header}
-            if subgraph_vertices:
-                # Create a subgraph for nested analysis
-                # This is a simplified approach - a full implementation would
-                # create a proper subgraph and recurse
-                nested_forest = list(
-                    subgraph_vertices
-                )  # Treat as individual vertices for now
-            else:
-                nested_forest = []
-
-            loop = Loop(header=header, children=nested_forest, body=body)
-            forest.append(loop)
+        nested_forest = _recurse_body(body, graph, entries)
+        loop = Loop(header=header, children=nested_forest, body=scc)
+        forest.append(loop)
 
     return forest
 
@@ -275,3 +264,128 @@ def analyze_graph_loops(graph: GraphProtocol[V]) -> Dict[str, Any]:
         "num_loops": len(loops),
         "num_cutpoints": len(cutpoints),
     }
+
+
+# ---------------------------------------------------------------------------
+# Bourdoncle helpers (header detection + subgraph recursion)
+# ---------------------------------------------------------------------------
+
+def _find_header(
+    scc: Set[V], graph: GraphProtocol[V], entries: Set[V]
+) -> V:
+    """Find the entry vertex (header) of an SCC.
+
+    The header is a vertex in the SCC that has an incoming edge from
+    a vertex outside the SCC or from the entries set.
+    """
+    for v in scc:
+        if v in entries:
+            return v
+    for v in scc:
+        preds: List[V] = []
+        if hasattr(graph, 'fold_pred_edges'):
+            graph.fold_pred_edges(lambda _, __, acc: acc, graph, v)
+        for w in _get_predecessors(v, graph):
+            if w not in scc:
+                return v
+    return next(iter(scc))
+
+
+def _get_predecessors(v: V, graph: GraphProtocol[V]) -> List[V]:
+    """Get predecessors of a vertex by scanning all edges."""
+    preds: List[V] = []
+    def check_edge(u: V, w: V) -> None:
+        if w == v:
+            preds.append(u)
+    all_verts: List[V] = []
+    graph.iter_vertex(lambda x: all_verts.append(x))
+    for u in all_verts:
+        graph.iter_succ(lambda w: check_edge(u, w), u)
+    return preds
+
+
+def _recurse_body(
+    body: Set[V], graph: GraphProtocol[V], entries: Set[V]
+) -> List[Union[V, Loop[V]]]:
+    """Recursively compute the nesting forest for a subgraph (body of a loop)."""
+    if not body:
+        return []
+    inner_sccs = _compute_sccs_subgraph(body, graph)
+    forest: List[Union[V, Loop[V]]] = []
+    visited: Set[V] = set()
+    for scc in inner_sccs:
+        remaining = scc - visited
+        if not remaining:
+            continue
+        visited.update(remaining)
+        if len(remaining) == 1:
+            forest.append(next(iter(remaining)))
+        else:
+            header = _find_header(remaining, graph, entries)
+            nested = _recurse_body(remaining - {header}, graph, entries)
+            forest.append(Loop(header=header, children=nested, body=remaining))
+    return forest
+
+
+def _compute_sccs_subgraph(
+    vertices: Set[V], graph: GraphProtocol[V]
+) -> List[Set[V]]:
+    """Compute SCCs restricted to a set of vertices (Tarjan's algorithm)."""
+    index: Dict[V, int] = {}
+    lowlink: Dict[V, int] = {}
+    on_stack: Set[V] = set()
+    stack: List[V] = []
+    sccs: List[Set[V]] = []
+    idx = [0]
+
+    def strongconnect(v: V) -> None:
+        index[v] = idx[0]
+        lowlink[v] = idx[0]
+        idx[0] += 1
+        stack.append(v)
+        on_stack.add(v)
+        succs: List[V] = []
+        graph.iter_succ(lambda s: succs.append(s), v)
+        for w in succs:
+            if w not in vertices:
+                continue
+            if w not in index:
+                strongconnect(w)
+                lowlink[v] = min(lowlink[v], lowlink[w])
+            elif w in on_stack:
+                lowlink[v] = min(lowlink[v], index[w])
+        if lowlink[v] == index[v]:
+            scc: Set[V] = set()
+            while True:
+                w = stack.pop()
+                on_stack.discard(w)
+                scc.add(w)
+                if w == v:
+                    break
+            sccs.append(scc)
+
+    for v in vertices:
+        if v not in index:
+            strongconnect(v)
+    return sccs
+
+
+class SubGraph(Generic[V]):
+    """Subgraph wrapper restricting iteration to a vertex subset.
+
+    Mirrors OCaml SubG for recursive Bourdoncle decomposition.
+    """
+
+    def __init__(self, graph: GraphProtocol[V], vertices: Set[V]):
+        self._graph = graph
+        self._vertices = vertices
+
+    def iter_vertex(self, f: Callable[[V], None]) -> None:
+        for v in self._vertices:
+            f(v)
+
+    def iter_succ(self, f: Callable[[V], None], v: V) -> None:
+        def filt(s: V) -> None:
+            if s in self._vertices:
+                f(s)
+        self._graph.iter_succ(filt, v)

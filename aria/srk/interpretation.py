@@ -722,25 +722,40 @@ class Interpretation:
         formula: FormulaExpression,
         env: Optional[Dict[int, InterpretationValue]] = None,
     ) -> Optional[List[FormulaExpression]]:
-        """Select an implicant of a formula."""
+        """Select a minimal implicant from a model.
+
+        Given a formula and a model that satisfies it, computes a subset of
+        the formula's atoms (conjunctive clauses) that still entails the
+        formula under the model. Uses greedy minimization: tries to remove
+        each atom, keeping only those essential for entailment.
+
+        Mirrors OCaml ``Interpretation.select_implicant``.
+        """
         env = env or {}
 
-        # This is a simplified implementation
-        # A full implementation would use more sophisticated algorithms
-
-        if self.evaluate_formula(formula, env):
-            # Try to find atomic formulas that are satisfied
-            atoms = self._extract_atoms(formula, env)
-
-            # Filter to those that are satisfied by this interpretation
-            satisfied_atoms = []
-            for atom in atoms:
-                if self.evaluate_formula(atom, env):
-                    satisfied_atoms.append(atom)
-
-            return satisfied_atoms if satisfied_atoms else None
-        else:
+        if not self.evaluate_formula(formula, env):
             return None
+
+        atoms = self._extract_atoms(formula, env)
+        satisfied_atoms = [a for a in atoms if self.evaluate_formula(a, env)]
+
+        if not satisfied_atoms:
+            return None
+
+        # Greedy minimization: try to remove each atom, keep only essential ones
+        result = list(satisfied_atoms)
+        i = 0
+        while i < len(result):
+            candidate = result[i]
+            remaining = result[:i] + result[i + 1:]
+            if remaining:
+                conj = mk_and(self.context, remaining)
+                if self.evaluate_formula(conj, env):
+                    result.pop(i)
+                    continue
+            i += 1
+
+        return result if result else None
 
     def _extract_atoms(
         self,

@@ -739,3 +739,13 @@ def find_containment_witness(
     """Find witness matrix for containment."""
     analysis = LTSAnalysis(context)
     return analysis.containment_witness(lts1, lts2)
+
+
+def pp(out: Any, lts: "LinearTransitionSystem") -> None:
+    """Pretty-print a linear transition system (mirrors OCaml LTS.pp)."""
+    out.write(f"LTS(A={lts.A}, B={lts.B})")
+
+
+def pp_plm(out: Any, plm: "PartialLinearMap") -> None:
+    """Pretty-print a partial linear map (mirrors OCaml PartialLinearMap.pp)."""
+    out.write(str(plm))

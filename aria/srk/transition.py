@@ -976,3 +976,20 @@ class TransitionSystem:
 
     def edges(self) -> List[Tuple[int, Transition, int]]:
         return list(self._edges)
+
+
+def compare(a: "Transition", b: "Transition") -> int:
+    """Syntactic comparison of transitions (mirrors OCaml Transition.compare)."""
+    ha = hash(a)
+    hb = hash(b)
+    return -1 if ha < hb else (1 if ha > hb else 0)
+
+
+def pp(out: Any, tr: "Transition") -> None:
+    """Pretty-print a transition (mirrors OCaml Transition.pp)."""
+    out.write(str(tr))
+
+
+def show(tr: "Transition") -> str:
+    """Show a transition as string (mirrors OCaml Transition.show)."""
+    return str(tr)

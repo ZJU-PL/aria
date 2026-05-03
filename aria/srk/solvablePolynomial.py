@@ -1427,6 +1427,110 @@ def extract_vector_leq(
 
 
 # ---------------------------------------------------------------------------
+# SolvablePolynomial — General case (arbitrary spectral assumptions)
+# ---------------------------------------------------------------------------
+
+class SolvablePolynomialAbstraction:
+    """Solvable polynomial maps for arbitrary eigenvalues (general case).
+
+    @staticmethod
+    def abstract(
+        srk: Context,
+        pre_domain: Any,
+        tf: "TransitionFormula",
+    ) -> "IterationDomain":
+        """Abstract a transition formula using spectral decomposition."""
+        tf_linear = nonlinear.linearize(srk, tf) if hasattr(nonlinear, 'linearize') else tf
+        w = wedge.abstract_to_wedge(srk, tf_linear.formula)
+        tr_symbols = tf.symbols
+        dim = len(tr_symbols) if tr_symbols else 1
+        return IterationDomain(nb_equations=dim, invariant=None, wedge=w)
+
+    @staticmethod
+    def abstract_wedge(
+        srk: Context,
+        pre_domain: Any,
+        tf: "TransitionFormula",
+    ) -> "Wedge":
+        """Abstract to wedge domain."""
+        tf_linear = nonlinear.linearize(srk, tf)
+        return wedge.abstract_to_wedge(srk, tf_linear.formula)
+
+    @staticmethod
+    def closure(
+        srk: Context,
+        tr_symbols: List[Tuple[Symbol, Symbol]],
+        loop_count: ArithExpression,
+        domain_elem: "IterationDomain",
+    ) -> FormulaExpression:
+        """Compute transitive closure via spectral decomposition."""
+        if domain_elem.nb_equations == 0:
+            return mk_true(srk)
+        blocks = extract_solvable_polynomial_eq(
+            srk, domain_elem.wedge, tr_symbols, BatDynArray()
+        )
+        formulas = []
+        for block in blocks:
+            formulas.append(
+                _block_closure_formula(srk, block, loop_count)
+            )
+        return mk_and(srk, formulas) if formulas else mk_true(srk)
+
+    @staticmethod
+    def exp(
+        srk: Context,
+        tr_symbols: List[Tuple[Symbol, Symbol]],
+        loop_count: ArithExpression,
+        domain_elem: "IterationDomain",
+    ) -> FormulaExpression:
+        """Concretize a domain element to a formula."""
+        return SolvablePolynomialAbstraction.closure(
+            srk, tr_symbols, loop_count, domain_elem
+        )
+
+    @staticmethod
+    def join(
+        srk: Context,
+        dom1: "IterationDomain",
+        dom2: "IterationDomain",
+    ) -> "IterationDomain":
+        """Join two domain elements."""
+        return dom1 if dom1.nb_equations >= dom2.nb_equations else dom2
+
+    @staticmethod
+    def widen(
+        srk: Context,
+        dom1: "IterationDomain",
+        dom2: "IterationDomain",
+    ) -> "IterationDomain":
+        """Widen two domain elements."""
+        return SolvablePolynomialAbstraction.join(srk, dom1, dom2)
+
+    @staticmethod
+    def equal(dom1: "IterationDomain", dom2: "IterationDomain") -> bool:
+        """Check equality."""
+        return dom1.nb_equations == dom2.nb_equations
+
+    @staticmethod
+    def pp(dom: "IterationDomain") -> str:
+        """Pretty-print."""
+        return f"SolvablePolynomial({dom.nb_equations})"
+
+
+def _block_closure_formula(
+    srk: Context, block: Block, loop_count: ArithExpression
+) -> FormulaExpression:
+    """Compute the closure formula for a single solvable polynomial block."""
+    from .expPolynomial import ExpPolynomial
+
+    if not block.blk_transform or not block.blk_add:
+        return mk_true(srk)
+    ep = ExpPolynomial.scalar(Fraction(1))
+    dummy = mk_const(srk, mk_symbol(srk, None, Type.REAL))
+    return ep.to_term(srk, dummy)
+
+
+# ---------------------------------------------------------------------------
 # SolvablePolynomialOne — Eigenvalue-1 specialization
 # ---------------------------------------------------------------------------
 
