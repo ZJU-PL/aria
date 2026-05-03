@@ -39,6 +39,7 @@ from enum import Enum
 import itertools
 import math
 from functools import cmp_to_key
+import heapq
 
 # Optional SymPy integration for advanced polynomial operations
 try:
@@ -1228,10 +1229,14 @@ class Ideal:
         self,
         generators: Optional[List[Polynomial]] = None,
         order: MonomialOrder = MonomialOrder.DEGLEX,
+        num_vars: Optional[int] = None,
     ):
         generators = generators or []
         self.order = order
-        self.num_vars = max((p.num_variables() for p in generators), default=0)
+        inferred_num_vars = max((p.num_variables() for p in generators), default=0)
+        if num_vars is not None and num_vars < inferred_num_vars:
+            raise ValueError("Ideal ring dimension is smaller than a generator")
+        self.num_vars = num_vars if num_vars is not None else inferred_num_vars
         self.generators = [
             _extend_polynomial(p, self.num_vars) for p in generators if not p.is_zero()
         ]
@@ -1265,13 +1270,18 @@ class Ideal:
             [_extend_polynomial(p, num_vars) for p in self.generators]
             + [_extend_polynomial(p, num_vars) for p in other.generators],
             self.order,
+            num_vars=num_vars,
         )
 
     def product(self, other: "Ideal") -> "Ideal":
         num_vars = max(self.num_vars, other.num_vars)
         left = [_extend_polynomial(p, num_vars) for p in self.generators]
         right = [_extend_polynomial(p, num_vars) for p in other.generators]
-        return Ideal([p * q for p in left for q in right], self.order)
+        return Ideal(
+            [p * q for p in left for q in right],
+            self.order,
+            num_vars=num_vars,
+        )
 
     def intersect(self, other: "Ideal") -> "Ideal":
         """Compute I cap J by eliminating t from tI + (1-t)J."""
@@ -1296,6 +1306,7 @@ class Ideal:
                 for p in eliminated.generators
             ],
             self.order,
+            num_vars=num_vars,
         )
 
     def project(self, variables: Union[Set[int], List[int], Tuple[int, ...]]) -> "Ideal":
@@ -1330,7 +1341,7 @@ class Ideal:
                         }
                     )
                 )
-        return Ideal(projected, self.order)
+        return Ideal(projected, self.order, num_vars=self.num_vars)
 
 
 # Groebner basis computation (simplified implementation)
@@ -1499,28 +1510,124 @@ def _groebner_basis_simplified(
 
 
 def _buchberger_basis(polys: List[Polynomial], order: MonomialOrder) -> List[Polynomial]:
-    """Compute a small reduced Groebner basis using Buchberger's algorithm."""
-    basis = [_scale_to_monic(p, order) for p in polys if not p.is_zero()]
-    pairs = [(i, j) for i in range(len(basis)) for j in range(i + 1, len(basis))]
+    """Compute a reduced Groebner basis using Buchberger's algorithm.
+
+    The OCaml implementation orders pairs by the degree of the LCM of leading
+    monomials and avoids relatively-prime pairs.  This fallback mirrors those
+    sound parts without trying to be a full CAS replacement.
+    """
+    basis = _minimal_monic_basis(polys, order)
+    pairs: List[Tuple[int, int, int]] = []
+    queued: Set[Tuple[int, int]] = set()
+
+    def enqueue(i: int, j: int) -> None:
+        if i == j:
+            return
+        if i > j:
+            i, j = j, i
+        pair = (i, j)
+        if pair in queued:
+            return
+        lm_i = basis[i].leading_monomial(order)
+        lm_j = basis[j].leading_monomial(order)
+        if lm_i.gcd(lm_j).degree() == 0:
+            return
+        queued.add(pair)
+        heapq.heappush(pairs, (lm_i.lcm(lm_j).degree(), i, j))
+
+    for i in range(len(basis)):
+        for j in range(i + 1, len(basis)):
+            enqueue(i, j)
 
     while pairs:
-        i, j = pairs.pop(0)
+        _, i, j = heapq.heappop(pairs)
+        if i >= len(basis) or j >= len(basis):
+            continue
         s_poly = _s_polynomial(basis[i], basis[j], order)
         if s_poly is None or s_poly.is_zero():
             continue
         reduced = _scale_to_monic(_reduce_polynomial(s_poly, basis, order), order)
-        if reduced.is_zero() or any(reduced == existing for existing in basis):
+        if reduced.is_zero():
+            continue
+        if _leading_monomial_reducible(reduced, basis, order):
+            reduced = _scale_to_monic(_reduce_polynomial(reduced, basis, order), order)
+            if reduced.is_zero():
+                continue
+        if any(reduced == existing for existing in basis):
             continue
         new_index = len(basis)
         basis.append(reduced)
-        pairs.extend((i, new_index) for i in range(new_index))
+        for old_index in range(new_index):
+            enqueue(old_index, new_index)
 
-    reduced_basis = []
+    return _self_reduce_basis(basis, order)
+
+
+def _minimal_monic_basis(
+    polys: List[Polynomial], order: MonomialOrder
+) -> List[Polynomial]:
+    """Normalize input generators and drop duplicate/reducible leading terms."""
+    basis: List[Polynomial] = []
+    for poly in polys:
+        poly = _scale_to_monic(poly, order)
+        if poly.is_zero() or any(poly == existing for existing in basis):
+            continue
+        if _leading_monomial_reducible(poly, basis, order):
+            reduced = _scale_to_monic(_reduce_polynomial(poly, basis, order), order)
+            if reduced.is_zero() or any(reduced == existing for existing in basis):
+                continue
+            poly = reduced
+        basis = [
+            existing
+            for existing in basis
+            if not poly.leading_monomial(order).divides(
+                existing.leading_monomial(order)
+            )
+        ]
+        basis.append(poly)
+    return basis
+
+
+def _leading_monomial_reducible(
+    poly: Polynomial, basis: List[Polynomial], order: MonomialOrder
+) -> bool:
+    if poly.is_zero():
+        return False
+    lm = poly.leading_monomial(order)
+    return any(
+        not divisor.is_zero() and divisor.leading_monomial(order).divides(lm)
+        for divisor in basis
+    )
+
+
+def _self_reduce_basis(
+    basis: List[Polynomial], order: MonomialOrder
+) -> List[Polynomial]:
+    reduced_basis: List[Polynomial] = []
     for i, poly in enumerate(basis):
         others = basis[:i] + basis[i + 1 :]
         reduced = _scale_to_monic(_reduce_polynomial(poly, others, order), order)
-        if not reduced.is_zero() and not any(reduced == p for p in reduced_basis):
-            reduced_basis.append(reduced)
+        if reduced.is_zero():
+            continue
+        if any(reduced == existing for existing in reduced_basis):
+            continue
+        if _leading_monomial_reducible(reduced, reduced_basis, order):
+            continue
+        reduced_basis = [
+            existing
+            for existing in reduced_basis
+            if not reduced.leading_monomial(order).divides(
+                existing.leading_monomial(order)
+            )
+        ]
+        reduced_basis.append(reduced)
+    reduced_basis.sort(
+        key=cmp_to_key(
+            lambda p, q: -p.leading_monomial(order).compare(
+                q.leading_monomial(order), order
+            )
+        )
+    )
     return reduced_basis
 
 

@@ -2239,7 +2239,10 @@ def check_strategy(
     if not _is_linear_arithmetic_expr(phi, True):
         return None
 
-    if strategy is None or strategy == {} or strategy == {"strategy": []}:
+    concrete = _concrete_strategy_assignments(srk, strategy)
+    if concrete is not None:
+        qf_pre, strategy_formula = _apply_concrete_strategy(srk, qf_pre, phi, concrete)
+    elif strategy is None or strategy == {} or strategy == {"strategy": []}:
         strategy_formula = phi
     elif isinstance(strategy, Skeleton.SEmpty):
         strategy_formula = phi
@@ -2257,3 +2260,89 @@ def check_strategy(
     if result == "Unsat":
         return False
     return None
+
+
+def _concrete_strategy_assignments(
+    srk: Any, strategy: Any
+) -> Optional[Dict[Any, Any]]:
+    """Parse simple concrete strategy maps used by the Python migration tests."""
+    if not isinstance(strategy, dict):
+        return None
+    raw = strategy.get("assignments")
+    if raw is None:
+        raw = strategy.get("strategy")
+    if raw in (None, []):
+        return None
+    if isinstance(raw, dict):
+        items = raw.items()
+    elif isinstance(raw, list):
+        items = raw
+    else:
+        return None
+
+    parsed: Dict[Any, Any] = {}
+    for key, value in items:
+        symbol = _resolve_strategy_symbol(srk, key)
+        if symbol is None:
+            return None
+        expr = _strategy_value_expr(srk, symbol, value)
+        if expr is None:
+            return None
+        parsed[symbol] = expr
+    return parsed
+
+
+def _resolve_strategy_symbol(srk: Any, key: Any) -> Optional[Any]:
+    if hasattr(key, "typ") and hasattr(key, "id"):
+        return key
+    if isinstance(key, str):
+        try:
+            if hasattr(srk, "is_registered_name") and srk.is_registered_name(key):
+                return srk.get_named_symbol(key)
+        except Exception:
+            pass
+        for symbol in getattr(srk, "_symbols", {}).values():
+            if getattr(symbol, "name", None) == key:
+                return symbol
+    return None
+
+
+def _strategy_value_expr(srk: Any, symbol: Any, value: Any) -> Optional[Any]:
+    from .syntax import Expression, Type, mk_false, mk_int, mk_real, mk_true
+
+    if isinstance(value, Expression):
+        return value
+    typ = getattr(symbol, "typ", None)
+    if typ == Type.BOOL:
+        if isinstance(value, bool):
+            return mk_true(srk) if value else mk_false(srk)
+        return None
+    try:
+        rational = Fraction(value)
+    except Exception:
+        return None
+    if typ == Type.INT:
+        if rational.denominator != 1:
+            return None
+        return mk_int(srk, rational.numerator)
+    if typ == Type.REAL:
+        return mk_real(srk, rational)
+    return None
+
+
+def _apply_concrete_strategy(
+    srk: Any,
+    qf_pre: List[Tuple[str, Any]],
+    phi: Any,
+    assignments: Dict[Any, Any],
+) -> Tuple[List[Tuple[str, Any]], Any]:
+    from .syntax import substitute_const
+
+    remaining_prefix = []
+    subst = {}
+    for qt, symbol in qf_pre:
+        if qt == "Exists" and symbol in assignments:
+            subst[symbol] = assignments[symbol]
+        else:
+            remaining_prefix.append((qt, symbol))
+    return remaining_prefix, substitute_const(subst, phi) if subst else phi

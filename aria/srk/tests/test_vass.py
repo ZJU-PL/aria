@@ -78,6 +78,39 @@ class TestVASSClosure(unittest.TestCase):
         self.assertEqual(smt.SMTResult.SAT, self._check(formula, 0, 3, 3))
         self.assertEqual(smt.SMTResult.UNSAT, self._check(formula, 0, 2, 3))
 
+    def test_closure_rejects_disconnected_positive_cycle_assignment(self):
+        zero = vas.Transformer(
+            QQVector({0: Fraction(1)}), QQVector({0: Fraction(0)})
+        )
+        increment = vas.Transformer(
+            QQVector({0: Fraction(1)}), QQVector({0: Fraction(1)})
+        )
+        scc = vass.SCCVAS(
+            control_states=[syntax.mk_true(self.srk), syntax.mk_true(self.srk)],
+            graph=[
+                [vas.VAS.singleton(zero), vas.VAS.empty()],
+                [vas.VAS.empty(), vas.VAS.singleton(increment)],
+            ],
+            s_lst=[QQMatrix([QQVector({0: Fraction(1)})])],
+        )
+
+        closure, sources = vass.closure_of_an_scc(
+            self.srk, self.tr_symbols, self.k, scc
+        )
+        force_first_source = syntax.mk_eq(
+            self.srk, sources[0], syntax.mk_one(self.srk)
+        )
+
+        self.assertEqual(
+            smt.SMTResult.UNSAT,
+            self._check(
+                syntax.mk_and(self.srk, [closure, force_first_source]),
+                0,
+                2,
+                2,
+            ),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

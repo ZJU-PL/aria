@@ -66,6 +66,37 @@ from .util import ZZ
 QQX = Polynomial
 
 
+class UPCombination:
+    """Finite sum of exponential-polynomial terms with possibly different bases."""
+
+    def __init__(self, terms: List["UP"]):
+        combined: Dict[Fraction, "UP"] = {}
+        for term in terms:
+            if _up_is_zero(term):
+                continue
+            base = term.exponential_part
+            if base in combined:
+                combined[base] = combined[base] + term
+            else:
+                combined[base] = term
+        self.terms = [term for term in combined.values() if not _up_is_zero(term)]
+
+    def evaluate(self, k: int) -> Fraction:
+        return sum((term.evaluate(k) for term in self.terms), Fraction(0))
+
+    def __add__(self, other):
+        if isinstance(other, UPCombination):
+            return UPCombination(self.terms + other.terms)
+        return UPCombination(self.terms + [other])
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, UPCombination):
+            return False
+        return sorted(self.terms, key=lambda term: term.exponential_part) == sorted(
+            other.terms, key=lambda term: term.exponential_part
+        )
+
+
 def _monomial_one() -> Monomial:
     return Monomial(())
 
@@ -89,6 +120,8 @@ def _mul_monomials(left: Monomial, right: Monomial) -> Monomial:
 
 
 def _up_is_zero(up: "UP") -> bool:
+    if isinstance(up, UPCombination):
+        return all(_up_is_zero(term) for term in up.terms)
     polynomial_part = getattr(up, "polynomial_part", None)
     return bool(polynomial_part is not None and polynomial_part.is_zero())
 
@@ -104,6 +137,16 @@ def _up_exponential(base: Fraction, coeff: Fraction = Fraction(1)) -> "UP":
 
 
 def _up_mul(left: "UP", right: "UP") -> "UP":
+    if isinstance(left, UPCombination) or isinstance(right, UPCombination):
+        left_terms = left.terms if isinstance(left, UPCombination) else [left]
+        right_terms = right.terms if isinstance(right, UPCombination) else [right]
+        return UPCombination(
+            [
+                _up_mul(left_term, right_term)
+                for left_term in left_terms
+                for right_term in right_terms
+            ]
+        )
     product_terms: Dict[Monomial, Fraction] = {}
     for left_monomial, left_coeff in left.polynomial_part.enum():
         for right_monomial, right_coeff in right.polynomial_part.enum():
@@ -117,6 +160,20 @@ def _up_mul(left: "UP", right: "UP") -> "UP":
     )
 
 
+def _up_add(left: "UP", right: "UP") -> "UP":
+    if _up_is_zero(left):
+        return right
+    if _up_is_zero(right):
+        return left
+    if isinstance(left, UPCombination) or isinstance(right, UPCombination):
+        left_terms = left.terms if isinstance(left, UPCombination) else [left]
+        right_terms = right.terms if isinstance(right, UPCombination) else [right]
+        return UPCombination(left_terms + right_terms)
+    if left.exponential_part == right.exponential_part:
+        return left + right
+    return UPCombination([left, right])
+
+
 def _up_linear_k(coeff: Fraction) -> "UP":
     if coeff == 0:
         return UP.zero()
@@ -124,6 +181,14 @@ def _up_linear_k(coeff: Fraction) -> "UP":
 
 
 def _up_constant_value(up: "UP") -> Optional[Fraction]:
+    if isinstance(up, UPCombination):
+        total = Fraction(0)
+        for term in up.terms:
+            value = _up_constant_value(term)
+            if value is None:
+                return None
+            total += value
+        return total
     if up.exponential_part != Fraction(1):
         return None
     poly = up.polynomial_part
@@ -169,7 +234,7 @@ class UPXs:
         if _up_is_zero(coeff):
             return upxs
         if monomial in upxs._terms:
-            upxs._terms[monomial] = upxs._terms[monomial] + coeff
+            upxs._terms[monomial] = _up_add(upxs._terms[monomial], coeff)
             if _up_is_zero(upxs._terms[monomial]):
                 del upxs._terms[monomial]
         else:
@@ -251,7 +316,7 @@ class UPXs:
         new_terms = self._terms.copy()
         for monomial, coeff in other._terms.items():
             if monomial in new_terms:
-                new_terms[monomial] = new_terms[monomial] + coeff
+                new_terms[monomial] = _up_add(new_terms[monomial], coeff)
                 if _up_is_zero(new_terms[monomial]):
                     del new_terms[monomial]
             elif not _up_is_zero(coeff):
@@ -610,6 +675,23 @@ def _upxs_summation(upxs: UPXs) -> UPXs:
     return result
 
 
+def _upxs_constant_value(upxs: UPXs) -> Optional[Fraction]:
+    if not upxs._terms:
+        return Fraction(0)
+    if set(upxs._terms.keys()) != {_monomial_one()}:
+        return None
+    return _up_constant_value(upxs._terms[_monomial_one()])
+
+
+def _geometric_affine_sum(multiplier: Fraction, addend: Fraction) -> "UP":
+    if addend == 0:
+        return UP.zero()
+    if multiplier == 1:
+        return _up_linear_k(addend)
+    scale = addend / (multiplier - 1)
+    return _up_add(_up_exponential(multiplier, scale), _up_constant(-scale))
+
+
 def _substitute_closed_forms(
     poly: QQX, cf: List[UPXs], current_offset: int, total_dim: int
 ) -> UPXs:
@@ -673,8 +755,16 @@ def closure_periodic_rational(sp: SolvablePolynomial) -> List["UPXs"]:
             elif _is_zero_polynomial(add_poly):
                 cf[dim_idx] = initial
             else:
-                raise NotImplementedError(
-                    "affine closed forms with non-unit multipliers are not supported"
+                addend = _upxs_constant_value(add_upxs)
+                if addend is None:
+                    raise NotImplementedError(
+                        "non-unit affine closed forms require constant additives"
+                    )
+                cf[dim_idx] = initial.add(
+                    UPXs.add_term(
+                        _geometric_affine_sum(multiplier, addend),
+                        _monomial_one(),
+                    )
                 )
 
     # Process each block
@@ -687,24 +777,79 @@ def standard_basis_prsd(
     mA: List[List[Fraction]], size: int
 ) -> List[Tuple[int, Fraction, List[List[Fraction]]]]:
     """Compute periodic rational spectral decomposition for standard basis."""
-    if not _is_diagonal_matrix(mA, size):
-        raise NotImplementedError(
-            "standard_basis_prsd currently supports diagonal matrices only"
-        )
+    if len(mA) != size or any(len(row) != size for row in mA):
+        raise ValueError("matrix size mismatch")
 
-    by_eigenvalue: Dict[Fraction, List[List[Fraction]]] = {}
-    for i in range(size):
-        eigenvector = [Fraction(0)] * size
-        eigenvector[i] = Fraction(1)
-        by_eigenvalue.setdefault(mA[i][i], []).append(eigenvector)
+    basis_data: List[Tuple[int, Fraction, List[Fraction]]] = []
+    if _is_diagonal_matrix(mA, size):
+        for i in range(size):
+            eigenvector = [Fraction(0)] * size
+            eigenvector[i] = Fraction(1)
+            eigenvalue = mA[i][i]
+            period = 2 if eigenvalue == Fraction(-1) else 1
+            basis_data.append((period, eigenvalue, eigenvector))
+    else:
+        basis_data = _standard_basis_monomial_prsd(mA, size)
 
-    def period(eigenvalue: Fraction) -> int:
-        return 2 if eigenvalue == Fraction(-1) else 1
+    by_eigenvalue: Dict[Tuple[int, Fraction], List[List[Fraction]]] = {}
+    for period, eigenvalue, eigenvector in basis_data:
+        by_eigenvalue.setdefault((period, eigenvalue), []).append(eigenvector)
 
     return [
-        (period(eigenvalue), eigenvalue, eigenvectors)
-        for eigenvalue, eigenvectors in by_eigenvalue.items()
+        (period, eigenvalue, eigenvectors)
+        for (period, eigenvalue), eigenvectors in by_eigenvalue.items()
     ]
+
+
+def _standard_basis_monomial_prsd(
+    mA: List[List[Fraction]], size: int
+) -> List[Tuple[int, Fraction, List[Fraction]]]:
+    """PRSD for signed permutation matrices over rational roots of unity."""
+    row_edges: List[Tuple[int, Fraction]] = []
+    used_cols: Set[int] = set()
+    for row in mA:
+        nonzero = [(col, coeff) for col, coeff in enumerate(row) if coeff != 0]
+        if len(nonzero) != 1:
+            raise NotImplementedError(
+                "standard_basis_prsd supports diagonal or signed permutation matrices"
+            )
+        col, coeff = nonzero[0]
+        if col in used_cols:
+            raise NotImplementedError(
+                "standard_basis_prsd requires an invertible monomial matrix"
+            )
+        used_cols.add(col)
+        row_edges.append((col, coeff))
+
+    if used_cols != set(range(size)):
+        raise NotImplementedError(
+            "standard_basis_prsd requires an invertible monomial matrix"
+        )
+
+    decomposition: List[Tuple[int, Fraction, List[Fraction]]] = []
+    for start in range(size):
+        current = start
+        multiplier = Fraction(1)
+        period = 0
+        seen: Set[int] = set()
+        while current not in seen:
+            seen.add(current)
+            nxt, coeff = row_edges[current]
+            multiplier *= coeff
+            current = nxt
+            period += 1
+        if current != start:
+            raise NotImplementedError(
+                "standard_basis_prsd only supports standard-basis cycles"
+            )
+        if multiplier not in (Fraction(1), Fraction(-1)):
+            raise NotImplementedError(
+                "standard_basis_prsd only supports rational roots of unity"
+            )
+        eigenvector = [Fraction(0)] * size
+        eigenvector[start] = Fraction(1)
+        decomposition.append((period, multiplier, eigenvector))
+    return decomposition
 
 
 @dataclass

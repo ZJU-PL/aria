@@ -113,9 +113,9 @@ class LLRF:
         - fi(x) > fi(x')
         where x is the pre-state and x' is the post-state.
         """
-        # This is a simplified check - a full implementation would need
-        # to analyze the transition relation properly
-        return True  # Placeholder
+        # This standalone module does not have enough transition semantics to
+        # validate arbitrary LLRFs. Keep unsupported checks as non-proofs.
+        return False
 
     def __str__(self) -> str:
         comp_str = ", ".join(str(comp) for comp in self.components)
@@ -222,15 +222,13 @@ class LLRFAnalyzer:
         self, lrf: LinearRankingFunction, transitions: List[Transition]
     ) -> bool:
         """Check if an LRF is valid (decreases on at least one transition)."""
-        # Simplified check - in practice would use SMT solving
-        return True  # Conservative assumption
+        return False
 
     def _filter_handled_transitions(
         self, transitions: List[Transition], lrf: LinearRankingFunction
     ) -> List[Transition]:
         """Filter out transitions that are handled by the LRF."""
-        # Simplified - in practice would check which transitions decrease
-        return []  # Assume all are handled for simplicity
+        return list(transitions)
 
     def check_termination(self, transitions: List[Transition], llrf: LLRF) -> bool:
         """Check if the LLRF proves termination on all transitions.
@@ -272,12 +270,7 @@ class LLRFAnalyzer:
         A linear function c^T*x + d is bounded below on reachable states if:
         - There exists a lower bound L such that c^T*x + d >= L for all reachable x
         """
-        # Simplified check - linear functions with non-negative coefficients
-        # and non-negative constant are bounded below by the constant
-
-        # In practice, this requires analyzing reachability constraints
-        # For now, assume bounded below if it looks reasonable
-        return True  # Conservative assumption
+        return False
 
     def find_minimal_llrf(self, transitions: List[Transition]) -> Optional[LLRF]:
         """Find a minimal LLRF that proves termination."""
@@ -335,9 +328,7 @@ def _cs_of_symbols(context: Context, symbols: List[Symbol]) -> CoordinateSystem:
 
 def has_llrf(context: Context, tf: TransitionFormula) -> bool:
     """Check if transition formula has a linear lexicographic ranking function."""
-    # Simplified implementation - always return True for now
-    # A full implementation would check if llrf_residual returns None
-    return True
+    return llrf_residual(context, tf) is None
 
 
 def mp(context: Context, tf: TransitionFormula) -> FormulaExpression:
@@ -350,7 +341,7 @@ def mp(context: Context, tf: TransitionFormula) -> FormulaExpression:
 
 def analyze_termination_llrf(transitions: List[Transition], context: Context) -> bool:
     """Analyze transitions for termination using LLRF."""
-    # For now, return a conservative result
-    # A full implementation would use the llrf_residual function above
     logger.info("LLRF termination analysis - conservative result")
-    return True  # Conservative: assume terminates
+    analyzer = LLRFAnalyzer(context)
+    llrf = analyzer.find_minimal_llrf(transitions)
+    return bool(llrf and analyzer.check_termination(transitions, llrf))

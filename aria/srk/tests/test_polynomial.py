@@ -4,6 +4,7 @@ Tests for the polynomial module.
 
 import unittest
 from fractions import Fraction
+import aria.srk.polynomial as polynomial_module
 from aria.srk.polynomial import (
     Ideal,
     Monomial,
@@ -354,6 +355,20 @@ class TestGroebnerBasis(unittest.TestCase):
         self.assertTrue(intersection.mem(x * y))
         self.assertFalse(intersection.mem(x))
 
+    def test_ideal_intersection_nontrivial_principal_generators(self):
+        """Intersection of coprime principal ideals is their product."""
+        x = variable(0, 2)
+        y = variable(1, 2)
+
+        intersection = Ideal.make([x], MonomialOrder.LEX).intersect(
+            Ideal.make([y], MonomialOrder.LEX)
+        )
+
+        self.assertTrue(intersection.mem(x * y))
+        self.assertTrue(intersection.mem((x * y) * (x + y)))
+        self.assertFalse(intersection.mem(x))
+        self.assertFalse(intersection.mem(y))
+
     def test_ideal_projection_eliminates_variables(self):
         """Test elimination projection keeps only requested variables."""
         x = variable(0, 2)
@@ -363,6 +378,59 @@ class TestGroebnerBasis(unittest.TestCase):
         projected = ideal.project({0})
         self.assertTrue(projected.mem(x - 1))
         self.assertFalse(projected.mem(x))
+
+    def test_ideal_projection_keeps_relation_over_surviving_variables(self):
+        """Eliminating x from <x-y, y-z> leaves the relation y-z."""
+        x = variable(0, 3)
+        y = variable(1, 3)
+        z = variable(2, 3)
+        ideal = Ideal.make([x - y, y - z], MonomialOrder.LEX)
+
+        projected = ideal.project({1, 2})
+
+        self.assertTrue(projected.mem(y - z))
+        self.assertFalse(projected.mem(y))
+
+    def test_ideal_projection_without_surviving_generators(self):
+        """Projecting <x> to variables disjoint from x yields the zero ideal."""
+        x = variable(0, 2)
+        y = variable(1, 2)
+
+        projected = Ideal.make([x], MonomialOrder.LEX).project({1})
+
+        self.assertTrue(projected.mem(Polynomial()))
+        self.assertFalse(projected.mem(y))
+
+    def test_fallback_buchberger_self_reduces_basis(self):
+        """Fallback Buchberger computes a monic reduced basis without SymPy."""
+        x = variable(0, 2)
+        y = variable(1, 2)
+        previous = polynomial_module.HAS_SYMPY
+        polynomial_module.HAS_SYMPY = False
+        try:
+            ideal = Ideal.make([x * y - 1, y * y - 1], MonomialOrder.LEX)
+
+            self.assertTrue(ideal.mem(x - y))
+            self.assertTrue(ideal.mem(x * x - 1))
+            self.assertFalse(ideal.mem(x - 1))
+
+            basis_polys = polynomial_module._basis_polynomials(
+                [x * y - 1, y * y - 1], MonomialOrder.LEX
+            )
+            for basis_poly in basis_polys:
+                self.assertEqual(
+                    basis_poly.leading_coefficient(MonomialOrder.LEX), Fraction(1)
+                )
+            leading = [
+                basis_poly.leading_monomial(MonomialOrder.LEX)
+                for basis_poly in basis_polys
+            ]
+            for i, lhs in enumerate(leading):
+                for j, rhs in enumerate(leading):
+                    if i != j:
+                        self.assertFalse(lhs.divides(rhs))
+        finally:
+            polynomial_module.HAS_SYMPY = previous
 
 
 if __name__ == "__main__":

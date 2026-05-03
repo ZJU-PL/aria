@@ -3,6 +3,7 @@ Tests for the quantifier elimination module.
 """
 
 import unittest
+from fractions import Fraction
 from aria.srk.syntax import (
     Context,
     Symbol,
@@ -336,6 +337,64 @@ class TestStrategyImprovementSolver(unittest.TestCase):
         formula = mk_and([mk_lt(x_const, zero), mk_leq(zero, x_const)])
 
         self.assertFalse(check_strategy(self.context, [], formula, {"strategy": []}))
+
+    def test_check_strategy_validates_concrete_existential_move(self):
+        """Concrete existential strategies are checked against the matrix."""
+        x = mk_symbol(self.context, "cx", Type.REAL)
+        x_const = mk_const(x)
+        zero = mk_real(self.context, 0)
+        formula = mk_lt(zero, x_const)
+        prefix = [("Exists", x)]
+
+        self.assertTrue(
+            check_strategy(
+                self.context,
+                prefix,
+                formula,
+                {"assignments": {x: Fraction(1)}},
+            )
+        )
+        self.assertFalse(
+            check_strategy(
+                self.context,
+                prefix,
+                formula,
+                {"assignments": {x: Fraction(-1)}},
+            )
+        )
+
+    def test_check_strategy_rejects_constant_move_under_universal_counterplay(self):
+        """A fixed existential move must satisfy every remaining universal branch."""
+        y = mk_symbol(self.context, "uy", Type.REAL)
+        x = mk_symbol(self.context, "ex", Type.REAL)
+        y_const = mk_const(y)
+        x_const = mk_const(x)
+        formula = mk_lt(y_const, x_const)
+        prefix = [("Forall", y), ("Exists", x)]
+
+        self.assertFalse(
+            check_strategy(
+                self.context,
+                prefix,
+                formula,
+                {"assignments": {x: Fraction(0)}},
+            )
+        )
+
+    def test_check_strategy_unknown_for_nonlinear_strategy_formula(self):
+        """Unsupported nonlinear strategy validation stays explicitly unknown."""
+        x = mk_symbol(self.context, "nsx", Type.REAL)
+        x_const = mk_const(x)
+        formula = mk_lt(mk_real(self.context, 0), mk_mul([x_const, x_const]))
+
+        self.assertIsNone(
+            check_strategy(
+                self.context,
+                [("Exists", x)],
+                formula,
+                {"assignments": {x: Fraction(2)}},
+            )
+        )
 
 
 if __name__ == "__main__":

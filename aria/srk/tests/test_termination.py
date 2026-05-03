@@ -7,7 +7,7 @@ from aria.srk.syntax import Context, Symbol, Type
 from aria.srk.termination import TerminationAnalyzer, RankingFunction, TerminationResult
 from aria.srk.transition import Transition
 from aria.srk.qQ import QQ
-from aria.srk.syntax import mk_add, mk_const, mk_lt, mk_real
+from aria.srk.syntax import mk_add, mk_and, mk_const, mk_eq, mk_leq, mk_lt, mk_real
 
 
 class TestTerminationAnalyzer(unittest.TestCase):
@@ -90,6 +90,49 @@ class TestTerminationAnalyzer(unittest.TestCase):
         result = analyzer.analyze_transitions([tr])
 
         self.assertFalse(result.terminates)
+
+    def test_analyze_two_counter_lexicographic_loop(self):
+        """A loop with two phases is proved by the lexicographic tuple (x, y)."""
+        analyzer = TerminationAnalyzer(self.context)
+        x = self.context.mk_symbol("x", Type.INT)
+        y = self.context.mk_symbol("y", Type.INT)
+        zero = mk_real(self.context, QQ.zero())
+        one = mk_real(self.context, QQ.one())
+        minus_one = mk_real(self.context, QQ.of_int(-1))
+
+        first_phase = Transition(
+            transform={
+                x: mk_add([mk_const(x), minus_one]),
+                y: mk_add([mk_const(y), one]),
+            },
+            guard=mk_and(
+                self.context,
+                [
+                    mk_lt(zero, mk_const(x)),
+                    mk_leq(zero, mk_const(y)),
+                ],
+            ),
+            context=self.context,
+        )
+        second_phase = Transition(
+            transform={
+                x: mk_const(x),
+                y: mk_add([mk_const(y), minus_one]),
+            },
+            guard=mk_and(
+                self.context,
+                [
+                    mk_eq(mk_const(x), zero),
+                    mk_lt(zero, mk_const(y)),
+                ],
+            ),
+            context=self.context,
+        )
+
+        result = analyzer.analyze_transitions([first_phase, second_phase])
+
+        self.assertTrue(result.terminates)
+        self.assertIsNotNone(result.ranking_function)
 
 
 class TestRankingFunction(unittest.TestCase):

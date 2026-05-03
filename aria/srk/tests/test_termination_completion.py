@@ -24,7 +24,9 @@ from aria.srk.termination import (
     TerminationLLRF,
     make_termination_analyzer,
 )
+from aria.srk.terminationLLRF import analyze_termination_llrf, has_llrf
 from aria.srk.transitionFormula import TransitionFormula
+from aria.srk.transition import Transition
 from aria.srk.linear import QQVector
 from aria.srk import qQ as QQ
 
@@ -160,6 +162,18 @@ class TestTerminationLLRF:
         llrf = TerminationLLRF(ctx)
 
         assert llrf.context == ctx
+
+    def test_standalone_llrf_placeholders_are_non_proofs(self):
+        """The incomplete standalone LLRF API must not return unsound success."""
+        ctx = Context()
+        x = ctx.mk_symbol("x", Type.INT)
+        xp = ctx.mk_symbol("x'", Type.INT)
+        formula = mk_eq(mk_const(xp), mk_const(x))
+        tf = TransitionFormula(formula=formula, symbols=[(x, xp)])
+        transition = Transition.assign(ctx, x, mk_const(x))
+
+        assert has_llrf(ctx, tf) is False
+        assert analyze_termination_llrf([transition], ctx) is False
 
 
 if __name__ == "__main__":

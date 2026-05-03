@@ -7,6 +7,7 @@ Based on the OCaml implementation in src/vass.ml.
 """
 
 import logging
+import itertools
 from typing import List, Dict, Set, Tuple, Optional, Any, Union, Callable
 from dataclasses import dataclass
 from enum import Enum
@@ -587,6 +588,62 @@ def _simple_counter_balance(
     return syntax.mk_and(srk, constraints)
 
 
+def _path_realizability_constraints(
+    srk: syntax.Context,
+    num_states: int,
+    local_s_t: List[Tuple[syntax.Term, syntax.Term]],
+    edge_counters: List[syntax.Term],
+    edge_transformers: List[Tuple[int, vas.Transformer, int]],
+) -> syntax.Formula:
+    """Require positive edge flow to be connected to the selected source.
+
+    Flow conservation alone admits an isolated positive circulation in a
+    disconnected component.  For every nonempty subset of states, if the subset
+    has no selected source and no positive incoming edge from outside, then no
+    edge internal to the subset may be used.
+    """
+    if num_states > 10:
+        raise NotImplementedError(
+            "VASS path-realizability constraints are explicit only up to 10 states"
+        )
+
+    constraints = []
+    states = range(num_states)
+    for subset_size in range(1, num_states + 1):
+        for subset_tuple in itertools.combinations(states, subset_size):
+            subset = set(subset_tuple)
+            sources_in_subset = [local_s_t[state][0] for state in subset]
+            incoming = [
+                edge_counters[index]
+                for index, (src, _, dst) in enumerate(edge_transformers)
+                if src not in subset and dst in subset
+            ]
+            internal = [
+                edge_counters[index]
+                for index, (src, _, dst) in enumerate(edge_transformers)
+                if src in subset and dst in subset
+            ]
+            if not internal:
+                continue
+            constraints.append(
+                _implies(
+                    srk,
+                    syntax.mk_eq(
+                        srk,
+                        _sum_terms(srk, sources_in_subset + incoming),
+                        syntax.mk_zero(srk),
+                    ),
+                    syntax.mk_eq(
+                        srk,
+                        _sum_terms(srk, internal),
+                        syntax.mk_zero(srk),
+                    ),
+                )
+            )
+
+    return syntax.mk_and(srk, constraints)
+
+
 def _counter_nonnegative_constraints(
     srk: syntax.Context, tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol]]
 ) -> syntax.Formula:
@@ -643,6 +700,9 @@ def closure_of_an_scc(
     constr9 = _simple_counter_balance(
         srk, tr_symbols, edge_counters, edge_transformers
     )
+    constr10 = _path_realizability_constraints(
+        srk, len(cs), local_s_t, edge_counters, edge_transformers
+    )
 
     return (
         syntax.mk_and(
@@ -657,6 +717,7 @@ def closure_of_an_scc(
                 constr7,
                 constr8,
                 constr9,
+                constr10,
             ],
         ),
         [source for source, _ in local_s_t],

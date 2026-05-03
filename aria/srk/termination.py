@@ -9,6 +9,7 @@ from __future__ import annotations
 from typing import Dict, List, Set, Tuple, Optional, Union, Any, Callable
 from fractions import Fraction
 from dataclasses import dataclass, field
+import itertools
 
 from aria.srk.syntax import (
     Context,
@@ -181,7 +182,10 @@ class TerminationAnalyzer:
 
             linear_rf = self._synthesize_from_transitions(transitions)
             if linear_rf is None:
-                return TerminationResult(False)
+                lex_rf = self._synthesize_lexicographic_from_transitions(transitions)
+                if lex_rf is None:
+                    return TerminationResult(False)
+                return TerminationResult(True, lex_rf)
 
             rf_term = linear_rf.to_term(self.context)
             return TerminationResult(True, RankingFunction(rf_term, True))
@@ -201,6 +205,69 @@ class TerminationAnalyzer:
                 return self._linear_expr_to_ranking(candidate, variables)
 
         return None
+
+    def _synthesize_lexicographic_from_transitions(
+        self, transitions: List[Any], max_components: int = 3
+    ) -> Optional[LexicographicRankingFunction]:
+        variables = self._transition_variables(transitions)
+        if not variables:
+            return None
+
+        candidates = self._ranking_candidates(variables)
+        limit = min(max_components, len(candidates))
+        for size in range(2, limit + 1):
+            for components in itertools.permutations(candidates, size):
+                if self._valid_lexicographic_candidate(
+                    list(components), transitions, variables
+                ):
+                    terms = tuple(
+                        self._linear_expr_to_ranking(component, variables).to_term(
+                            self.context
+                        )
+                        for component in components
+                    )
+                    return LexicographicRankingFunction(terms)
+        return None
+
+    def _valid_lexicographic_candidate(
+        self,
+        components: List[_LinearExpr],
+        transitions: List[Any],
+        variables: List[Symbol],
+    ) -> bool:
+        for tr in transitions:
+            guard = getattr(tr, "guard", mk_true(self.context))
+            transform = getattr(tr, "transform", None)
+            if not isinstance(transform, dict):
+                return False
+            if isinstance(guard, FalseExpr) or (
+                hasattr(tr, "is_zero") and tr.is_zero()
+            ):
+                continue
+
+            deltas: List[_LinearExpr] = []
+            for component in components:
+                if not self._guard_implies_nonnegative(component, guard, variables):
+                    return False
+                post = self._post_linear_expr(component, transform, variables)
+                if post is None:
+                    return False
+                deltas.append(component - post)
+
+            if not self._lexicographically_decreases(deltas):
+                return False
+
+        return True
+
+    def _lexicographically_decreases(self, deltas: List[_LinearExpr]) -> bool:
+        for idx, delta in enumerate(deltas):
+            if delta.coeffs:
+                return False
+            if delta.const > 0:
+                return True
+            if delta.const != 0:
+                return False
+        return False
 
     def _transition_variables(self, transitions: List[Any]) -> List[Symbol]:
         variables: List[Symbol] = []
@@ -409,6 +476,17 @@ class TerminationAnalyzer:
                     and all(sym.typ == Type.INT for sym in needed.coeffs)
                 ):
                     return True
+            elif isinstance(atom, Eq):
+                left = self._linear_expr_of(atom.left, variables)
+                right = self._linear_expr_of(atom.right, variables)
+                if left is None or right is None:
+                    continue
+                if self._same_linear_expr(left, needed) and not right.coeffs:
+                    if right.const >= 0:
+                        return True
+                if self._same_linear_expr(right, needed) and not left.coeffs:
+                    if left.const >= 0:
+                        return True
 
         return False
 
@@ -622,8 +700,8 @@ class DependencyTupleAnalysis:
 
     def analyze(self, transition_formula: Any) -> TerminationResult:
         """Analyze termination using dependency tuples."""
-        # Placeholder implementation
-        return TerminationResult(True)
+        analyzer = TerminationAnalyzer(self.context)
+        return analyzer.prove_termination(transition_formula)
 
 
 class LexicographicRankingFunction:

@@ -27,6 +27,24 @@ class TestSolvablePolynomialClosedForms(unittest.TestCase):
         self.assertEqual(closed[0].eval(0), var(0, 1))
         self.assertEqual(closed[0].eval(3), var(0, 1).scalar_mul(Fraction(8)))
 
+    def test_nonunit_affine_constant_closed_form(self):
+        block = Block([[Fraction(2)]], [QQX.scalar(Fraction(3))])
+
+        closed = closure_periodic_rational([block])
+
+        self.assertEqual(
+            closed[0].eval(4).evaluate({0: Fraction(5)}),
+            Fraction(2) ** 4 * Fraction(5) + Fraction(3) * (Fraction(2) ** 4 - 1),
+        )
+
+    def test_periodic_affine_constant_closed_form(self):
+        block = Block([[Fraction(-1)]], [QQX.scalar(Fraction(6))])
+
+        closed = closure_periodic_rational([block])
+
+        self.assertEqual(closed[0].eval(2).evaluate({0: Fraction(7)}), Fraction(7))
+        self.assertEqual(closed[0].eval(3).evaluate({0: Fraction(7)}), Fraction(-1))
+
     def test_unit_affine_constant_closed_form(self):
         block = Block([[Fraction(1)]], [QQX.scalar(Fraction(5))])
 
@@ -84,6 +102,30 @@ class TestSolvablePolynomialClosedForms(unittest.TestCase):
         with self.assertRaises(NotImplementedError):
             standard_basis_prsd(
                 [[Fraction(1), Fraction(1)], [Fraction(0), Fraction(1)]],
+                2,
+            )
+
+    def test_standard_basis_prsd_for_signed_permutation(self):
+        decomposition = standard_basis_prsd(
+            [[Fraction(0), Fraction(1)], [Fraction(1), Fraction(0)]],
+            2,
+        )
+
+        self.assertEqual(
+            decomposition,
+            [
+                (
+                    2,
+                    Fraction(1),
+                    [[Fraction(1), Fraction(0)], [Fraction(0), Fraction(1)]],
+                )
+            ],
+        )
+
+    def test_standard_basis_prsd_rejects_nonperiodic_monomial_matrix(self):
+        with self.assertRaises(NotImplementedError):
+            standard_basis_prsd(
+                [[Fraction(0), Fraction(2)], [Fraction(1), Fraction(0)]],
                 2,
             )
 
