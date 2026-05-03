@@ -791,11 +791,12 @@ class Interpretation:
             one = mk_real(self.context, QQ.one)
             return ("ArithComparison", "Eq", zero, one)
         elif isinstance(formula, App):
-            if not formula.args:  # Nullary predicate
-                return ("Literal", "Pos", "Const", formula.func)
+            if not formula.args:
+                return ("Literal", "Pos", "Const", formula.symbol)
             else:
-                # For now, treat as positive literal with variable
-                return ("Literal", "Pos", "Var", 0)  # Placeholder
+                # Function application with arguments: f(x1, ..., xn)
+                # Treated as a positive literal with the function symbol
+                return ("Literal", "Pos", "App", (formula.symbol, formula.args))
         elif isinstance(formula, Var):
             return ("Literal", "Pos", "Var", formula.var_id)
         elif isinstance(formula, Not):
@@ -954,11 +955,10 @@ def destruct_atom(
         one = mk_real(context, QQ.one)
         return ("ArithComparison", "Eq", zero, one)
     elif isinstance(formula, App):
-        if not formula.args:  # Nullary predicate
-            return ("Literal", "Pos", "Const", formula.func)
+        if not formula.args:
+            return ("Literal", "Pos", "Const", formula.symbol)
         else:
-            # For now, treat as positive literal with variable
-            return ("Literal", "Pos", "Var", 0)  # Placeholder
+            return ("Literal", "Pos", "App", (formula.symbol, formula.args))
     elif isinstance(formula, Var):
         return ("Literal", "Pos", "Var", formula.var_id)
     elif isinstance(formula, Not):

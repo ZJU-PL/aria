@@ -472,3 +472,41 @@ def get_memoization_stats() -> Dict[str, Any]:
         "function_memo": function_memoizer.stats(),
         "monitor": memo_monitor.get_stats(),
     }
+
+
+# ---------------------------------------------------------------------------
+# Missing OCaml API: recursive memoization & LRU variants
+# ---------------------------------------------------------------------------
+
+def memo_recursive(size: Optional[int] = None):
+    """Memoize a recursive function (mirrors OCaml ``Memo.memo_recursive``).
+
+    Wraps a function so that recursive calls are also memoized.
+    Usage:
+        @memo_recursive(size=1000)
+        def fib(n):
+            if n <= 1: return n
+            return fib(n-1) + fib(n-2)
+    """
+    def decorator(f):
+        from functools import lru_cache as _lru_cache
+        if size is not None:
+            return _lru_cache(maxsize=size)(f)
+        return _lru_cache(maxsize=None)(f)
+    return decorator
+
+
+def lru_memo(size: Optional[int] = None):
+    """LRU memoization (mirrors OCaml ``Memo.lru_memo``).
+
+    Caches function results using an LRU eviction policy.
+    """
+    def decorator(f):
+        from functools import lru_cache as _lru_cache
+        return _lru_cache(maxsize=size)(f)
+    return decorator
+
+
+def lru_memo_recursive(size: Optional[int] = None):
+    """LRU memoization of a recursive function (mirrors OCaml ``Memo.lru_memo_recursive``)."""
+    return memo_recursive(size=size)

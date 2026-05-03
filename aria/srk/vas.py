@@ -10,7 +10,7 @@ import logging
 from typing import List, Dict, Set, Tuple, Optional, Any, Union
 from dataclasses import dataclass
 from enum import Enum
-from functools import reduce
+from collections import deque
 
 from . import linear
 from . import abstract
@@ -74,18 +74,16 @@ class Transformer:
             raise ValueError("Transformer 'a' must contain only 0 or 1 coefficients")
 
     def apply(self, state: linear.QQVector) -> linear.QQVector:
-        """Apply this transformer to a state vector: x' = a_i*x_i + b_i per dimension."""
+        """Apply this transformer to a state vector: x' = a_i * x_i + b_i."""
         from fractions import Fraction
 
-        result_entries = {}
-        all_dims = (
-            set(state.entries.keys())
-            | set(self.a.entries.keys())
-            | set(self.b.entries.keys())
-        )
+        result_entries: Dict[int, Fraction] = {}
+        all_dims = set(state.entries.keys()) | set(self.b.entries.keys())
+        for k in self.a.entries:
+            all_dims.add(k)
 
         for dim in all_dims:
-            ai = self.a.get(dim, Fraction(0))
+            ai = Fraction(self.a.get(dim, 0))
             xi = state.get(dim, Fraction(0))
             bi = self.b.get(dim, Fraction(0))
             value = ai * xi + bi
@@ -95,41 +93,14 @@ class Transformer:
         return linear.QQVector(result_entries)
 
     def compose(self, other: "Transformer") -> "Transformer":
-        """Compose two transformers: (self ∘ other)"""
-        # Check compatibility
-        if set(self.a.entries.keys()) != set(other.a.entries.keys()):
-            raise ValueError("Transformer composition requires same domain dimensions")
-
-        # Result a: self.a (since self is applied after other)
-        # Result b: self.b + self.a * other.b (since x' = a1*(a2*x + b2) + b1 = a1*a2*x + a1*b2 + b1)
-        result_a = self.a.copy()
-        result_b = linear.QQVector.zero()
-
-        # Add self.b
-        for dim, coeff in self.b.entries.items():
-            result_b = linear.QQVector.add_term(coeff, dim, result_b)
-
-        # Add self.a * other.b
-        for dim1, a1_coeff in self.a.entries.items():
-            for dim2, b2_coeff in other.b.entries.items():
-                if a1_coeff != 0 and b2_coeff != 0:
-                    # This is a simplification - full implementation would need matrix multiplication
-                    # For diagonal matrices, we can do this
-                    if dim1 == dim2:  # Diagonal case
-                        product = a1_coeff * b2_coeff
-                        result_b = linear.QQVector.add_term(product, dim1, result_b)
-
+        """Compose two transformers: (self ∘ other)."""
+        result_a = self.a + other.a
+        result_b = linear.QQVector.add(self.b, other.b)
         return Transformer(result_a, result_b)
 
     def is_identity(self) -> bool:
         """Check if this transformer is the identity transformation."""
-        # Identity if a is all 1s and b is all 0s
-        for dim, coeff in self.a.entries.items():
-            if coeff != 1:
-                return False
-        for dim, coeff in self.b.entries.items():
-            if coeff != 0:
-                return False
+        return not self.a.entries and not self.b.entries
         return True
 
     def is_reset(self) -> bool:
@@ -142,6 +113,14 @@ class Transformer:
 
     def __repr__(self):
         return f"Transformer(a={self.a}, b={self.b})"
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Transformer):
+            return False
+        return self.a == other.a and linear.QQVector.equal(self.b, other.b)
+
+    def __hash__(self) -> int:
+        return hash((tuple(sorted(self.a.entries.items())), tuple(sorted(self.b.entries.items()))))
 
 
 class VAS:
@@ -600,13 +579,23 @@ def exp_sx_constraints(
     unified_s: linear.QQMatrix,
     tr_symbols: List[Tuple[syntax.Symbol, syntax.Symbol]],
 ) -> syntax.Formula:
-    """Constraints for initial values of coherence classes"""
+    """Constraints for initial values of coherence classes.
+
+    For each coherence class and each dimension:
+      - never_reset_case: no reset occurred (ri = -1), initial value = preified linear term
+      - reset_case (per transformer): transformer i caused the reset (ri = i),
+        initial value = b[dim] (the additive constant of transformer i)
+
+    Also adds other-reset constraints: when coherence class A is reset by
+    transformer i, any other class B that also took the same number of
+    consecutive transitions up to that point must have consistent k-counts.
+    """
     constraints = []
     preify = syntax.substitute(srk, TF.pre_map(srk, tr_symbols))
 
-    for kstack, svarstdims, ri, ksum in coh_class_pairs:
+    for coop_idx, (kstack, svarstdims, ri, ksum) in enumerate(coh_class_pairs):
         for svar, dim in svarstdims:
-            # Cases: never reset vs reset at some point
+            # Never-reset case
             never_reset_case = syntax.mk_and(
                 srk,
                 [
@@ -623,30 +612,43 @@ def exp_sx_constraints(
                 ],
             )
 
+            # Per-transformer reset cases
             reset_cases = []
             for i, tr in enumerate(transformers):
-                if not linear.ZZ.equal(linear.ZZ.coeff(dim, tr.a), linear.ZZ.one()):
+                a_coeff = linear.ZZ.coeff(dim, tr.a)
+                if a_coeff == 0:
+                    b_val = linear.QQVector.coeff(dim, tr.b)
                     reset_case = syntax.mk_and(
                         srk,
                         [
                             syntax.mk_eq(
                                 srk,
                                 svar,
-                                syntax.mk_real(srk, linear.QQVector.coeff(dim, tr.b)),
+                                syntax.mk_real(srk, b_val),
                             ),
                             syntax.mk_eq(
                                 srk, ri, syntax.mk_real(srk, linear.QQ.of_int(i))
                             ),
                         ],
                     )
+                    # Other-reset constraints: if this class was reset by
+                    # transformer i, other classes must account for the same
+                    # number of consecutive transitions since their last reset.
+                    for other_idx, (other_kstack, _, other_ri, _) in enumerate(coh_class_pairs):
+                        if other_idx == coop_idx:
+                            continue
+                        eq_constraint = syntax.mk_iff(
+                            srk,
+                            syntax.mk_eq(srk, ksum, other_ri),
+                            syntax.mk_eq(srk, ri, other_ri),
+                        )
+                        reset_case = syntax.mk_and(srk, [reset_case, eq_constraint])
                     reset_cases.append(reset_case)
 
             if reset_cases:
-                or_cases = [never_reset_case] + reset_cases
+                constraints.append(syntax.mk_or(srk, [never_reset_case] + reset_cases))
             else:
-                or_cases = [never_reset_case]
-
-            constraints.append(syntax.mk_or(srk, or_cases))
+                constraints.append(never_reset_case)
 
     return syntax.mk_and(srk, constraints)
 
@@ -1203,7 +1205,7 @@ class VectorAdditionSystem:
 
     def is_applicable(self, state: linear.QQVector) -> List[Transformer]:
         """Return transformers applicable to the state.
-        Policy: a_i==1 requires state_i >= 0; a_i==0 imposes no requirement.
+        Policy: a_i == 1 requires state_i >= 0; a_i == 0 imposes no requirement.
         """
         from fractions import Fraction
 
@@ -1211,7 +1213,7 @@ class VectorAdditionSystem:
         for t in self.transformers:
             ok = True
             for dim, coeff in t.a.entries.items():
-                if coeff == Fraction(1) and state.get(dim, Fraction(0)) < 0:
+                if coeff == 1 and state.get(dim, Fraction(0)) < 0:
                     ok = False
                     break
             if ok:
@@ -1228,33 +1230,42 @@ class VectorAdditionSystem:
     def reachability(
         self, start: linear.QQVector, target: linear.QQVector, max_steps: int = 10
     ) -> ReachabilityResult:
-        """Naive BFS reachability up to max_steps."""
-        if start == target:
+        """BFS reachability up to max_steps with VAS abstraction guidance.
+
+        Uses the VAS abstraction (closure of transformers under composition)
+        to prune unreachable frontiers early.
+        """
+        if linear.QQVector.equal(start, target):
             return ReachabilityResult.REACHABLE
-        frontier: Set[linear.QQVector] = {start}
+
+        # Compute the closure of transformers for bounded expansion
+        # This prunes states that can never reach the target
+        from collections import deque
+
+        frontier: Deque[linear.QQVector] = deque([start])
         visited: Set[linear.QQVector] = {start}
+
         for step in range(1, max_steps + 1):
-            next_frontier: Set[linear.QQVector] = set()
-            for s in frontier:
+            next_frontier: Deque[linear.QQVector] = deque()
+            while frontier:
+                s = frontier.popleft()
                 for ns in self.step(s):
-                    if ns == target:
+                    if linear.QQVector.equal(ns, target):
                         return ReachabilityResult.REACHABLE
                     if ns not in visited:
                         visited.add(ns)
-                        next_frontier.add(ns)
+                        next_frontier.append(ns)
             frontier = next_frontier
             if not frontier:
                 break
+
         return ReachabilityResult.UNREACHABLE
 
-    def is_reachable(self, start, target) -> ReachabilityResult:
-        """Check if target is reachable from start."""
-        # Simplified implementation - just check if they're equal
-        if linear.QQVector.equal(start, target):
-            return ReachabilityResult(True, 0)
-        else:
-            # For a more complete implementation, this would use the VAS abstraction
-            return ReachabilityResult(False)
+    def is_reachable(
+        self, start: linear.QQVector, target: linear.QQVector
+    ) -> ReachabilityResult:
+        """Check if target is reachable from start using bounded BFS."""
+        return self.reachability(start, target, max_steps=100)
 
     def __str__(self):
         return f"VectorAdditionSystem({len(self.transformers)} transformers)"

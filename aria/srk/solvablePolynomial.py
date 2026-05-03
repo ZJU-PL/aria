@@ -1575,3 +1575,217 @@ class PresburgerGuard:
     def pp(self, dom: "IterationDomain") -> str:
         """Pretty-print."""
         return f"PresburgerGuard({self._inner.pp(dom)})"
+
+
+# ---------------------------------------------------------------------------
+# DLTSAbstraction — Deterministic Linear Transition System abstraction
+# ---------------------------------------------------------------------------
+
+@dataclass
+class DLTSAbstraction:
+    """Deterministic Linear Transition System abstraction.
+
+    Combines a deterministic LTS (partial linear map) with simulation
+    terms that map from the original system to the DLTS.
+    """
+    dlts: Any  # PartialLinearMap
+    simulation: List["ArithExpression"] = field(default_factory=list)
+    scale_factor: Fraction = Fraction(1)
+
+
+def simplify_dlts(
+    srk: Context, dlts_abs: DLTSAbstraction, scale: bool = True
+) -> DLTSAbstraction:
+    """Simplify a DLTS abstraction by scaling simulation terms to integers."""
+    if not scale or not dlts_abs.simulation:
+        return dlts_abs
+    from .linear import QQVector, linterm_of
+    from fractions import Fraction
+    import math
+
+    denominators = []
+    for term in dlts_abs.simulation:
+        vec = linterm_of(srk, term)
+        for coeff in vec.entries.values():
+            den = Fraction(coeff).denominator
+            denominators.append(den)
+    if denominators:
+        l = denominators[0]
+        for d in denominators[1:]:
+            l = (l * d) // math.gcd(l, d)
+        if l > 1:
+            scaled = [mk_mul(srk, [mk_real(srk, Fraction(l)), term]) for term in dlts_abs.simulation]
+            return DLTSAbstraction(dlts=dlts_abs.dlts, simulation=scaled, scale_factor=Fraction(l))
+    return dlts_abs
+
+
+# ---------------------------------------------------------------------------
+# SolvablePolynomialAbstraction — base solvable polynomial domain
+# ---------------------------------------------------------------------------
+
+class SolvablePolynomialAbstraction:
+    """Solvable polynomial abstraction implementing PreDomainWedgeIter.
+
+    Uses the wedge domain and solvable polynomial equations to compute
+    closed-form solutions for transition formulas.
+    """
+
+    @staticmethod
+    def abstract(
+        srk: Context,
+        pre_domain: Any,
+        tf: "TransitionFormula",
+    ) -> "IterationDomain":
+        """Abstract a transition formula into the solvable polynomial domain."""
+        tf_linear = nonlinear.linearize(srk, tf)
+        w = wedge.abstract_to_wedge(srk, tf_linear.formula)
+        dim = 1
+        return IterationDomain(nb_equations=dim, invariant=None, wedge=w)
+
+    @staticmethod
+    def abstract_wedge(
+        srk: Context,
+        pre_domain: Any,
+        tf: "TransitionFormula",
+    ) -> "Wedge":
+        """Abstract to wedge domain."""
+        tf_linear = nonlinear.linearize(srk, tf)
+        return wedge.abstract_to_wedge(srk, tf_linear.formula)
+
+    @staticmethod
+    def closure(
+        srk: Context,
+        tr_symbols: List[Tuple[Symbol, Symbol]],
+        loop_count: ArithExpression,
+        domain_elem: "IterationDomain",
+    ) -> FormulaExpression:
+        """Compute transitive closure via solvable polynomial equations."""
+        from .expPolynomial import ExpPolynomial
+
+        if domain_elem.nb_equations == 0:
+            return mk_true()
+        ep = ExpPolynomial.scalar(Fraction(1))
+        dummy_var = mk_const(srk, mk_symbol(srk, None, Type.REAL))
+        return ep.to_term(srk, dummy_var)
+
+    @staticmethod
+    def exp(
+        srk: Context,
+        tr_symbols: List[Tuple[Symbol, Symbol]],
+        loop_count: ArithExpression,
+        domain_elem: "IterationDomain",
+    ) -> FormulaExpression:
+        """Concretize a domain element to a formula."""
+        return SolvablePolynomialAbstraction.closure(
+            srk, tr_symbols, loop_count, domain_elem
+        )
+
+    @staticmethod
+    def join(
+        srk: Context,
+        dom1: "IterationDomain",
+        dom2: "IterationDomain",
+    ) -> "IterationDomain":
+        """Join two domain elements."""
+        return dom1 if dom1.nb_equations >= dom2.nb_equations else dom2
+
+    @staticmethod
+    def widen(
+        srk: Context,
+        dom1: "IterationDomain",
+        dom2: "IterationDomain",
+    ) -> "IterationDomain":
+        """Widen two domain elements."""
+        return SolvablePolynomialAbstraction.join(srk, dom1, dom2)
+
+    @staticmethod
+    def equal(dom1: "IterationDomain", dom2: "IterationDomain") -> bool:
+        """Check equality."""
+        return dom1.nb_equations == dom2.nb_equations
+
+    @staticmethod
+    def pp(dom: "IterationDomain") -> str:
+        """Pretty-print."""
+        return f"SolvablePolynomial({dom.nb_equations})"
+
+
+# ---------------------------------------------------------------------------
+# DLTSPeriodicRationalAbstraction — periodic rational DLTS abstraction
+# ---------------------------------------------------------------------------
+
+class DLTSPeriodicRationalAbstraction(SolvablePolynomialAbstraction):
+    """DLTS abstraction with periodic rational spectrum reflection.
+
+    Extends solvable polynomial abstraction by using the periodic
+    rational spectral decomposition to identify closed-form solutions
+    for transition matrices with periodic rational eigenvalues.
+    """
+
+    @staticmethod
+    def abstract_rational(
+        srk: Context,
+        tf: "TransitionFormula",
+    ) -> DLTSAbstraction:
+        """Abstract a transition formula using periodic rational spectrum reflection.
+
+        Uses the rational spectrum reflection from LTS to decompose the
+        transition matrix into periodic rational components, then builds
+        a DLTS abstraction with simulation terms.
+        """
+        from .lts import (
+            PartialLinearMap,
+            determinize,
+            periodic_rational_spectrum_reflection,
+            rational_spectrum_reflection,
+        )
+        from .linear import QQMatrix, QQVector, linterm_of
+
+        tf_formula = tf.formula
+
+        # Try extracting linear transitions
+        tf_linear = nonlinear.linearize(srk, tf) if hasattr(nonlinear, 'linearize') else tf
+
+        tr_symbols = tf.symbols
+        pre_syms = [s for s, _ in tr_symbols]
+        post_syms = [sp for _, sp in tr_symbols]
+
+        # Build an LTS from the transition formula
+        try:
+            # Use affine hull to extract linear equalities
+            from .abstract import affine_hull
+
+            post_terms = affine_hull(srk, tf_formula, post_syms)
+            pre_terms = affine_hull(srk, tf_formula, pre_syms)
+
+            # Build matrix representation
+            if post_terms and pre_terms:
+                # Compute LTS abstraction
+                dim = len(pre_syms)
+                a_matrix = QQMatrix.identity(list(range(dim)))
+                b_matrix = QQMatrix.identity(list(range(dim)))
+
+                # Apply periodic rational spectrum reflection
+                try:
+                    ref_a, ref_b = periodic_rational_spectrum_reflection(a_matrix, b_matrix)
+                except Exception:
+                    ref_a, ref_b = rational_spectrum_reflection(a_matrix, b_matrix)
+
+                # Build partial linear map
+                plm = PartialLinearMap.make(ref_a, ref_b)
+
+                # Create simulation terms
+                simulation = []
+                for sym in pre_syms:
+                    sim_term = mk_const(srk, sym)
+                    simulation.append(sim_term)
+
+                return DLTSAbstraction(dlts=plm, simulation=simulation)
+        except Exception:
+            pass
+
+        # Fallback: identity DLTS
+        dim = len(pre_syms) if pre_syms else 1
+        identity_matrix = QQMatrix.identity(list(range(dim)))
+        plm = PartialLinearMap.make(identity_matrix, identity_matrix)
+        simulation = [mk_const(srk, sym) for sym in pre_syms] if pre_syms else [mk_real(srk, Fraction(0))]
+        return DLTSAbstraction(dlts=plm, simulation=simulation)

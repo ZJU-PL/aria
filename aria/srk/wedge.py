@@ -1088,10 +1088,96 @@ class Interval:
 
 
 def mk_sign_axioms(srk: syntax.Context) -> syntax.Formula:
-    """Create sign axioms for nonlinear operations"""
-    # This would create the full set of sign axioms
-    # For now, return a placeholder
-    return syntax.mk_true(srk)
+    """Create sign axioms for nonlinear operations.
+
+    Sign axioms constrain nonlinear operations (Mul, Floor, Mod, Pow, Div)
+    to respect basic arithmetic laws such as monotonicity, bounds, and
+    sign relationships. These are used with uninterpreted functions so the
+    SMT solver can reason soundly about nonlinear terms.
+    """
+    from fractions import Fraction
+
+    axioms: List[syntax.Formula] = []
+
+    # Mul sign axiom: x >= 0 && y >= 0 -> x * y >= 0
+    x_mul = syntax.mk_symbol(srk, "x_mul", syntax.Type.REAL)
+    y_mul = syntax.mk_symbol(srk, "y_mul", syntax.Type.REAL)
+    z_mul = syntax.mk_app(srk, syntax.mk_symbol(srk, "mul", syntax.Type.FUN), [syntax.mk_const(srk, x_mul), syntax.mk_const(srk, y_mul)])
+    axioms.append(
+        syntax.mk_if(
+            srk,
+            syntax.mk_and(srk, [
+                syntax.mk_leq(srk, syntax.mk_real(srk, Fraction(0)), syntax.mk_const(srk, x_mul)),
+                syntax.mk_leq(srk, syntax.mk_real(srk, Fraction(0)), syntax.mk_const(srk, y_mul)),
+            ]),
+            syntax.mk_leq(srk, syntax.mk_real(srk, Fraction(0)), z_mul),
+        )
+    )
+
+    # Floor axiom: floor(x) <= x and x < floor(x) + 1
+    x_floor = syntax.mk_symbol(srk, "x_floor", syntax.Type.REAL)
+    f_x = syntax.mk_app(srk, syntax.mk_symbol(srk, "floor", syntax.Type.FUN), [syntax.mk_const(srk, x_floor)])
+    axioms.append(syntax.mk_leq(srk, f_x, syntax.mk_const(srk, x_floor)))
+    axioms.append(
+        syntax.mk_lt(
+            srk,
+            syntax.mk_const(srk, x_floor),
+            syntax.mk_add(srk, [f_x, syntax.mk_real(srk, Fraction(1))]),
+        )
+    )
+
+    # Mod axiom: for d > 0, 0 <= x mod d and x mod d < d
+    x_mod = syntax.mk_symbol(srk, "x_mod", syntax.Type.REAL)
+    d_mod = syntax.mk_symbol(srk, "d_mod", syntax.Type.REAL)
+    r_mod = syntax.mk_app(
+        srk, syntax.mk_symbol(srk, "mod", syntax.Type.FUN),
+        [syntax.mk_const(srk, x_mod), syntax.mk_const(srk, d_mod)]
+    )
+    axioms.append(
+        syntax.mk_if(
+            srk,
+            syntax.mk_lt(srk, syntax.mk_real(srk, Fraction(0)), syntax.mk_const(srk, d_mod)),
+            syntax.mk_and(srk, [
+                syntax.mk_leq(srk, syntax.mk_real(srk, Fraction(0)), r_mod),
+                syntax.mk_lt(srk, r_mod, syntax.mk_const(srk, d_mod)),
+            ]),
+        )
+    )
+
+    # Pow axiom: for base >= 0, pow(base, n) >= 0 for even n
+    x_pow = syntax.mk_symbol(srk, "x_pow", syntax.Type.REAL)
+    n_pow = syntax.mk_symbol(srk, "n_pow", syntax.Type.INT)
+    p_x = syntax.mk_app(
+        srk, syntax.mk_symbol(srk, "pow", syntax.Type.FUN),
+        [syntax.mk_const(srk, x_pow), syntax.mk_const(srk, n_pow)]
+    )
+    axioms.append(
+        syntax.mk_if(
+            srk,
+            syntax.mk_leq(srk, syntax.mk_real(srk, Fraction(0)), syntax.mk_const(srk, x_pow)),
+            syntax.mk_leq(srk, syntax.mk_real(srk, Fraction(0)), p_x),
+        )
+    )
+
+    # Div sign axiom: x >= 0 && y > 0 -> x/y >= 0
+    x_div = syntax.mk_symbol(srk, "x_div", syntax.Type.REAL)
+    y_div = syntax.mk_symbol(srk, "y_div", syntax.Type.REAL)
+    q_div = syntax.mk_app(
+        srk, syntax.mk_symbol(srk, "div", syntax.Type.FUN),
+        [syntax.mk_const(srk, x_div), syntax.mk_const(srk, y_div)]
+    )
+    axioms.append(
+        syntax.mk_if(
+            srk,
+            syntax.mk_and(srk, [
+                syntax.mk_leq(srk, syntax.mk_real(srk, Fraction(0)), syntax.mk_const(srk, x_div)),
+                syntax.mk_lt(srk, syntax.mk_real(srk, Fraction(0)), syntax.mk_const(srk, y_div)),
+            ]),
+            syntax.mk_leq(srk, syntax.mk_real(srk, Fraction(0)), q_div),
+        )
+    )
+
+    return syntax.mk_and(srk, axioms)
 
 
 def wedge_entails(wedge: Wedge, phi: syntax.Formula) -> bool:

@@ -377,3 +377,103 @@ def make_cache_key(*args, **kwargs) -> Tuple:
         key_parts.extend([k, hash_expression(v)])
 
     return tuple(key_parts)
+
+
+# ---------------------------------------------------------------------------
+# Missing OCaml API: cache parameters and additional operations
+# ---------------------------------------------------------------------------
+
+@dataclass
+class CacheParams:
+    """Cache configuration parameters (mirrors OCaml ``Cache.S.params``)."""
+    max_size: int = 1000
+    hard_limit: int = 2000
+    keys_hit_rate: float = 0.5
+    min_hits: int = 2
+    aging_factor: float = 0.9
+
+
+class LRUCache:
+    """LRU cache with configurable parameters (mirrors OCaml ``Cache.LRU.S``).
+
+    Extends Python's built-in LRU capabilities with parameter-awareness,
+    reset, copy, and iteration operations.
+    """
+
+    def __init__(self, params: Optional[CacheParams] = None, size: Optional[int] = None):
+        from collections import OrderedDict
+
+        self._params = params or CacheParams()
+        self._data: "OrderedDict" = OrderedDict()
+        self._max_size = size or self._params.max_size
+
+    def get_params(self) -> CacheParams:
+        """Get current cache parameters."""
+        return self._params
+
+    def set_params(self, params: CacheParams) -> None:
+        """Update cache parameters."""
+        self._params = params
+        self._max_size = self._params.max_size
+        self._evict_if_needed()
+
+    def reset(self) -> None:
+        """Clear all entries from the cache."""
+        self._data.clear()
+
+    def copy(self) -> "LRUCache":
+        """Create a shallow copy of the cache."""
+        new_cache = LRUCache(params=self._params, size=self._max_size)
+        new_cache._data.update(self._data)
+        return new_cache
+
+    def add(self, key: Any, value: Any) -> None:
+        """Add or update a cache entry."""
+        if key in self._data:
+            self._data.move_to_end(key)
+        self._data[key] = value
+        self._evict_if_needed()
+
+    def find(self, key: Any) -> Any:
+        """Find a value by key. Raises KeyError if not found."""
+        if key not in self._data:
+            raise KeyError(key)
+        self._data.move_to_end(key)
+        return self._data[key]
+
+    def mem(self, key: Any) -> bool:
+        """Check if a key exists in the cache."""
+        return key in self._data
+
+    def remove(self, key: Any) -> None:
+        """Remove a key from the cache."""
+        self._data.pop(key, None)
+
+    def iter(self, fn: Callable[[Any, Any], None]) -> None:
+        """Iterate over all (key, value) pairs."""
+        for k, v in self._data.items():
+            fn(k, v)
+
+    def fold(self, fn: Callable[[Any, Any, Any], Any], init: Any) -> Any:
+        """Fold over all (key, value) pairs."""
+        acc = init
+        for k, v in self._data.items():
+            acc = fn(k, v, acc)
+        return acc
+
+    def filter_map_inplace(self, fn: Callable[[Any, Any], Optional[Any]]) -> None:
+        """Filter and map cache entries in-place."""
+        new_data = type(self._data)()
+        for k, v in self._data.items():
+            result = fn(k, v)
+            if result is not None:
+                new_data[k] = result
+        self._data = new_data
+
+    def _evict_if_needed(self) -> None:
+        """Evict oldest entries if cache exceeds max size."""
+        while len(self._data) > self._max_size:
+            self._data.popitem(last=False)
+
+    def __len__(self) -> int:
+        return len(self._data)

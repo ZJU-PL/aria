@@ -354,6 +354,10 @@ class ExpressionVisitor(Generic[T]):
         """Visit a negation expression."""
         return self._default_visit(neg)
 
+    def visit_pow(self, pow_expr: Pow) -> T:
+        """Visit an exponentiation expression."""
+        return self._default_visit(pow_expr)
+
     def visit_true(self, true_expr: TrueExpr) -> T:
         """Visit a true expression."""
         return self._default_visit(true_expr)
@@ -445,6 +449,10 @@ class DefaultExpressionVisitor(ExpressionVisitor[T]):
     def visit_neg(self, neg: Neg) -> T:
         """Default visit for negation."""
         return self._default_visit(neg)
+
+    def visit_pow(self, pow_expr: Pow) -> T:
+        """Default visit for exponentiation."""
+        return self._default_visit(pow_expr)
 
     def visit_true(self, true_expr: TrueExpr) -> T:
         """Default visit for true."""
@@ -805,6 +813,30 @@ class Neg(Expression):
         return visitor.visit_neg(self)
 
 
+@dataclass(frozen=True)
+class Pow(Expression):
+    """Exponentiation expression: base^exponent."""
+
+    base: ArithExpression
+    exponent: int
+
+    typ = Type.REAL
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Pow):
+            return False
+        return self.base == other.base and self.exponent == other.exponent
+
+    def __hash__(self) -> int:
+        return hash((self.base, self.exponent))
+
+    def __str__(self) -> str:
+        return f"({self.base}^{self.exponent})"
+
+    def accept(self, visitor: ExpressionVisitor[T]) -> T:
+        return visitor.visit_pow(self)
+
+
 # Boolean expressions (formulas)
 @dataclass(frozen=True)
 class TrueExpr(Expression):
@@ -1049,8 +1081,8 @@ class Exists(Expression):
 
 
 # Type aliases for cleaner code
-ArithExpression = Union[Var, Const, App, Add, Mul, Div, Mod, Floor, Neg, Ite, Select, Store]
-TermExpression = Union[Var, Const, App, Add, Mul, Div, Mod, Floor, Neg, Ite, Select, Store]
+ArithExpression = Union[Var, Const, App, Add, Mul, Div, Mod, Floor, Neg, Pow, Ite, Select, Store]
+TermExpression = Union[Var, Const, App, Add, Mul, Div, Mod, Floor, Neg, Pow, Ite, Select, Store]
 # Alias for backward compatibility
 ArithTerm = TermExpression
 FormulaExpression = Union[
@@ -1179,6 +1211,10 @@ class ExpressionBuilder:
     def mk_neg(self, arg: ArithExpression) -> Neg:
         """Create an arithmetic negation expression."""
         return Neg(arg)
+
+    def mk_pow(self, base: ArithExpression, exponent: int) -> Pow:
+        """Create an exponentiation expression: base^exponent."""
+        return Pow(base, exponent)
 
     def mk_idiv(self, left: ArithExpression, right: ArithExpression) -> App:
         """Create C99 integer division (truncate toward zero)."""
@@ -2051,22 +2087,24 @@ def mk_app(
         return _default_builder.mk_app(symbol, args)
 
 
-def mk_pow(*args) -> App:
-    """Create a power term using the port's uninterpreted pow symbol."""
+def mk_pow(*args) -> Pow:
+    """Create an exponentiation expression.
+
+    Supports:
+    - mk_pow(base, exponent)
+    - mk_pow(context, base, exponent)
+    """
     if len(args) == 2:
         base, exponent = args
-        symbol = _default_builder.mk_symbol("pow", Type.FUN)
-        return _default_builder.mk_app(symbol, [base, exponent])
-    if len(args) == 3 and isinstance(args[0], Context):
+        return _default_builder.mk_pow(base, exponent)
+    elif len(args) == 3 and isinstance(args[0], Context):
         context, base, exponent = args
         builder = make_expression_builder(context)
-        symbol = context._named_symbols.get("pow")
-        if symbol is None:
-            symbol = builder.mk_symbol("pow", Type.FUN)
-        return builder.mk_app(symbol, [base, exponent])
-    raise TypeError(
-        f"mk_pow expects (base, exponent) or (context, base, exponent), got {len(args)} args"
-    )
+        return builder.mk_pow(base, exponent)
+    else:
+        raise TypeError(
+            f"mk_pow expects (base, exponent) or (context, base, exponent), got {len(args)} args"
+        )
 
 
 def mk_select(
@@ -2259,12 +2297,112 @@ def substitute(
        each `Var(i, ty)` by calling the function with (i, ty). De Bruijn
        indices are shifted when going under a quantifier (indices increase
        by 1 for each additional enclosing binder).
+
+    De Bruijn semantics:
+    - Inside `Forall(n, t, body)`, Var(0, t) refers to the bound variable n
+    - Inside the body, free Var indices are shifted by +1 compared to outside
+    - `substitute(body, fn)` handles this by incrementing depth under quantifiers
     """
     if callable(subst_map):
         return _substitute_de_bruijn(expr, subst_map, 0)
     if isinstance(subst_map, dict):
         return _substitute_const(expr, subst_map)
     raise TypeError(f"substitute expects dict or callable, got {type(subst_map)}")
+
+
+def shift_db_indices(expr: Expression, delta: int) -> Expression:
+    """Shift all De Bruijn Var indices in an expression by delta.
+
+    Positive delta pushes variables deeper (adding more enclosing
+    quantifiers). Negative delta brings them out.
+
+    This is used when embedding expressions inside quantifiers.
+    """
+    if delta == 0:
+        return expr
+    return _shift_db(expr, delta)
+
+
+def _shift_db(expr: Expression, delta: int) -> Expression:
+    if isinstance(expr, Var):
+        return Var(expr.var_id + delta, expr.var_type, expr.name)
+    if isinstance(expr, (Const, TrueExpr, FalseExpr)):
+        return expr
+    if isinstance(expr, Add):
+        return Add(tuple(_shift_db(a, delta) for a in expr.args))
+    if isinstance(expr, Mul):
+        return Mul(tuple(_shift_db(a, delta) for a in expr.args))
+    if isinstance(expr, Div):
+        return Div(_shift_db(expr.left, delta), _shift_db(expr.right, delta))
+    if isinstance(expr, Mod):
+        return Mod(_shift_db(expr.left, delta), _shift_db(expr.right, delta))
+    if isinstance(expr, Floor):
+        return Floor(_shift_db(expr.arg, delta))
+    if isinstance(expr, Neg):
+        return Neg(_shift_db(expr.arg, delta))
+    if isinstance(expr, Pow):
+        return Pow(_shift_db(expr.base, delta), expr.exponent)
+    if isinstance(expr, Ite):
+        return Ite(
+            _shift_db(expr.condition, delta),
+            _shift_db(expr.then_branch, delta),
+            _shift_db(expr.else_branch, delta),
+        )
+    if isinstance(expr, App):
+        return App(expr.symbol, tuple(_shift_db(a, delta) for a in expr.args))
+    if isinstance(expr, Select):
+        return Select(_shift_db(expr.array, delta), _shift_db(expr.index, delta))
+    if isinstance(expr, Store):
+        return Store(
+            _shift_db(expr.array, delta),
+            _shift_db(expr.index, delta),
+            _shift_db(expr.value, delta),
+        )
+    if isinstance(expr, And):
+        return And(tuple(_shift_db(a, delta) for a in expr.args))
+    if isinstance(expr, Or):
+        return Or(tuple(_shift_db(a, delta) for a in expr.args))
+    if isinstance(expr, Not):
+        return Not(_shift_db(expr.arg, delta))
+    if isinstance(expr, Eq):
+        return Eq(_shift_db(expr.left, delta), _shift_db(expr.right, delta))
+    if isinstance(expr, Lt):
+        return Lt(_shift_db(expr.left, delta), _shift_db(expr.right, delta))
+    if isinstance(expr, Leq):
+        return Leq(_shift_db(expr.left, delta), _shift_db(expr.right, delta))
+    if isinstance(expr, Forall):
+        # The bound variable itself (index 0 in body) stays unchanged.
+        # Only apply delta to indices that refer to outer binders
+        # (which are at positions >= 1 in the body relative to the outer scope).
+        # But since Forall already shifts body indices by +1 internally,
+        # we only shift the body by delta here.
+        new_body = _shift_db(expr.body, delta)
+        return Forall(expr.var_name, expr.var_type, new_body)
+    if isinstance(expr, Exists):
+        new_body = _shift_db(expr.body, delta)
+        return Exists(expr.var_name, expr.var_type, new_body)
+    return expr
+
+
+def open_forall(srk: Context, name: str, typ: Type, body: FormulaExpression) -> Forall:
+    """Create a universally quantified formula with De Bruijn indexing.
+
+    Var(0, typ) inside body refers to the newly bound variable.
+    Existing Var(n, ...) indices in body that refer to outer binders
+    are already at their correct positions (shifted externally if needed).
+
+    Use `shift_db_indices(body, 1)` before calling this to push outer
+    variables one level deeper.
+    """
+    return Forall(name, typ, body)
+
+
+def open_exists(srk: Context, name: str, typ: Type, body: FormulaExpression) -> Exists:
+    """Create an existentially quantified formula with De Bruijn indexing.
+
+    Var(0, typ) inside body refers to the newly bound variable.
+    """
+    return Exists(name, typ, body)
 
 
 def _substitute_de_bruijn(
@@ -2313,6 +2451,9 @@ def _substitute_de_bruijn(
     if isinstance(expr, Neg):
         new_arg = _substitute_de_bruijn(expr.arg, subst_fn, depth)
         return Neg(new_arg) if new_arg is not expr.arg else expr
+    if isinstance(expr, Pow):
+        new_base = _substitute_de_bruijn(expr.base, subst_fn, depth)
+        return Pow(new_base, expr.exponent) if new_base is not expr.base else expr
     if isinstance(expr, Ite):
         new_cond = _substitute_de_bruijn(expr.condition, subst_fn, depth)
         new_then = _substitute_de_bruijn(expr.then_branch, subst_fn, depth)
@@ -2439,6 +2580,9 @@ def _substitute_const(expr: Expression, subst_map: Dict[Symbol, Expression]) -> 
         def visit_neg(self, neg: Neg) -> Expression:
             return Neg(neg.arg.accept(self))
 
+        def visit_pow(self, pow_expr: Pow) -> Expression:
+            return Pow(pow_expr.base.accept(self), pow_expr.exponent)
+
         def visit_ite(self, ite: Ite) -> Expression:
             return Ite(ite.condition.accept(self), ite.then_branch.accept(self), ite.else_branch.accept(self))
 
@@ -2523,6 +2667,9 @@ def substitute_sym(srk: Context, subst: Callable[[Symbol], Expression], expr: Ex
         if isinstance(e, Neg):
             new_arg = go(e.arg, bound)
             return Neg(new_arg) if new_arg is not e.arg else e
+        if isinstance(e, Pow):
+            new_base = go(e.base, bound)
+            return Pow(new_base, e.exponent) if new_base is not e.base else e
         if isinstance(e, Ite):
             return Ite(go(e.condition, bound), go(e.then_branch, bound), go(e.else_branch, bound))
         if isinstance(e, Select):
@@ -2597,6 +2744,8 @@ def fold_constants(
             walk(e.arg)
         elif isinstance(e, Neg):
             walk(e.arg)
+        elif isinstance(e, Pow):
+            walk(e.base)
         elif isinstance(e, Ite):
             walk(e.condition)
             walk(e.then_branch)
@@ -2669,8 +2818,12 @@ def free_vars(expr: Expression) -> Set[Symbol]:
             )
         if isinstance(e, Not):
             return go(e.arg, bound_names)
-        if isinstance(e, (Eq, Lt, Leq)):
+        if isinstance(e, (Eq, Lt, Leq, Div, Mod)):
             return go(e.left, bound_names) | go(e.right, bound_names)
+        if isinstance(e, (Neg, Floor)):
+            return go(e.arg, bound_names)
+        if isinstance(e, Pow):
+            return go(e.base, bound_names)
         if isinstance(e, Forall):
             return go(e.body, bound_names | {e.var_name})
         if isinstance(e, Exists):
@@ -2701,6 +2854,8 @@ def size(expr: Expression) -> int:
         return 1 + size(expr.condition) + size(expr.then_branch) + size(expr.else_branch)
     if isinstance(expr, (Neg, Not, Floor)):
         return 1 + size(expr.arg)
+    if isinstance(expr, Pow):
+        return 1 + size(expr.base)
     if isinstance(expr, (Eq, Lt, Leq, Div, Mod)):
         return 1 + size(expr.left) + size(expr.right)
     if isinstance(expr, (Forall, Exists)):
@@ -2740,12 +2895,51 @@ def eliminate_ite(expr: Expression) -> Expression:
 
 
 def eliminate_arr_eq(expr: Expression) -> Expression:
-    """Placeholder-compatible array equality eliminator.
+    """Eliminate array equality through extensionality.
 
-    This port has no extensional array-elimination pass yet; return the input
-    unchanged rather than claiming a lossy rewrite.
+    Replaces `Eq(a, b)` where a or b are arrays with:
+      forall i. select(a, i) = select(b, i)
+
+    Only eliminates when both sides are array-typed expressions.
     """
+    if isinstance(expr, Eq):
+        left, right = expr.left, expr.right
+        if _is_arr_type(left) or _is_arr_type(right):
+            idx_var_name = "_i"
+            a_access = Select(left, Var(0, Type.INT))
+            b_access = Select(right, Var(0, Type.INT))
+            body = Eq(a_access, b_access)
+            return Forall(idx_var_name, Type.INT, body)
+        return expr
+    if isinstance(expr, Not):
+        new_arg = eliminate_arr_eq(expr.arg)
+        return Not(new_arg) if new_arg is not expr.arg else expr
+    if isinstance(expr, And):
+        new_args = tuple(eliminate_arr_eq(a) for a in expr.args)
+        return And(new_args) if new_args != expr.args else expr
+    if isinstance(expr, Or):
+        new_args = tuple(eliminate_arr_eq(a) for a in expr.args)
+        return Or(new_args) if new_args != expr.args else expr
+    if isinstance(expr, Forall):
+        new_body = eliminate_arr_eq(expr.body)
+        return Forall(expr.var_name, expr.var_type, new_body) if new_body is not expr.body else expr
+    if isinstance(expr, Exists):
+        new_body = eliminate_arr_eq(expr.body)
+        return Exists(expr.var_name, expr.var_type, new_body) if new_body is not expr.body else expr
     return expr
+
+
+def _is_arr_type(expr: Expression) -> bool:
+    """Check if an expression is array-typed."""
+    if isinstance(expr, Store):
+        return True
+    if isinstance(expr, Select):
+        return False  # select returns element, not array
+    if isinstance(expr, Const) and expr.symbol.typ == Type.ARRAY:
+        return True
+    if isinstance(expr, App) and expr.symbol.typ == Type.ARRAY:
+        return True
+    return False
 
 
 def rewrite(
@@ -2835,6 +3029,11 @@ def rewrite(
         if isinstance(e, Neg):
             new_arg = _rewrite_node(e.arg)
             return Neg(new_arg) if new_arg is not e.arg else e
+        if isinstance(e, Pow):
+            new_base = _rewrite_node(e.base)
+            if new_base is not e.base:
+                return Pow(new_base, e.exponent)
+            return e
         if isinstance(e, Ite):
             new_cond = _rewrite_node(e.condition)
             new_then = _rewrite_node(e.then_branch)
@@ -2964,6 +3163,8 @@ def _nnf_recurse(expr: Expression) -> Expression:
         return Floor(_nnf_recurse(expr.arg))
     if isinstance(expr, Neg):
         return Neg(_nnf_recurse(expr.arg))
+    if isinstance(expr, Pow):
+        return Pow(_nnf_recurse(expr.base), expr.exponent)
     if isinstance(expr, Ite):
         return Ite(
             _nnf_recurse(expr.condition),
@@ -3036,6 +3237,8 @@ def destruct(expr: Expression) -> Tuple[str, Any]:
         return ("Unop", ("Floor", expr.arg))
     elif isinstance(expr, Neg):
         return ("Unop", ("Neg", expr.arg))
+    elif isinstance(expr, Pow):
+        return ("Pow", (expr.base, expr.exponent))
     elif isinstance(expr, Ite):
         return ("Ite", (expr.condition, expr.then_branch, expr.else_branch))
     elif isinstance(expr, TrueExpr):
@@ -3731,6 +3934,11 @@ class Infix:
                 return Leq(other.expr, self.expr)
             return Leq(self._infix.real(other), self.expr)
 
+        def __mod__(self, other) -> "Infix._InfixTerm":
+            if isinstance(other, Infix._InfixTerm):
+                return Infix._InfixTerm(Mod(self.expr, other.expr), self._infix)
+            return Infix._InfixTerm(Mod(self.expr, self._infix.real(other)), self._infix)
+
     class _InfixFormula:
         def __init__(self, expr: FormulaExpression, infix: "Infix"):
             self.expr = expr
@@ -3782,6 +3990,102 @@ class Infix:
 
 
 # ---------------------------------------------------------------------------
+# Term / ArithTerm / ArrTerm — namespace modules (mirrors OCaml)
+# ---------------------------------------------------------------------------
+
+class _TermModule:
+    """Namespace for term operations (mirrors OCaml ``Term`` module)."""
+
+    @staticmethod
+    def destruct(e: Expression) -> Tuple[str, Any]:
+        return destruct(e)
+
+    @staticmethod
+    def eval(e: Expression) -> "Fraction":
+        return eval_term(e)
+
+    @staticmethod
+    def equal(a: Expression, b: Expression) -> bool:
+        return a == b
+
+    @staticmethod
+    def hash(e: Expression) -> int:
+        return hash(e)
+
+    def __str__(self) -> str:
+        return "<Term>"
+
+
+Term = _TermModule()
+
+
+class _ArithTermModule:
+    """Namespace for arithmetic term operations (mirrors OCaml ``ArithTerm``)."""
+
+    @staticmethod
+    def destruct(e: Expression) -> Tuple[str, Any]:
+        return destruct(e)
+
+    @staticmethod
+    def eval(e: Expression) -> "Fraction":
+        return eval_term(e)
+
+    @staticmethod
+    def equal(a: Expression, b: Expression) -> bool:
+        return a == b
+
+    def __str__(self) -> str:
+        return "<ArithTerm>"
+
+
+ArithTerm = _ArithTermModule()
+
+
+class _ArrTermModule:
+    """Namespace for array term operations (mirrors OCaml ``ArrTerm``)."""
+
+    @staticmethod
+    def destruct(e: Expression) -> Tuple[str, Any]:
+        return destruct(e)
+
+    @staticmethod
+    def equal(a: Expression, b: Expression) -> bool:
+        return a == b
+
+    def __str__(self) -> str:
+        return "<ArrTerm>"
+
+
+ArrTerm = _ArrTermModule()
+
+
+class _FormulaModule:
+    """Namespace for formula operations (mirrors OCaml ``Formula`` module)."""
+
+    @staticmethod
+    def equal(a: Expression, b: Expression) -> bool:
+        return a == b
+
+    @staticmethod
+    def hash(e: Expression) -> int:
+        return hash(e)
+
+    @staticmethod
+    def destruct(e: Expression) -> Tuple[str, Any]:
+        return destruct(e)
+
+    @staticmethod
+    def eval(algebra: Callable, formula: Expression) -> Any:
+        return eval_formula(algebra, formula)
+
+    def __str__(self) -> str:
+        return "<Formula>"
+
+
+Formula = _FormulaModule()
+
+
+# ---------------------------------------------------------------------------
 # Formula submodule operations
 # ---------------------------------------------------------------------------
 
@@ -3830,6 +4134,7 @@ def skolemize_free(srk: Context, phi: FormulaExpression) -> FormulaExpression:
         if isinstance(e, Mod): return Mod(go(e.left), go(e.right))
         if isinstance(e, Floor): return Floor(go(e.arg))
         if isinstance(e, Neg): return Neg(go(e.arg))
+        if isinstance(e, Pow): return Pow(go(e.base), e.exponent)
         if isinstance(e, Ite): return Ite(go(e.condition), go(e.then_branch), go(e.else_branch))
         if isinstance(e, App): return App(e.symbol, tuple(go(a) for a in e.args))
         if isinstance(e, Select): return Select(go(e.array), go(e.index))
@@ -3843,6 +4148,177 @@ def skolemize_free(srk: Context, phi: FormulaExpression) -> FormulaExpression:
         if isinstance(e, Forall): return Forall(e.var_name, e.var_type, go(e.body))
         return e
     return go(phi)
+
+
+# ---------------------------------------------------------------------------
+# Formula.eval and eval_memo — structural formula evaluation
+# ---------------------------------------------------------------------------
+
+def eval_formula(
+    algebra: Callable[[str, Any], Any], formula: FormulaExpression
+) -> Any:
+    """Evaluate a formula using an algebra for structural recursion.
+
+    The algebra is called with (label, components) for each expression
+    constructor and should return the semantic interpretation.
+
+    Mirrors OCaml `Formula.eval`.
+    """
+    return _eval_formula_go(algebra, formula)
+
+
+def _eval_formula_go(algebra: Callable, expr: Expression) -> Any:
+    if isinstance(expr, TrueExpr):
+        return algebra("Tru", expr)
+    if isinstance(expr, FalseExpr):
+        return algebra("Fls", expr)
+    if isinstance(expr, And):
+        children = tuple(_eval_formula_go(algebra, a) for a in expr.args)
+        return algebra("And", children)
+    if isinstance(expr, Or):
+        children = tuple(_eval_formula_go(algebra, a) for a in expr.args)
+        return algebra("Or", children)
+    if isinstance(expr, Not):
+        child = _eval_formula_go(algebra, expr.arg)
+        return algebra("Not", child)
+    if isinstance(expr, Eq):
+        left = _eval_formula_go(algebra, expr.left)
+        right = _eval_formula_go(algebra, expr.right)
+        return algebra("Atom", ("Eq", left, right))
+    if isinstance(expr, Lt):
+        left = _eval_formula_go(algebra, expr.left)
+        right = _eval_formula_go(algebra, expr.right)
+        return algebra("Atom", ("Lt", left, right))
+    if isinstance(expr, Leq):
+        left = _eval_formula_go(algebra, expr.left)
+        right = _eval_formula_go(algebra, expr.right)
+        return algebra("Atom", ("Leq", left, right))
+    if isinstance(expr, Ite):
+        cond = _eval_formula_go(algebra, expr.condition)
+        then_b = _eval_formula_go(algebra, expr.then_branch)
+        else_b = _eval_formula_go(algebra, expr.else_branch)
+        return algebra("Ite", (cond, then_b, else_b))
+    if isinstance(expr, Forall):
+        return algebra("Forall", expr)
+    if isinstance(expr, Exists):
+        return algebra("Exists", expr)
+    if isinstance(expr, Var):
+        return algebra("Var", expr)
+    if isinstance(expr, Const):
+        return algebra("Const", expr)
+    if isinstance(expr, Add):
+        children = tuple(_eval_formula_go(algebra, a) for a in expr.args)
+        return algebra("Add", children)
+    if isinstance(expr, Mul):
+        children = tuple(_eval_formula_go(algebra, a) for a in expr.args)
+        return algebra("Mul", children)
+    if isinstance(expr, Div):
+        left = _eval_formula_go(algebra, expr.left)
+        right = _eval_formula_go(algebra, expr.right)
+        return algebra("Div", (left, right))
+    if isinstance(expr, Mod):
+        left = _eval_formula_go(algebra, expr.left)
+        right = _eval_formula_go(algebra, expr.right)
+        return algebra("Mod", (left, right))
+    if isinstance(expr, Floor):
+        child = _eval_formula_go(algebra, expr.arg)
+        return algebra("Floor", child)
+    if isinstance(expr, Neg):
+        child = _eval_formula_go(algebra, expr.arg)
+        return algebra("Neg", child)
+    if isinstance(expr, Pow):
+        child = _eval_formula_go(algebra, expr.base)
+        return algebra("Pow", (child, expr.exponent))
+    if isinstance(expr, App):
+        children = tuple(_eval_formula_go(algebra, a) for a in expr.args)
+        return algebra("App", (expr.symbol, children))
+    if isinstance(expr, Select):
+        arr = _eval_formula_go(algebra, expr.array)
+        idx = _eval_formula_go(algebra, expr.index)
+        return algebra("Select", (arr, idx))
+    if isinstance(expr, Store):
+        arr = _eval_formula_go(algebra, expr.array)
+        idx = _eval_formula_go(algebra, expr.index)
+        val = _eval_formula_go(algebra, expr.value)
+        return algebra("Store", (arr, idx, val))
+    return algebra("Unknown", expr)
+
+
+def eval_formula_memo(
+    algebra: Callable[[str, Any], Any], formula: FormulaExpression
+) -> Any:
+    """Memoized version of eval_formula.
+
+    Caches results by expression identity to avoid recomputation.
+    """
+    cache: Dict[int, Any] = {}
+
+    def go(expr: Expression) -> Any:
+        key = id(expr)
+        if key in cache:
+            return cache[key]
+        result = _eval_formula_go(algebra, expr)
+        cache[key] = result
+        return result
+
+    return go(formula)
+
+
+def eval_term(term: ArithExpression) -> "Fraction":
+    """Evaluate a constant arithmetic term to a rational value.
+
+    Raises ValueError if the term contains variables or unsupported operations.
+
+    Mirrors OCaml ``Term.eval`` / ``ArithTerm.eval``.
+    """
+    from fractions import Fraction as Frac
+
+    if isinstance(term, Const):
+        sym = term.symbol
+        if sym.name and sym.name.startswith("real_"):
+            try:
+                return Frac(sym.name[5:])
+            except ValueError:
+                pass
+        if sym.name and sym.name.startswith("int_"):
+            try:
+                return Frac(int(sym.name[4:]), 1)
+            except ValueError:
+                pass
+        raise ValueError(f"Cannot evaluate symbol {sym} as a constant")
+
+    if isinstance(term, Add):
+        result = Frac(0)
+        for a in term.args:
+            result += eval_term(a)
+        return result
+
+    if isinstance(term, Mul):
+        result = Frac(1)
+        for a in term.args:
+            result *= eval_term(a)
+        return result
+
+    if isinstance(term, Div):
+        left = eval_term(term.left)
+        right = eval_term(term.right)
+        if right == 0:
+            raise ZeroDivisionError("Division by zero in term evaluation")
+        return left / right
+
+    if isinstance(term, Neg):
+        return -eval_term(term.arg)
+
+    if isinstance(term, Pow):
+        base = eval_term(term.base)
+        return base ** term.exponent
+
+    if isinstance(term, Floor):
+        val = eval_term(term.arg)
+        import math
+        return Frac(math.floor(float(val)), 1)
+
+    raise ValueError(f"Cannot evaluate expression of type {type(term).__name__}")
 
 
 # ---------------------------------------------------------------------------
@@ -4093,15 +4569,24 @@ def pp_smtlib2_gen(srk: Context, env: Optional[Env] = None) -> Callable[[Any, Ex
 
 
 def _smtlib2_str(expr: Expression, env: Env) -> str:
-    """Convert an expression to an SMTLIB2 string."""
+    """Convert an expression to an SMTLIB2 string, with De Bruijn env support."""
     if isinstance(expr, TrueExpr):
         return "true"
     if isinstance(expr, FalseExpr):
         return "false"
     if isinstance(expr, Var):
-        return f"x{expr.var_id}"
+        try:
+            name = env.find(expr.var_id)
+            if isinstance(name, str):
+                return name
+            return str(name)
+        except IndexError:
+            return f"x{expr.var_id}"
     if isinstance(expr, Const):
-        return str(expr.symbol)
+        sym = expr.symbol
+        if sym.name:
+            return sym.name
+        return f"c{sym.id}"
     if isinstance(expr, Add):
         inner = " ".join(_smtlib2_str(a, env) for a in expr.args)
         return f"(+ {inner})"
@@ -4110,8 +4595,14 @@ def _smtlib2_str(expr: Expression, env: Env) -> str:
         return f"(* {inner})"
     if isinstance(expr, Div):
         return f"(/ {_smtlib2_str(expr.left, env)} {_smtlib2_str(expr.right, env)})"
+    if isinstance(expr, Mod):
+        return f"(mod {_smtlib2_str(expr.left, env)} {_smtlib2_str(expr.right, env)})"
+    if isinstance(expr, Floor):
+        return f"(to_int {_smtlib2_str(expr.arg, env)})"
     if isinstance(expr, Neg):
         return f"(- {_smtlib2_str(expr.arg, env)})"
+    if isinstance(expr, Pow):
+        return f"(pow {_smtlib2_str(expr.base, env)} {expr.exponent})"
     if isinstance(expr, And):
         inner = " ".join(_smtlib2_str(a, env) for a in expr.args)
         return f"(and {inner})"
@@ -4127,16 +4618,23 @@ def _smtlib2_str(expr: Expression, env: Env) -> str:
     if isinstance(expr, Leq):
         return f"(<= {_smtlib2_str(expr.left, env)} {_smtlib2_str(expr.right, env)})"
     if isinstance(expr, Forall):
+        inner_env = env.push(expr.var_name)
         inner_name = f"({expr.var_name} {_smtlib2_type(expr.var_type)})"
-        return f"(forall ({inner_name}) {_smtlib2_str(expr.body, env.push(expr.var_name))})"
+        return f"(forall ({inner_name}) {_smtlib2_str(expr.body, inner_env)})"
     if isinstance(expr, Exists):
+        inner_env = env.push(expr.var_name)
         inner_name = f"({expr.var_name} {_smtlib2_type(expr.var_type)})"
-        return f"(exists ({inner_name}) {_smtlib2_str(expr.body, env.push(expr.var_name))})"
+        return f"(exists ({inner_name}) {_smtlib2_str(expr.body, inner_env)})"
     if isinstance(expr, Ite):
         return f"(ite {_smtlib2_str(expr.condition, env)} {_smtlib2_str(expr.then_branch, env)} {_smtlib2_str(expr.else_branch, env)})"
     if isinstance(expr, App):
+        sym_name = expr.symbol.name or f"fn{expr.symbol.id}"
         args = " ".join(_smtlib2_str(a, env) for a in expr.args)
-        return f"({expr.symbol} {args})" if args else f"{expr.symbol}"
+        return f"({sym_name} {args})" if args else sym_name
+    if isinstance(expr, Select):
+        return f"(select {_smtlib2_str(expr.array, env)} {_smtlib2_str(expr.index, env)})"
+    if isinstance(expr, Store):
+        return f"(store {_smtlib2_str(expr.array, env)} {_smtlib2_str(expr.index, env)} {_smtlib2_str(expr.value, env)})"
     return str(expr)
 
 
@@ -4148,3 +4646,13 @@ def _smtlib2_type(typ: Type) -> str:
     if typ == Type.BOOL:
         return "Bool"
     return "Int"
+
+
+def pp_smtlib2(srk: Context, out: Any, expr: Expression) -> None:
+    """Print an expression in SMTLIB2 format to the given output.
+
+    Convenience wrapper around pp_smtlib2_gen. Matches OCaml's
+    ``Formula.pp_smtlib2``.
+    """
+    printer = pp_smtlib2_gen(srk)
+    printer(out, expr)

@@ -2010,14 +2010,23 @@ def _abstract_delta_wedge(
         constraints: List[Tuple[ArithExpression, str, ArithExpression]] = []
         for atom in atoms:
             try:
-                # Destructure atom into lhs - rhs op 0
-                # This is a simplified extraction
-                if hasattr(atom, "left") and hasattr(atom, "right"):
-                    # Atom is an Eq/Lt/Leq
-                    pass
-                # For now, use a simple approach: try to extract delta terms
-                # and non-delta terms
-                constraints.append((mk_const(srk, delta_syms[0]) if delta_syms else mk_real(srk, QQ.zero()), ">=", mk_real(srk, QQ.zero())))
+                if isinstance(atom, Eq):
+                    constraints.append((atom.left, "=", atom.right))
+                elif isinstance(atom, Lt):
+                    constraints.append((atom.left, "<", atom.right))
+                elif isinstance(atom, Leq):
+                    constraints.append((atom.left, "<=", atom.right))
+                elif hasattr(atom, "left") and hasattr(atom, "right"):
+                    # Handle wrapper objects that have left/right attributes
+                    left = getattr(atom, "left")
+                    right = getattr(atom, "right")
+                    if left is not None and right is not None:
+                        op = "="
+                        if hasattr(atom, '__class__'):
+                            cls = atom.__class__.__name__
+                            if cls == 'Lt': op = "<"
+                            elif cls == 'Leq': op = "<="
+                        constraints.append((left, op, right))
             except Exception:
                 pass
 
