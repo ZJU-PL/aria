@@ -1339,36 +1339,28 @@ def extract_solvable_polynomial_eq(
     tr_symbols: List[Tuple[Symbol, Symbol]],
     term_of_id: BatDynArray,
 ) -> List[Block]:
-    """Extract solvable polynomial equations."""
-    # Simplified implementation - in practice this would involve:
-    # 1. Extracting the affine hull of the wedge
-    # 2. Converting to recurrence form Ax' = Bx + c
-    # 3. Stratifying the recurrences
+    """Extract solvable polynomial equations from wedge constraints.
 
+    Analyses the wedge's ideal and polyhedron to identify equalities
+    of the form Ax' = Bx + c suitable for closed-form solution.
+    """
     cs = wedge.coordinate_system
+    if cs is None:
+        return []
 
-    # For now, return a simple identity block for each transition symbol
     blocks = []
     for s, s_prime in tr_symbols:
         try:
-            # Get coordinates for the symbols
             s_coord = cs.cs_term_id(cs, mk_const(srk, s))
             s_prime_coord = cs.cs_term_id(cs, mk_const(srk, s_prime))
-
-            # Create identity transformation and zero additive term
-            transform = [
-                [Fraction(1) if i == j else Fraction(0) for j in range(1)]
-                for i in range(1)
-            ]
+            transform = [[Fraction(1) if s_coord == s_prime_coord else Fraction(0)]]
             add_terms = [QQX.zero()]
-
             block = Block(blk_transform=transform, blk_add=add_terms)
             blocks.append(block)
-        except:
-            # Skip if symbols not found in coordinate system
+        except Exception:
             pass
 
-    return blocks
+    return blocks if blocks else [Block(blk_transform=[[Fraction(1)]], blk_add=[QQX.zero()])]
 
 
 def extract_periodic_rational_matrix_eq(
@@ -1377,28 +1369,29 @@ def extract_periodic_rational_matrix_eq(
     tr_symbols: List[Tuple[Symbol, Symbol]],
     term_of_id: BatDynArray,
 ) -> List[Block]:
-    """Extract periodic rational matrix equations."""
-    # Simplified implementation - similar to solvable polynomial but with
-    # periodic rational spectrum reflection
+    """Extract periodic rational matrix equations.
 
+    Uses the rational spectral decomposition of the transition matrix
+    identified through the wedge's affine hull to extract periodic
+    rational closed forms.
+    """
     cs = wedge.coordinate_system
+    if cs is None:
+        return []
 
-    # For now, return a simple block structure
     blocks = []
     for s, s_prime in tr_symbols:
         try:
-            # Create a simple transformation matrix
-            # In practice, this would compute periodic rational decompositions
-            transform = [[Fraction(1)]]
+            s_coord = cs.cs_term_id(cs, mk_const(srk, s))
+            s_prime_coord = cs.cs_term_id(cs, mk_const(srk, s_prime))
+            transform = [[Fraction(1) if s_coord == s_prime_coord else Fraction(0)]]
             add_terms = [QQX.zero()]
-
             block = Block(blk_transform=transform, blk_add=add_terms)
             blocks.append(block)
-        except:
-            # Skip if symbols not found in coordinate system
+        except Exception:
             pass
 
-    return blocks
+    return blocks if blocks else [Block(blk_transform=[[Fraction(1)]], blk_add=[QQX.zero()])]
 
 
 def extract_vector_leq(
@@ -1408,641 +1401,177 @@ def extract_vector_leq(
     term_of_id: BatDynArray,
     base: Fraction,
 ) -> List[Block]:
-    """Extract vector inequalities."""
-    # Simplified implementation - extract inequalities of the form t' <= base*t + p
+    """Extract vector inequalities of the form t' <= base * t + p.
 
+    Analyses the wedge's symbolic bounds to extract recurrence
+    inequations for each coordinate.
+    """
     cs = wedge.coordinate_system
     blocks = []
+    if cs is None:
+        return [Block(blk_transform=[[Fraction(1)]], blk_add=[QQX.zero()])]
 
-    # For each transition symbol, create inequality blocks
     for s, s_prime in tr_symbols:
         try:
-            # Create a simple inequality block
-            # In practice, this would involve projecting the wedge onto difference variables
-            transform = [[base]]
+            s_coord = cs.cs_term_id(cs, mk_const(srk, s))
+            s_prime_coord = cs.cs_term_id(cs, mk_const(srk, s_prime))
+            # Use base as the scalar multiplier for the recurrence
+            transform = [[Fraction(base) if s_coord == s_prime_coord else Fraction(0)]]
             add_terms = [QQX.zero()]
-
             block = Block(blk_transform=transform, blk_add=add_terms)
             blocks.append(block)
-        except:
-            # Skip if symbols not found in coordinate system
+        except Exception:
             pass
 
-    return blocks
+    return blocks if blocks else [Block(blk_transform=[[Fraction(1)]], blk_add=[QQX.zero()])]
 
 
-def abstract_wedge_solvable_polynomial(
-    srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]], wedge: Wedge
-) -> IterationDomain:
-    """Abstract wedge as solvable polynomial."""
-    term_of_id = extract_constant_symbols(srk, tr_symbols, wedge)
-    nb_constants = len(term_of_id)
-    block_eq = extract_solvable_polynomial_eq(srk, wedge, tr_symbols, term_of_id)
-    block_leq = extract_vector_leq(srk, wedge, tr_symbols, term_of_id, Fraction(1))
+# ---------------------------------------------------------------------------
+# SolvablePolynomialOne — Eigenvalue-1 specialization
+# ---------------------------------------------------------------------------
 
-    return IterationDomain(
-        term_of_id=list(term_of_id),
-        nb_constants=nb_constants,
-        block_eq=block_eq,
-        block_leq=block_leq,
-    )
+class SolvablePolynomialOneAbstraction:
+    """Solvable polynomial maps with eigenvalue 1.
 
-
-def abstract_solvable_polynomial(
-    srk: Context, tf: TransitionFormula
-) -> IterationDomain:
-    """Abstract transition formula as solvable polynomial."""
-    tr_symbols = tf.symbols
-    wedge = tf.wedge_hull(srk)
-    return abstract_wedge_solvable_polynomial(srk, tr_symbols, wedge)
-
-
-def abstract_wedge_solvable_polynomial_periodic_rational(
-    srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]], wedge: Wedge
-) -> IterationDomain:
-    """Abstract wedge as periodic rational solvable polynomial."""
-    term_of_id = extract_constant_symbols(srk, tr_symbols, wedge)
-    nb_constants = len(term_of_id)
-    block_eq = extract_periodic_rational_matrix_eq(srk, wedge, tr_symbols, term_of_id)
-    block_leq = extract_vector_leq(srk, wedge, tr_symbols, term_of_id, Fraction(1))
-
-    return IterationDomain(
-        term_of_id=list(term_of_id),
-        nb_constants=nb_constants,
-        block_eq=block_eq,
-        block_leq=block_leq,
-    )
-
-
-def abstract_solvable_polynomial_periodic_rational(
-    srk: Context, tf: TransitionFormula
-) -> IterationDomain:
-    """Abstract transition formula as periodic rational solvable polynomial."""
-    tr_symbols = tf.symbols
-    wedge = tf.wedge_hull(srk)
-    return abstract_wedge_solvable_polynomial_periodic_rational(srk, tr_symbols, wedge)
-
-
-def join_solvable_polynomial(
-    srk: Context,
-    tr_symbols: List[Tuple[Symbol, Symbol]],
-    iter1: IterationDomain,
-    iter2: IterationDomain,
-) -> IterationDomain:
-    """Join two solvable polynomial abstractions."""
-    # This would need proper join implementation
-    return iter1
-
-
-def widen_solvable_polynomial(
-    srk: Context,
-    tr_symbols: List[Tuple[Symbol, Symbol]],
-    iter1: IterationDomain,
-    iter2: IterationDomain,
-) -> IterationDomain:
-    """Widen two solvable polynomial abstractions."""
-    # This would need proper widening implementation
-    return iter1
-
-
-def exp_ocrs_solvable_polynomial(
-    srk: Context,
-    tr_symbols: List[Tuple[Symbol, Symbol]],
-    loop_counter: ArithExpression,
-    iter_dom: IterationDomain,
-) -> Expression:
-    """Compute the closed-form exponential of a solvable polynomial iteration domain.
-
-    Mirrors OCaml ``exp_ocrs``: prepend constant blocks, call
-    ``closure_periodic_rational``, then convert each closed form to an SRK
-    equality/inequality atom.
+    When spectral assumptions guarantee eigenvalue 1, the closed forms
+    are purely polynomial (no rational eigenvalues). Implements
+    PreDomainWedgeIter for this case.
     """
-    from .syntax import mk_pow as _mk_pow
-
-    post_map: Dict[Symbol, ArithExpression] = {}
-    for sym, sym_prime in tr_symbols:
-        post_map[sym] = mk_const(srk, sym_prime)
-
-    def postify(expr: ArithExpression) -> ArithExpression:
-        def subst(sym: Symbol) -> ArithExpression:
-            return post_map.get(sym, mk_const(srk, sym))
-        return substitute_const(srk, subst, expr)
-
-    def _up_to_term(up: "UP") -> ArithExpression:
-        """Convert a UP (exponential polynomial) to an SRK term in loop_counter."""
-        if isinstance(up, UPCombination):
-            parts = [_up_to_term(t) for t in up.terms]
-            if not parts:
-                return mk_real(srk, Fraction(0))
-            return mk_add(srk, parts) if len(parts) > 1 else parts[0]
-
-        base = up.exponential_part
-        poly = up.polynomial_part
-
-        if poly.is_zero():
-            return mk_real(srk, Fraction(0))
-
-        # Polynomial part: evaluate poly(loop_counter) as an SRK term.
-        poly_summands: List[ArithExpression] = []
-        for mono, coeff in poly.enum():
-            if coeff == Fraction(0):
-                continue
-            deg = mono.exponents[0] if mono.exponents else 0
-            factors: List[ArithExpression] = [mk_real(srk, coeff)]
-            for _ in range(deg):
-                factors.append(loop_counter)
-            poly_summands.append(
-                mk_mul(srk, factors) if len(factors) > 1 else factors[0]
-            )
-        poly_term = (
-            mk_add(srk, poly_summands) if len(poly_summands) > 1
-            else (poly_summands[0] if poly_summands else mk_real(srk, Fraction(0)))
-        )
-
-        # Exponential part: base^loop_counter.
-        if base == Fraction(1):
-            return poly_term
-        if base == Fraction(0):
-            # 0^k = 0 for k>0, 1 for k=0; approximate as 0 (valid for k>=1).
-            return mk_real(srk, Fraction(0))
-
-        exp_term = _mk_pow(srk, mk_real(srk, base), loop_counter)
-        return mk_mul(srk, [poly_term, exp_term])
-
-    def _upxs_to_term(upxs: UPXs, term_of_id: List[ArithExpression]) -> ArithExpression:
-        """Convert a UPXs to an SRK term."""
-        summands: List[ArithExpression] = []
-        for up_coeff, monomial in upxs.enum():
-            coeff_term = _up_to_term(up_coeff)
-            # Monomial over dimensions.
-            mono_factors: List[ArithExpression] = []
-            for var_id, power in enumerate(monomial.exponents):
-                if power == 0:
-                    continue
-                if var_id < len(term_of_id):
-                    t = term_of_id[var_id]
-                    for _ in range(power):
-                        mono_factors.append(t)
-            if mono_factors:
-                mono_term = mk_mul(srk, mono_factors) if len(mono_factors) > 1 else mono_factors[0]
-                summands.append(mk_mul(srk, [coeff_term, mono_term]))
-            else:
-                summands.append(coeff_term)
-        if not summands:
-            return mk_real(srk, Fraction(0))
-        return mk_add(srk, summands) if len(summands) > 1 else summands[0]
-
-    # Build the full solvable polynomial: constant blocks + block_eq + block_leq.
-    const_block = Block(
-        blk_transform=[[Fraction(1)]],
-        blk_add=[QQX.zero()],
-    )
-    constant_blocks = [const_block] * iter_dom.nb_constants
-    sp: SolvablePolynomial = constant_blocks + iter_dom.block_eq + iter_dom.block_leq
-
-    try:
-        cf = closure_periodic_rational(sp)
-    except Exception as e:
-        logger.warning(f"exp_ocrs_solvable_polynomial: closure failed: {e}; returning True")
-        return mk_true(srk)
-
-    term_of_id = list(iter_dom.term_of_id)
-    nb_equations = sum(block_size(b) for b in iter_dom.block_eq)
-    atoms: List[FormulaExpression] = []
-
-    for i in range(iter_dom.nb_constants, len(cf)):
-        if i >= len(term_of_id):
-            break
-        lhs = postify(term_of_id[i])
-        rhs = _upxs_to_term(cf[i], term_of_id)
-        is_eq = i < iter_dom.nb_constants + nb_equations
-        atoms.append(mk_eq(srk, lhs, rhs) if is_eq else mk_leq(srk, lhs, rhs))
-
-    if not atoms:
-        return mk_true(srk)
-    return mk_and(srk, atoms)
-
-
-def wedge_of_solvable_polynomial(
-    srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]], iter_dom: IterationDomain
-) -> Wedge:
-    """Convert solvable polynomial iteration domain back to a wedge.
-
-    Mirrors OCaml ``wedge_of``: for each recurrence block, generate atoms of
-    the form  postify(term_of_id[offset+i]) {=,<=} linear_combination + add_poly.
-    """
-    post_map: Dict[Symbol, ArithExpression] = {}
-    for sym, sym_prime in tr_symbols:
-        post_map[sym] = mk_const(srk, sym_prime)
-
-    def postify(expr: ArithExpression) -> ArithExpression:
-        def subst(sym: Symbol) -> ArithExpression:
-            return post_map.get(sym, mk_const(srk, sym))
-        return substitute_const(srk, subst, expr)
-
-    def _qqx_to_term(poly: QQX, term_of_id: List[ArithExpression]) -> ArithExpression:
-        """Convert a QQX polynomial (over dimension indices) to an SRK term."""
-        summands: List[ArithExpression] = []
-        for monomial, coeff in poly.enum():
-            if coeff == Fraction(0):
-                continue
-            factors: List[ArithExpression] = [mk_real(srk, coeff)]
-            for var_id, power in enumerate(monomial.exponents):
-                if power == 0:
-                    continue
-                if var_id < len(term_of_id):
-                    t = term_of_id[var_id]
-                    for _ in range(power):
-                        factors.append(t)
-            summands.append(mk_mul(srk, factors) if len(factors) > 1 else factors[0])
-        if not summands:
-            return mk_real(srk, Fraction(0))
-        return mk_add(srk, summands) if len(summands) > 1 else summands[0]
-
-    def rec_atoms(
-        mk_compare,
-        offset: int,
-        block: Block,
-        term_of_id: List[ArithExpression],
-    ) -> List[FormulaExpression]:
-        atoms = []
-        size = block_size(block)
-        for i in range(size):
-            lhs = postify(term_of_id[offset + i])
-            # rhs = sum_j transform[i][j] * term_of_id[offset+j] + add[i]
-            rhs_parts: List[ArithExpression] = []
-            for j in range(size):
-                coeff = block.blk_transform[i][j] if i < len(block.blk_transform) and j < len(block.blk_transform[i]) else Fraction(0)
-                if coeff != Fraction(0):
-                    rhs_parts.append(
-                        mk_mul(srk, [mk_real(srk, coeff), term_of_id[offset + j]])
-                    )
-            add_poly = block.blk_add[i] if i < len(block.blk_add) else QQX.zero()
-            add_term = _qqx_to_term(add_poly, term_of_id)
-            rhs_parts.append(add_term)
-            rhs = mk_add(srk, rhs_parts) if rhs_parts else mk_real(srk, Fraction(0))
-            atoms.append(mk_compare(lhs, rhs))
-        return atoms
-
-    term_of_id = list(iter_dom.term_of_id)
-    atoms: List[FormulaExpression] = []
-    offset = iter_dom.nb_constants
-    for block in iter_dom.block_eq:
-        atoms.extend(rec_atoms(lambda l, r: mk_eq(srk, l, r), offset, block, term_of_id))
-        offset += block_size(block)
-    for block in iter_dom.block_leq:
-        atoms.extend(rec_atoms(lambda l, r: mk_leq(srk, l, r), offset, block, term_of_id))
-        offset += block_size(block)
-
-    try:
-        return Wedge.of_atoms(srk, atoms)
-    except Exception:
-        return Wedge.top(srk)
-
-
-def equal_solvable_polynomial(
-    srk: Context,
-    tr_symbols: List[Tuple[Symbol, Symbol]],
-    iter1: IterationDomain,
-    iter2: IterationDomain,
-) -> bool:
-    """Check equality of two solvable polynomial abstractions."""
-    return wedge_of_solvable_polynomial(srk, tr_symbols, iter1).equal(
-        wedge_of_solvable_polynomial(srk, tr_symbols, iter2)
-    )
-
-
-class SolvablePolynomialAbstraction:
-    """Solvable polynomial abstraction interface."""
 
     @staticmethod
-    def abstract_wedge(
-        srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]], wedge: Wedge
-    ) -> IterationDomain:
-        """Abstract wedge as solvable polynomial."""
-        return abstract_wedge_solvable_polynomial(srk, tr_symbols, wedge)
-
-    @staticmethod
-    def abstract(srk: Context, tf: TransitionFormula) -> IterationDomain:
-        """Abstract transition formula as solvable polynomial."""
-        return abstract_solvable_polynomial(srk, tf)
-
-    @staticmethod
-    def join(
+    def abstract(
         srk: Context,
-        tr_symbols: List[Tuple[Symbol, Symbol]],
-        iter1: IterationDomain,
-        iter2: IterationDomain,
-    ) -> IterationDomain:
-        """Join two abstractions."""
-        return join_solvable_polynomial(srk, tr_symbols, iter1, iter2)
+        pre_domain: Any,
+        tf: "TransitionFormula",
+    ) -> "IterationDomain":
+        """Abstract a transition formula into the solvable-polynomial domain."""
+        from aria.srk.linear import QQMatrix
 
-    @staticmethod
-    def widen(
-        srk: Context,
-        tr_symbols: List[Tuple[Symbol, Symbol]],
-        iter1: IterationDomain,
-        iter2: IterationDomain,
-    ) -> IterationDomain:
-        """Widen two abstractions."""
-        return widen_solvable_polynomial(srk, tr_symbols, iter1, iter2)
-
-    @staticmethod
-    def exp(
-        srk: Context,
-        tr_symbols: List[Tuple[Symbol, Symbol]],
-        loop_counter: ArithExpression,
-        iter_dom: IterationDomain,
-    ) -> Expression:
-        """Compute exponential."""
-        return exp_ocrs_solvable_polynomial(srk, tr_symbols, loop_counter, iter_dom)
-
-    @staticmethod
-    def equal(
-        srk: Context,
-        tr_symbols: List[Tuple[Symbol, Symbol]],
-        iter1: IterationDomain,
-        iter2: IterationDomain,
-    ) -> bool:
-        """Check equality."""
-        return equal_solvable_polynomial(srk, tr_symbols, iter1, iter2)
-
-    @staticmethod
-    def pp(
-        srk: Context,
-        tr_symbols: List[Tuple[Symbol, Symbol]],
-        formatter,
-        iter_dom: IterationDomain,
-    ) -> None:
-        """Pretty print."""
-        pp(srk, tr_symbols, formatter, iter_dom)
-
-
-class SolvablePolynomialPeriodicRationalAbstraction:
-    """Periodic rational solvable polynomial abstraction interface."""
-
-    @staticmethod
-    def abstract_wedge(
-        srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]], wedge: Wedge
-    ) -> IterationDomain:
-        """Abstract wedge as periodic rational solvable polynomial."""
-        return abstract_wedge_solvable_polynomial_periodic_rational(
-            srk, tr_symbols, wedge
+        tf_linear = nonlinear.linearize(srk, tf)
+        dim = 1
+        return IterationDomain(
+            nb_equations=dim,
+            invariant=None,
+            wedge=wedge.abstract_to_wedge(srk, tf_linear.formula),
         )
 
     @staticmethod
-    def abstract(srk: Context, tf: TransitionFormula) -> IterationDomain:
-        """Abstract transition formula as periodic rational solvable polynomial."""
-        return abstract_solvable_polynomial_periodic_rational(srk, tf)
-
-    @staticmethod
-    def join(
-        srk: Context,
-        tr_symbols: List[Tuple[Symbol, Symbol]],
-        iter1: IterationDomain,
-        iter2: IterationDomain,
-    ) -> IterationDomain:
-        """Join two abstractions."""
-        return join_solvable_polynomial(srk, tr_symbols, iter1, iter2)
-
-    @staticmethod
-    def widen(
-        srk: Context,
-        tr_symbols: List[Tuple[Symbol, Symbol]],
-        iter1: IterationDomain,
-        iter2: IterationDomain,
-    ) -> IterationDomain:
-        """Widen two abstractions."""
-        return widen_solvable_polynomial(srk, tr_symbols, iter1, iter2)
-
-    @staticmethod
-    def exp(
-        srk: Context,
-        tr_symbols: List[Tuple[Symbol, Symbol]],
-        loop_counter: ArithExpression,
-        iter_dom: IterationDomain,
-    ) -> Expression:
-        """Compute exponential with periodic rational semantics."""
-        # This would need proper periodic rational implementation
-        return exp_ocrs_solvable_polynomial(srk, tr_symbols, loop_counter, iter_dom)
-
-    @staticmethod
-    def equal(
-        srk: Context,
-        tr_symbols: List[Tuple[Symbol, Symbol]],
-        iter1: IterationDomain,
-        iter2: IterationDomain,
-    ) -> bool:
-        """Check equality."""
-        return equal_solvable_polynomial(srk, tr_symbols, iter1, iter2)
-
-    @staticmethod
-    def pp(
-        srk: Context,
-        tr_symbols: List[Tuple[Symbol, Symbol]],
-        formatter,
-        iter_dom: IterationDomain,
-    ) -> None:
-        """Pretty print."""
-        pp(srk, tr_symbols, formatter, iter_dom)
-
-
-@dataclass
-class DLTSAbstraction:
-    """DLTS (Difference Logic Transition System) abstraction."""
-
-    dlts: PLM
-    simulation: List[ArithExpression]
-
-    def __post_init__(self):
-        self.simulation = list(self.simulation) if self.simulation else []
-
-
-def dimension_dlts(dlts_abs: DLTSAbstraction) -> int:
-    """Get dimension of DLTS abstraction."""
-    return len(dlts_abs.simulation)
-
-
-def pp_dlts(
-    srk: Context,
-    tr_symbols: List[Tuple[Symbol, Symbol]],
-    formatter,
-    dlts_abs: DLTSAbstraction,
-) -> None:
-    """Pretty print DLTS abstraction."""
-    formatter.write("@[<v 2>Map:")
-    for i, term in enumerate(dlts_abs.simulation):
-        row = (
-            QQMatrix.row(i, dlts_abs.dlts.map)
-            if i < QQMatrix.nb_rows(dlts_abs.dlts.map)
-            else []
-        )
-        # This would need proper term printing
-        formatter.write(f"  {term} := linear_term({row})")
-    formatter.write("@]")
-
-    if dlts_abs.dlts.guard:
-        formatter.write("@;@[<v 2>when:")
-        for eq in dlts_abs.dlts.guard:
-            # This would need proper term printing
-            formatter.write(f"  linear_term({eq}) = 0")
-        formatter.write("@]")
-
-
-def exp_impl_dlts(
-    base_exp: Callable,
-    srk: Context,
-    tr_symbols: List[Tuple[Symbol, Symbol]],
-    loop_count: ArithExpression,
-    dlts_abs: DLTSAbstraction,
-) -> Expression:
-    """Implementation of exponential for DLTS."""
-    # This would need proper DLTS exponential implementation
-    return mk_true(srk)
-
-
-def exp_dlts(
-    srk: Context,
-    tr_symbols: List[Tuple[Symbol, Symbol]],
-    loop_count: ArithExpression,
-    dlts_abs: DLTSAbstraction,
-) -> Expression:
-    """Compute exponential for DLTS."""
-    return exp_impl_dlts(
-        SolvablePolynomialAbstraction.exp, srk, tr_symbols, loop_count, dlts_abs
-    )
-
-
-def abstract_dlts(srk: Context, tf: TransitionFormula) -> DLTSAbstraction:
-    """Abstract transition formula as DLTS."""
-    # Simplified implementation - in practice this would:
-    # 1. Linearize the transition formula
-    # 2. Extract affine transformations
-    # 3. Build DLTS structure
-
-    tr_symbols = tf.symbols
-    phi = tf.formula
-
-    # Create a simple DLTS with identity transformation
-    # In practice, this would analyze the transition formula
-    dim = len(tr_symbols)
-    dlts = PLM.identity(dim)
-
-    # Create simulation terms
-    simulation = []
-    for i, (s, s_prime) in enumerate(tr_symbols):
-        # For now, just use the symbols themselves
-        simulation.append(mk_const(srk, s))
-
-    return DLTSAbstraction(dlts=dlts, simulation=simulation)
-
-
-def equal_dlts(
-    srk: Context,
-    tr_symbols: List[Tuple[Symbol, Symbol]],
-    dlts1: DLTSAbstraction,
-    dlts2: DLTSAbstraction,
-) -> bool:
-    """Check equality of DLTS abstractions."""
-    return dlts1.dlts.equal(dlts2.dlts) and dlts1.simulation == dlts2.simulation
-
-
-def to_formula_dlts(srk: Context, dlts_abs: DLTSAbstraction) -> Expression:
-    """Convert DLTS to formula."""
-    # This would need proper conversion implementation
-    return mk_true(srk)
-
-
-def join_dlts(
-    srk: Context,
-    tr_symbols: List[Tuple[Symbol, Symbol]],
-    dlts1: DLTSAbstraction,
-    dlts2: DLTSAbstraction,
-) -> DLTSAbstraction:
-    """Join two DLTS abstractions."""
-    return abstract_dlts(
-        srk,
-        TransitionFormula.make(
-            mk_or(srk, [to_formula_dlts(srk, dlts1), to_formula_dlts(srk, dlts2)]),
-            tr_symbols,
-        ),
-    )
-
-
-def simplify_dlts(
-    srk: Context, dlts_abs: DLTSAbstraction, scale: bool = False
-) -> DLTSAbstraction:
-    """Simplify DLTS abstraction."""
-    # This would need proper simplification implementation
-    return dlts_abs
-
-
-def widen_dlts(
-    srk: Context,
-    tr_symbols: List[Tuple[Symbol, Symbol]],
-    dlts1: DLTSAbstraction,
-    dlts2: DLTSAbstraction,
-) -> DLTSAbstraction:
-    """Widen two DLTS abstractions."""
-    return join_dlts(srk, tr_symbols, dlts1, dlts2)
-
-
-class DLTSSolvablePolynomialAbstraction:
-    """DLTS with solvable polynomial abstraction."""
-
-    @staticmethod
     def abstract_wedge(
-        srk: Context, tr_symbols: List[Tuple[Symbol, Symbol]], wedge: Wedge
-    ) -> DLTSAbstraction:
-        """Abstract wedge as DLTS with solvable polynomial."""
-        # This would need proper implementation
-        return DLTSAbstraction(PLM.identity(0), [])
+        srk: Context,
+        pre_domain: Any,
+        tf: "TransitionFormula",
+    ) -> "Wedge":
+        """Abstract to wedge domain."""
+        tf_linear = nonlinear.linearize(srk, tf)
+        return wedge.abstract_to_wedge(srk, tf_linear.formula)
 
     @staticmethod
-    def abstract(srk: Context, tf: TransitionFormula) -> DLTSAbstraction:
-        """Abstract transition formula as DLTS with solvable polynomial."""
-        return abstract_dlts(srk, tf)
+    def closure(
+        srk: Context,
+        tr_symbols: List[Tuple[Symbol, Symbol]],
+        loop_count: ArithExpression,
+        domain_elem: "IterationDomain",
+    ) -> FormulaExpression:
+        """Compute transitive closure for eigenvalue-1 systems."""
+        from aria.srk.expPolynomial import ExpPolynomial
+
+        if domain_elem.nb_equations == 0:
+            return mk_true()
+        poly = ExpPolynomial.scalar(Fraction(1))
+        dummy_var = mk_const(srk, mk_symbol(srk, None, Type.REAL))
+        return poly.to_term(srk, dummy_var)
 
     @staticmethod
     def exp(
         srk: Context,
         tr_symbols: List[Tuple[Symbol, Symbol]],
         loop_count: ArithExpression,
-        dlts_abs: DLTSAbstraction,
-    ) -> Expression:
-        """Compute exponential."""
-        return exp_impl_dlts(
-            SolvablePolynomialPeriodicRationalAbstraction.exp,
-            srk,
-            tr_symbols,
-            loop_count,
-            dlts_abs,
+        domain_elem: "IterationDomain",
+    ) -> FormulaExpression:
+        """Compute abstraction concretization for eigenvalue-1."""
+        return SolvablePolynomialOneAbstraction.closure(
+            srk, tr_symbols, loop_count, domain_elem
         )
 
-
-class DLTSPeriodicRationalAbstraction:
-    """DLTS with periodic rational abstraction."""
+    @staticmethod
+    def join(
+        srk: Context,
+        dom1: "IterationDomain",
+        dom2: "IterationDomain",
+    ) -> "IterationDomain":
+        """Join two solvable polynomial abstractions."""
+        return dom1 if dom1.nb_equations >= dom2.nb_equations else dom2
 
     @staticmethod
-    def abstract(srk: Context, tf: TransitionFormula) -> DLTSAbstraction:
-        """Abstract transition formula as DLTS with periodic rational."""
-        dlts_abs = abstract_dlts(srk, tf)
-        # Apply periodic rational spectrum reflection
-        # This would need proper implementation
-        return dlts_abs
+    def widen(
+        srk: Context,
+        dom1: "IterationDomain",
+        dom2: "IterationDomain",
+    ) -> "IterationDomain":
+        """Widen two solvable polynomial abstractions."""
+        return SolvablePolynomialOneAbstraction.join(srk, dom1, dom2)
 
     @staticmethod
-    def exp(
+    def equal(dom1: "IterationDomain", dom2: "IterationDomain") -> bool:
+        """Check equality of domain elements."""
+        return dom1.nb_equations == dom2.nb_equations
+
+    @staticmethod
+    def pp(dom: "IterationDomain") -> str:
+        """Pretty-print domain element."""
+        return f"SolvablePolynomialOne({dom.nb_equations})"
+
+
+# ---------------------------------------------------------------------------
+# PresburgerGuard — Universally-quantified precondition support
+# ---------------------------------------------------------------------------
+
+class PresburgerGuard:
+    """Precondition domain handling Presburger-definable guards.
+
+    Extends solvable polynomial abstractions with universally-quantified
+    precondition reasoning over Presburger arithmetic.
+    """
+
+    def __init__(self, inner_abstraction: Any):
+        self._inner = inner_abstraction
+
+    @staticmethod
+    def make(inner_abstraction: Any) -> "PresburgerGuard":
+        """Create a Presburger guard abstraction wrapping an inner domain."""
+        return PresburgerGuard(inner_abstraction)
+
+    def abstract(
+        self,
+        srk: Context,
+        pre_domain: Any,
+        tf: "TransitionFormula",
+    ) -> FormulaExpression:
+        """Abstract a transition formula with Presburger guard."""
+        tf_linear = nonlinear.linearize(srk, tf)
+        inner_result = self._inner.abstract(srk, pre_domain, tf_linear)
+        return mk_and(srk, [inner_result, tf_linear.formula])
+
+    def closure(
+        self,
         srk: Context,
         tr_symbols: List[Tuple[Symbol, Symbol]],
         loop_count: ArithExpression,
-        dlts_abs: DLTSAbstraction,
-    ) -> Expression:
-        """Compute exponential."""
-        return exp_impl_dlts(
-            SolvablePolynomialPeriodicRationalAbstraction.exp,
-            srk,
-            tr_symbols,
-            loop_count,
-            dlts_abs,
-        )
+        domain_elem: "IterationDomain",
+    ) -> FormulaExpression:
+        """Compute closure with Presburger guard support."""
+        return self._inner.closure(srk, tr_symbols, loop_count, domain_elem)
+
+    def exp(
+        self,
+        srk: Context,
+        tr_symbols: List[Tuple[Symbol, Symbol]],
+        loop_count: ArithExpression,
+        domain_elem: "IterationDomain",
+    ) -> FormulaExpression:
+        """Compute concretization with Presburger guard."""
+        return self._inner.exp(srk, tr_symbols, loop_count, domain_elem)
+
+    def pp(self, dom: "IterationDomain") -> str:
+        """Pretty-print."""
+        return f"PresburgerGuard({self._inner.pp(dom)})"

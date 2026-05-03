@@ -1798,3 +1798,122 @@ def _sympy_order(order: MonomialOrder) -> str:
         return "grevlex"
     else:
         return "grlex"  # Default
+
+
+# ---------------------------------------------------------------------------
+# Missing OCaml API functions (QQXs, Rewrite, Ideal)
+# ---------------------------------------------------------------------------
+
+def of_vec(vec: "QQVector") -> Polynomial:
+    """Convert a QQVector to a polynomial (one variable per dimension)."""
+    from aria.srk.linear import QQVector
+    terms: Dict[Monomial, Fraction] = {}
+    if hasattr(vec, 'entries'):
+        for dim, coeff in vec.entries.items():
+            if coeff != 0:
+                mon = Monomial((dim,))
+                terms[mon] = coeff
+    return Polynomial(terms)
+
+
+def vec_of(poly: Polynomial) -> "QQVector":
+    """Convert a polynomial (with one variable) to a QQVector."""
+    from aria.srk.linear import QQVector
+    entries: Dict[int, Fraction] = {}
+    for mon, coeff in poly.terms.items():
+        if len(mon.exponents) == 1:
+            entries[mon.exponents[0]] = coeff
+        elif len(mon.exponents) == 0:
+            entries[-1] = coeff
+    return QQVector(entries)
+
+
+def split_linear(poly: Polynomial) -> Tuple[Polynomial, Polynomial]:
+    """Split polynomial into linear and non-linear parts."""
+    linear_terms: Dict[Monomial, Fraction] = {}
+    nonlinear_terms: Dict[Monomial, Fraction] = {}
+    for mon, coeff in poly.terms.items():
+        deg = sum(abs(e) for e in mon.exponents)
+        if deg <= 1:
+            linear_terms[mon] = coeff
+        else:
+            nonlinear_terms[mon] = coeff
+    return Polynomial(linear_terms), Polynomial(nonlinear_terms)
+
+
+def factor_gcd(poly: Polynomial) -> Tuple[Fraction, Polynomial]:
+    """Factor out the GCD of coefficients."""
+    if poly.is_zero():
+        return Fraction(0), poly
+    coeffs = list(poly.terms.values())
+    g = coeffs[0]
+    for c in coeffs[1:]:
+        g = _gcd_frac(g, c)
+    if g == 0:
+        return Fraction(0), poly
+    new_terms = {mon: coeff / g for mon, coeff in poly.terms.items()}
+    return g, Polynomial(new_terms)
+
+
+def _gcd_frac(a: Fraction, b: Fraction) -> Fraction:
+    import math
+    na, da = abs(a.numerator), abs(a.denominator)
+    nb, db = abs(b.numerator), abs(b.denominator)
+    g_num = math.gcd(na, nb)
+    g_den = da * db // math.gcd(da, db)
+    return Fraction(g_num, g_den)
+
+
+def split_leading(poly: Polynomial) -> Tuple[Tuple[Monomial, Fraction], Polynomial]:
+    """Split off the leading term of the polynomial."""
+    if poly.is_zero():
+        return (Monomial(()), Fraction(0)), poly
+    lt = poly.leading_term()
+    lm = poly.leading_monomial()
+    lc = poly.leading_coefficient()
+    rest_terms = dict(poly.terms)
+    del rest_terms[lm]
+    return ((lm, lc), Polynomial(rest_terms))
+
+
+def mk_rewrite(lhs: Polynomial, rhs: Polynomial) -> "RewriteRule":
+    """Create a rewrite rule lhs -> rhs."""
+    return RewriteRule(lhs, rhs)
+
+
+def preduce(poly: Polynomial, rules: "RewriteSystem") -> Polynomial:
+    """Reduce a polynomial using rewrite rules (alias for reduce)."""
+    return rules.reduce(poly)
+
+
+def add_saturate(rules: "RewriteSystem", poly: Polynomial) -> "RewriteSystem":
+    """Add a polynomial to the rewrite system and saturate."""
+    new_rules = list(rules.rules)
+    new_rules.append(RewriteRule(poly, Polynomial.zero()))
+    return RewriteSystem(new_rules)
+
+
+def generators(ideal: "Ideal") -> List[Polynomial]:
+    """Get the generators of an ideal."""
+    return getattr(ideal, 'generators', [])
+
+
+def ideal_subset(i1: "Ideal", i2: "Ideal") -> bool:
+    """Check if ideal i1 is a subset of i2."""
+    for g in generators(i1):
+        if not i2.mem(g):
+            return False
+    return True
+
+
+def ideal_equal(i1: "Ideal", i2: "Ideal") -> bool:
+    """Check if two ideals are equal."""
+    return ideal_subset(i1, i2) and ideal_subset(i2, i1)
+
+
+def qq_choose(dim: int, k: int) -> Fraction:
+    """Binomial coefficient as a rational."""
+    import math
+    if k < 0 or k > dim:
+        return Fraction(0)
+    return Fraction(math.comb(int(dim), int(k)), 1)

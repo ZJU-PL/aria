@@ -745,3 +745,392 @@ def exp_polynomial_to_term(
 
 # Type alias for compatibility with OCaml naming
 UP = ExpPolynomial
+
+
+# ---------------------------------------------------------------------------
+# UltPeriodic: Ultimately periodic sequences of exponential polynomials
+# ---------------------------------------------------------------------------
+
+class UltPeriodic:
+    """Ultimately periodic sequence of exponential polynomials.
+
+    An ultimately periodic sequence has the form:
+        transient[0], ..., transient[n-1], periodic[0], periodic[1], ..., periodic[k-1], periodic[0], ...
+
+    where transient is a finite list of rationals and periodic is a finite
+    list of ExpPolynomial values.
+
+    Mirrors OCaml `ExpPolynomial.UltPeriodic`.
+    """
+
+    def __init__(
+        self,
+        transient: Optional[List[Fraction]] = None,
+        periodic: Optional[List["ExpPolynomial"]] = None,
+    ):
+        self._transient: List[Fraction] = list(transient) if transient else []
+        self._periodic: List[ExpPolynomial] = list(periodic) if periodic else []
+
+    @staticmethod
+    def make(transient: List[Fraction], periodic: List[ExpPolynomial]) -> "UltPeriodic":
+        """Construct an ultimately periodic sequence from transient and periodic parts."""
+        return UltPeriodic(transient, periodic)
+
+    @property
+    def transient(self) -> List[Fraction]:
+        """The transient prefix of the sequence."""
+        return self._transient
+
+    @property
+    def periodic(self) -> List[ExpPolynomial]:
+        """The periodic part of the sequence."""
+        return self._periodic
+
+    def transient_len(self) -> int:
+        """Length of the transient part."""
+        return len(self._transient)
+
+    def period_len(self) -> int:
+        """Length of the periodic part."""
+        return len(self._periodic)
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, UltPeriodic):
+            return False
+        return self._transient == other._transient and self._periodic == other._periodic
+
+    def __hash__(self) -> int:
+        return hash((tuple(self._transient), tuple(self._periodic)))
+
+    def __add__(self, other: "UltPeriodic") -> "UltPeriodic":
+        """Pointwise addition of two ultimately periodic sequences."""
+        if not isinstance(other, UltPeriodic):
+            return NotImplemented
+        a_lt, a_lp = self.transient_len(), self.period_len()
+        b_lt, b_lp = other.transient_len(), other.period_len()
+        m = max(a_lt, b_lt)
+        new_transient = [
+            (self._eval_raw(i) if i < len(self._transient) else Fraction(0))
+            + (other._eval_raw(i) if i < len(other._transient) else Fraction(0))
+            for i in range(m)
+        ]
+        p = _lcm(a_lp, b_lp)
+        new_periodic = []
+        for k in range(p):
+            base = m + k
+            a_val = self._eval_raw(base) if a_lp > 0 else Fraction(0)
+            b_val = other._eval_raw(base) if b_lp > 0 else Fraction(0)
+            new_periodic.append(a_val + b_val)
+        return UltPeriodic(new_transient, new_periodic)
+
+    def __neg__(self) -> "UltPeriodic":
+        """Negate the sequence pointwise."""
+        new_transient = [-x for x in self._transient]
+        new_periodic = [-ep for ep in self._periodic]
+        return UltPeriodic(new_transient, new_periodic)
+
+    @staticmethod
+    def zero() -> "UltPeriodic":
+        """The all-zero sequence."""
+        return UltPeriodic([], [])
+
+    def __mul__(self, other: "UltPeriodic") -> "UltPeriodic":
+        """Pointwise multiplication of two ultimately periodic sequences."""
+        if not isinstance(other, UltPeriodic):
+            return NotImplemented
+        a_lt, a_lp = self.transient_len(), self.period_len()
+        b_lt, b_lp = other.transient_len(), other.period_len()
+        m = max(a_lt, b_lt)
+        new_transient = [
+            (self._eval_raw(i) if i < len(self._transient) else Fraction(1))
+            * (other._eval_raw(i) if i < len(other._transient) else Fraction(1))
+            for i in range(m)
+        ]
+        p = _lcm(a_lp, b_lp)
+        new_periodic = []
+        for k in range(p):
+            base = m + k
+            a_val = self._eval_raw(base) if a_lp > 0 else Fraction(1)
+            b_val = other._eval_raw(base) if b_lp > 0 else Fraction(1)
+            new_periodic.append(a_val * b_val)
+        return UltPeriodic(new_transient, new_periodic)
+
+    @staticmethod
+    def one() -> "UltPeriodic":
+        """The all-ones sequence."""
+        return UltPeriodic([Fraction(1)], [ExpPolynomial.scalar(Fraction(1))])
+
+    @staticmethod
+    def scalar(coeff: Fraction) -> "UltPeriodic":
+        """Constant scalar sequence."""
+        return UltPeriodic([coeff], [ExpPolynomial.scalar(Fraction(0))])
+
+    @staticmethod
+    def of_polynomial(poly: "Polynomial") -> "UltPeriodic":
+        """Create an ultimately periodic sequence from a polynomial (viewed as constant)."""
+        return UltPeriodic([Fraction(0)], [ExpPolynomial(poly, Fraction(1))])
+
+    @staticmethod
+    def of_exponential(base: Fraction) -> "UltPeriodic":
+        """Create an ultimately periodic sequence from an exponential base."""
+        return UltPeriodic(
+            [Fraction(1)],
+            [ExpPolynomial(Polynomial.one(), base)],
+        )
+
+    @staticmethod
+    def of_exp_polynomial(ep: "ExpPolynomial") -> "UltPeriodic":
+        """Create an ultimately periodic sequence from an exponential polynomial."""
+        return UltPeriodic([], [ep])
+
+    def eval(self, n: int) -> Fraction:
+        """Evaluate the sequence at position n."""
+        if n < 0:
+            raise ValueError(f"Index {n} out of bounds")
+        if n < len(self._transient):
+            return self._transient[n]
+        if len(self._periodic) == 0:
+            return Fraction(0)
+        idx = (n - len(self._transient)) % len(self._periodic)
+        return self._periodic[idx].eval(idx)
+
+    def enum(self) -> Iterator[Fraction]:
+        """Enumerate the sequence values."""
+        for v in self._transient:
+            yield v
+        if not self._periodic:
+            return
+        i = 0
+        while True:
+            yield self._periodic[i % len(self._periodic)].eval(i % len(self._periodic))
+            i += 1
+
+    def summation(self) -> "UltPeriodic":
+        """Compute the partial sum sequence: g(n) = sum_{i=0}^n f(i)."""
+        return UlpSummation(self)
+
+    def solve_rec(
+        self, coeff: Fraction, initial: Optional[Fraction] = None
+    ) -> "UltPeriodic":
+        """Solve recurrence: g(0) = initial, g(n+1) = coeff*g(n) + f_n(n)."""
+        init = initial if initial is not None else Fraction(0)
+        return UlpSolveRec(self, coeff, init)
+
+    def compose_left_affine(self, a: int, b: int) -> "UltPeriodic":
+        """Compute g where g(i) = f(a*i + b)."""
+        lt = self.transient_len()
+        lp = self.period_len()
+        if lp == 0:
+            new_vals = [self._eval_raw(a * i + b) for i in range(max(0, (lt - b + a - 1) // a))]
+            return UltPeriodic(new_vals, [])
+        new_transient = []
+        new_periodic = []
+        for i in range(lt + lp):
+            val = self._eval_raw(a * i + b)
+            new_transient.append(val)
+        p = lp
+        for i in range(p):
+            val = self._eval_raw(a * (lt + lp + i) + b)
+            new_periodic.append(val)
+        return UltPeriodic(new_transient[:lt + lp], new_periodic)
+
+    def shift(self, prefix: List[Fraction]) -> "UltPeriodic":
+        """Prepend a finite list of values before the sequence.
+
+        shift(t1..tn, f) produces the sequence t1, t2, ..., tn, f0, f1, f2, ...
+        """
+        return UltPeriodic(prefix + self._transient, self._periodic)
+
+    @staticmethod
+    def flatten(sequences: List["UltPeriodic"]) -> "UltPeriodic":
+        """Interleave p sequences: g(qp + r) = f_r(q).
+
+        For each remainder r mod p, at index qp + r, evaluate the r-th
+        sequence at position q.
+        """
+        if not sequences:
+            return UltPeriodic.zero()
+        p = len(sequences)
+        new_transient: List[Fraction] = []
+        new_periodic: List[ExpPolynomial] = []
+        max_transient = max(f.transient_len() for f in sequences)
+        for k in range(max_transient):
+            r = k % p
+            q = k // p
+            seq = sequences[r]
+            if q < seq.transient_len():
+                new_transient.append(seq.transient[q])
+            else:
+                new_transient.append(Fraction(0))
+        per_lcm = _lcm(*(f.period_len() for f in sequences))
+        if per_lcm == 0:
+            return UltPeriodic(new_transient, [])
+        for k in range(per_lcm):
+            r = k % p
+            q = k // p
+            seq = sequences[r]
+            if seq.period_len() == 0:
+                new_periodic.append(ExpPolynomial.scalar(Fraction(0)))
+            else:
+                idx = q % seq.period_len()
+                new_periodic.append(seq.periodic[idx])
+        return UltPeriodic(new_transient, new_periodic)
+
+    def term_of(
+        self,
+        context: "Context",
+        q_var: "ArithExpression",
+        r_var: "ArithExpression",
+    ) -> "ArithExpression":
+        """Compute a term representing f(q*p + r), where p is the period."""
+        p = len(self._periodic)
+        if p == 0:
+            return self._eval_term(context, r_var)
+
+        from aria.srk.syntax import mk_ite, mk_eq, mk_int, mk_add, mk_mul
+
+        def mk_remainder(idx: int) -> "ArithExpression":
+            from aria.srk.syntax import mk_lt, mk_leq, mk_and
+
+            mn = mk_int(idx)
+            if idx == p - 1:
+                return mk_and([mk_leq(mn, r_var)])
+            return mk_and([mk_leq(mn, r_var), mk_lt(r_var, mk_int(idx + 1))])
+
+        acc = self._transient_term(context, q_var, r_var)
+        for idx, ep in enumerate(self._periodic):
+            cond = mk_remainder(idx)
+            r_val = mk_add([mk_mul([mk_int(p), q_var]), mk_int(idx)])
+            then_val = ep.to_term(context, r_val)
+            acc = mk_ite(cond, then_val, acc)
+        return acc
+
+    def _transient_term(
+        self, context: "Context", q_var: "ArithExpression", r_var: "ArithExpression"
+    ) -> "ArithExpression":
+        """Build a case-split term for the transient prefix."""
+        from aria.srk.syntax import mk_ite, mk_eq, mk_int, mk_const, mk_symbol
+
+        if not self._transient:
+            return mk_int(0)
+        n = len(self._transient)
+        acc: "ArithExpression" = mk_int(0)
+        for i in range(n - 1, -1, -1):
+            val = self._transient[i]
+            cond = mk_eq(mk_add([mk_int(n), q_var]), mk_int(i))
+            then_val = mk_const(mk_symbol(f"real_{float(val)}", Type.REAL))
+            acc = mk_ite(cond, then_val, acc)
+        return acc
+
+    def _eval_raw(self, n: int) -> Fraction:
+        """Evaluate at position n without bounds checking."""
+        if n < len(self._transient):
+            return self._transient[n]
+        if len(self._periodic) == 0:
+            return Fraction(0)
+        idx = (n - len(self._transient)) % len(self._periodic)
+        q = (n - len(self._transient)) // len(self._periodic)
+        return self._periodic[idx].eval(q)
+
+    def _eval_term(self, context: "Context", var: "ArithExpression") -> "ArithExpression":
+        """Evaluate as an arithmetic term."""
+        from aria.srk.syntax import mk_ite, mk_int
+
+        acc: "ArithExpression" = mk_int(0)
+        for i in range(len(self._transient) - 1, -1, -1):
+            from aria.srk.syntax import mk_eq
+
+            cond = mk_eq(var, mk_int(i))
+            then_val = mk_int(int(self._transient[i]))
+            acc = mk_ite(cond, then_val, acc)
+        return acc
+
+    def __str__(self) -> str:
+        t = ",".join(str(v) for v in self._transient)
+        p = ",".join(str(ep) for ep in self._periodic)
+        return f"UP(transient=[{t}], periodic=[{p}])"
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+
+class UlpSummation(UltPeriodic):
+    """Lazily computed summation of an ultimately periodic sequence."""
+
+    def __init__(self, inner: "UltPeriodic"):
+        super().__init__()
+        self._inner = inner
+        self._cache: Dict[int, Fraction] = {}
+
+    @property
+    def transient(self) -> List[Fraction]:
+        return [self.eval(i) for i in range(self.transient_len())]
+
+    @property
+    def periodic(self) -> List["ExpPolynomial"]:
+        tl = self.transient_len()
+        return [ExpPolynomial.scalar(self.eval(tl + i)) for i in range(self.period_len())]
+
+    def transient_len(self) -> int:
+        return self._inner.transient_len()
+
+    def period_len(self) -> int:
+        inner_p = self._inner.period_len()
+        if inner_p == 0:
+            return 0
+        return inner_p
+
+    def eval(self, n: int) -> Fraction:
+        if n in self._cache:
+            return self._cache[n]
+        total = Fraction(0)
+        for i in range(n + 1):
+            total += self._inner.eval(i)
+        self._cache[n] = total
+        return total
+
+
+class UlpSolveRec(UltPeriodic):
+    """Lazily computed solution to g(n+1) = coeff*g(n) + f(n)."""
+
+    def __init__(self, inner: "UltPeriodic", coeff: Fraction, initial: Fraction):
+        super().__init__()
+        self._inner = inner
+        self._coeff = coeff
+        self._initial = initial
+        self._cache: Dict[int, Fraction] = {0: initial}
+
+    @property
+    def transient(self) -> List[Fraction]:
+        return [self.eval(i) for i in range(self.transient_len())]
+
+    @property
+    def periodic(self) -> List["ExpPolynomial"]:
+        tl = self.transient_len()
+        return [ExpPolynomial.scalar(self.eval(tl + i)) for i in range(self.period_len())]
+
+    def transient_len(self) -> int:
+        return self._inner.transient_len()
+
+    def period_len(self) -> int:
+        return self._inner.period_len()
+
+    def eval(self, n: int) -> Fraction:
+        if n in self._cache:
+            return self._cache[n]
+        for k in range(len(self._cache), n + 1):
+            val = self._coeff * self._cache[k - 1] + self._inner.eval(k - 1)
+            self._cache[k] = val
+        return self._cache[n]
+
+
+def _lcm(a: int, *args: int) -> int:
+    """Compute LCM of multiple integers."""
+    import math
+
+    result = a
+    for x in args:
+        if x == 0:
+            continue
+        result = abs(result * x) // math.gcd(result, x)
+    return result
