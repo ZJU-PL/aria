@@ -167,7 +167,7 @@ You can use the C frontend directly from the command line:
 
 .. code-block:: bash
 
-   efmc --file program.c --lang c --engine ef --template interval
+   aria-efmc --file program.c --lang c --engine ef --template interval
 
 The ``--lang c`` option tells EFMC to use the C frontend. If not specified, EFMC will auto-detect the language based on the file extension.
 

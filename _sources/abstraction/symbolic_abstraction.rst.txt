@@ -61,8 +61,8 @@ Command-line usage:
 
 .. code-block:: bash
 
-   efmc --engine symabs --symabs-domain interval --lang chc --file program.smt2
-   efmc --engine symabs --symabs-domain known_bits --lang chc --file program.smt2
+   aria-efmc --engine symabs --symabs-domain interval --lang chc --file program.smt2
+   aria-efmc --engine symabs --symabs-domain known_bits --lang chc --file program.smt2
 
 Programmatic usage:
 
