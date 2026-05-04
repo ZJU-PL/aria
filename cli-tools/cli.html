@@ -165,7 +165,7 @@ console scripts such as <code class="docutils literal notranslate"><span class="
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">aria-efmc-efsmt</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">aria.cli.efmc_efsmt_cli</span></code></p></td>
-<td><p>EFMC-specific EFSMT frontend</p></td>
+<td><p>Legacy EFMC-oriented EFSMT frontend</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">aria-polyhorn</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">aria.cli.polyhorn_cli</span></code></p></td>
@@ -237,6 +237,15 @@ python<span class="w"> </span>-m<span class="w"> </span>aria.cli.efsmt_cli<span 
 <p>Key options include <code class="docutils literal notranslate"><span class="pre">--parser</span></code>, <code class="docutils literal notranslate"><span class="pre">--theory</span></code>, <code class="docutils literal notranslate"><span class="pre">--engine</span></code>, <code class="docutils literal notranslate"><span class="pre">--timeout</span></code>,
 <code class="docutils literal notranslate"><span class="pre">--max-loops</span></code>, plus theory-specific solver options for bit-vectors and
 LIA/LRA.</p>
+<p>Current CLI split:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">aria-efsmt</span></code> is the general-purpose EFSMT frontend for standalone
+<code class="docutils literal notranslate"><span class="pre">.smt2</span></code> exists-forall problems.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria-efmc-efsmt</span></code> is a legacy EFMC-adjacent frontend that exposes the
+solver stack under <code class="docutils literal notranslate"><span class="pre">aria.efmc.engines.ef.efsmt</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria-efmc</span></code> is the transition-system verifier and should be used for CHC,
+SyGuS, Boogie, and C verification workflows rather than raw EFSMT queries.</p></li>
+</ul>
 </section>
 <section id="maxsat">
 <h3><code class="docutils literal notranslate"><span class="pre">maxsat</span></code><a class="headerlink" href="#maxsat" title="Link to this heading"></a></h3>
@@ -280,8 +289,16 @@ python<span class="w"> </span>-m<span class="w"> </span>aria.cli.smt_server_cli<
 <p>These entrypoints expose the verification and quantified-reasoning stacks:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">aria-efmc</span></code> for verification over CHC, SyGuS, Boogie, and C-style inputs</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">aria-efmc-efsmt</span></code> for EFMC-focused EFSMT workflows</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria-efmc-efsmt</span></code> for the legacy EFMC-oriented EFSMT frontend</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">aria-polyhorn</span></code> for polynomial Horn solving</p></li>
+</ul>
+<p>The boundary between <code class="docutils literal notranslate"><span class="pre">aria-efsmt</span></code> and <code class="docutils literal notranslate"><span class="pre">aria-efmc-efsmt</span></code> is currently
+historical rather than perfectly clean. In practice:</p>
+<ul class="simple">
+<li><p>choose <code class="docutils literal notranslate"><span class="pre">aria-efsmt</span></code> for new standalone EFSMT solving workflows</p></li>
+<li><p>choose <code class="docutils literal notranslate"><span class="pre">aria-efmc</span></code> for verification problems</p></li>
+<li><p>use <code class="docutils literal notranslate"><span class="pre">aria-efmc-efsmt</span></code> only when you need the EFMC backend’s solver or dump
+behavior specifically</p></li>
 </ul>
 </section>
 </section>

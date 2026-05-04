@@ -75,6 +75,17 @@ Adjacent verification CLIs include:
 * ``aria-efmc-efsmt`` / ``python -m aria.cli.efmc_efsmt_cli``
 * ``aria-polyhorn`` / ``python -m aria.cli.polyhorn_cli``
 
+For quantified SMT problems, there is also a separate standalone frontend:
+
+* ``aria-efsmt`` / ``python -m aria.cli.efsmt_cli``
+
+Current distinction:
+
+* use ``aria-efmc`` for program and transition-system verification
+* use ``aria-efsmt`` for standalone exists-forall ``.smt2`` queries
+* treat ``aria-efmc-efsmt`` as a legacy EFMC-oriented EFSMT entrypoint kept
+  for compatibility with the EFMC solver stack
+
 Notes
 -----
 

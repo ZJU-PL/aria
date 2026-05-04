@@ -168,6 +168,17 @@ aria-efmc<span class="w"> </span>--lang<span class="w"> </span>chc<span class="w
 <li><p><code class="docutils literal notranslate"><span class="pre">aria-efmc-efsmt</span></code> / <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">aria.cli.efmc_efsmt_cli</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">aria-polyhorn</span></code> / <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">aria.cli.polyhorn_cli</span></code></p></li>
 </ul>
+<p>For quantified SMT problems, there is also a separate standalone frontend:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">aria-efsmt</span></code> / <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">aria.cli.efsmt_cli</span></code></p></li>
+</ul>
+<p>Current distinction:</p>
+<ul class="simple">
+<li><p>use <code class="docutils literal notranslate"><span class="pre">aria-efmc</span></code> for program and transition-system verification</p></li>
+<li><p>use <code class="docutils literal notranslate"><span class="pre">aria-efsmt</span></code> for standalone exists-forall <code class="docutils literal notranslate"><span class="pre">.smt2</span></code> queries</p></li>
+<li><p>treat <code class="docutils literal notranslate"><span class="pre">aria-efmc-efsmt</span></code> as a legacy EFMC-oriented EFSMT entrypoint kept
+for compatibility with the EFMC solver stack</p></li>
+</ul>
 </section>
 <section id="notes">
 <h2>Notes<a class="headerlink" href="#notes" title="Link to this heading"></a></h2>

@@ -46,7 +46,7 @@ The current ``pyproject.toml`` registers these commands:
      - Transition-system verification
    * - ``aria-efmc-efsmt``
      - ``python -m aria.cli.efmc_efsmt_cli``
-     - EFMC-specific EFSMT frontend
+     - Legacy EFMC-oriented EFSMT frontend
    * - ``aria-polyhorn``
      - ``python -m aria.cli.polyhorn_cli``
      - Polynomial Horn solving
@@ -128,6 +128,15 @@ Key options include ``--parser``, ``--theory``, ``--engine``, ``--timeout``,
 ``--max-loops``, plus theory-specific solver options for bit-vectors and
 LIA/LRA.
 
+Current CLI split:
+
+* ``aria-efsmt`` is the general-purpose EFSMT frontend for standalone
+  ``.smt2`` exists-forall problems.
+* ``aria-efmc-efsmt`` is a legacy EFMC-adjacent frontend that exposes the
+  solver stack under ``aria.efmc.engines.ef.efsmt``.
+* ``aria-efmc`` is the transition-system verifier and should be used for CHC,
+  SyGuS, Boogie, and C verification workflows rather than raw EFSMT queries.
+
 ``maxsat``
 ~~~~~~~~~~
 
@@ -179,8 +188,16 @@ Run an IPC-based SMT server with commands such as ``assert``, ``check-sat``,
 These entrypoints expose the verification and quantified-reasoning stacks:
 
 * ``aria-efmc`` for verification over CHC, SyGuS, Boogie, and C-style inputs
-* ``aria-efmc-efsmt`` for EFMC-focused EFSMT workflows
+* ``aria-efmc-efsmt`` for the legacy EFMC-oriented EFSMT frontend
 * ``aria-polyhorn`` for polynomial Horn solving
+
+The boundary between ``aria-efsmt`` and ``aria-efmc-efsmt`` is currently
+historical rather than perfectly clean. In practice:
+
+* choose ``aria-efsmt`` for new standalone EFSMT solving workflows
+* choose ``aria-efmc`` for verification problems
+* use ``aria-efmc-efsmt`` only when you need the EFMC backend's solver or dump
+  behavior specifically
 
 Validation
 ----------
