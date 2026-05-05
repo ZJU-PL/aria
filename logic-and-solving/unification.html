@@ -60,11 +60,11 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#components">Components</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#core-unification-aria-unification-core-py">Core Unification (<code class="docutils literal notranslate"><span class="pre">aria/unification/core.py</span></code>)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#pattern-matching-aria-unification-match-py">Pattern Matching (<code class="docutils literal notranslate"><span class="pre">aria/unification/match.py</span></code>)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#variables-aria-unification-variable-py">Variables (<code class="docutils literal notranslate"><span class="pre">aria/unification/variable.py</span></code>)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#utilities-aria-unification-utils-py">Utilities (<code class="docutils literal notranslate"><span class="pre">aria/unification/utils.py</span></code>)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#type-dispatch-aria-unification-dispatch-py">Type Dispatch (<code class="docutils literal notranslate"><span class="pre">aria/unification/dispatch.py</span></code>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#core-unification-aria-smt-unification-core">Core Unification (<code class="docutils literal notranslate"><span class="pre">aria.smt.unification.core</span></code>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pattern-matching-aria-smt-unification-match">Pattern Matching (<code class="docutils literal notranslate"><span class="pre">aria.smt.unification.match</span></code>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#variables-aria-smt-unification-variable">Variables (<code class="docutils literal notranslate"><span class="pre">aria.smt.unification.variable</span></code>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utilities-aria-smt-unification-utils">Utilities (<code class="docutils literal notranslate"><span class="pre">aria.smt.unification.utils</span></code>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#type-dispatch-aria-smt-unification-dispatch">Type Dispatch (<code class="docutils literal notranslate"><span class="pre">aria.smt.unification.dispatch</span></code>)</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#applications">Applications</a></li>
@@ -127,7 +127,7 @@
 </section>
 <section id="introduction">
 <h1>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h1>
-<p>The unification module (<code class="docutils literal notranslate"><span class="pre">aria/unification</span></code>) provides a general-purpose term unification engine supporting first-order unification, pattern matching, and substitution operations. It is used throughout aria for term manipulation, pattern matching in theorem proving, and constraint solving.</p>
+<p>The unification module (<code class="docutils literal notranslate"><span class="pre">aria.smt.unification</span></code>) provides a general-purpose term unification engine supporting first-order unification, pattern matching, and substitution operations. It is used throughout aria for term manipulation, pattern matching in theorem proving, and constraint solving.</p>
 <section id="key-features">
 <h2>Key Features<a class="headerlink" href="#key-features" title="Link to this heading"></a></h2>
 <ul class="simple">
@@ -141,10 +141,10 @@
 </section>
 <section id="components">
 <h1>Components<a class="headerlink" href="#components" title="Link to this heading"></a></h1>
-<section id="core-unification-aria-unification-core-py">
-<h2>Core Unification (<code class="docutils literal notranslate"><span class="pre">aria/unification/core.py</span></code>)<a class="headerlink" href="#core-unification-aria-unification-core-py" title="Link to this heading"></a></h2>
+<section id="core-unification-aria-smt-unification-core">
+<h2>Core Unification (<code class="docutils literal notranslate"><span class="pre">aria.smt.unification.core</span></code>)<a class="headerlink" href="#core-unification-aria-smt-unification-core" title="Link to this heading"></a></h2>
 <p>Main unification engine:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.unification</span><span class="w"> </span><span class="kn">import</span> <span class="n">unify</span><span class="p">,</span> <span class="n">Var</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.smt.unification</span><span class="w"> </span><span class="kn">import</span> <span class="n">unify</span><span class="p">,</span> <span class="n">Var</span>
 
 <span class="c1"># Define variables and terms</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">Var</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
@@ -160,10 +160,10 @@
 </pre></div>
 </div>
 </section>
-<section id="pattern-matching-aria-unification-match-py">
-<h2>Pattern Matching (<code class="docutils literal notranslate"><span class="pre">aria/unification/match.py</span></code>)<a class="headerlink" href="#pattern-matching-aria-unification-match-py" title="Link to this heading"></a></h2>
+<section id="pattern-matching-aria-smt-unification-match">
+<h2>Pattern Matching (<code class="docutils literal notranslate"><span class="pre">aria.smt.unification.match</span></code>)<a class="headerlink" href="#pattern-matching-aria-smt-unification-match" title="Link to this heading"></a></h2>
 <p>One-way pattern matching for term rewriting:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.unification</span><span class="w"> </span><span class="kn">import</span> <span class="n">match</span><span class="p">,</span> <span class="n">Var</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.smt.unification</span><span class="w"> </span><span class="kn">import</span> <span class="n">match</span><span class="p">,</span> <span class="n">Var</span>
 
 <span class="c1"># Match pattern against term</span>
 <span class="n">pattern</span> <span class="o">=</span> <span class="p">(</span><span class="n">Var</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">),</span> <span class="n">Var</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">),</span> <span class="n">Var</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">))</span>
@@ -174,10 +174,10 @@
 </pre></div>
 </div>
 </section>
-<section id="variables-aria-unification-variable-py">
-<h2>Variables (<code class="docutils literal notranslate"><span class="pre">aria/unification/variable.py</span></code>)<a class="headerlink" href="#variables-aria-unification-variable-py" title="Link to this heading"></a></h2>
+<section id="variables-aria-smt-unification-variable">
+<h2>Variables (<code class="docutils literal notranslate"><span class="pre">aria.smt.unification.variable</span></code>)<a class="headerlink" href="#variables-aria-smt-unification-variable" title="Link to this heading"></a></h2>
 <p>Variable representation and utilities:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.unification</span><span class="w"> </span><span class="kn">import</span> <span class="n">Var</span><span class="p">,</span> <span class="n">isvar</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.smt.unification</span><span class="w"> </span><span class="kn">import</span> <span class="n">Var</span><span class="p">,</span> <span class="n">isvar</span>
 
 <span class="c1"># Create variables</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">Var</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
@@ -189,10 +189,10 @@
 </pre></div>
 </div>
 </section>
-<section id="utilities-aria-unification-utils-py">
-<h2>Utilities (<code class="docutils literal notranslate"><span class="pre">aria/unification/utils.py</span></code>)<a class="headerlink" href="#utilities-aria-unification-utils-py" title="Link to this heading"></a></h2>
+<section id="utilities-aria-smt-unification-utils">
+<h2>Utilities (<code class="docutils literal notranslate"><span class="pre">aria.smt.unification.utils</span></code>)<a class="headerlink" href="#utilities-aria-smt-unification-utils" title="Link to this heading"></a></h2>
 <p>Helper functions for substitution and term manipulation:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.unification.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">walk</span><span class="p">,</span> <span class="n">occurs_check</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.smt.unification.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">walk</span><span class="p">,</span> <span class="n">occurs_check</span>
 
 <span class="c1"># Walk through substitutions</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">walk</span><span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="n">substitution</span><span class="p">)</span>
@@ -202,10 +202,10 @@
 </pre></div>
 </div>
 </section>
-<section id="type-dispatch-aria-unification-dispatch-py">
-<h2>Type Dispatch (<code class="docutils literal notranslate"><span class="pre">aria/unification/dispatch.py</span></code>)<a class="headerlink" href="#type-dispatch-aria-unification-dispatch-py" title="Link to this heading"></a></h2>
+<section id="type-dispatch-aria-smt-unification-dispatch">
+<h2>Type Dispatch (<code class="docutils literal notranslate"><span class="pre">aria.smt.unification.dispatch</span></code>)<a class="headerlink" href="#type-dispatch-aria-smt-unification-dispatch" title="Link to this heading"></a></h2>
 <p>Generic function dispatch based on type:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.unification.dispatch</span><span class="w"> </span><span class="kn">import</span> <span class="n">dispatch</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.smt.unification.dispatch</span><span class="w"> </span><span class="kn">import</span> <span class="n">dispatch</span>
 
 <span class="nd">@dispatch</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">unify_ints</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>

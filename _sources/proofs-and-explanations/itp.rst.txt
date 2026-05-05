@@ -1,14 +1,16 @@
 Interactive Theorem Proving (ITP)
-===============================
+==============================
+
+**Note**: The ``aria.itp`` module has been removed from the repository.
 
 Overview
 --------
 
-The ``aria.itp`` module provides a framework for interactive theorem proving with SMT solvers. It offers a Python interface for writing formal proofs, defining axioms, and verifying mathematical properties.
+The ``aria.itp`` module previously provided a framework for interactive theorem proving with SMT solvers. It offered a Python interface for writing formal proofs, defining axioms, and verifying mathematical properties.
 
-This module serves as a bridge between Python and various SMT (Satisfiability Modulo Theories) solvers like Z3, CVC5, and Vampire, providing:
+This module served as a bridge between Python and various SMT (Satisfiability Modulo Theories) solvers like Z3, CVC5, and Vampire, providing:
 
-- A kernel that maintains the logical integrity of proofs
+- A kernel that maintained the logical integrity of proofs
 - Various tactics for constructing proofs
 - Support for datatypes and inductive definitions
 - A library of theories (arithmetic, sets, sequences, etc.)

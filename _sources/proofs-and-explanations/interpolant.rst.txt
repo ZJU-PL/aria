@@ -1,7 +1,7 @@
 Interpolant Generation
 ======================
 
-``aria.interpolant`` contains Craig-interpolant generation helpers for SMT
+``aria.proof.interpolant`` contains Craig-interpolant generation helpers for SMT
 formulas.
 
 Overview
@@ -35,6 +35,6 @@ Programmatic usage
 
 .. code-block:: python
 
-   from aria.interpolant import pysmt_interpolant
+   from aria.proof.interpolant import pysmt_interpolant
 
    interpolant = pysmt_interpolant.get_interpolant(A, B)

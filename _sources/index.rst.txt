@@ -13,15 +13,16 @@ verification, symbolic abstraction, and related experimentation.
 Major user-facing areas include:
 
 * ``aria.bool``: SAT, MaxSAT, QBF, CNF simplification, and knowledge compilation
-* ``aria.smt``: SMT-oriented theory packages and solver utilities
-* ``aria.srk``: symbolic reasoning infrastructure
+* ``aria.smt``: SMT-oriented theory packages and solver utilities (including ``unification``, ``fol``)
+* ``aria.utils.srk``: symbolic reasoning infrastructure
 * ``aria.quant``: quantified reasoning, EFSMT, QE, CHC tooling, and prototypes
 * ``aria.efmc``: program verification frontends and engines
 * ``aria.counting`` / ``aria.sampling`` / ``aria.prob``: counting, sampling,
   and probabilistic reasoning
 * ``aria.pyomt``: optimization and MaxSMT/MaxSAT-oriented workflows
-* ``aria.itp`` / ``aria.fol`` / ``aria.interpolant``: theorem proving and logic
-* ``aria.translator`` / ``aria.cli``: translators and command-line tools
+* ``aria.smt.fol``: first-order logic theorem proving (Miniprover) - now in ``aria.smt.fol``
+* ``aria.util.translator`` / ``aria.cli``: translators and command-line tools
+* ``aria.volumn``: volume computation for polytopes
 
 Installing and using aria
 -------------------------

@@ -9,7 +9,7 @@ belief-change tasks.
 Abduction in ARIA
 -----------------
 
-``aria.abduction`` contains abductive reasoning helpers together with
+``aria.proof.abduction`` contains abductive reasoning helpers together with
 belief-revision operations over finite bases of Z3 formulas.
 
 Current public entrypoints include:
@@ -25,10 +25,10 @@ Example imports
 
 .. code-block:: python
 
-   from aria.abduction import abduce, revise_belief_base
+   from aria.proof.abduction import abduce, revise_belief_base
 
 For concrete examples of belief revision and optimal revision/contraction
-enumeration, see ``aria/abduction/README.md``.
+enumeration, see ``aria/proof/abduction/README.md``.
 
 References
 ----------

@@ -80,14 +80,14 @@ Unsat cores
 
 .. code-block:: python
 
-   from aria.unsat_core import Algorithm, UnsatCoreComputer
+   from aria.proof.unsat_core import Algorithm, UnsatCoreComputer
 
 Abduction and belief revision
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
-   from aria.abduction import abduce, revise_belief_base
+   from aria.proof.abduction import abduce, revise_belief_base
 
 Verification and CLI workflows
 ------------------------------
@@ -122,7 +122,7 @@ Package map
 * ``aria.quant``: quantified reasoning
 * ``aria.efmc``: verification frontends and engines
 * ``aria.symabs`` / ``aria.monabs``: abstraction-oriented packages
-* ``aria.translator``: format conversion
+* ``aria.utils.translator``: format conversion
 
 For package-specific examples, prefer the nearest package ``README.md`` and the
 section pages linked from this documentation tree.

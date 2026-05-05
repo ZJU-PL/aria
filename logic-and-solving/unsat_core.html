@@ -149,7 +149,7 @@ A minimal unsatisfiable subset (MUS) is an UNSAT core that becomes satisfiable i
 <h2>Usage Example<a class="headerlink" href="#usage-example" title="Link to this heading"></a></h2>
 <p><a href="#id1"><span class="problematic" id="id2">``</span></a><a href="#id3"><span class="problematic" id="id4">`</span></a>python
 import z3
-from aria.unsat_core.unsat_core import get_unsat_core, Algorithm</p>
+from aria.proof.unsat_core.unsat_core import get_unsat_core, Algorithm</p>
 <p># Define an unsatisfiable formula
 x, y = z3.Ints(‘x y’)
 constraints = [</p>
@@ -184,7 +184,7 @@ for core in result.cores:</p>
 </dl>
 </div></blockquote>
 <p># Enumerate all MUSes
-from aria.unsat_core.unsat_core import enumerate_all_mus</p>
+from aria.proof.unsat_core.unsat_core import enumerate_all_mus</p>
 <dl class="simple">
 <dt>all_muses = enumerate_all_mus(</dt><dd><p>constraints=constraints,
 solver_factory=solver_factory,

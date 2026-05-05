@@ -1,7 +1,7 @@
 First-Order Logic (FOL)
 =========================
 
-The ``aria.fol`` module provides **Miniprover**, an automated theorem prover for first-order logic. This is a pedagogical implementation that is guaranteed to find proofs for all provable formulae (though it may loop forever for some unprovable ones, per Gödel's Entscheidungsproblem).
+The ``aria.smt.fol`` module provides **Miniprover**, an automated theorem prover for first-order logic. This is a pedagogical implementation that is guaranteed to find proofs for all provable formulae (though it may loop forever for some unprovable ones, per Gödel's Entscheidungsproblem).
 
 .. contents:: Table of Contents
    :local:
@@ -11,7 +11,7 @@ Directory Structure
 ----------------
 
 ```
-fol/
+smt/fol/
 └── miniprover/
     ├── __init__.py          (0 lines - empty)
     ├── language.py          (517 lines)
@@ -153,7 +153,7 @@ Interactive theorem prover REPL with formula management.
 .. list-table::
    :header: "Command, Description"
    :widths: 15, 60
-   
+
    ``[formula]``, Input formula and check provability
    ``axiom add [formula]``, Add axiom to current set
    ``axiom list``, List all axioms
@@ -199,27 +199,27 @@ Algorithms Implemented
 4. **Formula Ordering**: Depth-first within sequent, breadth-first globally
 
 Usage Examples
---------------
+-------------
 
 ### Python API
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
 
 .. code-block:: python
 
-   from aria.fol.miniprover.language import *
-   from aria.fol.miniprover.prover import proveFormula
+   from aria.smt.fol.miniprover.language import *
+   from aria.smt.fol.miniprover.prover import proveFormula
 
    # Define axioms and prove formulae
    axioms = {
        ForAll(Variable('x'), Predicate('P', [Variable('x')])),
        ForAll(Variable('y'), Predicate('Q', [Variable('y')]))
    }
-   
+
    formula = Implies(
        And(Predicate('P', [Variable('a')]),
        Predicate('Q', [Variable('a')]))
    )
-   
+
    result = proveFormula(axioms, formula)
    # Returns sequent or None if no proof found
 
@@ -228,14 +228,14 @@ Usage Examples
 
 .. code-block:: bash
 
-   python -m aria.fol.miniprover.main
-   
+   python -m aria.smt.fol.miniprover.main
+
    # Interactive session:
    # Input: forall x. P(x)
    # Prover: Added to axioms: [1]
    # Input: P(a)
    # Prover: ✓ Provable
-   # 
+   #
    # Input: implies (P(a)) (Q(a))
    # Prover: ✓ Provable (1 steps)
 

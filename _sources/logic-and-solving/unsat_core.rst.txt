@@ -37,7 +37,7 @@ Usage Example
 
 ```python
 import z3
-from aria.unsat_core.unsat_core import get_unsat_core, Algorithm
+from aria.proof.unsat_core.unsat_core import get_unsat_core, Algorithm
 
 # Define an unsatisfiable formula
 x, y = z3.Ints('x y')
@@ -67,7 +67,7 @@ for core in result.cores:
         print(f"  {constraints[idx]}")
 
 # Enumerate all MUSes
-from aria.unsat_core.unsat_core import enumerate_all_mus
+from aria.proof.unsat_core.unsat_core import enumerate_all_mus
 
 all_muses = enumerate_all_mus(
     constraints=constraints,

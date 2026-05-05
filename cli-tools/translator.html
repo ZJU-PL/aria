@@ -101,7 +101,7 @@
              
   <section id="translator-module">
 <h1>Translator Module<a class="headerlink" href="#translator-module" title="Link to this heading"></a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">aria.translator</span></code> contains format converters between common automated-reasoning
+<p><code class="docutils literal notranslate"><span class="pre">aria.utils.translator</span></code> contains format converters between common automated-reasoning
 input languages and downstream solver encodings.</p>
 <section id="current-scope">
 <h2>Current scope<a class="headerlink" href="#current-scope" title="Link to this heading"></a></h2>
@@ -139,7 +139,7 @@ input languages and downstream solver encodings.</p>
 </section>
 <section id="programmatic-usage">
 <h2>Programmatic usage<a class="headerlink" href="#programmatic-usage" title="Link to this heading"></a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.translator</span><span class="w"> </span><span class="kn">import</span> <span class="n">dimacs2smt</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.utils.translator</span><span class="w"> </span><span class="kn">import</span> <span class="n">dimacs2smt</span>
 
 <span class="n">dimacs2smt</span><span class="o">.</span><span class="n">convert_file</span><span class="p">(</span><span class="s2">&quot;input.cnf&quot;</span><span class="p">,</span> <span class="s2">&quot;output.smt2&quot;</span><span class="p">)</span>
 </pre></div>

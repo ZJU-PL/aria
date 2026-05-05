@@ -129,12 +129,12 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">aria.bool</span></code>: SAT, MaxSAT, QBF, CNF simplification, and compilation</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">aria.smt</span></code>: SMT-oriented theory packages and solver utilities</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">aria.srk</span></code>: symbolic reasoning infrastructure</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.utils.srk</span></code>: symbolic reasoning infrastructure</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">aria.quant</span></code>: EFSMT, QE, CHC tooling, and quantified-reasoning prototypes</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">aria.efmc</span></code>: verification frontends and engines</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">aria.counting</span></code> / <code class="docutils literal notranslate"><span class="pre">aria.sampling</span></code> / <code class="docutils literal notranslate"><span class="pre">aria.prob</span></code>: counting and sampling</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">aria.pyomt</span></code>: optimization and MaxSMT-related flows</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">aria.translator</span></code> / <code class="docutils literal notranslate"><span class="pre">aria.cli</span></code>: format translation and command-line tools</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.utils.translator</span></code> / <code class="docutils literal notranslate"><span class="pre">aria.cli</span></code>: format translation and command-line tools</p></li>
 </ul>
 </section>
 <section id="current-cli-workflow">
@@ -204,7 +204,7 @@ python<span class="w"> </span>-m<span class="w"> </span>aria.cli.efmc_cli<span c
 </section>
 <section id="unsat-core-extraction">
 <h3>Unsat-core extraction<a class="headerlink" href="#unsat-core-extraction" title="Link to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.unsat_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Algorithm</span><span class="p">,</span> <span class="n">UnsatCoreComputer</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.proof.unsat_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Algorithm</span><span class="p">,</span> <span class="n">UnsatCoreComputer</span>
 </pre></div>
 </div>
 </section>

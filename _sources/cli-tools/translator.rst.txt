@@ -1,7 +1,7 @@
 Translator Module
 =================
 
-``aria.translator`` contains format converters between common automated-reasoning
+``aria.utils.translator`` contains format converters between common automated-reasoning
 input languages and downstream solver encodings.
 
 Current scope
@@ -44,7 +44,7 @@ Programmatic usage
 
 .. code-block:: python
 
-   from aria.translator import dimacs2smt
+   from aria.utils.translator import dimacs2smt
 
    dimacs2smt.convert_file("input.cnf", "output.smt2")
 

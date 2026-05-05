@@ -1,7 +1,7 @@
 Global Parameters
 ===============
 
-The ``aria.global_params`` module provides centralized configuration management for the ARIA project. It handles SMT solver discovery, path management, and provides a singleton-based global configuration interface used throughout the codebase.
+The ``aria.utils.global_params`` module provides centralized configuration management for the ARIA project. It handles SMT solver discovery, path management, and provides a singleton-based global configuration interface used throughout the codebase.
 
 .. contents:: Table of Contents
    :local:
@@ -116,7 +116,7 @@ From ``__init__.py``:
 
 .. code-block:: python
 
-   from aria.global_params import (
+   from aria.utils.global_params import (
        global_config,      # GlobalConfig singleton instance
        SMT_SOLVERS_PATH,  # Dictionary of solver configurations
        PROJECT_ROOT,       # Path object pointing to project root
@@ -133,8 +133,8 @@ The module is imported in **21 files** across the project, with common use cases
 
 .. code-block:: python
 
-   from aria.global_params import global_config
-   
+   from aria.utils.global_params import global_config
+
    solver_path = global_config.get_solver_path("z3")
 
 **Used in**: efbv_bin_solvers.py, mathsat_solver.py, cvc5_sygus_abduct.py, cvc5_interpolant.py, smtinterpol_interpolant.py, z3_plus_smtlib_solver.py, dimacs_counting.py, pyomt/bin_solver.py, eflira_parallel.py
@@ -143,8 +143,8 @@ The module is imported in **21 files** across the project, with common use cases
 
 .. code-block:: python
 
-   from aria.global_params import global_config
-   
+   from aria.utils.global_params import global_config
+
    if global_config.is_solver_available("sharp_sat"):
        # Use solver
        pass
@@ -155,8 +155,8 @@ The module is imported in **21 files** across the project, with common use cases
 
 .. code-block:: python
 
-   from aria.global_params import SMT_SOLVERS_PATH
-   
+   from aria.utils.global_params import SMT_SOLVERS_PATH
+
    z3_config = SMT_SOLVERS_PATH["z3"]
    solver_bin = z3_config["path"] + " " + z3_config["args"]
 
@@ -166,8 +166,8 @@ The module is imported in **21 files** across the project, with common use cases
 
 .. code-block:: python
 
-   from aria.global_params import BENCHMARKS_PATH
-   
+   from aria.utils.global_params import BENCHMARKS_PATH
+
    cnf_path = BENCHMARKS_PATH / "dimacs" / "parity_5.cnf"
 
 **Used in**: bool/features/sat_instance.py

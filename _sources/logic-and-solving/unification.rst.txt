@@ -1,10 +1,11 @@
 Unification
-===========================
+==========
+
 
 Introduction
-=====================
+====================
 
-The unification module (``aria/unification``) provides a general-purpose term unification engine supporting first-order unification, pattern matching, and substitution operations. It is used throughout aria for term manipulation, pattern matching in theorem proving, and constraint solving.
+The unification module (``aria.smt.unification``) provides a general-purpose term unification engine supporting first-order unification, pattern matching, and substitution operations. It is used throughout aria for term manipulation, pattern matching in theorem proving, and constraint solving.
 
 Key Features
 -------------
@@ -18,14 +19,14 @@ Key Features
 Components
 =====================
 
-Core Unification (``aria/unification/core.py``)
+Core Unification (``aria.smt.unification.core``)
 -------------------------------------------------
 
 Main unification engine:
 
 .. code-block:: python
 
-   from aria.unification import unify, Var
+   from aria.smt.unification import unify, Var
 
    # Define variables and terms
    x = Var('x')
@@ -39,14 +40,14 @@ Main unification engine:
    s = unify([x, [y, 3]], [1, [2, 3]])
    # Result: {x: 1, y: 2}
 
-Pattern Matching (``aria/unification/match.py``)
+Pattern Matching (``aria.smt.unification.match``)
 --------------------------------------------------
 
 One-way pattern matching for term rewriting:
 
 .. code-block:: python
 
-   from aria.unification import match, Var
+   from aria.smt.unification import match, Var
 
    # Match pattern against term
    pattern = (Var('x'), Var('y'), Var('x'))
@@ -55,14 +56,14 @@ One-way pattern matching for term rewriting:
    result = match(pattern, term)
    # Result: {x: 1, y: 2}
 
-Variables (``aria/unification/variable.py``)
+Variables (``aria.smt.unification.variable``)
 ----------------------------------------------
 
 Variable representation and utilities:
 
 .. code-block:: python
 
-   from aria.unification import Var, isvar
+   from aria.smt.unification import Var, isvar
 
    # Create variables
    x = Var('x')
@@ -72,14 +73,14 @@ Variable representation and utilities:
    isvar(x)  # True
    isvar(5)  # False
 
-Utilities (``aria/unification/utils.py``)
+Utilities (``aria.smt.unification.utils``)
 -------------------------------------------
 
 Helper functions for substitution and term manipulation:
 
 .. code-block:: python
 
-   from aria.unification.utils import walk, occurs_check
+   from aria.smt.unification.utils import walk, occurs_check
 
    # Walk through substitutions
    result = walk(term, substitution)
@@ -87,14 +88,14 @@ Helper functions for substitution and term manipulation:
    # Check for circular references
    valid = occurs_check(var, term, substitution)
 
-Type Dispatch (``aria/unification/dispatch.py``)
+Type Dispatch (``aria.smt.unification.dispatch``)
 --------------------------------------------------
 
 Generic function dispatch based on type:
 
 .. code-block:: python
 
-   from aria.unification.dispatch import dispatch
+   from aria.smt.unification.dispatch import dispatch
 
    @dispatch(int, int)
    def unify_ints(x, y):

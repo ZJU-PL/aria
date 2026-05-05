@@ -98,7 +98,7 @@
              
   <section id="global-parameters">
 <h1>Global Parameters<a class="headerlink" href="#global-parameters" title="Link to this heading"></a></h1>
-<p>The <code class="docutils literal notranslate"><span class="pre">aria.global_params</span></code> module provides centralized configuration management for the ARIA project. It handles SMT solver discovery, path management, and provides a singleton-based global configuration interface used throughout the codebase.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">aria.utils.global_params</span></code> module provides centralized configuration management for the ARIA project. It handles SMT solver discovery, path management, and provides a singleton-based global configuration interface used throughout the codebase.</p>
 <nav class="contents local" id="table-of-contents">
 <p class="topic-title">Table of Contents</p>
 <ul class="simple">
@@ -170,7 +170,7 @@
 <p>From <code class="docutils literal notranslate"><span class="pre">get_smt_solvers_config()</span></code>:</p>
 <p>### 4. Module-Level Exports</p>
 <p>From <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.global_params</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.utils.global_params</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">global_config</span><span class="p">,</span>      <span class="c1"># GlobalConfig singleton instance</span>
     <span class="n">SMT_SOLVERS_PATH</span><span class="p">,</span>  <span class="c1"># Dictionary of solver configurations</span>
     <span class="n">PROJECT_ROOT</span><span class="p">,</span>       <span class="c1"># Path object pointing to project root</span>
@@ -184,14 +184,14 @@
 <h2><a class="toc-backref" href="#id10" role="doc-backlink">Usage Patterns Across Codebase</a><a class="headerlink" href="#usage-patterns-across-codebase" title="Link to this heading"></a></h2>
 <p>The module is imported in <strong>21 files</strong> across the project, with common use cases:</p>
 <p>### 1. Solver Path Retrieval (Most Common)</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.global_params</span><span class="w"> </span><span class="kn">import</span> <span class="n">global_config</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.utils.global_params</span><span class="w"> </span><span class="kn">import</span> <span class="n">global_config</span>
 
 <span class="n">solver_path</span> <span class="o">=</span> <span class="n">global_config</span><span class="o">.</span><span class="n">get_solver_path</span><span class="p">(</span><span class="s2">&quot;z3&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p><strong>Used in</strong>: efbv_bin_solvers.py, mathsat_solver.py, cvc5_sygus_abduct.py, cvc5_interpolant.py, smtinterpol_interpolant.py, z3_plus_smtlib_solver.py, dimacs_counting.py, pyomt/bin_solver.py, eflira_parallel.py</p>
 <p>### 2. Availability Checking</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.global_params</span><span class="w"> </span><span class="kn">import</span> <span class="n">global_config</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.utils.global_params</span><span class="w"> </span><span class="kn">import</span> <span class="n">global_config</span>
 
 <span class="k">if</span> <span class="n">global_config</span><span class="o">.</span><span class="n">is_solver_available</span><span class="p">(</span><span class="s2">&quot;sharp_sat&quot;</span><span class="p">):</span>
     <span class="c1"># Use solver</span>
@@ -200,7 +200,7 @@
 </div>
 <p><strong>Used in</strong>: test_bv_counting.py, test_bool_counting.py, test_sygus_inv.py, dimacs_counting.py</p>
 <p>### 3. SMT Solver Configuration Dictionary</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.global_params</span><span class="w"> </span><span class="kn">import</span> <span class="n">SMT_SOLVERS_PATH</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.utils.global_params</span><span class="w"> </span><span class="kn">import</span> <span class="n">SMT_SOLVERS_PATH</span>
 
 <span class="n">z3_config</span> <span class="o">=</span> <span class="n">SMT_SOLVERS_PATH</span><span class="p">[</span><span class="s2">&quot;z3&quot;</span><span class="p">]</span>
 <span class="n">solver_bin</span> <span class="o">=</span> <span class="n">z3_config</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">z3_config</span><span class="p">[</span><span class="s2">&quot;args&quot;</span><span class="p">]</span>
@@ -208,7 +208,7 @@
 </div>
 <p><strong>Used in</strong>: pcdclt/solver.py, pcdclt/eval_smt.py, pcdclt/tests/test_solver.py, pcdclt/tests/test_process_cleanup.py</p>
 <p>### 4. Benchmark Path Access</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.global_params</span><span class="w"> </span><span class="kn">import</span> <span class="n">BENCHMARKS_PATH</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.utils.global_params</span><span class="w"> </span><span class="kn">import</span> <span class="n">BENCHMARKS_PATH</span>
 
 <span class="n">cnf_path</span> <span class="o">=</span> <span class="n">BENCHMARKS_PATH</span> <span class="o">/</span> <span class="s2">&quot;dimacs&quot;</span> <span class="o">/</span> <span class="s2">&quot;parity_5.cnf&quot;</span>
 </pre></div>

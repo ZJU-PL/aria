@@ -30,12 +30,12 @@ ARIA is organized around several major user-facing subsystems:
 
 * ``aria.bool``: SAT, MaxSAT, QBF, CNF simplification, and compilation
 * ``aria.smt``: SMT-oriented theory packages and solver utilities
-* ``aria.srk``: symbolic reasoning infrastructure
+* ``aria.utils.srk``: symbolic reasoning infrastructure
 * ``aria.quant``: EFSMT, QE, CHC tooling, and quantified-reasoning prototypes
 * ``aria.efmc``: verification frontends and engines
 * ``aria.counting`` / ``aria.sampling`` / ``aria.prob``: counting and sampling
 * ``aria.pyomt``: optimization and MaxSMT-related flows
-* ``aria.translator`` / ``aria.cli``: format translation and command-line tools
+* ``aria.utils.translator`` / ``aria.cli``: format translation and command-line tools
 
 Current CLI workflow
 --------------------
@@ -115,7 +115,7 @@ Unsat-core extraction
 
 .. code-block:: python
 
-   from aria.unsat_core import Algorithm, UnsatCoreComputer
+   from aria.proof.unsat_core import Algorithm, UnsatCoreComputer
 
 Verification with EFMC
 ----------------------
