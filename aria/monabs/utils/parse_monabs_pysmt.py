@@ -68,3 +68,9 @@ def parse_monabs_pysmt(filename: str) -> Tuple:
     """Convenience wrapper returning (precond, cnt_list)."""
     parser = MonAbsPySMTParser()
     return parser.parse_file(filename)
+
+# if __name__ == "__main__":
+#     filepath = "/home/xjn/MPA/MPA/data/bash/cons_6043.smt2"
+#     precond, constraints = parse_monabs_pysmt(filepath)
+#     print("Precondition:", precond)
+#     print("Number of constraints:", constraints)
