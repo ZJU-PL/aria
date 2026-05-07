@@ -1,0 +1,1 @@
+MIN_LENGTH = 10
