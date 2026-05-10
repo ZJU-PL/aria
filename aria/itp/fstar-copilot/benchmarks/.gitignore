@@ -1,0 +1,8 @@
+# Benchmark artifacts (generated at runtime)
+_results/
+_bench_runs/
+_fstar/
+workspace/
+*.agent_log
+*.judge_input
+*.fstar_output

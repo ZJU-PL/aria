@@ -1,0 +1,11 @@
+{
+  "name": "proof-copilot",
+  "description": "F* proof-oriented programming agent and verification skills for GitHub Copilot CLI",
+  "version": "0.0.5",
+  "author": { "name": "FStarLang" },
+  "license": "Apache-2.0",
+  "keywords": ["fstar", "verification", "proof", "formal-methods"],
+  "repository": "https://github.com/FStarLang/proof-copilot",
+  "agents": "agents/",
+  "skills": "skills/"
+}

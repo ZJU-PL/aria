@@ -9,7 +9,7 @@ from pathlib import Path
 
 import z3
 
-from aria.ml.ematching import LLMTriggerGenerator, TriggerSelector
+from aria.ml.llm.ematching import LLMTriggerGenerator, TriggerSelector
 
 
 def _build_arg_parser() -> argparse.ArgumentParser:
