@@ -3,7 +3,7 @@ Tests for the path expression module.
 """
 
 import unittest
-from aria.utils.srk.pathexpr import (
+from aria.utils.srk.analysis.pathexpr import (
     PathExprContext,
     mk_context,
     mk_table,

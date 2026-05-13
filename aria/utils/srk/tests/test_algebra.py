@@ -3,7 +3,7 @@ Tests for the algebraic structures module.
 """
 
 import unittest
-from aria.utils.srk.algebra import (
+from aria.utils.srk.algebra.algebra import (
     Semigroup,
     Ring,
     Semilattice,

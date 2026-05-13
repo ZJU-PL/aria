@@ -3,7 +3,7 @@ Tests for the coordinate system module.
 """
 
 import unittest
-from aria.utils.srk.coordinateSystem import (
+from aria.utils.srk.structures.coordinateSystem import (
     CoordinateSystem,
     CSTerm,
     CSTermType,
@@ -11,8 +11,8 @@ from aria.utils.srk.coordinateSystem import (
     mk_empty,
     get_context,
 )
-from aria.utils.srk.syntax import Context
-from aria.utils.srk.linear import QQVector
+from aria.utils.srk.core.syntax import Context
+from aria.utils.srk.linalg.linear import QQVector
 from fractions import Fraction
 
 

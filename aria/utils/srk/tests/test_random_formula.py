@@ -3,7 +3,7 @@ Tests for the random formula generation module.
 """
 
 import unittest
-from aria.utils.srk.randomFormula import (
+from aria.utils.srk.analysis.randomFormula import (
     RandomFormulaGenerator,
     mk_random_formula,
     mk_random_term,
@@ -12,7 +12,7 @@ from aria.utils.srk.randomFormula import (
     set_quantifier_prefix,
     set_formula_parameters,
 )
-from aria.utils.srk.syntax import Context, Type
+from aria.utils.srk.core.syntax import Context, Type
 
 
 class TestRandomFormula(unittest.TestCase):

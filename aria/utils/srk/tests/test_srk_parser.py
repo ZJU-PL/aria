@@ -9,8 +9,8 @@ import os
 # Add the srk module to the path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "srk"))
 
-from aria.utils.srk.srkParse import MathParser, SMT2Parser
-from aria.utils.srk.syntax import Context
+from aria.utils.srk.parser.srkParse import MathParser, SMT2Parser
+from aria.utils.srk.core.syntax import Context
 
 
 def test_srk_parser():

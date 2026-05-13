@@ -3,7 +3,7 @@ Tests for the disjointSet module.
 """
 
 import unittest
-from aria.utils.srk.disjointSet import (
+from aria.utils.srk.structures.disjointSet import (
     DisjointSet,
     DisjointSetElement,
     make_disjoint_set,

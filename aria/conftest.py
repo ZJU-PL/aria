@@ -17,14 +17,6 @@ if not _has_module("hypothesis"):
     SKIP_FILES.update(
         [
             "bool/nnf/tests/test_nnf.py",
-            "itp/tests/test_hypothesis.py",
-        ]
-    )
-
-if not _has_module("lark"):
-    SKIP_FILES.update(
-        [
-            "itp/tests/test_parsers.py",
         ]
     )
 
@@ -71,21 +63,7 @@ if not _has_module("numpy"):
 if not _has_module("psutil"):
     SKIP_FILES.add("smt/pcdclt/tests/test_process_cleanup.py")
 
-if shutil.which("yosys") is None:
-    SKIP_FILES.add("itp/tests/contrib/test_yosys.py")
 
-# The ITP test cluster currently relies on import-time proof bootstrapping that
-# is not stable across solver/library combinations in this environment.
-SKIP_FILES.update(
-    [
-        "itp/tests/test_kernel.py",
-        "itp/tests/test_logic.py",
-        "itp/tests/test_real.py",
-        "itp/tests/test_solver.py",
-        "itp/tests/test_utils.py",
-        "itp/tests/test_vec.py",
-    ]
-)
 
 
 def pytest_ignore_collect(collection_path: Path, config) -> bool:

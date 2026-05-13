@@ -7,7 +7,7 @@ This tests the function application and quantifier evaluation features.
 import pytest
 from fractions import Fraction
 
-from aria.utils.srk.syntax import (
+from aria.utils.srk.core.syntax import (
     Context,
     Type,
     mk_symbol,
@@ -17,13 +17,13 @@ from aria.utils.srk.syntax import (
     mk_mul,
     mk_var,
 )
-from aria.utils.srk.syntax import mk_eq, mk_leq, mk_and, mk_forall, mk_exists
-from aria.utils.srk.interpretation import (
+from aria.utils.srk.core.syntax import mk_eq, mk_leq, mk_and, mk_forall, mk_exists
+from aria.utils.srk.logic.interpretation import (
     Interpretation,
     InterpretationValue,
     make_interpretation,
 )
-from aria.utils.srk.qQ import QQ
+from aria.utils.srk.linalg.qQ import QQ
 
 
 class TestFunctionApplicationEvaluation:
@@ -71,7 +71,7 @@ class TestQuantifierEvaluation:
 
     def test_quantifier_evaluation_availability(self):
         """Test that quantifier evaluation is available with Z3."""
-        from aria.utils.srk.srkZ3 import Z3_AVAILABLE
+        from aria.utils.srk.logic.srkZ3 import Z3_AVAILABLE
 
         # Just check if Z3 is available
         # Actual quantifier tests would require Z3 to be installed

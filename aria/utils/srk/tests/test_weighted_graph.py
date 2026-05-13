@@ -3,14 +3,14 @@ Tests for the Weighted Graph module.
 """
 
 import unittest
-from aria.utils.srk.weightedGraph import (
+from aria.utils.srk.structures.weightedGraph import (
     WeightedGraph,
     Algebra,
     path_weight,
     omega_path_weight,
     msat_path_weight,
 )
-from aria.utils.srk.syntax import (
+from aria.utils.srk.core.syntax import (
     Context,
     Symbol,
     Type,
@@ -20,8 +20,8 @@ from aria.utils.srk.syntax import (
     mk_add,
     mk_real,
 )
-from aria.utils.srk.transition import Transition
-from aria.utils.srk.qQ import QQ
+from aria.utils.srk.lts.transition import Transition
+from aria.utils.srk.linalg.qQ import QQ
 
 
 class TestWeightedGraph(unittest.TestCase):

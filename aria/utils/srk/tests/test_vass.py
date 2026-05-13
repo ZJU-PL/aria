@@ -9,7 +9,7 @@ from aria.utils.srk import smt
 from aria.utils.srk import syntax
 from aria.utils.srk import vass
 from aria.utils.srk import vas
-from aria.utils.srk.linear import QQMatrix, QQVector
+from aria.utils.srk.linalg.linear import QQMatrix, QQVector
 
 
 class TestVASSClosure(unittest.TestCase):

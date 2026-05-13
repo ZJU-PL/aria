@@ -9,7 +9,7 @@ import unittest
 import signal
 from fractions import Fraction
 
-from aria.utils.srk.syntax import (
+from aria.utils.srk.core.syntax import (
     Context,
     Type,
     mk_symbol,
@@ -21,7 +21,7 @@ from aria.utils.srk.syntax import (
     mk_leq,
     mk_lt,
 )
-from aria.utils.srk.syntax import (
+from aria.utils.srk.core.syntax import (
     mk_forall,
     mk_exists,
     mk_var,
@@ -31,9 +31,9 @@ from aria.utils.srk.syntax import (
     mk_or,
     mk_not,
 )
-from aria.utils.srk.smt import SMTInterface, SMTResult, check_sat, get_model
-from aria.utils.srk.interpretation import Interpretation, make_interpretation
-from aria.utils.srk.qQ import QQ
+from aria.utils.srk.logic.smt import SMTInterface, SMTResult, check_sat, get_model
+from aria.utils.srk.logic.interpretation import Interpretation, make_interpretation
+from aria.utils.srk.linalg.qQ import QQ
 
 
 class TimeoutError(Exception):

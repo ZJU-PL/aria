@@ -4,7 +4,7 @@ Tests for the Vector Addition Systems (VAS) and Petri Nets module.
 
 import unittest
 from fractions import Fraction
-from aria.utils.srk.vas import (
+from aria.utils.srk.vas.vas import (
     Transformer,
     VectorAdditionSystem,
     PetriNet,
@@ -15,7 +15,7 @@ from aria.utils.srk.vas import (
     make_petri_net,
     producer_consumer_petri_net,
 )
-from aria.utils.srk.linear import QQVector
+from aria.utils.srk.linalg.linear import QQVector
 
 
 class TestTransformer(unittest.TestCase):

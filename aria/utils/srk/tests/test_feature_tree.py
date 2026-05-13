@@ -3,7 +3,7 @@ Tests for the feature tree module.
 """
 
 import unittest
-from aria.utils.srk.featureTree import (
+from aria.utils.srk.structures.featureTree import (
     FeatureTree,
     FeatureVector,
     empty,

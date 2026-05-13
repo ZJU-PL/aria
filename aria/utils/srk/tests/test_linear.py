@@ -4,7 +4,7 @@ Tests for the linear algebra module.
 
 import unittest
 from fractions import Fraction
-from aria.utils.srk.linear import (
+from aria.utils.srk.linalg.linear import (
     QQVector,
     QQMatrix,
     QQVectorSpace,

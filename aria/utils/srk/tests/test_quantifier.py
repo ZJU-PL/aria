@@ -4,7 +4,7 @@ Tests for the quantifier elimination module.
 
 import unittest
 from fractions import Fraction
-from aria.utils.srk.syntax import (
+from aria.utils.srk.core.syntax import (
     Context,
     Symbol,
     Type,
@@ -32,7 +32,7 @@ from aria.utils.srk.syntax import (
     mk_ite,
     mk_neg,
 )
-from aria.utils.srk.quantifier import (
+from aria.utils.srk.logic.quantifier import (
     QuantifierEngine,
     StrategyImprovementSolver,
     check_strategy,
@@ -40,7 +40,7 @@ from aria.utils.srk.quantifier import (
     simsat,
     qe_mbp,
 )
-from aria.utils.srk.smt import is_sat, SMTResult
+from aria.utils.srk.logic.smt import is_sat, SMTResult
 
 
 class TestQuantifierEngine(unittest.TestCase):

@@ -4,8 +4,8 @@ Tests for the Linear Transition System (LTS) module.
 
 import unittest
 from fractions import Fraction
-from aria.utils.srk.lts import PartialLinearMap, LTSOperations
-from aria.utils.srk.linear import QQMatrix, QQVector, mk_matrix, mk_vector, identity_matrix
+from aria.utils.srk.lts.lts import PartialLinearMap, LTSOperations
+from aria.utils.srk.linalg.linear import QQMatrix, QQVector, mk_matrix, mk_vector, identity_matrix
 
 
 class TestPartialLinearMap(unittest.TestCase):

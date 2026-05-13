@@ -3,8 +3,8 @@ Tests for the CHC (Constrained Horn Clauses) module.
 """
 
 import unittest
-from aria.utils.srk.syntax import Context, Symbol, Type
-from aria.utils.srk.chc import CHCClause, CHCSystem, CHCSolver
+from aria.utils.srk.core.syntax import Context, Symbol, Type
+from aria.utils.srk.logic.chc import CHCClause, CHCSystem, CHCSolver
 
 
 class TestCHCClause(unittest.TestCase):
@@ -19,7 +19,7 @@ class TestCHCClause(unittest.TestCase):
         y = self.context.mk_symbol("y", Type.INT)
 
         # Create a simple clause: x > 0 ∧ y > x ⇒ y > 0
-        from aria.utils.srk.syntax import Lt, Var, Const, Symbol
+        from aria.utils.srk.core.syntax import Lt, Var, Const, Symbol
 
         zero_symbol = Symbol(0, "0", Type.INT)  # Create a symbol for constant 0
         premise1 = Lt(Var(x, Type.INT), Const(zero_symbol))
@@ -35,7 +35,7 @@ class TestCHCClause(unittest.TestCase):
         """Test clause with no premises (just a conclusion)."""
         x = self.context.mk_symbol("x", Type.INT)
 
-        from aria.utils.srk.syntax import Lt, Var, Const, Symbol
+        from aria.utils.srk.core.syntax import Lt, Var, Const, Symbol
 
         zero_symbol = Symbol(0, "0", Type.INT)
         conclusion = Lt(Var(x, Type.INT), Const(zero_symbol))
@@ -60,7 +60,7 @@ class TestCHCSystem(unittest.TestCase):
         """Test CHC system with clauses."""
         x = self.context.mk_symbol("x", Type.INT)
 
-        from aria.utils.srk.syntax import Lt, Var, Const, Symbol
+        from aria.utils.srk.core.syntax import Lt, Var, Const, Symbol
 
         zero_symbol = Symbol(0, "0", Type.INT)
         one_symbol = Symbol(1, "1", Type.INT)
@@ -91,7 +91,7 @@ class TestCHCSolver(unittest.TestCase):
 
         # Create a simple system
         x = self.context.mk_symbol("x", Type.INT)
-        from aria.utils.srk.syntax import Lt, Var, Const, Symbol
+        from aria.utils.srk.core.syntax import Lt, Var, Const, Symbol
 
         zero_symbol = Symbol(0, "0", Type.INT)
         clause = CHCClause([], Lt(Var(x, Type.INT), Const(zero_symbol)))

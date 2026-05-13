@@ -4,8 +4,8 @@ Tests for the polynomial module.
 
 import unittest
 from fractions import Fraction
-import aria.utils.srk.polynomial as polynomial_module
-from aria.utils.srk.polynomial import (
+import aria.utils.srk.algebra.polynomial as polynomial_module
+from aria.utils.srk.algebra.polynomial import (
     Ideal,
     Monomial,
     MonomialOrdering,

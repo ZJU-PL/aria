@@ -113,7 +113,7 @@ class TestPackageImports(unittest.TestCase):
     def test_termination_dta_import(self):
         """Test that terminationDTA can be imported."""
         try:
-            termination_dta = importlib.import_module("aria.utils.srk.terminationDTA")
+            termination_dta = importlib.import_module("aria.utils.srk.termination.terminationDTA")
             self.assertIsNotNone(termination_dta)
         except ImportError as e:
             self.fail(f"Failed to import terminationDTA module: {e}")
@@ -181,7 +181,7 @@ class TestBasicFunctionality(unittest.TestCase):
     def test_context_creation(self):
         """Test that we can create a context."""
         try:
-            from aria.utils.srk.syntax import make_context
+            from aria.utils.srk.core.syntax import make_context
 
             context = make_context()
             self.assertIsNotNone(context)
@@ -191,7 +191,7 @@ class TestBasicFunctionality(unittest.TestCase):
     def test_symbol_creation(self):
         """Test that we can create symbols."""
         try:
-            from aria.utils.srk.syntax import Context, Type, Symbol
+            from aria.utils.srk.core.syntax import Context, Type, Symbol
 
             context = Context()
             symbol = context.mk_symbol("x", Type.INT)
@@ -204,7 +204,7 @@ class TestBasicFunctionality(unittest.TestCase):
     def test_polynomial_creation(self):
         """Test that we can create polynomials."""
         try:
-            from aria.utils.srk.polynomial import Polynomial, Monomial
+            from aria.utils.srk.algebra.polynomial import Polynomial, Monomial
 
             # Create a simple polynomial: x + 1
             monomial = Monomial([1, 0])  # x^1 * y^0
@@ -216,7 +216,7 @@ class TestBasicFunctionality(unittest.TestCase):
     def test_interval_creation(self):
         """Test that we can create intervals."""
         try:
-            from aria.utils.srk.interval import Interval
+            from aria.utils.srk.linalg.interval import Interval
 
             # Create a simple interval [0, 1]
             interval = Interval(0, 1)
@@ -226,7 +226,7 @@ class TestBasicFunctionality(unittest.TestCase):
 
     def test_zero_and_one_helpers(self):
         """Test compatibility zero/one constructors."""
-        from aria.utils.srk.syntax import Context, Type, expr_typ, mk_one, mk_zero
+        from aria.utils.srk.core.syntax import Context, Type, expr_typ, mk_one, mk_zero
 
         context = Context()
 
@@ -242,10 +242,10 @@ class TestBasicFunctionality(unittest.TestCase):
 
     def test_srkast_quantifier_helpers(self):
         """Test list-based srkAst quantifier helpers."""
-        from aria.utils.srk.srkAst import mk_exists as ast_mk_exists, mk_forall as ast_mk_forall
-        from aria.utils.srk.syntax import Context, Exists, Forall, Type, mk_const, mk_eq
-        from aria.utils.srk.syntax import mk_exists, mk_forall, mk_int
-        from aria.utils.srk.syntax import mk_symbol
+        from aria.utils.srk.core.srkAst import mk_exists as ast_mk_exists, mk_forall as ast_mk_forall
+        from aria.utils.srk.core.syntax import Context, Exists, Forall, Type, mk_const, mk_eq
+        from aria.utils.srk.core.syntax import mk_exists, mk_forall, mk_int
+        from aria.utils.srk.core.syntax import mk_symbol
 
         context = Context()
         x = mk_symbol(context, "x", Type.INT)
@@ -274,8 +274,8 @@ class TestModuleIntegration(unittest.TestCase):
     def test_syntax_to_polynomial_integration(self):
         """Test integration between syntax and polynomial modules."""
         try:
-            from aria.utils.srk.syntax import make_context, make_expression_builder, Type
-            from aria.utils.srk.polynomial import Polynomial, Monomial
+            from aria.utils.srk.core.syntax import make_context, make_expression_builder, Type
+            from aria.utils.srk.algebra.polynomial import Polynomial, Monomial
 
             context = make_context()
             builder = make_expression_builder(context)
@@ -289,8 +289,8 @@ class TestModuleIntegration(unittest.TestCase):
 
     def test_smt_integration(self):
         """Test SMT module integration."""
-        from aria.utils.srk.syntax import make_context
-        from aria.utils.srk.smt import SMTInterface
+        from aria.utils.srk.core.syntax import make_context
+        from aria.utils.srk.logic.smt import SMTInterface
 
         context = make_context()
 
@@ -317,7 +317,7 @@ class TestErrorHandling(unittest.TestCase):
     def test_invalid_symbol_creation(self):
         """Test error handling in symbol creation."""
         try:
-            from aria.utils.srk.syntax import Context, Type
+            from aria.utils.srk.core.syntax import Context, Type
 
             context = Context()
 
@@ -333,7 +333,7 @@ class TestErrorHandling(unittest.TestCase):
     def test_empty_polynomial(self):
         """Test handling of empty polynomials."""
         try:
-            from aria.utils.srk.polynomial import Polynomial
+            from aria.utils.srk.algebra.polynomial import Polynomial
 
             # Create empty polynomial
             empty_poly = Polynomial({})

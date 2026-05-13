@@ -25,15 +25,15 @@ Main modules:
 __version__ = "0.1.0"
 __author__ = "SRK Python Migration"
 
-# Core exports
-from .syntax import *
-from .polynomial import *
-from .smt import *
-from .abstract import *
-from .linear import *
-from .interval import *
-from .polyhedron import *
-from .srkSimplify import (
+# Core exports — re-export from logical subpackages
+from .core.syntax import *
+from .algebra.polynomial import *
+from .logic.smt import *
+from .logic.abstract import *
+from .linalg.linear import *
+from .linalg.interval import *
+from .linalg.polyhedron import *
+from .logic.srkSimplify import (
     Simplifier,
     NNFConverter,
     CNFConverter,
@@ -47,42 +47,57 @@ from .srkSimplify import (
     to_conjunctive_normal_form,
     eliminate_ite_expressions,
 )
-from .sequence import *
-from .vas import *
-from .iteration import *
-from .quantifier import *
-from .interpretation import *
-from .transition import *
-from .transitionFormula import *
-from .transitionSystem import *
-from .wedge import *
-from .termination import *
-from .fixpoint import *
-from .cache import *
-from .disjointSet import *
-from .log import *
-from .util import *
-from .srkUtil import *
-from .sparseMap import *
-from .memo import *
-from .expPolynomial import *
-from .chc import *
-from .sequence import *
-from .lts import *
-from .polyhedron import *
-from .zZ import *
-from .qQ import *
-from .bigO import *
-from .compressedWeightedForest import *
-from .weightedGraph import *
-from .loop import *
-from .pathexpr import *
-from .srkZ3 import *
-from .coordinateSystem import *
-from .nonlinear import *
-from .featureTree import *
-from .srkParse import *
-from .randomFormula import *  # Re-enabled after fixing imports
+from .analysis.sequence import *
+from .vas.vas import *
+from .analysis.iteration import *
+from .logic.quantifier import *
+from .logic.interpretation import *
+from .lts.transition import *
+from .lts.transitionFormula import *
+from .lts.transitionSystem import *
+from .analysis.wedge import *
+from .termination.termination import *
+from .analysis.fixpoint import *
+from .structures.cache import *
+from .structures.disjointSet import *
+from .misc.log import *
+from .misc.util import *
+from .parser.srkUtil import *
+from .structures.sparseMap import *
+from .structures.memo import *
+from .algebra.expPolynomial import *
+from .logic.chc import *
+from .lts.lts import *
+from .linalg.zZ import *
+from .linalg.qQ import *
+from .misc.bigO import *
+from .structures.compressedWeightedForest import *
+from .structures.weightedGraph import *
+from .analysis.loop import *
+from .analysis.pathexpr import *
+from .logic.srkZ3 import *
+from .structures.coordinateSystem import *
+from .algebra.nonlinear import *
+from .structures.featureTree import *
+from .parser.srkParse import *
+from .analysis.randomFormula import *  # Re-enabled after fixing imports
+
+# Backward-compatible module re-exports for code that does `from aria.utils.srk import qQ`
+# NOTE: Avoid re-exporting modules whose name matches their parent package
+# (e.g. `algebra`, `lts`, `termination`) — that shadows the package itself.
+from .linalg import qQ, zZ
+from .core import syntax, srk_ast, srkAst
+from .algebra import polynomial, solvablePolynomial, expPolynomial, nonlinear, ring
+from .linalg import linear, linear_advanced, linear_utils
+from .linalg import interval, polyhedron, fourierMotzkin
+from .logic import smt, srkSimplify, srkZ3, chc, quantifier, interpretation, abstract
+from .lts import transition, transitionFormula, transitionSystem
+from .termination import terminationDTA, terminationExp, terminationLLRF
+from .analysis import fixpoint, iteration, loop, sequence, randomFormula, pathexpr, wedge
+from .structures import sparseMap, disjointSet, compressedWeightedForest, memo, cache, coordinateSystem, featureTree, weightedGraph
+from .parser import srkLex, srkParse, srkParseNew, srkUtil, srkSmtlib2, srkSmtlib2Defs, srkSmtlib2Lex, srkSmtlib2Parse
+from .vas import vas, vass
+from .misc import bigO, bigtop, util, log, apron
 
 # CLI module is not exported in __all__ since it's mainly for command-line usage
 

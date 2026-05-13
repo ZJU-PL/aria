@@ -4,7 +4,7 @@ Tests for the SMT module.
 
 import unittest
 from fractions import Fraction
-from aria.utils.srk.syntax import (
+from aria.utils.srk.core.syntax import (
     Context,
     Symbol,
     Type,
@@ -21,7 +21,7 @@ from aria.utils.srk.syntax import (
     mk_lt,
     mk_var,
 )
-from aria.utils.srk.smt import SMTInterface, SMTResult, SMTModel, check_sat, get_model
+from aria.utils.srk.logic.smt import SMTInterface, SMTResult, SMTModel, check_sat, get_model
 
 
 class TestSMTInterface(unittest.TestCase):

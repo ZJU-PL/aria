@@ -4,8 +4,8 @@ Tests for the abstract domains module.
 
 import unittest
 from fractions import Fraction
-from aria.utils.srk.syntax import Context, Symbol, Type
-from aria.utils.srk.abstract import (
+from aria.utils.srk.core.syntax import Context, Symbol, Type
+from aria.utils.srk.logic.abstract import (
     AbstractValue,
     SignDomain,
     AffineRelation,

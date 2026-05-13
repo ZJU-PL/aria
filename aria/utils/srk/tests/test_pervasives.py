@@ -5,7 +5,7 @@ This module tests basic utility functions that are commonly used throughout SRK.
 """
 
 import unittest
-from aria.utils.srk.util import (
+from aria.utils.srk.misc.util import (
     IntSet,
     IntMap,
     Counter,

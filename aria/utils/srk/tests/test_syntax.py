@@ -4,7 +4,7 @@ Tests for the syntax module.
 
 import unittest
 from fractions import Fraction
-from aria.utils.srk.syntax import (
+from aria.utils.srk.core.syntax import (
     Context,
     Symbol,
     Type,

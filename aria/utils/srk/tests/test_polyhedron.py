@@ -4,8 +4,8 @@ Tests for the polyhedron module.
 
 import unittest
 from fractions import Fraction
-from aria.utils.srk.polyhedron import Constraint, Polyhedron
-from aria.utils.srk.linear import QQVector
+from aria.utils.srk.linalg.polyhedron import Constraint, Polyhedron
+from aria.utils.srk.linalg.linear import QQVector
 
 
 class TestConstraint(unittest.TestCase):

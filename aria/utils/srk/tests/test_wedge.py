@@ -3,7 +3,7 @@ Tests for the Wedge (convex polyhedron) module.
 """
 
 import unittest
-from aria.utils.srk.syntax import (
+from aria.utils.srk.core.syntax import (
     Context,
     Symbol,
     Type,
@@ -22,9 +22,9 @@ from aria.utils.srk.syntax import (
     mk_mul,
     mk_real,
 )
-from aria.utils.srk.wedge import WedgeDomain, WedgeElement
-from aria.utils.srk.qQ import QQ
-from aria.utils.srk.smt import SMTResult, is_sat
+from aria.utils.srk.analysis.wedge import WedgeDomain, WedgeElement
+from aria.utils.srk.linalg.qQ import QQ
+from aria.utils.srk.logic.smt import SMTResult, is_sat
 
 
 class TestWedge(unittest.TestCase):

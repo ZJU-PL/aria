@@ -3,7 +3,7 @@ Tests for the sequence analysis module.
 """
 
 import unittest
-from aria.utils.srk.sequence import (
+from aria.utils.srk.analysis.sequence import (
     UltimatelyPeriodicSequence,
     SequenceAnalyzer,
     fibonacci_sequence,

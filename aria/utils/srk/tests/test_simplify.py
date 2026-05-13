@@ -4,7 +4,7 @@ Tests for the simplify module.
 
 import unittest
 from fractions import Fraction
-from aria.utils.srk.srkSimplify import (
+from aria.utils.srk.logic.srkSimplify import (
     Simplifier,
     NNFConverter,
     CNFConverter,
@@ -13,7 +13,7 @@ from aria.utils.srk.srkSimplify import (
     make_nnf_converter,
     make_cnf_converter,
 )
-from aria.utils.srk.syntax import (
+from aria.utils.srk.core.syntax import (
     Context,
     Symbol,
     Type,

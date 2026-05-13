@@ -5,7 +5,7 @@ Tests for the OCaml-parity fixpoint analyzer (analyze function).
 import unittest
 from typing import Callable, Dict, List, Set, Tuple
 
-from aria.utils.srk.fixpoint import analyze
+from aria.utils.srk.analysis.fixpoint import analyze
 
 
 class SelfLoopGraph:

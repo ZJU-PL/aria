@@ -7,7 +7,7 @@ This tests the ranking function synthesis features.
 import pytest
 from fractions import Fraction
 
-from aria.utils.srk.syntax import (
+from aria.utils.srk.core.syntax import (
     Context,
     Type,
     mk_add,
@@ -17,17 +17,17 @@ from aria.utils.srk.syntax import (
     mk_lt,
     mk_real,
 )
-from aria.utils.srk.termination import (
+from aria.utils.srk.termination.termination import (
     TerminationAnalyzer,
     LinearRankingFunction,
     TerminationResult,
     TerminationLLRF,
     make_termination_analyzer,
 )
-from aria.utils.srk.terminationLLRF import analyze_termination_llrf, has_llrf
-from aria.utils.srk.transitionFormula import TransitionFormula
-from aria.utils.srk.transition import Transition
-from aria.utils.srk.linear import QQVector
+from aria.utils.srk.termination.terminationLLRF import analyze_termination_llrf, has_llrf
+from aria.utils.srk.lts.transitionFormula import TransitionFormula
+from aria.utils.srk.lts.transition import Transition
+from aria.utils.srk.linalg.linear import QQVector
 from aria.utils.srk import qQ as QQ
 
 
@@ -47,7 +47,7 @@ class TestLinearRankingFunction:
 
     def test_linear_ranking_function_evaluation(self):
         """Test evaluating a linear ranking function."""
-        from aria.utils.srk.syntax import mk_symbol
+        from aria.utils.srk.core.syntax import mk_symbol
 
         ctx = Context()
         x = mk_symbol("x", Type.REAL)
@@ -65,7 +65,7 @@ class TestLinearRankingFunction:
 
     def test_linear_ranking_function_to_term(self):
         """Test converting ranking function to term."""
-        from aria.utils.srk.syntax import mk_symbol
+        from aria.utils.srk.core.syntax import mk_symbol
 
         ctx = Context()
         x = mk_symbol("x", Type.REAL)

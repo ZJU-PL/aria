@@ -3,7 +3,7 @@ Tests for the nonlinear arithmetic module.
 """
 
 import unittest
-from aria.utils.srk.nonlinear import (
+from aria.utils.srk.algebra.nonlinear import (
     SymbolicInterval,
     NonlinearOperations,
     ensure_symbols,
@@ -14,9 +14,9 @@ from aria.utils.srk.nonlinear import (
     interpret,
     optimize_box,
 )
-from aria.utils.srk.syntax import mk_real
-from aria.utils.srk.syntax import Context, Type
-from aria.utils.srk.interval import Interval
+from aria.utils.srk.core.syntax import mk_real
+from aria.utils.srk.core.syntax import Context, Type
+from aria.utils.srk.linalg.interval import Interval
 from fractions import Fraction
 
 

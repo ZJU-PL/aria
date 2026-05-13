@@ -5,7 +5,7 @@ This module tests ring operations and algebraic structures used in SRK.
 """
 
 import unittest
-from aria.utils.srk.ring import (
+from aria.utils.srk.algebra.ring import (
     IntegerRing,
     RationalRing,
     RingMap,

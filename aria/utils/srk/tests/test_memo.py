@@ -3,7 +3,7 @@ Tests for the Memoization module.
 """
 
 import unittest
-from aria.utils.srk.memo import MemoizationTable, memoize
+from aria.utils.srk.structures.memo import MemoizationTable, memoize
 
 
 class MockTabulate:

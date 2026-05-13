@@ -3,7 +3,7 @@ Tests for the Transition module.
 """
 
 import unittest
-from aria.utils.srk.syntax import (
+from aria.utils.srk.core.syntax import (
     Context,
     Symbol,
     Type,
@@ -14,9 +14,9 @@ from aria.utils.srk.syntax import (
     mk_and,
     mk_real,
 )
-from aria.utils.srk.transition import Transition, TransitionSystem
-from aria.utils.srk.abstract import SignDomain, AbstractValue
-from aria.utils.srk.qQ import QQ
+from aria.utils.srk.lts.transition import Transition, TransitionSystem
+from aria.utils.srk.logic.abstract import SignDomain, AbstractValue
+from aria.utils.srk.linalg.qQ import QQ
 
 
 class TestTransition(unittest.TestCase):

@@ -6,7 +6,7 @@ import unittest
 import sys
 from io import StringIO
 from unittest.mock import patch, MagicMock
-from aria.utils.srk.bigtop import BigtopCLI, main
+from aria.utils.srk.misc.bigtop import BigtopCLI, main
 
 
 class TestBigtopCLI(unittest.TestCase):

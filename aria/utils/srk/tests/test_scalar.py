@@ -6,7 +6,7 @@ This module tests scalar operations that are fundamental to SRK's arithmetic.
 
 import unittest
 from fractions import Fraction
-from aria.utils.srk.qQ import QQ
+from aria.utils.srk.linalg.qQ import QQ
 
 
 class TestQQ(unittest.TestCase):

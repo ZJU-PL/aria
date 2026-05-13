@@ -4,7 +4,7 @@ Tests for the interval arithmetic module.
 
 import unittest
 from fractions import Fraction
-from aria.utils.srk.interval import Interval
+from aria.utils.srk.linalg.interval import Interval
 
 
 class TestInterval(unittest.TestCase):

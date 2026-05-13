@@ -5,8 +5,8 @@ Targeted tests for solvable polynomial closed forms.
 import unittest
 from fractions import Fraction
 
-from aria.utils.srk.polynomial import Polynomial as QQX
-from aria.utils.srk.solvablePolynomial import (
+from aria.utils.srk.algebra.polynomial import Polynomial as QQX
+from aria.utils.srk.algebra.solvablePolynomial import (
     Block,
     closure_ocrs,
     closure_periodic_rational,

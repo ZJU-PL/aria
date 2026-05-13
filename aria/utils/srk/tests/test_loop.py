@@ -4,7 +4,7 @@ Tests for the loop analysis module.
 
 import unittest
 from typing import Set, List, Dict, Any
-from aria.utils.srk.loop import (
+from aria.utils.srk.analysis.loop import (
     Loop,
     GraphProtocol,
     compute_loop_nesting_forest,

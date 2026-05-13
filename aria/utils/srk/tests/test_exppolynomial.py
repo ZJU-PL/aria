@@ -4,8 +4,8 @@ Tests for the exponential polynomial module.
 
 import unittest
 from fractions import Fraction
-from aria.utils.srk.syntax import Context, Symbol, Type
-from aria.utils.srk.expPolynomial import (
+from aria.utils.srk.core.syntax import Context, Symbol, Type
+from aria.utils.srk.algebra.expPolynomial import (
     ExpPolynomial,
     ExpPolynomialVector,
     ExpPolynomialMatrix,
@@ -20,7 +20,7 @@ class TestExpPolynomial(unittest.TestCase):
 
     def test_zero_polynomial(self):
         """Test zero exponential polynomial."""
-        from aria.utils.srk.polynomial import zero
+        from aria.utils.srk.algebra.polynomial import zero
         from fractions import Fraction
 
         zero_poly = zero()
@@ -29,8 +29,8 @@ class TestExpPolynomial(unittest.TestCase):
 
     def test_constant_polynomial(self):
         """Test constant exponential polynomial."""
-        from aria.utils.srk.polynomial import constant
-        from aria.utils.srk.qQ import QQ
+        from aria.utils.srk.algebra.polynomial import constant
+        from aria.utils.srk.linalg.qQ import QQ
         from fractions import Fraction
 
         const_poly = constant(QQ.of_int(5))
@@ -40,8 +40,8 @@ class TestExpPolynomial(unittest.TestCase):
     def test_variable_polynomial(self):
         """Test polynomial with a single variable."""
         x = self.context.mk_symbol("x", Type.INT)
-        from aria.utils.srk.polynomial import Polynomial, Monomial
-        from aria.utils.srk.qQ import QQ
+        from aria.utils.srk.algebra.polynomial import Polynomial, Monomial
+        from aria.utils.srk.linalg.qQ import QQ
 
         # Create a monomial for the variable
         monomial = Monomial({x.id: 1})
@@ -51,8 +51,8 @@ class TestExpPolynomial(unittest.TestCase):
 
     def test_addition(self):
         """Test addition of exponential polynomials."""
-        from aria.utils.srk.polynomial import constant
-        from aria.utils.srk.qQ import QQ
+        from aria.utils.srk.algebra.polynomial import constant
+        from aria.utils.srk.linalg.qQ import QQ
         from fractions import Fraction
 
         p1_poly = constant(QQ.one())
@@ -65,8 +65,8 @@ class TestExpPolynomial(unittest.TestCase):
 
     def test_multiplication(self):
         """Test multiplication of exponential polynomials."""
-        from aria.utils.srk.polynomial import constant
-        from aria.utils.srk.qQ import QQ
+        from aria.utils.srk.algebra.polynomial import constant
+        from aria.utils.srk.linalg.qQ import QQ
         from fractions import Fraction
 
         p1_poly = constant(QQ.of_int(2))
@@ -86,7 +86,7 @@ class TestExpPolynomialVector(unittest.TestCase):
 
     def test_zero_vector(self):
         """Test zero exponential polynomial vector."""
-        from aria.utils.srk.polynomial import zero
+        from aria.utils.srk.algebra.polynomial import zero
         from fractions import Fraction
 
         zero_poly = zero()
@@ -96,8 +96,8 @@ class TestExpPolynomialVector(unittest.TestCase):
 
     def test_constant_vector(self):
         """Test constant exponential polynomial vector."""
-        from aria.utils.srk.polynomial import constant
-        from aria.utils.srk.qQ import QQ
+        from aria.utils.srk.algebra.polynomial import constant
+        from aria.utils.srk.linalg.qQ import QQ
         from fractions import Fraction
 
         const_poly = constant(QQ.one())
@@ -108,8 +108,8 @@ class TestExpPolynomialVector(unittest.TestCase):
 
     def test_vector_addition(self):
         """Test addition of exponential polynomial vectors."""
-        from aria.utils.srk.polynomial import constant
-        from aria.utils.srk.qQ import QQ
+        from aria.utils.srk.algebra.polynomial import constant
+        from aria.utils.srk.linalg.qQ import QQ
         from fractions import Fraction
 
         poly1 = constant(QQ.one())
@@ -132,7 +132,7 @@ class TestExpPolynomialMatrix(unittest.TestCase):
 
     def test_zero_matrix(self):
         """Test zero exponential polynomial matrix."""
-        from aria.utils.srk.polynomial import zero
+        from aria.utils.srk.algebra.polynomial import zero
         from fractions import Fraction
 
         zero_poly = zero()
@@ -144,8 +144,8 @@ class TestExpPolynomialMatrix(unittest.TestCase):
 
     def test_identity_matrix(self):
         """Test identity exponential polynomial matrix."""
-        from aria.utils.srk.polynomial import constant
-        from aria.utils.srk.qQ import QQ
+        from aria.utils.srk.algebra.polynomial import constant
+        from aria.utils.srk.linalg.qQ import QQ
         from fractions import Fraction
 
         # Create identity-like matrix (simplified)
@@ -163,8 +163,8 @@ class TestExpPolynomialMatrix(unittest.TestCase):
     def test_matrix_multiplication(self):
         """Test multiplication of exponential polynomial matrices."""
         # Create simple matrices for testing
-        from aria.utils.srk.polynomial import constant
-        from aria.utils.srk.qQ import QQ
+        from aria.utils.srk.algebra.polynomial import constant
+        from aria.utils.srk.linalg.qQ import QQ
         from fractions import Fraction
 
         # Use exponential part 0 for simplicity (constant matrices)

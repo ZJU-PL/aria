@@ -3,11 +3,11 @@ Tests for the termination analysis module.
 """
 
 import unittest
-from aria.utils.srk.syntax import Context, Symbol, Type
-from aria.utils.srk.termination import TerminationAnalyzer, RankingFunction, TerminationResult
-from aria.utils.srk.transition import Transition
-from aria.utils.srk.qQ import QQ
-from aria.utils.srk.syntax import mk_add, mk_and, mk_const, mk_eq, mk_leq, mk_lt, mk_real
+from aria.utils.srk.core.syntax import Context, Symbol, Type
+from aria.utils.srk.termination.termination import TerminationAnalyzer, RankingFunction, TerminationResult
+from aria.utils.srk.lts.transition import Transition
+from aria.utils.srk.linalg.qQ import QQ
+from aria.utils.srk.core.syntax import mk_add, mk_and, mk_const, mk_eq, mk_leq, mk_lt, mk_real
 
 
 class TestTerminationAnalyzer(unittest.TestCase):
@@ -146,7 +146,7 @@ class TestRankingFunction(unittest.TestCase):
         x = self.context.mk_symbol("x", Type.INT)
 
         # Create a simple linear ranking function: x + 1
-        from aria.utils.srk.syntax import mk_add, mk_var, mk_const, Symbol
+        from aria.utils.srk.core.syntax import mk_add, mk_var, mk_const, Symbol
 
         one_symbol = Symbol(1, "1", Type.INT)
         expr = mk_add([mk_var(x, Type.INT), mk_const(one_symbol)])
@@ -173,7 +173,7 @@ class TestTerminationResult(unittest.TestCase):
     def test_result_with_ranking_function(self):
         """Test result with ranking function."""
         x = Context().mk_symbol("x", Type.INT)
-        from aria.utils.srk.syntax import mk_add, mk_var, mk_const, Symbol
+        from aria.utils.srk.core.syntax import mk_add, mk_var, mk_const, Symbol
 
         one_symbol = Symbol(1, "1", Type.INT)
         expr = mk_add([mk_var(x, Type.INT), mk_const(one_symbol)])

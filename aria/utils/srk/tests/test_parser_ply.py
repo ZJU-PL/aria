@@ -6,9 +6,9 @@ This tests the lexer and parser created with PLY.
 
 import pytest
 
-from aria.utils.srk.srkLex import tokenize, MathLexer
-from aria.utils.srk.srkParse import parse_formula, PLY_AVAILABLE
-from aria.utils.srk.srkParseNew import MathParser, SMT2Parser
+from aria.utils.srk.parser.srkLex import tokenize, MathLexer
+from aria.utils.srk.parser.srkParse import parse_formula, PLY_AVAILABLE
+from aria.utils.srk.parser.srkParseNew import MathParser, SMT2Parser
 
 
 class TestLexer:

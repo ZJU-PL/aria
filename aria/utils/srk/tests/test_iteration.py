@@ -3,7 +3,7 @@ Tests for the Iteration module (approximate transitive closure computation).
 """
 
 import unittest
-from aria.utils.srk.syntax import (
+from aria.utils.srk.core.syntax import (
     Context,
     Symbol,
     Type,
@@ -22,7 +22,7 @@ from aria.utils.srk.syntax import (
     mk_mul,
     mk_real,
 )
-from aria.utils.srk.iteration import (
+from aria.utils.srk.analysis.iteration import (
     IterationEngine,
     WedgeGuard,
     PolyhedronGuard,
@@ -31,8 +31,8 @@ from aria.utils.srk.iteration import (
     make_wedge_guard,
     make_polyhedron_guard,
 )
-from aria.utils.srk.transitionFormula import TransitionFormula
-from aria.utils.srk.qQ import QQ, zero, one
+from aria.utils.srk.lts.transitionFormula import TransitionFormula
+from aria.utils.srk.linalg.qQ import QQ, zero, one
 
 
 class TestIteration(unittest.TestCase):

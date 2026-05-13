@@ -4,7 +4,7 @@ Tests for the asymptotic complexity analysis module.
 
 import unittest
 from fractions import Fraction
-from aria.utils.srk.bigO import ComplexityClass, BigO, compare, mul, add, minimum, maximum
+from aria.utils.srk.misc.bigO import ComplexityClass, BigO, compare, mul, add, minimum, maximum
 
 
 class TestComplexityClass(unittest.TestCase):
