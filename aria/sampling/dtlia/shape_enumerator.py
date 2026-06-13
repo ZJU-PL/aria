@@ -1,6 +1,7 @@
 """Enumerate datatype constructor shapes for DTLIA sampling."""
 
 import random
+import sys
 from dataclasses import dataclass
 from time import perf_counter
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, Tuple
@@ -125,7 +126,13 @@ def enumerate_datatype_shapes(
     timeout: Optional[float] = None,
 ) -> ShapeEnumerationResult:
     """Enumerate distinct constructor shapes via partial constructor search."""
+    # Bump recursion limit for deep ADT trees (the recursive explore() mirrors
+    # constructor nesting depth, which can exceed the default 1000).
+    _old_recursion_limit = sys.getrecursionlimit()
+    sys.setrecursionlimit(max(_old_recursion_limit, 50_000))
+
     if not root_terms or max_shapes <= 0:
+        sys.setrecursionlimit(_old_recursion_limit)
         return ShapeEnumerationResult(
             shapes=[],
             stats={
@@ -341,6 +348,7 @@ def enumerate_datatype_shapes(
     )
 
     elapsed_ms = int((perf_counter() - started_at) * 1000)
+    sys.setrecursionlimit(_old_recursion_limit)
     return ShapeEnumerationResult(
         shapes=shapes,
         stats={

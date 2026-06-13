@@ -18,6 +18,7 @@ class Logic(Enum):
     QF_DT = "QF_DT"  # Quantifier-free algebraic datatypes
     QF_UFDT = "QF_UFDT"  # Quantifier-free uninterpreted functions + datatypes
     QF_DTLIA = "QF_DTLIA"  # Quantifier-free datatypes + linear integer arithmetic
+    QF_UFDTLIA = "QF_UFDTLIA"  # Quantifier-free uninterpreted functions + datatypes + linear integer arithmetic
     QF_BOOL = "QF_BOOL"  # Quantifier-free Boolean logic
     QF_BV = "QF_BV"  # Quantifier-free bit-vector logic
     QF_FP = "QF_FP"  # Quantifier-free floating-point logic

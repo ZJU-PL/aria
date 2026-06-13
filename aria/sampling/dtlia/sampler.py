@@ -16,6 +16,7 @@ from aria.sampling.base import (
 )
 from aria.sampling.finite_domain.common import (
     collect_datatype_observable_terms,
+    collect_uf_observable_terms,
     enumerate_projected_models,
 )
 from aria.utils.z3.expr import get_variables, is_int_sort
@@ -114,10 +115,11 @@ class ADTLIASampler(Sampler):
         self.formula: Optional[z3.ExprRef] = None
         self.int_variables: List[z3.ExprRef] = []
         self.datatype_roots: List[z3.ExprRef] = []
+        self.uf_terms: List[z3.ExprRef] = []
         self.default_terms: List[z3.ExprRef] = []
 
     def supports_logic(self, logic: Logic) -> bool:
-        return logic == Logic.QF_DTLIA
+        return logic in (Logic.QF_DTLIA, Logic.QF_UFDTLIA)
 
     def init_from_formula(self, formula: z3.ExprRef) -> None:
         self.formula = formula
@@ -136,7 +138,22 @@ class ADTLIASampler(Sampler):
         datatype_terms = collect_datatype_observable_terms(
             formula, include_selector_closure=False
         )
-        self.default_terms = _dedupe_sorted_terms(self.int_variables + datatype_terms)
+
+        # Collect UF ground terms and uninterpreted-sort constants for QF_UFDTLIA.
+        uf_apps = collect_uf_observable_terms(formula)
+        uf_constants = sorted(
+            [
+                var
+                for var in get_variables(formula)
+                if var.sort().kind() == z3.Z3_UNINTERPRETED_SORT
+            ],
+            key=str,
+        )
+        self.uf_terms = _dedupe_sorted_terms(uf_apps + uf_constants)
+
+        self.default_terms = _dedupe_sorted_terms(
+            self.int_variables + datatype_terms + self.uf_terms
+        )
 
     def sample(self, options: SamplingOptions) -> SamplingResult:
         if self.formula is None:
@@ -175,6 +192,7 @@ class ADTLIASampler(Sampler):
         cfg = ShapeSamplingConfig.from_options(options)
         tracked_terms = _dedupe_sorted_terms(
             self.int_variables
+            + self.uf_terms
             + collect_datatype_observable_terms(
                 formula,
                 include_selector_closure=cfg.include_selector_closure,
@@ -218,6 +236,7 @@ class ADTLIASampler(Sampler):
             )
             residual_tracked_terms = _dedupe_sorted_terms(
                 self.int_variables
+                + self.uf_terms
                 + collect_datatype_observable_terms(
                     residual_formula,
                     include_selector_closure=cfg.include_selector_closure,
@@ -272,6 +291,7 @@ class ADTLIASampler(Sampler):
                 candidate_samples,
                 options.num_samples,
                 shape_signatures=candidate_shape_signatures,
+                formula=self.formula,
             )
             selected_samples = coverage_result.samples
             coverage_stats = coverage_result.stats

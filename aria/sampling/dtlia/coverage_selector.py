@@ -6,7 +6,121 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass
 from typing import Any, DefaultDict, Dict, List, Optional, Sequence, Set, Tuple
 
-from .distance_selector import _build_distance_matrix, _next_max_distance_index
+import z3
+
+from aria.utils.z3.expr import get_variables
+
+from .distance_selector import _build_int_ranges, _next_max_distance_index
+
+
+def _compute_true_int_bounds(
+    formula: Optional[z3.ExprRef],
+    int_values_by_path: DefaultDict[str, List[int]],
+    timeout_ms: int = 500,
+) -> Dict[str, Dict[str, Any]]:
+    """Use Z3 Optimize to find true min/max for each integer path.
+
+    Falls back to candidate-relative stats when *formula* is ``None`` or
+    the optimisation query fails.
+    """
+    if formula is None:
+        return _candidate_bounds_only(int_values_by_path)
+
+    true_bounds: Dict[str, Dict[str, Any]] = {}
+    fallback = _candidate_bounds_only(int_values_by_path)
+
+    for path in list(int_values_by_path):
+        # Build a Z3 expression that extracts this path from the formula.
+        # For top-level variables the path is the variable name.
+        path_z3 = _path_to_z3_expr(formula, path)
+        if path_z3 is None:
+            true_bounds[path] = fallback[path]
+            continue
+
+        opt = z3.Optimize()
+        opt.set("timeout", timeout_ms)
+        opt.add(formula)
+
+        # Minimize
+        h_min = opt.minimize(path_z3)
+        result = opt.check()
+        if result == z3.sat:
+            true_min = opt.lower(h_min).as_long()
+        else:
+            true_bounds[path] = fallback[path]
+            continue
+
+        # Maximize (fresh Optimize to avoid stale model)
+        opt2 = z3.Optimize()
+        opt2.set("timeout", timeout_ms)
+        opt2.add(formula)
+        h_max = opt2.maximize(path_z3)
+        result = opt2.check()
+        if result == z3.sat:
+            true_max = opt2.upper(h_max).as_long()
+        else:
+            true_bounds[path] = fallback[path]
+            continue
+
+        unique_values = sorted(set(int_values_by_path[path]))
+        true_bounds[path] = {
+            "min": true_min,
+            "max": true_max,
+            "midpoint": (true_min + true_max) / 2.0,
+            "unique_values": unique_values,
+        }
+
+    return true_bounds
+
+
+def _candidate_bounds_only(
+    int_values_by_path: DefaultDict[str, List[int]],
+) -> Dict[str, Dict[str, Any]]:
+    """Compute integer bounds from candidate values only."""
+    bounds: Dict[str, Dict[str, Any]] = {}
+    for path, values in int_values_by_path.items():
+        unique_values = sorted(set(values))
+        min_value = min(unique_values)
+        max_value = max(unique_values)
+        bounds[path] = {
+            "min": min_value,
+            "max": max_value,
+            "midpoint": (min_value + max_value) / 2.0,
+            "unique_values": unique_values,
+        }
+    return bounds
+
+
+def _path_to_z3_expr(formula: z3.ExprRef, path: str) -> Optional[z3.ExprRef]:
+    """Walk a dotted path like ``x.0.1`` and return the corresponding Z3 term.
+
+    Top-level segments are matched against free variables of *formula*.
+    Subsequent numeric segments index into datatype-constructor fields.
+    Returns ``None`` when the path can not be resolved.
+    """
+    segments = path.split(".")
+    root_name = segments[0]
+
+    variables = {str(v): v for v in get_variables(formula)}
+    current = variables.get(root_name)
+    if current is None:
+        return None
+
+    for seg in segments[1:]:
+        try:
+            field_idx = int(seg)
+        except ValueError:
+            return None
+        sort = current.sort()
+        if not isinstance(sort, z3.DatatypeSortRef):
+            return None
+        constructor_decl = sort.constructor(0)
+        if field_idx >= constructor_decl.arity():
+            return None
+        accessor = sort.accessor(0, field_idx)
+        current = accessor(current)
+
+    return current
 
 
 @dataclass(frozen=True)
@@ -129,24 +243,20 @@ def _priority_signature(features: Set[str]) -> Tuple[int, ...]:
 def _build_candidate_feature_sets(
     candidates: Sequence[Dict[str, Any]],
     shape_signatures: Optional[Sequence[str]] = None,
+    formula: Optional[z3.ExprRef] = None,
 ) -> List[Set[str]]:
-    """Build coverage feature sets for candidate samples."""
+    """Build coverage feature sets for candidate samples.
+
+    When *formula* is provided the integer boundary features (``int:min`` /
+    ``int:max``) are computed against the formula's true feasible range via
+    Z3 Optimize rather than the candidate pool.
+    """
     int_values_by_path: DefaultDict[str, List[int]] = defaultdict(list)
     for candidate in candidates:
         for key, value in candidate.items():
             _collect_path_values(value, key, int_values_by_path)
 
-    int_stats: Dict[str, Dict[str, Any]] = {}
-    for path, values in int_values_by_path.items():
-        unique_values = sorted(set(values))
-        min_value = min(unique_values)
-        max_value = max(unique_values)
-        int_stats[path] = {
-            "min": min_value,
-            "max": max_value,
-            "midpoint": (min_value + max_value) / 2.0,
-            "unique_values": unique_values,
-        }
+    int_stats = _compute_true_int_bounds(formula, int_values_by_path)
 
     candidate_feature_sets: List[Set[str]] = []
     for index, candidate in enumerate(candidates):
@@ -211,6 +321,7 @@ def select_coverage_guided_subset(
     candidates: Sequence[Dict[str, Any]],
     num_samples: int,
     shape_signatures: Optional[Sequence[str]] = None,
+    formula: Optional[z3.ExprRef] = None,
 ) -> CoverageSelectionResult:
     """Greedily select a subset that maximizes feature coverage."""
     if num_samples <= 0 or not candidates:
@@ -226,7 +337,7 @@ def select_coverage_guided_subset(
 
     if len(candidates) <= num_samples:
         candidate_feature_sets = _build_candidate_feature_sets(
-            candidates, shape_signatures=shape_signatures
+            candidates, shape_signatures=shape_signatures, formula=formula
         )
         total_features = sorted(
             {feature for feature_set in candidate_feature_sets for feature in feature_set}
@@ -242,9 +353,10 @@ def select_coverage_guided_subset(
         )
 
     candidate_feature_sets = _build_candidate_feature_sets(
-        candidates, shape_signatures=shape_signatures
+        candidates, shape_signatures=shape_signatures, formula=formula
     )
-    distance_matrix = _build_distance_matrix(candidates)
+    distance_cache: Dict[Tuple[int, int], float] = {}
+    int_ranges = _build_int_ranges(candidates)
     feature_counts = Counter(
         feature
         for feature_set in candidate_feature_sets
@@ -311,7 +423,8 @@ def select_coverage_guided_subset(
             candidates,
             selected_indices,
             remaining_indices,
-            distance_matrix=distance_matrix,
+            int_ranges=int_ranges,
+            distance_cache=distance_cache,
         )
         if next_index is None:
             break

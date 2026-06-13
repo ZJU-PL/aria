@@ -82,6 +82,7 @@ SamplerFactory.register(Logic.QF_UFLIA, UninterpretedFunctionSampler)
 SamplerFactory.register(Logic.QF_DT, DatatypeSampler)
 SamplerFactory.register(Logic.QF_UFDT, MixedUFDatatypeSampler)
 SamplerFactory.register(Logic.QF_DTLIA, ADTLIASampler)
+SamplerFactory.register(Logic.QF_UFDTLIA, ADTLIASampler)
 SamplerFactory.register(Logic.QF_SLIA, SLIASampler)
 
 if LIRASampler is not None:

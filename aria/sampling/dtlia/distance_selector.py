@@ -80,17 +80,43 @@ def sample_distance(
     return sum(value_distance(left.get(key), right.get(key), key) for key in keys)
 
 
+def _get_distance(
+    cache: Dict[Tuple[int, int], float],
+    candidates: Sequence[Dict[str, Any]],
+    i: int,
+    j: int,
+    int_ranges: Optional[Dict[str, Tuple[int, int]]] = None,
+) -> float:
+    """Get pairwise distance, computing and caching on demand.
+
+    Avoids precomputing the full O(n²) distance matrix. Distances are
+    computed only for pairs that are actually queried by the greedy
+    selection loop, which in practice is O(selected_count * n) rather
+    than O(n²).
+    """
+    key = (i, j) if i <= j else (j, i)
+    if key not in cache:
+        cache[key] = sample_distance(candidates[i], candidates[j], int_ranges=int_ranges)
+    return cache[key]
+
+
 def _build_distance_matrix(candidates: Sequence[Dict[str, Any]]) -> List[List[float]]:
-    """Precompute pairwise distances for a candidate pool."""
+    """Precompute pairwise distances for a candidate pool.
+
+    Consider using lazy :func:`_get_distance` instead when the number of
+    selected samples is much smaller than the candidate pool size.
+    """
     int_ranges = _build_int_ranges(candidates)
     matrix: List[List[float]] = [
         [0.0 for _ in range(len(candidates))] for _ in range(len(candidates))
     ]
     for left_index in range(len(candidates)):
         for right_index in range(left_index + 1, len(candidates)):
-            distance = sample_distance(
-                candidates[left_index],
-                candidates[right_index],
+            distance = _get_distance(
+                {},
+                candidates,
+                left_index,
+                right_index,
                 int_ranges=int_ranges,
             )
             matrix[left_index][right_index] = distance
@@ -103,15 +129,25 @@ def _next_max_distance_index(
     selected_indices: Sequence[int],
     remaining_indices: Sequence[int],
     distance_matrix: Optional[Sequence[Sequence[float]]] = None,
+    int_ranges: Optional[Dict[str, Tuple[int, int]]] = None,
+    distance_cache: Optional[Dict[Tuple[int, int], float]] = None,
 ) -> Optional[int]:
-    """Pick the next remaining candidate by max-min distance."""
+    """Pick the next remaining candidate by max-min distance.
+
+    Prefer passing *int_ranges* and *distance_cache* for lazy evaluation.
+    When *distance_matrix* is provided, it takes precedence (legacy path).
+    """
     if not remaining_indices:
         return None
 
     def pair_distance(left_index: int, right_index: int) -> float:
+        if distance_cache is not None:
+            return _get_distance(
+                distance_cache, candidates, left_index, right_index, int_ranges=int_ranges
+            )
         if distance_matrix is not None:
             return distance_matrix[left_index][right_index]
-        return sample_distance(candidates[left_index], candidates[right_index])
+        return sample_distance(candidates[left_index], candidates[right_index], int_ranges=int_ranges)
 
     if not selected_indices:
         return max(
@@ -141,13 +177,18 @@ def _next_max_distance_index(
 def select_max_distance_subset(
     candidates: Sequence[Dict[str, Any]], num_samples: int
 ) -> List[Dict[str, Any]]:
-    """Greedily select a diverse subset by maximizing minimum distance."""
+    """Greedily select a diverse subset by maximizing minimum distance.
+
+    Uses lazy distance computation so memory usage is O(selected_count * n)
+    instead of O(n²).
+    """
     if num_samples <= 0 or not candidates:
         return []
     if len(candidates) <= num_samples:
         return list(candidates)
 
-    distance_matrix = _build_distance_matrix(candidates)
+    int_ranges = _build_int_ranges(candidates)
+    distance_cache: Dict[Tuple[int, int], float] = {}
     remaining_indices = list(range(len(candidates)))
     selected_indices: List[int] = []
 
@@ -156,7 +197,8 @@ def select_max_distance_subset(
             candidates,
             selected_indices,
             remaining_indices,
-            distance_matrix=distance_matrix,
+            int_ranges=int_ranges,
+            distance_cache=distance_cache,
         )
         if next_index is None:
             break
