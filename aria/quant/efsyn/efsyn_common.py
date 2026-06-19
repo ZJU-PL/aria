@@ -315,13 +315,14 @@ class DualMemoryCEGISBase:
     # -------------------------------------------------------------------------
 
     def solve(self) -> ExistsForallResult:
-        rx, x0 = self._check_with_model([self.domain_x], self.x_vars)
+        x_admissible = self._x_admissibility_formula()
+        rx, x0 = self._check_with_model([x_admissible], self.x_vars)
         if rx == unsat:
             return ExistsForallResult(
                 status="unsat-domain-x",
                 witness=None,
                 iterations=0,
-                message="domain_x is unsatisfiable.",
+                message="domain_x and x_templates are unsatisfiable.",
             )
         if rx != sat:
             return ExistsForallResult(
@@ -427,10 +428,9 @@ class DualMemoryCEGISBase:
             if added_cex:
                 self._cross_play_update()
 
-        best = self._best_candidate()
         return ExistsForallResult(
             status="budget-exhausted",
-            witness=self._named_assignment(self.x_vars, best.vals) if best else None,
+            witness=None,
             iterations=self.max_iters,
             message="No certified witness found within the iteration budget.",
         )
@@ -800,6 +800,9 @@ class DualMemoryCEGISBase:
         self.M_Y = sorted(self.M_Y, key=lambda a: (-a.score, -a.power, -a.uid))[:self.max_y_memory]
 
     def _verify_candidate(self, cand: Candidate) -> Tuple[str, Optional[Attack]]:
+        if not self._candidate_admissible(cand.vals):
+            return "invalid-domain", None
+
         pred_x = self._instantiate(self.predicate, self.x_vars, cand.vals)
         s = self._new_solver()
         s.add(self.domain_y, Not(pred_x))
@@ -822,7 +825,7 @@ class DualMemoryCEGISBase:
 
         basis = self._basis_for_generalization(cand, y_vals, fail_formula)
         if not basis:
-            return BoolVal(True)
+            return self._point_guard(self.y_vars, y_vals)
 
         lits: List[BoolRef] = []
         for atom in basis:
@@ -830,12 +833,14 @@ class DualMemoryCEGISBase:
             truth = self._ground_holds(ground)
             lits.append(simplify(atom if truth else Not(atom)))
 
+        if not self._guard_implies_failure(lits, pred_x):
+            return self._point_guard(self.y_vars, y_vals)
+
         minimized = list(lits)
         i = 0
         while i < len(minimized):
             trial = minimized[:i] + minimized[i + 1 :]
-            r, _ = self._check_with_model([self.domain_y, *trial, Not(pred_x)], self.y_vars)
-            if r == sat:
+            if self._guard_implies_failure(trial, pred_x):
                 minimized = trial
             else:
                 i += 1
@@ -896,6 +901,27 @@ class DualMemoryCEGISBase:
             return BoolVal(False)
         return mk_or(v != val for v, val in zip(vars_, vals))
 
+    def _assignment_satisfies(
+        self,
+        vars_: Sequence[ExprRef],
+        vals: Assignment,
+        formula: BoolRef,
+    ) -> bool:
+        return self._ground_holds(self._instantiate(formula, vars_, vals))
+
+    def _point_guard(self, vars_: Sequence[ExprRef], vals: Assignment) -> BoolRef:
+        return mk_and(v == val for v, val in zip(vars_, vals))
+
+    def _guard_implies_failure(self, guard_lits: Sequence[BoolRef], pred_x: BoolRef) -> bool:
+        r, _ = self._check_with_model([self.domain_y, *guard_lits, pred_x], self.y_vars)
+        return r == unsat
+
+    def _x_admissibility_formula(self) -> BoolRef:
+        return mk_and([self.domain_x, mk_or(self.x_templates)])
+
+    def _candidate_admissible(self, vals: Assignment) -> bool:
+        return self._assignment_satisfies(self.x_vars, vals, self._x_admissibility_formula())
+
     def _ground_holds(self, ground_formula: BoolRef) -> bool:
         g = simplify(ground_formula)
         if is_true(g):
@@ -934,6 +960,9 @@ class DualMemoryCEGISBase:
         vars_: Sequence[ExprRef],
         existing: Sequence[Assignment],
     ) -> Optional[Assignment]:
+        if not vars_ and existing:
+            return None
+
         s = self._new_solver()
         s.add(formula)
         for vals in existing:
@@ -959,6 +988,8 @@ class DualMemoryCEGISBase:
         return sum(dists) / len(dists) if dists else 1.0
 
     def _add_candidate(self, cand: Candidate) -> bool:
+        if not self._candidate_admissible(cand.vals):
+            return False
         key = self._assignment_key(cand.vals)
         if key in self._x_seen:
             return False
@@ -969,6 +1000,8 @@ class DualMemoryCEGISBase:
         return True
 
     def _add_attack(self, atk: Attack) -> bool:
+        if not self._assignment_satisfies(self.y_vars, atk.rep, self.domain_y):
+            return False
         key = self._assignment_key(atk.rep)
         if key in self._y_seen:
             return False
