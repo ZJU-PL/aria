@@ -23,7 +23,7 @@ from typing import List, Optional
 
 from z3 import *
 
-from aria.quant.efsyn.efsyn_bv import BVExistsForallCEGIS
+from aria.quant.efdual.efsyn_bv import BVExistsForallCEGIS
 
 try:
     from .efsyn_common import (
@@ -234,37 +234,6 @@ class LinearExistsForallCEGIS(DualMemoryCEGISBase):
         template_id: int,
         blocked: List[Assignment],
     ) -> Optional[Candidate]:
-        opt = self._new_optimize()
-        opt.add(self.domain_x, template)
-
-        for vals in [c.vals for c in self.M_X] + list(blocked):
-            neq = self._assignment_neq_clause(self.x_vars, vals)
-            if not is_false(simplify(neq)):
-                opt.add(neq)
-
-        slack_terms: List[ArithRef] = []
-
-        for atk in bundle:
-            phi = self._instantiate(self.predicate, self.y_vars, atk.rep)
-            weight = max(1, int(round(1 + 9 * atk.score)))
-            opt.add_soft(phi, weight=str(weight), id="cover")
-
-            slack = self._slack_score(phi)
-            if slack is not None:
-                slack_terms.append(weight * slack)
-            else:
-                slack_terms.append(If(phi, IntVal(weight), IntVal(0)))
-
-        self._add_x_novelty_soft(opt, self.M_X[-4:])
-
-        if slack_terms:
-            opt.maximize(sum_expr(slack_terms))
-
-        res = opt.check()
-        if res == sat:
-            vals = self._assignment_from_model(opt.model(), self.x_vars)
-            return Candidate(vals=vals, source="y->x:slack-maxsat", template_id=template_id)
-
         s = self._new_solver()
         s.add(self.domain_x, template)
 
@@ -273,15 +242,12 @@ class LinearExistsForallCEGIS(DualMemoryCEGISBase):
             if not is_false(simplify(neq)):
                 s.add(neq)
 
-        hard_subset = sorted(bundle, key=lambda a: (-a.score, -a.power, -a.uid))
-        hard_subset = hard_subset[:max(1, len(hard_subset) // 2)] if hard_subset else []
-
-        for atk in hard_subset:
+        for atk in bundle:
             s.add(self._instantiate(self.predicate, self.y_vars, atk.rep))
 
         if s.check() == sat:
             vals = self._assignment_from_model(s.model(), self.x_vars)
-            return Candidate(vals=vals, source="y->x:fallback", template_id=template_id)
+            return Candidate(vals=vals, source="y->x:smt", template_id=template_id)
 
         return None
 

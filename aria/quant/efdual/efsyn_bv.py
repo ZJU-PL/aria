@@ -82,17 +82,6 @@ class BVExistsForallCEGIS(DualMemoryCEGISBase):
             lo += self.slice_width
         return out
 
-    def _add_x_novelty_soft(self, opt: Optimize, recent: Sequence[Candidate]) -> None:
-        for cand in recent:
-            for xv, val in zip(self.x_vars, cand.vals):
-                opt.add_soft(xv != val, weight="1", id="novel-x")
-                for hi, lo in self._bit_slices(xv):
-                    opt.add_soft(
-                        Extract(hi, lo, xv) != simplify(Extract(hi, lo, val)),
-                        weight="1",
-                        id="novel-x-slice",
-                    )
-
     def _add_y_novelty_soft(self, opt: Optimize, recent: Sequence[Attack]) -> None:
         for atk in recent:
             for yv, val in zip(self.y_vars, atk.rep):

@@ -1,14 +1,15 @@
 # Exists-Forall Synthesis (`efsyn`)
 
-`efsyn` contains heuristic CEGIS solvers for formulas:
+`efdual` contains heuristic CEGIS solvers for formulas:
 
 ```text
 exists X . domain_x(X) and forall Y . domain_y(Y) -> predicate(X, Y)
 ```
 
 The solvers are intentionally incomplete. A found witness is certified before
-being returned; failure to find one is reported as `budget-exhausted`, not as
-UNSAT.
+being returned. By default the CEGIS loop is unbounded (`max_iters=None`) and is
+expected to be stopped by an external timeout/driver; if a finite `max_iters` is
+provided, exhausting it is reported as `budget-exhausted`, not as UNSAT.
 
 ## Files
 
@@ -28,6 +29,7 @@ Inputs are Z3 constants and formulas:
 - `domain_y`: formula over `Y`.
 - `x_templates`: optional formulas over `X`.
 - `initial_x`, `initial_y`: optional concrete assignments.
+- `max_iters`: optional finite iteration budget; `None` means unbounded.
 
 For sound definite answers, keep ownership clean: `domain_x` and `x_templates`
 should not mention `Y`; `domain_y` should not mention `X`.
@@ -50,21 +52,15 @@ Each iteration has four phases:
 
 1. **Witness synthesis (`Y -> X`)**
 
-   Select high-scoring attack bundles from `M_Y`. Solve an optimization problem
-   over `X` with hard constraints:
+   Select high-scoring attack bundles from `M_Y`. Solve an SMT problem over `X`
+   with hard constraints:
 
    ```text
-   domain_x(X) and selected_template(X)
+   domain_x(X) and selected_template(X) and predicate(X, y_i)
    ```
 
-   and soft constraints:
-
-   ```text
-   predicate(X, y_i)
-   ```
-
-   for sampled attacks `y_i`. The result is a candidate that covers many known
-   attacks while staying novel relative to recent candidates.
+   for each sampled attack `y_i`. The result is a candidate that satisfies the
+   selected known attacks.
 
 2. **Attack synthesis (`X -> Y`)**
 
@@ -111,10 +107,12 @@ Definite answers are intended to be sound:
 
 - `valid`: a concrete admissible witness was certified.
 - `unsat-domain-x`: no admissible `X` exists under `domain_x` and templates.
+- `unsat-finite-attacks`: a finite set of concrete `Y` attacks rules out every
+  admissible `X`.
 
 Non-definite answers are not proofs:
 
-- `budget-exhausted`: no certified witness found within the search budget.
+- `budget-exhausted`: no certified witness found within a finite search budget.
 - `unknown`: a required solver query returned unknown.
 
 Failure-region guards are only kept when they imply failure for the candidate;
@@ -135,5 +133,5 @@ otherwise the solver falls back to the exact counterexample point.
 ## Testing
 
 ```bash
-python -m pytest aria/quant/efsyn -q
+python -m pytest aria/quant/efdual -q
 ```

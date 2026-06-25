@@ -252,7 +252,7 @@ class DualMemoryCEGISBase:
         region_basis: Optional[Sequence[Union[BoolRef, bool]]] = None,
         initial_x: Optional[Sequence[AssignmentInput]] = None,
         initial_y: Optional[Sequence[AssignmentInput]] = None,
-        max_iters: int = 40,
+        max_iters: Optional[int] = None,
         max_x_memory: int = 24,
         max_y_memory: int = 24,
         init_x_budget: int = 4,
@@ -287,7 +287,7 @@ class DualMemoryCEGISBase:
         self.initial_x = list(initial_x) if initial_x else []
         self.initial_y = list(initial_y) if initial_y else []
 
-        self.max_iters = max_iters
+        self.max_iters = None if max_iters is None else max(0, int(max_iters))
         self.max_x_memory = max_x_memory
         self.max_y_memory = max_y_memory
         self.init_x_budget = init_x_budget
@@ -351,7 +351,15 @@ class DualMemoryCEGISBase:
         self._initialize_memories(seed_x=x0)
         self._cross_play_update()
 
-        for it in range(1, self.max_iters + 1):
+        if self._finite_attacks_refute_all_x():
+            return ExistsForallResult(
+                status="unsat-finite-attacks",
+                witness=None,
+                iterations=0,
+                message="Known concrete Y attacks rule out every admissible X.",
+            )
+
+        for it in self._iteration_numbers():
             if self.verbose:
                 best_cov = max((c.coverage for c in self.M_X), default=0.0)
                 best_pow = max((a.power for a in self.M_Y), default=0.0)
@@ -408,6 +416,14 @@ class DualMemoryCEGISBase:
             # 3) Cross-play
             self._cross_play_update()
 
+            if self._finite_attacks_refute_all_x():
+                return ExistsForallResult(
+                    status="unsat-finite-attacks",
+                    witness=None,
+                    iterations=it,
+                    message="Known concrete Y attacks rule out every admissible X.",
+                )
+
             # 4) Exact certification
             promising = self._promising_candidates()
             added_cex = False
@@ -427,6 +443,13 @@ class DualMemoryCEGISBase:
 
             if added_cex:
                 self._cross_play_update()
+                if self._finite_attacks_refute_all_x():
+                    return ExistsForallResult(
+                        status="unsat-finite-attacks",
+                        witness=None,
+                        iterations=it,
+                        message="Known concrete Y attacks rule out every admissible X.",
+                    )
 
         return ExistsForallResult(
             status="budget-exhausted",
@@ -434,6 +457,12 @@ class DualMemoryCEGISBase:
             iterations=self.max_iters,
             message="No certified witness found within the iteration budget.",
         )
+
+    def _iteration_numbers(self) -> Iterable[int]:
+        it = 1
+        while self.max_iters is None or it <= self.max_iters:
+            yield it
+            it += 1
 
     # -------------------------------------------------------------------------
     # Solver factories / subclass hooks
@@ -448,11 +477,6 @@ class DualMemoryCEGISBase:
         o = Optimize()
         o.set(timeout=self.timeout_ms)
         return o
-
-    def _add_x_novelty_soft(self, opt: Optimize, recent: Sequence[Candidate]) -> None:
-        for cand in recent:
-            for xv, val in zip(self.x_vars, cand.vals):
-                opt.add_soft(xv != val, weight="1", id="novel-x")
 
     def _add_y_novelty_soft(self, opt: Optimize, recent: Sequence[Attack]) -> None:
         for atk in recent:
@@ -669,27 +693,6 @@ class DualMemoryCEGISBase:
         template_id: int,
         blocked: List[Assignment],
     ) -> Optional[Candidate]:
-        opt = self._new_optimize()
-        opt.add(self.domain_x, template)
-
-        for vals in [c.vals for c in self.M_X] + list(blocked):
-            neq = self._assignment_neq_clause(self.x_vars, vals)
-            if not is_false(simplify(neq)):
-                opt.add(neq)
-
-        for atk in bundle:
-            phi = self._instantiate(self.predicate, self.y_vars, atk.rep)
-            weight = max(1, int(round(1 + 9 * atk.score)))
-            opt.add_soft(phi, weight=str(weight), id="cover")
-
-        self._add_x_novelty_soft(opt, self.M_X[-4:])
-
-        res = opt.check()
-        if res == sat:
-            vals = self._assignment_from_model(opt.model(), self.x_vars)
-            return Candidate(vals=vals, source="y->x:maxsat", template_id=template_id)
-
-        # fallback: make top attacks hard
         s = self._new_solver()
         s.add(self.domain_x, template)
 
@@ -698,15 +701,12 @@ class DualMemoryCEGISBase:
             if not is_false(simplify(neq)):
                 s.add(neq)
 
-        hard_subset = sorted(bundle, key=lambda a: (-a.score, -a.power, -a.uid))
-        hard_subset = hard_subset[:max(1, len(hard_subset) // 2)] if hard_subset else []
-
-        for atk in hard_subset:
+        for atk in bundle:
             s.add(self._instantiate(self.predicate, self.y_vars, atk.rep))
 
         if s.check() == sat:
             vals = self._assignment_from_model(s.model(), self.x_vars)
-            return Candidate(vals=vals, source="y->x:fallback", template_id=template_id)
+            return Candidate(vals=vals, source="y->x:smt", template_id=template_id)
 
         return None
 
@@ -814,6 +814,16 @@ class DualMemoryCEGISBase:
             guard = self._generalize_failure(cand, y_vals)
             return "counterexample", Attack(rep=y_vals, guard=guard, source="certify")
         return "unknown", None
+
+    def _finite_attacks_refute_all_x(self) -> bool:
+        if not self.M_Y:
+            return False
+
+        s = self._new_solver()
+        s.add(self._x_admissibility_formula())
+        for atk in self.M_Y:
+            s.add(self._instantiate(self.predicate, self.y_vars, atk.rep))
+        return s.check() == unsat
 
     # -------------------------------------------------------------------------
     # Generalization

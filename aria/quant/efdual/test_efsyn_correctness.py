@@ -1,6 +1,7 @@
-from z3 import And, Int, IntVal, Or, Solver, sat
+from z3 import And, BoolVal, Int, IntVal, Or, Solver, sat
 
-from aria.quant.efsyn.efsyn_int import LinearExistsForallCEGIS
+from aria.quant.efdual.efsyn_common import Attack
+from aria.quant.efdual.efsyn_int import LinearExistsForallCEGIS
 
 
 def test_invalid_initial_x_cannot_be_certified():
@@ -58,10 +59,10 @@ def test_budget_exhaustion_does_not_return_uncertified_witness():
     solver = LinearExistsForallCEGIS(
         x_vars=[x],
         y_vars=[y],
-        predicate=x > y,
+        predicate=x >= y,
         domain_x=And(0 <= x, x <= 10),
         domain_y=And(0 <= y, y <= 10),
-        max_iters=1,
+        max_iters=0,
         verbose=False,
     )
 
@@ -69,6 +70,68 @@ def test_budget_exhaustion_does_not_return_uncertified_witness():
 
     assert result.status == "budget-exhausted"
     assert result.witness is None
+
+
+def test_default_iteration_budget_is_unbounded():
+    x = Int("x")
+
+    solver = LinearExistsForallCEGIS(
+        x_vars=[x],
+        y_vars=[],
+        predicate=x == 0,
+        domain_x=x == 0,
+        verbose=False,
+    )
+
+    assert solver.max_iters is None
+    assert solver.solve().status == "valid"
+
+
+def test_finite_attacks_can_certify_unsat():
+    x = Int("x")
+    y = Int("y")
+
+    solver = LinearExistsForallCEGIS(
+        x_vars=[x],
+        y_vars=[y],
+        predicate=x == y,
+        domain_x=And(0 <= x, x <= 1),
+        domain_y=And(0 <= y, y <= 1),
+        initial_y=[[0], [1]],
+        max_iters=1,
+        verbose=False,
+    )
+
+    result = solver.solve()
+
+    assert result.status == "unsat-finite-attacks"
+    assert result.witness is None
+
+
+def test_x_synthesis_requires_all_bundle_attacks():
+    x = Int("x")
+    y = Int("y")
+
+    solver = LinearExistsForallCEGIS(
+        x_vars=[x],
+        y_vars=[y],
+        predicate=x == y,
+        domain_x=And(0 <= x, x <= 1),
+        domain_y=And(0 <= y, y <= 1),
+        verbose=False,
+    )
+
+    cand = solver._synthesize_x(
+        bundle=[
+            Attack(rep=(IntVal(0),), guard=BoolVal(True), source="test"),
+            Attack(rep=(IntVal(1),), guard=BoolVal(True), source="test"),
+        ],
+        template=BoolVal(True),
+        template_id=0,
+        blocked=[],
+    )
+
+    assert cand is None
 
 
 def test_initial_x_must_satisfy_some_template():
