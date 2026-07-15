@@ -1,9 +1,9 @@
-# Monadic Predicate Abstraction
+# Shared-Context Batched Satisfiability
 
 ## Overview
 
-Given a formula and a set of predicates {P1,...,Pn},
-decide for each Pi, whether F and Pi is satisfiable or not.
+Given a formula ``F`` and a set of predicates ``{P1,...,Pn}``,
+decide for each ``Pi``, whether ``F ∧ Pi`` is satisfiable or not.
 
 ## Applications
 

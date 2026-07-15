@@ -1,4 +1,4 @@
-"""Core checking functions for monadic predicate abstraction."""
+"""Core checking functions for shared-context batched satisfiability."""
 
 # LS
 from .unary_check_pysmt import (

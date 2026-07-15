@@ -1,5 +1,5 @@
 // Conjunctive satisfiability helpers with unsat-core guided splitting.
-#include "monabs.hpp"
+#include "scsat.hpp"
 
 #include <algorithm>
 #include <deque>
@@ -13,7 +13,7 @@
 
 #include "detail.hpp"
 
-namespace aria::monabs::app {
+namespace aria::scsat::app {
 namespace {
 
 using detail::all_indices;
@@ -260,4 +260,4 @@ ResultVector conjunctive_check_incremental(const z3::expr& precond,
     return conjunctive_check_internal(precond, constraints, algorithm, true);
 }
 
-}  // namespace aria::monabs::app
+}  // namespace aria::scsat::app

@@ -1,7 +1,7 @@
 """
-PySMT-based parser for monadic predicate abstraction inputs.
+PySMT-based parser for shared-context batched satisfiability inputs.
 
-The expected SMT-LIB structure matches the Z3 parser in `parse_monabs.py`:
+The expected SMT-LIB structure matches the Z3 parser in `parse_scsat.py`:
 - Assertions before the first `push` form the shared precondition.
 - Constraints between a `push` and the matching `pop` form one predicate
   block and are collected into `cnt_list`.
@@ -13,7 +13,7 @@ from pysmt.shortcuts import And, TRUE
 from pysmt.smtlib.parser import SmtLibParser
 
 
-class MonAbsPySMTParser:  # pylint: disable=too-few-public-methods
+class SCSATParser:  # pylint: disable=too-few-public-methods
     """Lightweight parser that extracts (precond, cnt_list) using PySMT."""
 
     def __init__(self) -> None:
@@ -64,13 +64,13 @@ class MonAbsPySMTParser:  # pylint: disable=too-few-public-methods
         return self.precond, self.cnt_list
 
 
-def parse_monabs_pysmt(filename: str) -> Tuple:
+def parse_scsat_pysmt(filename: str) -> Tuple:
     """Convenience wrapper returning (precond, cnt_list)."""
-    parser = MonAbsPySMTParser()
+    parser = SCSATParser()
     return parser.parse_file(filename)
 
 # if __name__ == "__main__":
 #     filepath = "/home/xjn/MPA/MPA/data/bash/cons_6043.smt2"
-#     precond, constraints = parse_monabs_pysmt(filepath)
+#     precond, constraints = parse_scsat_pysmt(filepath)
 #     print("Precondition:", precond)
 #     print("Number of constraints:", constraints)

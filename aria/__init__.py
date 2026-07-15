@@ -63,7 +63,7 @@ __all__ = [
     "datalog",       # Datalog and logic-programming components
     "fol",           # First-order logic
     "itp",           # Interactive theorem proving
-    "monabs",        # Monotone abstractions
+    "scsat",         # Shared-context batched satisfiability
     "prob",          # Probability and probabilistic reasoning
     "sampling",      # Sampling operations
     "symabs",        # Symbolic abstraction

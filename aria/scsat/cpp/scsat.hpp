@@ -1,7 +1,7 @@
 /**
- * Monadic abstraction helpers implemented with the Z3 C++ API.
+ * Shared-context batched satisfiability helpers implemented with the Z3 C++ API.
  *
- * The routines mirror the Python implementations in aria.monabs.cores.*:
+ * The routines mirror the Python implementations in aria.scsat.cores.*:
  * - Unary checks (per-constraint satisfiability)
  * - Disjunctive over-approximation
  * - Conjunctive checks with unsat-core guided splitting
@@ -20,7 +20,7 @@
 
 #include <z3++.h>
 
-namespace aria::monabs::app {
+namespace aria::scsat::app {
 
 enum class CheckResult {
     Unsat = 0,
@@ -51,4 +51,4 @@ ResultVector conjunctive_check_incremental(const z3::expr& precond,
 // Small helper for printing/debugging
 std::string to_string(CheckResult result);
 
-}  // namespace aria::monabs::app
+}  // namespace aria::scsat::app

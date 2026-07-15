@@ -1,4 +1,4 @@
-// Internal helpers shared by monabs algorithm implementations.
+// Internal helpers shared by scsat algorithm implementations.
 #pragma once
 
 #include <algorithm>
@@ -10,9 +10,9 @@
 
 #include <z3++.h>
 
-#include "monabs.hpp"
+#include "scsat.hpp"
 
-namespace aria::monabs::app::detail {
+namespace aria::scsat::app::detail {
 
 inline constexpr const char* kTrackPrefix = "p_";
 
@@ -98,4 +98,4 @@ inline z3::expr make_disjunction(z3::context& ctx, const std::vector<z3::expr>& 
     return z3::mk_or(vec);
 }
 
-}  // namespace aria::monabs::app::detail
+}  // namespace aria::scsat::app::detail

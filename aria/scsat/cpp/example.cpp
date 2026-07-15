@@ -1,11 +1,11 @@
-#include "monabs.hpp"
+#include "scsat.hpp"
 
 #include <iostream>
 #include <string>
 #include <vector>
 
-using aria::monabs::app::ResultVector;
-using namespace aria::monabs::app;
+using aria::scsat::app::ResultVector;
+using namespace aria::scsat::app;
 
 namespace {
 

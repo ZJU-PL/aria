@@ -23,7 +23,7 @@ if not _has_module("hypothesis"):
 if not _has_module("pysmt"):
     SKIP_FILES.update(
         [
-            "monabs/tests/test_pysmt_monabs.py",
+            "scsat/tests/test_pysmt_scsat.py",
             "pyomt/tests/test_bvopt_iter_search.py",
             "tests/test_bool_counting.py",
             "tests/test_cli_pyomt.py",

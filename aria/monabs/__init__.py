@@ -1,3 +1,0 @@
-"""
-Monadic predicate abstraction
-"""

@@ -1,12 +1,12 @@
 // Unary satisfiability helpers.
-#include "monabs.hpp"
+#include "scsat.hpp"
 #include <optional>
 #include <vector>
 #include <z3++.h>
 
 #include "detail.hpp"
 
-namespace aria::monabs::app {
+namespace aria::scsat::app {
 namespace {
 
 using detail::ensure_same_context;
@@ -95,4 +95,4 @@ std::string to_string(CheckResult result) {
     return strs[static_cast<int>(result)];
 }
 
-}  // namespace aria::monabs::app
+}  // namespace aria::scsat::app

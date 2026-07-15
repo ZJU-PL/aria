@@ -228,8 +228,8 @@ def solve(formula, objectives: List[List]) -> List[List[int]]:
     unsol = list(range(len(objectives)))
     result = [[] for _ in range(len(objectives))]
     res_clause = [[] for _ in range(len(objectives))]
-    # TODO: indeed, we seem to be solving a "Monadic Predicate Abstraction"
-    # problem here. See `aria/monabs`. Maybe we can replace to use the engines
+    # TODO: indeed, we seem to be solving a "shared-context batched satisfiability"
+    # problem here. See `aria/scsat`. Maybe we can replace to use the engines
     # there (dis_check.py is exactly the following code)
     while unsol:  # While there are unsolved objectives
         assumption = {}  # Store assumptions for unsolved objectives and next bit

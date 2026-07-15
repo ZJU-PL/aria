@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(monabs_app LANGUAGES CXX)
+project(scsat_app LANGUAGES CXX)
 
 # Find Z3 - try CONFIG mode first (for Homebrew installations with CMake config)
 # Homebrew typically installs CMake config files in /opt/homebrew/lib/cmake/z3
@@ -33,14 +33,14 @@ else()
     endif()
 endif()
 
-add_library(monabs_app STATIC
+add_library(scsat_app STATIC
     unary_check.cpp
     disjunctive_check.cpp
     conjunctive_check.cpp
 )
-target_include_directories(monabs_app PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(monabs_app PUBLIC ${_Z3_TARGET})
-target_compile_features(monabs_app PUBLIC cxx_std_17)
+target_include_directories(scsat_app PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(scsat_app PUBLIC ${_Z3_TARGET})
+target_compile_features(scsat_app PUBLIC cxx_std_17)
 
-add_executable(monabs_example example.cpp)
-target_link_libraries(monabs_example PRIVATE monabs_app ${_Z3_TARGET})
+add_executable(scsat_example example.cpp)
+target_link_libraries(scsat_example PRIVATE scsat_app ${_Z3_TARGET})

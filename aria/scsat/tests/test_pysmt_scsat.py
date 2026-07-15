@@ -26,7 +26,7 @@ from cores.new_check_pysmt import (
 )
 
 from utils.logger import setup_logger
-from utils.parse_monabs_pysmt import parse_monabs_pysmt
+from utils.parse_scsat_pysmt import parse_scsat_pysmt
 from utils.utils import collect_smt2_files
 import utils.config as cf
 
@@ -90,7 +90,7 @@ def _all_equal(values: List[List[int]]) -> bool:
 
 
 def _process_single_file(filepath: str, timeout_ms: float) -> Dict:
-    precond, constraints = parse_monabs_pysmt(filepath)
+    precond, constraints = parse_scsat_pysmt(filepath)
 
     if len(constraints) < cf.MIN_LENGTH:
         return {
@@ -153,7 +153,7 @@ def main() -> None:
     parser.add_argument(
         "-l",
         "--log_file",
-        default='logs/test_pysmt_monabs.log',
+        default='logs/test_pysmt_scsat.log',
         help="Optional log file path.",
     )
     parser.add_argument(

@@ -1,5 +1,5 @@
 // Disjunctive over-approximation helpers.
-#include "monabs.hpp"
+#include "scsat.hpp"
 
 #include <optional>
 #include <vector>
@@ -8,7 +8,7 @@
 
 #include "detail.hpp"
 
-namespace aria::monabs::app {
+namespace aria::scsat::app {
 namespace {
 
 using detail::ensure_same_context;
@@ -105,4 +105,4 @@ ResultVector disjunctive_check_incremental_cached(const z3::expr& precond,
     return results;
 }
 
-}  // namespace aria::monabs::app
+}  // namespace aria::scsat::app
