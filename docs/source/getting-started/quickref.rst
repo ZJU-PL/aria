@@ -121,7 +121,7 @@ Package map
 * ``aria.smt``: SMT package families
 * ``aria.quant``: quantified reasoning
 * ``aria.efmc``: verification frontends and engines
-* ``aria.symabs`` / ``aria.monabs``: abstraction-oriented packages
+* ``aria.symabs`` / ``aria.scsat``: abstraction-oriented packages
 * ``aria.utils.translator``: format conversion
 
 For package-specific examples, prefer the nearest package ``README.md`` and the

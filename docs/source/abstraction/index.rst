@@ -7,5 +7,5 @@ Abstraction
    symbolic_abstraction
    predicate_abstraction
    predabs
-   monabs
+   scsat
    absint

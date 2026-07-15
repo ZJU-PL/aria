@@ -10,7 +10,7 @@ ARIA (Automated Reasoning Infrastructure & Applications) is a Python toolkit and
 
 - SAT/SMT, MaxSAT, model counting, optimization, and theorem-proving utilities under a single repository
 - Quantified-reasoning tooling in `aria.quant`, including EFSMT solvers, quantifier-elimination experiments, CHC tooling, and multiple research artifacts
-- Program-analysis and verification components in `aria.efmc`, `aria.symabs`, `aria.monabs`, and related packages
+- Program-analysis and verification components in `aria.efmc`, `aria.symabs`, `aria.scsat`, and related packages
 - Benchmark corpora, scripts, and reproducible research infrastructure for solver-oriented experimentation
 
 ## Quantified Reasoning and PolyQEnt Context
