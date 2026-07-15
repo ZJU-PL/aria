@@ -1,4 +1,4 @@
-"""Regression tests for monadic predicate abstraction"""
+"""Regression tests for shared-context batched satisfiability"""
 
 import argparse
 import logging
@@ -11,9 +11,9 @@ from typing import List, Tuple
 
 import z3
 
-from aria.monabs.cores.dis_check import disjunctive_check, disjunctive_check_incremental
-from aria.monabs.cores.unary_check import unary_check, unary_check_cached
-from aria.monabs.cores.unsat_check import unsat_check
+from aria.scsat.cores.dis_check import disjunctive_check, disjunctive_check_incremental
+from aria.scsat.cores.unary_check import unary_check, unary_check_cached
+from aria.scsat.cores.unsat_check import unsat_check
 from aria.tests.formula_generator import FormulaGenerator
 
 
