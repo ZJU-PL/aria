@@ -1,4 +1,4 @@
-# Exists-Forall Synthesis (`efsyn`)
+# Exists-Forall Synthesis (`efdual`)
 
 `efdual` contains heuristic CEGIS solvers for formulas:
 

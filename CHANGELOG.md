@@ -58,6 +58,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **CLI**: `aria-maxsat` — MaxSAT solver for WCNF (engines: RC2, FM, LSU)
 - **CLI**: `aria-unsat-core` — UNSAT core / MUS / MSS from SMT-LIB2 (marco, musx, optux)
 - **CLI**: `aria-allsmt` — Enumerate all satisfying models of SMT formulas
+- **CLI**: `aria-pypmt` — Planning modulo theories (PDDL-based planning as SMT)
+- **New module**: `aria.ml.gansat` — Generative adversarial network-based SMT sampling
+- **New module**: `aria.itp.fstar-copilot` — F* copilot agent with proof debugging, verification, and project setup skills
+- **New module**: `aria.quant.efdual` — Dual-memory CEGIS solvers for exists-forall synthesis (renamed from `efsyn`)
+- **New module**: `aria.sampling.dtlia` — Constrained sampling for QF_UFDTLIA
+- **New module**: `aria.volumn` — Volume computation for SMT (LRA)
+- **SRK**: Proof-based interpolation support, UltPeriodic sequences, VAS/VASS helpers, LLRF residual computation, De Bruijn expression types
+
+### Changed
+
+- **Renamed**: `aria.monabs` → `aria.scsat` (shared-context batched satisfiability)
+- **Renamed**: `aria.quant.efsyn` → `aria.quant.efdual` (exists-forall dual-memory CEGIS)
+- **Refined**: `aria.quant.efdual` CEGIS search semantics and memory management
+- **Improved**: `aria.bool.knowledge_compile` — knowledge compilation improvements
+- **Improved**: `aria.pyomt` — OMT/OMTFP solver improvements
+- **Improved**: EFSMT worker reuse, cleanup, and profiling stability
+- **Reorganized**: `aria.srk` — aligned with OCaml version, improved utilities
+- **Reorganized**: Project structure with cleaner package layout
+
+### Fixed
+
+- `aria.sampling.dtlia`: QF_UFDTLIA sampler recursion limit and true int bounds
+- Import errors in SRK modules
+
+### Documentation
+
+- Updated docs for `monabs` → `scsat` rename across all RST/MD files
+- Added `aria-pypmt` to CLI documentation
+- Fixed `efdual` README title reference
 
 ### Planned
 

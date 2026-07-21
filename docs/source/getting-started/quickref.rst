@@ -102,6 +102,7 @@ Common command-line entrypoints:
    aria-efsmt --help
    aria-efmc --help
    aria-polyhorn --help
+   aria-pypmt --help
 
 Equivalent module entrypoints:
 
@@ -113,6 +114,7 @@ Equivalent module entrypoints:
    python -m aria.cli.efsmt_cli --help
    python -m aria.cli.efmc_cli --help
    python -m aria.cli.polyhorn_cli --help
+   python -m aria.cli.pypmt_cli --help
 
 Package map
 -----------

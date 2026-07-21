@@ -19,8 +19,9 @@ This package provides CLI tools for various automated reasoning tasks:
 | `efmc` | Transition-system verification across CHC, SyGuS, Boogie, and C |
 | `efmc_efsmt` | Legacy EFMC-oriented EFSMT frontend |
 | `polyhorn` | Polynomial Horn constraint solving |
+| `pypmt` | Planning modulo theories (PDDL-based planning as SMT) |
 
-After `pip install -e .`, the same tools are available as `aria-fmldoc`, `aria-mc`, `aria-pyomt`, `aria-efsmt`, `aria-efmc-efsmt`, `aria-maxsat`, `aria-unsat-core`, `aria-allsmt`, `aria-smt-server`, `aria-efmc`, and `aria-polyhorn`.
+After `pip install -e .`, the same tools are available as `aria-fmldoc`, `aria-mc`, `aria-pyomt`, `aria-efsmt`, `aria-efmc-efsmt`, `aria-maxsat`, `aria-unsat-core`, `aria-allsmt`, `aria-smt-server`, `aria-efmc`, `aria-polyhorn`, and `aria-pypmt`.
 
 ## Quick Start
 
@@ -54,6 +55,9 @@ python -m aria.cli.efmc_cli --help
 
 # PolyHorn
 python -m aria.cli.polyhorn_cli --help
+
+# Planning modulo theories
+python -m aria.cli.pypmt_cli --help
 ```
 
 ---

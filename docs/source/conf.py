@@ -6,7 +6,7 @@ import re
 # -- Project information -----------------------------------------------------
 
 project = "ARIA"
-copyright = "2024-2025, ZJU Programming Languages and Automated Reasoning Group"
+copyright = "2024-2026, ZJU Programming Languages and Automated Reasoning Group"
 author = "ZJU Programming Languages and Automated Reasoning Group"
 
 # Read version from pyproject.toml

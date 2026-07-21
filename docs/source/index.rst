@@ -57,6 +57,7 @@ Common console commands after installation include:
 * ``aria-efmc``
 * ``aria-efmc-efsmt``
 * ``aria-polyhorn``
+* ``aria-pypmt``
 
 Documentation map
 -----------------
