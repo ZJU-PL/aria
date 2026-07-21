@@ -13,7 +13,7 @@
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/documentation_options.js?v=938c9ccc"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
@@ -141,16 +141,6 @@
 <li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.parseExprAst"><code class="docutils literal notranslate"><span class="pre">parseExprAst()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.stmt_changed"><code class="docutils literal notranslate"><span class="pre">stmt_changed()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.boogie.ast.stmt_read"><code class="docutils literal notranslate"><span class="pre">stmt_read()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.tools.vc_check.conservative_tautology"><code class="docutils literal notranslate"><span class="pre">conservative_tautology()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.tools.vc_check.generalizeConstTraceVars"><code class="docutils literal notranslate"><span class="pre">generalizeConstTraceVars()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.tools.vc_check.loopInvOverfittedCtrex"><code class="docutils literal notranslate"><span class="pre">loopInvOverfittedCtrex()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.tools.vc_check.loopInvSafetyCtrex"><code class="docutils literal notranslate"><span class="pre">loopInvSafetyCtrex()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.tools.vc_check.substitutions"><code class="docutils literal notranslate"><span class="pre">substitutions()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.tools.vc_check.traceConstantVars"><code class="docutils literal notranslate"><span class="pre">traceConstantVars()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.tools.vc_check.tryAndVerify"><code class="docutils literal notranslate"><span class="pre">tryAndVerify()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.tools.vc_check.tryAndVerifyLvl"><code class="docutils literal notranslate"><span class="pre">tryAndVerifyLvl()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.tools.vc_check.tryAndVerifyWithSplitterPreds"><code class="docutils literal notranslate"><span class="pre">tryAndVerifyWithSplitterPreds()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.tools.vc_check.tryAndVerify_impl"><code class="docutils literal notranslate"><span class="pre">tryAndVerify_impl()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.daikon.inv_ast.AstBinExpr"><code class="docutils literal notranslate"><span class="pre">AstBinExpr</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.daikon.inv_ast.AstBuilder"><code class="docutils literal notranslate"><span class="pre">AstBuilder</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#aria.efmc.verifytools.daikon.inv_ast.AstFalse"><code class="docutils literal notranslate"><span class="pre">AstFalse</span></code></a></li>
@@ -857,122 +847,6 @@
 <span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.boogie.ast.</span></span><span class="sig-name descname"><span class="pre">stmt_read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ast</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/boogie/ast.html#stmt_read"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.boogie.ast.stmt_read" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="py function" id="module-aria.efmc.verifytools.tools.vc_check">
-<dt class="sig sig-object py" id="aria.efmc.verifytools.tools.vc_check.conservative_tautology">
-<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.tools.vc_check.</span></span><span class="sig-name descname"><span class="pre">conservative_tautology</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/tools/vc_check.html#conservative_tautology"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.tools.vc_check.conservative_tautology" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="aria.efmc.verifytools.tools.vc_check.generalizeConstTraceVars">
-<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.tools.vc_check.</span></span><span class="sig-name descname"><span class="pre">generalizeConstTraceVars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lvl</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/tools/vc_check.html#generalizeConstTraceVars"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.tools.vc_check.generalizeConstTraceVars" title="Link to this definition"></a></dt>
-<dd><p>Given an expression and a set of pairs (Var, Num) where Var is always
-equal to Num in the traces presented to the user, add all variations
-of expr with Num substituded for Var and vice-versa. Note we don’t do
-combinations of multiple substitutions where that is possible.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="aria.efmc.verifytools.tools.vc_check.loopInvOverfittedCtrex">
-<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.tools.vc_check.</span></span><span class="sig-name descname"><span class="pre">loopInvOverfittedCtrex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loop</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">invs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/tools/vc_check.html#loopInvOverfittedCtrex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.tools.vc_check.loopInvOverfittedCtrex" title="Link to this definition"></a></dt>
-<dd><p>Given a candidate loop invariant inv find ‘overfittedness’
-counterexamples.  I.e. find counterexamples to “precondition ==&gt; inv”.
-Returns a potentially empty set of environments (dicts) that the invariant
-should satisfy.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="aria.efmc.verifytools.tools.vc_check.loopInvSafetyCtrex">
-<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.tools.vc_check.</span></span><span class="sig-name descname"><span class="pre">loopInvSafetyCtrex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loop</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">invs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/tools/vc_check.html#loopInvSafetyCtrex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.tools.vc_check.loopInvSafetyCtrex" title="Link to this definition"></a></dt>
-<dd><p>Given a candidate loop invariant inv find ‘safety’
-counterexamples.  I.e. find counterexamples to “inv ==&gt; post” or “inv ==&gt;
-assert”.  Returns a potentially empty set of environments (dicts) that
-the invariant should satisfy.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="aria.efmc.verifytools.tools.vc_check.substitutions">
-<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.tools.vc_check.</span></span><span class="sig-name descname"><span class="pre">substitutions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replMs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/tools/vc_check.html#substitutions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.tools.vc_check.substitutions" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="aria.efmc.verifytools.tools.vc_check.traceConstantVars">
-<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.tools.vc_check.</span></span><span class="sig-name descname"><span class="pre">traceConstantVars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lvl</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/tools/vc_check.html#traceConstantVars"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.tools.vc_check.traceConstantVars" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="aria.efmc.verifytools.tools.vc_check.tryAndVerify">
-<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.tools.vc_check.</span></span><span class="sig-name descname"><span class="pre">tryAndVerify</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bbs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loop</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">splitterPreds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partialInvs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">userInvs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">otherInvs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replMaps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/tools/vc_check.html#tryAndVerify"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.tools.vc_check.tryAndVerify" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="aria.efmc.verifytools.tools.vc_check.tryAndVerifyLvl">
-<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.tools.vc_check.</span></span><span class="sig-name descname"><span class="pre">tryAndVerifyLvl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lvl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">userInvs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">otherInvs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">useSplitters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">addSPs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generalizeUserInvs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/tools/vc_check.html#tryAndVerifyLvl"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.tools.vc_check.tryAndVerifyLvl" title="Link to this definition"></a></dt>
-<dd><p>Try and verify a given Lvl.</p>
-<p>lvl - level to verify
-userInvs - invariant candidate from the user
-otherInvs - invariant candidates from other sources (e.g. previous</p>
-<blockquote>
-<div><p>users).
-Note: We will keep userInvs and otherInvs separate in the
-results.</p>
-</div></blockquote>
-<p>timeout - if specified, the z3 timeout for each query
-useSplitters - if the level supports splitter predicates, whether to</p>
-<blockquote>
-<div><p>use them or not.</p>
-</div></blockquote>
-<dl class="simple">
-<dt>addSPs - if true, try to propagte SP through the loop and add the</dt><dd><p>results as invariants. For example if before the loop we
-have “assert n&gt;0;” and n is not modified in the loop, we
-can determine that”n&gt;0” holds through the loop and add
-that to our cnadidate invariants.</p>
-</dd>
-<dt>generalizeUserInvs - if true, for any invariant I involving a</dt><dd><p>constant C, where one of the variables V shown to the user
-was always equal to C in the traces, try substituting C with V.
-For example if in the level always n=4, and the user
-entered i&lt;=4, the generalizaition would also try i&lt;=n.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="aria.efmc.verifytools.tools.vc_check.tryAndVerifyWithSplitterPreds">
-<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.tools.vc_check.</span></span><span class="sig-name descname"><span class="pre">tryAndVerifyWithSplitterPreds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bbs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loop</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_sound_invs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boogie_invs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">splitterPreds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partialInvs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/tools/vc_check.html#tryAndVerifyWithSplitterPreds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.tools.vc_check.tryAndVerifyWithSplitterPreds" title="Link to this definition"></a></dt>
-<dd><p>Wrapper around tryAndVerify_impl that adds implication with
-the splitter predicates to all candidate invariants. Returns</p>
-<blockquote>
-<div><p>((p1_overfit, p2_overfit), (p1_nonindg, p2_nonind), sound, violations)</p>
-</div></blockquote>
-<p>Where</p>
-<blockquote>
-<div><dl class="simple">
-<dt>p1_overfit, p2_ovefit are lists of pairs of overfittted invariants</dt><dd><p>and their respective counterexamples from passes 1 and 2</p>
-</dd>
-<dt>p1_nonind, p2_ovefit are lists of pairs of noninductive invariants</dt><dd><p>and their respective counterexamples from passes 1 and 2</p>
-</dd>
-</dl>
-<p>sound is a set of sound invariants
-violations is a list of any safety violations permitted by the sound
-invariants</p>
-</div></blockquote>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="aria.efmc.verifytools.tools.vc_check.tryAndVerify_impl">
-<span class="sig-prename descclassname"><span class="pre">aria.efmc.verifytools.tools.vc_check.</span></span><span class="sig-name descname"><span class="pre">tryAndVerify_impl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bbs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loop</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_sound_invs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">invs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/aria/efmc/verifytools/tools/vc_check.html#tryAndVerify_impl"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#aria.efmc.verifytools.tools.vc_check.tryAndVerify_impl" title="Link to this definition"></a></dt>
-<dd><p>Wrapper around checkInvNetwork for the case of a function
-with a single loop and no pre- post- conditions.
-Returns a tuple (overfitted, nonind, sound, violations) where</p>
-<blockquote>
-<div><p>overfitted, nonind are each a list of tuples (inv, Violation)
-sound is a set of sound invariants
-violations is a (potentially empty) list of safety Violations</p>
-<blockquote>
-<div><p>for the sound invariants.</p>
-</div></blockquote>
-</div></blockquote>
-</dd></dl>
-
 <p id="module-aria.efmc.verifytools.daikon.inv_ast">AST classes for Daikon invariants.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="aria.efmc.verifytools.daikon.inv_ast.AstBinExpr">
@@ -1190,7 +1064,7 @@ violations is a (potentially empty) list of safety Violations</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
+    <p>&#169; Copyright 2024-2026, ZJU Programming Languages and Automated Reasoning Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Monadic Predicate Abstraction &mdash; ARIA Documentation</title>
+  <title>Shared-Context Batched Satisfiability &mdash; ARIA Documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/documentation_options.js?v=938c9ccc"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
@@ -54,7 +54,7 @@
 <li class="toctree-l2"><a class="reference internal" href="symbolic_abstraction.html">Symbolic Abstraction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="predicate_abstraction.html">Predicate Abstraction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="predabs.html">Predicate Abstraction and CEGAR</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Monadic Predicate Abstraction</a><ul>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Shared-Context Batched Satisfiability</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#package-layout">Package layout</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#current-api-note">Current API note</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#example-imports">Example imports</a></li>
@@ -87,9 +87,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="index.html">Abstraction</a></li>
-      <li class="breadcrumb-item active">Monadic Predicate Abstraction</li>
+      <li class="breadcrumb-item active">Shared-Context Batched Satisfiability</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/abstraction/monabs.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/abstraction/scsat.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -97,36 +97,37 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="monadic-predicate-abstraction">
-<h1>Monadic Predicate Abstraction<a class="headerlink" href="#monadic-predicate-abstraction" title="Link to this heading"></a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">aria.monabs</span></code> provides monadic predicate-abstraction utilities for checking,
-for each predicate in a set, whether it is compatible with a given formula.</p>
+  <section id="shared-context-batched-satisfiability">
+<h1>Shared-Context Batched Satisfiability<a class="headerlink" href="#shared-context-batched-satisfiability" title="Link to this heading"></a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">aria.scsat</span></code> provides shared-context batched satisfiability utilities for
+checking, for each predicate in a set, whether it is compatible with a given
+formula.</p>
 <section id="package-layout">
 <h2>Package layout<a class="headerlink" href="#package-layout" title="Link to this heading"></a></h2>
 <p>The current package includes:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">aria.monabs.cores</span></code>: core algorithms</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">aria.monabs.analysis</span></code>: supporting analysis code</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">aria.monabs.utils</span></code>: utilities</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">aria.monabs.cpp</span></code>: C++ implementation and build example</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.scsat.cores</span></code>: core algorithms</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.scsat.analysis</span></code>: supporting analysis code</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.scsat.utils</span></code>: utilities</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aria.scsat.cpp</span></code>: C++ implementation and build example</p></li>
 </ul>
 </section>
 <section id="current-api-note">
 <h2>Current API note<a class="headerlink" href="#current-api-note" title="Link to this heading"></a></h2>
 <p>Older examples often referenced outdated top-level module locations. The current
-code lives under <code class="docutils literal notranslate"><span class="pre">aria.monabs.cores</span></code>.</p>
+code lives under <code class="docutils literal notranslate"><span class="pre">aria.scsat.cores</span></code>.</p>
 </section>
 <section id="example-imports">
 <h2>Example imports<a class="headerlink" href="#example-imports" title="Link to this heading"></a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.monabs.cores.unary_check</span><span class="w"> </span><span class="kn">import</span> <span class="n">unary_check</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">aria.monabs.cores.dis_check</span><span class="w"> </span><span class="kn">import</span> <span class="n">disjunctive_check_cached</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">aria.scsat.cores.unary_check</span><span class="w"> </span><span class="kn">import</span> <span class="n">unary_check</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">aria.scsat.cores.dis_check</span><span class="w"> </span><span class="kn">import</span> <span class="n">disjunctive_check_cached</span>
 </pre></div>
 </div>
 </section>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
-<p>Given a formula <code class="docutils literal notranslate"><span class="pre">F</span></code> and predicates <code class="docutils literal notranslate"><span class="pre">P1,</span> <span class="pre">...,</span> <span class="pre">Pn</span></code>, monadic predicate
-abstraction determines, for each predicate, whether <code class="docutils literal notranslate"><span class="pre">F</span></code> together with that
+<p>Given a formula <code class="docutils literal notranslate"><span class="pre">F</span></code> and predicates <code class="docutils literal notranslate"><span class="pre">P1,</span> <span class="pre">...,</span> <span class="pre">Pn</span></code>, shared-context batched
+satisfiability determines, for each predicate, whether <code class="docutils literal notranslate"><span class="pre">F</span></code> together with that
 predicate is satisfiable.</p>
 <p>Applications mentioned in the current package README include k-induction,
 optimization/symbolic-abstraction support, and value-flow style analyses.</p>
@@ -144,7 +145,7 @@ optimization/symbolic-abstraction support, and value-flow style analyses.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024-2025, ZJU Programming Languages and Automated Reasoning Group.</p>
+    <p>&#169; Copyright 2024-2026, ZJU Programming Languages and Automated Reasoning Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
