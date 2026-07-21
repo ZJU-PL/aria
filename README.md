@@ -51,7 +51,7 @@ Then you can use the CLI tools and the Python API in your own code. Available CL
 ## Install from PyPI
 
 ```bash
-pip install aria
+pip install pyaria
 ```
 
 Or install the latest development version:

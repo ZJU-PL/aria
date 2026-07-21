@@ -1,6 +1,6 @@
 [project]
-name = "aria"
-version = "0.1.0"
+name = "pyaria"
+version = "0.2.0"
 description = "A library for various automated reasoning tasks including SMT solving, model counting, and symbolic computation."
 readme = "README.md"
 requires-python = ">=3.8"
@@ -29,7 +29,7 @@ classifiers = [
     "Intended Audience :: Developers",
     "Topic :: Scientific/Engineering :: Mathematics",
     "Topic :: Software Development :: Libraries :: Python Modules",
-    "Topic :: Software Development :: Testing :: Formal Verification",
+    "Topic :: Software Development :: Testing",
 ]
 
 dependencies = [

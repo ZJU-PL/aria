@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-07-21
+
+### Added
+
+- New modules: `aria.quant` (quantified reasoning with EFSMT, CHC, quantifier elimination), `aria.scsat`, `aria.symabs`
+- Sampling infrastructure: QF_DTLIA, QF_SLIA, QF_FP, finite domain samplers
+- Program verification: EFMC (PDR, SMTTools), bounded model checking for BTOR2
+- LLM tools: `aria.llmtools` with induction, trigger selection, SMTO, codex support
+- Datalog engine with Souffle integration and Pythonic APIs
+- CFL reachability toolkit and automata tools
+- Symbolic finite automata (SFA) module
+- Finite field solver with automatic backend selection
+- Probability/WMI module: core, boolean, arithmetic subpackages
+- Translator registry (OPB, QCIR, DIMACS WCNF, etc.)
+- New CLI tools: `aria-efsmt`, `aria-efmc`, `aria-polyhorn`, `aria-pypmt`, `aria-allsmt`
+- Optional Rust backend for CNF simplification
+- Type stubs and developer guidelines (AGENTS.md)
+
+### Changed
+
+- Renamed `aria.optimization` → `aria.pyomt`
+- Renamed `aria.efsyn` → `aria.efdual`
+- Renamed `aria.monabs` → `aria.scsat`
+- Reorganized CLI tools into individual modules
+- Upgraded PySMT and PySAT dependencies
+- Improved parallel utilities and async worker management
+- Better test coverage across modules
+
+### Fixed
+
+- Concurrency bugs in parallel utilities
+- EFSMT worker stability issues
+- Import errors and type consistency
+- MaxSAT anytime solver binary search → core-guided approach
+- Various pylint warnings and code quality issues
+
 ## [0.1.0] - 2025-02-02
 
 ### Added
