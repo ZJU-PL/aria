@@ -20,8 +20,9 @@ This package provides CLI tools for various automated reasoning tasks:
 | `efmc_efsmt` | Legacy EFMC-oriented EFSMT frontend |
 | `polyhorn` | Polynomial Horn constraint solving |
 | `pypmt` | Planning modulo theories (PDDL-based planning as SMT) |
+| `concolic` | Native Python concolic testing with constrained sampling |
 
-After `pip install -e .`, the same tools are available as `aria-fmldoc`, `aria-mc`, `aria-pyomt`, `aria-efsmt`, `aria-efmc-efsmt`, `aria-maxsat`, `aria-unsat-core`, `aria-allsmt`, `aria-smt-server`, `aria-efmc`, `aria-polyhorn`, and `aria-pypmt`.
+After `pip install -e .`, the same tools are available as `aria-fmldoc`, `aria-mc`, `aria-pyomt`, `aria-efsmt`, `aria-efmc-efsmt`, `aria-maxsat`, `aria-unsat-core`, `aria-allsmt`, `aria-smt-server`, `aria-efmc`, `aria-polyhorn`, `aria-pypmt`, and `aria-concolic`.
 
 ## Quick Start
 
@@ -58,6 +59,22 @@ python -m aria.cli.polyhorn_cli --help
 
 # Planning modulo theories
 python -m aria.cli.pypmt_cli --help
+
+# Native Python concolic testing
+aria-concolic mypackage.module:target --seed '{"x": 0}'
+
+# Conventional package coverage percentages
+aria-concolic mypackage.module:target --seed '{"x": 0}' \
+  --coverage --coverage-source mypackage --coverage-json coverage.json
+
+# Interprocedural package exploration with CI thresholds
+aria-concolic mypackage.module:target --seed '{"x": 0}' \
+  --instrument-package mypackage --coverage --coverage-source mypackage \
+  --fail-under-lines 80 --fail-under-functions 90 --fail-under-branches 85
+
+# Explain opaque operations blocking coverage growth
+aria-concolic mypackage.module:target --seed '{"x": 0}' \
+  --instrument-package mypackage --explain-gaps --gaps-json gaps.json
 ```
 
 ---

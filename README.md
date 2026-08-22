@@ -46,7 +46,7 @@ With pip (dependencies are read from pyproject.toml):
 pip install -e .
 ~~~~
 
-Then you can use the CLI tools and the Python API in your own code. Available CLI commands (also as `aria-<name>` after install): **aria-fmldoc**, **aria-mc**, **aria-pyomt**, **aria-efsmt**, **aria-efmc-efsmt**, **aria-maxsat**, **aria-unsat-core**, **aria-allsmt**, **aria-smt-server**, **aria-efmc**, **aria-polyhorn**, **aria-pypmt**. See [aria/cli/README.md](aria/cli/README.md) for usage and options.
+Then you can use the CLI tools and the Python API in your own code. Available CLI commands (also as `aria-<name>` after install): **aria-fmldoc**, **aria-mc**, **aria-pyomt**, **aria-efsmt**, **aria-efmc-efsmt**, **aria-maxsat**, **aria-unsat-core**, **aria-allsmt**, **aria-smt-server**, **aria-efmc**, **aria-polyhorn**, **aria-pypmt**, **aria-concolic**. See [aria/cli/README.md](aria/cli/README.md) for usage and options.
 
 ## Install from PyPI
 

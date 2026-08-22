@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Native concolic testing**: `aria.concolic` and `aria-concolic` combine
+  semantics-preserving Python AST instrumentation, validated shadow symbolic
+  execution, constrained sampling, structured inputs, extensible function
+  models and guarded standard-library packs, package-wide interprocedural
+  tracing, mutable containers and objects, bounded search, isolated workers,
+  conventional coverage percentages and CI gates, pytest/Hypothesis properties,
+  bytes/sets/QF_FP inputs, symbolic gap explanations, async replay, shrinking,
+  exact URL/string sanitization models, Unicode-safe SMT string replay, and
+  benchmark comparisons.
+
 - New modules: `aria.quant` (quantified reasoning with EFSMT, CHC, quantifier elimination), `aria.scsat`, `aria.symabs`
 - Sampling infrastructure: QF_DTLIA, QF_SLIA, QF_FP, finite domain samplers
 - Program verification: EFMC (PDR, SMTTools), bounded model checking for BTOR2
@@ -130,4 +140,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - More example applications
 - Performance optimizations
 - Extended solver support
-

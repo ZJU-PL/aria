@@ -1,0 +1,24 @@
+{
+  "schema": "aria.concolic.benchmarks/v1",
+  "cases": [
+    {
+      "id": "aria-interprocedural-fixture",
+      "target": "aria.concolic.tests.fixtures.interpkg.api:entry",
+      "seeds": [{"value": 0, "prefix": ""}],
+      "instrument_packages": ["aria.concolic.tests.fixtures.interpkg"],
+      "coverage_sources": ["aria.concolic.tests.fixtures.interpkg"],
+      "iterations": 16,
+      "samples_per_frontier": 3
+    },
+    {
+      "id": "stdlib-urllib-urlsplit",
+      "target": "urllib.parse:urlsplit.__wrapped__",
+      "seeds": [{"url": "", "scheme": "", "allow_fragments": true}],
+      "instrument_packages": ["urllib.parse"],
+      "coverage_sources": ["urllib.parse"],
+      "iterations": 30,
+      "samples_per_frontier": 4,
+      "direct": true
+    }
+  ]
+}

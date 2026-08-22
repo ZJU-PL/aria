@@ -93,6 +93,23 @@ jobs:
     - name: Run tests
       run: bash unit_test.sh --continue
 
+    - name: Native concolic package and coverage gate
+      run: |
+        aria-concolic aria.concolic.tests.fixtures.interpkg.api:entry \
+          --seed '{"value":0,"prefix":""}' \
+          --direct \
+          --instrument-package aria.concolic.tests.fixtures.interpkg \
+          --max-iterations 16 \
+          --samples-per-frontier 3 \
+          --campaign-timeout 30 \
+          --coverage \
+          --coverage-source aria.concolic.tests.fixtures.interpkg \
+          --fail-under-lines 30 \
+          --fail-under-functions 30 \
+          --fail-under-branches 50 \
+          --coverage-json "${{ runner.temp }}/aria-concolic-coverage.json" \
+          --coverage-timeline-csv "${{ runner.temp }}/aria-concolic-timeline.csv"
+
     #- name: Upload coverage to Codecov
     #  uses: codecov/codecov-action@v3
     #  with:

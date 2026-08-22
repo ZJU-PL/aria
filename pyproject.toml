@@ -42,6 +42,7 @@ dependencies = [
     "psutil~=5.9.0",
     #"pytest~=7.1.0",
     "pytest-cov",
+    "coverage>=7.5",
     "tqdm==4.65.0",
     "requests==2.32.3",
     "lark==1.2.2",
@@ -102,6 +103,9 @@ include = [
     "/CHANGELOG.md",
     "/RELEASE.md",
     "/CONTRIBUTING.md",
+    "/benchmarks/concolic",
+    "/scripts/run_concolic_benchmarks.py",
+    "/docs/source/testing",
 ]
 
 [tool.setuptools.packages.find]
@@ -123,6 +127,7 @@ aria-allsmt = "aria.cli.allsmt_cli:main"
 aria-efmc = "aria.cli.efmc_cli:main"
 aria-polyhorn = "aria.cli.polyhorn_cli:main"
 aria-pypmt = "aria.cli.pypmt_cli:main"
+aria-concolic = "aria.cli.concolic_cli:main"
 
 [tool.black]
 line-length = 88

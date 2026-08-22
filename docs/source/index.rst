@@ -23,6 +23,7 @@ Major user-facing areas include:
 * ``aria.smt.fol``: first-order logic theorem proving (Miniprover) - now in ``aria.smt.fol``
 * ``aria.util.translator`` / ``aria.cli``: translators and command-line tools
 * ``aria.volumn``: volume computation for polytopes
+* ``aria.concolic``: native Python concolic testing with constrained sampling
 
 Installing and using aria
 -------------------------
@@ -58,6 +59,7 @@ Common console commands after installation include:
 * ``aria-efmc-efsmt``
 * ``aria-polyhorn``
 * ``aria-pypmt``
+* ``aria-concolic``
 
 Documentation map
 -----------------
@@ -85,5 +87,6 @@ Documentation map
     synthesis/index
     logic-programming/index
     llm-ml/index
+    testing/index
     cli-tools/index
     global_params
