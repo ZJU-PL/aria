@@ -1,69 +1,119 @@
-`aria.quant.taintmodel` is a prototype implementation of taint-based
-SIC/WIC inference inspired by:
+# Taint-guided counterexample compression
 
-- CAV 2018: Model Generation for Quantified Formulas: A Taint-Based Approach
-  https://arxiv.org/pdf/1802.05616
+`aria.quant.taintmodel` is a prototype solver for prenex formulas of the form
 
-Current solver scope is intentionally restricted to the prenex
-`exists X . forall Y . P(X, Y)` fragment, where `P` is quantifier-free.
+```text
+exists X. forall Y. P(X, Y)
+```
 
-- Free variables are treated as existential parameters.
-- Nested quantifiers inside `P` are not supported.
-- Alternating or non-prenex quantified formulas outside this fragment return
-  `unknown` rather than using unsafe eliminations.
+where `P` is quantifier-free. Free constants are treated as existential
+parameters. Nested or further alternating quantifiers return `unknown`.
 
-The solver uses taint-generated sufficient independence conditions (SICs) to
-reduce the universal block to a quantifier-free obligation, and only reports
-`unsat` when additional checks justify the reduction as complete for the case at
-hand.
+The default solving path no longer learns a sufficient-independence condition
+from positive examples obtained through a quantified completeness query. It is
+a quantifier-free counterexample-guided loop with optional, certified
+compression of the universal counterexample space.
 
-## Current Algorithm
+## Base solver
 
-The default solver is no longer a pure one-shot reduction. It now runs a small
-counterexample-guided refinement loop around the taint engine:
+The solver maintains an over-approximation `A(X)` of the true solution set.
+Initially `A = true`.
 
-1. Infer an initial SIC `psi(X)` for the matrix `P(X, Y)` and collect
-   target-free guard candidates that arise during taint propagation.
-2. Check **soundness** by asking whether
-   `P(X, Y) /\ psi(X) /\ not P(X, Y')`
-   is satisfiable for a fresh copy `Y'` of the universal block.
-3. If a bad existential assignment is found, strengthen `psi`:
-   - first try to relearn a guard from the accumulated positive/negative
-     samples using the taint-generated candidate guards;
-   - otherwise conjoin a blocker that excludes the bad sample.
-4. Solve the reduced quantifier-free obligation `P(X, Y0) /\ psi(X)`.
-5. If that reduced problem is unsat, check **completeness** by asking whether
-   there exists an existential assignment satisfying
-   `forall Y. P(X, Y) /\ not psi(X)`.
-6. If such a good assignment exists, weaken `psi`:
-   - first try to synthesize a DNF-like guard from the sample set;
-   - otherwise disjoin a region that includes the good sample.
-7. Repeat until a sound SAT witness is found, unsat is certified, or the
-   refinement budget is exhausted.
+1. Solve `A(X)` and obtain a candidate `a`.
+2. Search for a counterexample with the quantifier-free query
+   `not P(a, Y)`.
+3. If no counterexample exists, return `sat` with witness `a`.
+4. Otherwise obtain `b` and refine `A := A and P(X, b)`.
+5. If `A` is unsatisfiable, return `unsat`.
 
-The default constructor enables this loop via `QuantSolver(refine_sic=True)`.
-Passing `refine_sic=False` restores the earlier one-shot behavior.
+Every refinement is necessary for every genuine solution and excludes the
+current failed candidate. Consequently, with complete quantifier-free backend
+calls and no round limit, the procedure is complete when existential variables
+have finite Boolean or fixed-width bit-vector domains. Calls that time out or
+fall outside the supported prefix return `unknown`.
 
-## Candidate Guards
+The implementation also accepts other quantifier-free Z3 theories. Results are
+sound, but finite-domain termination is claimed only for Boolean and bit-vector
+existentials. Arrays and uninterpreted functions are not part of the initial
+compression fragment.
 
-The taint engine now records more than the final flattened SIC. During the
-recursive pass it keeps target-free Boolean guards from:
+## Certified compression
 
-- operator-specific theory rules (`Psi_f` candidates),
-- combined local SICs after recursive composition, and
-- the final inferred SIC.
+A `CounterexampleCompression` explicitly stores:
 
-These guards form the feature set for the refinement loop. The learner is
-deliberately lightweight: it prefers short guards, synthesizes cubes that cover
-known good samples while excluding known bad ones, and falls back to exact
-sample blockers/regions when no useful generalization is available.
+- a guard `G(X)`;
+- residual choices `Z`;
+- reconstruction terms `tau(X, Z)` for every original universal;
+- projection terms `pi(X, Y)` for every residual choice.
 
-## Guarantees
+Before use, the solver checks the whole-formula obligation
 
-- `sat` is returned only after the current SIC passes the explicit soundness
-  check.
-- `unsat` is returned only when the reduced problem is unsat and the
-  completeness check shows that no satisfying existential assignment lies
-  outside the current SIC.
-- If the refinement loop cannot validate progress, the solver returns
-  `unknown` rather than taking an unsafe shortcut.
+```text
+G(X) and not P(X, Y) and P(X, tau(X, pi(X, Y)))
+```
+
+for unsatisfiability. This is a quantifier-free query. A valid certificate
+establishes, inside `G`, that searching `Z` is equivalent to searching all of
+`Y` for a counterexample. Reconstruction terms are also checked structurally
+for sorts, quantifiers, and hidden free-variable dependencies.
+
+The identity compression (`Z = Y`, `tau = Z`, `pi = Y`) is always present. An
+invalid, timed-out, or unavailable proposal therefore affects performance only.
+If a compressed verifier itself returns `unknown`, the solver retries with the
+identity verifier.
+
+The refinement generated by a compressed counterexample is the unguarded
+symbolic instance `P(X, tau(X, z))`. It is globally valid because it is an
+ordinary instance at a well-sorted, total universal input. Guards are needed
+only to justify completeness of compressed verification.
+
+## Current dependency analysis
+
+After the first failed candidate, the bounded heuristic currently recognizes
+and combines:
+
+- Boolean failure literals and direct Boolean/BV equalities;
+- masked BV equalities across shared occurrences;
+- constant extract/slice equalities;
+- dependencies between different universal variables.
+
+It assembles masks and slices jointly, proves that they cover a complete word,
+and emits an explicit reconstruction term. A dependency graph expands acyclic
+reconstructions. When proposed definitions form a cycle, one member remains in
+the residual tuple to break it.
+
+For example, failure constraints
+
+```text
+(y & m) == (a & m)
+(y & ~m) == (b & ~m)
+```
+
+produce
+
+```text
+y = (a & m) | (b & ~m)
+```
+
+and eliminate all residual bits of `y`. The full certificate, rather than the
+local pattern matcher, is the trusted acceptance criterion.
+
+The first implementation proposes global (`G = true`) compressions. Guard
+generalization from taint predicates, arithmetic inverses, path selectors, and
+adaptive restoration of residual bits remain follow-on analysis work.
+
+## Configuration and observability
+
+`QuantSolver()` enables QF CEGIS and compression by default.
+
+- `enable_compression=False` runs ordinary QF CEGIS.
+- `max_cegis_rounds=N` imposes a resource cap; exhausting it returns `unknown`.
+- `refine_sic=False` selects the retained one-shot taint/SIC SAT fast path. The
+  path returns `unknown`, not `unsat`, when its sufficient region is empty.
+- `timeout_ms=N` applies a per-query Z3 timeout.
+
+After a run, `last_statistics` reports candidate iterations, refinements,
+compression proposals, accepted certificates, and compressed verifications.
+
+The original SIC/WIC inference functions remain available in `taint.py` for
+the experimental baseline and component-level evaluation.
