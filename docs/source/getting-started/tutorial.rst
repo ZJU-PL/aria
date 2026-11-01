@@ -12,7 +12,7 @@ Install from PyPI:
 
 .. code-block:: bash
 
-   pip install aria
+   pip install pyaria
 
 Or install the development version from source:
 
@@ -33,7 +33,7 @@ ARIA is organized around several major user-facing subsystems:
 * ``aria.utils.srk``: symbolic reasoning infrastructure
 * ``aria.quant``: EFSMT, QE, CHC tooling, and quantified-reasoning prototypes
 * ``aria.efmc``: verification frontends and engines
-* ``aria.counting`` / ``aria.sampling`` / ``aria.prob``: counting and sampling
+* ``aria.counting`` / ``aria.sampling`` / ``examples.prob``: counting, sampling, and probabilistic reasoning
 * ``aria.pyomt``: optimization and MaxSMT-related flows
 * ``aria.utils.translator`` / ``aria.cli``: format translation and command-line tools
 
@@ -55,6 +55,8 @@ Installed console commands include:
    aria-efmc
    aria-efmc-efsmt
    aria-polyhorn
+   aria-pypmt
+   aria-concolic
 
 You can also invoke the corresponding Python modules directly:
 

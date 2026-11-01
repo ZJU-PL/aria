@@ -1,13 +1,15 @@
 Program Synthesis
-===========================
+=================
 
 Introduction
-=====================
+============
 
-The synthesis module (``aria/synthesis``) provides program synthesis capabilities using constraint solving and inductive techniques. It supports syntax-guided synthesis (SyGuS), programming by example (PBE), and version space algebra.
+The synthesis module (``aria/synthesis``) provides program synthesis capabilities
+using constraint solving and inductive techniques. It supports syntax-guided
+synthesis (SyGuS), programming by example (PBE), and version space algebra.
 
 Key Features
--------------
+------------
 
 * **SyGuS Solving**: Syntax-Guided Synthesis for invariant and PBE problems
 * **Programming by Example**: Generate programs from input-output examples
@@ -16,31 +18,27 @@ Key Features
 * **Spyro Framework**: Property synthesis for functional programs
 
 Components
-=====================
+==========
 
-SyGuS Solvers
--------------
+SyGuS Solvers (``aria/synthesis/cvc5``)
+---------------------------------------
 
-Syntax-Guided Synthesis for invariants and PBE:
+Syntax-Guided Synthesis for invariants and PBE with CVC5:
 
 .. code-block:: python
 
-   from aria.synthesis import SyGuSInvariantSolver, SyGuSPBESolver
+   from aria.synthesis.cvc5.sygus_inv import SyGuSInvSolver
+   from aria.synthesis.cvc5.sygus_pbe import StringSyGuSPBE
 
    # Invariant synthesis
-   inv_solver = SyGuSInvariantSolver()
-   invariant = inv_solver.synthesize(
-       sygus_file="benchmarks/efmc/sygus-inv/array.sl"
-   )
+   inv_solver = SyGuSInvSolver()
+   # invariant = inv_solver.solve("benchmarks/efmc/sygus-inv/array.sl")
 
-   # Programming by example
-   pbe_solver = SyGuSPBESolver()
-   program = pbe_solver.synthesize(
-       sygus_file="benchmarks/sygus-pbe/phone.sl"
-   )
+   # String programming by example
+   pbe_solver = StringSyGuSPBE()
 
 Programming by Example (``aria/synthesis/pbe``)
--------------------------------------------------
+-----------------------------------------------
 
 Synthesize programs from input-output examples:
 
@@ -59,17 +57,16 @@ Synthesize programs from input-output examples:
    ]
 
    # Synthesize program
-   result = solver.synthesize(examples)
-   print(f"Synthesized: {result.expression}")
+   # result = solver.synthesize(examples)
 
-Version Space Algebra (``aria/synthesis/vsa``)
-------------------------------------------------
+Version Space Algebra (``aria/synthesis/pbe/vsa``)
+--------------------------------------------------
 
 Algebraic manipulation of program spaces:
 
 .. code-block:: python
 
-   from aria.synthesis.pbe.vsa import VersionSpace, VSAlgebra
+   from aria.synthesis.pbe import VersionSpace, VSAlgebra, Theory
    from aria.synthesis.pbe.expressions import var, const, add
 
    # Create expressions
@@ -82,35 +79,30 @@ Algebraic manipulation of program spaces:
 
    # Filter by examples
    algebra = VSAlgebra()
-   filtered = algebra.filter_consistent(vs, examples)
+   # filtered = algebra.filter_consistent(vs, examples)
 
 Spyro: Property Synthesis (``aria/synthesis/spyro``)
-------------------------------------------------------
+----------------------------------------------------
 
-Synthesize algebraic properties for functional programs:
+Synthesize algebraic properties for functional programs using the Spyro engine:
 
 .. code-block:: python
 
-   from aria.synthesis.spyro import Spyro
+   from aria.synthesis.spyro.property_synthesizer import PropertySynthesizer
 
-   # Define program specification
-   spec_file = "examples/spec/list/append.sp"
-
-   # Synthesize properties
-   spyro = Spyro()
-   properties = spyro.synthesize(spec_file)
+   synthesizer = PropertySynthesizer()
 
 SMT-Based PBE (``aria/synthesis/pbe/``)
-----------------------------------------------------
+---------------------------------------
 
 Integration with SMT solvers for synthesis:
 
-* Expression encoding to SMT
-* SMT-based verification of synthesized programs
+* Expression encoding to SMT (``expression_to_smt``)
+* SMT-based verification of synthesized programs (``SMTVerifier``)
 * Counterexample-guided refinement
 
 Applications
-=====================
+============
 
 * Automated program repair
 * Test case generation from specifications
@@ -120,7 +112,7 @@ Applications
 * String transformation synthesis
 
 References
-=====================
+==========
 
 - Gulwani, S. (2011). *Automating String Processing in Spreadsheets*. POPL 2011
 - Lau, T. et al. (2003). *Programming by Demonstration using Version Space Algebra*

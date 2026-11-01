@@ -27,13 +27,13 @@ python -m build
 ```
 
 This creates:
-- `dist/aria-0.X.Y.tar.gz` (source distribution)
-- `dist/aria-0.X.Y-*.whl` (wheel files)
+- `dist/pyaria-0.X.Y.tar.gz` (source distribution)
+- `dist/pyaria-0.X.Y-*.whl` (wheel files)
 
 ### 3. Test Installation
 
 ```bash
-pip install dist/aria-0.X.Y-*.whl --force-reinstall
+pip install dist/pyaria-0.X.Y-*.whl --force-reinstall
 python -c "import aria; print(aria.__version__)"
 ```
 
@@ -41,7 +41,7 @@ python -c "import aria; print(aria.__version__)"
 
 ```bash
 twine upload --repository testpypi dist/*
-pip install --index-url https://test.pypi.org/simple/ aria
+pip install --index-url https://test.pypi.org/simple/ pyaria
 ```
 
 ### 5. Upload to Production PyPI

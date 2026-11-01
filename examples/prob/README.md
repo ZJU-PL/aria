@@ -1,6 +1,6 @@
 # Probabilistic Reasoning
 
-`aria.prob` now exposes a small but usable probabilistic inference layer:
+`examples.prob` now exposes a small but usable probabilistic inference layer:
 
 - exact weighted model counting for Boolean CNF formulas
 - explicit arithmetic probability-mass estimation backends
@@ -8,15 +8,15 @@
 
 Internally, the package is split into:
 
-- `aria.prob.core` for shared densities, result types, and helper utilities
-- `aria.prob.boolean` for Boolean WMC
-- `aria.prob.arithmetic` for arithmetic WMI
-- `aria.prob.api` for high-level query helpers
+- `examples.prob.core` for shared densities, result types, and helper utilities
+- `examples.prob.boolean` for Boolean WMC
+- `examples.prob.arithmetic` for arithmetic WMI
+- `examples.prob.api` for high-level query helpers
 
 ## Public API
 
 ```python
-from aria.prob import (
+from examples.prob import (
     WMCOptions,
     WMIOptions,
     WMIMethod,
@@ -39,7 +39,7 @@ Use `wmc_count()` for a one-shot exact weighted count:
 
 ```python
 from pysat.formula import CNF
-from aria.prob import wmc_count
+from examples.prob import wmc_count
 
 cnf = CNF(from_clauses=[[1, 2]])
 weights = {1: 0.2, -1: 0.8, 2: 0.3, -2: 0.7}
@@ -88,7 +88,7 @@ Example with bounded-support Monte Carlo:
 
 ```python
 import z3
-from aria.prob import UniformDensity, WMIOptions, WMIMethod, wmi_integrate
+from examples.prob import UniformDensity, WMIOptions, WMIMethod, wmi_integrate
 
 x, y = z3.Reals("x y")
 triangle = z3.And(x >= 0, y >= 0, x <= 1, y <= 1, x + y <= 1)

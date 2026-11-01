@@ -1,5 +1,5 @@
 CNF Simplification Framework
-=============================
+============================
 
 ``aria.bool.cnfsimplifier`` is a dedicated CNF simplification framework
 that applies a battery of preprocessing and in-processing techniques to
@@ -19,7 +19,7 @@ Directory structure
    └── rust_backend.py     # Optional Rust-accelerated backend
 
 Simplification techniques
---------------------------
+-------------------------
 
 The simplifier implements eight techniques:
 
@@ -33,7 +33,7 @@ The simplifier implements eight techniques:
 8. **Hidden blocked clause elimination** -- blocked-clause reasoning via resolution.
 
 Key entry points
------------------
+----------------
 
 * ``simplify_numeric_clauses(clauses)`` -- high-level API that takes a list of
   integer-list clauses (positive/negative literals) and returns the simplified

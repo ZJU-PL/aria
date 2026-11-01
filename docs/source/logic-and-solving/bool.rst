@@ -1,5 +1,5 @@
 Boolean Reasoning
-==================
+=================
 
 The ``aria.bool`` module is a comprehensive toolkit for Boolean reasoning, providing algorithms and tools for SAT solving, MaxSAT optimization, quantified Boolean formulas (QBF), CNF simplification, knowledge compilation, and related logical reasoning tasks.
 
@@ -14,7 +14,7 @@ The module contains approximately 8,600+ lines of Python code across 9 main subm
    :depth: 2
 
 Directory Structure
-----------------
+-------------------
 
 ```
 aria/bool/
@@ -34,7 +34,7 @@ aria/bool/
 ```
 
 SAT Solvers (``sat/``)
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 
 Multiple SAT solver backends with unified interface.
 
@@ -54,7 +54,7 @@ Multiple SAT solver backends with unified interface.
 * UNSAT core extraction
 
 MaxSAT Solvers (``maxsat/``)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Solve weighted and unweighted MaxSAT optimization problems.
 
@@ -113,7 +113,7 @@ Comprehensive library for Negation Normal Form manipulation and reasoning.
 * Knowledge compilation map properties verification
 
 CNF Simplification (``cnfsimplifier/``)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Advanced CNF formula simplification — see :doc:`cnfsimplifier` for the full
 standalone reference.
@@ -135,7 +135,7 @@ standalone reference.
 * ``cnf_subsumption_elimination()``, ``cnf_tautoly_elimination()``, etc.
 
 QBF Support (``qbf/``)
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 
 Quantified Boolean Formula handling.
 
@@ -153,7 +153,7 @@ Quantified Boolean Formula handling.
 * Variable uniqueness validation
 
 Feature Extraction (``features/``)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 SATzilla-style feature extraction for SAT instance analysis — see
 :doc:`features` for the full standalone reference.
@@ -183,7 +183,7 @@ SATzilla-style feature extraction for SAT instance analysis — see
 * ``sat_instance.py``: High-level API
 
 Distributed SAT Solver (``dissolve/``)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Practical implementation of the Dissolve distributed SAT solver — see
 :doc:`dissolve` for the full standalone reference.
@@ -205,7 +205,7 @@ Practical implementation of the Dissolve distributed SAT solver — see
 * PySAT backend support
 
 Knowledge Compilation (``knowledge_compiler/``)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Compile logical formulas into efficient representations.
 
@@ -224,7 +224,7 @@ Compile logical formulas into efficient representations.
 * Model counting on compiled structures
 
 Boolean Interpolation (``interpolant/``)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Compute Craig interpolants for proof analysis.
 
@@ -244,7 +244,7 @@ Usage Examples
 --------------
 
 SAT Solving
-~~~~~~~~~~~~~
+~~~~~~~~~~~
 
 .. code-block:: python
 
@@ -256,7 +256,7 @@ SAT Solving
    model = solver.get_model()
 
 MaxSAT Solving
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
 
 .. code-block:: python
 
@@ -266,7 +266,7 @@ MaxSAT Solving
    result = maxsat.solve()  # Returns MaxSATSolverResult
 
 NNF Reasoning
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~
 
 .. code-block:: python
 
@@ -280,7 +280,7 @@ NNF Reasoning
        print(model)
 
 CNF Simplification
-~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
@@ -289,7 +289,7 @@ CNF Simplification
    simplified = simplify_numeric_clauses([[1, 2], [1, -2, 3]])
 
 QBF Solving
-~~~~~~~~~~~~
+~~~~~~~~~~~
 
 .. code-block:: python
 
@@ -300,7 +300,7 @@ QBF Solving
    result = qbf.solve()
 
 Feature Extraction
-~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
@@ -310,7 +310,7 @@ Feature Extraction
    # Extract features via instance.features_dict
 
 Dissolve (Distributed SAT)
-~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
@@ -320,7 +320,7 @@ Dissolve (Distributed SAT)
    res = Dissolve(cfg).solve(cnf)
 
 Main API Entry Points
---------------------
+---------------------
 
 .. code-block:: python
 
@@ -368,7 +368,7 @@ Main API Entry Points
    res = Dissolve(cfg).solve(cnf)
 
 Key Dependencies
----------------
+----------------
 
 * **PySAT**: Core SAT solving library
 * **Z3**: SMT solver for QBF and additional SAT solving

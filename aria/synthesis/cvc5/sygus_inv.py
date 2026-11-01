@@ -187,3 +187,7 @@ class SygusInv:
                 print("CVC5 not found in global config. Using 'cvc5' from PATH.")
             cvc5_path = "cvc5"
         return cvc5_path
+
+
+# Backward-compatibility alias
+SyGuSInvSolver = SygusInv

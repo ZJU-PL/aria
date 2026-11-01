@@ -15,13 +15,10 @@ Abductive reasoning engine for computing explanations (abductive hypotheses) for
 ## Usage
 
 ```python
-from aria.proof.abduction import Abductor
+from aria.proof.abduction import abduce, check_abduct
 
-# Create abductor for a theory
-abductor = Abductor(theory='QF_LIA')
-
-# Compute explanations for an observation
-explanations = abductor.explain(observation)
+# Compute an abductive hypothesis H such that pre_cond and H implies post_cond
+hypothesis = abduce(pre_cond, post_cond)
 ```
 
 ## Belief Revision

@@ -1,5 +1,5 @@
 C Frontend for EFMC
-====================
+===================
 
 This document describes the C frontend for EFMC, which allows you to convert C programs (specifically loops) to EFMC transition systems for verification.
 
@@ -77,7 +77,7 @@ Limitations
 - **Function Selection**: Defaults to the ``main`` function
 
 Example C Programs
--------------------
+------------------
 
 Simple Counter
 ~~~~~~~~~~~~~~
@@ -113,7 +113,7 @@ Fibonacci Computation
    }
 
 Verification Workflow
---------------------
+---------------------
 
 1. **Parse C Program**: The frontend parses the C file using ``pycparser`` and builds an AST
 2. **Extract Function**: Selects the target function (default: ``main``)
@@ -123,7 +123,7 @@ Verification Workflow
 6. **Verify**: Uses EFMC engines or external solvers to verify the safety properties
 
 Generated Transition System
-----------------------------
+---------------------------
 
 The converter creates a transition system with:
 
@@ -134,7 +134,7 @@ The converter creates a transition system with:
 - **Post Condition**: Safety properties to verify (from assertions)
 
 Integration with EFMC Engines
-------------------------------
+-----------------------------
 
 The generated transition systems can be used with various EFMC verification engines:
 
@@ -200,4 +200,4 @@ Run tests with:
 
 .. code-block:: bash
 
-   python -m pytest efmc/tests/test_c2efmc.py
+   python -m pytest aria/efmc/tests/test_c2efmc.py

@@ -1,5 +1,5 @@
 Boogie Frontend for EFMC
-==========================
+========================
 
 This document describes the Boogie frontend for EFMC, which allows you to convert Boogie programs (specifically loops) to EFMC transition systems for verification.
 
@@ -158,7 +158,7 @@ Verification Workflow
 6. **Verify**: Use EFMC engines or external solvers to verify the safety properties
 
 Generated Transition System
-----------------------------
+---------------------------
 
 The converter creates a transition system with:
 
@@ -169,7 +169,7 @@ The converter creates a transition system with:
 - **Post Condition**: Safety properties to verify (from assertions)
 
 Integration with EFMC Engines
-------------------------------
+-----------------------------
 
 The generated transition systems can be used with various EFMC verification engines:
 
@@ -227,13 +227,11 @@ Testing
 
 Test files are provided to validate the implementation:
 
-- ``test_boogie_converter.py``: Basic functionality tests
-- ``example_boogie_verification.py``: End-to-end verification examples
+- ``aria/efmc/tests/test_boogie_converter.py``: Basic functionality tests
 
 Run tests with:
 
 .. code-block:: bash
 
-   python test_boogie_converter.py
-   python example_boogie_verification.py
+   python -m pytest aria/efmc/tests/test_boogie_converter.py
 

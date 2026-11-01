@@ -1,9 +1,8 @@
 Backbone Computation
-==================
+====================
 
-===============
 Introduction to Backbone Computation
-===============
+------------------------------------
 
 The backbone of a Boolean formula is the set of literals that take the same value (True or False) in all satisfying assignments.
 These literals represent the "fixed" or "necessary" parts of any solution to the formula.
@@ -15,50 +14,42 @@ Backbone computation has important applications in:
 - **Verification**: Finding invariants in system models
 - **Optimization**: Reducing search space by fixing necessary assignments
 
-===============
 Backbone Computation in Aria
-===============
+----------------------------
 
-Aria provides two main approaches to backbone computation:
+Aria provides backbone computation across Boolean (SAT) and SMT levels:
 
-1. **Literal-based Backbone** (`backbone_literals.py`): Computes the backbone by analyzing individual literals.
+1. **Boolean SAT Backbone** (``aria.bool.backbone`` / ``aria.backbone.sat_backbone``):
+   Computes the backbone of a CNF formula with multiple algorithms (iterative, chunking, refinement, approximation).
 
-2. **Clause-based Backbone** (`backbone_clauses.py`): Computes the backbone by analyzing clauses in the formula.
+2. **SMT Backbone** (``aria.backbone.smt_backbone_literals`` and ``aria.backbone.smt_backbone_clauses``):
+   Computes implied literals and clauses for SMT formulas using sequence checking, model enumeration, and predicate abstraction.
 
-Both implementations offer efficient algorithms for finding backbones in Boolean formulas.
-
-===============
 Usage Example
-===============
+-------------
 
-```python
-import z3
-from aria.backbone import get_backbone
+.. code-block:: python
 
-# Define a formula
-x, y, z = z3.Bools('x y z')
-formula = z3.And(z3.Or(x, y), z3.Or(z, ~y), z3.Or(~x, ~z))
+   from pysat.formula import CNF
+   from aria.backbone import compute_backbone, BackboneAlgorithm
 
-# Compute the backbone
-backbone = get_backbone(formula)
+   # Boolean CNF backbone
+   cnf = CNF(from_clauses=[[1, 2], [-1, 3], [-2, 3]])
+   backbone, calls = compute_backbone(cnf, algorithm=BackboneAlgorithm.ITERATIVE)
+   print("Backbone literals:", backbone)
 
-# Print the backbone literals
-print("Backbone literals:")
-for lit in backbone:
-    print(f"  {lit}")
+   # SMT literal backbone
+   import z3
+   from aria.backbone.smt_backbone_literals import get_backbone_literals
 
-# Using the clause-based approach
-from aria.backbone import get_backbone_clauses
+   x, y, z = z3.Bools('x y z')
+   formula = z3.And(z3.Or(x, y), z3.Or(z, z3.Not(y)), z3.Or(z3.Not(x), z3.Not(z)))
+   literals = [x, y, z]
+   smt_backbone = get_backbone_literals(formula, literals, alg="sequence_checking")
+   print("SMT backbone literals:", smt_backbone)
 
-backbone_clauses = get_backbone_clauses(formula)
-print("Backbone literals (clause-based):")
-for lit in backbone_clauses:
-    print(f"  {lit}")
-```
-
-===============
 Algorithm Details
-===============
+-----------------
 
 The backbone computation algorithms in Aria use several optimizations:
 
@@ -67,21 +58,8 @@ The backbone computation algorithms in Aria use several optimizations:
 - **Clause learning**: Leveraging learned clauses to speed up subsequent iterations
 - **Early termination**: Detecting when no more backbone literals can be found
 
-===============
-Performance Considerations
-===============
-
-For most formulas, the literal-based approach (`get_backbone`) provides good performance. However, for formulas with specific structures, the clause-based approach (`get_backbone_clauses`) may be more efficient.
-
-Factors affecting performance include:
-- Formula size and structure
-- Number of variables
-- Density of the backbone (percentage of variables in the backbone)
-- SAT solver implementation used
-
-===============
 References
-===============
+----------
 
 - I. Lynce and J. Marques-Silva. "Efficient haplotype inference with Boolean satisfiability." National Conference on Artificial Intelligence, 2006.
 - J. Marques-Silva, M. Janota, and I. Lynce. "On computing backbones of propositional theories." ECAI, 2010.

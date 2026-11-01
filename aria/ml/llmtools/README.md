@@ -23,5 +23,5 @@ LLM inference with routing across online and local providers.
 ## Public API
 
 ```python
-from aria.llmtools import LLM, Logger, resolve_provider
+from aria.ml.llmtools import LLM, Logger, resolve_provider
 ```

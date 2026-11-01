@@ -1,5 +1,5 @@
 Linear Teamporal Logic
-=======================
+======================
 
 
 Linear Temporal Logic (LTL) is a formalism for expressing properties of reactive systems. It is a modal logic, i.e., it uses modal operators to express the temporal relationships between propositions. LTL is used in formal verification of software and hardware systems, and is supported by model checkers such as SPIN and NuSMV.

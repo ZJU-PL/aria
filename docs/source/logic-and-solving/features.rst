@@ -1,5 +1,5 @@
 SAT Instance Feature Extraction
-================================
+===============================
 
 ``aria.bool.features`` implements SATzilla-style feature extraction for CNF
 formulas. It computes 40+ structural, statistical, and probing-based

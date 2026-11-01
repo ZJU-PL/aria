@@ -20,7 +20,7 @@ Directory structure
    └── utils.py            # Utility helpers
 
 Formula AST
-------------
+-----------
 
 The ``formula`` module defines the abstract syntax tree for modal logic:
 
@@ -30,7 +30,7 @@ The ``formula`` module defines the abstract syntax tree for modal logic:
 * ``Diamond`` (◇) -- possibility modality
 
 Kripke Models
---------------
+-------------
 
 ``model.py`` provides the ``KripkeModel`` representation: a set of worlds,
 a valuation mapping worlds to truth assignments, and an accessibility
@@ -67,10 +67,10 @@ Programmatic usage
 
 .. code-block:: python
 
-   from aria.bool.modal.parser import parse
+   from aria.bool.modal.parser import parse_formula
    from aria.bool.modal.model import KripkeModel
-   from aria.bool.modal.semantics import evaluate
+   from aria.bool.modal.semantics import satisfies
 
-   formula = parse("[](p -> <>q)")
-   # Build or load a Kripke model, then evaluate
-   result = evaluate(formula, model, world)
+   formula = parse_formula("[](p -> <>q)")
+   # Build or load a Kripke model, then check satisfaction at world
+   # result = satisfies(model, world, formula)

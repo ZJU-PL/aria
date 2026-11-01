@@ -48,8 +48,9 @@ def bfs(graph, start) -> Optional[str]:
 
 
 try:
-    print("Checking for pywrapfst module:")
     spec = importlib.util.find_spec("pywrapfst")
+    if spec is None:
+        raise ImportError("pywrapfst not found")
     if spec is not None:
         # Module exists
         # print 'Checking for openfst_python module:',
@@ -121,11 +122,9 @@ try:
                 return converter.get_regex()
 
 except ImportError:
-    print("FAIL")
     try:
-        print("Checking for fst module:")
-        importlib.util.find_spec("fst")
-        print("OK")
+        if importlib.util.find_spec("fst") is None:
+            raise ImportError("fst not found")
         from aria.automata.symautomata.fstdfa import FstDFA, TropicalWeight
 
         class DFA(FstDFA):
@@ -184,8 +183,6 @@ except ImportError:
                 return converter.get_regex()
 
     except ImportError:
-        print("FAIL")
-        print("Fallback to python implementation:OK")
         from aria.automata.symautomata.pythondfa import PythonDFA, TropicalWeight
 
         class DFA(PythonDFA):

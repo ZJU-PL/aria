@@ -1,117 +1,98 @@
 Unification
-==========
-
+===========
 
 Introduction
-====================
+------------
 
-The unification module (``aria.smt.unification``) provides a general-purpose term unification engine supporting first-order unification, pattern matching, and substitution operations. It is used throughout aria for term manipulation, pattern matching in theorem proving, and constraint solving.
+The unification module (``aria.smt.unification``) provides a general-purpose term
+unification engine supporting first-order unification, pattern matching, and
+substitution operations.
 
 Key Features
--------------
+------------
 
-* **First-Order Unification**: Robinson's unification algorithm
-* **Pattern Matching**: One-way matching for rewriting
-* **Substitution Composition**: Efficient substitution management
-* **Generic Dispatch**: Type-based dispatch for extensibility
-* **Recursive Unification**: Deep structure unification with occurs check
+* **First-Order Unification**: Robinson-style term unification algorithm
+* **Pattern Matching**: Shape-based dispatch and term matching
+* **Substitution Composition**: Efficient substitution management via ``reify``
+* **Generic Dispatch**: Multiple dispatch for extensibility
+* **Recursive Unification**: Deep structure unification with logic variables
 
 Components
-=====================
+==========
 
 Core Unification (``aria.smt.unification.core``)
--------------------------------------------------
+------------------------------------------------
 
 Main unification engine:
 
 .. code-block:: python
 
-   from aria.smt.unification import unify, Var
+   from aria.smt.unification import unify, reify, var
 
    # Define variables and terms
-   x = Var('x')
-   y = Var('y')
+   x = var("x")
+   y = var("y")
 
    # Unify terms
    substitution = unify((x, 2), (1, y))
    # Result: {x: 1, y: 2}
 
-   # Unify complex structures
-   s = unify([x, [y, 3]], [1, [2, 3]])
-   # Result: {x: 1, y: 2}
+   # Reify terms under substitution
+   res = reify((x, y), substitution)
+   # Result: (1, 2)
 
 Pattern Matching (``aria.smt.unification.match``)
---------------------------------------------------
+-------------------------------------------------
 
-One-way pattern matching for term rewriting:
+Pattern-directed dispatch based on argument shape:
 
 .. code-block:: python
 
-   from aria.smt.unification import match, Var
+   from aria.smt.unification import var
+   from aria.smt.unification.match import Dispatcher
 
-   # Match pattern against term
-   pattern = (Var('x'), Var('y'), Var('x'))
-   term = (1, 2, 1)
-
-   result = match(pattern, term)
-   # Result: {x: 1, y: 2}
+   x = var("x")
+   d = Dispatcher("my_func")
+   d.add((1, x), lambda a, b: f"matched 1 and {b}")
 
 Variables (``aria.smt.unification.variable``)
-----------------------------------------------
+---------------------------------------------
 
 Variable representation and utilities:
 
 .. code-block:: python
 
-   from aria.smt.unification import Var, isvar
+   from aria.smt.unification import Var, isvar, var
 
    # Create variables
-   x = Var('x')
-   y = Var('y')
+   x = var("x")
 
-   # Check if term is variable
-   isvar(x)  # True
-   isvar(5)  # False
+   # Check if term is a logic variable
+   print(isvar(x))  # True
+   print(isvar(5))  # False
 
-Utilities (``aria.smt.unification.utils``)
--------------------------------------------
+Utilities (``aria.smt.unification.core``)
+-----------------------------------------
 
-Helper functions for substitution and term manipulation:
+Helper functions for substitution:
 
 .. code-block:: python
 
-   from aria.smt.unification.utils import walk, occurs_check
+   from aria.smt.unification.core import walk
 
    # Walk through substitutions
-   result = walk(term, substitution)
-
-   # Check for circular references
-   valid = occurs_check(var, term, substitution)
-
-Type Dispatch (``aria.smt.unification.dispatch``)
---------------------------------------------------
-
-Generic function dispatch based on type:
-
-.. code-block:: python
-
-   from aria.smt.unification.dispatch import dispatch
-
-   @dispatch(int, int)
-   def unify_ints(x, y):
-       return {x: y} if x != y else {}
+   # result = walk(term, substitution)
 
 Applications
-=====================
+============
 
-* **Theorem Proving**: Pattern matching in the ITP module
 * **Term Rewriting**: Equation solving and simplification
-* **Logic Programming**: Prolog-style logic resolution
-* **Type Inference**: Hindley-Milner type unification
+* **Logic Programming**: Rule matching and resolution
+* **Type Inference**: Structural type unification
 * **Constraint Solving**: Unification constraints in SMT
 
 References
-=====================
+==========
 
 - Robinson, J. A. (1965). *A Machine-Oriented Logic Based on the Resolution Principle*. JACM 1965
 - Martelli, A., & Montanari, U. (1982). *An Efficient Unification Algorithm*. TOPLAS 1982

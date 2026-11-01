@@ -109,7 +109,9 @@ class Syms:  # pylint: disable=invalid-name
         return self.symbols[num]
 
     def items(self):
-        """Returns all stored symbols
+        """
+        Returns all stored symbols
+
         Args:
             None
         Returns:
@@ -183,7 +185,9 @@ class PythonDFA:
         return sid
 
     def add_arc(self, src, dst, char):
-        """Adds a new Arc
+        """
+        Adds a new Arc
+
         Args:
             src (int): The source state identifier
             dst (int): The destination state identifier
@@ -367,7 +371,8 @@ class PythonDFA:
     def load(self, txt_fst_file_name):
         """
         Save the transducer in the text file format of OpenFST.
-        The format is specified as follows:
+        The format is specified as follows::
+
             arc format: src dest ilabel olabel [weight]
             final state format: state [weight]
         lines may occur in any order except initial state must be first line
@@ -394,8 +399,10 @@ class PythonDFA:
         self.hopcroft()
 
     def intersect(self, other):
-        """Constructs an unminimized DFA recognizing
+        """
+        Constructs an unminimized DFA recognizing
         the intersection of the languages of two given DFAs.
+
         Args:
             other (DFA): The other DFA that will be used
                          for the intersect operation
@@ -408,8 +415,10 @@ class PythonDFA:
         return self
 
     def __and__(self, other):
-        """Constructs an unminimized DFA recognizing
+        """
+        Constructs an unminimized DFA recognizing
         the intersection of the languages of two given DFAs.
+
         Args:
             other (DFA): The other DFA that will be used
                          for the intersect operation
@@ -420,8 +429,10 @@ class PythonDFA:
         return self
 
     def symmetric_difference(self, other):
-        """Constructs an unminimized DFA recognizing
+        """
+        Constructs an unminimized DFA recognizing
         the symmetric difference of the languages of two given DFAs.
+
         Args:
             other (DFA): The other DFA that will be used
                          for the symmetric difference operation
@@ -433,7 +444,9 @@ class PythonDFA:
         return self
 
     def union(self, other):
-        """Constructs an unminimized DFA recognizing the union of the languages of two given DFAs.
+        """
+        Constructs an unminimized DFA recognizing the union of the languages of two given DFAs.
+
         Args:
             other (DFA): The other DFA that will be used
                          for the union operation
@@ -445,7 +458,9 @@ class PythonDFA:
         return self
 
     def __or__(self, other):
-        """Constructs an unminimized DFA recognizing the union of the languages of two given DFAs.
+        """
+        Constructs an unminimized DFA recognizing the union of the languages of two given DFAs.
+
         Args:
             other (DFA): The other DFA that will be used
                          for the union operation
@@ -561,7 +576,9 @@ class PythonDFA:
                 state.final = True
 
     def difference(self, other):
-        """Performs the Diff operation between two atomata
+        """
+        Performs the Diff operation between two atomata
+
         Args:
             other (DFA): The other DFA that will be used
                          for the difference operation
@@ -573,7 +590,9 @@ class PythonDFA:
         return self
 
     def __sub__(self, other):
-        """Performs the Diff operation between two atomata
+        """
+        Performs the Diff operation between two atomata
+
         Args:
             other (DFA): The other DFA that will be used
                         for the difference operation

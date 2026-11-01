@@ -1,5 +1,5 @@
 Exists-Forall SMT (EFSMT)
-========================
+=========================
 
 The ``aria.quant`` package contains several implementations for
 exists-forall reasoning, together with shared parsing and solver glue.

@@ -1,5 +1,5 @@
 Global Parameters
-===============
+=================
 
 The ``aria.utils.global_params`` module provides centralized configuration management for the ARIA project. It handles SMT solver discovery, path management, and provides a singleton-based global configuration interface used throughout the codebase.
 
@@ -8,7 +8,7 @@ The ``aria.utils.global_params`` module provides centralized configuration manag
    :depth: 2
 
 Directory Structure
-----------------
+-------------------
 
 ```
 global_params/
@@ -19,7 +19,7 @@ global_params/
 **No subdirectories** - flat module structure.
 
 Module Overview
---------------
+---------------
 
 ### Centralized Configuration System
 
@@ -33,7 +33,7 @@ The global_params module implements a **singleton pattern** configuration manage
 **Usage Pattern**: This module is imported in 21 files across the project for solver path resolution and configuration access.
 
 Key Components
-------------------
+--------------
 
 ### 1. ``SolverConfig`` Class
 
@@ -42,13 +42,24 @@ A data class representing configuration for a single SMT solver.
 **Attributes:**
 
 .. list-table::
-   :header: "Attribute, Type, Description"
-   :widths: 20, 60
+   :header-rows: 1
+   :widths: 20 20 60
 
-   ``name``, ``str``, Solver identifier (e.g., 'z3', 'cvc5')
-   ``exec_name``, ``str``, Executable name (e.g., 'z3', 'cvc5')
-   ``exec_path``, ``Path``, Full path to executable
-   ``is_available``, ``bool``, Whether solver is installed/accessible
+   * - Attribute
+     - Type
+     - Description
+   * - ``name``
+     - ``str``
+     - Solver identifier (e.g., 'z3', 'cvc5')
+   * - ``exec_name``
+     - ``str``
+     - Executable name (e.g., 'z3', 'cvc5')
+   * - ``exec_path``
+     - ``Path``
+     - Full path to executable
+   * - ``is_available``
+     - ``bool``
+     - Whether solver is installed/accessible
 
 ### 2. ``SolverRegistry`` Metaclass
 
@@ -65,14 +76,21 @@ The core configuration manager with comprehensive capabilities.
 **Managed Solvers** (5 solvers total):
 
 .. list-table::
-   :header: "Solver, Purpose"
-   :widths: 15, 60
+   :header-rows: 1
+   :widths: 20 60
 
-   ``z3``, Z3 SMT solver
-   ``cvc5``, CVC5 solver
-   ``mathsat``, MathSAT solver
-   ``yices2``, Yices2 SMT solver
-   ``sharp_sat``, SharpSAT solver for model counting
+   * - Solver
+     - Purpose
+   * - ``z3``
+     - Z3 SMT solver
+   * - ``cvc5``
+     - CVC5 solver
+   * - ``mathsat``
+     - MathSAT solver
+   * - ``yices2``
+     - Yices2 SMT solver
+   * - ``sharp_sat``
+     - SharpSAT solver for model counting
 
 **Path Properties:**
 
@@ -83,13 +101,19 @@ The core configuration manager with comprehensive capabilities.
 **Key Methods:**
 
 .. list-table::
-   :header: "Method, Description"
-   :widths: 30, 60
+   :header-rows: 1
+   :widths: 35 60
 
-   ``get_solver_path(name)``, Retrieve executable path for a solver
-   ``is_solver_available(name)``, Check if solver is installed/accessible
-   ``set_solver_path(name, path)``, Set custom solver path
-   ``get_smt_solvers_config()``, Get full solver configuration dictionary
+   * - Method
+     - Description
+   * - ``get_solver_path(name)``
+     - Retrieve executable path for a solver
+   * - ``is_solver_available(name)``
+     - Check if solver is installed/accessible
+   * - ``set_solver_path(name, path)``
+     - Set custom solver path
+   * - ``get_smt_solvers_config()``
+     - Get full solver configuration dictionary
 
 **Solver Discovery Logic:**
 
@@ -103,12 +127,25 @@ The core configuration manager with comprehensive capabilities.
 From ``get_smt_solvers_config()``:
 
 .. list-table::
-   :header: "Solver, Availability, Path Retrieval, Default Args"
-   :widths: 15, 20, 25
+   :header-rows: 1
+   :widths: 20 20 20 20
 
-   ``z3``, ✓, ✓, ``-in``
-   ``cvc5``, ✓, ✓, ``-q -i``
-   ``mathsat``, ✓, ✓, ``(empty)``
+   * - Solver
+     - Availability
+     - Path Retrieval
+     - Default Args
+   * - ``z3``
+     - ✓
+     - ✓
+     - ``-in``
+   * - ``cvc5``
+     - ✓
+     - ✓
+     - ``-q -i``
+   * - ``mathsat``
+     - ✓
+     - ✓
+     - ``(empty)``
 
 ### 4. Module-Level Exports
 
@@ -125,7 +162,7 @@ From ``__init__.py``:
    )
 
 Usage Patterns Across Codebase
--------------------------
+------------------------------
 
 The module is imported in **21 files** across the project, with common use cases:
 
@@ -173,34 +210,35 @@ The module is imported in **21 files** across the project, with common use cases
 **Used in**: bool/features/sat_instance.py
 
 Physical Directory Structure
--------------------------
+----------------------------
 
-```
-bin_solvers/          # Solver binaries
-├── z3               # 23.7 MB Z3 executable
-├── cvc5             # 25.1 MB CVC5 executable
-├── mathsat          # 11.5 MB MathSAT executable
-└── sharpSAT         # 1.2 MB SharpSAT executable
+.. code-block:: text
 
-benchmarks/          # Test and evaluation benchmarks
-├── abduction/
-├── dimacs/
-├── efmc/
-│   ├── Boogie/
-│   ├── BV/
-│   ├── C/
-│   ├── chc/
-│   ├── INT/
-│   ├── KSafety/
-│   └── sygus-inv/
-├── fzn/
-├── qbf/
-├── smtlib2/
-└── sygus-pbe/
-```
+   bin_solvers/          # Solver binaries
+   ├── z3               # 23.7 MB Z3 executable
+   ├── cvc5             # 25.1 MB CVC5 executable
+   ├── mathsat          # 11.5 MB MathSAT executable
+   └── sharpSAT         # 1.2 MB SharpSAT executable
+
+   benchmarks/          # Test and evaluation benchmarks
+   ├── abduction/
+   ├── dimacs/
+   ├── efmc/
+   │   ├── Boogie/
+   │   ├── BV/
+   │   ├── C/
+   │   ├── chc/
+   │   ├── INT/
+   │   ├── KSafety/
+   │   └── sygus-inv/
+   ├── fzn/
+   ├── qbf/
+   ├── smtlib2/
+   └── sygus-pbe/
+
 
 Domains Using Global Parameters
------------------------------
+-------------------------------
 
 The module serves as a central hub for:
 
@@ -229,13 +267,13 @@ The module serves as a central hub for:
 * Binary management
 
 ### Abduction
-**aria/abduction/** - Abductive reasoning
+**aria/proof/abduction/** - Abductive reasoning
 
 * Solver orchestration
 * Multi-solver support
 
 ### Interpolation
-**aria/interpolant/** - Interpolant generation
+**aria/proof/interpolant/** - Interpolant generation
 
 * Multiple solver backends
 * Path configuration
@@ -247,7 +285,7 @@ The module serves as a central hub for:
 * Feature computation infrastructure
 
 Design Patterns
---------------
+---------------
 
 ### 1. Singleton Pattern
 
@@ -283,7 +321,7 @@ Uses Python logging for:
 * Debug information for troubleshooting
 
 Documentation Quality
-------------------
+---------------------
 
 **Strengths:**
 
@@ -299,7 +337,7 @@ Documentation Quality
 * Complex logic (solver discovery) is well documented
 
 Recommendations for Enhancement
-------------------------------
+-------------------------------
 
 Based on the analysis, potential improvements include:
 

@@ -1,9 +1,8 @@
 Constrained Horn Clauses (CHC) Tools
 ====================================
 
-================
 Introduction
-================
+============
 
 Constrained Horn Clauses (CHCs) are a fragment of first-order logic that has become increasingly important in program verification and automated reasoning. The ``aria/quant/chctools`` module provides a comprehensive toolkit for working with CHCs, including parsing, solving, model validation, and pretty-printing.
 
@@ -24,9 +23,8 @@ CHCs are particularly useful for program verification because they can naturally
 - **Transition relations**: Program state changes
 - **Safety properties**: "Bad" states are unreachable
 
-=======================
 Core Components
-=======================
+===============
 
 The CHC tools module consists of several key components:
 
@@ -37,9 +35,8 @@ The CHC tools module consists of several key components:
 5. **Pretty Printer** (``chcpp.py``): Formats and outputs CHC problems
 6. **Core Utilities** (``core.py``): Common command-line interface utilities
 
-=======================
 CHC Parser
-=======================
+==========
 
 The ``ChcRulesSmtLibParser`` class extends the standard SMT-LIB parser to handle CHC-specific constructs:
 
@@ -51,7 +48,7 @@ The ``ChcRulesSmtLibParser`` class extends the standard SMT-LIB parser to handle
 
 **Example CHC Problem:**
 
-.. code-block:: smt
+.. code-block:: text
 
    (set-logic HORN)
    (declare-rel P (Int))
@@ -81,9 +78,8 @@ The ``ChcRulesSmtLibParser`` class extends the standard SMT-LIB parser to handle
    with open('problem.smt2', 'r') as f:
        rules, queries = parser.get_chc(f)
 
-=======================
 Horn Database
-=======================
+=============
 
 The ``HornClauseDb`` class manages collections of Horn clauses and provides various operations:
 
@@ -116,9 +112,8 @@ The ``HornClauseDb`` class manages collections of Horn clauses and provides vari
    for query in db.get_queries():
        print(f"Query: {query}")
 
-=======================
 CHC Solver
-=======================
+==========
 
 The ``ChcSolveCmd`` class provides a command-line interface for solving CHC problems with various options:
 
@@ -156,9 +151,8 @@ The ``ChcSolveCmd`` class provides a command-line interface for solving CHC prob
    result = chc_solve_with_fp(db, args, opts)
    print(result)  # sat, unsat, or unknown
 
-=======================
 Model Validation
-=======================
+================
 
 The ``ModelValidator`` class verifies that a given model satisfies all Horn clauses:
 
@@ -189,9 +183,8 @@ The ``ModelValidator`` class verifies that a given model satisfies all Horn clau
 
    python -m aria.quant.chctools.chcmodel -m model.smt2 problem.smt2
 
-=======================
 Pretty Printer
-=======================
+==============
 
 The ``ChcPpCmd`` class formats CHC problems for output:
 
@@ -220,9 +213,8 @@ The ``ChcPpCmd`` class formats CHC problems for output:
    with open('output.smt2', 'w') as f:
        pp_chc(db, f, fmt='rules')
 
-=======================
 Advanced Features
-=======================
+=================
 
 **Query Splitting:**
 Complex queries can be automatically split into simpler forms:
@@ -259,9 +251,8 @@ YAML configuration files can specify solver options:
      spacer.ground_pobs: false
      spacer.reach_dnf: true
 
-=======================
 Integration Examples
-=======================
+====================
 
 **Basic CHC Solving Workflow:**
 
@@ -310,9 +301,8 @@ Integration Examples
            model = fp.get_answer()
            print(f"Model: {model}")
 
-=======================
 Command-Line Tools
-=======================
+==================
 
 The CHC tools can be used directly from the command line:
 
@@ -341,9 +331,8 @@ The CHC tools can be used directly from the command line:
 
    python -m aria.quant.chctools.chcpp -o formatted.smt2 problem.smt2
 
-=======================
 Related Work and References
-=======================
+===========================
 
 Constrained Horn Clauses have been extensively studied in the context of program verification:
 

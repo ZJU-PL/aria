@@ -1,10 +1,9 @@
 Knowledge Compilation
-=======================
+=====================
 
 
-=======
 Introduction to Knowledge Compilation
-=======
+=====================================
 
 Knowledge compilation is a technique in artificial intelligence 
 that aims to preprocess a knowledge base or a set of constraints
@@ -16,7 +15,7 @@ The compiled representation enables more efficient query answering or problem-so
 
 
 Key Concepts
------------
+------------
 
 1. **Compilation Target Languages**:
    - Different target languages offer different tradeoffs
@@ -34,13 +33,12 @@ Key Concepts
    - Clause entailment
    - Model enumeration
 
-==========
 Target Languages
-==========
+================
 
 
 OBDD
-------
+----
 
 OBDD stands for Ordered Binary Decision Diagram. It's a compact data structure
 used in computer science and artificial intelligence to represent Boolean functions.
@@ -51,24 +49,23 @@ that equivalent OBDDs are identical.
 
 
 DNNF
-------
+----
 
 Decomposable Negation Normal Form (DNNF) is a representation of propositional
 formulas that allows for tractable query answering while maintaining significant
 expressive power.
 
 SDD
------
+---
 
 Sentential Decision Diagrams (SDD) are a relatively new target language that
 combines the benefits of OBDDs and DNNFs.
 
-=======
 Compilation Techniques
-=======
+======================
 
 Bottom-up Compilation
-------------------
+---------------------
 
 1. **Process**:
    - Variable ordering selection
@@ -81,7 +78,7 @@ Bottom-up Compilation
    - Structure sharing
 
 Top-down Compilation
------------------
+--------------------
 
 1. **Approach**:
    - Recursive decomposition
@@ -93,12 +90,11 @@ Top-down Compilation
    - Early termination
    - Constraint propagation
 
-=========
 Applications
-=========
+============
 
 Automated Planning
----------------
+------------------
 
 1. **Usage**:
    - Plan representation
@@ -111,7 +107,7 @@ Automated Planning
    - Reusable components
 
 Configuration
------------
+-------------
 
 1. **Problems**:
    - Product configuration
@@ -124,7 +120,7 @@ Configuration
    - Consistency maintenance
 
 Probabilistic Inference
---------------------
+-----------------------
 
 1. **Applications**:
    - Bayesian networks
@@ -137,9 +133,8 @@ Probabilistic Inference
    - MAP inference
 
 
-==========
 References
-===========
+==========
 
 - Darwiche, A., & Marquis, P. (2002). "A Knowledge Compilation Map."
   Journal of Artificial Intelligence Research, 17, 229-264.

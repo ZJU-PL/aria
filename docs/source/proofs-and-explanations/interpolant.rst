@@ -35,6 +35,7 @@ Programmatic usage
 
 .. code-block:: python
 
-   from aria.proof.interpolant import pysmt_interpolant
+   from aria.proof.interpolant import PySMTInterpolantSynthesizer
 
-   interpolant = pysmt_interpolant.get_interpolant(A, B)
+   synth = PySMTInterpolantSynthesizer()
+   # interpolant = synth.interpolate(A, B)

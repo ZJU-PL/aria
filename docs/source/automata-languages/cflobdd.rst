@@ -1,7 +1,7 @@
 CFL OBDD (Context-Free Language Ordered Binary Decision Diagrams)
-================================================================
+=================================================================
 
-The ``aria.cflobdd`` module implements **CFLOBVDD** (Context-Free Language Ordered Bitvector Decision Diagrams), a generalization of CFLOBDDs for efficient symbolic computation on bitvector formulas.
+The ``aria.automata.cflobdd`` module implements **CFLOBVDD** (Context-Free Language Ordered Bitvector Decision Diagrams), a generalization of CFLOBDDs for efficient symbolic computation on bitvector formulas.
 
 This module is adapted from the Selfie Project (University of Salzburg).
 
@@ -10,7 +10,7 @@ This module is adapted from the Selfie Project (University of Salzburg).
    :depth: 2
 
 Directory Structure
-----------------
+-------------------
 
 ```
 cflobdd/
@@ -170,12 +170,12 @@ Key Components
 Usage Examples
 --------------
 
-### CFLOBVDD API
-~~~~~~~~~~~~~~~
+CFLOBVDD API
+~~~~~~~~~~~~
 
 .. code-block:: python
 
-   from aria.cflobdd import CFLOBVDD
+   from aria.automata.cflobdd import CFLOBVDD
 
    # Factory methods
    cflobvdd = CFLOBVDD.constant(level=3, swap_level=2, fork_level=1, output=0)
@@ -195,12 +195,12 @@ Usage Examples
    # Print cache profile
    CFLOBVDD.print_profile()
 
-### BVDD API
-~~~~~~~~~~~~
+BVDD API
+~~~~~~~~
 
 .. code-block:: python
 
-   from aria.cflobdd.bvdd import SBDD_i2o
+   from aria.automata.cflobdd.bvdd import SBDD_i2o
 
    # Create constant
    sbdd = SBDD_i2o.constant(output_value=255)
@@ -217,12 +217,12 @@ Usage Examples
    reduced = sbdd.reduce_SBDD()
    reduced = sbdd.reduce_BVDD(index=0)
 
-### BTOR2 Parser
-~~~~~~~~~~~~~~
+BTOR2 Parser
+~~~~~~~~~~~~
 
 .. code-block:: python
 
-   from aria.cflobdd.btor2 import Parser
+   from aria.automata.cflobdd.btor2 import Parser
 
    parser = Parser()
    model = parser.parse_btor2(modelfile='model.btor2', outputfile='output.txt')
@@ -236,13 +236,13 @@ Usage Examples
    constraints = Constraint.constraints  # Dictionary of constraints
    bads = Bad.bads  # Dictionary of bad state properties
 
-### Solver Interface API
-~~~~~~~~~~~~~~~~~~
+Solver Interface API
+~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
    # Z3
-   from aria.cflobdd.z3interface import Z3_Solver
+   from aria.automata.cflobdd.z3interface import Z3_Solver
 
    z3_solver = Z3_Solver(print_message=print, LAMBDAS=lambdas, UNROLL=5)
    z3_solver.push()
@@ -253,13 +253,13 @@ Usage Examples
    result = z3_solver.is_SAT(result)
 
    # Bitwuzla (similar interface)
-   from aria.cflobdd.bitwuzlainterface import Bitwuzla_Solver
+   from aria.automata.cflobdd.bitwuzlainterface import Bitwuzla_Solver
 
    bitwuzla_solver = Bitwuzla_Solver(print_message=print, LAMBDAS=lambdas, UNROLL=5)
    # ... same methods as Z3_Solver
 
 Module Purpose Summary
---------------------
+----------------------
 
 The cflobdd module provides:
 
@@ -296,7 +296,7 @@ Size Statistics
 * Bitwuzla interface: ~514 lines
 
 Source Attribution
-----------------
+------------------
 
 Code adapted from Selfie Project (University of Salzburg) - `selfie.cs.uni-salzburg.at`
 

@@ -1,7 +1,7 @@
 from collections import namedtuple
-from bb import BB, get_bbs, bbEntry
+from .bb import BB, get_bbs, bbEntry
 from copy import copy
-from ast import AstAssert, AstAssume, AstHavoc, AstAssignment, AstGoto, \
+from .ast import AstAssert, AstAssume, AstHavoc, AstAssignment, AstGoto, \
   AstReturn, AstUnExpr, AstBinExpr, AstNumber, AstId, AstTrue, AstFalse
 
 # Program = Dict[str, BB]

@@ -3,9 +3,8 @@ SMT Solving for Finite Field
 
 .. _ff-solving:
 
-================
 Overview
-================
+========
 
 Finite field arithmetic is fundamental to many cryptographic protocols.
 
@@ -46,9 +45,9 @@ Syntax
 ^^^^^^
 
 +----------------------+----------------------------------------------+
-| SMT construct        | SMT-LIB syntax                                |
+| SMT construct        | SMT-LIB syntax                               |
 +======================+==============================================+
-| Logic String         | use `FF` for finite fields                    |
+| Logic String         | use `FF` for finite fields                   |
 |                      |                                              |
 |                      | ``(set-logic QF_FF)``                        |
 +----------------------+----------------------------------------------+
@@ -69,7 +68,7 @@ Syntax
 Examples
 ^^^^^^^^
 
-.. code:: smtlib
+.. code-block:: text
 
   (set-logic QF_FF)
   (set-info :status unsat)
@@ -79,7 +78,7 @@ Examples
   (check-sat)
   ; unsat
 
-.. code:: smtlib
+.. code-block:: text
 
   (set-logic QF_FF)
   (set-info :status sat)
@@ -98,9 +97,8 @@ Experimental features (may be removed in the future):
 * ``ff.bitsum``: n-ary operator for bitsums: ``(ff.bitsum x0 x1 x2)`` = :math:`x_0 + 2x_1 + 4x_2`
 * ``ff.neg``: unary negation
 
-================
 Implementation
-================
+==============
 
 Aria provides SMT solving over finite fields in the ``aria/smt/ff`` module with multiple encoding strategies:
 
@@ -138,9 +136,8 @@ The performance backend exposes two experiment-facing interfaces:
   selection, and bounded local algebra
 * ``trace()``: a per-round JSON-friendly refinement trace
 
-================
 Usage Example
-================
+=============
 
 .. code-block:: python
 

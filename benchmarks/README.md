@@ -1,63 +1,44 @@
 # Benchmarks Directory
 
-This directory contains benchmark files and test cases for the ARIA project.
-The benchmark files are primarily in SMT2 and SyGuS(Inv) format.
+This directory contains benchmark suites and test corpora for ARIA's solvers and verification engines.
 
+## Directories
 
+### efmc
 
-## efmc
-
-Program-verification benchmarks used by `aria/efmc` are grouped under
-`efmc/`:
+Program-verification benchmarks used by `aria/efmc`:
 
 - `efmc/Boogie/` - Boogie verification programs
 - `efmc/BV/` - Bit-vector verification benchmarks
-- `efmc/C/` - C verification programs
+- `efmc/C/` - C verification programs (see `efmc/C/README.md`)
 - `efmc/chc/` - Constrained Horn Clause benchmarks
 - `efmc/INT/` - Integer verification benchmarks
 - `efmc/KSafety/` - Relational and k-safety benchmarks
 - `efmc/sygus-inv/` - SyGuS invariant-synthesis benchmarks
 
-For more details on the C benchmarks, refer to `efmc/C/README.md`.
+### abduction
+SMT-LIB2 abduction benchmark instances.
 
-## Demo
-Contains demonstration Constraint Horn Clauses (CHC) files (in SMT-LIB2 format) showcasing basic examples:
-- `fib13_8u.smt2`, `fib10_8u.sm2`, `fib04_32u.smt2` - Fibonacci sequence examples with different bit-vector sizes
+### concolic
+Concolic execution benchmark manifests and targets (see `concolic/README.md`).
 
-## FP
+### dimacs
+Boolean SAT benchmark instances in DIMACS CNF format.
 
-Related work
+### fzn
+MiniZinc FlatZinc constraint optimization benchmarks.
 
+### FP
+Floating-point loop invariant synthesis benchmarks (including Pine benchmarks).
 
-- FP/pine-benchmarks: SAS 20: Counterexample- and Simulation-Guided
-Floating-Point Loop Invariant Synthesis.
-https://github.com/izycheva/pine
-- (TBD) Invariant Generation for Floating-Point Programs via Constraint Solving
-Xuran Cai, Liqian Chen, Hongfei Fu. https://arxiv.org/pdf/2507.15017v1
+### Polyhorn
+Polynomial Horn and termination benchmarks.
 
-## Polyhorn
+### qbf
+Quantified Boolean formula benchmarks in QDIMACS format.
 
-Solving "Exists-Forall" Problems over Non-linear Reals? (with applications in
-invariant infernce, ranking function synthesis, and non-linear loop synthesis, etc.)
+### smtlib2
+Standard SMT-LIB2 benchmark queries (EPR, finite fields, interpolation, optimization).
 
-It seems that polyhorn has been upgrated/renamed to "polyqent"
-- ATVA 2025:  PolyQEnt: A Polynomial Quantified Entailment Solver. https://github.com/ChatterjeeGroup-ISTA/polyqent
-- https://arxiv.org/pdf/2408.03796
-
-Baseline tools
-- Mathmematica
-- redlog
-- ...?
-
-
-## Separation Logic
-
-TBD
-
-- https://github.com/sl-comp/sl-comp.github.io
-
-## More Benchmarks
-
-- https://github.com/sosy-lab/sv-benchmarks/tree/master/clauses
-
-We can find much longer CHC instances (e.g., clauses/ALIA/sdv, where is from Microsfot's device driver verification instances.)
+### sygus-pbe
+Syntax-guided synthesis programming-by-example (PBE) benchmarks for strings and bit-vectors.

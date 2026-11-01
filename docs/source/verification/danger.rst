@@ -117,7 +117,7 @@ The danger invariant prover supports both signed and unsigned bit-vector interpr
 The signedness is determined from the transition system's configuration.
 
 Example: Proving Unsafety
---------------------------
+-------------------------
 
 Consider a program that increments a counter until it overflows:
 

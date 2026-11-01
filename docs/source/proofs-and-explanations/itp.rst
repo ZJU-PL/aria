@@ -1,5 +1,5 @@
-Interactive Theorem Proving (ITP)
-==============================
+Interactive Theorem Proving (ITP) [Archived]
+============================================
 
 **Note**: The ``aria.itp`` module has been removed from the repository.
 
@@ -18,7 +18,7 @@ This module served as a bridge between Python and various SMT (Satisfiability Mo
 - Utilities for simplification and rewriting
 
 Core Components
---------------
+---------------
 
 Solvers
 ~~~~~~~
@@ -31,7 +31,7 @@ A shim layer in ``smt.py`` that enables using different SMT solvers:
 
 You can select the solver by setting the ``KNUCKLE_SOLVER`` environment variable before import.
 
-.. code-block:: python
+.. code-block:: text
 
    import os
    os.environ["KNUCKLE_SOLVER"] = "cvc5"  # or "vampire"
@@ -49,7 +49,7 @@ The core logical system in ``kernel.py`` that ensures the soundness of proofs:
 - ``axiom()`` - Introduces an axiom (use with caution)
 - ``define()`` - Creates definitions with their corresponding axioms
 
-.. code-block:: python
+.. code-block:: text
 
    # Prove a theorem
    x = smt.Real('x')
@@ -68,7 +68,7 @@ Higher-level proof strategies in ``tactics.py``:
 - ``Calc`` - For equational reasoning
 - Various other tactics for common proof patterns
 
-.. code-block:: python
+.. code-block:: text
 
    @Lemma
    def square_positive(x):
@@ -95,7 +95,7 @@ Support for defining and working with complex data structures in ``datatype.py``
 - ``Inductive`` - For inductive datatypes
 - ``InductiveRel`` - For inductive relations
 
-.. code-block:: python
+.. code-block:: text
 
    # Define a list datatype
    List = Inductive("List")
@@ -117,7 +117,7 @@ Mathematical theories implemented in the ``theories`` directory:
 - Real analysis in ``real/``
 - Logical foundations in ``logic/``
 
-.. code-block:: python
+.. code-block:: text
 
    # Import a theory
    from aria.itp.theories import set
@@ -138,7 +138,7 @@ Helpers for writing mathematical formulas in ``notation.py``:
 - ``QExists`` - Existential quantifier with nicer syntax
 - ``cond`` - Conditionals
 
-.. code-block:: python
+.. code-block:: text
 
    # Define variables
    x = smt.Real('x')
@@ -157,7 +157,7 @@ Support for term rewriting in ``rewrite.py``:
 
 - ``simp`` - Simplifies terms according to rewrite rules
 
-.. code-block:: python
+.. code-block:: text
 
    # Define a term
    x = smt.Real('x')
@@ -167,12 +167,12 @@ Support for term rewriting in ``rewrite.py``:
    simplified = simp(term)  # x
 
 Advanced Features
-----------------
+-----------------
 
 Proofs by Induction
 ~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: python
+.. code-block:: text
 
    # Prove a property about list length
    @Lemma
@@ -194,9 +194,9 @@ Proofs by Induction
        return prove(P(xs), by=[base_case, inductive_case])
 
 Debugging Proofs
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
 
-.. code-block:: python
+.. code-block:: text
 
    try:
        proof = prove(complex_theorem, timeout=10000, dump=True)
@@ -204,7 +204,7 @@ Debugging Proofs
        print(f"Proof failed: {e}")
 
 External Solver Integration
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The module supports integrating with external provers through the ``solvers`` package:
 
@@ -212,7 +212,7 @@ The module supports integrating with external provers through the ``solvers`` pa
 - Other solvers like Gappa, EggLog, and APRove
 
 Configuration
-------------
+-------------
 
 Global configuration options in ``config.py``:
 
@@ -233,7 +233,7 @@ procedure for a two-sorted language (natural numbers + sets of naturals):
 AST-based usage
 ~~~~~~~~~~~~~~~
 
-.. code-block:: python
+.. code-block:: text
 
    from aria.itp.theories.logic.reverse_math_poc import (
        ExistsSet,
@@ -261,7 +261,7 @@ Text parser usage
 For scripts and CLI-like flows, formulas can be parsed from a compact
 S-expression DSL:
 
-.. code-block:: python
+.. code-block:: text
 
    from aria.itp.theories.logic.reverse_math_poc import (
        FiniteSecondOrderDecisionProcedure,
@@ -284,21 +284,21 @@ Supported parser operators include:
 - terms: integer literals, variables, and ``(+ t1 t2)``
 
 Installation
------------
+------------
 
 The module is part of the aria package. External solvers may need separate installation.
 See ``solvers/install.sh`` for installing supported external solvers.
 
 API Reference
-------------
+-------------
 
 Core Classes
-~~~~~~~~~~~
+~~~~~~~~~~~~
 
 Proof
 ^^^^^
 
-.. code-block:: python
+.. code-block:: text
 
    class Proof:
        def __init__(self, thm: smt.BoolRef, reason: list[Any], admit: bool = False)
@@ -316,12 +316,12 @@ Represents a proven theorem.
 - ``__call__(*args)``: Instance a universally quantified theorem with specific terms
 
 Core Functions
-~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
 
 prove
 ^^^^^
 
-.. code-block:: python
+.. code-block:: text
 
    def prove(thm: smt.BoolRef, by: Proof | Iterable[Proof] = [], 
              admit=False, timeout=1000, dump=False, solver=None) -> Proof
@@ -344,7 +344,7 @@ Attempts to prove a theorem using the specified SMT solver.
 axiom
 ^^^^^
 
-.. code-block:: python
+.. code-block:: text
 
    def axiom(thm: smt.BoolRef, by=["axiom"]) -> Proof
 
@@ -362,7 +362,7 @@ Declares an axiom (use with caution).
 define
 ^^^^^^
 
-.. code-block:: python
+.. code-block:: text
 
    def define(name: str, args: list[smt.ExprRef], body: smt.ExprRef, 
               lift_lambda=False) -> smt.FuncDeclRef

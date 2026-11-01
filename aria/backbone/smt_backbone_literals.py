@@ -37,6 +37,7 @@ def get_backbone_literals_by_sequence_checking(fml: ExprRef, literals: List[Expr
         if solver.check() == unsat:
             res.append(literal)
         solver.pop()
+    return res
 
 
 def get_backbone_literals_by_model_enumeration(fml: ExprRef, literals: List[ExprRef]):

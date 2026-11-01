@@ -1,5 +1,5 @@
 K-Safety Verification
-======================
+=====================
 
 Overview
 --------
@@ -121,7 +121,7 @@ Differential Privacy
 
 Ensures bounded change in outputs under bounded change in inputs:
 
-∀t₁, t₂. |inputs₁ - inputs₂| ≤ δ → |outputs₁ - outputs₂| ≤ ε
+``∀t₁, t₂. |inputs₁ - inputs₂| ≤ δ → |outputs₁ - outputs₂| ≤ ε``
 
 Program Equivalence
 ~~~~~~~~~~~~~~~~~~~

@@ -16,7 +16,7 @@ Directory structure
    └── smt_exceptions.py    # SMTError / SmtlibError / SolverError hierarchy
 
 PySMTSolver
-------------
+-----------
 
 ``PySMTSolver`` extends ``z3.Solver`` with PySMT-backed capabilities.
 
@@ -43,7 +43,7 @@ PySMTSolver
   ``FNode`` variables (supports Int, Real, BitVector, Boolean)
 
 SyGuS Solver
--------------
+------------
 
 The ``sygus_solver`` module encodes synthesis problems in the SyGuS format,
 invokes CVC5, and maps results back to Z3 expressions.

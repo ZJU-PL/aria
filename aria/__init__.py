@@ -37,9 +37,12 @@ import os
 # Version detection
 from importlib.metadata import version as _version
 try:
-    __version__ = _version("aria")
+    __version__ = _version("pyaria")
 except Exception:
-    __version__ = "0.1.0"
+    try:
+        __version__ = _version("aria")
+    except Exception:
+        __version__ = "0.2.0"
 
 # Debug flag - can be set via environment variable ARIA_DEBUG
 ARIA_DEBUG = os.environ.get("ARIA_DEBUG", "False").lower() in ("true", "1", "yes")
@@ -57,23 +60,18 @@ __all__ = [
     "allsmt",        # AllSMT (enumerate all satisfying models)
     "automata",      # Automata operations
     "backbone",      # Backbone literal computation
-    "cfl",           # Context-free language operations
-    "cflobdd",       # CFL-OBDD data structures
+    "concolic",      # Native Python concolic testing
     "counting",      # Model counting
     "datalog",       # Datalog and logic-programming components
-    "fol",           # First-order logic
-    "itp",           # Interactive theorem proving
+    "efmc",          # Program verification frontends and engines
+    "ml",            # Machine learning and LLM-assisted reasoning
     "scsat",         # Shared-context batched satisfiability
-    "prob",          # Probability and probabilistic reasoning
     "sampling",      # Sampling operations
     "symabs",        # Symbolic abstraction
     "synthesis",     # Program synthesis
-    "translator",    # Translation utilities
-    "unification",   # Unification algorithms
-    # Utilities
-    "utils",         # General utilities
+    "volumn",        # Volume computation for polytopes
+    # CLI
     "cli",           # Command-line interface
-    "global_params", # Global parameters
 ]
 
 # Keep subpackages importable without forcing optional dependency trees.

@@ -103,14 +103,13 @@ if __name__ == "__main__":
         # else:
         print("Level", lvlName, "solved: ", solved, "confirmed?: ", conf_status)
 
-if args.csv_table:
     if args.csv_table:
         print("Level,Solved,Confirmed")
-    for lvlName in res:
-        print(
-            lvlName,
-            ",",
-            res[lvlName][0],
-            ",",
-            conf[lvlName] if lvlName in conf else "N/A",
-        )
+        for lvlName in res:
+            print(
+                lvlName,
+                ",",
+                res[lvlName][0],
+                ",",
+                conf[lvlName] if lvlName in conf else "N/A",
+            )

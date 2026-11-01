@@ -2,7 +2,10 @@
 # TODO: move the material here into a config file format with library support, say json or toml
 
 import os
-import importlib_resources
+try:
+    import importlib.resources as importlib_resources
+except ImportError:
+    import importlib_resources
 
 # SyGuS solver that supports only ground constraints and uses constraint-solving methods
 minisy = "minisy"
@@ -21,6 +24,6 @@ verbose = 5
 analytics = False
 ###############################################################################
 
-log_file_path = os.path.abspath(importlib_resources.files("lemsynth") / "../logs")
+log_file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../logs"))
 
 debug = True

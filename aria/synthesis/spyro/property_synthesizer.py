@@ -9,7 +9,7 @@ from aria.synthesis.spyro.util import union_dict
 from aria.synthesis.spyro.input_generator import InputGenerator
 from aria.synthesis.spyro.output_parser import OutputParser
 
-CONFIG_FILE = "config.ini"
+CONFIG_FILE = os.path.join(os.path.dirname(__file__), "config.ini")
 
 config = configparser.ConfigParser()
 config.read(CONFIG_FILE)

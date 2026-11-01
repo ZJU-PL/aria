@@ -3,240 +3,82 @@
 Verification Tools
 ==================
 
-The ``verifytools`` module provides supporting infrastructure for verification, including intermediate representations, verification condition generation, and integration with external tools.
+The ``aria.efmc.verifytools`` module provides internal supporting infrastructure
+for verification workflows in EFMC, including intermediate representations,
+Boogie AST and control-flow abstractions, and verification condition helpers.
 
 Architecture
 ------------
 
-.. code-block::
+.. code-block:: text
 
-   efmc/verifytools/
-   ├── common/               # Common utilities and AST
-   │   ├── ast.py           # Abstract syntax tree definitions
-   │   ├── parser.py        # Common parser utilities
-   │   └── util.py          # Utility functions
-   ├── boogie/              # Boogie-specific tooling
-   │   ├── ast.py           # Boogie AST
-   │   ├── bb.py            # Basic block analysis
+   aria/efmc/verifytools/
+   ├── common/               # Common utilities and base AST
+   │   ├── ast.py           # Base AstNode definition
+   │   ├── parser.py        # Parser base classes (Parser, InfixExprParser)
+   │   └── util.py          # Error handling and parsing utilities
+   ├── boogie/              # Boogie program AST and CFG analysis
+   │   ├── ast.py           # Boogie AST nodes (AstProgram, AstStmt, AstExpr)
+   │   ├── bb.py            # Basic block graph extraction (get_bbs, BB)
    │   ├── eval.py          # Expression evaluation
-   │   ├── grammar.py       # Boogie grammar
-   │   ├── interp.py        # Interpreter
-   │   ├── paths.py         # Path analysis
-   │   ├── predicate_transformers.py  # Predicate transformers
-   │   ├── ssa.py           # Static single assignment
-   │   ├── analysis.py      # Static analysis
+   │   ├── grammar.py       # Boogie grammar rules
+   │   ├── interp.py        # Abstract interpreter
+   │   ├── paths.py         # Path enumeration
+   │   ├── predicate_transformers.py  # Weakest precondition/postcondition
+   │   ├── ssa.py           # SSA conversion helpers
+   │   ├── analysis.py      # Flow analysis
    │   ├── inv_networks.py  # Invariant networks
-   │   └── z3_embed.py      # Z3 embedding
-   ├── tools/               # Verification tools
-   │   ├── vc_check.py      # Verification condition checking
-   │   ├── desugar.py       # Desugaring utilities
-   │   ├── tryAndVerify.py  # Try-and-verify strategy
-   │   ├── conversions.py   # Format conversions
-   │   ├── boogie_loops.py  # Loop extraction
-   │   ├── levels.py        # Level management
-   │   ├── run_ice.py       # ICE-based generation
-   │   ├── run_invgen.py    # Invariant generation runner
-   │   └── run_daikon.py    # Daikon integration
-   ├── daikon/              # Daikon invariant detector
-   │   ├── inv_ast.py       # Invariant AST
-   │   └── inv_grammar.py   # Invariant grammar
-   ├── cpachecker/          # CPAchecker integration
-   │   └── dummy.h          # Stub header
-   └── invgen/              # Invariant generation utilities
+   │   └── z3_embed.py      # Z3 SMT-LIB2 embedding helpers
+   └── tools/               # Verification script tooling
+       ├── vc_check.py      # Verification condition checking (tryAndVerifyLvl)
+       ├── desugar.py       # Desugaring utilities for Boogie
+       ├── tryAndVerify.py  # Try-and-verify CLI driver
+       ├── conversions.py   # Format conversion helpers
+       ├── boogie_loops.py  # Loop extraction from CFGs
+       └── levels.py        # Level set management
 
-Common Utilities
-----------------
+Common AST and Utilities
+------------------------
 
-The ``common`` subpackage provides shared utilities:
+Base class for structural AST nodes:
 
 .. code-block:: python
 
-   from aria.efmc.verifytools.common.ast import Expr, Stmt
-   from aria.efmc.verifytools.common.parser import parse_formula
-   from aria.efmc.verifytools.common.util import simplify
+   from aria.efmc.verifytools.common.ast import AstNode
 
-Common AST
-~~~~~~~~~~
+   class CustomNode(AstNode):
+       def __init__(self, left, right):
+           super().__init__(left, right)
 
-Base classes for abstract syntax trees:
+Boogie AST and Basic Blocks
+---------------------------
 
-.. code-block:: python
-
-   from aria.efmc.verifytools.common.ast import (
-       Expr,      # Base expression class
-       Stmt,      # Base statement class
-       Var,       # Variable reference
-       Const,     # Constant
-       BinOp,     # Binary operation
-       UnOp,      # Unary operation
-   )
-
-   # Create expressions
-   x = Var("x")
-   expr = BinOp("+", x, Const(1))
-
-Common Parser
-~~~~~~~~~~~~~
-
-Utility functions for parsing formulas:
+Parsing Boogie programs and extracting basic blocks:
 
 .. code-block:: python
 
-   from aria.efmc.verifytools.common.parser import parse_formula
+   from aria.efmc.verifytools.boogie.ast import parseAst, parseExprAst
+   from aria.efmc.verifytools.boogie.bb import get_bbs
 
-   # Parse from string
-   formula = parse_formula("x + y > 0")
+   # Parse Boogie expression AST
+   expr = parseExprAst("x + 1 > 0")
 
-Boogie Frontend Tools
----------------------
+   # Parse program AST from source
+   # program = parseAst(source_code)
+   # bbs, order = get_bbs(implementation)
 
-The ``boogie`` subpackage provides tools for working with Boogie programs:
+Loop and Invariant Verification
+-------------------------------
 
-AST and Interpretation
-~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: python
-
-   from aria.efmc.verifytools.boogie.ast import BoogieProgram, Procedure
-   from aria.efmc.verifytools.boogie.interp import BoogieInterpreter
-
-   # Parse Boogie program
-   program = BoogieProgram.from_file("program.bpl")
-
-   # Run interpreter
-   interp = BoogieInterpreter(program)
-   result = interp.run_procedure("main")
-
-Basic Block Analysis
-~~~~~~~~~~~~~~~~~~~~
+The ``tools`` package provides verification condition checking over extracted loops:
 
 .. code-block:: python
 
-   from aria.efmc.verifytools.boogie.bb import BasicBlockAnalyzer
+   from aria.efmc.verifytools.tools.levels import loadBoogieLvlSet
+   from aria.efmc.verifytools.tools.vc_check import tryAndVerifyLvl
 
-   analyzer = BasicBlockAnalyzer(program)
-   blocks = analyzer.get_basic_blocks("procedure_name")
-
-Static Single Assignment (SSA)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: python
-
-   from aria.efmc.verifytools.boogie.ssa import to_ssa
-
-   ssa_program = to_ssa(program)
-
-Predicate Transformers
-~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: python
-
-   from aria.efmc.verifytools.boogie.predicate_transformers import (
-       wp,  # Weakest precondition
-       sp,  # Strongest postcondition
-   )
-
-   # Compute weakest precondition
-   wp_expr = wp(statement, postcondition)
-
-Z3 Integration
-~~~~~~~~~~~~~~
-
-.. code-block:: python
-
-   from aria.efmc.verifytools.boogie.z3_embed import BoogieToZ3
-
-   converter = BoogieToZ3()
-   z3_expr = converter.convert(boogie_expr)
-
-Verification Condition Generation
----------------------------------
-
-The ``tools`` subpackage provides verification condition generation:
-
-Verification Condition Checking
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: python
-
-   from aria.efmc.verifytools.tools.vc_check import check_vc
-
-   result = check_vc(vc_formula, solver="z3")
-
-Try-and-Verify Strategy
-~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: python
-
-   from aria.efmc.verifytools.tools.tryAndVerify import TryAndVerify
-
-   strategy = TryAndVerify(max_iterations=100)
-   result = strategy.verify(transition_system)
-
-Desugaring
-~~~~~~~~~~
-
-.. code-block:: python
-
-   from aria.efmc.verifytools.tools.desugar import desugar_program
-
-   simplified = desugar_program(program)
-
-Format Conversions
-~~~~~~~~~~~~~~~~~~
-
-.. code-block:: python
-
-   from aria.efmc.verifytools.tools.conversions import (
-       chc_to_smtlib,
-       smtlib_to_chc,
-   )
-
-Daikon Integration
-------------------
-
-The ``daikon`` subpackage provides integration with the Daikon invariant detector:
-
-.. code-block:: python
-
-   from aria.efmc.verifytools.daikon.inv_grammar import InvGrammar
-   from aria.efmc.verifytools.daikon.inv_ast import Invariant
-
-   # Create invariant grammar
-   grammar = InvGrammar()
-
-   # Detect invariants from traces
-   invariants = grammar.detect(traces)
-
-CPAchecker Integration
-----------------------
-
-The ``cpachecker`` subpackage provides integration with CPAchecker:
-
-.. code-block:: python
-
-   from aria.efmc.verifytools.cpachecker import run_cpachecker
-
-   result = run_cpachecker(
-       program="program.c",
-       spec="safety.prp",
-       timeout=300
-   )
-
-ICE-based Invariant Generation
-------------------------------
-
-The ICE (Counterexample-Driven, Consistency, Efficiency) learning strategy:
-
-.. code-block:: python
-
-   from aria.efmc.verifytools.tools.run_ice import ICEGenerator
-
-   generator = ICEGenerator()
-   invariants = generator.learn(
-       transition_system,
-       max_samples=1000
-   )
+   # Load benchmark levels
+   # lvl_set_name, lvls = loadBoogieLvlSet("benchmark_set")
 
 API Reference
 -------------
@@ -261,22 +103,7 @@ API Reference
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: aria.efmc.verifytools.boogie.interp
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. automodule:: aria.efmc.verifytools.tools.vc_check
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. automodule:: aria.efmc.verifytools.daikon.inv_ast
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. automodule:: aria.efmc.verifytools.daikon.inv_grammar
+.. automodule:: aria.efmc.verifytools.boogie.bb
    :members:
    :undoc-members:
    :show-inheritance:

@@ -1,5 +1,5 @@
 Symbolic Abstraction
-======================
+====================
 
 Symbolic abstraction is a technique that computes the best abstract domain element
 that overapproximates a given formula in first-order logic. It serves as a bridge between
@@ -15,9 +15,10 @@ This abstraction preserves important properties (like satisfiability) while disc
 unnecessary details that would make analysis computationally expensive.
 
 
-======
+
 Overview
-======
+--------
+
 
 Aria's symbolic abstraction module (``aria/symabs``) provides a comprehensive suite
 of abstraction techniques for program analysis and verification. The module is organized
@@ -35,9 +36,10 @@ Each approach offers different trade-offs between precision, scalability, and ap
 to different problem domains.
 
 
-========================================
+
 EFMC Symbolic Abstraction Prover
-========================================
+--------------------------------
+
 
 The EFMC symbolic abstraction prover uses symbolic abstraction as a verification
 engine that computes a fixpoint in a chosen abstract domain.
@@ -80,12 +82,14 @@ Programmatic usage:
        print(result.invariant)
 
 
-===============
+
 Core Concepts
-===============
+-------------
+
 
 Abstract Domain
----------------
+~~~~~~~~~~~~~~~
+
 
 An abstract domain defines the lattice structure and operations for abstract elements:
 
@@ -101,14 +105,16 @@ The ``gamma_hat`` function translates an abstract element back to a concrete for
 while the ``join`` operation computes the least upper bound in the abstract lattice.
 
 Concretization and Abstraction
--------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 - **Concretization** (γ̂): Maps abstract elements to concrete formulas
 - **Abstraction**: Maps concrete formulas to abstract elements
 - **Galois Connection**: The pair (α, γ̂) forms a Galois connection if α(γ̂(α̂)) = α̂
 
 Precision Metrics
-----------------
+~~~~~~~~~~~~~~~~~
+
 
 The quality of an abstraction is measured by:
 
@@ -117,19 +123,22 @@ The quality of an abstraction is measured by:
 - **Expressiveness**: Ability to capture important program properties
 
 
-============================
+
 Abstract Interpretation (ai_symabs)
-============================
+-----------------------------------
+
 
 The ``ai_symabs`` submodule implements classic abstract interpretation domains based on
 Thakur's PhD thesis. It provides a framework for computing symbolic abstractions using
 various abstract domains.
 
 Supported Abstract Domains
---------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**Interval Domain**
-~~~~~~~~~~~~~~~~~~~
+
+Interval Domain
+~~~~~~~~~~~~~~~
+
 
 The interval domain represents variable ranges using lower and upper bounds:
 
@@ -143,8 +152,9 @@ The interval domain represents variable ranges using lower and upper bounds:
    # Abstract state represents: x ∈ [0, 10], y ∈ [-5, 5]
    # This concretizes to: 0 ≤ x ∧ x ≤ 10 ∧ -5 ≤ y ∧ y ≤ 5
 
-**Sign Domain**
-~~~~~~~~~~~~~~~
+Sign Domain
+~~~~~~~~~~~
+
 
 The sign domain tracks the sign of variables (negative, zero, positive):
 
@@ -155,8 +165,9 @@ The sign domain tracks the sign of variables (negative, zero, positive):
    # Sign domain for variable 'x'
    # Possible abstract values: -, 0, +, T (top)
 
-**Reduced Product Domain**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Reduced Product Domain
+~~~~~~~~~~~~~~~~~~~~~~
+
 
 Combines multiple domains for better precision:
 
@@ -168,10 +179,12 @@ Combines multiple domains for better precision:
    combined = ReducedProductDomain([interval_domain, sign_domain])
 
 Abstraction Algorithms
----------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
-**Bilateral Algorithm**
-~~~~~~~~~~~~~~~~~~~~~~~
+
+Bilateral Algorithm
+~~~~~~~~~~~~~~~~~~~
+
 
 The bilateral algorithm efficiently computes abstractions by working with both the
 positive and negative forms of the formula:
@@ -183,8 +196,9 @@ positive and negative forms of the formula:
    # Compute abstraction using bilateral algorithm
    abstract_state = bilateral(concrete_formula, domain)
 
-**RSY Algorithm**
-~~~~~~~~~~~~~~~~
+RSY Algorithm
+~~~~~~~~~~~~~
+
 
 Recursive abstraction refinement algorithm that iteratively improves precision:
 
@@ -196,23 +210,26 @@ Recursive abstraction refinement algorithm that iteratively improves precision:
    abstract_state = RSY(concrete_formula, domain)
 
 
-============================
+
 OMT-based Symbolic Abstraction (omt_symabs)
-============================
+-------------------------------------------
+
 
 The ``omt_symabs`` submodule uses Optimization Modulo Theory (OMT) solvers to compute
 optimal abstractions. This approach leverages modern OMT engines like Z3's optimizer
 to find the best abstract representation.
 
 Key Features
-------------
+~~~~~~~~~~~~
+
 
 - **Optimal Abstractions**: Computes the most precise abstraction within the domain
 - **Multiple Domains**: Supports intervals, zones, and octagons
 - **Theory Support**: Handles both linear arithmetic (LIA/LRA) and bit-vectors
 
 Linear Arithmetic Abstraction
-----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 .. code-block:: python
 
@@ -231,7 +248,8 @@ Linear Arithmetic Abstraction
    zone_abs = symabs.compute_zone_abstraction()
 
 Bit-Vector Abstraction
----------------------
+~~~~~~~~~~~~~~~~~~~~~~
+
 
 .. code-block:: python
 
@@ -247,16 +265,18 @@ Bit-Vector Abstraction
    abstract_state = bv_symabs.compute_abstraction()
 
 
-===============================
+
 Predicate Abstraction (predicate_abstraction)
-===============================
+---------------------------------------------
+
 
 Predicate abstraction computes the strongest Boolean combination of given predicates
 that is entailed by the concrete formula. This approach is particularly effective for
 software verification tasks.
 
 Core Algorithm
---------------
+~~~~~~~~~~~~~~
+
 
 The predicate abstraction algorithm works by:
 
@@ -266,7 +286,7 @@ The predicate abstraction algorithm works by:
 
 .. code-block:: python
 
-   from aria.symabs.predicate_abstraction.predicate_abstraction import compute_predicate_abstraction
+   from aria.symabs.predicate_abstraction.predicate_abstraction import predicate_abstraction
 
    # Define predicates
    predicates = [x > 0, y > 0, x + y < 10]
@@ -275,16 +295,18 @@ The predicate abstraction algorithm works by:
    concrete_formula = z3.And(x > 5, y > 3, x + y < 8)
 
    # Compute predicate abstraction
-   abstract_formula = compute_predicate_abstraction(concrete_formula, predicates)
+   abstract_formula = predicate_abstraction(concrete_formula, predicates)
    # Result: x > 0 ∧ y > 0 ∧ x + y < 10 (strongest consequence)
 
 
-========================
+
 Additional Components
-========================
+---------------------
+
 
 Model Counting-based Abstract Interpretation (mcai)
----------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 The ``mcai`` submodule combines model counting with abstract interpretation to provide
 precision metrics and analysis for different abstract domains. This is particularly
@@ -295,25 +317,29 @@ useful for:
 - Bit-vector formula analysis
 
 Additional package notes
-------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 Some older descriptions of this package mentioned extra submodules that are not
 part of the current documented surface. For the authoritative package map,
 prefer ``aria/symabs/README.md``.
 
 Range Set SAT-based Abstraction (rangeset)
-------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 The ``rangeset`` submodule provides SAT-based abstraction techniques for range
 and set operations over bit-vectors.
 
 
-===============
+
 Usage Examples
-===============
+--------------
+
 
 Basic Symbolic Abstraction
---------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 .. code-block:: python
 
@@ -336,7 +362,8 @@ Basic Symbolic Abstraction
    print(f"Abstract state concretizes to: {concrete_repr}")
 
 OMT-based Abstraction
---------------------
+~~~~~~~~~~~~~~~~~~~~~
+
 
 .. code-block:: python
 
@@ -356,12 +383,13 @@ OMT-based Abstraction
    print(f"Interval abstraction: {interval_abs}")
 
 Predicate Abstraction Example
-----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 .. code-block:: python
 
    import z3
-   from aria.symabs.predicate_abstraction.predicate_abstraction import compute_predicate_abstraction
+   from aria.symabs.predicate_abstraction.predicate_abstraction import predicate_abstraction
 
    # Define variables and predicates
    x, y = z3.Ints('x y')
@@ -371,52 +399,59 @@ Predicate Abstraction Example
    concrete = z3.And(x >= 5, y >= 3, x + y <= 8)
 
    # Compute abstraction
-   abstract = compute_predicate_abstraction(concrete, predicates)
+   abstract = predicate_abstraction(concrete, predicates)
    print(f"Predicate abstraction: {abstract}")
 
 
 
-==============
+
 Applications
-==============
+------------
+
 
 Symbolic abstraction techniques find applications in various domains:
 
 Program Verification
---------------------
+~~~~~~~~~~~~~~~~~~~~
+
 
 - **Software Model Checking**: Abstract program states to enable scalable verification
 - **Shape Analysis**: Abstract heap structures and pointer relationships
 - **Numerical Program Analysis**: Abstract numerical computations for overflow/underflow detection
 
 Security Analysis
-----------------
+~~~~~~~~~~~~~~~~~
+
 
 - **Information Flow Analysis**: Abstract security levels and taint propagation
 - **Cryptographic Protocol Verification**: Abstract cryptographic operations
 - **Buffer Overflow Detection**: Abstract memory operations and bounds checking
 
 Hardware Verification
---------------------
+~~~~~~~~~~~~~~~~~~~~~
+
 
 - **Bit-Vector Abstraction**: Abstract bit-level operations for hardware verification
 - **Range Analysis**: Abstract value ranges for timing and power analysis
 - **Equivalence Checking**: Abstract circuit behaviors for equivalence verification
 
 Optimization and Synthesis
---------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 - **Compiler Optimizations**: Abstract program semantics for optimization
 - **Program Synthesis**: Abstract specifications for synthesis tasks
 - **Test Generation**: Abstract program paths for test case generation
 
 
-==============================
+
 Performance Considerations
-==============================
+--------------------------
+
 
 Choosing the Right Approach
----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 **When to use ai_symabs:**
 
@@ -440,7 +475,8 @@ Choosing the Right Approach
 - Counterexample-guided abstraction refinement (CEGAR)
 
 Scalability Trade-offs
----------------------
+~~~~~~~~~~~~~~~~~~~~~~
+
 
 - **Precision vs. Scalability**: OMT provides highest precision but scales poorly
 - **Domain Selection**: Interval domains offer good precision/scalability balance
@@ -448,12 +484,14 @@ Scalability Trade-offs
 - **Parallelization**: Many abstraction algorithms can be parallelized
 
 
-=======
+
 Future Directions
-=======
+-----------------
+
 
 Research Areas
---------------
+~~~~~~~~~~~~~~
+
 
 1. **Theory Development**:
    - New abstract domains for emerging computing paradigms
@@ -476,12 +514,14 @@ Research Areas
    - Cyber-physical systems verification
 
 
-===========
+
 References
-===========
+----------
+
 
 Core Theory
------------
+~~~~~~~~~~~
+
 
 - **Thakur, A. V.** (2014). *Symbolic Abstraction: Algorithms and Applications*. Ph.D. dissertation, University of Wisconsin-Madison. https://www.cs.wisc.edu/~aws/pubs/thesis.pdf
 
@@ -490,7 +530,8 @@ Core Theory
 - **Graf, S., & Saïdi, H.** (1997). *Construction of abstract state graphs with PVS*. CAV'97.
 
 Abstract Interpretation
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~~
+
 
 - **Cousot, P., Cousot, R., & Logozzo, F.** (2013). *A parametric segmentation functor for fully automatic and scalable array content analysis*. POPL'13.
 
@@ -499,14 +540,16 @@ Abstract Interpretation
 - **Singh, G., Püschel, M., & Vechev, M.** (2015). *Fast numerical program analysis with reinforcement learning*. CAV'15.
 
 OMT-based Abstraction
---------------------
+~~~~~~~~~~~~~~~~~~~~~
+
 
 - **Sebastiani, R., & Trentin, P.** (2015). *OPTIMathSAT: a tool for optimization modulo theories*. CAV'15.
 
 - **Borralleras, C., Larraz, D., Oliveras, A., Rodríguez-Carbonell, E., & Rubio, A.** (2019). *The iSAT solver*. TACAS'19.
 
 Predicate Abstraction
----------------------
+~~~~~~~~~~~~~~~~~~~~~
+
 
 - **Graf, S., & Saïdi, H.** (1997). *Construction of abstract state graphs with PVS*. CAV'97.
 
@@ -515,7 +558,8 @@ Predicate Abstraction
 - **Henzinger, T. A., Jhala, R., Majumdar, R., & McMillan, K. L.** (2004). *Abstractions from proofs*. POPL'04.
 
 Applications and Case Studies
-----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 - **Chen, Y., Wang, Y., Zhu, Z., Song, L., & Zhang, L.** (2021). *Program Analysis via Efficient Symbolic Abstraction*. OOPSLA'21.
 

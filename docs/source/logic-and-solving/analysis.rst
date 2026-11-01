@@ -15,21 +15,21 @@ Directory structure
    └── qbf.py       # QBF-specific analysis
 
 CNF Analysis
--------------
+------------
 
 ``cnf.py`` computes structural metrics over CNF formulas, such as clause
 length distributions, variable occurrence counts, and related statistics
 used for understanding formula structure and hardness.
 
 Metrics
---------
+-------
 
 ``metrics.py`` provides general-purpose metrics over Boolean formulas,
 complementing the feature extraction in ``aria.bool.features`` with lighter-weight
 structural measurements.
 
 QBF Analysis
--------------
+------------
 
 ``qbf.py`` offers analysis utilities specific to Quantified Boolean Formulas,
 such as quantifier depth evaluation, variable dependency analysis, and
@@ -40,6 +40,7 @@ Programmatic usage
 
 .. code-block:: python
 
-   from aria.bool.analysis.cnf import analyse_cnf
+   from aria.bool.analysis.cnf import analyze_cnf
 
-   metrics = analyse_cnf(cnf_clauses)
+   from pysat.formula import CNF
+   metrics = analyze_cnf(CNF(from_clauses=[[1, 2], [-1, 3]]))

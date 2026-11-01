@@ -1,5 +1,5 @@
 Three-Valued Logic
-===================
+==================
 
 ``aria.bool.threeval`` implements propositional reasoning in Kleene's
 three-valued logic, where propositions can be ``true``, ``false``, or
@@ -17,7 +17,7 @@ Directory structure
    └── minimization.py     # Formula minimisation techniques
 
 Three-valued semantics
------------------------
+----------------------
 
 Formulas are evaluated under Kleene strong three-valued logic:
 

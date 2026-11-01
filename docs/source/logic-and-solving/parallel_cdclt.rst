@@ -1,10 +1,9 @@
 Parallel SMT CDCL(T) Solving
-=================================
+============================
 
 
-==========
 CDCL(T)
-==========
+=======
 
 
 CDCL(T) stands for Conflict-Driven Clause Learning modulo Theory, which is a powerful
@@ -19,12 +18,10 @@ pure propositional logic.
 
 
 
-==========
 Parallel CDCL(T)
-==========
+================
 
 
-==========
 How to Use
 ==========
 
@@ -33,9 +30,8 @@ How to Use
 2. Install the package and its dependencies: ``pip install -e .`` (see ``pyproject.toml``).
 
 
-============
 Related Work
-=============
+============
 
 
 Refer to the following links for related work:

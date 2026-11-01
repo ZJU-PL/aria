@@ -14,6 +14,6 @@ Example:
     >>> # Use the theorem prover
 """
 
-from ...fol import miniprover
+from . import miniprover
 
 __all__ = ["miniprover"]

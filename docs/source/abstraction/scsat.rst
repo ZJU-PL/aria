@@ -1,5 +1,5 @@
 Shared-Context Batched Satisfiability
-======================================
+=====================================
 
 ``aria.scsat`` provides shared-context batched satisfiability utilities for
 checking, for each predicate in a set, whether it is compatible with a given
@@ -26,8 +26,8 @@ Example imports
 
 .. code-block:: python
 
-   from aria.scsat.cores.unary_check import unary_check
-   from aria.scsat.cores.dis_check import disjunctive_check_cached
+   from aria.scsat.cores.unary_check_pysmt import unary_check
+   from aria.scsat.cores.dis_check_pysmt import disjunctive_check_cached
 
 Overview
 --------

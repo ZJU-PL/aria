@@ -8,7 +8,7 @@ Installation
 
 .. code-block:: bash
 
-   pip install aria
+   pip install pyaria
 
 For local development:
 

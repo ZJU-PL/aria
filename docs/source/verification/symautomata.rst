@@ -14,6 +14,7 @@ Core Components
 DFA (Deterministic Finite Automata)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+
 The DFA implementation provides multiple backends for maximum compatibility:
 
 .. automodule:: aria.automata.symautomata.dfa
@@ -63,6 +64,7 @@ The DFA implementation provides multiple backends for maximum compatibility:
 
 SFA (Symbolic Finite Automata)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 .. automodule:: aria.automata.symautomata.sfa
    :members:
@@ -130,7 +132,8 @@ Symbolic Finite Automata extend traditional DFAs by using predicates on transiti
    symbolic[1].final = True
 
 PDA (Pushdown Automata)
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+
 
 .. automodule:: aria.automata.symautomata.pda
    :members:
@@ -148,8 +151,10 @@ Pushdown Automata extend finite automata with a stack, enabling recognition of c
 Utility Modules
 ---------------
 
+
 Alphabet Management
-~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+
 
 .. automodule:: aria.automata.symautomata.alphabet
    :members:
@@ -172,7 +177,8 @@ The alphabet module provides flexible alphabet creation and management:
    alpha3 = createalphabet("my_alphabet.txt")
 
 Regular Expression Processing
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 .. automodule:: aria.automata.symautomata.regex
    :members:
@@ -190,7 +196,8 @@ The regex module implements the Brzozowski algebraic method for converting DFAs 
    regex_string = converter.get_regex()
 
 Brzozowski Algorithm
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+
 
 .. automodule:: aria.automata.symautomata.brzozowski
    :members:
@@ -208,10 +215,12 @@ Implements Brzozowski's algebraic method for regular expression derivation:
    regex_map = brz.get_regex()
 
 Advanced Features
-----------------
+-----------------
+
 
 Context-Free Grammar Support
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 .. automodule:: aria.automata.symautomata.cfggenerator
    :members:
@@ -230,7 +239,8 @@ The module includes comprehensive support for context-free grammars:
 * **String generation**: Generate strings from CFG rules
 
 Flex Integration
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+
 
 .. automodule:: aria.automata.symautomata.flex2fst
    :members:
@@ -248,12 +258,14 @@ Integration with Flex (Fast Lexical Analyzer) for converting lexical specificati
    dfa = parser.yyparse("lexer.l")
 
 Implementation Backends
-----------------------
+-----------------------
+
 
 The module provides multiple implementation backends for different use cases:
 
 Pure Python Backend
-~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+
 
 .. automodule:: aria.automata.symautomata.pythondfa
    :members:
@@ -265,7 +277,8 @@ Pure Python Backend
 * **Features**: Complete DFA operations, Hopcroft minimization
 
 OpenFST Backend
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+
 
 .. automodule:: aria.automata.symautomata.pywrapfstdfa
    :members:
@@ -277,7 +290,8 @@ OpenFST Backend
 * **Features**: Optimized operations, large-scale automata support
 
 String Analysis
---------------
+---------------
+
 
 .. automodule:: aria.automata.symautomata.pdastring
    :members:
@@ -291,10 +305,12 @@ Advanced string analysis capabilities using state removal algorithms:
 * **String generation**: Generate strings accepted by automata
 
 Performance Considerations
--------------------------
+--------------------------
+
 
 Backend Selection
-~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+
 
 The module automatically selects the best available backend:
 
@@ -309,17 +325,20 @@ For optimal performance:
 * Consider alphabet size when choosing predicates vs. explicit transitions
 
 Memory Usage
-~~~~~~~~~~~
+~~~~~~~~~~~~
+
 
 * **Symbolic representations**: Use SFA for large alphabets
 * **Minimization**: Apply minimization to reduce state count
 * **Alphabet optimization**: Use custom alphabets to reduce memory footprint
 
 Common Patterns
---------------
+---------------
+
 
 Pattern Matching
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+
 
 .. code-block:: python
 
@@ -331,7 +350,8 @@ Pattern Matching
    valid = email_dfa.consume_input("user@domain.com")
 
 Language Operations
-~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+
 
 .. code-block:: python
 
@@ -348,7 +368,8 @@ Language Operations
    diff_dfa = dfa1.difference(dfa2)
 
 Regular Expression Conversion
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 .. code-block:: python
 
@@ -359,7 +380,8 @@ Regular Expression Conversion
    regex_pattern = converter.get_regex()
 
 Error Handling
--------------
+--------------
+
 
 The module includes robust error handling:
 
@@ -368,24 +390,25 @@ The module includes robust error handling:
 * **Resource limits**: Appropriate handling of large automata
 
 Troubleshooting
---------------
+---------------
 
 Common Issues
-~~~~~~~~~~~~
+~~~~~~~~~~~~~
 
 1. **Backend not available**: Install required dependencies (OpenFST, pywrapfst)
 2. **Memory issues**: Use minimization and appropriate alphabet sizes
 3. **Performance problems**: Consider backend selection and automaton size
 
 Dependencies
-~~~~~~~~~~~
+~~~~~~~~~~~~
 
 * **Required**: Python 3.6+
 * **Optional**: OpenFST library, pywrapfst, networkx (for visualization)
 * **Development**: pytest, sphinx (for documentation)
 
 API Reference
-------------
+-------------
+
 
 For detailed API documentation, see the individual module documentation above. The main entry points are:
 

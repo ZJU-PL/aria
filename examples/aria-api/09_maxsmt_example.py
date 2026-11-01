@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import z3
-from aria.optimization.maxsmt import MaxSMTSolver, solve_maxsmt
+from aria.pyomt.maxsmt import MaxSMTSolver, solve_maxsmt
 
 
 def basic_maxsmt():

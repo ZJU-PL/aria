@@ -1,5 +1,5 @@
 First-Order Logic (FOL)
-=========================
+=======================
 
 The ``aria.smt.fol`` module provides **Miniprover**, an automated theorem prover for first-order logic. This is a pedagogical implementation that is guaranteed to find proofs for all provable formulae (though it may loop forever for some unprovable ones, per Gödel's Entscheidungsproblem).
 
@@ -8,18 +8,18 @@ The ``aria.smt.fol`` module provides **Miniprover**, an automated theorem prover
    :depth: 2
 
 Directory Structure
-----------------
+-------------------
 
-```
-smt/fol/
-└── miniprover/
-    ├── __init__.py          (0 lines - empty)
-    ├── language.py          (517 lines)
-    ├── prover.py            (525 lines)
-    ├── main.py              (526 lines)
-    └── README.md            (95 lines)
-    └── __pycache__/         (compiled Python files)
-```
+.. code-block:: text
+
+   smt/fol/
+   └── miniprover/
+       ├── __init__.py          (0 lines - empty)
+       ├── language.py          (517 lines)
+       ├── prover.py            (525 lines)
+       ├── main.py              (526 lines)
+       └── README.md            (95 lines)
+       └── __pycache__/         (compiled Python files)
 
 Module Purpose
 --------------
@@ -33,7 +33,7 @@ Miniprover is an educational first-order logic theorem prover using sequent calc
 **Note**: This is intentionally slow for practical use - it's designed for correctness and educational value, not performance.
 
 Key Components
-----------------
+--------------
 
 ### 1. Language Definitions (``language.py`` - 517 lines)
 
@@ -151,19 +151,31 @@ Interactive theorem prover REPL with formula management.
 **Session Commands:**
 
 .. list-table::
-   :header: "Command, Description"
-   :widths: 15, 60
+   :header-rows: 1
+   :widths: 25 60
 
-   ``[formula]``, Input formula and check provability
-   ``axiom add [formula]``, Add axiom to current set
-   ``axiom list``, List all axioms
-   ``axiom remove [n]``, Remove nth axiom
-   ``lemma prove [formula]``, Prove lemma and add to knowledge base
-   ``lemma list``, List all lemmas with dependencies
-   ``lemma remove [n]``, Remove nth lemma
-   ``reset``, Clear all axioms and lemmas
-   ``help``, Show available commands
-   ``exit``, Exit the prover
+   * - Command
+     - Description
+   * - ``[formula]``
+     - Input formula and check provability
+   * - ``axiom add [formula]``
+     - Add axiom to current set
+   * - ``axiom list``
+     - List all axioms
+   * - ``axiom remove [n]``
+     - Remove nth axiom
+   * - ``lemma prove [formula]``
+     - Prove lemma and add to knowledge base
+   * - ``lemma list``
+     - List all lemmas with dependencies
+   * - ``lemma remove [n]``
+     - Remove nth lemma
+   * - ``reset``
+     - Clear all axioms and lemmas
+   * - ``help``
+     - Show available commands
+   * - ``exit``
+     - Exit the prover
 
 ### 4. Documentation (``README.md`` - 95 lines)
 
@@ -179,7 +191,7 @@ Comprehensive guide including:
 * **Axiom and lemma usage**: Examples of building knowledge bases
 
 Algorithms Implemented
----------------------
+----------------------
 
 1. **Unification Algorithm**: First-order unification with occurs-check
    - Time-based instantiation constraints
@@ -199,7 +211,7 @@ Algorithms Implemented
 4. **Formula Ordering**: Depth-first within sequent, breadth-first globally
 
 Usage Examples
--------------
+--------------
 
 ### Python API
 ~~~~~~~~~~~~~~
@@ -224,7 +236,7 @@ Usage Examples
    # Returns sequent or None if no proof found
 
 ### Interactive CLI
-~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: bash
 
@@ -291,7 +303,7 @@ Use Cases
 5. **Research in automated deduction systems**
 
 Notable Design Decisions
-----------------------
+------------------------
 
 * **Intuitionistic over classical**: Matches pedagogical use case
 * **Breadth-first search**: Ensures completeness (won't miss shorter proofs)

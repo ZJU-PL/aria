@@ -4,7 +4,7 @@ from aria.counting.bool.z3py_expr_counting import (
     count_z3_solutions,
     count_z3_models_by_enumeration,
 )
-from aria.counting.arith_counting_latte import count_lia_models
+from aria.counting.arith.arith_counting_latte import count_lia_models
 from aria.allsmt.bool_enumeration import count_models
 
 

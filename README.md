@@ -79,7 +79,7 @@ aria/
 ~~~~
 
 For Summer Research, Final Year Project Topics, please refer to
-`docs/topics.rst` or `TODO.md`.
+`docs/source/getting-started/topics.rst` or `TODO.md`.
 
 ## Documentation
 

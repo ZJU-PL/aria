@@ -1,57 +1,50 @@
 Context-Free Language Reachability
-===================================
+==================================
 
 Introduction
-=====================
+------------
 
-The CFL module (``aria/cfl``) implements algorithms for context-free language (CFL) reachability analysis, a powerful framework for program analysis problems including points-to analysis, interprocedural dataflow analysis, and shape analysis.
+The CFL module (``aria/automata/cfl``) implements algorithms for context-free
+language (CFL) reachability analysis, a powerful framework for program analysis
+problems including points-to analysis, interprocedural dataflow analysis, and
+shape analysis.
 
 Key Features
--------------
+------------
 
-* **CFL-Reachability Algorithms**: Classical and quantum-inspired dynamic transitive closure
+* **CFL-Reachability Algorithms**: Classical and matrix-based dynamic reachability
 * **Dyck Language Support**: Balanced-parenthesis reachability for call-return matching
 * **Graph-Based Analysis**: Efficient graph algorithms for program analysis
 * **Matrix-Based Computation**: Matrix formulations for parallel processing
 * **Strong Component Reduction**: Optimization via strongly connected components
 
 Components
-=====================
+==========
 
-CFL Solvers (``aria/cfl/cfl_solver.py``)
-------------------------------------------
+CFL Solvers (``aria/automata/cfl/cfl_solver.py``)
+-------------------------------------------------
 
 Core CFL-reachability solving:
 
 .. code-block:: python
 
-   from aria.cfl import CFLSolver
+   from aria.automata.cfl import CFLSolver
 
-   # Create solver for CFL-reachability
    solver = CFLSolver()
 
-   # Define grammar and graph
-   grammar = load_grammar("grammar.txt")
-   graph = load_graph("program_graph.dot")
+Dynamic Transitive Closure (``aria/automata/cfl/cfl_dtc.py``, ``dtc.py``)
+--------------------------------------------------------------------------
 
-   # Compute reachability
-   reachable = solver.solve(grammar, graph)
+Dynamic transitive closure algorithms (optional quantum-inspired Grover search
+via ``qiskit``):
 
-Dynamic Transitive Closure (``aria/cfl/cfl_dtc.py``, ``aria/cfl/dtc.py``)
------------------------------------------------------------------------------
+.. code-block:: text
 
-Dynamic transitive closure algorithms including quantum-inspired methods:
+   from aria.automata.cfl.cfl_dtc import RandomCFLSolver
+   # Note: requires optional qiskit package
 
-.. code-block:: python
-
-   from aria.cfl.cfl_dtc import QuantumDTC
-
-   # Quantum-inspired dynamic transitive closure
-   dtc = QuantumDTC()
-   closure = dtc.compute(graph)
-
-Grammar Support (``aria/cfl/grammar.py``)
--------------------------------------------
+Grammar Support (``aria/automata/cfl/grammar.py``)
+--------------------------------------------------
 
 Context-free grammar manipulation:
 
@@ -60,34 +53,33 @@ Context-free grammar manipulation:
 * Dyck language generation
 * Grammar normalization
 
-Matrix-Based Algorithms (``aria/cfl/matrix.py``, ``aria/cfl/pag_matrix.py``)
--------------------------------------------------------------------------------
+Matrix-Based Algorithms (``aria/automata/cfl/matrix.py``, ``pag_matrix.py``)
+----------------------------------------------------------------------------
 
 Matrix formulations for efficient CFL-reachability:
 
 .. code-block:: python
 
-   from aria.cfl.pag_matrix import PAGMatrix
+   from aria.automata.cfl import PAG_Matrix
 
-   # Program assignment graph as matrix
-   pag = PAGMatrix(graph)
-   result = pag.cfl_reachability(grammar)
+   pag = PAG_Matrix()
+   pag.add_vertex("var1")
+   pag.add_vertex("var2")
+   pag.add_edge("var1", "var2", "assign")
 
-Strong Component Reduction (``aria/cfl/sc_solver.py``)
---------------------------------------------------------
+Strong Component Reduction (``aria/automata/cfl/sc_solver.py``)
+---------------------------------------------------------------
 
 Optimization using strongly connected components:
 
 .. code-block:: python
 
-   from aria.cfl.sc_solver import SCReducer
+   from aria.automata.cfl import SCSolver
 
-   # Reduce problem via SCC decomposition
-   reducer = SCReducer()
-   reduced_result = reducer.solve(graph, grammar)
+   solver = SCSolver()
 
 Applications
-=====================
+============
 
 * **Points-To Analysis**: Field-sensitive and context-sensitive pointer analysis
 * **Call Graph Construction**: Interprocedural control flow analysis
@@ -97,7 +89,7 @@ Applications
 * **Interprocedural Dataflow**: Summary-based dataflow analysis
 
 References
-=====================
+==========
 
 - Reps, T. (1998). *Program Analysis via Graph Reachability*. Information and Software Technology
 - Yannakakis, M. (1990). *Graph-Theoretic Methods in Database Theory*. PODS 1990

@@ -1,5 +1,5 @@
 Dissolve (Distributed SAT)
-===========================
+==========================
 
 ``aria.bool.dissolve`` is a practical implementation of the Dissolve
 distributed SAT solving framework. It uses asynchronous dilemma-rule
@@ -18,7 +18,7 @@ Directory structure
    └── ubtree.py           # UBTree-based clause store for subsumption checks
 
 Key classes
-------------
+-----------
 
 * ``Dissolve`` -- top-level solver; call ``solve(cnf)`` to run
 * ``DissolveConfig`` -- configuration dataclass controlling solver behaviour:

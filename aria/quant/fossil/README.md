@@ -81,10 +81,10 @@ A comprehensive collection of verification problems for common data structures a
 ### Basic Natural Proofs Example
 
 ```python
-from aria.fossil.naturalproofs.prover import NPSolver
-from aria.fossil.naturalproofs.uct import fgsort, boolsort
-from aria.fossil.naturalproofs.decl_api import Var, Function, RecFunction, AddRecDefinition
-from aria.fossil.naturalproofs.pfp import make_pfp_formula
+from aria.quant.fossil.naturalproofs.prover import NPSolver
+from aria.quant.fossil.naturalproofs.uct import fgsort, boolsort
+from aria.quant.fossil.naturalproofs.decl_api import Var, Function, RecFunction, AddRecDefinition
+from aria.quant.fossil.naturalproofs.pfp import make_pfp_formula
 
 # Declare variables and functions
 x = Var('x', fgsort)
@@ -110,7 +110,7 @@ else:
 ### Lemma Synthesis Example
 
 ```python
-from aria.fossil.lemsynth.lemsynth_engine import solveProblem
+from aria.quant.fossil.lemsynth.lemsynth_engine import solveProblem
 
 # Define lemma grammar arguments and terms
 lemma_grammar_args = [x, nil]

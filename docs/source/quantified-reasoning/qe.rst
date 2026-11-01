@@ -6,17 +6,15 @@ The Quantifier Elimination (QE) module uses quantifier elimination techniques to
 Within this documentation structure, QE is grouped under quantified reasoning
 because the elimination machinery is reusable beyond verification.
 
-======================
 Overview
-======================
+========
 
 Quantifier Elimination is a technique that transforms quantified formulas into equivalent quantifier-free formulas. In the context of invariant generation, QE is used to compute the strongest inductive invariant by iteratively applying the strongest post-condition operator until a fixpoint is reached.
 
 
 
-======================
 Algorithm
-======================
+=========
 
 The QE prover implements the following algorithm:
 
@@ -39,9 +37,8 @@ The algorithm computes the least fixpoint of the function:
 
 where `init` is the initial condition, `trans` is the transition relation, and `I` is the current invariant.
 
-======================
 Quantifier Elimination Tactics
-======================
+==============================
 
 The QE prover uses multiple quantifier elimination tactics:
 
@@ -49,9 +46,8 @@ The QE prover uses multiple quantifier elimination tactics:
 - **QE**: Standard quantifier elimination tactic
 
 
-======================
 References
-======================
+==========
 
 .. [1] A. Tarski, "A decision method for elementary algebra and geometry," University of California Press, 1951.
 

@@ -48,11 +48,14 @@ The current ``pyproject.toml`` registers these commands:
      - ``python -m aria.cli.efmc_efsmt_cli``
      - Legacy EFMC-oriented EFSMT frontend
    * - ``aria-polyhorn``
-      - ``python -m aria.cli.polyhorn_cli``
-      - Polynomial Horn solving
+     - ``python -m aria.cli.polyhorn_cli``
+     - Polynomial Horn solving
    * - ``aria-pypmt``
-      - ``python -m aria.cli.pypmt_cli``
-      - Planning modulo theories (PDDL-based planning as SMT)
+     - ``python -m aria.cli.pypmt_cli``
+     - Planning modulo theories (PDDL-based planning as SMT)
+   * - ``aria-concolic``
+     - ``python -m aria.cli.concolic_cli``
+     - Native Python concolic testing with constrained sampling
 
 Quick start
 -----------

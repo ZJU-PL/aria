@@ -1,21 +1,19 @@
 Playing wth Quantifiers
-========================
+=======================
 
 This page gives the conceptual background for quantified formulas. Technique-
 specific pages such as :doc:`qe` and :doc:`qi` cover ARIA's current engines.
 
-================
 Quantifiers
-================
+===========
 
 Quantifiers are fundamental logical operators that express properties over sets of values:
 
 - Universal Quantifier (∀): expresses that a property holds for all values
 - Existential Quantifier (∃): expresses that a property holds for at least one value
 
-=======================
 Solving General Quantified Problems
-=======================
+===================================
 
 
 The basic idea of quantifier instantiation is to replace a quantified formula with
@@ -32,15 +30,13 @@ Some useful tools:
 - https://github.com/viperproject/axiom-profiler-2
 
 
-=======================
 Solving Exists-Forall Problems
-=======================
+==============================
 
 
 
-=======================
 Quantifier Elimination
-=======================
+======================
 
 Quantifier elimination refers to the process of eliminating the quantifiers from a formula by
 constructing an equivalent quantifier-free formula.
@@ -57,9 +53,8 @@ It is important to understand the differences between Skolemization and quantifi
 - Second, QE replaces a formula with an equivalent but quantifier-free formula
 - Third, QE is only possible for specific theories, and is generally very expensive
 
-=============
 Related Work
-=============
+============
 
 - Ge, Y.,  De Moura, L. (2009). Complete instantiation for quantified formulas in satisfiabiliby modulo theories. In Computer Aided Verification (pp. 306-320).
 - de Moura, L., & Bjørner, N. (2007). Efficient E-matching for SMT solvers. In International Conference on Automated Deduction (pp. 183-198)

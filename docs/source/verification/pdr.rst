@@ -1,5 +1,5 @@
 PDR (Property-Directed Reachability)
-=====================================
+====================================
 
 ``aria.efmc.engines.pdr`` provides a Property-Directed Reachability (IC3)
 verification engine for transition systems.

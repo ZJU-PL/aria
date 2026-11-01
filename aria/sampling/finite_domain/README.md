@@ -36,11 +36,11 @@ finite_domain/
 All samplers follow a consistent 3-step pattern:
 
 ```python
-from aria.sampling.finite_domain import SamplerClass
+from aria.sampling.finite_domain import BooleanSampler
 from aria.sampling.base import SamplingOptions
 
 # 1. Create sampler
-sampler = SamplerClass()
+sampler = BooleanSampler()
 
 # 2. Initialize with formula
 sampler.init_from_formula(your_formula)

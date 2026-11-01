@@ -1,7 +1,11 @@
 # sys.path.insert(0, os.path.abspath('..'))
 
 import os
+import sys
 import re
+
+sys.path.insert(0, os.path.abspath("../.."))
+
 
 # -- Project information -----------------------------------------------------
 
@@ -51,3 +55,5 @@ latex_elements = {
     'papersize': 'letterpaper',
     'pointsize': '10pt',
 }
+
+autodoc_mock_imports = ["pydot", "pyfst", "pywrapfst"]

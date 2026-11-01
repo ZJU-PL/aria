@@ -1,10 +1,9 @@
 Model Sampling
-=================================
+==============
 
 
-=========
 Introduction
-=========
+============
 
 Model sampling, also known as solution sampling or witness enumeration, is the process of generating multiple distinct solutions to a logical formula or constraint system. This technique is crucial in various applications including:
 
@@ -21,7 +20,7 @@ Model sampling is a challenging problem due to the following factors:
 
 
 Key Concepts
------------
+------------
 
 1. **Sampling Methods**:
    - Uniform sampling
@@ -42,13 +41,12 @@ Key Concepts
    - Scalability
 
 
-==========
 Model Sampling in Aria
-==========
+======================
 
 
 
-Please refer to ``alrib/sampling``
+Please refer to ``aria/sampling``
 
 
    .. code-block:: python
@@ -62,15 +60,13 @@ Please refer to ``alrib/sampling``
               pass
 
 
-======
 Related Work
-======
+============
 
 - https://github.com/batchenRothenberg/SMTSampler
 
-======
 References
-======
+==========
 
 - Chakraborty, S., Meel, K. S., & Vardi, M. Y. (2013). A scalable approximate model counter. In International Conference on Principles and Practice of Constraint Programming.
 
