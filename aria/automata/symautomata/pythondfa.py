@@ -375,6 +375,7 @@ class PythonDFA:
 
             arc format: src dest ilabel olabel [weight]
             final state format: state [weight]
+
         lines may occur in any order except initial state must be first line
         Args:
             txt_fst_file_name (str): The input file

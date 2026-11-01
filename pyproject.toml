@@ -59,6 +59,7 @@ dependencies = [
     "hypothesis",
     "loguru",
     "openai",
+    "pydot",
 ]
 
 [project.license]

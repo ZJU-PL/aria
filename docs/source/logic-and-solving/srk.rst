@@ -29,19 +29,16 @@ Subsystems
     SMT-LIB 2 benchmarks. Includes helpers for models, unsat cores, and Z3
     interoperability.
 
-**Abstract Interpretation and Algebra** ``abstract``, ``interval``, ``polyhedron``,
-``linear``, ``polynomial``, ``wedge``
+**Abstract Interpretation and Algebra** (``abstract``, ``interval``, ``polyhedron``, ``linear``, ``polynomial``, ``wedge``)
     Implement numerical domains (intervals, affine relations, polyhedra),
     rational arithmetic (``qQ``/``zZ``), exponential polynomials, and operations
     needed for invariant generation and completeness proofs.
 
-**Transition Systems and Termination** ``transition``, ``transitionFormula``,
-``transitionSystem``, ``termination``, ``loop``
+**Transition Systems and Termination** (``transition``, ``transitionFormula``, ``transitionSystem``, ``termination``, ``loop``)
     Model program control-flow, compose transitions, and search for ranking
     functions with LLRF/DTA/exp-based strategies.
 
-**Utilities and Infrastructure** ``cache``, ``memo``, ``log``, ``sparseMap``,
-``srkUtil``
+**Utilities and Infrastructure** (``cache``, ``memo``, ``log``, ``sparseMap``, ``srkUtil``)
     Support modules for performance profiling, memoisation, data structures, and
     combinatorial helpers used throughout the kit.
 
