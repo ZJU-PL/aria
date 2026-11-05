@@ -57,7 +57,8 @@ Getting Started
    x = mk_symbol(ctx, "x", Type.INT)
    y = mk_symbol(ctx, "y", Type.INT)
 
-   formula = mk_eq(mk_add(mk_const(x), mk_const(y)), mk_const(x))
+   # mk_add takes a list of terms (or an explicit context and a list)
+   formula = mk_eq(mk_add([mk_const(x), mk_const(y)]), mk_const(x))
    simplified = simplify_expression(formula, ctx)
 
    solver = Z3Solver(ctx)

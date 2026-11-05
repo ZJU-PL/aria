@@ -30,7 +30,8 @@ Core CFL-reachability solving:
 
    from aria.automata.cfl import CFLSolver
 
-   solver = CFLSolver()
+   # The only supported mode is the cubic-time DTC-based algorithm
+   solver = CFLSolver("Cubic")
 
 Dynamic Transitive Closure (``aria/automata/cfl/cfl_dtc.py``, ``dtc.py``)
 --------------------------------------------------------------------------
@@ -62,10 +63,13 @@ Matrix formulations for efficient CFL-reachability:
 .. code-block:: python
 
    from aria.automata.cfl import PAG_Matrix
+   from aria.automata.cfl.pag_matrix import Vertex
 
-   pag = PAG_Matrix()
-   pag.add_vertex("var1")
-   pag.add_vertex("var2")
+   # The constructor reads a PAG graph from a .dot file (or a
+   # comma-separated .txt edge list)
+   pag = PAG_Matrix("demo/100KB.dot")
+   pag.add_vertex(Vertex("var1"))
+   pag.add_vertex(Vertex("var2"))
    pag.add_edge("var1", "var2", "assign")
 
 Strong Component Reduction (``aria/automata/cfl/sc_solver.py``)
@@ -77,7 +81,7 @@ Optimization using strongly connected components:
 
    from aria.automata.cfl import SCSolver
 
-   solver = SCSolver()
+   solver = SCSolver("Cubic")
 
 Applications
 ============

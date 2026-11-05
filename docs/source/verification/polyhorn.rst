@@ -231,10 +231,8 @@ Theorem Selection
 When ``theorem_name`` is set to ``"auto"``, PolyHorn automatically selects the appropriate theorem:
 
 1. **Farkas**: If both LHS and RHS constraints are linear
-2. **Handelman**: If LHS constraints are linear but RHS may be polynomial  
-
+2. **Handelman**: If LHS constraints are linear but RHS may be polynomial
 3. **Putinar**: For general polynomial constraints
---------------------------------------------------
 
 Degree Bounds
 -------------

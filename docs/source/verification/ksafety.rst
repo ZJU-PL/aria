@@ -67,6 +67,10 @@ HyperLTL Example
 
    from aria.efmc.engines.ksafety import HyperLTLProver
    from aria.efmc.engines.ksafety.hyperltl import Var, Atom, G, Implies
+   from aria.efmc.sts import TransitionSystem
+
+   sts = TransitionSystem()
+   # ... initialize sts ...
    
    # Define HyperLTL formula: G(high[0] == high[1] → G(low[0] == low[1]))
    phi = Implies(

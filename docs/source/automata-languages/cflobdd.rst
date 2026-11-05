@@ -14,12 +14,17 @@ Directory Structure
 
 ```
 cflobdd/
-├── __init__.py                    (0 lines - empty)
+├── __init__.py                    (35 lines - package re-exports)
 ├── cflobvdd.py                    (1992 lines - main CFLOBVDD implementation)
 ├── bvdd.py                        (1012 lines - BVDD base classes)
 ├── btor2.py                       (1938 lines - BTOR2 parser/serializer)
-├── z3interface.py                (438 lines - Z3 solver interface)
-└── bitwuzlainterface.py          (514 lines - Bitwuzla solver interface)
+├── z3interface.py                 (438 lines - Z3 solver interface)
+├── bitwuzlainterface.py           (514 lines - Bitwuzla solver interface)
+├── relation.py                    (662 lines - finite relation algebra)
+├── fixpoint.py                    (114 lines - least-fixed-point helpers)
+├── grammar.py                     (155 lines - grammar-based CFL reachability)
+├── pushdown.py                    (57 lines - balanced call/return reachability)
+└── witness.py                     (89 lines - reachability witnesses)
 ```
 
 **No subdirectories** - flat module structure.
@@ -167,6 +172,35 @@ Key Components
 * Same class hierarchy with Bitwuzla-specific implementations
 * **Bitwuzla_Solver** class with assertion, checking, and model generation
 
+Relation and Fixpoint Helpers
+------------------------------
+
+Besides the decision-diagram kernel, the package contains an explicit relation
+layer used by CFL-style reachability workflows:
+
+* ``relation.py``: finite ``Relation`` objects over integer tuples, with
+  composition, join, projection, and quantification, plus an optional bridge to
+  ``CFLOBVDD`` for symbolic Boolean predicates over finite variable blocks.
+* ``fixpoint.py``: least-fixed-point helpers (``least_fixed_point``,
+  ``transitive_closure``, ``reflexive_closure``,
+  ``reflexive_transitive_closure``) returning ``FixpointResult`` values.
+* ``grammar.py``: ``GrammarProduction`` / ``GrammarReachability`` /
+  ``GrammarSolution`` for grammar-based CFL reachability over relations.
+* ``pushdown.py``: ``balanced_reachability`` for matched call/return edges.
+* ``witness.py``: ``build_witness_tree``, ``extract_edge_path``, and
+  ``format_witness`` for turning reachability derivations into edge paths.
+
+Example imports:
+
+.. code-block:: python
+
+   from aria.automata.cflobdd import (
+       Relation,
+       least_fixed_point,
+       balanced_reachability,
+       extract_edge_path,
+   )
+
 Usage Examples
 --------------
 
@@ -183,13 +217,16 @@ CFLOBVDD API
    cflobvdd_true = CFLOBVDD.true(level=3, swap_level=2, fork_level=1)
    cflobvdd_proj = CFLOBVDD.projection(level=3, swap_level=2, fork_level=1, input_i=2)
 
-   # Instance methods
+   # Instance methods. Operations take plain Python callables over the
+   # per-exit output values.
    cflobvdd.is_always_false()
    cflobvdd.is_always_true()
    complemented = cflobvdd.complement()
-   result = cflobvdd.unary_apply_and_reduce(op, 8)
-   result = cflobvdd.binary_apply_and_reduce(cflobvdd2, op, 8)
-   result = cflobvdd.ternary_apply_and_reduce(cflobvdd2, cflobvdd3, op, 8)
+   result = cflobvdd.unary_apply_and_reduce(lambda x: 255 - x, 8)
+   result = cflobvdd.binary_apply_and_reduce(cflobvdd2, lambda x, y: x + y, 8)
+   result = cflobvdd.ternary_apply_and_reduce(
+       cflobvdd2, cflobvdd3, lambda c, x, y: x if c else y, 8
+   )
    count = cflobvdd.number_of_solutions(42)
 
    # Print cache profile
@@ -208,10 +245,10 @@ BVDD API
    # Create projection
    sbdd = SBDD_i2o.projection(index=2, offset=0)
 
-   # Operations
-   result = sbdd.compute_unary(op='not')
-   result = sbdd.compute_binary(op='and', bvdd2=sbdd2)
-   result = sbdd.compute_ternary(op='ite', bvdd2=sbdd2, bvdd3=sbdd3)
+   # Operations take Python callables over 8-bit output values
+   result = sbdd.compute_unary(lambda x: 255 - x)
+   result = sbdd.compute_binary(lambda x, y: x & y, sbdd2)
+   result = sbdd.compute_ternary(lambda c, x, y: x if c else y, sbdd2, sbdd3)
 
    # Reduce
    reduced = sbdd.reduce_SBDD()
@@ -225,7 +262,9 @@ BTOR2 Parser
    from aria.automata.cflobdd.btor2 import Parser
 
    parser = Parser()
-   model = parser.parse_btor2(modelfile='model.btor2', outputfile='output.txt')
+   # parse_btor2() expects open file objects for the model and output files
+   with open("model.btor2") as modelfile, open("output.txt", "w") as outputfile:
+       model = parser.parse_btor2(modelfile, outputfile)
 
    # Access parsed elements
    line = Line.get(nid=1)
@@ -288,12 +327,13 @@ Key Features
 Size Statistics
 ---------------
 
-* Total Python lines: ~5,900
+* Total Python lines: ~7,000
 * CFLOBVDD implementation: ~1,992 lines
 * BVDD implementation: ~1,012 lines
 * BTOR2 parser: ~1,938 lines
 * Z3 interface: ~438 lines
 * Bitwuzla interface: ~514 lines
+* Relation algebra (``relation.py``): ~662 lines
 
 Source Attribution
 ------------------
@@ -305,7 +345,8 @@ Code adapted from Selfie Project (University of Salzburg) - `selfie.cs.uni-salzb
 Notes
 -----
 
-* The module's ``__init__.py`` is empty - requires explicit imports
+* ``__init__.py`` re-exports ``CFLOBVDD`` together with the relation,
+  fixpoint, grammar, pushdown, and witness helpers
 * No subdirectories - flat module structure
 * Threading used extensively for thread-safe caching
 * Both Z3 and Bitwuzla interfaces provided for flexibility

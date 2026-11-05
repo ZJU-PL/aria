@@ -114,7 +114,8 @@ To apply predicate abstraction using aria:
 
    # Compute predicate abstraction
    result = predicate_abstraction(formula, predicates)
-   print(z3.simplify(result))  # This will output: i < 10
+   # The printed formula is equivalent to: i < 10
+   print(z3.simplify(result))
 
 The result expresses that the strongest necessary condition of the formula in terms of the
 given predicates is simply ``i < 10``, which makes sense as this is the condition for the loop

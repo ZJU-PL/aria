@@ -47,12 +47,13 @@ The DFA implementation provides multiple backends for maximum compatibility:
    
    # Create a DFA with default alphabet
    dfa = DFA(createalphabet())
-   
+
    # Add states and transitions
    dfa.add_arc(0, 1, 'a')
    dfa.add_arc(1, 2, 'b')
+   dfa[0].initial = True
    dfa[2].final = True
-   
+
    # Test string acceptance
    result = dfa.consume_input("ab")  # Returns True
    
@@ -114,9 +115,9 @@ Symbolic Finite Automata extend traditional DFAs by using predicates on transiti
    x_only = SetPredicate(['x'])
    sfa.add_arc(0, 1, x_only)
    sfa.states[1].final = True
-   
-    # Convert to concrete DFA
-    dfa = sfa.concretize()
+
+   # Convert to concrete DFA
+   dfa = sfa.concretize()
 
    # Lift an existing DFA into SFA and reuse regex conversion
    concrete = DFA(["a", "b"])
@@ -125,10 +126,16 @@ Symbolic Finite Automata extend traditional DFAs by using predicates on transiti
    lifted = SFA.from_acceptor(concrete)
    regex = lifted.to_regex()
 
-   # Use solver-backed predicates
+   # Use solver-backed predicates. A Z3Predicate is a (symbol, guard)
+   # pair; the factory supplies the universe guard used by complete().
    sym = z3.BitVec("sym", 8)
-   symbolic = SFA([0, 1, 2, 3], predicate_factory=lambda: Z3Predicate(sym, z3.BoolVal(False), z3.ULT(sym, z3.BitVecVal(4, 8))))
-   symbolic.add_arc(0, 1, Z3Predicate(sym, z3.ULT(sym, z3.BitVecVal(2, 8)), z3.ULT(sym, z3.BitVecVal(4, 8))))
+   symbolic = SFA(
+       [0, 1, 2, 3],
+       predicate_factory=lambda: Z3Predicate(sym, z3.BoolVal(False)),
+       symbolic_symbol=sym,
+       symbolic_universe=z3.ULE(sym, z3.BitVecVal(3, 8)),
+   )
+   symbolic.add_arc(0, 1, Z3Predicate(sym, z3.ULT(sym, z3.BitVecVal(2, 8))))
    symbolic[1].final = True
 
 PDA (Pushdown Automata)

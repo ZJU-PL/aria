@@ -44,20 +44,30 @@ Key Concepts
 Model Sampling in Aria
 ======================
 
+``aria.sampling`` exposes a single entry point, ``sample_models_from_formula``,
+together with the ``Logic``, ``SamplingMethod``, and ``SamplingOptions`` types.
+See ``aria/sampling/README.md`` for the per-logic backends.
 
+.. code-block:: python
 
-Please refer to ``aria/sampling``
+   import z3
+   from aria.sampling import (
+       Logic,
+       SamplingMethod,
+       SamplingOptions,
+       sample_models_from_formula,
+   )
 
+   x, y = z3.Reals("x y")
+   options = SamplingOptions(method=SamplingMethod.ENUMERATION, num_samples=10)
+   result = sample_models_from_formula(
+       z3.And(x + y > 0, x - y < 1),
+       Logic.QF_LRA,
+       options,
+   )
 
-   .. code-block:: python
-
-      class UniformSampler:
-          def __init__(self, formula):
-              self.formula = formula
-
-          def sample(self, n):
-              # Generate n uniform samples
-              pass
+   for sample in result:  # SamplingResult is iterable over dict samples
+       print(sample)
 
 
 Related Work

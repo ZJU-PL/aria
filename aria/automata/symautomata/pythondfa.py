@@ -263,6 +263,17 @@ class PythonDFA:
         for char in alphabet:
             self.add_arc(endstate, endstate, char)
 
+    def _state_is_accepting(self, state):
+        """Return whether *state* is accepting.
+
+        Callers such as ``SFA.concretize`` and the Flex frontend populate
+        ``yy_accept`` explicitly; hand-built DFAs do not, so fall back to the
+        state's ``final`` flag in that case.
+        """
+        if state.stateid < len(self.yy_accept):
+            return self.yy_accept[state.stateid] > 0
+        return bool(state.final)
+
     def consume_input(self, inp):
         """
         Return True/False if the machine accepts/reject the input.
@@ -275,7 +286,7 @@ class PythonDFA:
         cur_state = sorted(self.states, key=attrgetter("initial"), reverse=True)[0]
         while len(inp) > 0:
             found = False
-            if self.yy_accept[cur_state.stateid] > 0:
+            if self._state_is_accepting(cur_state):
                 self.yy_last_accepting_state = cur_state
             for arc in cur_state.arcs:
                 if self.isyms.find(arc.ilabel) == inp[0]:
@@ -286,8 +297,8 @@ class PythonDFA:
             if not found:
                 return False
         if cur_state.stateid == 0 and self.yy_last_accepting_state is not None:
-            return self.yy_accept[self.yy_last_accepting_state.stateid] == 1
-        return cur_state.final
+            return self._state_is_accepting(self.yy_last_accepting_state)
+        return self._state_is_accepting(cur_state)
 
     def trace_partial_input(self, inp):
         """
@@ -300,7 +311,7 @@ class PythonDFA:
         while len(inp) > 0:
             found = False
             traversed.append((cur_state.stateid, inp[0]))
-            if self.yy_accept[cur_state.stateid] > 0:
+            if self._state_is_accepting(cur_state):
                 self.yy_last_accepting_state = cur_state
             for arc in cur_state.arcs:
                 if self.isyms.find(arc.ilabel) == inp[0]:

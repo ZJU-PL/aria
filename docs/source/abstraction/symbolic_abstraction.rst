@@ -96,10 +96,17 @@ An abstract domain defines the lattice structure and operations for abstract ele
 .. code-block:: python
 
    class AbstractDomain:
-       def join(self, elements):  # Least upper bound
-       def meet(self, elements):  # Greatest lower bound
-       def gamma_hat(self, alpha):  # Concretization function
-       def model(self, formula):   # Find concrete model
+       def join(self, elements):      # Least upper bound
+           ...
+
+       def meet(self, elements):      # Greatest lower bound
+           ...
+
+       def gamma_hat(self, alpha):    # Concretization function
+           ...
+
+       def model(self, formula):      # Find concrete model
+           ...
 
 The ``gamma_hat`` function translates an abstract element back to a concrete formula,
 while the ``join`` operation computes the least upper bound in the abstract lattice.
@@ -173,10 +180,15 @@ Combines multiple domains for better precision:
 
 .. code-block:: python
 
+   from aria.symabs.ai_symabs.domains.interval.domain import IntervalDomain
+   from aria.symabs.ai_symabs.domains.sign.domain import SignDomain
    from aria.symabs.ai_symabs.domains.reduced_product.domain import ReducedProductDomain
 
+   interval_domain = IntervalDomain(['x'])
+   sign_domain = SignDomain(['x'])
+
    # Combine interval and sign domains
-   combined = ReducedProductDomain([interval_domain, sign_domain])
+   combined = ReducedProductDomain(['x'], interval_domain, sign_domain)
 
 Abstraction Algorithms
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -191,10 +203,16 @@ positive and negative forms of the formula:
 
 .. code-block:: python
 
+   import z3
+   from aria.symabs.ai_symabs.domains.interval.domain import IntervalDomain
    from aria.symabs.ai_symabs.domains.algorithms.bilateral import bilateral
 
+   x, y = z3.Ints("x y")
+   concrete_formula = z3.And(x >= 0, x <= 10, x + y == 15)
+   domain = IntervalDomain(['x', 'y'])
+
    # Compute abstraction using bilateral algorithm
-   abstract_state = bilateral(concrete_formula, domain)
+   abstract_state = bilateral(domain, concrete_formula)
 
 RSY Algorithm
 ~~~~~~~~~~~~~
@@ -204,10 +222,16 @@ Recursive abstraction refinement algorithm that iteratively improves precision:
 
 .. code-block:: python
 
+   import z3
+   from aria.symabs.ai_symabs.domains.interval.domain import IntervalDomain
    from aria.symabs.ai_symabs.domains.algorithms.rsy import RSY
 
+   x, y = z3.Ints("x y")
+   concrete_formula = z3.And(x >= 0, x <= 10, x + y == 15)
+   domain = IntervalDomain(['x', 'y'])
+
    # Compute abstraction with RSY algorithm
-   abstract_state = RSY(concrete_formula, domain)
+   abstract_state = RSY(domain, concrete_formula)
 
 
 
@@ -233,12 +257,15 @@ Linear Arithmetic Abstraction
 
 .. code-block:: python
 
+   import z3
    from aria.symabs.omt_symabs.lira_symbolic_abstraction import LIRASymbolicAbstraction
 
    # Create LIRA symbolic abstraction
    symabs = LIRASymbolicAbstraction()
 
-   # Initialize from SMT formula
+   # Initialize from an SMT formula over integer/real variables
+   x, y = z3.Ints("x y")
+   formula = z3.And(x >= 0, x <= 10, x + y == 15)
    symabs.init_from_fml(formula)
 
    # Compute interval abstraction (stored in interval_abs_as_fml)
@@ -255,12 +282,15 @@ Bit-Vector Abstraction
 
 .. code-block:: python
 
+   import z3
    from aria.symabs.omt_symabs.bv_symbolic_abstraction import BVSymbolicAbstraction
 
    # Create bit-vector symbolic abstraction
    bv_symabs = BVSymbolicAbstraction()
 
-   # Initialize with bit-vector formula
+   # Initialize with a bit-vector formula
+   bv_x = z3.BitVec("bv_x", 8)
+   bv_formula = z3.ULT(bv_x, z3.BitVecVal(10, 8))
    bv_symabs.init_from_fml(bv_formula)
 
    # Compute the interval abstraction (also available: zone_abs,
@@ -290,17 +320,19 @@ The predicate abstraction algorithm works by:
 
 .. code-block:: python
 
+   import z3
    from aria.symabs.predicate_abstraction.predicate_abstraction import predicate_abstraction
 
    # Define predicates
-   predicates = [x > 0, y > 0, x + y < 10]
+   x, y = z3.Ints('x y')
+   predicates = [x > 0, y > 0, x + y < 20]
 
-   # Concrete formula: x > 5 ∧ y > 3 ∧ x + y < 8
-   concrete_formula = z3.And(x > 5, y > 3, x + y < 8)
+   # Concrete formula: x > 5 ∧ y > 3 ∧ x + y < 12
+   concrete_formula = z3.And(x > 5, y > 3, x + y < 12)
 
    # Compute predicate abstraction
    abstract_formula = predicate_abstraction(concrete_formula, predicates)
-   # Result: x > 0 ∧ y > 0 ∧ x + y < 10 (strongest consequence)
+   # Result is equivalent to: x > 0 ∧ y > 0 ∧ x + y < 20
 
 
 
@@ -359,7 +391,7 @@ Basic Symbolic Abstraction
    domain = IntervalDomain(['x', 'y'])
 
    # Compute abstraction
-   abstract_state = bilateral(formula, domain)
+   abstract_state = bilateral(domain, formula)
 
    # Get concrete representation
    concrete_repr = domain.gamma_hat(abstract_state)

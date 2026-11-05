@@ -17,6 +17,7 @@ Directory structure
    ├── normalization.py    # Negation Normal Form (NNF) conversion for modal formulas
    ├── parser.py           # Textual parser for modal logic expressions
    ├── search.py           # Model search / generation algorithms
+   ├── solver.py           # Z3-backed bounded model/countermodel search
    └── utils.py            # Utility helpers
 
 Formula AST

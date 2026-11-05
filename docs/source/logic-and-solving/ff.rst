@@ -102,9 +102,9 @@ Implementation
 
 Aria provides SMT solving over finite fields in the ``aria/smt/ff`` module with multiple encoding strategies:
 
-* **Bit-vector encoding** (``ff_bv_solver.py``): Encodes field elements as bit-vectors (width log₂(field_size)) with modular constraints
-* **Integer encoding** (``ff_int_solver.py``): Encodes field elements as integers in [0, field_size-1] with explicit modulo operations
-* **Performance encoding** (``ff_perf_solver.py``): Integer encoding with adaptive reduction scheduling, structured-prime modular kernels, and partition-driven CEGAR refinement
+* **Bit-vector encoding** (``solvers/ff_bv_solver.py``, with the bridge variant in ``solvers/ff_bv_solver2.py``): Encodes field elements as bit-vectors (width log₂(field_size)) with modular constraints
+* **Integer encoding** (``solvers/ff_int_solver.py``): Encodes field elements as integers in [0, field_size-1] with explicit modulo operations
+* **Performance encoding** (``solvers/ff_perf_solver.py``): Integer encoding with adaptive reduction scheduling, structured-prime modular kernels, and partition-driven CEGAR refinement
 
 The automatic solver (``FFAutoSolver``) can route large-prime instances to the
 performance backend and still fall back to the stable integer backend when a
@@ -126,9 +126,10 @@ Automatic backend selection can be configured through ``FFAutoSolver``:
 * ``enable_perf_backend`` (default ``True``)
 * ``perf_policy`` in ``auto``, ``always``, ``never``, ``large-prime``
 
-Core components include formula parsing (``ff_parser.py``), sparse polynomial
-normalization/partitioning, and translation to bit-vector or integer
-arithmetic.
+Core components include formula parsing (``frontend/ff_parser.py``),
+preprocessing (``frontend/ff_preprocess.py``), sparse polynomial
+normalization/partitioning and the arithmetic kernels under ``core/``, and
+translation to bit-vector or integer arithmetic.
 
 The performance backend exposes two experiment-facing interfaces:
 

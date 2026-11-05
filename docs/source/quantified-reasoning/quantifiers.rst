@@ -1,5 +1,5 @@
-Playing wth Quantifiers
-=======================
+Playing with Quantifiers
+========================
 
 This page gives the conceptual background for quantified formulas. Technique-
 specific pages such as :doc:`qe` and :doc:`qi` cover ARIA's current engines.

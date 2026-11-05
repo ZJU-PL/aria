@@ -71,26 +71,29 @@ Algebraic manipulation of program spaces:
 
    # Create expressions
    x = var("x", Theory.LIA)
-   expr1 = add(x, const(5))
-   expr2 = add(x, const(10))
+   expr1 = add(x, const(5, Theory.LIA))
+   expr2 = add(x, const(10, Theory.LIA))
 
    # Build version space
    vs = VersionSpace({expr1, expr2})
 
    # Filter by examples
-   algebra = VSAlgebra()
+   algebra = VSAlgebra(Theory.LIA)
    # filtered = algebra.filter_consistent(vs, examples)
 
 Spyro: Property Synthesis (``aria/synthesis/spyro``)
 ----------------------------------------------------
 
-Synthesize algebraic properties for functional programs using the Spyro engine:
+Synthesize algebraic properties for functional programs using the Spyro engine.
+The driver reads a definition file and writes the synthesized properties:
 
-.. code-block:: python
+.. code-block:: bash
 
-   from aria.synthesis.spyro.property_synthesizer import PropertySynthesizer
+   python -m aria.synthesis.spyro.spyro input.dl output.txt
 
-   synthesizer = PropertySynthesizer()
+Programmatically, ``PropertySynthesizer(infiles, outfile, verbose, write_log,
+timeout, inline_bnd, slv_seed, num_atom_max, disable_min, keep_neg_may)``
+takes the full configuration explicitly and exposes ``run()``.
 
 SMT-Based PBE (``aria/synthesis/pbe/``)
 ---------------------------------------

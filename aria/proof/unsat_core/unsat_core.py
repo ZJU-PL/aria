@@ -286,14 +286,13 @@ class UnsatCoreComputer:
             self.algorithm = Algorithm.MARCO
             self._load_algorithm_module()
 
-        cores = self.module.find_unsat_cores(
-            constraints=constraints,
-            solver_factory=solver_factory,
-            timeout=timeout,
-            enumerate_all=True,
+        return self._run_marco(
+            constraints,
+            solver_factory,
+            timeout,
+            max_cores=float("inf"),
             **kwargs,
         )
-        return UnsatCoreResult(cores=cores, is_minimal=True)
 
 
 def get_unsat_core(

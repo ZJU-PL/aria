@@ -229,11 +229,12 @@ Usage Examples
 
    formula = Implies(
        And(Predicate('P', [Variable('a')]),
-       Predicate('Q', [Variable('a')]))
+           Predicate('Q', [Variable('a')])),
+       Predicate('P', [Variable('a')]),
    )
 
    result = proveFormula(axioms, formula)
-   # Returns sequent or None if no proof found
+   # Returns True when the formula is provable; False (or loops) otherwise
 
 ### Interactive CLI
 ~~~~~~~~~~~~~~~~~~~

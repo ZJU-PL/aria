@@ -48,7 +48,7 @@ Example
 
    from aria.ml.llmtools import LLM, Logger
 
-   logger = Logger()
+   logger = Logger("logs/llm.log")  # path to the log file
    llm = LLM(
        model_name="gpt-4o-mini",
        logger=logger,

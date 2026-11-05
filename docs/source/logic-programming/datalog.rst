@@ -35,14 +35,23 @@ Representative operations include:
 Package Structure
 -----------------
 
+The module files use snake_case names, while the package keeps the historical
+pyDatalog ``CamelCase`` spellings as module aliases (for example
+``aria.datalog.pyParser`` refers to ``py_parser.py``).
+
 Key files in ``aria/datalog`` include:
 
-- ``pyDatalog.py``: public runtime API
-- ``Logic.py``: logic-engine state management
-- ``pyEngine.py``: evaluation engine internals
-- ``pyParser.py``: parsing and query handling
-- ``Aggregate.py``: aggregate support
+- ``py_datalog.py``: public runtime API (importable as ``aria.datalog.pyDatalog``)
+- ``logic.py``: logic-engine state management (module aliased as
+  ``logic``; its ``Logic`` class is re-exported at package level)
+- ``py_engine.py``: evaluation engine internals (aliased as ``pyEngine``)
+- ``py_parser.py``: parsing and query handling (aliased as ``pyParser``)
+- ``aggregate.py``: aggregate support (aliased as ``Aggregate``)
+- ``api.py``: object-oriented ``Program`` / ``Relation`` / ``QueryResult`` API
+- ``user_list.py``: ``UserList`` sequence type (module aliased as
+  ``UserList``)
 - ``util.py``: utilities and exceptions
+- ``version.py``: upstream package version string (``0.17.4``)
 - ``grammar.txt``: grammar reference
 
 Status and Provenance

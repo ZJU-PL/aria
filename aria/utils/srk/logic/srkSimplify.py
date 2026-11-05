@@ -395,28 +395,46 @@ class Simplifier:
         else:
             return builder.mk_not(operand)
 
+    @staticmethod
+    def _const_value(expression: Expression) -> Optional[Fraction]:
+        """Numeric value of a literal ``Const``, or ``None`` otherwise.
+
+        SRK literals are constants whose symbol names follow the
+        ``int_<n>`` / ``real_<x>`` convention (see ``ExpressionBuilder.mk_int``).
+        """
+        if not isinstance(expression, Const):
+            return None
+        name = expression.symbol.name or ""
+        if name.startswith("int_"):
+            try:
+                return Fraction(int(name[4:]), 1)
+            except ValueError:
+                return None
+        if name.startswith("real_"):
+            try:
+                return Fraction(name[5:])
+            except ValueError:
+                return None
+        return None
+
     def _is_zero(self, expression: Expression) -> bool:
         """Check if expression represents zero."""
-        if isinstance(expression, Const):
-            return expression.symbol.typ == Type.INT and expression.value == 0
-        return False
+        return self._const_value(expression) == 0
 
     def _is_one(self, expression: Expression) -> bool:
         """Check if expression represents one."""
-        if isinstance(expression, Const):
-            return expression.symbol.typ == Type.INT and expression.value == 1
-        return False
+        return self._const_value(expression) == 1
 
     def _is_constant(self, expression: Expression) -> bool:
-        """Check if expression is a constant."""
-        return isinstance(expression, Const)
+        """Check if expression is a numeric literal constant."""
+        return self._const_value(expression) is not None
 
     def _get_constant_value(self, expression: Expression) -> Fraction:
         """Get the constant value of an expression."""
-        if isinstance(expression, Const):
-            return Fraction(expression.value)
-        else:
+        value = self._const_value(expression)
+        if value is None:
             raise ValueError("Expression is not a constant")
+        return value
 
     def _make_constant(self, value: Fraction) -> Expression:
         """Create a constant expression."""

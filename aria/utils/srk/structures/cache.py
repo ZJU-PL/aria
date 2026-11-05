@@ -393,11 +393,14 @@ class CacheParams:
     aging_factor: float = 0.9
 
 
-class LRUCache:
+class ParametricLRUCache:
     """LRU cache with configurable parameters (mirrors OCaml ``Cache.LRU.S``).
 
     Extends Python's built-in LRU capabilities with parameter-awareness,
     reset, copy, and iteration operations.
+
+    Kept under a separate name so it does not shadow the
+    ``get``/``put``-based :class:`LRUCache` above.
     """
 
     def __init__(self, params: Optional[CacheParams] = None, size: Optional[int] = None):
@@ -421,9 +424,9 @@ class LRUCache:
         """Clear all entries from the cache."""
         self._data.clear()
 
-    def copy(self) -> "LRUCache":
+    def copy(self) -> "ParametricLRUCache":
         """Create a shallow copy of the cache."""
-        new_cache = LRUCache(params=self._params, size=self._max_size)
+        new_cache = ParametricLRUCache(params=self._params, size=self._max_size)
         new_cache._data.update(self._data)
         return new_cache
 

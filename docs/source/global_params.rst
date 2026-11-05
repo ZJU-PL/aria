@@ -30,7 +30,7 @@ The global_params module implements a **singleton pattern** configuration manage
 3. **Implements solver discovery** (local binaries → system PATH)
 4. **Offers consistent API** for configuration access across the codebase
 
-**Usage Pattern**: This module is imported in 21 files across the project for solver path resolution and configuration access.
+**Usage Pattern**: This module is imported in 23 files across the project for solver path resolution and configuration access.
 
 Key Components
 --------------
@@ -172,7 +172,7 @@ From ``__init__.py``:
 Usage Patterns Across Codebase
 ------------------------------
 
-The module is imported in **21 files** across the project, with common use cases:
+The module is imported in **23 files** across the project, with common use cases:
 
 ### 1. Solver Path Retrieval (Most Common)
 
@@ -371,8 +371,9 @@ Key Features
 1. **Singleton Management**: Ensures single GlobalConfig instance
 2. **Solver Discovery**: Automatic path resolution with fallback strategy
 3. **Path Management**: Centralized project constants (PROJECT_ROOT, BIN_SOLVERS_PATH, BENCHMARKS_PATH)
-4. **5 Supported Solvers**: Z3, CVC5, MathSAT, Yices2, SharpSAT
-5. **21 Integration Points**: Used across SMT, quantifiers, synthesis, Boolean reasoning
+4. **9 Supported Solvers**: Z3, CVC5, MathSAT, Yices2, SharpSAT, Caqe,
+   Boolector (``btor``), Bitwuzla, and Q3B
+5. **23 Integration Points**: Used across SMT, quantifiers, synthesis, Boolean reasoning
 6. **Thread-Safe**: Singleton pattern with metaclass for concurrent access
 7. **Logging Integration**: Warnings and errors properly logged
 8. **Extensible**: Easy to add new solvers to configuration
@@ -381,8 +382,8 @@ Size Statistics
 ---------------
 
 * Total Python files: 2
-* Total Python lines: ~213
-* paths.py: 206 lines
-* __init__.py: 7 lines
-* Managed solvers: 5
-* Integration points: 21+
+* Total Python lines: ~230
+* paths.py: 224 lines
+* __init__.py: 6 lines
+* Managed solvers: 9
+* Integration points: 23
