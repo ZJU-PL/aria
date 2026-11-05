@@ -44,9 +44,9 @@ Programmatic usage
 
 .. code-block:: python
 
-   from aria.utils.translator import dimacs2smt
+   from aria.utils.translator.dimacs2smt import convert_dimacs_to_smt2
 
-   dimacs2smt.convert_file("input.cnf", "output.smt2")
+   convert_dimacs_to_smt2("input.cnf", "output.smt2")
 
 CLI access
 ----------
@@ -67,3 +67,9 @@ Notes
 The OPB translator supports weighted constraints, ``soft:`` headers,
 min/max objectives, richer comparators, and product terms by emitting either
 ``QF_LIA`` or ``QF_NIA`` SMT-LIB2 as needed.
+
+The SymPy translator (``smtlib2 -> sympy``) is experimental. Integer and real
+formulas are translated directly; bit-vector symbols, constants, arithmetic,
+and comparisons are approximated as unbounded integers, so overflow and
+fixed-width wrapping are not modelled. Constructs it cannot translate raise
+``NotImplementedError`` instead of producing a partial expression.

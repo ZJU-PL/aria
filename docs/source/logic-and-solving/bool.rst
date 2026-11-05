@@ -7,7 +7,7 @@ This page describes the package structure and major APIs. Related solver
 workflows such as optimization, backbone computation, UNSAT cores, and
 knowledge compilation are grouped alongside it in :doc:`index`.
 
-The module contains approximately 8,600+ lines of Python code across 9 main submodules.
+The module contains roughly 23,000 lines of Python code across its subpackages.
 
 .. contents:: Table of Contents
    :local:
@@ -23,14 +23,21 @@ aria/bool/
 ├── pysat_cnf.py                  # CNF manipulation utilities
 ├── tseitin_converter.py           # DNF to CNF transformation
 ├── cnfsimplifier/                # CNF simplification framework
+├── cnfsimplifier_rs/             # Rust-backed variant of the simplifier
 ├── sat/                          # SAT solver implementations
 ├── maxsat/                       # MaxSAT solvers and algorithms
 ├── nnf/                          # NNF reasoning library (largest submodule)
 ├── qbf/                          # QBF solver and parsers
-├── features/                      # SAT instance feature extraction
-├── dissolve/                      # Distributed SAT solver
-├── knowledge_compiler/             # DNNF and OBDD compilation
-└── interpolant/                   # Boolean interpolation algorithms
+├── features/                     # SAT instance feature extraction
+├── dissolve/                     # Distributed SAT solver
+├── knowledge_compiler/           # DNNF and OBDD compilation
+├── interpolant/                  # Boolean interpolation algorithms
+├── analysis/                     # CNF/QBF structural analysis
+├── backbone/                     # SAT backbone computation
+├── encodings/                    # Boolean encodings (cardinality, etc.)
+├── modal/                        # Modal logic reasoning
+├── prime/                        # Prime implicant/implicate enumeration
+└── threeval/                     # Three-valued (Kleene) logic
 ```
 
 SAT Solvers (``sat/``)
@@ -43,7 +50,8 @@ Multiple SAT solver backends with unified interface.
 * ``PySATSolver``: Wrapper around PySAT supporting 14+ solvers (CDCL, Glucose, MapleSAT, etc.)
   - Methods: ``check_sat()``, ``check_sat_assuming()``, ``get_model()``, ``sample_models()``, ``reduce_models()``
 * ``Z3SATSolver``: Z3-based SAT solver implementation
-* ``BruteForceSolver``: Pure Python brute-force solver with parallel support
+* ``brute_force.py``: pure Python brute-force solvers
+  (``solve_sat_brute_force()`` and ``solve_sat_brute_force_parallel()``)
 
 **Features:**
 
@@ -65,7 +73,7 @@ Solve weighted and unweighted MaxSAT optimization problems.
 * ``MaxSATSolverResult``: Dataclass for results (cost, solution, runtime, status)
 * ``FM``: Fu-Malik algorithm implementation (WMSU1 variant)
 * ``RC2``: Relaxable Cardinality Constraints solver (top-ranked in MaxSAT Evaluation)
-* ``AnytimeSolver``: Anytime MaxSAT solving
+* ``AnytimeMaxSAT``: Anytime MaxSAT solving
 
 **Features:**
 
@@ -213,7 +221,7 @@ Compile logical formulas into efficient representations.
 
 * ``DNF_Node``: Node in DNNF tree
 * ``BDD``: Binary Decision Diagram node
-* ``DecisionTree``: Decision tree representation
+* ``Dtree_Compiler``: Decision tree compilation
 
 **Features:**
 
@@ -390,9 +398,9 @@ Notable Features
 Size Statistics
 ---------------
 
-* Total Python files: ~45
-* Lines of code: ~8,600+
-* Main NNF library: ~1,770 lines
+* Total Python files: ~100
+* Lines of code: ~23,000
+* Main NNF library (``nnf/__init__.py``): ~1,850 lines
 * Supported SAT solvers: 14+
 * Supported MaxSAT algorithms: 4 (FM, RC2, OBV-BS, Anytime)
 * Extracted features: 40+

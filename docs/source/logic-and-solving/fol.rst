@@ -16,9 +16,9 @@ Directory Structure
    └── miniprover/
        ├── __init__.py          (0 lines - empty)
        ├── language.py          (517 lines)
-       ├── prover.py            (525 lines)
-       ├── main.py              (526 lines)
-       └── README.md            (95 lines)
+       ├── prover.py            (524 lines)
+       ├── main.py              (525 lines)
+       └── README.md            (94 lines)
        └── __pycache__/         (compiled Python files)
 
 Module Purpose
@@ -65,7 +65,7 @@ Defines the complete FOL language with support for unification and substitution.
 * ``occurs(term)``: Occurs-check for unification safety
 * ``setInstantiationTime(time)``: Track when terms were created
 
-### 2. Theorem Prover (``prover.py`` - 525 lines)
+### 2. Theorem Prover (``prover.py`` - 524 lines)
 
 Implements complete sequent calculus with unification-based proof search.
 
@@ -118,7 +118,7 @@ Implements complete sequent calculus with unification-based proof search.
 * **Existential quantification**: Fresh variable instantiation
   - Ensures no variable capture during substitution
 
-### 3. Command-Line Interface (``main.py`` - 526 lines)
+### 3. Command-Line Interface (``main.py`` - 525 lines)
 
 Interactive theorem prover REPL with formula management.
 
@@ -177,7 +177,7 @@ Interactive theorem prover REPL with formula management.
    * - ``exit``
      - Exit the prover
 
-### 4. Documentation (``README.md`` - 95 lines)
+### 4. Documentation (``README.md`` - 94 lines)
 
 Comprehensive guide including:
 
@@ -278,11 +278,11 @@ Key Features
 Size Statistics
 ---------------
 
-* Total Python lines: ~1,568
+* Total Python lines: ~1,567
 * language.py: 517 lines
-* prover.py: 525 lines
-* main.py: 526 lines
-* README.md: 95 lines
+* prover.py: 524 lines
+* main.py: 525 lines
+* README.md: 94 lines
 
 Testing
 -------

@@ -61,13 +61,13 @@ Quantifier handling
 Applications and tools
 ----------------------
 
-**Interactive theorem proving** (``aria/itp``)
-  Build proof tools across multiple theories.
+**First-order theorem proving** (``aria/smt/fol``)
+  Extend the Miniprover sequent-calculus prover and proof-search strategies.
 
 **Program synthesis** (``aria/synthesis``)
   Explore SyGuS and related synthesis workflows.
 
-**Abductive reasoning** (``aria/abduction``)
+**Abductive reasoning** (``aria/proof/abduction``)
   Develop explanation and hypothesis-generation algorithms.
 
 Getting started

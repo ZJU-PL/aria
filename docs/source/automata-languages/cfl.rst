@@ -41,7 +41,8 @@ via ``qiskit``):
 .. code-block:: text
 
    from aria.automata.cfl.cfl_dtc import RandomCFLSolver
-   # Note: requires optional qiskit package
+   # Note: requires the optional qiskit package, which ARIA does not install
+   # by default (pip install qiskit); the module fails to import without it.
 
 Grammar Support (``aria/automata/cfl/grammar.py``)
 --------------------------------------------------

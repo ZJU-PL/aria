@@ -32,8 +32,13 @@ Programmatic usage
    from aria.efmc.sts import TransitionSystem
 
    sts = TransitionSystem(...)
-   prover = HoudiniProver(sts, predicates=[...])
+   prover = HoudiniProver(sts)
    result = prover.solve()
+
+   # Candidate lemmas are derived from the post-condition (plus
+   # ``sts.invariants`` when present). To prune an explicit set instead:
+   # lemmas = [x >= 0, x + y == 5, ...]
+   # kept = prover.houdini(lemmas)
 
 CLI usage
 ---------

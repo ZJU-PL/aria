@@ -26,7 +26,9 @@ Key classes
   * ``k_split_vars`` -- number of variables used in dilemma splits
   * ``budget_strategy`` -- ``"constant"`` or ``"luby"`` sequence
   * ``distribution_strategy`` -- ``"dilemma"`` or ``"portfolio"``
-  * ``clause_sharing`` -- enable / disable cross-worker clause exchange
+  * ``max_shared_per_round`` -- cap on learned clauses shared per round
+  * ``store_small_clauses_threshold`` -- clause-length threshold for the
+    UBTree store
 
 * ``DissolveResult`` -- result container with satisfiability status, model,
   and runtime
@@ -49,6 +51,7 @@ Programmatic usage
 .. code-block:: python
 
    from aria.bool.dissolve import Dissolve, DissolveConfig
+   from aria.utils.types import SolverResult
 
    cfg = DissolveConfig(
        k_split_vars=5,
@@ -58,5 +61,5 @@ Programmatic usage
    solver = Dissolve(cfg)
    result = solver.solve(cnf_clauses)
 
-   if result.is_sat:
+   if result.result is SolverResult.SAT:
        print("Model:", result.model)

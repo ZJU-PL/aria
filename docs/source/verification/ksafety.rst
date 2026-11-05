@@ -51,15 +51,14 @@ The k-safety engine is primarily used programmatically through the Python API:
    sts = TransitionSystem()
    # ... initialize sts ...
    
-   # Create prover
-   prover = NonInterferenceProver(sts, k=2, method='bounded_model_checking', max_bound=10)
+   # Create prover (non-interference always uses k=2 traces)
+   prover = NonInterferenceProver(sts, method='bounded_model_checking', max_bound=10)
    
-   # Set high and low security variables
-   prover.set_high_variables([high_var])
-   prover.set_low_variables([low_var])
-   
-   # Verify
-   result = prover.solve()
+   # Verify, passing high/low security variable *names* (strings)
+   result = prover.verify_non_interference(
+       high_vars=['high'],
+       low_vars=['low'],
+   )
 
 HyperLTL Example
 ----------------

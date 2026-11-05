@@ -12,8 +12,8 @@ Directory Structure
 
 ```
 global_params/
-├── __init__.py                    (7 lines - module entry point)
-└── paths.py                       (206 lines - core implementation)
+├── __init__.py                    (6 lines - module entry point)
+└── paths.py                       (224 lines - core implementation)
 ```
 
 **No subdirectories** - flat module structure.
@@ -73,7 +73,7 @@ Implements the **singleton pattern** to ensure only one ``GlobalConfig`` instanc
 
 The core configuration manager with comprehensive capabilities.
 
-**Managed Solvers** (5 solvers total):
+**Managed Solvers** (9 solvers total):
 
 .. list-table::
    :header-rows: 1
@@ -91,6 +91,14 @@ The core configuration manager with comprehensive capabilities.
      - Yices2 SMT solver
    * - ``sharp_sat``
      - SharpSAT solver for model counting
+   * - ``caqe``
+     - Caqe QBF solver
+   * - ``btor``
+     - Boolector QF_BV solver
+   * - ``bitwuzla``
+     - Bitwuzla QF_BV solver
+   * - ``q3b``
+     - Q3B QBF solver
 
 **Path Properties:**
 

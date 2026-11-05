@@ -239,13 +239,15 @@ Linear Arithmetic Abstraction
    symabs = LIRASymbolicAbstraction()
 
    # Initialize from SMT formula
-   symabs.init_from_formula(formula)
+   symabs.init_from_fml(formula)
 
-   # Compute interval abstraction
-   interval_abs = symabs.compute_interval_abstraction()
+   # Compute interval abstraction (stored in interval_abs_as_fml)
+   symabs.interval_abs()
+   interval_abs = symabs.interval_abs_as_fml
 
-   # Compute zone abstraction
-   zone_abs = symabs.compute_zone_abstraction()
+   # Compute zone abstraction (stored in zone_abs_as_fml)
+   symabs.zone_abs()
+   zone_abs = symabs.zone_abs_as_fml
 
 Bit-Vector Abstraction
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -259,10 +261,12 @@ Bit-Vector Abstraction
    bv_symabs = BVSymbolicAbstraction()
 
    # Initialize with bit-vector formula
-   bv_symabs.init_from_formula(bv_formula)
+   bv_symabs.init_from_fml(bv_formula)
 
-   # Compute abstraction
-   abstract_state = bv_symabs.compute_abstraction()
+   # Compute the interval abstraction (also available: zone_abs,
+   # octagon_abs, bitwise_abs)
+   bv_symabs.interval_abs()
+   abstract_state = bv_symabs.interval_abs_as_fml
 
 
 
@@ -368,6 +372,7 @@ OMT-based Abstraction
 .. code-block:: python
 
    from aria.symabs.omt_symabs.lira_symbolic_abstraction import LIRASymbolicAbstraction
+   from aria.symabs.omt_symabs.omt_engines import OMTEngineType
 
    # Create symbolic abstraction engine
    symabs = LIRASymbolicAbstraction()
@@ -376,11 +381,11 @@ OMT-based Abstraction
    symabs.init_from_file('example.smt2')
 
    # Set OMT engine type
-   symabs.set_omt_engine_type('z3opt')
+   symabs.set_omt_engine_type(OMTEngineType.Z3OPT)
 
    # Compute optimal interval abstraction
-   interval_abs = symabs.compute_interval_abstraction()
-   print(f"Interval abstraction: {interval_abs}")
+   symabs.interval_abs()
+   print(f"Interval abstraction: {symabs.interval_abs_as_fml}")
 
 Predicate Abstraction Example
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

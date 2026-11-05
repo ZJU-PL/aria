@@ -29,6 +29,8 @@ Programmatic usage
 
 .. code-block:: python
 
+   from pysat.formula import CNF
    from aria.bool.prime.enumeration import enumerate_prime_implicants
 
-   primes = enumerate_prime_implicants(cnf_clauses, variables)
+   formula = CNF(from_clauses=[[1, 2], [-1, 3], [-2, 3]])
+   primes = enumerate_prime_implicants(formula)  # -> [[1, 3], [2, 3]]

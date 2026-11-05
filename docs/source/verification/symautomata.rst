@@ -402,7 +402,7 @@ Common Issues
 Dependencies
 ~~~~~~~~~~~~
 
-* **Required**: Python 3.6+
+* **Required**: Python 3.8+
 * **Optional**: OpenFST library, pywrapfst, networkx (for visualization)
 * **Development**: pytest, sphinx (for documentation)
 

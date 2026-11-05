@@ -23,6 +23,7 @@ Programmatic usage
 
    sts = TransitionSystem(...)
    prover = PredicateAbstractionProver(sts)
+   prover.set_predicates(predicates)  # Z3 formulas over sts.variables
    result = prover.solve()
 
 Relationship to other docs

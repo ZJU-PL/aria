@@ -1,5 +1,5 @@
 PolyHorn: Polynomial Horn Clause Solver
-
+=======================================
 
 Introduction
 ============
@@ -12,7 +12,6 @@ The module implements several fundamental theorems from real algebraic geometry 
 - **Handelman's Theorem**: For polynomial constraints with linear left-hand sides  
 
 - **Putinar's Theorem**: For general polynomial constraints using sum-of-squares representations
-------------------------------------------------------------------------------------------------
 
 Key Features
 ------------
@@ -23,7 +22,6 @@ Key Features
 4. **Heuristic Optimizations**: UNSAT core iteration and constant elimination heuristics
 
 5. **Multiple Solver Backends**: Integration with Z3, CVC4, and other SMT solvers
----------------------------------------------------------------------------------
 
 Applications
 ------------
@@ -45,7 +43,6 @@ PolyHorn works with polynomial Horn clauses of the form:
    \forall x_1, \ldots, x_n : (P_1(x) \land \ldots \land P_k(x)) \Rightarrow Q(x)
 
 where :math:`P_i(x)` and :math:`Q(x)` are polynomial constraints over real variables.
--------------------------------------------------------------------------------------
 
 Verification Theorems
 ---------------------
@@ -90,7 +87,6 @@ Main Interface
       result, model = execute("problem.smt2", config)
 
       print(f"Result: {result}")  # 'sat', 'unsat', or 'unknown'
-----------------------------------------------------------------
 
 Configuration Options
 ---------------------
@@ -112,7 +108,6 @@ The configuration dictionary supports the following options:
        "output_path": "output.smt2"         # Path for generated SMT file
 
    }
-----
 
 Core Classes
 ------------
@@ -174,7 +169,6 @@ Basic Usage with PySMT
        for var, value in model.items():
 
            print(f"{var}: {value}")
------------------------------------
 
 SMT-LIB2 File Input
 -------------------
@@ -191,7 +185,6 @@ SMT-LIB2 File Input
    }
    
    result, model = execute("constraints.smt2", config)
-------------------------------------------------------
 
 Human-Readable Format
 ---------------------
@@ -208,7 +201,6 @@ PolyHorn also supports a more readable input format:
    Horn_clause: (x >= 1 AND y >= 1) -> (x + y >= 2)
 
    Horn_clause: (x^2 + y^2 <= 1) -> (x + y <= 2)
-------------------------------------------------
 
 Advanced Configuration
 ----------------------
@@ -253,7 +245,6 @@ The degree parameters control the complexity vs. completeness trade-off:
 - ``degree_of_sat``: Controls template complexity for satisfiability
 
 - ``degree_of_*_unsat``: Controls template complexity for unsatisfiability proofs
----------------------------------------------------------------------------------
 
 Heuristic Optimizations
 -----------------------

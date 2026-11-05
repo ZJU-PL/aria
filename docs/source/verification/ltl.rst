@@ -1,4 +1,4 @@
-Linear Teamporal Logic
+Linear Temporal Logic
 ======================
 
 

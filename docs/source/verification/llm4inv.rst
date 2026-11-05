@@ -29,13 +29,13 @@ Basic usage:
 
 .. code-block:: bash
 
-   efmc --engine llm4inv --lang chc --file program.smt2
+   aria-efmc --engine llm4inv --lang chc --file program.smt2
 
 With custom LLM model:
 
 .. code-block:: bash
 
-   efmc --engine llm4inv --lang chc --file program.smt2 \
+   aria-efmc --engine llm4inv --lang chc --file program.smt2 \
         --llm4inv-provider remote \
         --llm4inv-remote-model deepseek-v3
 
@@ -43,7 +43,7 @@ Using local LLM:
 
 .. code-block:: bash
 
-   efmc --engine llm4inv --lang chc --file program.smt2 \
+   aria-efmc --engine llm4inv --lang chc --file program.smt2 \
         --llm4inv-provider local \
         --llm4inv-local-provider lm-studio \
         --llm4inv-local-model qwen/qwen3-coder-30b

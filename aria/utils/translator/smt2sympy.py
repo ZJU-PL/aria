@@ -18,7 +18,6 @@ from pysmt.shortcuts import INT
 from pysmt.shortcuts import REAL
 from pysmt.smtlib.parser import SmtLibParser
 from pysmt.walkers import DagWalker
-from pysmt.walkers import IdentityDagWalker
 from six.moves import cStringIO
 import sympy
 
@@ -54,7 +53,15 @@ def _make_walk_binary(func):
     return walk_binary
 
 
-class SMTToSympyWalker(IdentityDagWalker):
+def _make_walk_unary(func):
+    def walk_unary(self, formula, args, **kwargs):
+        assert len(args) == 1
+        return func(args[0])
+
+    return walk_unary
+
+
+class SMTToSympyWalker(DagWalker):
 
     def __init__(
         self,
@@ -86,9 +93,12 @@ class SMTToSympyWalker(IdentityDagWalker):
             return self._interpreted_constants.get(
                 symbol_name, sympy.Symbol(symbol_name, integer=True)
             )
-        assert symbol_type != REAL and symbol_type != INT, (
-            f"Only real and integer variables are allowed: "
-            f"{symbol_name} has type {symbol_type}"
+        if symbol_type.is_bv_type():
+            # Bit-vectors are approximated as unbounded integers, matching the
+            # integer-semantics of the generated SymPy expression.
+            return sympy.Symbol(symbol_name, integer=True)
+        raise NotImplementedError(
+            f"Unsupported variable sort for {symbol_name}: {symbol_type}"
         )
 
     def walk_ite(self, formula, args, **kwargs):
@@ -162,6 +172,34 @@ class SMTToSympyWalker(IdentityDagWalker):
     walk_equals = _make_walk_binary(lambda args: sympy.Eq(args[0], args[1]))
     walk_le = _make_walk_binary(lambda args: args[0] <= args[1])
     walk_lt = _make_walk_binary(lambda args: args[0] < args[1])
+
+    def walk_bv_constant(self, formula, args, **kwargs):
+        del args
+        del kwargs
+        return int(formula.constant_value())
+
+    # Bit-vector comparisons are converted under an integer approximation;
+    # signed and unsigned variants coincide on the unbounded integers emitted
+    # by this translator.
+    walk_bv_le = walk_bv_sle = _make_walk_binary(lambda args: args[0] <= args[1])
+    walk_bv_lt = walk_bv_slt = _make_walk_binary(lambda args: args[0] < args[1])
+    walk_bv_ge = walk_bv_sge = _make_walk_binary(lambda args: args[0] >= args[1])
+    walk_bv_gt = walk_bv_sgt = _make_walk_binary(lambda args: args[0] > args[1])
+    walk_bv_ule = _make_walk_binary(lambda args: args[0] <= args[1])
+    walk_bv_ult = _make_walk_binary(lambda args: args[0] < args[1])
+    walk_bv_uge = _make_walk_binary(lambda args: args[0] >= args[1])
+    walk_bv_ugt = _make_walk_binary(lambda args: args[0] > args[1])
+
+    walk_bv_add = _make_walk_nary(
+        lambda args: functools.reduce(lambda x, y: x + y, args, 0)
+    )
+    walk_bv_sub = _make_walk_binary(lambda args: args[0] - args[1])
+    walk_bv_mul = _make_walk_nary(
+        lambda args: functools.reduce(lambda x, y: x * y, args)
+    )
+    walk_bv_neg = _make_walk_unary(lambda arg: -arg)
+    walk_bv_udiv = _make_walk_binary(lambda args: sympy.floor(args[0] / args[1]))
+    walk_bv_urem = _make_walk_binary(lambda args: sympy.Mod(args[0], args[1]))
 
     walk_exists = walk_quantifier
     walk_forall = walk_quantifier

@@ -20,7 +20,7 @@ Backbone Computation in Aria
 Aria provides backbone computation across Boolean (SAT) and SMT levels:
 
 1. **Boolean SAT Backbone** (``aria.bool.backbone`` / ``aria.backbone.sat_backbone``):
-   Computes the backbone of a CNF formula with multiple algorithms (iterative, chunking, refinement, approximation).
+   Computes the backbone of a CNF formula with multiple algorithms (``ITERATIVE``, ``CHUNKING``, ``BACKBONE_REFINEMENT``).
 
 2. **SMT Backbone** (``aria.backbone.smt_backbone_literals`` and ``aria.backbone.smt_backbone_clauses``):
    Computes implied literals and clauses for SMT formulas using sequence checking, model enumeration, and predicate abstraction.

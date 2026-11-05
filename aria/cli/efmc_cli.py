@@ -396,7 +396,7 @@ def parse_arguments():
     input_group.add_argument(
         "--lang",
         type=str,
-        choices=["chc", "sygus", "boogie", "auto"],
+        choices=["chc", "sygus", "boogie", "c", "auto"],
         default="auto",
         help="Input language format",
     )
@@ -732,7 +732,8 @@ def main():
         else:
             logging.error(f"Unsupported file extension: {file_extension}")
             logging.info(
-                "Supported extensions: .smt2 (CHC), .sy/sl (SyGuS), .bpl (Boogie)"
+                "Supported extensions: .smt2 (CHC), .sy/sl (SyGuS), .bpl (Boogie), "
+                ".c (C)"
             )
             sys.exit(1)
 

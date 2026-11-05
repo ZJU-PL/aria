@@ -49,8 +49,8 @@ The QE prover uses multiple quantifier elimination tactics:
 References
 ==========
 
-.. [1] A. Tarski, "A decision method for elementary algebra and geometry," University of California Press, 1951.
+- A. Tarski, "A decision method for elementary algebra and geometry," University of California Press, 1951.
 
-.. [2] G. E. Collins, "Quantifier elimination for real closed fields by cylindrical algebraic decomposition," in ISSAC, 1975.
+- G. E. Collins, "Quantifier elimination for real closed fields by cylindrical algebraic decomposition," in ISSAC, 1975.
 
-.. [3] L. de Moura and N. Bjørner, "Z3: An efficient SMT solver," in TACAS, 2008. 
+- L. de Moura and N. Bjørner, "Z3: An efficient SMT solver," in TACAS, 2008.

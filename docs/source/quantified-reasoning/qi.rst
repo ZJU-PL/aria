@@ -56,10 +56,10 @@ The QI prover can be used as follows:
 
     from aria.efmc.engines.qi import QuantifierInstantiationProver
     from aria.efmc.sts import TransitionSystem
-    
+
     # Create transition system
     sts = TransitionSystem(...)
-    
+
     # Create QI prover with MBQI strategy
     prover = QuantifierInstantiationProver(
         sts,
@@ -67,10 +67,10 @@ The QI prover can be used as follows:
         solver='z3api',
         timeout=60
     )
-    
+
     # Solve the verification problem
     result = prover.solve()
-    
+
     if result.is_safe:
         print("System is safe")
         print(f"Invariant: {result.invariant}")
@@ -97,8 +97,8 @@ Future Improvements
 References
 ==========
 
-.. [1] L. de Moura and N. Bjørner, "Z3: An efficient SMT solver," in TACAS, 2008.
+- L. de Moura and N. Bjørner, "Z3: An efficient SMT solver," in TACAS, 2008.
 
-.. [2] A. Reynolds and C. Tinelli, "Model-based quantifier instantiation for induction," in CADE, 2015.
+- A. Reynolds and C. Tinelli, "Model-based quantifier instantiation for induction," in CADE, 2015.
 
-.. [3] L. de Moura and N. Bjørner, "Efficient E-matching for SMT solvers," in CADE, 2007. 
+- L. de Moura and N. Bjørner, "Efficient E-matching for SMT solvers," in CADE, 2007.

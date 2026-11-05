@@ -32,7 +32,7 @@ Syntax-Guided Synthesis for invariants and PBE with CVC5:
 
    # Invariant synthesis
    inv_solver = SyGuSInvSolver()
-   # invariant = inv_solver.solve("benchmarks/efmc/sygus-inv/array.sl")
+   # invariant = inv_solver.solve("benchmarks/efmc/sygus-inv/array-copyall.sl")
 
    # String programming by example
    pbe_solver = StringSyGuSPBE()
@@ -59,8 +59,8 @@ Synthesize programs from input-output examples:
    # Synthesize program
    # result = solver.synthesize(examples)
 
-Version Space Algebra (``aria/synthesis/pbe/vsa``)
---------------------------------------------------
+Version Space Algebra (``aria/synthesis/pbe/vsa.py``)
+-----------------------------------------------------
 
 Algebraic manipulation of program spaces:
 
