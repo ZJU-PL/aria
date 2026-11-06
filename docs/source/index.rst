@@ -17,8 +17,9 @@ Major user-facing areas include:
 * ``aria.utils.srk``: symbolic reasoning infrastructure
 * ``aria.quant``: quantified reasoning, EFSMT, QE, CHC tooling, and prototypes
 * ``aria.efmc``: program verification frontends and engines
-* ``aria.counting`` / ``aria.sampling`` / ``examples.prob``: counting, sampling,
-  and probabilistic reasoning
+* ``aria.counting`` / ``aria.sampling``: model counting and sampling APIs
+* ``examples.prob``: repository-only examples for probabilistic reasoning (not
+  included in the ``pyaria`` distribution)
 * ``aria.pyomt``: optimization and MaxSMT/MaxSAT-oriented workflows
 * ``aria.smt.fol``: first-order logic theorem proving (Miniprover) - now in ``aria.smt.fol``
 * ``aria.utils.translator`` / ``aria.cli``: translators and command-line tools

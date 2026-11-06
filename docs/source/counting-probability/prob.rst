@@ -5,7 +5,10 @@ Overview
 --------
 
 Probabilistic reasoning utilities live under ``examples/prob`` (importable as
-``examples.prob``).
+``examples.prob``) in a repository checkout. The ``examples`` tree is excluded
+from the ``pyaria`` wheel and source distribution, so this API is not available
+from a plain ``pip install pyaria``. Clone the repository and run the examples
+from its root to use this page's code samples.
 
 Currently supported:
 

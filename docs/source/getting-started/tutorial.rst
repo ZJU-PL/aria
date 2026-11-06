@@ -33,7 +33,9 @@ ARIA is organized around several major user-facing subsystems:
 * ``aria.utils.srk``: symbolic reasoning infrastructure
 * ``aria.quant``: EFSMT, QE, CHC tooling, and quantified-reasoning prototypes
 * ``aria.efmc``: verification frontends and engines
-* ``aria.counting`` / ``aria.sampling`` / ``examples.prob``: counting, sampling, and probabilistic reasoning
+* ``aria.counting`` / ``aria.sampling``: model counting and sampling APIs
+* ``examples.prob``: repository-only examples for probabilistic reasoning; this
+  package is not included in the ``pyaria`` distribution
 * ``aria.pyomt``: optimization and MaxSMT-related flows
 * ``aria.utils.translator`` / ``aria.cli``: format translation and command-line tools
 
