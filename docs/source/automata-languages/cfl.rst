@@ -13,7 +13,7 @@ Key Features
 ------------
 
 * **CFL-Reachability Algorithms**: Classical and matrix-based dynamic reachability
-* **Dyck Language Support**: Balanced-parenthesis reachability for call-return matching
+* **Dyck-style Grammars**: Balanced-parenthesis reachability can be encoded as a CFL grammar; nullable (epsilon) productions are handled
 * **Graph-Based Analysis**: Efficient graph algorithms for program analysis
 * **Matrix-Based Computation**: Matrix formulations for parallel processing
 * **Strong Component Reduction**: Optimization via strongly connected components
@@ -48,12 +48,13 @@ via ``qiskit``):
 Grammar Support (``aria/automata/cfl/grammar.py``)
 --------------------------------------------------
 
-Context-free grammar manipulation:
+EBNF grammar parsing and conversion for CFL reachability:
 
 * Grammar parsing and validation
 * Production rule management
-* Dyck language generation
-* Grammar normalization
+* EBNF-to-BNF conversion (Kleene star, optional, grouping)
+* Nullable (epsilon) production detection
+* Grammar normalization for binary productions
 
 Matrix-Based Algorithms (``aria/automata/cfl/matrix.py``, ``pag_matrix.py``)
 ----------------------------------------------------------------------------

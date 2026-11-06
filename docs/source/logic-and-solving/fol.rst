@@ -158,24 +158,22 @@ Interactive theorem prover REPL with formula management.
      - Description
    * - ``[formula]``
      - Input formula and check provability
-   * - ``axiom add [formula]``
-     - Add axiom to current set
-   * - ``axiom list``
+   * - ``axiom <formula>``
+     - Add an axiom to the current set
+   * - ``axioms``
      - List all axioms
-   * - ``axiom remove [n]``
-     - Remove nth axiom
-   * - ``lemma prove [formula]``
-     - Prove lemma and add to knowledge base
-   * - ``lemma list``
-     - List all lemmas with dependencies
-   * - ``lemma remove [n]``
-     - Remove nth lemma
+   * - ``lemma <formula>``
+     - Prove a lemma and add it to the knowledge base
+   * - ``lemmas``
+     - List all lemmas
+   * - ``remove <formula>``
+     - Remove a matching axiom or lemma (dependent lemmas are removed too)
    * - ``reset``
      - Clear all axioms and lemmas
-   * - ``help``
-     - Show available commands
    * - ``exit``
      - Exit the prover
+
+The command set is also printed at startup. Bare ``help`` is not a command.
 
 ### 4. Documentation (``README.md`` - 94 lines)
 
@@ -185,7 +183,7 @@ Comprehensive guide including:
   - **Pedagogical tool**: Intentionally slow
   - **Completeness**: Guaranteed to find proofs for provable formulae
   - **Gödel limitation**: May loop forever on unprovable formulae
-  - **Logic**: Implements intuitionistic sequent calculus (not classical)
+  - **Logic**: Classical sequent calculus with multi-conclusion right rules
 * **Syntax reference**: Complete grammar with examples
 * **Interactive session example**: Demonstrates proof steps with sequent numbering
 * **Axiom and lemma usage**: Examples of building knowledge bases
@@ -243,14 +241,25 @@ Usage Examples
 
    python -m aria.smt.fol.miniprover.main
 
-   # Interactive session:
-   # Input: forall x. P(x)
-   # Prover: Added to axioms: [1]
-   # Input: P(a)
-   # Prover: ✓ Provable
-   #
-   # Input: implies (P(a)) (Q(a))
-   # Prover: ✓ Provable (1 steps)
+   # Interactive session (lines after the prompt are the prover's output):
+   > axiom P(a)
+   Axiom added: P(a).
+
+   > axiom P(a) implies Q(a)
+   Axiom added: (P(a) → Q(a)).
+
+   > Q(a)
+   0. (P(a) → Q(a)), P(a) ⊢ Q(a)
+   1. P(a) ⊢ Q(a), P(a)
+   1. P(a), Q(a) ⊢ Q(a)
+   Formula proven: Q(a).
+
+   > axioms
+   P(a)
+   (P(a) → Q(a))
+
+   > exit
+   Goodbye!
 
 Key Features
 ------------
@@ -273,7 +282,7 @@ Key Features
 
 * **Performance**: Too slow for practical use (pedagogical tool only)
 * **Termination**: May loop forever on unprovable formulae (Entscheidungsproblem)
-* **Logic**: Implements intuitionistic sequent calculus (not classical logic)
+* **Logic**: Implements a classical sequent calculus (multi-conclusion right rules)
 * **No practical applications**: Intended for teaching and research, not production use
 
 Size Statistics
@@ -306,7 +315,7 @@ Use Cases
 Notable Design Decisions
 ------------------------
 
-* **Intuitionistic over classical**: Matches pedagogical use case
+* **Classical sequent calculus**: The multi-conclusion right side proves classical tautologies such as ``P or not P``
 * **Breadth-first search**: Ensures completeness (won't miss shorter proofs)
 * **Creation time ordering**: Reproduces typical textbook proofs
 * **Unification terms**: Implements Skolemization naturally

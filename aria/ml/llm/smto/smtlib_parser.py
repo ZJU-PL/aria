@@ -39,18 +39,50 @@ def parse_smtlib_string(content: str) -> Tuple[List[OracleInfo], str]:
     oracles = []
     remaining_content = content
 
-    # Find all declare-nl statements
-    declare_nl_pattern = r"\(declare-nl\s+([^)]+)\)"
+    # Find all declare-nl statements using balanced parentheses
+    i = 0
+    n = len(content)
+    matches = []
+    while i < n:
+        idx = content.find("(declare-nl", i)
+        if idx == -1:
+            break
+        depth = 0
+        end = -1
+        in_string = False
+        escape = False
+        for j in range(idx, n):
+            c = content[j]
+            if escape:
+                escape = False
+                continue
+            if c == "\\":
+                escape = True
+                continue
+            if c == '"':
+                in_string = not in_string
+                continue
+            if in_string:
+                continue
+            if c == "(":
+                depth += 1
+            elif c == ")":
+                depth -= 1
+                if depth == 0:
+                    end = j + 1
+                    break
+        if end != -1:
+            full_match = content[idx:end]
+            inner_content = full_match[len("(declare-nl"):-1].strip()
+            matches.append((full_match, inner_content))
+            i = end
+        else:
+            i = idx + len("(declare-nl")
 
-    for match in re.finditer(declare_nl_pattern, content, re.MULTILINE | re.DOTALL):
-        full_match = match.group(0)
-        inner_content = match.group(1)
-
-        # Parse the declare-nl statement
+    for full_match, inner_content in matches:
         oracle_info = _parse_declare_nl(inner_content)
         if oracle_info:
             oracles.append(oracle_info)
-            # Remove the declare-nl statement from remaining content
             remaining_content = remaining_content.replace(full_match, "", 1)
 
     return oracles, remaining_content
@@ -99,20 +131,33 @@ def _parse_declare_nl(inner_content: str) -> Optional[OracleInfo]:
                     if arg_part.startswith("(") and arg_part.endswith(")"):
                         arg_part = arg_part[1:-1].strip()
                     arg_type = _parse_sort(arg_part)
-                    if arg_type:
+                    if arg_type is not None:
                         arg_types.append(arg_type)
 
-        # Extract return type - next token
-        return_type_match = re.match(r"(\S+)", remaining)
-        if not return_type_match:
-            return None
-
-        return_type_str = return_type_match.group(1)
-        remaining = remaining[len(return_type_str) :].strip()
+        # Extract return type - parenthesized or single token
+        if remaining.startswith("("):
+            depth = 0
+            end_idx = 0
+            for i, char in enumerate(remaining):
+                if char == "(":
+                    depth += 1
+                elif char == ")":
+                    depth -= 1
+                    if depth == 0:
+                        end_idx = i + 1
+                        break
+            return_type_str = remaining[:end_idx]
+            remaining = remaining[end_idx:].strip()
+        else:
+            return_type_match = re.match(r"(\S+)", remaining)
+            if not return_type_match:
+                return None
+            return_type_str = return_type_match.group(1)
+            remaining = remaining[len(return_type_str) :].strip()
 
         # Parse return type
         return_type = _parse_sort(return_type_str)
-        if not return_type:
+        if return_type is None:
             return None
 
         # Extract nldesc - can have colon or not: (nldesc "...") or (nldesc: "...")
@@ -121,12 +166,25 @@ def _parse_declare_nl(inner_content: str) -> Optional[OracleInfo]:
         description = nldesc_match.group(1) if nldesc_match else ""
 
         # Extract examples - format: (examples [...] or (examples: [...]
-        examples_pattern = r"\(examples:?\s+\[([^\]]+)\]\)"
-        examples_match = re.search(examples_pattern, remaining, re.DOTALL)
         examples = []
-        if examples_match:
-            examples_str = examples_match.group(1)
-            examples = _parse_examples(examples_str, len(arg_types))
+        ex_idx = remaining.find("(examples")
+        if ex_idx != -1:
+            depth = 0
+            ex_end = -1
+            for j in range(ex_idx, len(remaining)):
+                if remaining[j] == "(":
+                    depth += 1
+                elif remaining[j] == ")":
+                    depth -= 1
+                    if depth == 0:
+                        ex_end = j + 1
+                        break
+            if ex_end != -1:
+                ex_full = remaining[ex_idx:ex_end]
+                m = re.match(r"\(examples:?\s*(.*)\)$", ex_full, re.DOTALL)
+                if m:
+                    examples_str = m.group(1).strip()
+                    examples = _parse_examples(examples_str, len(arg_types))
 
         # Extract library (optional)
         library_pattern = r"\(library\s+([^\s)]+)\)"
@@ -190,14 +248,14 @@ def _parse_sort(sort_str: str) -> Optional[z3.SortRef]:
         return z3.StringSort()
 
     # Bit-vector: (_ BitVec n)
-    bv_pattern = r"\(_?\s*BitVec\s+(\d+)\)"
+    bv_pattern = r"\(?_?\s*BitVec\s+(\d+)\)?"
     bv_match = re.match(bv_pattern, sort_str)
     if bv_match:
         width = int(bv_match.group(1))
         return z3.BitVecSort(width)
 
     # Floating point: (_ FloatingPoint e s)
-    fp_pattern = r"\(_?\s*FloatingPoint\s+(\d+)\s+(\d+)\)"
+    fp_pattern = r"\(?_?\s*FloatingPoint\s+(\d+)\s+(\d+)\)?"
     fp_match = re.match(fp_pattern, sort_str)
     if fp_match:
         exp_bits = int(fp_match.group(1))
@@ -205,14 +263,14 @@ def _parse_sort(sort_str: str) -> Optional[z3.SortRef]:
         return z3.FPSort(exp_bits, sig_bits)
 
     # Array: (Array IndexSort ElemSort)
-    array_pattern = r"\(Array\s+(.+)\s+(.+)\)"
+    array_pattern = r"\(?Array\s+(.+)\s+(.+)\)?"
     array_match = re.match(array_pattern, sort_str)
     if array_match:
         index_sort_str = array_match.group(1).strip()
         elem_sort_str = array_match.group(2).strip()
         index_sort = _parse_sort(index_sort_str)
         elem_sort = _parse_sort(elem_sort_str)
-        if index_sort and elem_sort:
+        if index_sort is not None and elem_sort is not None:
             return z3.ArraySort(index_sort, elem_sort)
 
     return None
@@ -227,6 +285,9 @@ def _parse_examples(examples_str: str, num_args: int) -> List[Dict[str, Any]]:
     For PS_SMTO, we create examples with input only (output will be None or queried from oracle)
     """
     examples = []
+    examples_str = examples_str.strip()
+    if examples_str.startswith("[") and examples_str.endswith("]"):
+        examples_str = examples_str[1:-1].strip()
 
     # Find all example tuples - format: (val1), (val2), or (val1 val2 ...)
     # Also handle [val1, val2, ...] format

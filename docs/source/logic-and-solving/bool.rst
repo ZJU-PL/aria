@@ -70,7 +70,9 @@ Solve weighted and unweighted MaxSAT optimization problems.
 
 * ``MaxSATSolver``: Main wrapper supporting multiple engines
   - Methods: ``solve()``, ``solve_wcnf()``, ``tacas16_binary_search()``
-* ``MaxSATSolverResult``: Dataclass for results (cost, solution, runtime, status)
+* ``MaxSATSolverResult`` (``aria.bool.maxsat.maxsat_solver``): Dataclass for
+  results (cost, solution, runtime, status); it is not re-exported from
+  ``aria.bool.maxsat``
 * ``FM``: Fu-Malik algorithm implementation (WMSU1 variant)
 * ``RC2``: Relaxable Cardinality Constraints solver (top-ranked in MaxSAT Evaluation)
 * ``AnytimeMaxSAT``: Anytime MaxSAT solving
@@ -126,7 +128,7 @@ CNF Simplification (``cnfsimplifier/``)
 Advanced CNF formula simplification — see :doc:`cnfsimplifier` for the full
 standalone reference.
 
-**Simplification Techniques** (8 methods):
+**Simplification Techniques** (9 methods):
 
 1. Tautology elimination
 2. Hidden tautology elimination
@@ -136,10 +138,12 @@ standalone reference.
 6. Asymmetric subsumption elimination
 7. Blocked clause elimination
 8. Hidden blocked clause elimination
+9. Asymmetric blocked clause elimination
 
 **Key Functions:**
 
-* ``simplify_numeric_clauses()``: High-level simplification API
+* ``simplify_numeric_clauses()``: Convenience API that applies subsumption
+  elimination (see :doc:`cnfsimplifier` for the full pass set)
 * ``cnf_subsumption_elimination()``, ``cnf_tautoly_elimination()``, etc.
 
 QBF Support (``qbf/``)
@@ -174,14 +178,15 @@ SATzilla-style feature extraction for SAT instance analysis — see
 **Feature Categories:**
 
 * Size features (clauses, variables, ratios)
-* Variable-clause graph features (degree statistics, entropy)
+* Variable-clause graph features (mean/coefficient-of-variation/min/max, entropy)
 * Variable graph features
 * Balance features (positive/negative ratios)
-* Horn clause proximity features
-* DPLL probing features (unit propagations at various depths)
-* Local search probing features (SAPS, GSAT statistics)
-* Structural features (power law exponent, modularity, fractal dimension)
-* Graph features (8 weighted graphs with detailed statistics)
+* Horn clause proximity features (Horn-clause fraction and counts)
+* DPLL probing features (unit propagation at depths 1, 4, 16, 64, 256)
+
+The local-search probing, power-law/modularity/fractal structure features, and
+eight weighted graphs described in the package README are not implemented by
+the current Python code.
 
 **Key Modules:**
 
@@ -256,9 +261,11 @@ SAT Solving
 
 .. code-block:: python
 
+   from pysat.formula import CNF
    from aria.bool import PySATSolver
 
    solver = PySATSolver()
+   cnf_formula = CNF(from_clauses=[[1, 2], [-1, 2]])
    solver.add_cnf(cnf_formula)
    result = solver.check_sat()
    model = solver.get_model()
@@ -268,8 +275,12 @@ MaxSAT Solving
 
 .. code-block:: python
 
+   from pysat.formula import WCNF
    from aria.bool.maxsat import MaxSATSolver
 
+   wcnf_formula = WCNF()
+   wcnf_formula.append([1, 2], weight=1)
+   wcnf_formula.append([-1, 2], weight=2)
    maxsat = MaxSATSolver(wcnf_formula)
    result = maxsat.solve()  # Returns MaxSATSolverResult
 
@@ -304,6 +315,12 @@ QBF Solving
    from aria.bool.qbf import QBF, QDIMACSParser
 
    parser = QDIMACSParser()
+   qdimacs_str = """p cnf 2 2
+   a 1 0
+   e 2 0
+   1 2 0
+   -1 -2 0
+   """
    qbf = parser.parse_qdimacs(qdimacs_str)
    result = qbf.solve()
 
@@ -312,9 +329,11 @@ Feature Extraction
 
 .. code-block:: python
 
+   from pysat.formula import CNF
    from aria.bool.features.sat_instance import SATInstance
 
-   instance = SATInstance("formula.cnf")
+   instance = SATInstance(CNF(from_clauses=[[1, 2], [-1, 3]]))
+   instance.gen_basic_features()
    # Extract features via instance.features_dict
 
 Dissolve (Distributed SAT)
@@ -322,9 +341,11 @@ Dissolve (Distributed SAT)
 
 .. code-block:: python
 
+   from pysat.formula import CNF
    from aria.bool.dissolve import Dissolve, DissolveConfig
 
    cfg = DissolveConfig(k_split_vars=5)
+   cnf = CNF(from_clauses=[[1, 2], [-1, 2]])
    res = Dissolve(cfg).solve(cnf)
 
 Main API Entry Points
@@ -336,15 +357,19 @@ Main API Entry Points
    from aria.bool.cnfsimplifier import simplify_numeric_clauses
 
    # SAT solving
+   from pysat.formula import CNF
    from aria.bool.sat.pysat_solver import PySATSolver
    solver = PySATSolver()
-   solver.add_cnf(cnf_formula)
+   solver.add_cnf(CNF(from_clauses=[[1, 2], [-1, 2]]))
    result = solver.check_sat()
    model = solver.get_model()
 
    # MaxSAT solving
+   from pysat.formula import WCNF
    from aria.bool.maxsat import MaxSATSolver
-   maxsat = MaxSATSolver(wcnf_formula)
+   wcnf = WCNF()
+   wcnf.append([1, 2], weight=1)
+   maxsat = MaxSATSolver(wcnf)
    result = maxsat.solve()  # Returns MaxSATSolverResult
 
    # NNF reasoning
@@ -362,18 +387,19 @@ Main API Entry Points
    # QBF solving
    from aria.bool.qbf import QBF, QDIMACSParser
    parser = QDIMACSParser()
-   qbf = parser.parse_qdimacs(qdimacs_str)
+   qbf = parser.parse_qdimacs("""p cnf 2 2\na 1 0\ne 2 0\n1 2 0\n-1 -2 0\n""")
    result = qbf.solve()
 
    # Feature extraction
    from aria.bool.features.sat_instance import SATInstance
-   instance = SATInstance("formula.cnf")
+   instance = SATInstance(CNF(from_clauses=[[1, 2], [-1, 3]]))
+   instance.gen_basic_features()
    # Extract features via instance.features_dict
 
    # Dissolve (Distributed SAT)
    from aria.bool.dissolve import Dissolve, DissolveConfig
    cfg = DissolveConfig(k_split_vars=5)
-   res = Dissolve(cfg).solve(cnf)
+   res = Dissolve(cfg).solve(CNF(from_clauses=[[1, 2], [-1, 2]]))
 
 Key Dependencies
 ----------------
@@ -381,7 +407,7 @@ Key Dependencies
 * **PySAT**: Core SAT solving library
 * **Z3**: SMT solver for QBF and additional SAT solving
 * **NetworkX**: Graph operations (feature extraction)
-* **NumPy**: Numerical computations (feature extraction)
+* **SciPy** (optional): Entropy/statistics helpers in feature extraction
 * **Multiprocessing**: Parallel computing support
 
 Notable Features

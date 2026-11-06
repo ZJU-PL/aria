@@ -340,7 +340,7 @@ class Dissolve:  # pylint: disable=too-many-instance-attributes,too-few-public-m
         num_workers = self.cfg.num_workers or os.cpu_count() or 4
 
         # Extract clauses and variable information from CNF
-        clauses = list(cnf.clauses)
+        clauses = list(cnf.clauses) if hasattr(cnf, "clauses") else list(cnf)
 
         # Initialize state
         self.global_learnts = []

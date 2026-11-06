@@ -12,9 +12,6 @@ Testing
 **Concolic Testing**
   Perform native Python concolic testing with validated symbolic shadows using ``aria/concolic``.
 
-**Combinatorial Testing**
-  Explore parameter interaction coverage with combinatorial interaction testing (CIT).
-
 Verification
 ============
 

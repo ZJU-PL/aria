@@ -37,5 +37,13 @@ Programmatic usage
 
    from aria.proof.interpolant import PySMTInterpolantSynthesizer
 
+   # PySMT picks an available interpolating backend (MathSAT or OptiMathSAT)
    synth = PySMTInterpolantSynthesizer()
    # interpolant = synth.interpolate(A, B)
+
+   # Or select one explicitly
+   synth = PySMTInterpolantSynthesizer(solver_name="msat")
+
+``PySMTInterpolantSynthesizer`` delegates to PySMT, so ``A ∧ B`` must be
+unsatisfiable and an interpolation-capable backend must be installed; Z3 alone
+is not sufficient.

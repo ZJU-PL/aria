@@ -57,3 +57,11 @@ latex_elements = {
 }
 
 autodoc_mock_imports = ["pydot", "pyfst", "pywrapfst"]
+
+
+nitpick_ignore = [
+    ("py:class", "aria.ml.llmtools.core.client.BaseLLMClient"),
+    ("py:class", "aria.ml.llmtools.core.client.ProviderResolution"),
+    ("py:class", "aria.ml.llmtools.core.base.BaseProvider"),
+    ("py:class", "abc.ABC"),
+]

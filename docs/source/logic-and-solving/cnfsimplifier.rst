@@ -14,14 +14,15 @@ Directory structure
    ├── cnf.py              # Internal CNF representation
    ├── clause.py           # Clause data structure with literal operations
    ├── variable.py         # Variable activity and occurrence tracking
-   ├── simplifier.py       # Main simplification engine (8 techniques)
+   ├── simplifier.py       # Standalone elimination passes (9 techniques)
    ├── io.py               # DIMACS / numeric-clause I/O helpers
    └── rust_backend.py     # Optional Rust-accelerated backend
 
 Simplification techniques
 -------------------------
 
-The simplifier implements eight techniques:
+``Cnf`` implements nine elimination techniques, each also exposed as a
+standalone wrapper in ``simplifier.py``:
 
 1. **Tautology elimination** -- remove clauses containing both ``x`` and ``¬x``.
 2. **Hidden tautology elimination (HTE)** -- detect and remove hidden tautologies.
@@ -31,15 +32,22 @@ The simplifier implements eight techniques:
 6. **Asymmetric subsumption elimination** -- asymmetric variant of subsumption.
 7. **Blocked clause elimination (BCE)** -- remove clauses with blocking literals.
 8. **Hidden blocked clause elimination** -- blocked-clause reasoning via resolution.
+9. **Asymmetric blocked clause elimination** -- asymmetric variant of BCE.
+
+The ``explicits``, ``hiddens``, ``asymmetrics``, and ``complete`` helpers
+combine these passes into larger simplification sequences.
 
 Key entry points
 ----------------
 
-* ``simplify_numeric_clauses(clauses)`` -- high-level API that takes a list of
+* ``simplify_numeric_clauses(clauses)`` -- convenience API that takes a list of
   integer-list clauses (positive/negative literals) and returns the simplified
-  clause set.
+  clause set. It applies subsumption elimination only (through the optional
+  Rust backend when ``cnfsimplifier-rs`` is installed), so use the individual
+  functions or the combining helpers when a different pass sequence is needed.
 * Individual techniques are also available as standalone functions
-  (``cnf_subsumption_elimination``, ``cnf_tautoly_elimination``, etc.).
+  (``cnf_subsumption_elimination``, ``cnf_tautoly_elimination``,
+  ``cnf_asymmetric_tautoly_elimination``, etc.).
 
 Programmatic usage
 ------------------

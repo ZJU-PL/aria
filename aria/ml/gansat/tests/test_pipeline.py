@@ -4,7 +4,8 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-import torch
+import pytest
+torch = pytest.importorskip("torch")
 import numpy as np
 import z3
 

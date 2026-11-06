@@ -223,3 +223,23 @@ if __name__ == "__main__":
     test_unmodified_variables_are_preserved()
     test_no_loop_raises_error()
     test_unsupported_assignment_raises()
+
+
+def test_defaults_to_main_function():
+    path = _write_tmp_c(
+        """
+        int helper(int y) { return y + 1; }
+
+        int main() {
+            int x;
+            x = 0;
+            while (x < 3) { x = x + 1; }
+            assert(x == 3);
+        }
+        """
+    )
+    try:
+        ts = c_to_efmc(path)
+        assert [str(v) for v in ts.variables] == ["x"]
+    finally:
+        os.unlink(path)

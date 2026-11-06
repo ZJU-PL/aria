@@ -37,7 +37,7 @@ Key Components
 
 ### 1. ``SolverConfig`` Class
 
-A data class representing configuration for a single SMT solver.
+A small class representing configuration for a single SMT solver.
 
 **Attributes:**
 
@@ -55,8 +55,8 @@ A data class representing configuration for a single SMT solver.
      - ``str``
      - Executable name (e.g., 'z3', 'cvc5')
    * - ``exec_path``
-     - ``Path``
-     - Full path to executable
+     - ``str | None``
+     - Full path to executable, or ``None`` when not found
    * - ``is_available``
      - ``bool``
      - Whether solver is installed/accessible
@@ -67,7 +67,7 @@ Implements the **singleton pattern** to ensure only one ``GlobalConfig`` instanc
 
 * Prevents duplicate initialization
 * Provides consistent access across the application
-* Thread-safe configuration management
+* Shares one configuration object across imports
 
 ### 3. ``GlobalConfig`` Class (Singleton)
 
@@ -127,7 +127,7 @@ The core configuration manager with comprehensive capabilities.
 
 1. First searches in local ``bin_solvers/`` directory
 2. Falls back to system PATH
-3. Logs warnings for unavailable solvers
+3. Records unavailable solvers in their configuration
 4. Caches results for performance
 
 **Solver Configuration Details:**
@@ -182,7 +182,7 @@ The module is imported in **23 files** across the project, with common use cases
 
    solver_path = global_config.get_solver_path("z3")
 
-**Used in**: efbv_bin_solvers.py, mathsat_solver.py, cvc5_sygus_abduct.py, cvc5_interpolant.py, smtinterpol_interpolant.py, z3_plus_smtlib_solver.py, dimacs_counting.py, pyomt/bin_solver.py, eflira_parallel.py
+**Used in**: efbv_bin_solvers.py, mathsat_solver.py, cvc5_sygus_abduct.py, cvc5_interpolant.py, smtinterpol_interpolant.py, z3plus.py, dimacs_counting.py, pyomt/bin_solver.py, eflira_parallel.py
 
 ### 2. Availability Checking
 
@@ -229,7 +229,10 @@ Physical Directory Structure
    └── sharpSAT         # 1.2 MB SharpSAT executable
 
    benchmarks/          # Test and evaluation benchmarks
+   ├── FP/
+   ├── Polyhorn/
    ├── abduction/
+   ├── concolic/
    ├── dimacs/
    ├── efmc/
    │   ├── Boogie/
@@ -318,15 +321,13 @@ Three-tier discovery:
 
 1. Local ``bin_solvers/`` directory (preferred)
 2. System PATH (secondary)
-3. Unavailable (logged as warning)
+3. Unavailable (recorded on the ``SolverConfig``)
 
-### 4. Logging Integration
+### 4. Module Logger
 
-Uses Python logging for:
-
-* Unavailable solver warnings
-* Configuration errors
-* Debug information for troubleshooting
+``paths.py`` defines a module-level logger, but the current solver-discovery
+code does not emit warnings for unavailable solvers; callers can inspect
+``is_solver_available(name)`` instead.
 
 Documentation Quality
 ---------------------
@@ -374,8 +375,8 @@ Key Features
 4. **9 Supported Solvers**: Z3, CVC5, MathSAT, Yices2, SharpSAT, Caqe,
    Boolector (``btor``), Bitwuzla, and Q3B
 5. **23 Integration Points**: Used across SMT, quantifiers, synthesis, Boolean reasoning
-6. **Thread-Safe**: Singleton pattern with metaclass for concurrent access
-7. **Logging Integration**: Warnings and errors properly logged
+6. **Single Shared Instance**: The metaclass returns one ``GlobalConfig`` per process (no explicit locking)
+7. **Module Logger**: A module-level logger is available for callers
 8. **Extensible**: Easy to add new solvers to configuration
 
 Size Statistics

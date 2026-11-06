@@ -219,6 +219,8 @@ CFLOBVDD API
 
    # Instance methods. Operations take plain Python callables over the
    # per-exit output values.
+   cflobvdd2 = CFLOBVDD.constant(level=3, swap_level=2, fork_level=1, output=1)
+   cflobvdd3 = CFLOBVDD.constant(level=3, swap_level=2, fork_level=1, output=2)
    cflobvdd.is_always_false()
    cflobvdd.is_always_true()
    complemented = cflobvdd.complement()
@@ -246,6 +248,8 @@ BVDD API
    sbdd = SBDD_i2o.projection(index=2, offset=0)
 
    # Operations take Python callables over 8-bit output values
+   sbdd2 = SBDD_i2o.constant(output_value=128)
+   sbdd3 = SBDD_i2o.constant(output_value=64)
    result = sbdd.compute_unary(lambda x: 255 - x)
    result = sbdd.compute_binary(lambda x, y: x & y, sbdd2)
    result = sbdd.compute_ternary(lambda c, x, y: x if c else y, sbdd2, sbdd3)
@@ -303,7 +307,7 @@ Module Purpose Summary
 The cflobdd module provides:
 
 1. **Efficient symbolic computation** using CFLOBVDD data structures for handling large bitvector formulas
-2. **BTOR2 parsing** for reading bitvector transition systems from SMT-LIB compatible format
+2. **BTOR2 parsing** for reading bitvector transition systems from BTOR2 files
 3. **Solver integration** with Z3 and Bitwuzla for verification and model checking
 4. **Advanced decision diagram algorithms** with automatic minimization and reordering
 

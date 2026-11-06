@@ -15,7 +15,7 @@ Use the package through:
 
    from aria.datalog import pyDatalog
 
-The main runtime surface lives in ``pyDatalog.py`` and supports common Datalog
+The main runtime surface lives in ``py_datalog.py`` and supports common Datalog
 operations such as declaring terms, asserting and retracting facts, loading
 rules, and querying derived relations.
 
@@ -35,21 +35,28 @@ Representative operations include:
 Package Structure
 -----------------
 
-The module files use snake_case names, while the package keeps the historical
-pyDatalog ``CamelCase`` spellings as module aliases (for example
-``aria.datalog.pyParser`` refers to ``py_parser.py``).
+The module files use snake_case names, while the package exposes the historical
+pyDatalog ``CamelCase`` spellings as package attributes (for example
+``from aria.datalog import pyParser`` returns the ``py_parser`` module). The
+attributes are aliases, not separate importable submodules, so
+``import aria.datalog.pyParser`` does not work.
 
 Key files in ``aria/datalog`` include:
 
-- ``py_datalog.py``: public runtime API (importable as ``aria.datalog.pyDatalog``)
-- ``logic.py``: logic-engine state management (module aliased as
-  ``logic``; its ``Logic`` class is re-exported at package level)
-- ``py_engine.py``: evaluation engine internals (aliased as ``pyEngine``)
-- ``py_parser.py``: parsing and query handling (aliased as ``pyParser``)
-- ``aggregate.py``: aggregate support (aliased as ``Aggregate``)
+- ``py_datalog.py``: public runtime API (also available as the package
+  attribute ``aria.datalog.pyDatalog``)
+- ``logic.py``: logic-engine state management (its ``Logic`` class is
+  re-exported at package level and the module is also available as
+  ``aria.datalog.logic``)
+- ``py_engine.py``: evaluation engine internals (also available as
+  ``aria.datalog.pyEngine``)
+- ``py_parser.py``: parsing and query handling (also available as
+  ``aria.datalog.pyParser``)
+- ``aggregate.py``: aggregate support (the package attribute ``Aggregate`` is
+  this module)
 - ``api.py``: object-oriented ``Program`` / ``Relation`` / ``QueryResult`` API
-- ``user_list.py``: ``UserList`` sequence type (module aliased as
-  ``UserList``)
+- ``user_list.py``: ``UserList`` sequence type (the package attribute
+  ``UserList`` is this module)
 - ``util.py``: utilities and exceptions
 - ``version.py``: upstream package version string (``0.17.4``)
 - ``grammar.txt``: grammar reference

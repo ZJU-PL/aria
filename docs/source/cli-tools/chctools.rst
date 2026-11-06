@@ -148,7 +148,7 @@ The ``ChcSolveCmd`` class provides a command-line interface for solving CHC prob
    
    db = load_horn_db_from_file('problem.smt2')
    opts = {'spacer.mbqi': False}
-   result = chc_solve_with_fp(db, args, opts)
+   result = chc_solve_with_fp(db, opts=opts)
    print(result)  # sat, unsat, or unknown
 
 Model Validation
@@ -234,12 +234,13 @@ The ``pushed_solver`` utility provides safe solver state management:
    import z3
    
    solver = z3.Solver()
-   solver.add(constraint1)
+   x = z3.Int("x")
+   solver.add(x > 0)
    
    with pushed_solver(solver) as s:
-       s.add(constraint2)  # Temporary constraint
+       s.add(x < 0)  # Temporary constraint
        result = s.check()
-   # constraint2 is automatically removed
+   # Temporary constraint is automatically removed
 
 **Configuration Management:**
 YAML configuration files can specify solver options:
@@ -272,7 +273,7 @@ Integration Examples
    }
    
    # Solve the problem
-   result = chc_solve_with_fp(db, args, opts)
+   result = chc_solve_with_fp(db, opts=opts)
    
    if result == z3.sat:
        print("Problem is satisfiable")

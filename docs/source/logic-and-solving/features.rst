@@ -33,16 +33,22 @@ Feature categories
 ------------------
 
 * **Size features** -- number of clauses, variables, clause-to-variable ratio.
-* **Variable-clause graph** -- degree statistics (mean, std, coeff. of
-  variation, min, max), entropy.
+* **Variable-clause graph** -- degree statistics (mean, coefficient of
+  variation, min, max) and entropy.
 * **Variable graph** -- co-occurrence graph statistics.
 * **Balance features** -- positive/negative literal ratios per variable and
   clause.
-* **Horn clause proximity** -- fraction of Horn and anti-Horn clauses.
-* **DPLL probing** -- unit propagation counts at decision depths 1–10
-  (``dpll.py``).
-* **Structural features** -- power-law exponent, modularity, fractal dimension.
-* **Graph features** -- statistics over 8 weighted bipartite and primal graphs.
+* **Horn clause proximity** -- fraction of Horn clauses and per-variable
+  Horn-clause counts.
+* **DPLL probing** -- unit propagation statistics at decision depths 1, 4, 16,
+  64, and 256 (``dpll.py``).
+
+The upstream SATzilla feature list in ``aria/bool/features/README.md`` also
+mentions local-search probing (SAPS/GSAT), power-law/modularity/fractal
+structure features, and eight weighted graphs. Those are not implemented in the
+current Python package: ``gen_local_search_probing_features()`` raises
+``NotImplementedError``, and ``base_features.py`` only computes the basic
+SATzilla features (1--33).
 
 Programmatic usage
 ------------------
@@ -51,7 +57,8 @@ Programmatic usage
 
    from aria.bool.features.sat_instance import SATInstance
 
-   instance = SATInstance("benchmark.cnf")
+   instance = SATInstance([[1, 2], [-1, 3], [-2, 3]])
+   instance.gen_basic_features()
    # Access extracted features as a dictionary
    features = instance.features_dict
-   print(features["nVars"], features["nClauses"])
+   print(features["v"], features["c"])  # variables, clauses

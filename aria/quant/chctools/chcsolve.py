@@ -1,6 +1,6 @@
 # basic solver
 import sys
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple
 
 import z3  # type: ignore
 
@@ -34,8 +34,10 @@ def parse_yaml_options(fname: str):
     return None
 
 
-def chc_solve_with_fp(db, args, opts: Dict[str, object]):
-    if args.fresh:
+def chc_solve_with_fp(db, args=None, opts: Optional[Dict[str, object]] = None):
+    if opts is None:
+        opts = {}
+    if args and getattr(args, "fresh", False):
         ctx = z3.Context()
     else:
         ctx = db.get_ctx()
@@ -43,9 +45,9 @@ def chc_solve_with_fp(db, args, opts: Dict[str, object]):
     fp = z3.Fixedpoint(ctx=ctx)
     db.mk_fixedpoint(fp=fp)
 
-    if args.st:
+    if args and getattr(args, "st", False):
         fp.set("print_statistics", True)
-    if args.pp:
+    if args and getattr(args, "pp", False):
         fp.set("xform.slice", True)
         fp.set("xform.inline_linear", True)
         fp.set("xform.inline_eager", True)
@@ -54,12 +56,13 @@ def chc_solve_with_fp(db, args, opts: Dict[str, object]):
         fp.set("xform.inline_linear", False)
         fp.set("xform.inline_eager", False)
 
-    if args.spctr is not None:
+    if args and getattr(args, "spctr", None) is not None:
         fp.set("spacer.trace_file", args.spctr)
 
     for k, v in opts.items():
         fp.set(k, v)
 
+    res = None
     for q in db.get_queries():
         qf = q.mk_query()
         if qf.ctx != ctx:

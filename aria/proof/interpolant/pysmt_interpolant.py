@@ -10,7 +10,7 @@ class PySMTInterpolantSynthesizer:
 
     SOLVER_NAME = "pysmt"
 
-    def __init__(self, solver_name: str = "z3", logic=None) -> None:
+    def __init__(self, solver_name: Optional[str] = None, logic=None) -> None:
         self.solver_name = solver_name
         self.logic = logic
         self._solver = PySMTSolver()
@@ -19,7 +19,7 @@ class PySMTInterpolantSynthesizer:
         self, formula_a: z3.BoolRef, formula_b: z3.BoolRef
     ) -> Optional[z3.ExprRef]:
         """Generate a binary interpolant for formulas A and B."""
-        if not formula_a or not formula_b:
+        if formula_a is None or formula_b is None:
             raise ValueError("Both formulas A and B must be provided")
         return self._solver.binary_interpolant(
             formula_a, formula_b, solver_name=self.solver_name, logic=self.logic

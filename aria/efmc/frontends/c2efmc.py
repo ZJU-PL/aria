@@ -85,13 +85,19 @@ class CToEFMCConverter:
     def _pick_function(
         self, ast: c_ast.FileAST, target: Optional[str]
     ) -> c_ast.FuncDef:
-        """Return the requested function definition or the first one."""
-        for ext in ast.ext:
-            if isinstance(ext, c_ast.FuncDef):
-                name = ext.decl.name
-                if target is None or target == name:
-                    return ext
-        raise ValueError(f"Function '{target or '<first>'}' not found")
+        """Return the requested function definition, defaulting to ``main``."""
+        functions = [ext for ext in ast.ext if isinstance(ext, c_ast.FuncDef)]
+        if target is None:
+            for func in functions:
+                if func.decl.name == "main":
+                    return func
+            if functions:
+                return functions[0]
+            raise ValueError("No function definition found")
+        for func in functions:
+            if func.decl.name == target:
+                return func
+        raise ValueError(f"Function '{target}' not found")
 
     def _split_around_first_loop(
         self, func_def: c_ast.FuncDef

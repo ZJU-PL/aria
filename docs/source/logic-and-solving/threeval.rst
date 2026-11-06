@@ -29,6 +29,10 @@ Formulas are evaluated under Kleene strong three-valued logic:
 This is useful for reasoning about partial models, over-approximations, and
 verification scenarios where some propositions are undetermined.
 
+Strong Kleene is the default semantics; ``propositional.py`` also defines weak
+Kleene, Łukasiewicz K3, and Gödel G3 semantics (see
+``aria/bool/threeval/README.md``).
+
 Key components
 --------------
 
@@ -36,17 +40,24 @@ Key components
   formula AST and truth-table evaluation engine.
 * **Parser** (``parser.py``) -- textual parser for three-valued logic
   expressions.
-* **Adapters** (``adapters.py``) -- bridge utilities that translate between
-  three-valued assignments and classical two-valued SAT/QBF encodings.
-* **Minimisation** (``minimization.py``) -- algorithms for simplifying or
-  minimising three-valued formulas.
+* **Adapters** (``adapters.py``) -- convert between three-valued formulas and
+  Boolean NNF (``from_nnf`` / ``to_nnf``), with a configurable
+  ``unknown_policy`` of ``error``, ``false``, or ``true``.
+* **Minimisation** (``minimization.py``) -- semantic minimisation of
+  three-valued formulas, including information-join formulas and OBDD-based
+  helpers.
 
 Programmatic usage
 ------------------
 
 .. code-block:: python
 
-   from aria.bool.threeval.propositional import evaluate
+   from aria.bool.threeval.propositional import Variable, And, TruthValue, evaluate
+
+   x = Variable("x")
+   y = Variable("y")
+   formula = And(x, y)
+   assignment = {"x": TruthValue.TRUE, "y": TruthValue.UNKNOWN}
 
    # Evaluate a three-valued formula over a partial assignment
-   result = evaluate(formula, assignment)
+   result = evaluate(formula, assignment)  # Returns TruthValue.UNKNOWN

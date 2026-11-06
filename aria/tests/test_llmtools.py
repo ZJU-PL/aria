@@ -84,6 +84,11 @@ class TestLlmTools(TestCase):
     def test_resolve_provider_returns_none_for_unknown_model(self) -> None:
         self.assertIsNone(resolve_provider("unknown-model", None))
 
+    def test_resolve_provider_imports_known_online_providers(self) -> None:
+        resolution = resolve_provider("deepseek-v3", None)
+        self.assertIsNotNone(resolution)
+        self.assertEqual(type(resolution.provider).__name__, "DeepSeekProvider")
+
 
 if __name__ == "__main__":
     main()

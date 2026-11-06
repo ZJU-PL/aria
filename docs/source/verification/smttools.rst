@@ -75,14 +75,23 @@ Programmatic usage
 
 **Interpolation:**
 
+Interpolation is delegated to PySMT and requires a PySMT build with an
+interpolating backend (MathSAT or OptiMathSAT). Z3 is a solving backend, not an
+interpolation backend, so ``solver_name="msat"`` must be requested explicitly:
+
 .. code-block:: python
 
    from aria.efmc.smttools.pysmt_solver import PySMTSolver
    import z3
 
    solver = PySMTSolver()
-   a, b = z3.Bools("a b")
-   itp = solver.binary_interpolant(z3.Implies(a, b), z3.Not(b))
+   x = z3.Int("x")
+   # A ∧ B is unsatisfiable; the interpolant is over the shared symbol x
+   itp = solver.binary_interpolant(x > 0, x < 0, solver_name="msat")
+
+Without MathSAT/OptiMathSAT installed, PySMT raises
+``NoSolverAvailableError``. The same requirement applies to
+``sequence_interpolant``.
 
 **Portfolio solving:**
 

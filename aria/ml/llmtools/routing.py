@@ -58,7 +58,7 @@ ROUTED_PROVIDERS: Sequence[Route] = (
     Route(
         matches=_starts_with_lower("gpt"),
         provider=ProviderSpec(
-            "aria.llmtools.providers.online.openai",
+            "aria.ml.llmtools.providers.online.openai",
             "OpenAIProvider",
             100,
         ),
@@ -66,7 +66,7 @@ ROUTED_PROVIDERS: Sequence[Route] = (
     Route(
         matches=_starts_with_lower("o1"),
         provider=ProviderSpec(
-            "aria.llmtools.providers.online.openai",
+            "aria.ml.llmtools.providers.online.openai",
             "OpenAIProvider",
             100,
         ),
@@ -74,7 +74,7 @@ ROUTED_PROVIDERS: Sequence[Route] = (
     Route(
         matches=_starts_with_lower("o3"),
         provider=ProviderSpec(
-            "aria.llmtools.providers.online.openai",
+            "aria.ml.llmtools.providers.online.openai",
             "OpenAIProvider",
             100,
         ),
@@ -82,7 +82,7 @@ ROUTED_PROVIDERS: Sequence[Route] = (
     Route(
         matches=_contains("gemini"),
         provider=ProviderSpec(
-            "aria.llmtools.providers.online.gemini",
+            "aria.ml.llmtools.providers.online.gemini",
             "GeminiProvider",
             100,
         ),
@@ -90,7 +90,7 @@ ROUTED_PROVIDERS: Sequence[Route] = (
     Route(
         matches=_contains("claude"),
         provider=ProviderSpec(
-            "aria.llmtools.providers.online.claude",
+            "aria.ml.llmtools.providers.online.claude",
             "ClaudeProvider",
             100,
         ),
@@ -98,7 +98,7 @@ ROUTED_PROVIDERS: Sequence[Route] = (
     Route(
         matches=_contains("deepseek"),
         provider=ProviderSpec(
-            "aria.llmtools.providers.online.deepseek",
+            "aria.ml.llmtools.providers.online.deepseek",
             "DeepSeekProvider",
             100,
         ),
@@ -107,17 +107,17 @@ ROUTED_PROVIDERS: Sequence[Route] = (
 
 PROVIDER_HINTS: Dict[str, ProviderSpec] = {
     "lm-studio": ProviderSpec(
-        "aria.llmtools.providers.local.lm_studio",
+        "aria.ml.llmtools.providers.local.lm_studio",
         "LMStudioProvider",
         300,
     ),
     "vllm": ProviderSpec(
-        "aria.llmtools.providers.local.vllm",
+        "aria.ml.llmtools.providers.local.vllm",
         "VLLMProvider",
         300,
     ),
     "sglang": ProviderSpec(
-        "aria.llmtools.providers.local.sglang",
+        "aria.ml.llmtools.providers.local.sglang",
         "SGLangProvider",
         300,
     ),

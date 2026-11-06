@@ -2,7 +2,7 @@ Prime Implicant / Implicate Enumeration
 =======================================
 
 ``aria.bool.prime`` provides algorithms for enumerating prime implicants and
-prime implicants of Boolean formulas.
+prime implicates of Boolean formulas.
 
 Directory structure
 -------------------

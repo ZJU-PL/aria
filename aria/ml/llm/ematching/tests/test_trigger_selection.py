@@ -1,6 +1,6 @@
 import z3
 
-from aria.ml.ematching import LLMTriggerGenerator, TriggerCandidate, TriggerSelector
+from aria.ml.llm.ematching import LLMTriggerGenerator, TriggerCandidate, TriggerSelector
 
 
 class _StubLLM:

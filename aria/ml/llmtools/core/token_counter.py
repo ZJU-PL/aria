@@ -16,7 +16,10 @@ class TokenCounter:
     def __init__(self) -> None:
         self.encoding = None
         if tiktoken is not None:
-            self.encoding = tiktoken.encoding_for_model("gpt-3.5-turbo-0125")
+            try:
+                self.encoding = tiktoken.encoding_for_model("gpt-3.5-turbo-0125")
+            except Exception:
+                self.encoding = None
 
     def compute_costs(
         self,

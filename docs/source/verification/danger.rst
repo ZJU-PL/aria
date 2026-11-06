@@ -123,6 +123,10 @@ Consider a program that increments a counter until it overflows:
 
 .. code-block:: python
 
+   import z3
+   from aria.efmc.engines.danger import DangerInvariantProver
+   from aria.efmc.sts import TransitionSystem
+
    # Transition system where x starts at 0 and increments
    # Safety property: x < 256
    # We want to prove this is violated

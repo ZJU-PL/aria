@@ -39,13 +39,19 @@ Supported Strategies
 - Pattern-based instantiation using triggers
 
 
-**Combined:**
+**Combined**: Uses both MBQI and E-matching.
 
 Supported Solvers
 =================
 
-- **Z3 API**: Direct integration with Z3's Python API
-- **SMT-LIB2**: Dumps problems to SMT-LIB2 format for external solvers
+- **Z3 API** (``solver='z3api'``): Direct integration with Z3's Python API
+- **External Z3** (``solver='z3'``): Writes the verification conditions to a
+  temporary SMT-LIB2 file and runs the ``z3`` binary
+- **External CVC5** (``solver='cvc5'``): Same workflow through the ``cvc5``
+  binary
+
+Regardless of the backend, ``dump_file=...`` writes the generated SMT-LIB2
+verification conditions to that path.
 
 Usage
 =====
@@ -81,7 +87,7 @@ Configuration Options
 =====================
 
 - **qi_strategy**: Strategy for quantifier instantiation ('mbqi', 'ematching', 'combined', 'auto')
-- **solver**: SMT solver to use ('z3api', 'smtlib2', 'cvc5')
+- **solver**: SMT solver to use ('z3api', 'z3', 'cvc5')
 - **timeout**: Timeout in seconds for the verification process
 - **verbose**: Enable verbose output for debugging
 - **dump_file**: Optional file to dump SMT-LIB2 representation

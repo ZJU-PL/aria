@@ -11,24 +11,24 @@ import multiprocessing as mp
 from dataclasses import dataclass
 from typing import Dict, List
 
-from cores.unary_check_pysmt import (
+from aria.scsat.cores.unary_check_pysmt import (
     unary_check,
     unary_check_cached,
     unary_check_incremental,
     unary_check_incremental_cached,
 )
-from cores.dis_check_pysmt import (
+from aria.scsat.cores.dis_check_pysmt import (
     disjunctive_check_cached,
     disjunctive_check_incremental_cached,
 )
-from cores.new_check_pysmt import (
+from aria.scsat.cores.new_check_pysmt import (
     core_lit_filter,
 )
 
-from utils.logger import setup_logger
-from utils.parse_scsat_pysmt import parse_scsat_pysmt
-from utils.utils import collect_smt2_files
-import utils.config as cf
+from aria.scsat.utils.logger import setup_logger
+from aria.scsat.utils.parse_scsat_pysmt import parse_scsat_pysmt
+from aria.scsat.utils.utils import collect_smt2_files
+import aria.scsat.utils.config as cf
 
 
 @dataclass

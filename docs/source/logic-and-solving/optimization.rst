@@ -21,9 +21,12 @@ The package currently contains:
 Floating-point OMT
 ------------------
 
-The floating-point stack uses IEEE-754 ``totalOrder`` semantics, so optimization
-is defined over exact floating-point encodings rather than only the partial
-numeric order induced by ``fp.lt`` or ``fp.leq``.
+The floating-point backends compare objectives with Z3's IEEE-754 numeric
+relations (``fpLT``, ``fpLEQ``, ``fpGT``, ``fpGEQ``) and explicitly exclude NaN
+objectives, treating NaN as worse than any numeric value. They therefore
+implement IEEE-754 numeric ordering with NaN guards, not IEEE-754
+``totalOrder``: ``+0.0`` and ``-0.0`` compare equal, and all NaNs are
+equivalent to each other.
 
 CLI access
 ----------

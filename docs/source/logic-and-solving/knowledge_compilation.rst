@@ -1,10 +1,6 @@
 Knowledge Compilation
 =====================
 
-
-Introduction to Knowledge Compilation
-=====================================
-
 Knowledge compilation is a technique in artificial intelligence 
 that aims to preprocess a knowledge base or a set of constraints
 into a more efficient and compact representation that can be used for 
@@ -132,6 +128,14 @@ Probabilistic Inference
    - Marginal computation
    - MAP inference
 
+
+Implementation in ARIA
+======================
+
+``aria.bool.knowledge_compiler`` implements DNNF compilation (``dnnf.py``,
+``dtree.py``) and OBDD compilation (``obdd.py``), together with DIMACS parsing
+(``dimacs_parser.py``) and DOT-based visualization (``plots.py``). SDD support
+is not part of the current package.
 
 References
 ==========

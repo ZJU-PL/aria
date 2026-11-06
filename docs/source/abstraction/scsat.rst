@@ -10,10 +10,10 @@ Package layout
 
 The current package includes:
 
-* ``aria.scsat.cores``: core algorithms
-* ``aria.scsat.analysis``: supporting analysis code
-* ``aria.scsat.utils``: utilities
-* ``aria.scsat.cpp``: C++ implementation and build example
+* ``aria.scsat.cores``: core algorithms (unary, disjunctive, and incremental
+  cached checks)
+* ``aria.scsat.utils``: parsing, logging, and configuration helpers
+* ``aria.scsat.cpp``: C++ reference implementation and build example
 
 Current API note
 ----------------

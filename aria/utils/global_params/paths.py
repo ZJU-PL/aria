@@ -70,7 +70,7 @@ class GlobalConfig(metaclass=SolverRegistry):
 
     def __init__(self):
         """Initialize the global configuration."""
-        self._bin_solver_path = Path(__file__).parent.parent.parent / "bin_solvers"
+        self._bin_solver_path = self.bin_solvers_path
 
     def _locate_solver(self, solver_config: SolverConfig) -> None:
         """Locate a solver executable and update its configuration.
@@ -195,7 +195,7 @@ class GlobalConfig(metaclass=SolverRegistry):
         Returns:
             Path to the project root directory.
         """
-        return Path(__file__).parent.parent.parent
+        return Path(__file__).resolve().parent.parent.parent.parent
 
     @property
     def bin_solvers_path(self) -> Path:
