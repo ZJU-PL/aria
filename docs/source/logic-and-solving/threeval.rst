@@ -13,7 +13,7 @@ Directory structure
    aria/bool/threeval/
    ├── propositional.py    # Three-valued formula AST and evaluation
    ├── parser.py           # Parser for three-valued logic expressions
-   ├── adapters.py         # Adapters bridging three-valued and two-valued worlds
+   ├── adapters.py         # Conversion between three-valued formulas and Boolean NNF
    └── minimization.py     # Formula minimisation techniques
 
 Three-valued semantics

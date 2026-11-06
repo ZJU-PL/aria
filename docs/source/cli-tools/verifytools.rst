@@ -65,7 +65,10 @@ Parsing Boogie programs and extracting basic blocks:
 
    # Parse program AST from source
    # program = parseAst(source_code)
-   # bbs, order = get_bbs(implementation)
+
+   # Extract basic blocks of the first implementation from a Boogie file
+   # (get_bbs reads the file itself)
+   # bbs, order = get_bbs("program.bpl")
 
 Loop and Invariant Verification
 -------------------------------
