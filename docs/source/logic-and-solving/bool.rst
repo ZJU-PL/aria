@@ -75,12 +75,15 @@ Solve weighted and unweighted MaxSAT optimization problems.
   ``aria.bool.maxsat``
 * ``FM``: Fu-Malik algorithm implementation (WMSU1 variant)
 * ``RC2``: Relaxable Cardinality Constraints solver (top-ranked in MaxSAT Evaluation)
+* ``LSU``: Linear search SAT-UNSAT algorithm with iterative totalizer encoding
 * ``AnytimeMaxSAT``: Anytime MaxSAT solving
 
 **Features:**
 
 * Weighted and partial MaxSAT support
-* Multiple algorithms: FM, RC2, OBV-BS, OBV-BS-Anytime
+* Multiple algorithms: FM, RC2, LSU, OBV-BS, OBV-BS-Anytime
+  (``MaxSATSolver`` dispatches FM, RC2, and the OBV-BS variants;
+  ``aria-maxsat --solver lsu`` uses the LSU module)
 * TACAS'16 binary search for bit-vector optimization
 * Integration with PySAT solvers
 
@@ -91,9 +94,10 @@ Comprehensive library for Negation Normal Form manipulation and reasoning.
 
 **Key Classes:**
 
-* ``NNF``: Base abstract class for all NNF sentences (~1,770 lines)
-  - Properties: ``decomposable``, ``deterministic``, ``smooth``, ``is_CNF``, ``is_DNF``
-  - Methods: ``satisfiable()``, ``valid()``, ``models()``, ``solve()``, ``model_count()``, ``negate()``, ``to_CNF()``, ``condition()``, ``forget()``, ``implicates()``, ``implicants()``
+* ``NNF``: Base abstract class for all NNF sentences (~1,280 lines; the
+  ``nnf`` module is ~1,850 lines)
+  - Properties: ``decomposable``, ``deterministic``, ``smooth``
+  - Methods: ``is_CNF()``, ``is_DNF()``, ``satisfiable()``, ``valid()``, ``models()``, ``solve()``, ``model_count()``, ``negate()``, ``to_CNF()``, ``condition()``, ``forget()``, ``implicates()``, ``implicants()``
 * ``Var``: Variable/literal representation
 * ``Aux``: Auxiliary variables (UUID-based)
 * ``And``, ``Or``: Internal node types
@@ -154,14 +158,14 @@ Quantified Boolean Formula handling.
 **Key Classes:**
 
 * ``QBF``: QBF formula representation with quantifier list
-  - Methods: ``solve()``, ``solve_with_skolem()``, ``to_z3()``, ``negate()``
+  - Methods: ``solve()``, ``solve_pysat()``, ``to_z3()``, ``negate()``
+  - ``solve_with_skolem()`` is a placeholder that raises ``NotImplementedError`` (no Skolem/certificate extraction)
 * ``QDIMACSParser``: Parser for QDIMACS format files
 
 **Features:**
 
 * QDIMACS and QCIR format parsing
-* Z3 backend integration
-* Skolem function extraction
+* Z3 and PySAT backends for solving
 * Variable uniqueness validation
 
 Feature Extraction (``features/``)
@@ -428,5 +432,5 @@ Size Statistics
 * Lines of code: ~23,000
 * Main NNF library (``nnf/__init__.py``): ~1,850 lines
 * Supported SAT solvers: 14+
-* Supported MaxSAT algorithms: 4 (FM, RC2, OBV-BS, Anytime)
+* Supported MaxSAT algorithms: 5 (FM, RC2, LSU, OBV-BS, Anytime)
 * Extracted features: 40+

@@ -18,7 +18,7 @@ Architecture
    │   ├── parser.py        # Parser base classes (Parser, InfixExprParser)
    │   └── util.py          # Error handling and parsing utilities
    ├── boogie/              # Boogie program AST and CFG analysis
-   │   ├── ast.py           # Boogie AST nodes (AstProgram, AstStmt, AstExpr)
+   │   ├── ast.py           # Boogie AST nodes (AstProgram, AstStmt, AstUnExpr/AstBinExpr/AstFuncExpr)
    │   ├── bb.py            # Basic block graph extraction (get_bbs, BB)
    │   ├── eval.py          # Expression evaluation
    │   ├── grammar.py       # Boogie grammar rules
@@ -66,9 +66,10 @@ Parsing Boogie programs and extracting basic blocks:
    # Parse program AST from source
    # program = parseAst(source_code)
 
-   # Extract basic blocks of the first implementation from a Boogie file
-   # (get_bbs reads the file itself)
-   # bbs, order = get_bbs("program.bpl")
+   # Extract basic blocks of the first implementation from a Boogie file.
+   # get_bbs reads the file itself and returns a mapping from block labels
+   # to BB objects.
+   # bbs = get_bbs("program.bpl")
 
 Loop and Invariant Verification
 -------------------------------

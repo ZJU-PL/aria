@@ -41,7 +41,11 @@ def eval_predicates(m: ModelRef, predicates: List[BoolRef]) -> List[ExprRef]:
 
 
 def prime_implicant(ps: List[ExprRef], e: ExprRef) -> List[ExprRef]:
-    """TODO: this function may have flaws"""
+    """Return a subset of ``ps`` whose conjunction implies ``e``.
+
+    When no subset entails ``e`` (the full set is consistent with ``not e``),
+    an empty list is returned.
+    """
     s = z3.Solver()
     # we want to find a subset ps' of ps such that /\ ps => e
     s.add(z3.Not(e))
@@ -56,7 +60,8 @@ def prime_implicant(ps: List[ExprRef], e: ExprRef) -> List[ExprRef]:
         bs.append(bp)
         s.add(z3.Implies(bp, p))
         i = i + 1
-    # assert (s.check(bs) == unsat)
+    if s.check(bs) != z3.unsat:
+        return []
     # only take predicates in unsat core
     res: List[ExprRef] = [btop[x] for x in s.unsat_core()]
     return res

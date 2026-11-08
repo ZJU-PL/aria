@@ -34,8 +34,8 @@ Kripke Models
 -------------
 
 ``model.py`` provides the ``KripkeModel`` representation: a set of worlds,
-a valuation mapping worlds to truth assignments, and an accessibility
-relation between worlds.
+a valuation mapping each propositional atom to the set of worlds where it
+holds, and an accessibility relation between worlds.
 
 Semantics
 ---------
@@ -53,9 +53,9 @@ pushing negations inward and eliminating implications.
 Parser
 ------
 
-``parser.py`` parses textual modal logic expressions (using ``~`` for
-negation, ``[]`` for Box, ``<>`` for Diamond, ``->`` for implication)
-into the formula AST.
+``parser.py`` parses textual modal logic expressions (using ``!`` or ``¬`` for
+negation, ``&`` for conjunction, ``|`` for disjunction, ``[]`` for Box,
+``<>`` for Diamond, and ``->`` for implication) into the formula AST.
 
 Model Search
 ------------

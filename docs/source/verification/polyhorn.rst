@@ -21,7 +21,7 @@ Key Features
 3. **Configurable Degrees**: Control over polynomial degree bounds for optimization
 4. **Heuristic Optimizations**: UNSAT core iteration and constant elimination heuristics
 
-5. **Multiple Solver Backends**: Integration with Z3, CVC4, and other SMT solvers
+5. **Multiple Solver Backends**: Integration with Z3 and MathSAT
 
 Applications
 ------------
@@ -97,7 +97,7 @@ The configuration dictionary supports the following options:
 
    config = {
        "theorem_name": "auto",              # "farkas", "handelman", "putinar", or "auto"
-       "solver_name": "z3",                 # Backend SMT solver
+       "solver_name": "z3",                 # Backend SMT solver: z3 or mathsat
        "SAT_heuristic": False,              # Enable satisfiability constraints
        "degree_of_sat": 0,                  # Max degree for SAT constraints
        "degree_of_nonstrict_unsat": 0,      # Max degree for non-strict UNSAT
@@ -259,7 +259,7 @@ Limitations and Considerations
 1. **Decidability**: The underlying problem is generally undecidable; PolyHorn provides a semi-decision procedure
 2. **Degree Bounds**: Completeness depends on choosing appropriate degree bounds
 3. **Scalability**: Performance degrades with increasing polynomial degrees and number of variables
-4. **Solver Dependencies**: Requires external SMT solvers (Z3, CVC4, etc.)
+4. **Solver Dependencies**: Requires an external SMT solver (Z3 or MathSAT)
 
 Related Work
 ============

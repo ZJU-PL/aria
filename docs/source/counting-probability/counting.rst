@@ -85,4 +85,8 @@ Notes
 -----
 
 Some backends rely on optional external tools such as ``sharpSAT`` or LattE.
-Availability depends on the selected theory and method.
+Availability depends on the selected theory and method. DIMACS counting uses
+``sharpSAT`` when it is available; if ``sharpSAT`` fails on a small instance,
+the frontend falls back to exact PySAT enumeration. Larger failures are
+reported as an unsupported result (or raise ``ValueError`` from
+``count_from_file``) instead of returning a guessed count.

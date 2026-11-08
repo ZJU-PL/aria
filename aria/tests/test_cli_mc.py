@@ -67,9 +67,14 @@ class TestCountFromFile:
     def test_dimacs_bool_counting(self, tmp_path):
         in_file = _write_file(tmp_path, DIMACS_SAMPLE, "cnf")
         count = count_from_file(str(in_file), theory="bool", method="auto")
-        assert isinstance(count, int)
-        # Note: -1 may indicate external solver (e.g., sharpSAT) not available
-        assert count == -1 or count >= 0
+        # Clauses are (x1 or not x2) and x2, so (x1, x2) = (True, True).
+        assert count == 1
+
+    def test_dimacs_counting_preserves_multi_digit_literals(self, tmp_path):
+        content = "p cnf 10 1\n10 0\n"
+        in_file = _write_file(tmp_path, content, "cnf")
+        count = count_from_file(str(in_file), theory="bool", method="auto")
+        assert count == 512
 
     def test_smt2_bool_counting(self, tmp_path):
         in_file = _write_file(tmp_path, SMT2_BOOL_SAMPLE, "smt2")

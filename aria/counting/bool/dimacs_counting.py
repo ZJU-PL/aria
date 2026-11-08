@@ -29,6 +29,10 @@ from aria.bool.pysat_cnf import gen_cubes
 from aria.utils.global_params import global_config
 
 SHARP_SAT_TIMEOUT = 600  # seconds
+# sharpSAT can fail on tiny instances (for example when its preprocessing
+# eliminates every variable). Exact enumeration is a safe fallback for small
+# formulas; larger failures are reported to the caller instead of being summed.
+FALLBACK_ENUMERATION_MAX_VARS = 20
 
 logger = logging.getLogger(__name__)
 
@@ -180,6 +184,17 @@ def call_sharp_sat(cnf_filename: str):
     return solutions, solving_time
 
 
+def _count_models_by_enumeration(clauses: List[List[int]]) -> int:
+    """Count models of a CNF by explicit enumeration with PySAT."""
+    solver = Solver(bootstrap_with=clauses)
+    count = 0
+    while solver.solve():
+        model = solver.get_model()
+        count += 1
+        solver.add_clause([-lit for lit in model])
+    return count
+
+
 def count_dimacs_solutions(header: List, str_clauses: List):
     """
     Count the number of solutions for a given DIMACS CNF formula.
@@ -194,6 +209,12 @@ def count_dimacs_solutions(header: List, str_clauses: List):
     output_file = f"/tmp/{uuid.uuid1()}.cnf"
     write_dimacs_to_file(header, str_clauses, output_file)
     solutions, _ = call_sharp_sat(output_file)
+    if solutions < 0:
+        dimacs_str = "\n".join(header) + "\n"
+        dimacs_str += "\n".join(f"{cls} 0" for cls in str_clauses) + "\n"
+        cnf = CNF(from_string=dimacs_str)
+        if cnf.nv <= FALLBACK_ENUMERATION_MAX_VARS:
+            return _count_models_by_enumeration(cnf.clauses)
     return solutions
 
 
@@ -265,9 +286,14 @@ def count_dimacs_solutions_parallel(header: List[str], clauses: List[str]) -> in
 
         raw_solutions: List[int] = []
         sharp_sat_times: List[float] = []
-        for result in results:
+        for cube, result in zip(satisfaible_cubes, results):
             result_data = result.get()
-            raw_solutions.append(int(result_data[0]))
+            count = int(result_data[0])
+            if count < 0 and cnf.nv <= FALLBACK_ENUMERATION_MAX_VARS:
+                fallback_clauses = [list(clause) for clause in cnf.clauses]
+                fallback_clauses.extend([lit] for lit in cube)
+                count = _count_models_by_enumeration(fallback_clauses)
+            raw_solutions.append(count)
             sharp_sat_times.append(result_data[1])
 
         print("results: ", raw_solutions)
@@ -283,7 +309,7 @@ def count_dimacs_solutions_parallel(header: List[str], clauses: List[str]) -> in
         #     return result
         with open("temp.log", "a", encoding="utf-8") as f:
             f.write(f"{cnf.nv} {len(clauses)} {sharp_sat_times} 0\n")
-        total = sum(raw_solutions)
+        total = -1 if any(count < 0 for count in raw_solutions) else sum(raw_solutions)
 
     # Remove any temporary files that might be left
     for file_path in cnf_tasks:

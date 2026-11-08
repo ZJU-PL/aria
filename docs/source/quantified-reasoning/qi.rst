@@ -26,7 +26,7 @@ The QI prover works by:
    - **E-matching**: Pattern-based instantiation using triggers
    - **Combined**: Uses both MBQI and E-matching together
 
-3. **Solving**: Use the configured solver to find a satisfying assignment for the invariant function
+3. **Solving**: Use the configured solver to find a satisfying assignment for the invariant function. A satisfying model witnesses an inductive invariant (the system is safe); an unsatisfiable result means no invariant in this encoding exists (the system is unsafe).
 
 Supported Strategies
 ====================

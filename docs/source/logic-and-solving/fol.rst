@@ -14,7 +14,7 @@ Directory Structure
 
    smt/fol/
    └── miniprover/
-       ├── __init__.py          (0 lines - empty)
+       ├── __init__.py          (1 line - docstring)
        ├── language.py          (517 lines)
        ├── prover.py            (524 lines)
        ├── main.py              (525 lines)

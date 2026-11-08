@@ -17,14 +17,11 @@ SUPPORTED_TRANSLATIONS: List[Tuple[str, str]] = get_supported_translations()
 
 def handle_translate(args) -> int:
     """Handle translation between formats."""
-    input_format = args.input_format
-    output_format = args.output_format
-
-    if args.auto_detect:
-        if not input_format:
-            input_format = detect_format(args.input_file)
-        if not output_format:
-            output_format = detect_format(args.output_file)
+    # Explicit formats win; otherwise infer them from the file extensions.
+    # ``--auto-detect`` is kept for backwards compatibility and is equivalent
+    # to relying on the extension-based fallback below.
+    input_format = args.input_format or detect_format(args.input_file)
+    output_format = args.output_format or detect_format(args.output_file)
 
     if not input_format or not output_format:
         raise ValueError("Input and output formats must be specified or auto-detected")

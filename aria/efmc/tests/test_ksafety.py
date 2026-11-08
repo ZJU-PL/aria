@@ -323,7 +323,7 @@ class TestKSafetyEngines(unittest.TestCase):
             G(Atom("==", Var("out", 0), Var("out", 1))),
         )
         prover.set_formula(phi)
-        res = prover.bounded_model_checking(2)
+        res = prover.solve()
         assert isinstance(res, VerificationResult)
         assert res.is_safe or res.is_unknown
 

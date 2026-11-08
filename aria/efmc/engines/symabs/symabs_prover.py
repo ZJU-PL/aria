@@ -13,6 +13,9 @@ from aria.efmc.engines.symabs.bv_symabs import BVSymbolicAbstraction
 from aria.efmc.sts import TransitionSystem
 from aria.efmc.utils import is_valid
 from aria.efmc.utils.verification_utils import VerificationResult
+from aria.symabs.omt_symabs.lira_symbolic_abstraction import (
+    LIRASymbolicAbstraction,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -32,26 +35,21 @@ def strongest_consequence(
         A formula representing the strongest consequence in the specified domain
     """
     if domain == "interval":
-        # Create a symbolic abstraction object
-        symabs = BVSymbolicAbstraction()
-
-        # Initialize with the formula
-        symabs.formula = fml
-        symabs.initialized = True
-
-        # Extract variables from the formula
-        symabs.vars = list(z3.z3util.get_vars(fml))
-        if not symabs.vars:
+        variables = list(z3.z3util.get_vars(fml))
+        if not variables:
             # If no variables, just return the formula
             return fml
 
-        # Simplify the formula
+        # Interval abstraction for arithmetic and bit-vector formulas uses
+        # different backends; pick the one matching the variable sorts.
+        if any(z3.is_arith(v) for v in variables):
+            symabs = LIRASymbolicAbstraction()
+        else:
+            symabs = BVSymbolicAbstraction()
+
+        symabs.init_from_fml(fml)
         symabs.do_simplification()
-
-        # Compute interval abstraction
         symabs.interval_abs()
-
-        # Return the interval abstraction as a formula
         return symabs.interval_abs_as_fml
     if domain in ["bits", "known_bits"]:
         # Map domain names

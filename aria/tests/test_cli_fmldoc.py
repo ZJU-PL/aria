@@ -439,6 +439,22 @@ def test_translate_smtlib2_to_sympy(tmp_path):
     assert expr.subs({x: 3}) == sympy.false
 
 
+def test_translate_infers_formats_from_extensions(tmp_path):
+    in_file = _write_dimacs(tmp_path)
+    out_file = tmp_path / "sample.smt2"
+    args = Namespace(
+        input_file=str(in_file),
+        output_file=str(out_file),
+        input_format=None,
+        output_format=None,
+        auto_detect=False,
+    )
+
+    assert handle_translate(args) == 0
+    assert out_file.exists()
+    assert "(set-logic" in out_file.read_text()
+
+
 def test_translate_auto_detect_qdimacs_to_smtlib2(tmp_path):
     in_file = _write_file(tmp_path, "sample.qdimacs", QDIMACS_SAMPLE)
     out_file = tmp_path / "sample.smt2"

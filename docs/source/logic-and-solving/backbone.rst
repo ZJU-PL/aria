@@ -23,7 +23,11 @@ Aria provides backbone computation across Boolean (SAT) and SMT levels:
    Computes the backbone of a CNF formula with multiple algorithms (``ITERATIVE``, ``CHUNKING``, ``BACKBONE_REFINEMENT``).
 
 2. **SMT Backbone** (``aria.backbone.smt_backbone_literals`` and ``aria.backbone.smt_backbone_clauses``):
-   Computes implied literals and clauses for SMT formulas using sequence checking, model enumeration, and predicate abstraction.
+   Computes implied literals and clauses for SMT formulas. The literal-level
+   dispatcher currently implements ``sequence_checking`` and
+   ``model_enumeration``; the ``unsat_core_enumeration`` and monadic
+   predicate-abstraction helpers are placeholders that raise
+   ``NotImplementedError``.
 
 Usage Example
 -------------

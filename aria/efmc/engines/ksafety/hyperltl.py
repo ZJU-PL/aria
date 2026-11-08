@@ -12,13 +12,17 @@ by checking existence of a counterexample with our solver (standard safety style
 
 Example:
   # Non-interference as G(low1 == low2) under G(high1 == high2)
-  phi = Implies(G(Eq(Var("high",0), Var("high",1))), G(Eq(Var("low",0), Var("low",1))))
+  phi = Implies(
+      G(Atom("==", Var("high", 0), Var("high", 1))),
+      G(Atom("==", Var("low", 0), Var("low", 1))),
+  )
   prover = HyperLTLProver(sts, k=2, method="bounded_model_checking", max_bound=10)
   prover.set_formula(phi)
   res = prover.solve()
 """
 
 import logging
+import time
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Union
 import z3
@@ -229,6 +233,29 @@ class HyperLTLProver(BaseKSafetyProver):
 
     def set_formula(self, formula: HProp) -> None:
         self.formula = formula
+
+    def solve(self, timeout: Optional[int] = None) -> VerificationResult:
+        """Verify the configured HyperLTL formula by bounded model checking."""
+        if self.formula is None:
+            raise ValueError("HyperLTL formula must be set before solving")
+        if timeout is not None:
+            self.timeout = timeout
+        if self.verification_method != "bounded_model_checking":
+            self.logger.warning(
+                "HyperLTL verification only supports bounded_model_checking"
+            )
+            return VerificationResult(False, None, None, is_unknown=True)
+
+        start_time = time.time()
+        for bound in range(1, self.max_bound + 1):
+            if timeout is not None and time.time() - start_time > timeout:
+                return VerificationResult(
+                    False, None, None, is_unknown=True, timed_out=True
+                )
+            result = self.bounded_model_checking(bound)
+            if result.is_safe or result.is_unsafe:
+                return result
+        return VerificationResult(False, None, None, is_unknown=True)
 
     def _build_unrolled_antecedent(self, bound: int):
         """Build unrolled antecedent for bounded model checking."""

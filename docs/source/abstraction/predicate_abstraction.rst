@@ -127,15 +127,17 @@ Advanced Topics
 Optimization with Prime Implicants
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``prime_implicant`` function attempts to find a minimal subset of predicates that imply a
-formula. This can be used to optimize the predicate abstraction process by reducing the size
-of generated Boolean combinations:
+The ``prime_implicant(ps, e)`` helper searches for a subset of the predicate
+literals in the list ``ps`` whose conjunction implies ``e``, returning the
+predicates contributing to the unsat core. It takes a list of literals (as
+returned by ``eval_predicates``), not a single conjunction:
 
 .. code-block:: python
 
-   # Get a more minimal representation
-   projs = z3.And(eval_predicates(m, predicates))
-   projs = prime_implicant(projs, fml)  # Further optimization
+   # Get a more minimal representation for the current model
+   literals = eval_predicates(m, predicates)
+   core = prime_implicant(literals, fml)  # Further optimization
+   projs = z3.And(core)
 
 Scalability Considerations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~

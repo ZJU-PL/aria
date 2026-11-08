@@ -182,15 +182,15 @@ class QuantifierInstantiationProver:
                 _ = time.time() - start_time  # elapsed_time for potential future use
 
                 if result == z3.sat:
-                    logger.info("Property violation found (unsafe)")
-                    return VerificationResult(False, None, is_unsafe=True)
-                if result == z3.unsat:
-                    logger.info("Property proven safe")
-                    # Extract invariant from the model
+                    # A satisfying model witnesses an inductive invariant.
+                    logger.info("Inductive invariant found (safe)")
                     model = s.model()
                     if model:
                         self.invariant = model.eval(inv(*self.sts.variables))
                     return VerificationResult(True, self.invariant)
+                if result == z3.unsat:
+                    logger.info("No inductive invariant exists (unsafe)")
+                    return VerificationResult(False, None, is_unsafe=True)
                 logger.info("Solver returned unknown")
                 return VerificationResult(False, None, is_unknown=True)
 
@@ -205,13 +205,13 @@ class QuantifierInstantiationProver:
             _ = time.time() - start_time  # elapsed_time for potential future use
 
             if result == "sat":
-                logger.info("Property violation found (unsafe)")
-                return VerificationResult(False, None, is_unsafe=True)
-            if result == "unsat":
-                logger.info("Property proven safe")
+                logger.info("Inductive invariant found (safe)")
                 return VerificationResult(
                     True, None
                 )  # External solver doesn't provide model
+            if result == "unsat":
+                logger.info("No inductive invariant exists (unsafe)")
+                return VerificationResult(False, None, is_unsafe=True)
             logger.info("Solver returned unknown")
             return VerificationResult(False, None, is_unknown=True)
 

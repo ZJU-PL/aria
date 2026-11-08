@@ -95,8 +95,12 @@ def _count_dimacs_solutions(formula_str: str, _timeout: Optional[int] = None) ->
             if line.startswith("p"):  # Header line
                 header.append(line)
             else:  # Clause line
-                # Remove trailing 0 and split into literals
-                clause = line.rstrip(" 0").strip()
+                # Remove only the terminating zero literal; rstrip(" 0")
+                # would also corrupt clauses such as ``10 0``.
+                tokens = line.split()
+                if tokens and tokens[-1] == "0":
+                    tokens = tokens[:-1]
+                clause = " ".join(tokens)
                 if clause:
                     clauses.append(clause)
 

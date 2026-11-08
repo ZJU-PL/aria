@@ -82,7 +82,7 @@ def parse_arguments():
         "--solver",
         type=str,
         default="z3",
-        choices=["z3", "cvc4", "cvc5", "yices2", "mathsat"],
+        choices=["z3", "mathsat"],
         help="SMT solver to use (default: z3)",
     )
 

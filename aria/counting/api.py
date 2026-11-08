@@ -224,9 +224,25 @@ def count_result_from_file(
                 if line.startswith("p"):
                     header.append(line)
                 else:
-                    clauses.append(line.rstrip(" 0").strip())
+                    # Remove only the terminating zero literal; rstrip(" 0")
+                    # would also corrupt clauses such as ``10 0``.
+                    tokens = line.split()
+                    if tokens and tokens[-1] == "0":
+                        tokens = tokens[:-1]
+                    clauses.append(" ".join(tokens))
 
             count = count_dimacs_solutions_parallel(header, clauses)
+            if count < 0:
+                return unsupported_count_result(
+                    backend="dimacs-sharpsat",
+                    reason=(
+                        "sharpSAT counting failed and the instance is too large "
+                        "for the exact enumeration fallback"
+                    ),
+                    format=format_type,
+                    theory=detected_theory,
+                    method=method,
+                )
             return exact_count_result(
                 float(count),
                 backend="dimacs-sharpsat",

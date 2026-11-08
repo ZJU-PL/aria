@@ -52,6 +52,10 @@ Key Components
 
 **Core Hierarchy:**
 
+The values in parentheses in the class listings below are the source line
+numbers where each class is defined; the flat file tree above reports total
+file lengths.
+
 * **BVDD_Node** - Base class for BVDD nodes (38 lines)
 * **SBDD_i2o** - Single-byte decision diagram with naive input-to-output mapping (407 lines)
 * **SBDD_s2o** - Single-byte decision diagram with set-to-output mapping (528 lines)

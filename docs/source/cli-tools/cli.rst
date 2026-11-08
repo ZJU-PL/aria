@@ -100,8 +100,8 @@ Count satisfying models for DIMACS or SMT-LIB2 inputs.
    python -m aria.cli.mc_cli formula.smt2 --theory bv
    python -m aria.cli.mc_cli formula.smt2 --theory arith
 
-Key options: ``--theory``, ``--method``, ``--project``, ``--timeout``,
-``--log-level``.
+Key options: ``--theory``, ``--method``, ``--project``, ``--json``,
+``--fail-on-status``, ``--timeout``, ``--log-level``.
 
 ``pyomt``
 ~~~~~~~~~
