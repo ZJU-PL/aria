@@ -49,7 +49,10 @@ Result Interpretation
 The danger invariant prover returns a `VerificationResult` with the following semantics:
 
 - **is_safe = True**: The provided witness is invalid (no bug proved)
-- **is_safe = False**: The witness is valid (bug proved)
+- **is_safe = False**: The witness is valid or the query was inconclusive.
+  Check ``is_unsafe`` to distinguish a valid unsafety witness (bug proved)
+  from an ``unknown`` result.
+- **is_unsafe = True**: A model witnesses the safety violation (bug proved)
 - **is_unknown = True**: The solver answered unknown, or the witness was rejected but no safety proof has been given
 
 Usage
@@ -84,7 +87,7 @@ The danger invariant prover is primarily used programmatically:
        solver_timeout_ms=60000
    )
    
-   if not result.is_safe:
+   if result.is_unsafe:
        print("Bug proved! Unsafety witness is valid.")
        print(f"Danger invariant: {danger_inv}")
        print(f"Ranking function: {ranking_func}")

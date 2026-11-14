@@ -28,10 +28,13 @@ High-level API
   timeout=None, **kwargs)`` -- returns ``(proven, ranking_function, template)``.
   By default it tries the templates ``bv_linear_ranking``,
   ``bv_lexicographic_ranking``, and ``bv_conditional_ranking`` in order.
+  The solver currently does not retain a satisfying model, so
+  ``ranking_function`` is ``None`` even when ``proven`` is ``True``.
 * ``prove_non_termination_with_recurrence_sets(sts, template_names=None,
   timeout=None, **kwargs)`` -- returns ``(proven, recurrence_set, template)``;
   default templates are ``bv_linear_recurrence``,
-  ``bv_interval_recurrence``, and ``bv_disjunctive_recurrence``.
+  ``bv_interval_recurrence``, and ``bv_disjunctive_recurrence``. As with ranking
+  functions, the synthesized witness is currently ``None``.
 * ``analyze_termination(sts, ranking_templates=None, recurrence_templates=None,
   timeout=None, **kwargs)`` -- tries the ranking templates first and only falls
   back to recurrence sets if termination could not be proven. It returns a
@@ -60,6 +63,7 @@ Example
 
    results = analyze_termination(sts)
    if results["termination_proven"]:
+       # Witness extraction is not implemented yet, so this prints None.
        print("Ranking function:", results["ranking_function"])
        print("Template:", results["ranking_template_used"])
 
@@ -70,6 +74,9 @@ Notes
   ``TransitionSystem`` with ``init``, ``trans``, and ``post`` set.
 * Failure to prove either direction leaves both flags ``False``; it is not a
   proof of the opposite property.
+* Witness extraction is currently incomplete: ``ranking_function`` and
+  ``recurrence_set`` are always ``None``; only the template name and the
+  proved/not-proved flags are meaningful.
 * Earlier versions of this page showed examples from unrelated modules
   (``aria.efmc.engines.ef`` ranking templates and the main EFMC CLI); those
   examples do not correspond to the termination package and have been removed.

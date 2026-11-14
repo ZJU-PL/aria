@@ -68,7 +68,7 @@ The main predicate abstraction algorithm works as follows:
        res = []
        while s.check() == z3.sat:
            m = s.model()
-           # Compute a prime/minimal implicant
+           # Project the model onto the predicates
            projs = z3.And(eval_predicates(m, predicates))
            res.append(projs)
            s.add(negate(projs))

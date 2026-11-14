@@ -114,12 +114,12 @@ The ``HornClauseDb`` class manages collections of Horn clauses and provides vari
    
    # Access rules and queries
    for rule in db.get_rules():
-       print(f"Rule: {rule}")
+       print(f"Rule: {rule.mk_formula()}")
        print(f"Is fact: {rule.is_fact()}")
        print(f"Is linear: {rule.is_linear()}")
    
    for query in db.get_queries():
-       print(f"Query: {query}")
+       print(f"Query: {query.mk_formula()}")
 
 CHC Solver
 ==========

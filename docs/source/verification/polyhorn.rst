@@ -267,7 +267,11 @@ Heuristic Optimizations
    Iteratively refines the constraint set by analyzing unsatisfiable cores, potentially reducing solver complexity.
 
 **Constant Elimination**  
-   Removes equality constraints involving only constants to simplify the constraint system.
+   ``PositiveModel.remove_equality_constraints`` can eliminate equality
+   constraints of the form *template variable = constant*, but the heuristic is
+   not currently enabled through ``execute`` or the CLIs
+   (``constant_heuristic`` is hard-coded to ``False`` in
+   ``aria.quant.polyhorn.main``).
 
 Limitations and Considerations
 ==============================

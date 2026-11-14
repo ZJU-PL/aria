@@ -107,7 +107,7 @@ python -m aria.cli.fmldoc_cli batch -i input_dir/ -o output_dir/
 | Format | Extension | Validate | Analyze | Translate From | Translate To |
 |--------|-----------|----------|---------|----------------|--------------|
 | DIMACS | .cnf | ✓ | ✓ | ✓ | SMT-LIB2, LP |
-| SMT-LIB2 | .smt2 | ✓ | ✓ | - | DIMACS, SymPy |
+| SMT-LIB2 | .smt2 | ✓ | ✓ | ✓ | DIMACS, SymPy |
 | QDIMACS | .qd | - | - | ✓ | SMT-LIB2 |
 | QCIR | .qcir | - | - | ✓ | SMT-LIB2 |
 | OPB | .opb | - | - | ✓ | SMT-LIB2 |
@@ -146,7 +146,7 @@ python -m aria.cli.mc_cli formula.smt2 --log-level DEBUG
 | Option | Values | Default | Description |
 |--------|--------|---------|-------------|
 | `--theory` | bool, bv, arith, auto | auto | Theory to use |
-| `--method` | solver, enumeration, auto | auto | Counting method |
+| `--method` | theory-specific: bool `auto/exact/enumeration/approx/approxmc/solver`, bv `auto/enumeration/sharpsat/approxmc`, arith `auto/enumeration/latte` | auto | Counting method |
 | `--timeout` | integer | None | Timeout in seconds |
 | `--log-level` | DEBUG, INFO, WARNING, ERROR | INFO | Logging level |
 
@@ -317,7 +317,7 @@ aria-maxsat formula.wcnf --timeout 60 --log-level INFO
 ### Output
 
 - `cost: <number>` — cost of the solution (sum of weights of unsatisfied soft clauses).
-- `status: optimal|satisfied|unknown`
+- `status: optimal|satisfied|unknown|timeout`
 - With `--print-model`: `model: <literals>`
 
 ---
@@ -483,6 +483,7 @@ All CLI tools use consistent error handling:
 - **Exit codes:**
   - `0`: Success
   - `1`: Error (message to stderr)
+  - `2`: Status-condition failure (for example `mc --fail-on-status`)
 
 - **Debug mode:** Use `--log-level DEBUG` for stack traces
 
@@ -517,18 +518,15 @@ pytest aria/tests/test_cli_allsmt.py -v
 **Optional:**
 - pysmt (for some OMT engines)
 - sharpSAT (Boolean model counting)
-- LattE (arithmetic model counting)
+- LattE (arithmetic model counting; stub only -- `method="latte"` returns `unsupported`)
 - External SMT solvers (cvc5, yices, etc.)
 
 ## Configuration
 
-Some tools require external solver configurations:
-
-1. Create `config.json` in project root
-2. Set solver paths
-3. Or set `ARIA_CONFIG` environment variable
-
-See `config_example.json` for template.
+Solver binaries are discovered automatically: tools look first in the repository
+`bin_solvers/` directory and then on `PATH`. See `aria.utils.global_params` (and
+`docs/source/global_params.rst`) for the resolver API; there is no user config
+file or `ARIA_CONFIG` environment variable.
 
 ## License
 

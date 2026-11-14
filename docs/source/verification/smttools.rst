@@ -26,8 +26,9 @@ PySMTSolver
   ``(pysmt_vars, pysmt_fml)``
 * ``check_with_pysmt()`` -- satisfiability check via PySMT backend
 * ``check_portfolio()`` -- portfolio solving across MathSAT (×3), CVC4, and
-  Yices; every one of those PySMT backends must be installed, otherwise PySMT
-  raises ``NoSolverAvailableError`` while building the portfolio
+  Yices; every one of those PySMT backends must be installed, otherwise PySMT's
+  ``Portfolio`` raises ``ValueError: Cannot find solvers {...}`` while building
+  the portfolio
 * ``all_smt(keys, bound=5)`` -- samples up to ``bound`` models by blocking
   partial assignments on ``keys``; it prints each partial model instead of
   returning it (the function returns ``None``)
