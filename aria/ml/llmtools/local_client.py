@@ -47,13 +47,20 @@ class LLMLocal:
         self.max_retries = max_retries
 
     def _get_default_base_url(self, provider: str) -> str:
-        if provider == "tingly":
-            return "http://localhost:12580/tingly/openai"
-        return "http://localhost:1234/v1"
+        defaults = {
+            "tingly": "http://localhost:12580/tingly/openai",
+            "lm-studio": "http://localhost:1234/v1",
+            "vllm": "http://localhost:8000/v1",
+            "sglang": "http://localhost:30000/v1",
+        }
+        return defaults.get(provider, "http://localhost:1234/v1")
 
     def _get_default_api_key(self, provider: str) -> str:
         if provider == "tingly":
             return os.environ.get("TINGLY_API_KEY", "")
+        static_keys = {"vllm": "vllm", "sglang": "sglang"}
+        if provider in static_keys:
+            return static_keys[provider]
         return os.environ.get("LOCAL_OPENAI_API_KEY", "lm-studio")
 
     def infer(

@@ -35,7 +35,8 @@ Miniprover is an educational first-order logic theorem prover using sequent calc
 Key Components
 --------------
 
-### 1. Language Definitions (``language.py`` - 517 lines)
+Language Definitions (``language.py`` - 517 lines)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Defines the complete FOL language with support for unification and substitution.
 
@@ -44,7 +45,7 @@ Defines the complete FOL language with support for unification and substitution.
 * **Variable**: FOL variables with name and instantiation time tracking
   - Tracks when variables were created for temporal reasoning
 * **Function**: Represents function applications with recursive term structure
-  - Example: ``f(g(x), h(f(a), b)``
+  - Example: ``f(g(x), h(f(a), b))``
 * **UnificationTerm**: Metavariables used during unification
   - Supports occurs-check to prevent infinite unification
 
@@ -65,7 +66,8 @@ Defines the complete FOL language with support for unification and substitution.
 * ``occurs(term)``: Occurs-check for unification safety
 * ``setInstantiationTime(time)``: Track when terms were created
 
-### 2. Theorem Prover (``prover.py`` - 524 lines)
+Theorem Prover (``prover.py`` - 524 lines)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Implements complete sequent calculus with unification-based proof search.
 
@@ -87,38 +89,40 @@ Implements complete sequent calculus with unification-based proof search.
 
 **Proof Search:**
 
-* ``proveSequent(sequent)``: Main proof search algorithm
-  - **Breadth-first expansion** of sequents
-  - **Formula ordering**: Expands by creation time (depth-first within each sequent)
-  - **Inference rules**: Complete set of left and right rules for all connectives
-  - **Parallel branch handling**: Manages sibling sequents for unification across branches
+* ``proveSequent(sequent)``: Main proof search algorithm. It expands sequents
+  breadth-first, applying one rule per sequent before re-queueing it; the
+  earliest-created formula (smallest instantiation counter) is selected first;
+  and it manages sibling sequents for unification across branches.
 
 **Key Inference Rules Implemented:**
 
 * **Left rules** (for Γ):
-  - Not-left: If ¬φ ∈ Γ, add φ to Γ and move ¬φ to Δ
-  - And-left: If φ∧ψ ∈ Γ, create two branches (φ) and (ψ)
-  - Or-left: If φ∨ψ ∈ Γ, add both to Γ
-  - Implies-left: If φ→ψ ∈ Γ, add ψ to Γ, move φ to Δ
-  - ForAll-left: If ∀x.φ ∈ Γ, instantiate with fresh term
+  - Not-left: If ¬φ ∈ Γ, remove ¬φ from Γ and add φ to Δ
+  - And-left: If φ∧ψ ∈ Γ, replace it by φ and ψ in Γ (single sequent)
+  - Or-left: If φ∨ψ ∈ Γ, split into two branches (Γ,φ ⊢ Δ) and (Γ,ψ ⊢ Δ)
+  - Implies-left: If φ→ψ ∈ Γ, split into (Γ ⊢ Δ,φ) and (Γ,ψ ⊢ Δ)
+  - ForAll-left: If ∀x.φ ∈ Γ, instantiate with a fresh unification term
+  - ThereExists-left: If ∃x.φ ∈ Γ, instantiate with a fresh variable
 
 * **Right rules** (for Δ):
-  - Not-right: Move ¬φ to Γ, add φ to Δ
-  - And-right: If φ∧ψ ∈ Δ, add both to Δ
-  - Or-right: If φ∨ψ ∈ Δ, create two branches
-  - Implies-right: If φ→ψ ∈ Δ, move φ to Γ, add ψ to Δ
-  - ThereExists-right: If ∃x.φ ∈ Δ, instantiate with fresh term
+  - Not-right: If ¬φ ∈ Δ, remove ¬φ from Δ and add φ to Γ
+  - And-right: If φ∧ψ ∈ Δ, split into two branches (Γ ⊢ Δ,φ) and (Γ ⊢ Δ,ψ)
+  - Or-right: If φ∨ψ ∈ Δ, add both φ and ψ to Δ (single sequent)
+  - Implies-right: If φ→ψ ∈ Δ, move φ to Γ and add ψ to Δ
+  - ThereExists-right: If ∃x.φ ∈ Δ, instantiate with a fresh unification term
+  - ForAll-right: If ∀x.φ ∈ Δ, instantiate with a fresh variable
 
 **Proof Strategy:**
 
-* **Formula selection**: Expands formulas in order of creation time
-  - Within sequent: depth-first (most recent first)
+* **Formula selection**: Expands formulas in order of creation time; the
+  earliest-created formula (smallest instantiation counter) is expanded first.
 * **Universal quantification**: Skolem-style unification terms
   - Introduces unification metavariables for instantiations
 * **Existential quantification**: Fresh variable instantiation
   - Ensures no variable capture during substitution
 
-### 3. Command-Line Interface (``main.py`` - 525 lines)
+Command-Line Interface (``main.py`` - 525 lines)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Interactive theorem prover REPL with formula management.
 
@@ -175,7 +179,8 @@ Interactive theorem prover REPL with formula management.
 
 The command set is also printed at startup. Bare ``help`` is not a command.
 
-### 4. Documentation (``README.md`` - 94 lines)
+Documentation (``README.md`` - 94 lines)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Comprehensive guide including:
 
@@ -206,13 +211,13 @@ Algorithms Implemented
    - Skolemization for universal quantification
    - Fresh variable generation for existential quantification
 
-4. **Formula Ordering**: Depth-first within sequent, breadth-first globally
+4. **Formula Ordering**: Earliest-created formula first within a sequent; sequents are processed breadth-first
 
 Usage Examples
 --------------
 
-### Python API
-~~~~~~~~~~~~~~
+Python API
+~~~~~~~~~~
 
 .. code-block:: python
 
@@ -234,8 +239,8 @@ Usage Examples
    result = proveFormula(axioms, formula)
    # Returns True when the formula is provable; False (or loops) otherwise
 
-### Interactive CLI
-~~~~~~~~~~~~~~~~~~~
+Interactive CLI
+~~~~~~~~~~~~~~~
 
 .. code-block:: bash
 

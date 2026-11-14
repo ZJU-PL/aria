@@ -29,6 +29,8 @@ class QuantifierInstantiationProver:
         self.verbose = kwargs.get("verbose", False)
         self.dump_file = kwargs.get("dump_file", None)
         self.invariant: Optional[z3.ExprRef] = None
+        if self.verbose:
+            logger.setLevel(logging.DEBUG)
 
     def _get_logic(self) -> str:
         """Get appropriate SMT logic based on variable types."""
@@ -172,6 +174,10 @@ class QuantifierInstantiationProver:
             # Build verification conditions
             vcs = self._build_verification_conditions(inv)
 
+            if self.dump_file:
+                with open(self.dump_file, "w", encoding="utf-8") as f:
+                    f.write(self._generate_smtlib2(vcs))
+
             if self.solver_name == "z3api":
                 # Use Z3 API
                 s = self._configure_z3_solver()
@@ -196,10 +202,6 @@ class QuantifierInstantiationProver:
 
             # Use external solver
             smt2_content = self._generate_smtlib2(vcs)
-
-            if self.dump_file:
-                with open(self.dump_file, "w", encoding="utf-8") as f:
-                    f.write(smt2_content)
 
             result = self._call_external_solver(smt2_content)
             _ = time.time() - start_time  # elapsed_time for potential future use

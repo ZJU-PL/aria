@@ -10,18 +10,19 @@ The ``aria.utils.global_params`` module provides centralized configuration manag
 Directory Structure
 -------------------
 
-```
-global_params/
-├── __init__.py                    (6 lines - module entry point)
-└── paths.py                       (224 lines - core implementation)
-```
+.. code-block:: text
+
+   global_params/
+   ├── __init__.py                    (6 lines - module entry point)
+   └── paths.py                       (224 lines - core implementation)
 
 **No subdirectories** - flat module structure.
 
 Module Overview
 ---------------
 
-### Centralized Configuration System
+Centralized Configuration System
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The global_params module implements a **singleton pattern** configuration manager that:
 
@@ -35,7 +36,8 @@ The global_params module implements a **singleton pattern** configuration manage
 Key Components
 --------------
 
-### 1. ``SolverConfig`` Class
+1. ``SolverConfig`` Class
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A small class representing configuration for a single SMT solver.
 
@@ -60,8 +62,12 @@ A small class representing configuration for a single SMT solver.
    * - ``is_available``
      - ``bool``
      - Whether solver is installed/accessible
+   * - ``is_located``
+     - ``bool``
+     - Whether discovery has already run for this solver
 
-### 2. ``SolverRegistry`` Metaclass
+2. ``SolverRegistry`` Metaclass
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Implements the **singleton pattern** to ensure only one ``GlobalConfig`` instance exists:
 
@@ -69,7 +75,8 @@ Implements the **singleton pattern** to ensure only one ``GlobalConfig`` instanc
 * Provides consistent access across the application
 * Shares one configuration object across imports
 
-### 3. ``GlobalConfig`` Class (Singleton)
+3. ``GlobalConfig`` Class (Singleton)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The core configuration manager with comprehensive capabilities.
 
@@ -102,9 +109,12 @@ The core configuration manager with comprehensive capabilities.
 
 **Path Properties:**
 
-* ``PROJECT_ROOT`` - Root directory of ARIA project
-* ``BIN_SOLVERS_PATH`` - Path to binary executables (``bin_solvers/``)
-* ``BENCHMARKS_PATH`` - Path to benchmark files (``benchmarks/``)
+* ``project_root`` - Root directory of ARIA project
+* ``bin_solvers_path`` - Path to binary executables (``bin_solvers/``)
+* ``benchmarks_path`` - Path to benchmark files (``benchmarks/``)
+
+The module also exposes uppercase module-level constants with the same values:
+``PROJECT_ROOT``, ``BIN_SOLVERS_PATH``, and ``BENCHMARKS_PATH``.
 
 **Key Methods:**
 
@@ -155,7 +165,8 @@ From ``get_smt_solvers_config()``:
      - ✓
      - ``(empty)``
 
-### 4. Module-Level Exports
+4. Module-Level Exports
+~~~~~~~~~~~~~~~~~~~~~~~
 
 From ``__init__.py``:
 
@@ -174,7 +185,8 @@ Usage Patterns Across Codebase
 
 The module is imported in **23 files** across the project, with common use cases:
 
-### 1. Solver Path Retrieval (Most Common)
+1. Solver Path Retrieval (Most Common)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
@@ -184,7 +196,8 @@ The module is imported in **23 files** across the project, with common use cases
 
 **Used in**: efbv_bin_solvers.py, mathsat_solver.py, cvc5_sygus_abduct.py, cvc5_interpolant.py, smtinterpol_interpolant.py, z3plus.py, dimacs_counting.py, pyomt/bin_solver.py, eflira_parallel.py
 
-### 2. Availability Checking
+2. Availability Checking
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
@@ -196,7 +209,8 @@ The module is imported in **23 files** across the project, with common use cases
 
 **Used in**: test_bv_counting.py, test_bool_counting.py, test_sygus_inv.py, dimacs_counting.py
 
-### 3. SMT Solver Configuration Dictionary
+3. SMT Solver Configuration Dictionary
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
@@ -207,7 +221,8 @@ The module is imported in **23 files** across the project, with common use cases
 
 **Used in**: pcdclt/solver.py, pcdclt/eval_smt.py, pcdclt/tests/test_solver.py, pcdclt/tests/test_process_cleanup.py
 
-### 4. Benchmark Path Access
+4. Benchmark Path Access
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
@@ -247,49 +262,62 @@ Physical Directory Structure
    ├── smtlib2/
    └── sygus-pbe/
 
-
 Domains Using Global Parameters
 -------------------------------
 
 The module serves as a central hub for:
 
-### SMT Solving
+SMT Solving
+~~~~~~~~~~~
+
 **aria/smt/pcdclt/** - Parallel CDCL(T) solver configuration**
 
 * Solver path resolution
 * Configuration dictionary access
 
-### Quantifier Elimination
+Quantifier Elimination
+~~~~~~~~~~~~~~~~~~~~~~
+
 **aria/quant/efbv/**, **aria/quant/eflira/**, **aria/quant/qe/** - Multiple solver orchestration
 
 * Multiple solver integration
 * Custom path support
 
-### Model Counting
+Model Counting
+~~~~~~~~~~~~~~
+
 **aria/counting/bool/** - SharpSAT integration
 
 * Solver availability checking
 * Model counter invocation
 
-### Synthesis
+Synthesis
+~~~~~~~~~
+
 **aria/synthesis/cvc5/** - SyGuS synthesis with CVC5
 
 * Solver path access
 * Binary management
 
-### Abduction
+Abduction
+~~~~~~~~~
+
 **aria/proof/abduction/** - Abductive reasoning
 
 * Solver orchestration
 * Multi-solver support
 
-### Interpolation
+Interpolation
+~~~~~~~~~~~~~
+
 **aria/proof/interpolant/** - Interpolant generation
 
 * Multiple solver backends
 * Path configuration
 
-### Boolean Reasoning
+Boolean Reasoning
+~~~~~~~~~~~~~~~~~
+
 **aria/bool/features/** - SAT instance feature extraction
 
 * Benchmark path access
@@ -298,7 +326,8 @@ The module serves as a central hub for:
 Design Patterns
 ---------------
 
-### 1. Singleton Pattern
+1. Singleton Pattern
+~~~~~~~~~~~~~~~~~~~~
 
 Ensures single ``GlobalConfig`` instance via metaclass:
 
@@ -307,15 +336,18 @@ Ensures single ``GlobalConfig`` instance via metaclass:
   - Prevents initialization conflicts
   - Efficient memory usage
 
-### 2. Lazy Initialization
+2. Lazy Initialization
+~~~~~~~~~~~~~~~~~~~~~~
 
-Solvers located on first access:
+Solvers are located on first access, except for ``z3``, ``cvc5``, and
+``mathsat``, which are probed eagerly when the module is imported.
 
-* Reduces startup time
+* Reduces startup time for the remaining solvers
 * Only searches when needed
 * Caches results for performance
 
-### 3. Fallback Strategy
+3. Fallback Strategy
+~~~~~~~~~~~~~~~~~~~~
 
 Three-tier discovery:
 
@@ -323,7 +355,8 @@ Three-tier discovery:
 2. System PATH (secondary)
 3. Unavailable (recorded on the ``SolverConfig``)
 
-### 4. Module Logger
+4. Module Logger
+~~~~~~~~~~~~~~~~
 
 ``paths.py`` defines a module-level logger, but the current solver-discovery
 code does not emit warnings for unavailable solvers; callers can inspect
@@ -371,7 +404,7 @@ Key Features
 
 1. **Singleton Management**: Ensures single GlobalConfig instance
 2. **Solver Discovery**: Automatic path resolution with fallback strategy
-3. **Path Management**: Centralized project constants (PROJECT_ROOT, BIN_SOLVERS_PATH, BENCHMARKS_PATH)
+3. **Path Management**: Centralized project paths (``project_root``, ``bin_solvers_path``, ``benchmarks_path`` properties plus matching uppercase constants)
 4. **9 Supported Solvers**: Z3, CVC5, MathSAT, Yices2, SharpSAT, Caqe,
    Boolector (``btor``), Bitwuzla, and Q3B
 5. **23 Integration Points**: Used across SMT, quantifiers, synthesis, Boolean reasoning

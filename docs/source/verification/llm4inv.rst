@@ -8,7 +8,7 @@ LLM4Inv is a verification engine that uses Large Language Models (LLMs) to synth
 
 1. The LLM proposes concrete, hole-free invariant candidates
 2. An SMT solver verifies each candidate for validity
-3. Failed candidates and counterexamples are used to refine subsequent proposals
+3. Previously failed candidates are fed back into subsequent prompts
 4. The process iterates until a valid invariant is found or a timeout is reached
 
 This approach is particularly effective for bitvector programs where the LLM can leverage its understanding of program semantics to generate meaningful invariants.
@@ -57,7 +57,7 @@ The LLM4Inv engine supports the following command-line options:
 - ``--llm4inv-provider``: LLM provider - ``local`` or ``remote`` (default: local)
 - ``--llm4inv-local-provider``: Local provider - ``lm-studio``, ``vllm``, or ``sglang`` (default: lm-studio)
 - ``--llm4inv-local-model``: Local model name (default: qwen/qwen3-coder-30b)
-- ``--llm4inv-remote-model``: Remote model name - ``deepseek-v3``, ``glm-4-flash``, etc. (default: deepseek-v3)
+- ``--llm4inv-remote-model``: Remote model name; auto-routed families are GPT/o1/o3, Gemini, Claude, and DeepSeek (default: deepseek-v3)
 - ``--llm4inv-temperature``: Temperature for LLM generation (default: 0.1)
 - ``--llm4inv-max-output-length``: Maximum output length (default: 4096)
 - ``--llm4inv-measure-cost``: Measure token costs (default: False)
@@ -66,13 +66,14 @@ The LLM4Inv engine supports the following command-line options:
 How It Works
 ------------
 
-1. **Program Analysis**: The engine extracts program information including variables, bit widths, and transition relations.
+1. **Program Analysis**: The engine extracts the state variables and their bit
+   width. The prompt does not include the initial condition, transition
+   relation, or safety property; these are used only for verification.
 
 2. **Prompt Generation**: A prompt is generated that includes:
-   - Program description
-   - Variable information
+   - Variable list and bit width
+   - A short program description
    - Previously failed candidates (for refinement)
-   - Counterexamples from verification
 
 3. **Candidate Generation**: The LLM generates multiple invariant candidates in SMT-LIB2 format.
 
@@ -81,7 +82,9 @@ How It Works
    - Inv ∧ Trans ⇒ Inv' (invariant is inductive)
    - Inv ⇒ Post (invariant implies safety property)
 
-5. **Refinement**: If verification fails, counterexamples are added to the prompt for the next iteration.
+5. **Refinement**: If verification fails, the rejected candidate invariants are
+   added to the prompt for the next iteration. Counterexamples are collected
+   for the CEGIS state but are not currently rendered into the prompt.
 
 6. **Termination**: The loop terminates when:
    - A valid invariant is found
@@ -91,10 +94,12 @@ How It Works
 Supported Models
 ----------------
 
-**Remote Models:**
-- DeepSeek V3
-- GLM-4-Flash
-- Other OpenAI-compatible API models
+**Remote Models** (selected by model-name routing in
+``aria.ml.llmtools.routing``):
+- DeepSeek models (e.g. ``deepseek-v3``)
+- GPT/o1/o3 models
+- Gemini models
+- Claude models
 
 **Local Models:**
 - Qwen3-Coder-30B

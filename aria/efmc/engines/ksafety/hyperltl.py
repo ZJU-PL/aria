@@ -307,5 +307,7 @@ class HyperLTLProver(BaseKSafetyProver):
         if res == z3.sat:
             return VerificationResult(False, None, solver.model(), is_unsafe=True)
         if res == z3.unsat:
-            return VerificationResult(True, None)
+            # Bounded exploration cannot establish hyperproperty safety; the
+            # absence of a counterexample up to this bound is not a proof.
+            return VerificationResult(False, None, None, is_unknown=True)
         return VerificationResult(False, None, None, is_unknown=True, timed_out=True)

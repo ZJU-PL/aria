@@ -19,9 +19,10 @@ logger = logging.getLogger(__name__)
 class KInductionProverInc:
     """k-induction prover with incremental solving using separate BMC and inductive solvers."""
 
-    def __init__(self, system: TransitionSystem, show_model=False):
+    def __init__(self, system: TransitionSystem, show_model=False, aux_inv_method="ef"):
         self.sts = system
         self.show_model = show_model
+        self.aux_inv_method = aux_inv_method
 
         # Initialize caches
         self._var_cache = {}
@@ -152,7 +153,7 @@ class KInductionProverInc:
 
         logger.info("Generating auxiliary invariant...")
         inv_gen = InvariantGenerator(self.sts)
-        aux_inv = inv_gen.generate_via_ef()
+        aux_inv = inv_gen.generate(self.aux_inv_method)
         logger.info("Generated auxiliary invariant: %s", aux_inv)
 
         if not z3.is_true(aux_inv):

@@ -189,9 +189,13 @@ class EFMCRunner:
         if g_verifier_args.kind_incremental:
             from aria.efmc.engines.kinduction.kind_prover_inc import KInductionProverInc
 
-            kind_prover = KInductionProverInc(sts)
+            kind_prover = KInductionProverInc(
+                sts, aux_inv_method=g_verifier_args.kind_aux_inv_alg
+            )
         else:
-            kind_prover = KInductionProver(sts)
+            kind_prover = KInductionProver(
+                sts, aux_inv_method=g_verifier_args.kind_aux_inv_alg
+            )
 
         if g_verifier_args.kind_aux_inv:
             kind_prover.use_aux_invariant = True
@@ -584,9 +588,10 @@ def parse_arguments():
     kind_group.add_argument(
         "--kind-aux-inv-alg",
         dest="kind_aux_inv_alg",
-        default="default",
+        default="ef",
+        choices=["ef", "houdini"],
         type=str,
-        help="Select the approach for generating auxiliary invariants. Options include: [top, int, houdini]",
+        help="Approach for generating auxiliary invariants: ef (template-based) or houdini (default: ef)",
     )
 
     # LLM4Inv options

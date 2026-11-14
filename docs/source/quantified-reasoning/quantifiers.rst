@@ -27,13 +27,14 @@ Instantiation Techniques
 
 
 Some useful tools:
+
 - https://github.com/viperproject/axiom-profiler-2
 
 
 Solving Exists-Forall Problems
 ==============================
 
-
+See :doc:`efsmt` for the exists-forall solver families in ``aria.quant``.
 
 Quantifier Elimination
 ======================
@@ -41,10 +42,13 @@ Quantifier Elimination
 Quantifier elimination refers to the process of eliminating the quantifiers from a formula by
 constructing an equivalent quantifier-free formula.
 
-We can apply Skolemization to remove the :math:`\exists` quantifiers. After that, it is sufficient to
-instantiate the :math:`\forall` quantifiers for each constant.
+We can apply Skolemization to remove the :math:`\exists` quantifiers. After that, one may
+instantiate the :math:`\forall` quantifiers with a finite set of ground terms.
 For example, :math:`\forall x: T\ A` becomes :math:`A[c_1/x] \land A[c_2/x] \land \ldots`.
-The result is equi-satisfiable and quantifier-free.
+For finite domains (or when the chosen terms cover the domain) the resulting formula is
+equi-satisfiable and quantifier-free. For general theories this enumeration is only an
+under-approximation; ARIA's engines therefore drive instantiation with triggers or
+counterexamples (CEGIS/MBQI/E-matching) instead of enumerating all constants.
 
 
 It is important to understand the differences between Skolemization and quantifier elimination:

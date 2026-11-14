@@ -72,7 +72,7 @@ HyperLTL Example
    sts = TransitionSystem()
    # ... initialize sts ...
    
-   # Define HyperLTL formula: G(high[0] == high[1] → G(low[0] == low[1]))
+   # Define HyperLTL formula: G(high0 == high1) -> G(low0 == low1)
    phi = Implies(
        G(Atom('==', Var('high', 0), Var('high', 1))),
        G(Atom('==', Var('low', 0), Var('low', 1)))

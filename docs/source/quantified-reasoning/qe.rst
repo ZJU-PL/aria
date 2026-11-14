@@ -4,7 +4,12 @@ Quantifier Elimination (QE)
 The Quantifier Elimination (QE) module uses quantifier elimination techniques to compute the strongest inductive invariant for a given transition system. This approach iteratively applies quantifier elimination to compute the least fixpoint of the strongest post-condition.
 
 Within this documentation structure, QE is grouped under quantified reasoning
-because the elimination machinery is reusable beyond verification.
+because the elimination machinery is reusable beyond verification. The prover
+described here is implemented by
+``aria.efmc.engines.qe.qe_prover.QuantifierEliminationProver`` and is available
+from the EFMC frontend as ``--engine qe``. The standalone elimination helpers
+(``qe_lme``, ``qe_fm``, ``qe_cooper``, ``qe_expansion``, ``external_qe``) live
+in ``aria.quant.qe``.
 
 Overview
 ========
@@ -25,7 +30,7 @@ The QE prover implements the following algorithm:
    - Rename variables to get the next state formula
    - Take the disjunction with the current invariant
 3. **Fixpoint Detection**: Check if the new invariant is equivalent to the previous one
-4. **Safety Check**: Verify that the computed invariant implies the safety property
+4. **Safety Check**: Verify that the computed invariant implies the safety property. If the fixpoint is reached but the invariant does not imply the post-condition, the prover reports ``unknown`` (not unsafe): the strongest post-condition may simply be too weak to prove the property. A ``timeout`` argument bounds the iteration.
 
 **Mathematical Formulation:**
 

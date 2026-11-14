@@ -12,27 +12,28 @@ This module is adapted from the Selfie Project (University of Salzburg).
 Directory Structure
 -------------------
 
-```
-cflobdd/
-├── __init__.py                    (35 lines - package re-exports)
-├── cflobvdd.py                    (1992 lines - main CFLOBVDD implementation)
-├── bvdd.py                        (1012 lines - BVDD base classes)
-├── btor2.py                       (1938 lines - BTOR2 parser/serializer)
-├── z3interface.py                 (438 lines - Z3 solver interface)
-├── bitwuzlainterface.py           (514 lines - Bitwuzla solver interface)
-├── relation.py                    (662 lines - finite relation algebra)
-├── fixpoint.py                    (114 lines - least-fixed-point helpers)
-├── grammar.py                     (155 lines - grammar-based CFL reachability)
-├── pushdown.py                    (57 lines - balanced call/return reachability)
-└── witness.py                     (89 lines - reachability witnesses)
-```
+.. code-block:: text
+
+   cflobdd/
+   ├── __init__.py                    (35 lines - package re-exports)
+   ├── cflobvdd.py                    (1992 lines - main CFLOBVDD implementation)
+   ├── bvdd.py                        (1012 lines - BVDD base classes)
+   ├── btor2.py                       (1938 lines - BTOR2 parser/serializer)
+   ├── z3interface.py                 (438 lines - Z3 solver interface)
+   ├── bitwuzlainterface.py           (514 lines - Bitwuzla solver interface)
+   ├── relation.py                    (662 lines - finite relation algebra)
+   ├── fixpoint.py                    (114 lines - least-fixed-point helpers)
+   ├── grammar.py                     (155 lines - grammar-based CFL reachability)
+   ├── pushdown.py                    (57 lines - balanced call/return reachability)
+   └── witness.py                     (89 lines - reachability witnesses)
 
 **No subdirectories** - flat module structure.
 
 Key Concepts
 ------------
 
-### What are CFLOBVDDs?
+What are CFLOBVDDs?
+~~~~~~~~~~~~~~~~~~~
 
 **CFLOBVDDs generalize CFLOBDDs in two ways:**
 
@@ -48,7 +49,8 @@ Key Concepts
 Key Components
 --------------
 
-### 1. BVDD (Bitvector Decision Diagrams) - ``bvdd.py``
+1. BVDD (Bitvector Decision Diagrams) - ``bvdd.py``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **Core Hierarchy:**
 
@@ -78,7 +80,8 @@ file lengths.
 * Caching reduces repeated computations
 * Thread-safe design for parallel usage
 
-### 2. CFLOBVDD - ``cflobvdd.py``
+2. CFLOBVDD - ``cflobvdd.py``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **BV Grouping Hierarchy:**
 
@@ -116,7 +119,8 @@ file lengths.
 * Support for fork/swap level configuration
 * Thread-safe operations
 
-### 3. BTOR2 Parser - ``btor2.py``
+3. BTOR2 Parser - ``btor2.py``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **Sort Classes:**
 
@@ -153,9 +157,10 @@ file lengths.
 **Parser:**
 
 * **Parser** - BTOR2 parser with tokenization (1409 lines)
-* Supports full BTOR2 language with operators: sort, zero, one, const, constd, consth, input, state, init, next, ext, uext, slice, not, inc, dec, neg, implies, eq, neq, sgt, ugt, sgte, ugte, slt, ult, slte, ulte, and, or, xor, sll, srl, sra, add, sub, mul, sdiv, udiv, srem, urem, concat, read, ite, write, bad, constraint
+* Supports full BTOR2 language with operators: sort, zero, one, const, constd, consth, input, state, init, next, sext, uext, slice, not, inc, dec, neg, implies, eq, neq, sgt, ugt, sgte, ugte, slt, ult, slte, ulte, and, or, xor, sll, srl, sra, add, sub, mul, sdiv, udiv, srem, urem, concat, read, ite, write, bad, constraint
 
-### 4. Solver Interfaces
+4. Solver Interfaces
+~~~~~~~~~~~~~~~~~~~~
 
 **Z3 Interface (``z3interface.py``):**
 
@@ -348,7 +353,8 @@ Source Attribution
 
 Code adapted from Selfie Project (University of Salzburg) - `selfie.cs.uni-salzburg.at`
 
-**License**: BSD License (see LICENSE file for details)
+**License**: The upstream Selfie code is BSD-licensed; this repository as a
+whole is MIT-licensed (see the root ``LICENSE`` file).
 
 Notes
 -----

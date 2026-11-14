@@ -11,7 +11,7 @@ Directory structure
 ::
 
    aria/bool/modal/
-   ├── formula.py          # Formula AST: Atom, Not, And, Or, Implies, Box, Diamond
+   ├── formula.py          # Formula AST: Atom, Constant, Not, And, Or, Implies, Iff, Box, Diamond
    ├── model.py            # Kripke model representation
    ├── semantics.py        # Semantic evaluation of modal formulas over Kripke models
    ├── normalization.py    # Negation Normal Form (NNF) conversion for modal formulas
@@ -26,7 +26,8 @@ Formula AST
 The ``formula`` module defines the abstract syntax tree for modal logic:
 
 * ``Atom`` -- propositional variable
-* ``Not``, ``And``, ``Or``, ``Implies`` -- Boolean connectives
+* ``Constant`` -- truth (⊤) or falsity (⊥)
+* ``Not``, ``And``, ``Or``, ``Implies``, ``Iff`` -- Boolean connectives
 * ``Box`` (□) -- necessity modality
 * ``Diamond`` (◇) -- possibility modality
 

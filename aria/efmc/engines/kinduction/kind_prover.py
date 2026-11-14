@@ -25,10 +25,16 @@ logger = logging.getLogger(__name__)
 class KInductionProver:
     """Non-incremental k-induction prover."""
 
-    def __init__(self, system: TransitionSystem, show_model: bool = False):
+    def __init__(
+        self,
+        system: TransitionSystem,
+        show_model: bool = False,
+        aux_inv_method: str = "ef",
+    ):
         self.sts = system
         self.show_model = show_model
         self.use_aux_invariant = False
+        self.aux_inv_method = aux_inv_method
         self.aux_invariant: Optional[z3.ExprRef] = None
 
         # Variable type handling
@@ -152,7 +158,7 @@ class KInductionProver:
 
         logger.info("Generating auxiliary invariant...")
         inv_gen = InvariantGenerator(self.sts)
-        aux_inv = inv_gen.generate_via_ef()
+        aux_inv = inv_gen.generate(self.aux_inv_method)
         logger.info("Generated auxiliary invariant: %s", aux_inv)
 
         if not z3.is_true(aux_inv):

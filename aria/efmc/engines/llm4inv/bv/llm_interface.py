@@ -16,6 +16,7 @@ class LLMInterface:
         self.model_name = model_name
         self.temperature = kwargs.get("temperature", 0.1)
         self.llm_provider = kwargs.get("llm_provider", "local")
+        self.measure_cost = kwargs.get("measure_cost", False)
         self.bit_width = kwargs.get("bit_width") or extract_bit_width_from_sts(sts)
 
         self.logger = Logger("llm4inv.log")
@@ -35,7 +36,12 @@ class LLMInterface:
                 max_retries=kwargs.get("local_max_retries", 3),
             )
         else:
-            self.llm = LLM(model_name, self.logger, temperature=self.temperature)
+            self.llm = LLM(
+                model_name,
+                self.logger,
+                temperature=self.temperature,
+                max_output_length=kwargs.get("max_output_length", 4096),
+            )
 
         self.stats = {"total_llm_calls": 0, "successful_generations": 0,
                       "total_candidates_generated": 0, "refinement_calls": 0}
@@ -45,7 +51,7 @@ class LLMInterface:
                            context: Optional[Dict[str, Any]] = None) -> List[Tuple[str, z3.ExprRef]]:
         prompt = prompt_generator()
         self.stats["total_llm_calls"] += 1
-        resp, _, _ = self.llm.infer(prompt, is_measure_cost=False)
+        resp, _, _ = self.llm.infer(prompt, is_measure_cost=self.measure_cost)
 
         try:
             pairs = response_parser(resp)

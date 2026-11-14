@@ -19,8 +19,8 @@ The key shared files are:
   extracts existential variables, universal variables, and the matrix.
 - ``aria/quant/efsmt_solver.py``: generic solver wrapper and EFSMT-facing
   orchestration utilities.
-- ``aria/quant/efsmt_utils.py``: helper routines for instantiation and solver
-  interaction.
+- ``aria/quant/efsmt_utils.py``: helper routines for solver interaction (in
+  particular, calling external SMT binaries).
 
 Theory-Specific Solver Families
 -------------------------------

@@ -29,13 +29,23 @@ Architecture
    │   ├── analysis.py      # Flow analysis
    │   ├── inv_networks.py  # Invariant networks
    │   └── z3_embed.py      # Z3 SMT-LIB2 embedding helpers
+   ├── daikon/              # Daikon invariant AST and grammar
+   │   ├── inv_ast.py       # Invariant AST nodes
+   │   └── inv_grammar.py   # Invariant grammar
+   ├── invgen/              # InvGen integration helpers
+   ├── cpachecker/          # CPAchecker integration helpers
    └── tools/               # Verification script tooling
        ├── vc_check.py      # Verification condition checking (tryAndVerifyLvl)
        ├── desugar.py       # Desugaring utilities for Boogie
        ├── tryAndVerify.py  # Try-and-verify CLI driver
        ├── conversions.py   # Format conversion helpers
        ├── boogie_loops.py  # Loop extraction from CFGs
-       └── levels.py        # Level set management
+       ├── levels.py        # Level set management
+       ├── run_cpa_checker.py  # CPAchecker driver
+       ├── run_daikon.py    # Daikon driver
+       ├── run_daikon.sh    # Daikon shell wrapper
+       ├── run_ice.py       # ICE learner driver
+       └── run_invgen.py    # InvGen driver
 
 Common AST and Utilities
 ------------------------
