@@ -18,7 +18,7 @@ Directory Structure
        ├── language.py          (517 lines)
        ├── prover.py            (524 lines)
        ├── main.py              (525 lines)
-       └── README.md            (94 lines)
+       ├── README.md            (94 lines)
        └── __pycache__/         (compiled Python files)
 
 Module Purpose
@@ -130,7 +130,7 @@ Interactive theorem prover REPL with formula management.
 
 * ``lex(inp)``: Tokenizes input strings into tokens
   - Handles identifiers, operators, quantifiers, parentheses
-  - Supports whitespace and comments
+  - Skips ASCII spaces only; tabs and newlines become symbols, and comments are not recognized
 * ``parse(tokens)``: Recursive descent parser
   - **Operator precedence**: quantifiers > implication > disjunction > conjunction > not > atoms
   - **Type checking**: Validates well-formedness of formulae

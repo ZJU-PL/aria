@@ -40,10 +40,15 @@ class Z3AllSMTSolver(AllSMTSolver[ModelRef]):
             if self._add_model(model, model_limit):
                 break
 
-            # Create blocking clause to exclude the current model
+            # Create blocking clause to exclude the current model.
+            # ``model_completion=True`` is required: ``model[k]`` is ``None`` for
+            # any variable the model leaves unassigned, and comparing a Z3
+            # expression against ``None`` yields Python ``True`` (not a literal),
+            # which made the blocking clause trivially true and re-emitted the
+            # same model until the limit was hit.
             block = []
             for k in keys:
-                block.append(k != model[k])
+                block.append(k != model.eval(k, model_completion=True))
             solver.add(Or(block))
 
         return self._models

@@ -13,9 +13,9 @@ Directory structure
    aria/bool/cnfsimplifier/
    ├── cnf.py              # Internal CNF representation
    ├── clause.py           # Clause data structure with literal operations
-   ├── variable.py         # Variable activity and occurrence tracking
+   ├── variable.py         # Literal/variable wrapper (value, abs value, sign)
    ├── simplifier.py       # Standalone elimination passes (9 techniques)
-   ├── io.py               # DIMACS / numeric-clause I/O helpers
+   ├── io.py               # Input readers (PySAT CNF, numeric clause lists)
    └── rust_backend.py     # Optional Rust-accelerated backend
 
 Simplification techniques

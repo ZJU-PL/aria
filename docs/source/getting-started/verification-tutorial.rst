@@ -12,7 +12,8 @@ Install ARIA locally:
 
    git clone https://github.com/ZJU-PL/aria
    cd aria
-   pip install -e .
+   bash setup_local_env.sh
+   source venv/bin/activate   # setup_local_env.sh creates ./venv
 
 Then inspect the verifier CLI:
 
@@ -61,11 +62,16 @@ Typical commands
 Results
 -------
 
-The verifier generally reports one of:
+The verifier prints one of these final result lines:
 
 * ``safe``
 * ``unsafe``
 * ``unknown``
+
+Engines also emit diagnostic lines while solving (for example ``sat``/``unsat``
+from the template-based EFSMT backend, plus timing and template information).
+Those diagnostics precede the final result line and should not be confused
+with it.
 
 Related entrypoints
 -------------------

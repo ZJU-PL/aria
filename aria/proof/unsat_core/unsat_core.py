@@ -157,6 +157,24 @@ class UnsatCoreComputer:
 
         return UnsatCoreResult(cores=cores, is_minimal=True)
 
+    def _make_checker(
+        self,
+        constraints: List[Any],
+        solver_factory: Callable[[], Any],
+        timeout: Optional[int],
+    ) -> Callable[[List[int]], Any]:
+        """Build a helper that checks satisfiability of a subset of constraints."""
+
+        def _check(indices: List[int]):
+            solver = solver_factory()
+            if timeout is not None:
+                solver.set("timeout", int(timeout * 1000))
+            for idx in indices:
+                solver.add(constraints[idx])
+            return solver.check()
+
+        return _check
+
     def _run_musx(
         self,
         constraints: List[Any],
@@ -174,13 +192,7 @@ class UnsatCoreComputer:
         if not constraints:
             return UnsatCoreResult(cores=[set()], is_minimal=True)
 
-        def _check(indices: List[int]):
-            solver = solver_factory()
-            if timeout is not None:
-                solver.set("timeout", int(timeout * 1000))
-            for idx in indices:
-                solver.add(constraints[idx])
-            return solver.check()
+        _check = self._make_checker(constraints, solver_factory, timeout)
 
         # The full set must be unsatisfiable for a MUS to exist.
         if _check(list(range(len(constraints)))) != unsat:
@@ -198,63 +210,186 @@ class UnsatCoreComputer:
 
         return UnsatCoreResult(cores=[set(core)], is_minimal=True)
 
+    def _shrink_core(
+        self,
+        core: Set[int],
+        constraints: List[Any],
+        solver_factory: Callable[[], Any],
+        timeout: Optional[int],
+    ) -> Set[int]:
+        """Drop constraints from ``core`` while the remainder stays unsatisfiable."""
+        _check = self._make_checker(constraints, solver_factory, timeout)
+        ordered = sorted(core)
+        i = 0
+        while i < len(ordered):
+            trial = ordered[:i] + ordered[i + 1 :]
+            if _check(trial) == unsat:
+                ordered = trial
+            else:
+                i += 1
+        return set(ordered)
+
     def _run_optux(
         self,
         constraints: List[Any],
-        solver_factory: Callable[[], Any],  # noqa: ARG002
+        solver_factory: Callable[[], Any],
         timeout: Optional[int] = None,
         **kwargs,  # noqa: ARG002
     ) -> UnsatCoreResult:
-        """Run OptUx algorithm to compute unsat core."""
+        """Run OptUx algorithm to compute an optimal (smallest) unsat core.
+
+        ``OptUx`` (a vendored PySAT example) expects a CNF/WCNF over integer
+        literals, while callers pass Z3 expressions or plain strings. Each
+        constraint is therefore Tseitin-encoded into clauses that are relaxed by
+        a dedicated selector literal, and the selector is the (unit) soft clause
+        handed to ``OptUx``. The MUS that ``OptUx`` returns is thus a set of
+        selector literals, which map back to original constraint indices.
+        """
         from pysat.formula import WCNF  # noqa: PLC0415
 
-        wcnf = WCNF()
-        for constraint in constraints:
-            if isinstance(constraint, str):
-                if constraint.startswith("not "):
-                    var_name = constraint[4:].split()[0]
-                    lit = (
-                        -int(var_name) if var_name.isdigit() else -hash(var_name) % 1000
-                    )
-                    wcnf.append([lit])
-                elif " or " in constraint:
-                    parts = constraint.split(" or ")
-                    clause = []
-                    for part in parts:
-                        part = part.strip()
-                        if part.startswith("not "):
-                            var_name = part[4:].split()[0]
-                            lit = (
-                                -int(var_name)
-                                if var_name.isdigit()
-                                else -hash(var_name) % 1000
-                            )
-                        else:
-                            var_name = part
-                            lit = (
-                                int(var_name)
-                                if var_name.isdigit()
-                                else hash(var_name) % 1000
-                            )
-                        clause.append(lit)
-                    wcnf.append(clause)
-                else:
-                    var_name = constraint
-                    lit = int(var_name) if var_name.isdigit() else hash(var_name) % 1000
-                    wcnf.append([lit])
-            else:
-                wcnf.append(constraint)
+        # Numeric constraints (or numeric strings) can be used verbatim.
+        if all(self._is_numeric_constraint(c) for c in constraints):
+            wcnf = WCNF()
+            for constraint in constraints:
+                wcnf.append(self._numeric_clause(constraint))
+            return self._optux_from_wcnf(wcnf, constraints, len(constraints))
 
+        # Z3 / string constraints: encode propositionally with selectors.
+        encoded = self._encode_constraints_as_wcnf(constraints)
+        if encoded is None:
+            # Not expressible as a propositional formula (e.g. theory atoms
+            # whose propositional abstraction would be unsound). Fall back to
+            # the sound deletion-based MUS algorithm.
+            return self._run_musx(constraints, solver_factory, timeout)
+
+        wcnf, selector_indices = encoded
+        result = self._optux_from_wcnf(wcnf, constraints, len(constraints), selector_indices)
+
+        # Guard against a propositional core that is not a genuine theory-level
+        # core: verify with Z3, shrink to a minimal unsat subset, and fall back
+        # to deletion-based extraction if the abstraction produced a spurious
+        # core.
+        core = result.cores[0] if result.cores else set()
+        _check = self._make_checker(constraints, solver_factory, timeout)
+        if not core or _check(sorted(core)) != unsat:
+            return self._run_musx(constraints, solver_factory, timeout)
+
+        minimized = self._shrink_core(core, constraints, solver_factory, timeout)
+        result.cores = [minimized]
+        return result
+
+    @staticmethod
+    def _is_numeric_constraint(constraint: Any) -> bool:
+        """Whether ``constraint`` is already a numeric clause."""
+        if isinstance(constraint, (list, tuple)):
+            return all(isinstance(lit, int) for lit in constraint)
+        if isinstance(constraint, str):
+            return constraint.replace("-", "").isdigit()
+        return False
+
+    @staticmethod
+    def _numeric_clause(constraint: Any) -> List[int]:
+        """Normalize a numeric constraint to a list of integer literals."""
+        if isinstance(constraint, str):
+            return [int(constraint)]
+        return list(constraint)
+
+    @staticmethod
+    def _encode_constraints_as_wcnf(constraints: List[Any]):
+        """Tseitin-encode Z3 constraints into a selector-relaxed WCNF.
+
+        Returns ``(wcnf, selector_index)`` or ``None`` when a constraint is not
+        purely propositional (i.e. when treating theory atoms as Boolean
+        variables would give an unsound answer).
+        """
+        try:
+            from pysat.formula import WCNF  # noqa: PLC0415
+            import z3  # noqa: PLC0415
+        except ImportError:  # pragma: no cover - optional dependency
+            return None
+
+        var_ids: Dict[str, int] = {}
+
+        def literal_id(literal) -> int:
+            negated = z3.is_not(literal)
+            atom = literal.arg(0) if negated else literal
+            if not z3.is_const(atom) or atom.decl().kind() != z3.Z3_OP_UNINTERPRETED:
+                raise ValueError("non-propositional literal")
+            if atom.sort() != z3.BoolSort():
+                raise ValueError("non-propositional literal")
+            key = atom.sexpr()
+            if key not in var_ids:
+                var_ids[key] = len(var_ids) + 1
+            vid = var_ids[key]
+            return -vid if negated else vid
+
+        encoder = z3.Tactic("tseitin-cnf")
+        clauses_per_constraint: List[List[List[int]]] = []
+        try:
+            for constraint in constraints:
+                if isinstance(constraint, str):
+                    constraint = z3.Bool(constraint)
+                goal = z3.Goal()
+                goal.add(constraint)
+                result = encoder(goal)
+                clauses: List[List[int]] = []
+                # ``result`` is an ``ApplyResult``; iterating it yields
+                # sub-goals, each of which holds the derived clauses.
+                for subgoal in result:
+                    for clause in subgoal:
+                        if z3.is_true(clause):
+                            continue
+                        if z3.is_false(clause):
+                            raise ValueError("trivially false constraint")
+                        parts = clause.children() if z3.is_or(clause) else [clause]
+                        clauses.append([literal_id(part) for part in parts])
+                clauses_per_constraint.append(clauses)
+        except (ValueError, z3.Z3Exception):
+            return None
+
+        wcnf = WCNF()
+        selector_index: Dict[int, int] = {}
+        next_id = len(var_ids) + 1
+        for idx, clauses in enumerate(clauses_per_constraint):
+            selector = next_id
+            next_id += 1
+            selector_index[selector] = idx
+            # Every clause of the constraint is relaxed by ``not selector``,
+            # so the constraint is enforced exactly when the selector is true.
+            for clause in clauses:
+                wcnf.append(clause + [-selector], weight=None)
+            wcnf.append([selector], weight=1)
+
+        return wcnf, selector_index
+
+    def _optux_from_wcnf(
+        self,
+        wcnf,
+        constraints: List[Any],
+        num_constraints: int,
+        selector_index: Optional[Dict[int, int]] = None,
+    ) -> UnsatCoreResult:
+        """Run ``OptUx`` on ``wcnf`` and map its answer back to constraints."""
         optux = self.module.OptUx(wcnf, verbose=0)
-        core = optux.compute()
+        try:
+            core = optux.compute()
+            cost = getattr(optux, "cost", 0)
+        finally:
+            optux.delete()
 
         core_indices = set()
         if core:
             for clause_id in core:
-                if clause_id < len(constraints):
+                if selector_index is not None:
+                    # ``clause_id`` is an index into the soft clauses, which are
+                    # one selector per constraint, in constraint order.
+                    idx = clause_id - 1
+                    if 0 <= idx < num_constraints:
+                        core_indices.add(idx)
+                elif 0 <= clause_id < num_constraints:
                     core_indices.add(clause_id)
 
-        stats = {"cost": getattr(optux, "cost", 0)}
+        stats = {"cost": cost}
         return UnsatCoreResult(cores=[core_indices], is_minimal=True, stats=stats)
 
     def enumerate_all_mus(

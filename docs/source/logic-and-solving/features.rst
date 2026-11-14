@@ -19,7 +19,7 @@ Directory structure
    ├── graph_features.py    # Variable-clause and variable-variable graph features
    ├── dpll.py              # DPLL probing (unit propagation at various depths)
    ├── parse_cnf.py         # CNF file parser
-   ├── enums.py             # Feature name enumerations
+   ├── enums.py             # DPLL variable/clause state enums
    ├── array_stats.py       # Statistical helpers (mean, std, entropy, …)
    └── stopwatch.py         # Timing utility
 

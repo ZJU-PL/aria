@@ -36,7 +36,7 @@ Install from source:
    git clone https://github.com/ZJU-PL/aria
    cd aria
    bash setup_local_env.sh
-   pip install -e .
+   source venv/bin/activate   # setup_local_env.sh creates ./venv
 
 For a faster local setup with ``uv``:
 

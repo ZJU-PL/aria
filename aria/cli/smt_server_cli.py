@@ -264,7 +264,9 @@ class SmtServer:
         for model in models:
             model_str = []
             for var_name, var in zip(var_names, variables):
-                value = model.get(var)
+                # ``model[var]`` is ``None`` for variables the model leaves
+                # unassigned, so complete the valuation explicitly.
+                value = model.eval(var, model_completion=True)
                 model_str.append(f"({var_name} {value})")
             result.append("(" + " ".join(model_str) + ")")
         return "(" + " ".join(result) + ")"
@@ -289,7 +291,7 @@ class SmtServer:
 
             # Create AllSMT solver and enumerate models
             solver = create_allsmt_solver()
-            models = solver.get_all_sat(formula, variables, model_limit=model_limit)
+            models = solver.solve(formula, variables, model_limit=model_limit)
 
             return self._format_allsmt_results(models, var_names, variables)
         except (ValueError, TypeError, AttributeError, KeyError) as e:
@@ -374,11 +376,13 @@ class SmtServer:
         try:
             # Parse arguments
             parts = cmd_args.split()
-            algorithm = "model-enumeration"  # Default algorithm
+            algorithm = "sequence_checking"  # Default algorithm
 
             # Process options
             if parts and parts[0].startswith(":algorithm="):
-                algorithm = parts[0].split("=")[1]
+                # Accept both the historical hyphenated spelling and the
+                # canonical snake_case name used by the backend.
+                algorithm = parts[0].split("=")[1].replace("-", "_")
                 parts = parts[1:]
 
             # Get formula from current assertions
@@ -400,8 +404,14 @@ class SmtServer:
             # Format results
             result = " ".join(str(lit) for lit in backbone_lits)
             return f"({result})"
-        except (ValueError, TypeError, AttributeError) as e:
-            return f"error: {str(e)}"
+        except (
+            ValueError,
+            TypeError,
+            AttributeError,
+            NotImplementedError,
+            z3.Z3Exception,
+        ) as e:
+            return f"error: {e}"
 
     def handle_count_models(self, cmd_args: str) -> str:
         """Handle count-models command to count satisfying models."""

@@ -55,13 +55,18 @@ def get_backbone_literals_by_model_enumeration(fml: ExprRef, literals: List[Expr
     solver.add(fml)
     while solver.check() == sat:
         model = solver.model()
+        constraints = []
         for literal in literals:
-            if literal not in res:
-                if not model.eval(literal, model_completion=True):
-                    # Bug fix: Remove the literal to be pruned from the result set
-                    # remove the literal from res
-                    res.remove(literal)
-        solver.add(Not(And([literal == model[literal] for literal in literals])))
+            value = model.eval(literal, model_completion=True)
+            if literal in res and not value:
+                # Bug fix: Remove the literal to be pruned from the result set
+                # remove the literal from res
+                res.remove(literal)
+            constraints.append(literal == value)
+        # Block the current assignment over the tracked literals. ``value`` is
+        # obtained with ``model_completion=True`` because ``model[literal]`` is
+        # ``None`` for unassigned atoms, which is not a valid Z3 term.
+        solver.add(Not(And(constraints)))
 
     return res
 
@@ -73,14 +78,18 @@ def get_backbone_literals_by_unsat_core_enumeration(
     A backbone literal is a literal that is entailed by the formula.
     The idea: enumerate all models of the fml and check whether each literal is true in each model.
     """
-    raise NotImplementedError
+    raise NotImplementedError(
+        "backbone literal enumeration via unsat cores is not implemented"
+    )
 
 
 def get_backbone_literals_by_monadic_predicate_abstraction(
     fml: ExprRef, literals: List[ExprRef]
 ):
     """Call the monadic predicate abstraction algorithm to get the backbone literals."""
-    raise NotImplementedError
+    raise NotImplementedError(
+        "backbone literal enumeration via monadic predicate abstraction is not implemented"
+    )
 
 
 def get_backbone_literals(fml: ExprRef, literals: List[ExprRef], alg: str):
@@ -100,4 +109,7 @@ def get_backbone_literals(fml: ExprRef, literals: List[ExprRef], alg: str):
         return get_backbone_literals_by_model_enumeration(fml, literals)
     if alg == "unsat_core_enumeration":
         return get_backbone_literals_by_unsat_core_enumeration(fml, literals)
-    raise NotImplementedError
+    raise ValueError(
+        f"Unknown backbone algorithm: {alg!r}; supported algorithms are "
+        "'sequence_checking', 'model_enumeration', and 'unsat_core_enumeration'"
+    )

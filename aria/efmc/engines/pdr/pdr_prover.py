@@ -107,7 +107,10 @@ class PDRProver:
                 return VerificationResult(True, invariant)
             if res == z3.unsat:
                 if self.verbose:
-                    print("unsafe")
+                    # The CHC system is unsatisfiable, but Z3 gives no concrete
+                    # counterexample, so this is reported as unknown (see below)
+                    # rather than unsafe.
+                    print("unknown (CHC unsat, no counterexample)")
                 # PDR doesn't provide a concrete counterexample, so we mark it as unknown
                 # rather than unsafe since we can't provide a concrete counterexample
                 return VerificationResult(False, None, None, is_unknown=True)

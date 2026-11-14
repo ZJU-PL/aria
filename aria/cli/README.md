@@ -147,6 +147,9 @@ python -m aria.cli.mc_cli formula.smt2 --log-level DEBUG
 |--------|--------|---------|-------------|
 | `--theory` | bool, bv, arith, auto | auto | Theory to use |
 | `--method` | theory-specific: bool `auto/exact/enumeration/approx/approxmc/solver`, bv `auto/enumeration/sharpsat/approxmc`, arith `auto/enumeration/latte` | auto | Counting method |
+| `--project` | variable names | all free vars | Restrict the count to the given variables (`nargs="+"`) |
+| `--json` | flag | false | Print the structured `CountResult` as JSON |
+| `--fail-on-status` | unsupported, unbounded, timeout, error, approximate | none | Exit nonzero if the result status matches any listed value (`nargs="+"`) |
 | `--timeout` | integer | None | Timeout in seconds |
 | `--log-level` | DEBUG, INFO, WARNING, ERROR | INFO | Logging level |
 
@@ -317,7 +320,7 @@ aria-maxsat formula.wcnf --timeout 60 --log-level INFO
 ### Output
 
 - `cost: <number>` — cost of the solution (sum of weights of unsatisfied soft clauses).
-- `status: optimal|satisfied|unknown|timeout`
+- `status: optimal|unknown|timeout|error`
 - With `--print-model`: `model: <literals>`
 
 ---
