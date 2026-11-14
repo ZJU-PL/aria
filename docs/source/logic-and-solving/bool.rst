@@ -47,11 +47,16 @@ Multiple SAT solver backends with unified interface.
 
 **Key Classes:**
 
-* ``PySATSolver``: Wrapper around PySAT supporting 14+ solvers (CDCL, Glucose, MapleSAT, etc.)
+* ``PySATSolver`` (``aria.bool.sat.pysat_solver``): Wrapper around PySAT
+  supporting 14+ solvers (CDCL, Glucose, MapleSAT, etc.)
   - Methods: ``check_sat()``, ``check_sat_assuming()``, ``get_model()``, ``sample_models()``, ``reduce_models()``
-* ``Z3SATSolver``: Z3-based SAT solver implementation
+* ``Z3SATSolver`` (``aria.bool.sat.z3sat_solver``): Z3-based SAT solver
+  implementation
 * ``brute_force.py``: pure Python brute-force solvers
   (``solve_sat_brute_force()`` and ``solve_sat_brute_force_parallel()``)
+
+The ``aria.bool.sat`` subpackage does not re-export these classes; import them
+from the modules above (or ``PySATSolver`` from ``aria.bool``).
 
 **Features:**
 
@@ -73,10 +78,16 @@ Solve weighted and unweighted MaxSAT optimization problems.
 * ``MaxSATSolverResult`` (``aria.bool.maxsat.maxsat_solver``): Dataclass for
   results (cost, solution, runtime, status); it is not re-exported from
   ``aria.bool.maxsat``
-* ``FM``: Fu-Malik algorithm implementation (WMSU1 variant)
-* ``RC2``: Relaxable Cardinality Constraints solver (top-ranked in MaxSAT Evaluation)
-* ``LSU``: Linear search SAT-UNSAT algorithm with iterative totalizer encoding
-* ``AnytimeMaxSAT``: Anytime MaxSAT solving
+* ``FM`` (``aria.bool.maxsat.fm``): Fu-Malik algorithm implementation
+  (WMSU1 variant)
+* ``RC2`` (``aria.bool.maxsat.rc2``): Relaxable Cardinality Constraints solver
+  (top-ranked in MaxSAT Evaluation)
+* ``LSU`` (``aria.bool.maxsat.lsu``): Linear search SAT-UNSAT algorithm with
+  iterative totalizer encoding
+* ``AnytimeMaxSAT`` (``aria.bool.maxsat.anytime``): Anytime MaxSAT solving
+
+Only ``MaxSATSolver`` is re-exported from ``aria.bool.maxsat``; import the
+individual engines from the submodules listed above.
 
 **Features:**
 
