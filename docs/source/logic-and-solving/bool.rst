@@ -16,29 +16,29 @@ The module contains roughly 23,000 lines of Python code across its subpackages.
 Directory Structure
 -------------------
 
-```
-aria/bool/
-├── __init__.py                    # Main API exports
-├── cnf_simplify.py               # CNF simplification CLI tool
-├── pysat_cnf.py                  # CNF manipulation utilities
-├── tseitin_converter.py           # DNF to CNF transformation
-├── cnfsimplifier/                # CNF simplification framework
-├── cnfsimplifier_rs/             # Rust-backed variant of the simplifier
-├── sat/                          # SAT solver implementations
-├── maxsat/                       # MaxSAT solvers and algorithms
-├── nnf/                          # NNF reasoning library (largest submodule)
-├── qbf/                          # QBF solver and parsers
-├── features/                     # SAT instance feature extraction
-├── dissolve/                     # Distributed SAT solver
-├── knowledge_compiler/           # DNNF and OBDD compilation
-├── interpolant/                  # Boolean interpolation algorithms
-├── analysis/                     # CNF/QBF structural analysis
-├── backbone/                     # SAT backbone computation
-├── encodings/                    # Boolean encodings (cardinality, etc.)
-├── modal/                        # Modal logic reasoning
-├── prime/                        # Prime implicant/implicate enumeration
-└── threeval/                     # Three-valued (Kleene) logic
-```
+.. code-block:: text
+
+   aria/bool/
+   ├── __init__.py                    # Main API exports
+   ├── cnf_simplify.py               # CNF simplification CLI tool
+   ├── pysat_cnf.py                  # CNF manipulation utilities
+   ├── tseitin_converter.py           # DNF to CNF transformation
+   ├── cnfsimplifier/                # CNF simplification framework
+   ├── cnfsimplifier_rs/             # Rust-backed variant of the simplifier
+   ├── sat/                          # SAT solver implementations
+   ├── maxsat/                       # MaxSAT solvers and algorithms
+   ├── nnf/                          # NNF reasoning library (largest submodule)
+   ├── qbf/                          # QBF solver and parsers
+   ├── features/                     # SAT instance feature extraction
+   ├── dissolve/                     # Distributed SAT solver
+   ├── knowledge_compiler/           # DNNF and OBDD compilation
+   ├── interpolant/                  # Boolean interpolation algorithms
+   ├── analysis/                     # CNF/QBF structural analysis
+   ├── backbone/                     # SAT backbone computation
+   ├── encodings/                    # Boolean encodings (cardinality, etc.)
+   ├── modal/                        # Modal logic reasoning
+   ├── prime/                        # Prime implicant/implicate enumeration
+   └── threeval/                     # Three-valued (Kleene) logic
 
 SAT Solvers (``sat/``)
 ~~~~~~~~~~~~~~~~~~~~~~
