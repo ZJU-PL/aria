@@ -22,7 +22,7 @@ Aria provides a comprehensive suite of algorithms for UNSAT core extraction:
 1. **MARCO** (``marco.py``): A highly efficient algorithm for MUS enumeration that can find multiple MUSes quickly.
 
 2. **MUSX**: Deletion-based extraction of a single minimal unsat core. The
-   `UnsatCoreComputer` implementation runs the deletion loop directly over the
+   ``UnsatCoreComputer`` implementation runs the deletion loop directly over the
    supplied solver constraints (so arbitrary SMT formulas are supported),
    while ``musx.py`` keeps the original pysat/CNF variant of the algorithm.
 

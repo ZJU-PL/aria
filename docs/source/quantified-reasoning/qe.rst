@@ -30,7 +30,7 @@ The QE prover implements the following algorithm:
    - Rename variables to get the next state formula
    - Take the disjunction with the current invariant
 3. **Fixpoint Detection**: Check if the new invariant is equivalent to the previous one
-4. **Safety Check**: Verify that the computed invariant implies the safety property. If the fixpoint is reached but the invariant does not imply the post-condition, the prover reports ``unknown`` (not unsafe): the strongest post-condition may simply be too weak to prove the property. A ``timeout`` argument bounds the iteration.
+4. **Safety Check**: Verify that the computed invariant implies the safety property. If the fixpoint is reached but the invariant does not imply the post-condition, the prover reports ``unknown`` (not unsafe): the strongest post-condition may simply be too weak to prove the property. A ``timeout`` passed to ``QuantifierEliminationProver(...)`` (in seconds) bounds the iteration; the ``timeout`` argument of ``solve()`` is currently ignored.
 
 **Mathematical Formulation:**
 

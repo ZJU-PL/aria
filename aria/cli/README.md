@@ -108,14 +108,14 @@ python -m aria.cli.fmldoc_cli batch -i input_dir/ -o output_dir/
 |--------|-----------|----------|---------|----------------|--------------|
 | DIMACS | .cnf | ✓ | ✓ | ✓ | SMT-LIB2, LP |
 | SMT-LIB2 | .smt2 | ✓ | ✓ | ✓ | DIMACS, SymPy |
-| QDIMACS | .qd | - | - | ✓ | SMT-LIB2 |
+| QDIMACS | .qdimacs | - | - | ✓ | SMT-LIB2 |
 | QCIR | .qcir | - | - | ✓ | SMT-LIB2 |
 | OPB | .opb | - | - | ✓ | SMT-LIB2 |
 | WCNF | .wcnf | - | - | ✓ | SMT-LIB2 |
 | SyGuS | .sl | - | - | ✓ | SMT-LIB2 |
 
 ``python -m aria.cli.fmldoc_cli formats`` lists the authoritative set
-(``dimacs, lp, opb, qcir, qdimacs, smtlib2, sygus, sympy, wcnf``).
+(`dimacs, lp, opb, qcir, qdimacs, smtlib2, sygus, sympy, wcnf`).
 
 ---
 

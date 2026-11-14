@@ -77,6 +77,7 @@ Documentation map
 * ``llm-ml``: LLM-assisted reasoning and machine-learning components
 * ``testing``: concolic testing and coverage tooling
 * ``cli-tools``: command-line frontends and translator-oriented workflows
+* ``global_params``: project paths, solver discovery, and configuration
 
 .. toctree::
     :maxdepth: 2
