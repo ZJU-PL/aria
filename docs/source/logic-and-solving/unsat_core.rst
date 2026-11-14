@@ -21,7 +21,10 @@ Aria provides a comprehensive suite of algorithms for UNSAT core extraction:
 
 1. **MARCO** (``marco.py``): A highly efficient algorithm for MUS enumeration that can find multiple MUSes quickly.
 
-2. **MUSX** (``musx.py``): An algorithm focused on finding a single MUS with good performance characteristics.
+2. **MUSX**: Deletion-based extraction of a single minimal unsat core. The
+   `UnsatCoreComputer` implementation runs the deletion loop directly over the
+   supplied solver constraints (so arbitrary SMT formulas are supported),
+   while ``musx.py`` keeps the original pysat/CNF variant of the algorithm.
 
 3. **OPTUX** (``optux.py``): An optimized algorithm for finding minimal UNSAT cores.
 
@@ -56,7 +59,6 @@ Usage Example
        constraints=constraints,
        solver_factory=solver_factory,
        algorithm=Algorithm.MARCO,
-       timeout=10000  # 10 seconds
    )
    
    # Print the UNSAT core
@@ -71,7 +73,6 @@ Usage Example
    all_muses = enumerate_all_mus(
        constraints=constraints,
        solver_factory=solver_factory,
-       timeout=10000
    )
    
    print(f"Found {len(all_muses.cores)} MUSes")
@@ -93,10 +94,19 @@ Advanced Features
 
 The UNSAT core extraction module provides several advanced features:
 
-- **Timeout control**: Set maximum execution time for algorithms
-- **Statistics collection**: Gather performance metrics during execution
-- **Custom solvers**: Use any SMT solver that provides a compatible interface
-- **Incremental solving**: Reuse solver state for improved performance
+- **Algorithm selection**: MARCO for MUS enumeration, MUSX for a single MUS,
+  and OPTUX for cost-optimal cores
+- **Core enumeration**: ``enumerate_all_mus()`` enumerates minimal
+  unsatisfiable subsets with MARCO
+- **Index-based results**: ``UnsatCoreResult`` reports each core as a set of
+  assertion indices and records ``is_minimal``
+- **Statistics**: ``UnsatCoreResult.stats`` carries algorithm-specific metrics
+  (OPTUX records its cost)
+
+The ``solver_factory`` and ``timeout`` arguments are part of the public
+signatures for API compatibility. MUSX uses ``solver_factory`` and honours
+``timeout`` (in seconds), while the MARCO and OPTUX backends currently drive
+their own pysat-based solvers and do not enforce these arguments.
 
 References
 ==========

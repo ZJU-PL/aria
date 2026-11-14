@@ -17,16 +17,19 @@ Directory structure
 CNF Analysis
 ------------
 
-``cnf.py`` computes structural metrics over CNF formulas, such as clause
-length distributions, variable occurrence counts, and related statistics
-used for understanding formula structure and hardness.
+``cnf.py`` computes a summary of a CNF formula (``CNFAnalysis``): variable and
+clause counts, min/max/mean clause size, unit/binary/Horn clause counts,
+positive/negative literal counts, and primal-graph edges and components.
 
 Metrics
 -------
 
-``metrics.py`` provides general-purpose metrics over Boolean formulas,
-complementing the feature extraction in ``aria.bool.features`` with lighter-weight
-structural measurements.
+``metrics.py`` provides general-purpose metrics over Boolean formulas and CNF
+clause lists, complementing the feature extraction in ``aria.bool.features``
+with lighter-weight structural measurements. It includes clause-length
+histograms (``clause_length_histogram``), per-variable clause degrees
+(``variable_clause_degrees``), literal balance, quantifier-prefix reports, and
+a combined ``cnf_analysis_report`` helper.
 
 QBF Analysis
 ------------

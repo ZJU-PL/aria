@@ -13,7 +13,8 @@ Relevant pieces of the current package include:
 * ``aria.counting.api``: dispatch and theory detection
 * ``aria.counting.bool``: DIMACS and Boolean counting backends
 * ``aria.counting.bv``: QF_BV model counting
-* ``aria.counting.arith``: arithmetic counting, including LattE-based flows
+* ``aria.counting.arith``: arithmetic counting by exact enumeration (a LattE
+  backend is stubbed but not implemented)
 * ``aria.counting.core``: structured result objects
 
 Public entrypoints
@@ -84,8 +85,10 @@ See :doc:`../cli-tools/cli` for the current CLI surface.
 Notes
 -----
 
-Some backends rely on optional external tools such as ``sharpSAT`` or LattE.
-Availability depends on the selected theory and method. DIMACS counting uses
+Some backends rely on optional external tools such as ``sharpSAT``.
+Availability depends on the selected theory and method. Arithmetic counting
+currently uses exact enumeration; requesting ``method="latte"`` returns an
+``unsupported`` result because the LattE backend is only a stub. DIMACS counting uses
 ``sharpSAT`` when it is available; if ``sharpSAT`` fails on a small instance,
 the frontend falls back to exact PySAT enumeration. Larger failures are
 reported as an unsupported result (or raise ``ValueError`` from

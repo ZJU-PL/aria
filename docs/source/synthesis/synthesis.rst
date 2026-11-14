@@ -14,7 +14,7 @@ Key Features
 * **SyGuS Solving**: Syntax-Guided Synthesis for invariant and PBE problems
 * **Programming by Example**: Generate programs from input-output examples
 * **Version Space Algebra**: Algebraic framework for program space manipulation
-* **Multi-Theory Support**: LIA, bit-vectors, strings, and data structures
+* **Multi-Theory Support**: LIA, bit-vectors, and strings
 * **Spyro Framework**: Property synthesis for functional programs
 
 Components
@@ -32,7 +32,9 @@ Syntax-Guided Synthesis for invariants and PBE with CVC5:
 
    # Invariant synthesis
    inv_solver = SyGuSInvSolver()
-   # invariant = inv_solver.solve("benchmarks/efmc/sygus-inv/array-copyall.sl")
+   # invariant = inv_solver.synthesize_invariant(
+   #     "benchmarks/efmc/sygus-inv/array-copyall.sl"
+   # )
 
    # String programming by example
    pbe_solver = StringSyGuSPBE()

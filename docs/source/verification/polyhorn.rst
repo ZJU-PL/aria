@@ -202,6 +202,22 @@ PolyHorn also supports a more readable input format:
 
    Horn_clause: (x^2 + y^2 <= 1) -> (x + y <= 2)
 
+The ``aria-polyhorn`` command only accepts SMT-LIB2 input (its positional
+``file`` argument is passed to ``execute``, which uses the SMT parser). To run
+the readable format, use the module entrypoint or the Python API, both of
+which take an explicit readable file/string:
+
+.. code-block:: bash
+
+   python -m aria.quant.polyhorn.main --readable constraints.txt --config config.json
+
+.. code-block:: python
+
+   from aria.quant.polyhorn.main import execute_readable
+
+   with open("constraints.txt", encoding="utf-8") as f:
+       result, model = execute_readable(f.read(), "config.json")
+
 Advanced Configuration
 ----------------------
 

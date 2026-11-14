@@ -44,9 +44,11 @@ Key Concepts
 Model Sampling in Aria
 ======================
 
-``aria.sampling`` exposes a single entry point, ``sample_models_from_formula``,
-together with the ``Logic``, ``SamplingMethod``, and ``SamplingOptions`` types.
-See ``aria/sampling/README.md`` for the per-logic backends.
+``aria.sampling`` exposes the main entry point ``sample_models_from_formula``,
+plus the lower-level ``create_sampler``, ``sample_formula`` (an alias kept for
+backward compatibility), and ``SamplerFactory`` helpers, together with the
+``Logic``, ``SamplingMethod``, ``SamplingOptions``, ``SamplingResult``, and
+``Sampler`` types. See ``aria/sampling/README.md`` for the per-logic backends.
 
 .. code-block:: python
 

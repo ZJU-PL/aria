@@ -375,7 +375,20 @@ class EFMCRunner:
     def run_llm4inv(self, sts: TransitionSystem) -> None:
         """Run the simplified LLM4Inv guess-and-check engine"""
         self.logger.info("Starting LLM4Inv (guess-and-check) verification...")
-        prover = LLM4InvProver(sts)
+        prover = LLM4InvProver(
+            sts,
+            max_iterations=g_verifier_args.llm4inv_max_iterations,
+            max_candidates_per_iteration=(
+                g_verifier_args.llm4inv_max_candidates_per_iter
+            ),
+            llm_provider=g_verifier_args.llm4inv_provider,
+            local_provider=g_verifier_args.llm4inv_local_provider,
+            llm_model=g_verifier_args.llm4inv_local_model,
+            model_name=g_verifier_args.llm4inv_remote_model,
+            temperature=g_verifier_args.llm4inv_temperature,
+            max_output_length=g_verifier_args.llm4inv_max_output_length,
+            measure_cost=g_verifier_args.llm4inv_measure_cost,
+        )
         result = prover.solve()
         self.print_verification_result(result)
 

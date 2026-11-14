@@ -35,7 +35,7 @@ class Parser:
         elif parse_tree.data == "hornclause":
             lhs = self.traverse_readable_tree(parse_tree.children[0])
             rhs = self.traverse_readable_tree(parse_tree.children[1])
-            self.model.add_paired_constraint(lhs, rhs)
+            self.model.add_paired_constraint(lhs, rhs, self.model.program_variables)
             return
         elif parse_tree.data == "precondition":
             dnf = self.traverse_readable_tree(parse_tree.children[0])

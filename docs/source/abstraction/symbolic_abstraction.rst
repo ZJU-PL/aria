@@ -56,8 +56,8 @@ At a high level it:
 Supported EFMC domains include:
 
 - ``interval`` for numeric and bit-vector interval abstraction
-- ``bits`` for full bit-level tracking
-- ``known_bits`` for lighter-weight bit-pattern reasoning
+- ``bits`` / ``known_bits`` for known-bits abstraction (both names currently
+  select the same known-bits implementation)
 
 Command-line usage:
 
@@ -493,7 +493,7 @@ Choosing the Right Approach
 **When to use ai_symabs:**
 
 - Fast analysis with reasonable precision
-- Classic abstract domains (intervals, signs, octagons)
+- Classic abstract domains (intervals, signs, reduced products)
 - Large-scale program analysis
 - Resource-constrained environments
 
@@ -509,7 +509,8 @@ Choosing the Right Approach
 - Software verification tasks
 - User-defined predicates available
 - Boolean program analysis
-- Counterexample-guided abstraction refinement (CEGAR)
+- Settings where a fixed predicate set is sufficient (the current engine does
+  not implement counterexample-guided refinement)
 
 Scalability Trade-offs
 ~~~~~~~~~~~~~~~~~~~~~~

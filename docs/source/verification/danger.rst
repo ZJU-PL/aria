@@ -100,7 +100,7 @@ Parameters:
 - ``inv``: The danger invariant formula (z3.ExprRef)
 - ``rank``: The ranking function formula (z3.ExprRef)
 - ``guard``: Optional loop guard formula (z3.ExprRef, default: None)
-- ``require_rank_positive``: Whether to require ranking function to be positive (bool, default: True)
+- ``require_rank_positive``: Whether to require ranking function to be positive (bool, default: True). For unsigned bit-vector ranking functions the positivity conditions are skipped, since the checker only uses the unsigned strict-order comparison there.
 - ``solver_timeout_ms``: Solver timeout in milliseconds (int, default: None)
 
 Returns:
@@ -119,7 +119,8 @@ The signedness is determined from the transition system's configuration.
 Example: Proving Unsafety
 -------------------------
 
-Consider a program that increments a counter until it overflows:
+Consider a 4-bit counter that starts at 0 and increments on every step, so it
+wraps around after 15. The safety property to refute is ``x < 2``.
 
 .. code-block:: python
 
@@ -127,26 +128,34 @@ Consider a program that increments a counter until it overflows:
    from aria.efmc.engines.danger import DangerInvariantProver
    from aria.efmc.sts import TransitionSystem
 
-   # Transition system where x starts at 0 and increments
-   # Safety property: x < 256
-   # We want to prove this is violated
-   
-   x = z3.BitVec('x', 8)
-   x_p = z3.BitVec('x_p', 8)
-   
-   # Danger invariant: x >= 255 (close to overflow)
-   danger_inv = z3.UGE(x, 255)
-   
-   # Ranking function: 256 - x (decreases as x increases)
-   ranking_func = 256 - x
-   
-   # Guard: x < 256 (loop continues)
-   guard = z3.ULT(x, 256)
-   
+   x = z3.BitVec("x", 4)
+   x_p = z3.BitVec("x_p", 4)
+
+   sts = TransitionSystem(
+       variables=[x],
+       prime_variables=[x_p],
+       init=(x == 0),
+       trans=(x_p == x + 1),
+       post=(z3.ULT(x, z3.BitVecVal(2, 4))),
+   )
+
+   # Danger invariant: 0 <= x <= 3 (reachable from the initial state)
+   danger_inv = z3.ULE(x, z3.BitVecVal(3, 4))
+   # Ranking function: 4 - x
+   ranking_func = z3.BitVecVal(4, 4) - x
+   # Guard: loop continues while x < 3
+   guard = z3.ULT(x, z3.BitVecVal(3, 4))
+
    prover = DangerInvariantProver(sts)
    result = prover.verify(danger_inv, ranking_func, guard=guard)
-   
-   # If result.is_safe is False, we've proved the program is unsafe
+
+   # result.is_safe is False (and result.is_unsafe is True): the witness holds
+   print(result.is_unsafe)
+
+Use ``z3.BitVecVal`` for numeric constants in bit-vector formulas. Plain
+Python integers larger than the bit width silently wrap (for an 8-bit vector,
+``256`` becomes ``0``), which changes the meaning of guards and ranking
+functions.
 
 Applications
 ------------

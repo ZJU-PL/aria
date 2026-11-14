@@ -106,8 +106,16 @@ python -m aria.cli.fmldoc_cli batch -i input_dir/ -o output_dir/
 
 | Format | Extension | Validate | Analyze | Translate From | Translate To |
 |--------|-----------|----------|---------|----------------|--------------|
-| DIMACS | .cnf | ✓ | ✓ | ✓ | SMT-LIB2 |
-| SMT-LIB2 | .smt2 | ✓ | ✓ | - | - |
+| DIMACS | .cnf | ✓ | ✓ | ✓ | SMT-LIB2, LP |
+| SMT-LIB2 | .smt2 | ✓ | ✓ | - | DIMACS, SymPy |
+| QDIMACS | .qd | - | - | ✓ | SMT-LIB2 |
+| QCIR | .qcir | - | - | ✓ | SMT-LIB2 |
+| OPB | .opb | - | - | ✓ | SMT-LIB2 |
+| WCNF | .wcnf | - | - | ✓ | SMT-LIB2 |
+| SyGuS | .sl | - | - | ✓ | SMT-LIB2 |
+
+``python -m aria.cli.fmldoc_cli formats`` lists the authoritative set
+(``dimacs, lp, opb, qcir, qdimacs, smtlib2, sygus, sympy, wcnf``).
 
 ---
 
@@ -355,7 +363,7 @@ If the formula is satisfiable, the tool reports that and exits with code 0.
 ### Output
 
 - For satisfiable input: `Formula is satisfiable; no UNSAT core.`
-- For unsatisfiable: one or more cores, each as `core N: indices [i, j, ...]` and optionally the corresponding assertion formulas.
+- For unsatisfiable: one or more cores, each as `core N: indices [i, j, ...]` and optionally the corresponding assertion formulas. With `--no-formulas` the format is `core N: i j ...`.
 
 ---
 
@@ -448,7 +456,7 @@ python -m aria.cli.smt_server_cli --log-level DEBUG
 | `allsmt [:limit=<n>] <vars...>` | Enumerate all models |
 | `unsat-core [:algorithm=<alg>]` | Compute unsat cores |
 | `backbone [:algorithm=<alg>]` | Compute backbone literals |
-| `count-models [:timeout=<n>]` | Count models |
+| `count-models [:timeout=<n>] [:approximate]` | Count models |
 | `set-option <opt> <val>` | Configure server |
 | `help` | Show help |
 

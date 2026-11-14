@@ -118,7 +118,8 @@ Comprehensive library for Negation Normal Form manipulation and reasoning.
 **Features:**
 
 * Full NNF manipulation with DAG structure
-* Model enumeration (native, PySAT, Kissat backends)
+* Model enumeration (native and PySAT backends; the Kissat backend is only
+  used for satisfiability checks via ``config(sat_backend="kissat")``)
 * Efficient operations on d-DNNF (decomposable deterministic NNF)
 * Prime implicant/implicate extraction
 * Variable forgetting/projection
@@ -218,7 +219,8 @@ Practical implementation of the Dissolve distributed SAT solver — see
 * Clause sharing via UBTree-like bucket store
 * Variable picking with vote aggregation
 * Budget strategies (constant or Luby sequence)
-* Distribution strategies (dilemma or portfolio)
+* Dilemma-rule distribution (the ``distribution_strategy`` config field is
+  accepted but currently ignored; only dilemma splits are implemented)
 * PySAT backend support
 
 Knowledge Compilation (``knowledge_compiler/``)

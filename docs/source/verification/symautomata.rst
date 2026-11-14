@@ -30,6 +30,13 @@ The DFA implementation provides multiple backends for maximum compatibility:
   - ``fst``: Alternative FST library
   - Pure Python implementation (fallback)
 
+  Backend detection probes for the ``pywrapfst`` module and then imports
+  ``aria.automata.symautomata.pywrapfstdfa``, which in turn binds OpenFST through
+  the legacy ``pyfst`` module (see its ``import pyfst as fst  # FIXME`` line). If
+  that import fails, ``fst`` is tried, and ``pythondfa`` is used as the last
+  resort. In practice the OpenFST path therefore needs both module names to be
+  importable.
+
 * **Core Operations**:
   
   - Minimization and determinization
@@ -362,17 +369,21 @@ Language Operations
 
 .. code-block:: python
 
-   # Language intersection
+   # Language intersection (in place: dfa1 is modified, and also returned)
    result_dfa = dfa1.intersect(dfa2)
    
-   # Language union
+   # Language union (in place)
    union_dfa = dfa1.union(dfa2)
    
-   # Language complement
-   complement_dfa = dfa1.complement(alphabet)
+   # Language complement (in place; returns None)
+   dfa1.complement(alphabet)
    
-   # Language difference
+   # Language difference (in place)
    diff_dfa = dfa1.difference(dfa2)
+
+These methods mutate the receiver. ``intersect``, ``union``, and ``difference``
+return ``self`` so they can be chained, while ``complement`` and ``invert``
+return ``None``; call ``copy()`` first if the original automaton must be kept.
 
 Regular Expression Conversion
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

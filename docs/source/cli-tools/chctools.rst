@@ -68,6 +68,15 @@ The ``ChcRulesSmtLibParser`` class extends the standard SMT-LIB parser to handle
    ; Query: Is Q(5, 10) reachable?
    (query (Q 5 10))
 
+.. note::
+
+   ``ChcRulesSmtLibParser`` (``aria.quant.chctools.parser``) accepts the
+   application-style query shown above. The Z3 fixedpoint loader used by
+   ``load_horn_db_from_file`` and ``chcsolve`` follows Z3's dialect, which
+   rejects ``(query (Q 5 10))``; write ``(query Q)`` there instead. The query
+   then asks whether ``Q`` is reachable for any arguments, so encode
+   argument-specific queries as an additional rule.
+
 **Example Usage:**
 
 .. code-block:: python
@@ -118,9 +127,9 @@ CHC Solver
 The ``ChcSolveCmd`` class provides a command-line interface for solving CHC problems with various options:
 
 **Solver Backends:**
-- ``fp``: Uses Z3's Fixedpoint engine directly
+- ``fp``: Uses Z3's Fixedpoint engine directly (default)
 - ``cli``: Generates command-line calls to Z3
-- ``smt``: Converts to SMT format
+- ``smt``: Converts the problem to SMT-LIB ``chc`` format and prints it
 
 **Key Options:**
 - ``--pp``: Enable preprocessing (slicing, inlining)
@@ -134,7 +143,7 @@ The ``ChcSolveCmd`` class provides a command-line interface for solving CHC prob
 .. code-block:: bash
 
    # Solve CHC problem with preprocessing
-   python -m aria.quant.chctools.chcsolve --pp --st problem.smt2
+   python -m aria.quant.chctools.chcsolve problem.smt2 --pp --st
    
    # Use custom Z3 options
    python -m aria.quant.chctools.chcsolve problem.smt2 spacer.mbqi=false
@@ -315,7 +324,7 @@ The CHC tools can be used directly from the command line:
    python -m aria.quant.chctools.chcsolve problem.smt2
    
    # With preprocessing and statistics
-   python -m aria.quant.chctools.chcsolve --pp --st problem.smt2
+   python -m aria.quant.chctools.chcsolve problem.smt2 --pp --st
    
    # Custom solver options
    python -m aria.quant.chctools.chcsolve problem.smt2 spacer.mbqi=false spacer.reach_dnf=true

@@ -69,8 +69,13 @@ Documentation map
 * ``logic-and-solving``: core solver and reasoning packages
 * ``proofs-and-explanations``: abduction, interpolation, and theorem proving
 * ``quantified-reasoning``: EFSMT, QE, and quantified workflows
+* ``automata-languages``: finite automata, symbolic automata, CFL, and CFLOBDD
 * ``verification`` / ``abstraction``: EFMC engines and abstraction-oriented pages
 * ``counting-probability``: counting, sampling, and probabilistic reasoning
+* ``synthesis``: SyGuS and program synthesis
+* ``logic-programming``: Datalog-oriented workflows
+* ``llm-ml``: LLM-assisted reasoning and machine-learning components
+* ``testing``: concolic testing and coverage tooling
 * ``cli-tools``: command-line frontends and translator-oriented workflows
 
 .. toctree::

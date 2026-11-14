@@ -160,60 +160,43 @@ class UnsatCoreComputer:
     def _run_musx(
         self,
         constraints: List[Any],
-        solver_factory: Callable[[], Any],  # noqa: ARG002
+        solver_factory: Callable[[], Any],
         timeout: Optional[int] = None,
         **kwargs,  # noqa: ARG002
     ) -> UnsatCoreResult:
-        """Run MUSX algorithm to compute unsat core."""
-        from pysat.formula import CNF  # noqa: PLC0415
+        """Run a deletion-based MUS algorithm to compute a minimal unsat core.
 
-        cnf = CNF()
-        for constraint in constraints:
-            if isinstance(constraint, str):
-                if constraint.startswith("not "):
-                    var_name = constraint[4:].split()[0]
-                    lit = (
-                        -int(var_name) if var_name.isdigit() else -hash(var_name) % 1000
-                    )
-                    cnf.append([lit])
-                elif " or " in constraint:
-                    parts = constraint.split(" or ")
-                    clause = []
-                    for part in parts:
-                        part = part.strip()
-                        if part.startswith("not "):
-                            var_name = part[4:].split()[0]
-                            lit = (
-                                -int(var_name)
-                                if var_name.isdigit()
-                                else -hash(var_name) % 1000
-                            )
-                        else:
-                            var_name = part
-                            lit = (
-                                int(var_name)
-                                if var_name.isdigit()
-                                else hash(var_name) % 1000
-                            )
-                        clause.append(lit)
-                    cnf.append(clause)
-                else:
-                    var_name = constraint
-                    lit = int(var_name) if var_name.isdigit() else hash(var_name) % 1000
-                    cnf.append([lit])
+        This mirrors the algorithm in ``aria.proof.unsat_core.musx`` (deletion
+        based MUS extraction) but works directly on the given solver
+        constraints, so arbitrary Z3 formulas are supported without a CNF
+        conversion.
+        """
+        if not constraints:
+            return UnsatCoreResult(cores=[set()], is_minimal=True)
+
+        def _check(indices: List[int]):
+            solver = solver_factory()
+            if timeout is not None:
+                solver.set("timeout", int(timeout * 1000))
+            for idx in indices:
+                solver.add(constraints[idx])
+            return solver.check()
+
+        # The full set must be unsatisfiable for a MUS to exist.
+        if _check(list(range(len(constraints)))) != unsat:
+            return UnsatCoreResult(cores=[], is_minimal=True)
+
+        core = list(range(len(constraints)))
+        i = 0
+        while i < len(core):
+            trial = core[:i] + core[i + 1 :]
+            # Shrink only when the remaining constraints are still unsat.
+            if _check(trial) == unsat:
+                core = trial
             else:
-                cnf.append(constraint)
+                i += 1
 
-        musx = self.module.MUSX(cnf, verbosity=0)
-        core = musx.compute()
-
-        core_indices = set()
-        if core:
-            for clause_id in core:
-                if clause_id < len(constraints):
-                    core_indices.add(clause_id)
-
-        return UnsatCoreResult(cores=[core_indices], is_minimal=True)
+        return UnsatCoreResult(cores=[set(core)], is_minimal=True)
 
     def _run_optux(
         self,

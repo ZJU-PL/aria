@@ -12,9 +12,13 @@ The main areas in ``aria/ml`` are:
 
 - ``llm/``: LLM-assisted reasoning utilities, including natural-language
   interfaces, abduction, trigger generation, and solver-aided workflows.
+- ``llmtools/``: shared LLM client infrastructure (``LLM``, ``LLMLocal``,
+  logger, provider routing); see :doc:`llmtools`.
 - ``smtgazer/``: machine-learning-based SMT solver portfolio selection.
 - ``machfea/``: feature extraction for SMT instances.
 - ``tactic_opt/``: genetic-algorithm search for effective Z3 tactic sequences.
+- ``gansat/``: vendored GAN-based SAT/NeuroSym solver research code (see
+  ``aria/ml/gansat/README.md`` and ``DOC.md``).
 
 LLM-Assisted Reasoning
 ----------------------

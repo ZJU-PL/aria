@@ -25,10 +25,12 @@ PySMTSolver
 * ``convert(zf)`` -- static; converts a Z3 formula to PySMT, returning
   ``(pysmt_vars, pysmt_fml)``
 * ``check_with_pysmt()`` -- satisfiability check via PySMT backend
-* ``check_portfolio()`` -- parallel portfolio solving across MathSAT (×3),
-  CVC4, and Yices
+* ``check_portfolio()`` -- portfolio solving across MathSAT (×3), CVC4, and
+  Yices; every one of those PySMT backends must be installed, otherwise PySMT
+  raises ``NoSolverAvailableError`` while building the portfolio
 * ``all_smt(keys, bound=5)`` -- samples up to ``bound`` models by blocking
-  partial assignments
+  partial assignments on ``keys``; it prints each partial model instead of
+  returning it (the function returns ``None``)
 * ``binary_interpolant(fml_a, fml_b, ...)`` -- Craig binary interpolation,
   result mapped back to Z3
 * ``sequence_interpolant(formulas)`` -- sequence interpolation over a list of

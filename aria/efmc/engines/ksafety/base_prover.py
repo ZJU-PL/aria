@@ -232,8 +232,13 @@ class BaseKSafetyProver:
             self.logger.info("K-safety violation found at bound %s", bound)
             return VerificationResult(False, None, model, is_unsafe=True)
         if result == z3.unsat:
-            self.logger.info("No k-safety violation found at bound %s", bound)
-            return VerificationResult(True, None)
+            self.logger.info(
+                "No k-safety violation found at bound %s (bounded result only)",
+                bound,
+            )
+            # Bounded exploration cannot establish safety: absence of a
+            # counterexample up to `bound` does not prove the property.
+            return VerificationResult(False, None, None, is_unknown=True)
         self.logger.warning("BMC result unknown at bound %s", bound)
         return VerificationResult(False, None, None, is_unknown=True, timed_out=True)
 

@@ -360,6 +360,29 @@ def solve_opt_file_result(
     if _is_fp_expr(first_objective):
         return _solve_fp_opt_file(filename, engine, solver_name, opt_priority)
 
+    if engine == "z3py":
+        opt = z3.Optimize()
+        opt.from_file(filename=filename)
+        if opt.check() == z3.sat:
+            print("Solution found:")
+            model = opt.model()
+            for decl in model:
+                print(f"{decl} = {model[decl]}")
+            return OptimizationResult(
+                status=OptimizationStatus.OPTIMAL,
+                model=model,
+                engine=engine,
+                solver=solver_name,
+                detail="z3py printed model to stdout",
+            )
+        print("No solution")
+        return OptimizationResult(
+            status=OptimizationStatus.UNSAT,
+            engine=engine,
+            solver=solver_name,
+            detail="z3py reported no solution",
+        )
+
     if _is_bv_expr(first_objective):
         selected_engine = bv_engine or engine
         if len(raw_objectives) == 1:
@@ -424,8 +447,17 @@ def solve_opt_file_result(
         )
 
     if _is_arith_expr(first_objective):
+        if engine == "maxsat" and int_engine not in ("qsmt", "iter"):
+            raise ValueError(
+                "The maxsat engine only supports bit-vector objectives; "
+                "use engine 'qsmt' or 'iter' for arithmetic objectives"
+            )
         selected_engine = int_engine or (engine if engine in ("qsmt", "iter") else "qsmt")
-        arith_solver = solver_name if selected_engine == "qsmt" else "z3"
+        arith_solver = (
+            solver_name
+            if selected_engine == "qsmt" and engine != "maxsat"
+            else "z3"
+        )
         if len(raw_objectives) == 1:
             value = _maybe_parse_backend_value(
                 _solve_arith_single(
@@ -472,29 +504,6 @@ def solve_opt_file_result(
             engine="z3py",
             solver_name="z3py",
             detail=f"arithmetic {opt_priority} objectives",
-        )
-
-    if engine == "z3py":
-        opt = z3.Optimize()
-        opt.from_file(filename=filename)
-        if opt.check() == z3.sat:
-            print("Solution found:")
-            model = opt.model()
-            for decl in model:
-                print(f"{decl} = {model[decl]}")
-            return OptimizationResult(
-                status=OptimizationStatus.OPTIMAL,
-                model=model,
-                engine=engine,
-                solver=solver_name,
-                detail="z3py printed model to stdout",
-            )
-        print("No solution")
-        return OptimizationResult(
-            status=OptimizationStatus.UNSAT,
-            engine=engine,
-            solver=solver_name,
-            detail="z3py reported no solution",
         )
 
     raise ValueError(f"Unsupported optimization engine: {engine}")

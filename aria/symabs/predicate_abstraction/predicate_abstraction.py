@@ -98,11 +98,13 @@ def predicate_abstraction(fml: ExprRef, predicates: List[ExprRef]) -> ExprRef:
     res: List[ExprRef] = []
     while s.check() == z3.sat:
         m = s.model()
-        # i.e., compute a prime/minimal implicant (using the agove
-        # prime_implicant function)
+        # Project the model onto the predicates. A prime/minimal implicant
+        # could shrink this conjunction, but the one computed by
+        # ``prime_implicant`` above entails ``fml`` instead of being entailed
+        # by it, so it is not usable here as-is.
         projs = z3.And(eval_predicates(m, predicates))
-        # projs = prime_implicant(projs, fml) # this is for further possible
-        # optimization
+        # projs = prime_implicant(projs, fml) # would need the reversed
+        # implication direction to be sound
         # print(projs)
         res.append(projs)
         s.add(negate(projs))

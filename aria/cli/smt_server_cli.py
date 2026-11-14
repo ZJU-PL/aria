@@ -24,7 +24,7 @@ try:
     from aria.allsmt import create_allsmt_solver
     from aria.proof.unsat_core.unsat_core import get_unsat_core, enumerate_all_mus
     from aria.backbone.smt_backbone_literals import get_backbone_literals
-    from aria.counting import model_counter
+    from aria.counting.api import count_result
 
     ARIA_FEATURES_AVAILABLE = True
 except ImportError:
@@ -436,12 +436,17 @@ class SmtServer:
             else:
                 formula = z3.BoolVal(True)
 
-            # Count models
-            if approximate:
-                count = model_counter.approximate_model_count(formula, timeout=timeout)
-                return f"(approximate {count})"
-            count = model_counter.exact_model_count(formula, timeout=timeout)
-            return f"(exact {count})"
+            # Count models. Approximate counting uses the ApproxMC backend
+            # when it is available; otherwise the backend reports why not.
+            result = count_result(
+                formula,
+                method="approx" if approximate else "auto",
+                timeout=timeout,
+            )
+            if result.count is None:
+                return f"error: {result.reason or result.status}"
+            label = "approximate" if result.status == "approximate" else "exact"
+            return f"({label} {int(result.count)})"
         except (ValueError, TypeError, AttributeError) as e:
             return f"error: {str(e)}"
 

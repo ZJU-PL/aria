@@ -32,7 +32,14 @@ The encoding constructs three Horn clauses over an uninterpreted predicate
 
 When Z3 finds a satisfying model, ``inv`` is extracted as the inductive
 invariant. Supported variable sorts include ``Int``, ``Real``, ``BitVec``,
-and ``Bool``.
+and ``Bool``. Bit-vector systems must use a uniform bit width across all state
+variables: the encoding takes the width from the first variable and applies it
+to the whole ``inv`` signature.
+
+Note that the engine reports **safe** (with an invariant) or **unknown**; it
+never reports **unsafe**. Z3's ``HORN`` solver returns ``unsat`` when the CHC
+system has no solution, but it does not produce a concrete counterexample, so
+the prover conservatively maps that case to ``is_unknown``.
 
 Programmatic usage
 ------------------

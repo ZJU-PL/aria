@@ -21,8 +21,8 @@ implied by ``f``. Enumerating these structures is fundamental to Boolean
 analysis, circuit minimisation, and diagnostic reasoning.
 
 The ``enumeration`` module implements enumeration algorithms that, given a
-Boolean formula or CNF, produce the complete (or bounded) set of prime
-implicants or implicates.
+``pysat.formula.CNF``, produce the complete set of prime implicants or
+implicates.
 
 Programmatic usage
 ------------------

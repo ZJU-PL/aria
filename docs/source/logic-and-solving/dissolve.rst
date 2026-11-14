@@ -12,10 +12,14 @@ Directory structure
 
    aria/bool/dissolve/
    ├── dissolve.py         # Main Dissolve solver class
-   ├── engine.py           # Worker engine logic
+   ├── engine.py           # Dilemma-rule worker engine helpers (used by the demo)
    ├── models.py           # DissolveConfig and DissolveResult data classes
-   ├── scheduler.py        # Work distribution and scheduling
+   ├── scheduler.py        # Scheduling helpers (used by the demo)
    └── ubtree.py           # UBTree-based clause store for subsumption checks
+
+``Dissolve.solve()`` schedules its workers with a thread pool; ``engine.py``
+and ``scheduler.py`` are used by ``dissolve_demo.py`` and are not instantiated
+by the main loop.
 
 Key classes
 -----------
@@ -25,10 +29,13 @@ Key classes
 
   * ``k_split_vars`` -- number of variables used in dilemma splits
   * ``budget_strategy`` -- ``"constant"`` or ``"luby"`` sequence
-  * ``distribution_strategy`` -- ``"dilemma"`` or ``"portfolio"``
   * ``max_shared_per_round`` -- cap on learned clauses shared per round
-  * ``store_small_clauses_threshold`` -- clause-length threshold for the
-    UBTree store
+
+  The dataclass also defines ``distribution_strategy``,
+  ``store_small_clauses_threshold``, ``per_query_conflict_budget``,
+  ``important_bucket_size``, and ``kprime_for_decision_votes``. These fields are
+  currently not read by ``Dissolve.solve()``: the solver always uses
+  dilemma-rule splits and the UBTree store's built-in tier thresholds.
 
 * ``DissolveResult`` -- result container with satisfiability status, model,
   and runtime
@@ -56,7 +63,6 @@ Programmatic usage
    cfg = DissolveConfig(
        k_split_vars=5,
        budget_strategy="luby",
-       distribution_strategy="dilemma",
    )
    solver = Dissolve(cfg)
    result = solver.solve(cnf_clauses)

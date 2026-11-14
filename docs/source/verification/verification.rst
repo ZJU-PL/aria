@@ -17,19 +17,30 @@ At a high level, EFMC follows this workflow:
 Main engines
 ------------
 
-Current engine families include:
+Engines selectable through ``aria-efmc --engine`` (see ``run_verifier`` in
+``aria/cli/efmc_cli.py``):
 
-* **EF / template-based** invariant synthesis
-* **PDR** via Spacer-oriented workflows
-* **K-induction**
-* **Houdini**
-* **Abduction**
-* **QE** and **QI** verification paths
-* **Predicate abstraction** and **symbolic abstraction**
-* **BDD-based** verification
-* **LLM4Inv**
-* specialized areas such as **PolyHorn**, **k-safety**, **danger**, and
-  abstract-interpretation-related flows
+* **EF / template-based** invariant synthesis (``ef``)
+* **PDR** via Z3's CHC/Spacer engine (``pdr``)
+* **K-induction** (``kind``)
+* **QE** and **QI** verification paths (``qe``, ``qi``)
+* **Houdini** (``houdini``)
+* **Abduction** (``abduction``)
+* **BDD-based** verification (``bdd``)
+* **Predicate abstraction** and **symbolic abstraction** (``predabs``,
+  ``symabs``)
+* **LLM4Inv** (``llm4inv``)
+
+Additional engines that are only available through the Python API (they have
+no ``--engine`` value):
+
+* **Danger invariants** -- ``aria.efmc.engines.danger.DangerInvariantProver``
+* **k-safety / hyperproperties** --
+  ``aria.efmc.engines.ksafety`` (``NonInterferenceProver``,
+  ``HyperLTLProver``, and related classes)
+
+PolyHorn is a separate solver with its own frontend and command-line entrypoint
+(``aria-polyhorn``); it is not selectable from ``aria-efmc``.
 
 CLI entrypoints
 ---------------

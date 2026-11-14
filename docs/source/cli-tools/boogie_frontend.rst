@@ -162,11 +162,24 @@ Generated Transition System
 
 The converter creates a transition system with:
 
-- **Variables**: Current state variables (e.g., ``x``, ``y``)
-- **Prime Variables**: Next state variables (e.g., ``x!``, ``y!``)
-- **Initial Condition**: Entry condition for the loop
-- **Transition Relation**: How variables change in one loop iteration
-- **Post Condition**: Safety properties to verify (from assertions)
+- **Variables**: Current state variables (e.g., ``x``, ``count``)
+- **Prime Variables**: Next state variables (e.g., ``x!``, ``count!``)
+- **Initial Condition**: Currently always ``True``. The converter does not
+  reconstruct an entry condition from the blocks preceding the loop header.
+- **Transition Relation**: How variables change in one loop iteration, derived
+  from the loop body paths (including their guards)
+- **Post Condition**: A heuristic. The frontend currently returns
+  ``x >= 0`` for a single variable ``x`` (and a single non-negativity
+  constraint for multi-variable loops); it does not reliably translate the
+  Boogie ``assert`` statements. Check ``ts.post`` before relying on it for
+  verification.
+
+.. warning::
+
+   Because ``init`` is ``True`` and ``post`` is heuristic, a ``safe`` result
+   from an engine run on a Boogie-derived transition system does not
+   necessarily mean the original Boogie assertions hold. The C frontend does
+   translate ``assert`` statements into ``post``.
 
 Integration with EFMC Engines
 -----------------------------

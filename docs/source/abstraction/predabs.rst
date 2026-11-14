@@ -1,8 +1,13 @@
-Predicate Abstraction and CEGAR
-===============================
+Predicate Abstraction
+=====================
 
 This page covers the EFMC-facing predicate-abstraction engine rather than the
 lower-level standalone symbolic-abstraction helpers documented elsewhere.
+
+The current engine performs strongest-consequence abstraction over a fixed
+predicate set and has no counterexample-guided refinement loop: if the computed
+invariant does not imply the safety property, ``solve()`` returns
+``VerificationResult(..., is_unknown=True)``.
 
 Current engine surface
 ----------------------

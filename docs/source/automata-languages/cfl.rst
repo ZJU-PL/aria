@@ -67,8 +67,10 @@ Matrix formulations for efficient CFL-reachability:
    from aria.automata.cfl.pag_matrix import Vertex
 
    # The constructor reads a PAG graph from a .dot file (or a
-   # comma-separated .txt edge list)
-   pag = PAG_Matrix("demo/100KB.dot")
+   # comma-separated .txt edge list). Paths are relative to the current
+   # working directory; the bundled sample lives at
+   # aria/automata/cfl/demo/100KB.dot.
+   pag = PAG_Matrix("aria/automata/cfl/demo/100KB.dot")
    pag.add_vertex(Vertex("var1"))
    pag.add_vertex(Vertex("var2"))
    pag.add_edge("var1", "var2", "assign")

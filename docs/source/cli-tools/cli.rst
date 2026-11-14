@@ -25,7 +25,7 @@ The current ``pyproject.toml`` registers these commands:
      - Model counting for Boolean, bit-vector, and arithmetic inputs
    * - ``aria-pyomt``
      - ``python -m aria.cli.pyomt_cli``
-     - Optimization modulo theories and MaxSMT frontends
+     - OMT solving (``--type maxsmt`` is accepted but not implemented; use ``aria-maxsat``)
    * - ``aria-efsmt``
      - ``python -m aria.cli.efsmt_cli``
      - Exists-forall SMT solving
@@ -168,7 +168,9 @@ Compute one UNSAT core or enumerate MUSes from SMT-LIB2 input.
 ``allsmt``
 ~~~~~~~~~~
 
-Enumerate satisfying models, optionally projected to selected variables.
+Enumerate satisfying models. ``--project`` restricts the variables used for
+enumeration (and therefore the model count); the printed models may still
+display assignments for all variables in the formula.
 
 .. code-block:: bash
 

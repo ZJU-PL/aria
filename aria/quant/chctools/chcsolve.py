@@ -158,6 +158,12 @@ class ChcSolveCmd(CliCmd):
             print(res)
         elif args.solver == "cli":
             chc_solve_with_cli(args.in_file, args, opts)
+        elif args.solver == "smt":
+            # Convert the CHC problem into the SMT-LIB "chc" format and print it
+            from .chcpp import pp_chc  # pylint: disable=import-outside-toplevel
+
+            db = load_horn_db_from_file(args.in_file)
+            pp_chc(db, sys.stdout, fmt="chc")
         return 0
 
 

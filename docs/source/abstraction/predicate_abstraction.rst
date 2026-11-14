@@ -124,20 +124,30 @@ to continue.
 Advanced Topics
 ---------------
 
-Optimization with Prime Implicants
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Prime Implicants
+~~~~~~~~~~~~~~~~
 
-The ``prime_implicant(ps, e)`` helper searches for a subset of the predicate
-literals in the list ``ps`` whose conjunction implies ``e``, returning the
-predicates contributing to the unsat core. It takes a list of literals (as
-returned by ``eval_predicates``), not a single conjunction:
+The module also defines ``prime_implicant(ps, e)``, which searches for a subset
+of the literals in the list ``ps`` whose conjunction implies ``e``. It works on
+a list of literals (as returned by ``eval_predicates``), not on a single
+conjunction, and returns the predicates contributing to the unsat core; if no
+subset entails ``e`` it returns an empty list:
 
 .. code-block:: python
 
-   # Get a more minimal representation for the current model
+   # Does some subset of the literals imply `fml`?
    literals = eval_predicates(m, predicates)
-   core = prime_implicant(literals, fml)  # Further optimization
-   projs = z3.And(core)
+   core = prime_implicant(literals, fml)
+
+Note that ``predicate_abstraction`` does **not** currently call this helper:
+the main loop uses the full projection ``z3.And(eval_predicates(m, predicates))``
+directly. The direction of the implication also matters. For abstraction one
+needs the projection to be *implied by* ``fml`` (a necessary condition), while
+``prime_implicant(ps, e)`` returns a conjunction that *implies* ``e``. Applying
+it as written above would therefore strengthen each projection into a formula
+that need not hold in the abstracted states, which is not a sound replacement
+for the current loop body and is why the call is left commented out in the
+source.
 
 Scalability Considerations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
