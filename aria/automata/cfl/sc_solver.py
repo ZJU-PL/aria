@@ -52,6 +52,10 @@ class SCSolver:
     """
 
     def __init__(self, mode: str) -> None:
+        if mode != "Cubic":
+            raise ValueError(
+                f"Unsupported SC solving mode: {mode!r}; only 'Cubic' is supported"
+            )
         self.mode: str = mode
         self.constraint: Dict[str, Dict[str, Set[str]]] = {}
         self.set_variable: Set[str] = set()
@@ -74,6 +78,8 @@ class SCSolver:
     def solve(self, graph: Any, grammar: Any) -> None:
         if self.mode == "Cubic":
             self.__cubic_solve(graph, grammar)
+        else:  # pragma: no cover - guarded by __init__
+            raise NotImplementedError(f"SC solving mode {self.mode!r} not implemented")
 
     # convert the CFL-reachability to SC-reduction
     # according to https://doi.org/10.1109/LICS.1997.614960

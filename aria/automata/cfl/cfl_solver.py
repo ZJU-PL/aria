@@ -47,6 +47,10 @@ class CFLSolver:
         Raises:
             ValueError: If mode is not supported.
         """
+        if mode != "Cubic":
+            raise ValueError(
+                f"Unsupported CFL solving mode: {mode!r}; only 'Cubic' is supported"
+            )
         self.mode: str = mode
 
     def estimate(self, sol: int, cand: int, nnn: int) -> int:
@@ -98,6 +102,8 @@ class CFLSolver:
         """
         if self.mode == "Cubic":
             self.__cubic_solve(graph, grammar)
+        else:  # pragma: no cover - guarded by __init__
+            raise NotImplementedError(f"CFL solving mode {self.mode!r} not implemented")
 
     def __cubic_solve(self, graph: Any, grammar: Any) -> None:
         """

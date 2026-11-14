@@ -30,7 +30,8 @@ Core CFL-reachability solving:
 
    from aria.automata.cfl import CFLSolver
 
-   # The only supported mode is the cubic-time DTC-based algorithm
+   # The only supported mode is the cubic-time DTC-based algorithm; any other
+   # mode string raises ValueError.
    solver = CFLSolver("Cubic")
 
 Dynamic Transitive Closure (``aria/automata/cfl/cfl_dtc.py``, ``dtc.py``)
