@@ -9,7 +9,7 @@ components are:
 
 ### ai_symabs: Abstract Interpretation-based Symbolic Abstraction
 
-- Implements classic abstract interpretation domains (intervals, signs, octagons)
+- Implements classic abstract interpretation domains (intervals, signs)
 - Based on the algorithms from Tharkur's PhD thesis
 - Supports reduced product of abstract domains
 
@@ -40,3 +40,10 @@ TODO: check whether the current implementation compute the strongest affine rela
 ### rangeset
 
 Range and Set Abstraction using SAT (after Barrett & King).
+
+### symba
+
+Symbolic optimization with SMT solvers (Li et al., "Symbolic Optimization with
+SMT Solvers"). Provides ``SYMBA`` for single-objective and ``MultiSYMBA`` for
+multi-objective/Pareto optimization over LRA objectives. See
+``aria/symabs/symba/README.md``.

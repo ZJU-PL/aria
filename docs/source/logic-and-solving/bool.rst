@@ -48,7 +48,7 @@ Multiple SAT solver backends with unified interface.
 **Key Classes:**
 
 * ``PySATSolver`` (``aria.bool.sat.pysat_solver``): Wrapper around PySAT
-  supporting 14+ solvers (CDCL, Glucose, MapleSAT, etc.)
+  supporting 14 solvers (CDCL, Glucose, MapleSAT, etc.)
   - Methods: ``check_sat()``, ``check_sat_assuming()``, ``get_model()``, ``sample_models()``, ``reduce_models()``
 * ``Z3SATSolver`` (``aria.bool.sat.z3sat_solver``): Z3-based SAT solver
   implementation
@@ -444,6 +444,6 @@ Size Statistics
 * Total Python files: ~100
 * Lines of code: ~23,000
 * Main NNF library (``nnf/__init__.py``): ~1,850 lines
-* Supported SAT solvers: 14+
+* Supported SAT solvers: 14
 * Supported MaxSAT algorithms: 5 (FM, RC2, LSU, OBV-BS, Anytime)
 * Extracted features: 40+

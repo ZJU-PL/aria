@@ -5,6 +5,8 @@ Subpackages of interest include:
 - ai_symabs: classic abstract interpretation domains
 - omt_symabs: OMT-driven abstractions
 - predicate_abstraction: predicate abstraction
-- congruence: congruence-closure based abstraction
-- rangeset_sat: SAT-based range and set abstraction over bit-vectors
+- mcai: model counting-based abstract interpretation
+- affine_relation: affine-relation abstraction
+- rangeset: SAT-based range and set abstraction over bit-vectors
+- symba: symbolic bounded abstraction
 """
